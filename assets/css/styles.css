@@ -222,6 +222,50 @@
   .vendor-card-body { padding: 8px 9px; }
   .vendor-card-body p { font-size: 12.5px; font-weight: 600; }
 
+
+  /* ── FEATURE STACK + RIGHT AD RAIL ── */
+  .content-with-ad-rail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 250px;
+    gap: 18px;
+    align-items: start;
+  }
+  .content-main-stack { display: flex; flex-direction: column; gap: 20px; }
+  .vendor-top-ad {
+    background: linear-gradient(90deg, #1b4f8f, #1f66b4);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    color: #fff;
+  }
+  .vendor-top-ad-title { font-size: 20px; font-family: 'Manrope', sans-serif; font-weight: 700; }
+  .vendor-top-ad-sub { font-size: 13px; opacity: .9; }
+  .vendor-top-ad-btn {
+    background: #f5a623; color: #fff; border: none; border-radius: 8px; padding: 8px 16px;
+    font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit;
+  }
+  .property-ad-card {
+    border: 1px solid var(--border); border-radius: 10px; padding: 18px; background: var(--green-pale);
+  }
+  .property-ad-title { font-size: 15px; font-weight: 800; color: var(--blue-dark); margin-bottom: 6px; }
+  .property-ad-sub { font-size: 12px; color: #555; margin-bottom: 12px; }
+  .property-ad-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .property-ad-list div { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .property-ad-list i { color: var(--secondary); }
+
+  .section-ad-rail { display: flex; flex-direction: column; gap: 16px; }
+  .rail-ad-card {
+    background: var(--white); border: 1px solid #e5eaf1; border-radius: 10px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .rail-ad-card img { width: 100%; height: 152px; object-fit: cover; display: block; }
+  .rail-ad-body { padding: 12px 12px 14px; }
+  .rail-ad-body h4 { font-family: 'Manrope', sans-serif; font-size: 15px; color: var(--blue-dark); margin-bottom: 4px; }
+  .rail-ad-body p { font-size: 12px; color: var(--text-muted); }
+
   /* ── LISTING CARDS (SSNY style) ── */
   .listing-card { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: box-shadow .18s; }
   .listing-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,.1); }
@@ -332,6 +376,8 @@
 @media (max-width: 1100px) {
   .cat-item { flex-basis: calc((100% - 32px) / 5); min-width: 96px; }
   .hero-content h1 { font-size: 28px; }
+  .content-with-ad-rail { grid-template-columns: 1fr; }
+  .section-ad-rail { display: grid; grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 760px) {
@@ -343,4 +389,5 @@
   .seller-title { font-size: 22px; }
   .trusted-bar { grid-template-columns: 1fr; }
   .trust-item { justify-content: flex-start; }
+  .section-ad-rail { grid-template-columns: 1fr; }
 }
