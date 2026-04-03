@@ -4,302 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SoilnWater – Local & National Marketplace</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --green: #2e7d32;
-    --green-light: #43a047;
-    --green-pale: #e8f5e9;
-    --yellow: #f9a825;
-    --yellow-btn: #f5a623;
-    --blue-dark: #1a3a5c;
-    --blue-mid: #1565c0;
-    --blue-btn: #1976d2;
-    --text: #222;
-    --text-muted: #666;
-    --border: #e0e0e0;
-    --bg: #f0f4f8;
-    --white: #fff;
-    --radius: 10px;
-    --shadow: 0 2px 10px rgba(0,0,0,.09);
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
-  a { text-decoration: none; color: inherit; }
-
-  /* ── HEADER ── */
-  .header {
-    background: var(--white);
-    padding: 10px 28px;
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.10);
-    position: sticky; top: 0; z-index: 100;
-  }
-  .logo {
-    display: flex; align-items: center; gap: 6px;
-    font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 23px;
-    color: var(--green); white-space: nowrap; letter-spacing: -.3px;
-  }
-  .logo .logo-n { color: #222; }
-  .logo-icon {
-    width: 36px; height: 36px; flex-shrink: 0;
-  }
-  /* Location pill */
-  .loc-wrap {
-    display: flex; align-items: center; gap: 4px;
-    border: 1px solid #d0d0d0; border-radius: 6px;
-    padding: 7px 11px; font-size: 13px; color: var(--text);
-    cursor: pointer; white-space: nowrap; background: #fafafa;
-    font-weight: 500;
-  }
-  .loc-pin { color: var(--green); font-size: 15px; }
-  .loc-caret { color: #888; font-size: 11px; margin-left: 2px; }
-  /* Search */
-  .search-wrap { flex: 1; position: relative; min-width: 0; }
-  .search-wrap input {
-    width: 100%; border: 1.5px solid #d5d5d5; border-radius: 7px;
-    padding: 9px 14px; font-size: 13px; font-family: inherit; outline: none;
-    color: #555;
-  }
-  .search-wrap input:focus { border-color: var(--green-light); }
-  /* Buttons */
-  .btn-post {
-    background: var(--blue-btn); color: #fff; border: none;
-    border-radius: 7px; padding: 9px 22px; font-weight: 700;
-    font-size: 13.5px; cursor: pointer; white-space: nowrap;
-    font-family: inherit; letter-spacing: .2px;
-    box-shadow: 0 2px 8px rgba(25,118,210,.28);
-  }
-  .btn-post:hover { background: #1558a8; }
-  .btn-login {
-    background: transparent; border: 1.5px solid #ccc;
-    border-radius: 7px; padding: 8px 18px; font-weight: 600;
-    font-size: 13px; cursor: pointer; color: var(--text);
-    font-family: inherit;
-  }
-  .btn-login:hover { background: #f5f5f5; }
-
-  /* ── HERO BANNER ── */
-  .hero {
-    background: linear-gradient(160deg, #d6eaf8 0%, #dff0ea 40%, #e8f5e9 70%, #fef9e7 100%);
-    padding: 0 40px 0 48px;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    min-height: 172px;
-    position: relative;
-    border-bottom: 1px solid #dde;
-  }
-  /* sky + grass pseudo layers */
-  .hero::after {
-    content: '';
-    position: absolute; bottom: 0; left: 0; right: 0; height: 38px;
-    background: linear-gradient(180deg, transparent 0%, #b8ddb0 100%);
-    pointer-events: none;
-  }
-  /* scattered stars */
-  .hero-stars {
-    position: absolute; top: 12px; right: 380px;
-    font-size: 18px; color: #f9c74f; pointer-events: none;
-    line-height: 1.8; letter-spacing: 4px;
-  }
-  .hero-content { display: flex; flex-direction: column; justify-content: center; padding: 30px 0 44px; flex: 1; position: relative; z-index: 1; }
-  .hero-content h1 {
-    font-family: 'Nunito', sans-serif; font-size: 30px; font-weight: 900;
-    color: #1a2e44; line-height: 1.15; margin-bottom: 18px;
-  }
-  .btn-yellow {
-    background: #f5a623; color: #fff; border: none; border-radius: 8px;
-    padding: 12px 30px; font-weight: 800; font-size: 15px; cursor: pointer;
-    font-family: inherit; display: inline-block;
-    box-shadow: 0 4px 14px rgba(245,166,35,.4); letter-spacing: .2px;
-    transition: background .18s, transform .12s;
-  }
-  .btn-yellow:hover { background: #e0951a; transform: translateY(-1px); }
-  /* Right illustration area */
-  .hero-illus {
-    width: 380px; flex-shrink: 0; display: flex; align-items: flex-end;
-    justify-content: center; position: relative; z-index: 1; padding-bottom: 0;
-  }
-  .hero-illus svg { width: 100%; height: 160px; }
-
-  /* ── HERO BANNER 2 (SSNY style) ── */
-  .hero2 {
-    background: linear-gradient(to bottom, rgba(0,0,0,.45), rgba(0,0,0,.2)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80') center/cover no-repeat;
-    padding: 52px 40px;
-    text-align: center;
-    color: #fff;
-  }
-  .hero2 h2 { font-family: 'Nunito', sans-serif; font-size: 32px; font-weight: 900; margin-bottom: 8px; text-shadow: 0 2px 8px rgba(0,0,0,.4); }
-  .hero2 p { font-size: 14px; opacity: .9; margin-bottom: 22px; }
-
-  /* ── CATEGORY NAV ── */
-  .cat-bar { background: var(--white); padding: 16px 28px; border-bottom: 1px solid var(--border); position: relative; }
-  .cat-scroller-wrap { position: relative; }
-  .cat-scroller-wrap::before,
-  .cat-scroller-wrap::after {
-    content: ''; position: absolute; top: 0; bottom: 0; width: 40px; z-index: 2; pointer-events: none;
-  }
-  .cat-scroller-wrap::before { left: 0; background: linear-gradient(to right, #fff 60%, transparent); }
-  .cat-scroller-wrap::after { right: 0; background: linear-gradient(to left, #fff 60%, transparent); }
-  .cat-bar-inner {
-    display: flex; gap: 6px; overflow-x: auto; scroll-behavior: smooth;
-    scrollbar-width: none; -ms-overflow-style: none;
-    padding: 4px 0 6px;
-  }
-  .cat-bar-inner::-webkit-scrollbar { display: none; }
-  .cat-item {
-    display: flex; flex-direction: column; align-items: center; gap: 7px;
-    cursor: pointer; transition: transform .18s; flex-shrink: 0; width: 88px;
-  }
-  .cat-item:hover { transform: translateY(-3px); }
-  .cat-icon {
-    width: 66px; height: 66px; border-radius: 50%; background: #f7f7f7;
-    display: flex; align-items: center; justify-content: center; font-size: 28px;
-    border: 2px solid #e8e8e8; transition: border-color .18s, background .18s, box-shadow .18s;
-    box-shadow: 0 1px 4px rgba(0,0,0,.06);
-  }
-  .cat-item:hover .cat-icon { border-color: var(--green-light); background: var(--green-pale); box-shadow: 0 3px 10px rgba(67,160,71,.18); }
-  .cat-item.active .cat-icon { border-color: var(--green); background: var(--green-pale); }
-  .cat-item span { font-size: 12px; font-weight: 600; color: #333; text-align: center; line-height: 1.2; }
-  /* scroll arrow buttons */
-  .cat-arrow {
-    position: absolute; top: 50%; transform: translateY(-50%);
-    width: 30px; height: 30px; border-radius: 50%; background: var(--white);
-    border: 1.5px solid var(--border); cursor: pointer; z-index: 3;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; color: #555; box-shadow: 0 2px 6px rgba(0,0,0,.12);
-    transition: background .15s;
-  }
-  .cat-arrow:hover { background: var(--green-pale); color: var(--green); }
-  .cat-arrow-left { left: -6px; }
-  .cat-arrow-right { right: -6px; }
-
-  /* ── SECTION WRAPPER ── */
-  .main-wrap { display: flex; gap: 20px; padding: 20px 20px; max-width: 1200px; margin: 0 auto; }
-  .main-col { flex: 1; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-  .side-col { width: 240px; display: flex; flex-direction: column; gap: 16px; }
-
-  /* ── SECTION HEADER ── */
-  .sec { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
-  .sec-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .sec-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap-7px; color: var(--blue-dark); }
-  .sec-title .icon { font-size: 20px; margin-right: 6px; }
-  .view-all { font-size: 12px; font-weight: 700; color: var(--blue-btn); display: flex; align-items: center; gap: 3px; cursor: pointer; white-space: nowrap; }
-  .view-all:hover { text-decoration: underline; }
-
-  /* ── SPONSORED ── */
-  .sponsored-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
-  .sp-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: box-shadow .18s; }
-  .sp-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.13); }
-  .sp-card img { width: 100%; height: 90px; object-fit: cover; display: block; }
-  .sp-card-body { padding: 7px 8px 8px; }
-  .sp-card-body p { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
-  .sp-badge { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
-  .sp-badge::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); }
-
-  /* ── ADV STRIP ── */
-  .adv-strip { background: var(--yellow-btn); color: #fff; text-align: center; padding: 8px; font-weight: 700; font-size: 13px; letter-spacing: 2px; border-radius: 6px; }
-  .adv-strip-dark { background: linear-gradient(90deg, #1a3a5c, #1565c0); color: #fff; border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
-  .adv-strip-dark .adv-text h3 { font-size: 18px; font-weight: 800; }
-  .adv-strip-dark .adv-text p { font-size: 12px; opacity: .85; }
-
-  /* ── PRODUCT CARDS ── */
-  .product-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-  .product-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  .prod-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: box-shadow .18s, transform .18s; background: var(--white); }
-  .prod-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.13); transform: translateY(-2px); }
-  .prod-card img { width: 100%; height: 120px; object-fit: cover; display: block; }
-  .prod-card-body { padding: 9px 10px 10px; }
-  .prod-card-body p { font-size: 12.5px; font-weight: 600; margin-bottom: 3px; }
-  .prod-price { font-size: 13px; font-weight: 800; color: var(--blue-dark); margin-bottom: 3px; }
-  .prod-badge { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
-  .prod-badge::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); }
-  .view-all-card { border-radius: 8px; border: 1.5px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 160px; font-size: 13px; font-weight: 700; color: var(--blue-btn); cursor: pointer; gap: 6px; }
-  .view-all-card:hover { background: var(--green-pale); }
-
-  /* ── VENDOR CARDS ── */
-  .vendor-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-  .vendor-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: box-shadow .18s; }
-  .vendor-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.13); }
-  .vendor-card img { width: 100%; height: 110px; object-fit: cover; display: block; }
-  .vendor-card-body { padding: 8px 9px; }
-  .vendor-card-body p { font-size: 12.5px; font-weight: 600; }
-
-  /* ── LISTING CARDS (SSNY style) ── */
-  .listing-card { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: box-shadow .18s; }
-  .listing-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,.1); }
-  .listing-card img { width: 75px; height: 75px; object-fit: cover; border-radius: 7px; flex-shrink: 0; }
-  .listing-info { flex: 1; }
-  .listing-info h4 { font-size: 13.5px; font-weight: 700; margin-bottom: 3px; }
-  .listing-info .addr { font-size: 11.5px; color: var(--text-muted); margin-bottom: 4px; }
-  .stars { color: #f9a825; font-size: 12px; }
-  .listing-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-  .listing-badge { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
-  .btn-view { background: var(--green); color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; align-self: center; }
-
-  /* ── SIDEBAR CARDS ── */
-  .side-card { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-  .side-card-img { width: 100%; height: 130px; object-fit: cover; display: block; }
-  .side-card-body { padding: 14px; background: var(--white); }
-  .side-card-body h3 { font-size: 15px; font-weight: 800; color: var(--blue-dark); margin-bottom: 5px; }
-  .side-card-body p { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
-  .btn-learn { background: var(--yellow-btn); color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; width: 100%; }
-
-  /* ── EXPLORE PRODUCTS ── */
-  .explore-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-  .exp-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; cursor: pointer; transition: box-shadow .18s, transform .18s; background: var(--white); }
-  .exp-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.13); transform: translateY(-2px); }
-  .exp-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
-  .exp-card-body { padding: 8px 10px 10px; }
-  .exp-card-body h4 { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
-  .exp-card-body .sub { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
-  .exp-price { font-size: 12px; font-weight: 800; color: var(--blue-dark); margin-bottom: 6px; }
-  .btn-chat { background: var(--green); color: #fff; border: none; border-radius: 5px; padding: 5px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: inherit; width: 100%; }
-
-  /* ── CONSULTANT CARDS ── */
-  .consult-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .con-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; text-align: center; cursor: pointer; transition: box-shadow .18s; background: var(--white); }
-  .con-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.13); }
-  .con-card img { width: 100%; height: 110px; object-fit: cover; display: block; }
-  .con-card p { font-size: 12px; font-weight: 600; padding: 8px 6px; }
-
-  /* ── ENQUIRY CTA ── */
-  .enquiry-cta { background: linear-gradient(135deg, #1a3a5c 0%, #1565c0 100%); border-radius: 8px; padding: 18px 16px; color: #fff; text-align: center; }
-  .enquiry-cta h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
-  .enquiry-cta p { font-size: 11.5px; opacity: .85; margin-bottom: 12px; }
-  .btn-enquiry { background: var(--yellow-btn); color: #fff; border: none; border-radius: 6px; padding: 9px 20px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
-
-  /* ── TRUSTED BAR ── */
-  .trusted-bar { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 24px; display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
-  .trust-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--blue-dark); }
-  .trust-icon { font-size: 22px; }
-
-  /* ── FOOTER ── */
-  .footer { background: var(--white); border-top: 1px solid var(--border); padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text-muted); }
-  .footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
-  .footer-links span { display: flex; align-items: center; gap: 5px; }
-  .footer-contact { display: flex; gap: 20px; flex-wrap: wrap; }
-  .footer-contact span { display: flex; align-items: center; gap: 5px; }
-
-  /* ── PROPERTY LIST ── */
-  .prop-list { display: flex; flex-direction: column; gap: 10px; }
-
-  /* ── CONSULTANT LIST ── */
-  .con-list { display: flex; flex-direction: column; gap: 10px; }
-  .con-row { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: box-shadow .18s; }
-  .con-row:hover { box-shadow: 0 3px 12px rgba(0,0,0,.1); }
-  .con-row img { width: 55px; height: 55px; object-fit: cover; border-radius: 50%; flex-shrink: 0; }
-  .con-row-info { flex: 1; }
-  .con-row-info h4 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
-  .con-row-info .addr { font-size: 11px; color: var(--text-muted); }
-  .con-row-info .sub { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
-
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .badge-green { background: var(--green); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; display: inline-block; }
-</style>
+<link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWix+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkR4j8RykmQ1L4b1cQJYx04FQ7U8iQ8L+4kg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
 
@@ -309,18 +17,13 @@
 <header class="header">
   <!-- Logo: SVG leaf + SoilnWater wordmark -->
   <div class="logo">
-    <svg class="logo-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="18" cy="18" r="18" fill="#e8f5e9"/>
-      <!-- leaf shape -->
-      <path d="M18 6 C10 10 8 20 14 27 C14 27 22 28 26 22 C30 16 26 8 18 6Z" fill="#43a047"/>
-      <path d="M18 6 C18 6 18 16 14 27" stroke="#2e7d32" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    </svg>
+    <img class="logo-icon" src="assets/images/logo-mark.svg" alt="SoilnWater logo">
     <span style="color:var(--green);">Soil</span><span class="logo-n">n</span><span style="color:var(--green);">Water</span>
   </div>
 
   <!-- Location picker -->
   <div class="loc-wrap">
-    <span class="loc-pin">📍</span>
+    <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
     <span>New Delhi</span>
     <span class="loc-caret">▾</span>
   </div>
@@ -342,7 +45,7 @@
 <section class="hero">
   <div class="hero-stars">✦ ✦<br>✦</div>
   <div class="hero-content">
-    <h1>Boost Your Business Here!</h1>
+    <h1>Grow Your Business with a Professional Marketplace Presence</h1>
     <button class="btn-yellow">Advertise Now</button>
   </div>
 
@@ -523,28 +226,7 @@
   </div>
 </div>
 
-<script>
-(function(){
-  const scroller = document.getElementById('catScroller');
-  const btnL = document.getElementById('catLeft');
-  const btnR = document.getElementById('catRight');
-  const STEP = 280;
-  btnL.addEventListener('click', () => { scroller.scrollLeft -= STEP; });
-  btnR.addEventListener('click', () => { scroller.scrollLeft += STEP; });
-
-  // Auto-scroll: pause at each "page" of 7 for 3 s, then advance
-  let autoDir = 1;
-  const TOTAL_VISIBLE = 7;
-  function autoScroll(){
-    const maxScroll = scroller.scrollWidth - scroller.clientWidth;
-    if(scroller.scrollLeft >= maxScroll - 2) autoDir = -1;
-    if(scroller.scrollLeft <= 2) autoDir = 1;
-    scroller.scrollLeft += STEP * autoDir;
-  }
-  const autoTimer = setInterval(autoScroll, 3200);
-  scroller.addEventListener('mouseenter', () => clearInterval(autoTimer));
-})();
-</script>
+<script src="assets/js/main.js" defer></script>
 
 
 <!-- ══════════════════════════════════════════════════
@@ -558,7 +240,7 @@
     <!-- Top Categories + Boost Ad -->
     <div class="sec">
       <div class="sec-head">
-        <div class="sec-title">Top Categories:</div>
+        <div class="sec-title"><i class="fa-solid fa-layer-group"></i> Top Categories</div>
         <a class="view-all" href="#">Learn More ▶</a>
       </div>
       <!-- Boost Ad Banner -->
@@ -574,7 +256,7 @@
     <!-- Sponsored Listings -->
     <div class="sec">
       <div class="sec-head">
-        <div class="sec-title"><span class="icon">🔶</span> Sponsored Listings</div>
+        <div class="sec-title"><span class="icon"><i class="fa-solid fa-bullhorn"></i></span> Sponsored Listings</div>
         <a class="view-all" href="#">VIEW ALL ▶</a>
       </div>
       <div class="sponsored-grid">
@@ -611,7 +293,7 @@
     <!-- E-Commerce Section -->
     <div class="sec">
       <div class="sec-head">
-        <div class="sec-title"><span class="icon">🛒</span> E-Commerce</div>
+        <div class="sec-title"><span class="icon"><i class="fa-solid fa-cart-shopping"></i></span> E-Commerce</div>
         <a class="view-all" href="#">VIEW ALL ▶</a>
       </div>
       <div class="product-grid">
@@ -668,7 +350,7 @@
     <!-- Top Vendors -->
     <div class="sec">
       <div class="sec-head">
-        <div class="sec-title"><span class="icon">🏪</span> Top Vendors</div>
+        <div class="sec-title"><span class="icon"><i class="fa-solid fa-store"></i></span> Top Vendors</div>
         <a class="view-all" href="#">VIEW ALL ▶</a>
       </div>
       <div style="background:linear-gradient(90deg,#1a3a5c,#1565c0);border-radius:8px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -829,7 +511,7 @@
     <!-- Builders & Developers -->
     <div class="sec">
       <div class="sec-head">
-        <div class="sec-title"><span class="icon">🏗️</span> Builders &amp; Developers</div>
+        <div class="sec-title"><span class="icon"><i class="fa-solid fa-screwdriver-wrench"></i></span> Builders &amp; Developers</div>
         <a class="view-all" href="#">VIEW ALL ▶</a>
       </div>
       <div class="product-grid-4">
@@ -855,7 +537,7 @@
     <!-- Popular Services / Properties -->
     <div class="sec">
       <div class="sec-head">
-        <div class="sec-title"><span class="icon">🏠</span> Popular Services</div>
+        <div class="sec-title"><span class="icon"><i class="fa-solid fa-house"></i></span> Popular Services</div>
         <a class="view-all" href="#">VIEW ALL ▶</a>
       </div>
       <div class="product-grid-4">
@@ -881,7 +563,7 @@
     <!-- Consultants & Enquiry -->
     <div class="sec">
       <div class="sec-head">
-        <div class="sec-title"><span class="icon">💼</span> Consultants &amp; Enquiry</div>
+        <div class="sec-title"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Consultants &amp; Enquiry</div>
         <a class="view-all" href="#">POST YOUR QUERY ▶</a>
       </div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
@@ -911,12 +593,12 @@
     </div>
 
     <!-- Local Sellers CTA -->
-    <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:var(--radius);padding:22px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:36px;">✅</span>
+    <div class="seller-highlight">
+      <div class="seller-highlight-info">
+        <span class="seller-badge"><i class="fa-solid fa-check"></i></span>
         <div>
-          <div style="font-size:20px;font-weight:800;color:var(--green);">Local Sellers Across India</div>
-          <div style="font-size:13px;color:#555;">Trusted | Nationwide Reach | Secure Payments</div>
+          <div class="seller-title">Local Sellers Across India</div>
+          <div class="seller-sub">Trusted partners • Nationwide reach • Secure payments</div>
         </div>
       </div>
       <button class="btn-yellow">Learn More</button>
@@ -974,11 +656,11 @@
 <!-- ══════════════════════════════════════════════════
      TRUSTED BAR
 ══════════════════════════════════════════════════ -->
-<div style="max-width:1200px;margin:0 auto 20px;padding:0 20px;">
+<div class="trusted-wrap">
   <div class="trusted-bar">
-    <div class="trust-item"><span class="trust-icon">🛡️</span> Trusted Local Sellers</div>
-    <div class="trust-item"><span class="trust-icon">🌐</span> Nationwide Reach</div>
-    <div class="trust-item"><span class="trust-icon">🔒</span> Secure Payments</div>
+    <div class="trust-item"><span class="trust-icon"><i class="fa-solid fa-shield-heart"></i></span> Trusted Local Sellers</div>
+    <div class="trust-item"><span class="trust-icon"><i class="fa-solid fa-earth-asia"></i></span> Nationwide Reach</div>
+    <div class="trust-item"><span class="trust-icon"><i class="fa-solid fa-lock"></i></span> Secure Payments</div>
   </div>
 </div>
 
@@ -988,8 +670,13 @@
 ══════════════════════════════════════════════════ -->
 <footer class="footer">
   <div class="footer-links">
-    <span>🌾 Adiports Poultry Farms Hardware Conveyances</span>
+    <span><i class="fa-solid fa-seedling"></i> Adiports Poultry Farms Hardware Conveyances</span>
   </div>
   <div class="footer-contact">
-    <span>📞 A6-162725 / 236-353915</span>
-    <span>🌐 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3b52555f525a1555545a7b535e554952575e49
+    <span><i class="fa-solid fa-phone"></i> A6-162725 / 236-353915</span>
+    <span><i class="fa-solid fa-envelope"></i> support@soilnwater.in</span>
+  </div>
+</footer>
+
+</body>
+</html>
