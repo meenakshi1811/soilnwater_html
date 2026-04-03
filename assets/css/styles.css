@@ -223,6 +223,54 @@
   .vendor-card-body p { font-size: 12.5px; font-weight: 600; }
 
 
+
+  /* ── AD SLOTS ── */
+  .ad-slot-card {
+    background: linear-gradient(160deg, #f7fbff 0%, #ecf4ff 100%);
+    border-style: solid;
+    border-color: #d5e4f6;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 12px;
+    text-align: left;
+    gap: 8px;
+  }
+  .ad-tag {
+    display: inline-flex; align-items: center; font-size: 10px; font-weight: 700;
+    color: #fff; background: var(--primary); border-radius: 99px; padding: 4px 8px;
+  }
+  .ad-slot-card h4 { font-family: 'Manrope', sans-serif; color: var(--blue-dark); font-size: 14px; }
+  .ad-slot-card p { font-size: 11px; color: var(--text-muted); }
+  .ad-slot-btn {
+    background: var(--primary); color: #fff; border: none; border-radius: 7px;
+    padding: 8px 12px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+
+  .ad-wide-slot { padding: 0; overflow: hidden; }
+  .ad-wide-content {
+    background: linear-gradient(135deg, #163f72, #1f66b4);
+    color: #fff; display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 18px 22px;
+  }
+  .ad-wide-label {
+    background: #f59e0b; color: #fff; font-size: 11px; font-weight: 700;
+    padding: 6px 10px; display: inline-block; border-bottom-right-radius: 8px;
+  }
+  .ad-wide-content h3 { font-family: 'Manrope', sans-serif; font-size: 20px; margin-bottom: 4px; }
+  .ad-wide-content p { font-size: 13px; opacity: .9; }
+
+  .side-ad-promo {
+    background: linear-gradient(135deg,#163f72,#1f66b4); border-radius: var(--radius);
+    padding: 18px; color: #fff; text-align: center; box-shadow: var(--shadow);
+  }
+  .side-ad-icon { font-size: 24px; margin-bottom: 8px; }
+  .side-ad-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; font-family: 'Manrope', sans-serif; }
+  .side-ad-sub { font-size: 12px; opacity: .9; margin-bottom: 12px; }
+  .side-ad-btn {
+    background: #f59e0b; color: #fff; border: none; border-radius: 8px;
+    padding: 9px 20px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; width: 100%;
+  }
+
   /* ── FEATURE STACK + RIGHT AD RAIL ── */
   .content-with-ad-rail {
     display: grid;
@@ -390,4 +438,5 @@
   .trusted-bar { grid-template-columns: 1fr; }
   .trust-item { justify-content: flex-start; }
   .section-ad-rail { grid-template-columns: 1fr; }
+  .ad-wide-content h3 { font-size: 18px; }
 }
