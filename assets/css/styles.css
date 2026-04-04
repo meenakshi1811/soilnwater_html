@@ -172,8 +172,8 @@
   .cat-arrow-right { right: 8px; }
 
   /* ── SECTION WRAPPER ── */
-  .main-wrap { display: flex; gap: 20px; padding: 24px 20px; max-width: 1200px; margin: 0 auto; }
-  .main-col { flex: 1; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .main-wrap { display: flex; gap: 20px; padding: 24px 20px; max-width: 1320px; margin: 0 auto; }
+  .main-col { width: 100%; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
   .side-col { width: 240px; display: flex; flex-direction: column; gap: 16px; }
 
   /* ── SECTION HEADER ── */
@@ -186,6 +186,7 @@
 
   /* ── SPONSORED ── */
   .sponsored-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .sponsored-grid-with-ad { grid-template-columns: repeat(3, 1fr); }
   .sp-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: box-shadow .18s; }
   .sp-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.13); }
   .sp-card img { width: 100%; height: 90px; object-fit: cover; display: block; }
@@ -274,7 +275,7 @@
   /* ── FEATURE STACK + RIGHT AD RAIL ── */
   .content-with-ad-rail {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 250px;
+    grid-template-columns: minmax(0, 1fr);
     gap: 18px;
     align-items: start;
   }
@@ -336,6 +337,20 @@
 
   /* ── EXPLORE PRODUCTS ── */
   .explore-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .explore-redesign { background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); }
+  .explore-top-banner {
+    border: 1px solid #dbe6f4;
+    background: linear-gradient(90deg, #eaf3ff, #eef8ef);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .explore-top-banner h4 { font-family: 'Manrope', sans-serif; font-size: 16px; color: var(--blue-dark); margin-bottom: 2px; }
+  .explore-top-banner p { font-size: 12px; color: #4b5563; }
   .exp-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; cursor: pointer; transition: box-shadow .18s, transform .18s; background: var(--white); }
   .exp-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.13); transform: translateY(-2px); }
   .exp-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
@@ -403,6 +418,19 @@
     padding: 9px 14px;
     font-size: 12px;
   }
+  .seller-highlight-redesign {
+    background: linear-gradient(135deg, #e6f4ff 0%, #dbf2e5 100%);
+    border-color: #cfe2ff;
+  }
+  .seller-highlight-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .seller-highlight-actions .btn-login {
+    background: #fff;
+    border-color: #b7c6da;
+  }
 
   /* ── TRUSTED BAR ── */
   .trusted-wrap { max-width: 1200px; margin: 0 auto 22px; padding: 0 20px; }
@@ -418,9 +446,6 @@
 
   /* ── POPULAR PROPERTIES NEAR GREENWOOD (PPNG) ── */
   .ppng-layout {
-    display: grid;
-    grid-template-columns: 1fr 230px;
-    gap: 18px;
     align-items: start;
   }
   .ppng-listings { display: flex; flex-direction: column; gap: 10px; }
@@ -517,7 +542,15 @@
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .badge-green { background: var(--green); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; display: inline-block; }
 
+  .section-with-side-ad { margin: 0; }
+  .section-side-ad {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
 @media (max-width: 1100px) {
+  .sponsored-grid-with-ad { grid-template-columns: repeat(2, 1fr); }
   .cat-item { flex-basis: calc((100% - 32px) / 5); min-width: 96px; }
   .hero-content h1 { font-size: 28px; }
   .content-with-ad-rail { grid-template-columns: 1fr; }
@@ -534,11 +567,15 @@
 }
 
 @media (max-width: 760px) {
+  .sponsored-grid-with-ad { grid-template-columns: 1fr; }
   .cat-item { flex-basis: calc((100% - 16px) / 3); min-width: 90px; }
   .cat-bar { padding: 14px 16px; }
   .hero { padding: 0 18px; }
   .btn-yellow { min-width: 160px; padding: 10px 18px; }
   .seller-highlight { padding: 16px; flex-direction: column; align-items: flex-start; }
+  .seller-highlight-actions { width: 100%; }
+  .seller-highlight-actions .btn-yellow,
+  .seller-highlight-actions .btn-login { width: 100%; }
   .seller-title { font-size: 22px; }
   .seller-points { gap: 6px; }
   .seller-points span { font-size: 11px; }
