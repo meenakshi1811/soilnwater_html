@@ -172,8 +172,8 @@
   .cat-arrow-right { right: 8px; }
 
   /* ── SECTION WRAPPER ── */
-  .main-wrap { display: flex; gap: 20px; padding: 24px 20px; max-width: 1200px; margin: 0 auto; }
-  .main-col { flex: 1; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .main-wrap { display: flex; gap: 20px; padding: 24px 20px; max-width: 1320px; margin: 0 auto; }
+  .main-col { width: 100%; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
   .side-col { width: 240px; display: flex; flex-direction: column; gap: 16px; }
 
   /* ── SECTION HEADER ── */
@@ -274,7 +274,7 @@
   /* ── FEATURE STACK + RIGHT AD RAIL ── */
   .content-with-ad-rail {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 250px;
+    grid-template-columns: minmax(0, 1fr);
     gap: 18px;
     align-items: start;
   }
@@ -418,9 +418,6 @@
 
   /* ── POPULAR PROPERTIES NEAR GREENWOOD (PPNG) ── */
   .ppng-layout {
-    display: grid;
-    grid-template-columns: 1fr 230px;
-    gap: 18px;
     align-items: start;
   }
   .ppng-listings { display: flex; flex-direction: column; gap: 10px; }
@@ -516,6 +513,13 @@
 
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .badge-green { background: var(--green); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; display: inline-block; }
+
+  .section-with-side-ad { margin: 0; }
+  .section-side-ad {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
 @media (max-width: 1100px) {
   .cat-item { flex-basis: calc((100% - 32px) / 5); min-width: 96px; }
