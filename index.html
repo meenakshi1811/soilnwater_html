@@ -7,6 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWix+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkR4j8RykmQ1L4b1cQJYx04FQ7U8iQ8L+4kg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
@@ -232,7 +233,7 @@
 <!-- ══════════════════════════════════════════════════
      MAIN CONTENT  (from Image 2 layout with sidebar)
 ══════════════════════════════════════════════════ -->
-<div class="main-wrap">
+<div class="main-wrap container-xxl px-3 px-lg-4">
 
   <!-- LEFT / MAIN COLUMN -->
   <div class="main-col">
@@ -259,6 +260,8 @@
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-bullhorn"></i></span> Sponsored Listings</div>
         <a class="view-all" href="#">VIEW ALL ▶</a>
       </div>
+      <div class="row g-3 align-items-start">
+        <div class="col-12 col-xl-9">
       <div class="sponsored-grid">
         <div class="sp-card">
           <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&q=70" alt="Watch">
@@ -284,6 +287,17 @@
           <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=200&q=70" alt="Contract">
           <div class="sp-card-body"><p>Our Latest Contracts</p><div class="sp-badge">Sponsored</div></div>
         </div>
+      </div></div>
+        <aside class="col-12 col-xl-3 section-side-ad">
+          <div class="side-card">
+            <img class="side-card-img" src="https://images.unsplash.com/photo-1554224154-26032fced8bd?w=500&q=70" alt="Sponsored spotlight">
+            <div class="side-card-body">
+              <h3>Sponsored Spotlight</h3>
+              <p>Promote your offer beside high-traffic listings.</p>
+              <button class="btn-learn">Book Slot</button>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
 
@@ -296,6 +310,8 @@
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-cart-shopping"></i></span> E-Commerce</div>
         <a class="view-all" href="#">VIEW ALL ▶</a>
       </div>
+      <div class="row g-3 align-items-start">
+        <div class="col-12 col-xl-9">
       <div class="product-grid">
         <div class="prod-card">
           <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&q=70" alt="Phone">
@@ -314,14 +330,32 @@
           <div class="prod-card-body"><p>Wireless Headphone</p><div class="prod-price">₹1,800</div><div class="prod-badge">Sponsored</div></div>
         </div>
         <div class="view-all-card ad-slot-card"><div class="ad-tag">Sponsored</div><h4>Featured Ad Space</h4><p>Promote your product to active buyers.</p><button class="ad-slot-btn">Book Slot</button></div>
+      </div></div>
+        <aside class="col-12 col-xl-3 section-side-ad">
+          <div class="side-card">
+            <img class="side-card-img" src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&q=70" alt="E-commerce ad">
+            <div class="side-card-body">
+              <h3>E-Commerce Promo</h3>
+              <p>Advertise your products to active buyers.</p>
+              <button class="btn-learn">Advertise</button>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
 
     <!-- Explore Products Near You (SSNY style) -->
-    <div class="sec">
+    <div class="sec explore-redesign">
       <div class="sec-head">
         <div class="sec-title">Explore Products Near You</div>
         <a class="view-all" href="#">Learn More ▶</a>
+      </div>
+      <div class="explore-top-banner">
+        <div>
+          <h4>Handpicked Local Deals Near Greenwood</h4>
+          <p>Discover trusted sellers with better delivery speed and verified ratings.</p>
+        </div>
+        <button class="ad-slot-btn">Get Featured</button>
       </div>
       <div class="explore-grid">
         <div class="exp-card">
@@ -334,7 +368,7 @@
         </div>
         <div class="exp-card">
           <img src="https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?w=300&q=70" alt="Poultry">
-          <div class="exp-card-body"><h4>Patel Poultry Grees</h4><div class="sub">Poultry Feed</div><div class="exp-price">₹90–₹95/dozen</div><button class="btn-chat">Chat Now</button></div>
+          <div class="exp-card-body"><h4>Patel Poultry Greens</h4><div class="sub">Poultry Feed</div><div class="exp-price">₹90–₹95/dozen</div><button class="btn-chat">Chat Now</button></div>
         </div>
         <div class="exp-card">
           <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&q=70" alt="Tiles">
@@ -363,6 +397,8 @@
             </div>
             <button class="vendor-top-ad-btn">Sponsored</button>
           </div>
+          <div class="row g-3 align-items-start">
+            <div class="col-12 col-xl-9">
           <div class="vendor-grid">
             <div class="vendor-card">
               <img src="https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70" alt="Fashion">
@@ -381,18 +417,28 @@
               <div class="vendor-card-body"><p>Sunshine Decor</p></div>
             </div>
             <div class="view-all-card ad-slot-card" style="min-height:130px;"><div class="ad-tag">Sponsored</div><h4>Vendor Promotion</h4><p>Run targeted ads for local customers.</p><button class="ad-slot-btn">Advertise</button></div>
+          </div></div>
+            <aside class="col-12 col-xl-3 section-side-ad">
+              <div class="side-card">
+                <img class="side-card-img" src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&q=70" alt="Top vendor ad">
+                <div class="side-card-body">
+                  <h3>Top Vendor Ad</h3>
+                  <p>Show your brand next to trusted vendors.</p>
+                  <button class="btn-learn">Get Placement</button>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
 
-        <!-- Popular Properties Near Greenwood (FIXED: full-width listing + side ad rail) -->
+        <!-- Popular Properties Near Greenwood (full-width listings + center ad) -->
         <div class="sec ppng-sec">
           <div class="sec-head">
             <div class="sec-title"><span class="icon"><i class="fa-solid fa-map-location-dot"></i></span> Popular Properties Near Greenwood</div>
             <a class="view-all" href="#">Learn More ▶</a>
           </div>
-          <div class="ppng-layout">
-            <!-- Listings column -->
-            <div class="ppng-listings">
+          <div class="ppng-layout row g-3">
+            <div class="ppng-listings col-12 col-xl-9">
               <div class="listing-card">
                 <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=200&q=70" alt="Property">
                 <div class="listing-info">
@@ -427,113 +473,123 @@
                 <button class="btn-view">View Details</button>
               </div>
             </div>
-            <!-- Ad rail column -->
-            <aside class="ppng-ad-rail">
-              <div class="ppng-ad-card">
-                <img src="https://images.unsplash.com/photo-1556742400-b5b7c512bc0d?w=400&q=70" alt="Ad">
-                <div class="ppng-ad-body">
-                  <span class="ppng-ad-tag">Sponsored</span>
-                  <h4>Top Placement Ad</h4>
-                  <p>Premium visibility for your products and services.</p>
-                  <button class="ad-slot-btn">Book Slot</button>
+            <aside class="col-12 col-xl-3 section-side-ad">
+              <div class="side-card">
+                <img class="side-card-img" src="https://images.unsplash.com/photo-1460317442991-0ec209397118?w=500&q=70" alt="Property ad">
+                <div class="side-card-body">
+                  <h3>Property Booster</h3>
+                  <p>Feature your listing in this high-intent section.</p>
+                  <button class="btn-learn">Promote Listing</button>
                 </div>
-              </div>
-              <div class="ppng-ad-card">
-                <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=70" alt="Ad">
-                <div class="ppng-ad-body">
-                  <span class="ppng-ad-tag">Sponsored</span>
-                  <h4>Right-Side Sponsored</h4>
-                  <p>High-intent audience. Better lead quality.</p>
-                  <button class="ad-slot-btn">Book Slot</button>
-                </div>
-              </div>
-              <div class="property-ad-card">
-                <div class="property-ad-title">Trusted Builders &amp; Developers</div>
-                <div class="property-ad-sub">Locally &amp; Nationally</div>
-                <div class="property-ad-list">
-                  <div><i class="fa-solid fa-check"></i> Trusted Local Builders</div>
-                  <div><i class="fa-solid fa-check"></i> Nationwide Reach</div>
-                  <div><i class="fa-solid fa-check"></i> Secure Payments</div>
-                </div>
-                <button class="btn-learn">Learn More</button>
               </div>
             </aside>
+            <div class="col-12">
+              <div class="ad-wide-content rounded-3">
+                <div>
+                  <h3>Premium Property Ad Placement</h3>
+                  <p>Show your property, services, or brand to high-intent Greenwood buyers.</p>
+                </div>
+                <button class="ad-slot-btn">Book Featured Slot</button>
+              </div>
+            </div>
           </div>
         </div>
       </div><!-- /content-main-stack -->
     </div><!-- /content-with-ad-rail -->
 
-    <!-- Popular Properties + Experienced Consultants (side by side) -->
-    <div class="two-col">
-      <!-- Popular Properties -->
-      <div class="sec">
-        <div class="sec-head">
-          <div class="sec-title">Popular Properties</div>
-          <a class="view-all" href="#">Your Projects ▶</a>
-        </div>
-        <div class="prop-list">
-          <div class="listing-card">
-            <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=200&q=70" alt="Apt">
-            <div class="listing-info">
-              <h4>Sharada Residency</h4>
-              <div class="addr">📍 9 A, Greenwood, IN</div>
-              <div class="stars">★★★★★</div>
-              <div class="listing-meta">Community | 3 Sen</div>
+    <!-- Popular Properties + Experienced Consultants (with side ads) -->
+    <div class="section-with-side-ad row g-3 align-items-start">
+      <div class="col-12 col-xl-9">
+        <div class="two-col">
+          <!-- Popular Properties -->
+          <div class="sec">
+            <div class="sec-head">
+              <div class="sec-title">Popular Properties</div>
+              <a class="view-all" href="#">Your Projects ▶</a>
             </div>
-            <button class="btn-view">View Details</button>
-          </div>
-          <div class="listing-card">
-            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=200&q=70" alt="Cozy">
-            <div class="listing-info">
-              <h4>Cozy Apartments</h4>
-              <div class="addr">📍 Greenwood, IN</div>
-              <div class="stars">★★★★★</div>
-              <div class="listing-meta">33 32 Lo • 23 Lacs</div>
+            <div class="prop-list">
+              <div class="listing-card">
+                <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=200&q=70" alt="Apt">
+                <div class="listing-info">
+                  <h4>Sharada Residency</h4>
+                  <div class="addr">📍 9 A, Greenwood, IN</div>
+                  <div class="stars">★★★★★</div>
+                  <div class="listing-meta">Community | 3 Sen</div>
+                </div>
+                <button class="btn-view">View Details</button>
+              </div>
+              <div class="listing-card">
+                <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=200&q=70" alt="Cozy">
+                <div class="listing-info">
+                  <h4>Cozy Apartments</h4>
+                  <div class="addr">📍 Greenwood, IN</div>
+                  <div class="stars">★★★★★</div>
+                  <div class="listing-meta">33 32 Lo • 23 Lacs</div>
+                </div>
+                <button class="btn-view">View Details</button>
+              </div>
             </div>
-            <button class="btn-view">View Details</button>
           </div>
-        </div>
-      </div>
 
-      <!-- Experienced Consultants -->
-      <div class="sec">
-        <div class="sec-head">
-          <div class="sec-title">Experienced Consultants</div>
-          <a class="view-all" href="#">View Projects ▶</a>
-        </div>
-        <div class="con-list">
-          <div class="con-row">
-            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&q=70" alt="Consultant">
-            <div class="con-row-info">
-              <h4>GrowthTrack Consulting</h4>
-              <div class="sub">9 A, Greenwood, IN</div>
-              <div class="stars">★★★★☆</div>
-              <div class="addr">4M Months | 16 Businesses</div>
+          <!-- Experienced Consultants -->
+          <div class="sec">
+            <div class="sec-head">
+              <div class="sec-title">Experienced Consultants</div>
+              <a class="view-all" href="#">View Projects ▶</a>
             </div>
-            <button class="btn-view">View Project</button>
-          </div>
-          <div class="con-row">
-            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&q=70" alt="Legal">
-            <div class="con-row-info">
-              <h4>Greenfields Legal</h4>
-              <div class="sub">8 S, Greenwood, IN</div>
-              <div class="stars">★★★★★</div>
-              <div class="addr">Legal | Comments</div>
+            <div class="con-list">
+              <div class="con-row">
+                <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&q=70" alt="Consultant">
+                <div class="con-row-info">
+                  <h4>GrowthTrack Consulting</h4>
+                  <div class="sub">9 A, Greenwood, IN</div>
+                  <div class="stars">★★★★☆</div>
+                  <div class="addr">4M Months | 16 Businesses</div>
+                </div>
+                <button class="btn-view">View Project</button>
+              </div>
+              <div class="con-row">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&q=70" alt="Legal">
+                <div class="con-row-info">
+                  <h4>Greenfields Legal</h4>
+                  <div class="sub">8 S, Greenwood, IN</div>
+                  <div class="stars">★★★★★</div>
+                  <div class="addr">Legal | Comments</div>
+                </div>
+                <button class="btn-view">View Project</button>
+              </div>
+              <div class="con-row">
+                <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&q=70" alt="Advisor">
+                <div class="con-row-info">
+                  <h4>Apex Business Advisors</h4>
+                  <div class="sub">9 G, Greenwood, IN</div>
+                  <div class="stars">★★★★★</div>
+                  <div class="addr">13 Consultations</div>
+                </div>
+                <button class="btn-view">View Project</button>
+              </div>
             </div>
-            <button class="btn-view">View Project</button>
-          </div>
-          <div class="con-row">
-            <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&q=70" alt="Advisor">
-            <div class="con-row-info">
-              <h4>Apex Business Advisors</h4>
-              <div class="sub">9 G, Greenwood, IN</div>
-              <div class="stars">★★★★★</div>
-              <div class="addr">13 Consultations</div>
-            </div>
-            <button class="btn-view">View Project</button>
           </div>
         </div>
       </div>
+      <aside class="col-12 col-xl-3 section-side-ad">
+        <div class="side-card">
+          <img class="side-card-img" src="https://images.unsplash.com/photo-1556742400-b5b7c512bc0d?w=400&q=70" alt="Ad 1">
+          <div class="side-card-body">
+            <h3>Advertise Your Business</h3>
+            <p>Reach serious local buyers with premium placement.</p>
+            <button class="btn-learn">Book Ad</button>
+          </div>
+        </div>
+        <div class="side-card">
+          <img class="side-card-img" src="https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=70" alt="Ad 2">
+          <div class="side-card-body">
+            <h3>Seasonal Offers</h3>
+            <p>Promote sales campaigns in high-traffic sections.</p>
+            <button class="btn-learn">Learn More</button>
+          </div>
+        </div>
+      </aside>
     </div>
 
     <div class="sec ad-wide-slot">
@@ -548,29 +604,52 @@
     </div>
 
 
-    <!-- Builders & Developers -->
-    <div class="sec">
-      <div class="sec-head">
-        <div class="sec-title"><span class="icon"><i class="fa-solid fa-screwdriver-wrench"></i></span> Builders &amp; Developers</div>
-        <a class="view-all" href="#">VIEW ALL ▶</a>
+    <!-- Builders & Developers + Side Ad -->
+    <div class="section-with-side-ad row g-3 align-items-start">
+      <div class="col-12 col-xl-9">
+        <div class="sec">
+          <div class="sec-head">
+            <div class="sec-title"><span class="icon"><i class="fa-solid fa-screwdriver-wrench"></i></span> Builders &amp; Developers</div>
+            <a class="view-all" href="#">VIEW ALL ▶</a>
+          </div>
+          <div class="product-grid-4">
+            <div class="prod-card">
+              <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=300&q=70" alt="Build1">
+              <div class="prod-card-body"><p>Green Heights</p></div>
+            </div>
+            <div class="prod-card">
+              <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?w=300&q=70" alt="Build2">
+              <div class="prod-card-body"><p>Urban Residency</p></div>
+            </div>
+            <div class="prod-card">
+              <img src="https://images.unsplash.com/photo-1582407947304-fd86f28f96b6?w=300&q=70" alt="Build3">
+              <div class="prod-card-body"><p>Skyline Towers</p></div>
+            </div>
+            <div class="prod-card">
+              <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=300&q=70" alt="Build4">
+              <div class="prod-card-body"><p>Elite Constructions</p></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="product-grid-4">
-        <div class="prod-card">
-          <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=300&q=70" alt="Build1">
-          <div class="prod-card-body"><p>Green Heights</p></div>
+      <aside class="col-12 col-xl-3 section-side-ad">
+        <div class="side-ad-promo">
+          <div class="side-ad-icon"><i class="fa-solid fa-bullhorn"></i></div>
+          <div class="side-ad-title">Builder Spotlight</div>
+          <div class="side-ad-sub">Put your project in front of verified buyers.</div>
+          <button class="side-ad-btn">Promote Now</button>
         </div>
-        <div class="prod-card">
-          <img src="https://images.unsplash.com/photo-1617806118233-18e1de247200?w=300&q=70" alt="Build2">
-          <div class="prod-card-body"><p>Urban Residency</p></div>
+      </aside>
+    </div>
+
+    <div class="sec ad-wide-slot">
+      <div class="ad-wide-label">Sponsored Placement</div>
+      <div class="ad-wide-content">
+        <div>
+          <h3>Sponsored Services Banner</h3>
+          <p>Place your ad above Popular Services for maximum visibility.</p>
         </div>
-        <div class="prod-card">
-          <img src="https://images.unsplash.com/photo-1582407947304-fd86f28f96b6?w=300&q=70" alt="Build3">
-          <div class="prod-card-body"><p>Skyline Towers</p></div>
-        </div>
-        <div class="prod-card">
-          <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=300&q=70" alt="Build4">
-          <div class="prod-card-body"><p>Elite Constructions</p></div>
-        </div>
+        <button class="ad-slot-btn">Reserve This Spot</button>
       </div>
     </div>
 
@@ -633,7 +712,7 @@
     </div>
 
     <!-- Local Sellers CTA -->
-    <div class="seller-highlight">
+    <div class="seller-highlight seller-highlight-redesign">
       <div class="seller-highlight-info">
         <span class="seller-badge"><i class="fa-solid fa-check"></i></span>
         <div>
@@ -646,74 +725,15 @@
           </div>
         </div>
       </div>
-      <button class="btn-yellow">Learn More</button>
+      <div class="seller-highlight-actions">
+        <button class="btn-yellow">Become a Seller</button>
+        <button class="btn-login">Browse Sellers</button>
+      </div>
     </div>
 
   </div><!-- /main-col -->
 
 
-  <!-- RIGHT SIDEBAR (from Image 2) -->
-  <div class="side-col">
-
-    <!-- Advertise Your Business -->
-    <div class="side-card">
-      <img class="side-card-img" src="https://images.unsplash.com/photo-1556742400-b5b7c512bc0d?w=400&q=70" alt="Advertise">
-      <div class="side-card-body">
-        <h3>Advertise Your Business</h3>
-        <p>Reach Local Customers with Premium Ads</p>
-        <button class="btn-learn">Learn More</button>
-      </div>
-    </div>
-
-    <!-- Build Your Dream Home -->
-    <div class="side-card">
-      <img class="side-card-img" src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400&q=70" alt="Home">
-      <div class="side-card-body">
-        <h3>Build Your Dream Home</h3>
-        <p>Find trusted builders &amp; developers near you</p>
-        <button class="btn-learn">Learn More</button>
-      </div>
-    </div>
-
-    <!-- Solar Offer -->
-    <div class="side-card">
-      <img class="side-card-img" src="https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&q=70" alt="Solar">
-      <div class="side-card-body">
-        <h3>Get Upto 10% Off</h3>
-        <p>on Solar Panel Installations</p>
-        <button class="btn-learn">Learn More</button>
-      </div>
-    </div>
-
-    <!-- Agro Equipment Ad -->
-    <div class="side-card">
-      <img class="side-card-img" src="https://images.unsplash.com/photo-1592982537447-6f2a6a0d7f66?w=400&q=70" alt="Agro Equipment">
-      <div class="side-card-body">
-        <h3>Top Agro Equipment Deals</h3>
-        <p>Promote tractors, pumps &amp; farm tools to serious buyers</p>
-        <button class="btn-learn">Learn More</button>
-      </div>
-    </div>
-
-    <!-- Business Loans Ad -->
-    <div class="side-card">
-      <img class="side-card-img" src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=70" alt="Business Finance">
-      <div class="side-card-body">
-        <h3>Business Loan Support</h3>
-        <p>Quick approvals for sellers and small businesses</p>
-        <button class="btn-learn">Apply Now</button>
-      </div>
-    </div>
-
-    <!-- Special Offer Strip -->
-    <div class="side-ad-promo">
-      <div class="side-ad-icon"><i class="fa-solid fa-gift"></i></div>
-      <div class="side-ad-title">Special Offer</div>
-      <div class="side-ad-sub">50% Off on All Electronics</div>
-      <button class="side-ad-btn">Shop Now</button>
-    </div>
-
-  </div><!-- /side-col -->
 
 </div><!-- /main-wrap -->
 
@@ -801,5 +821,6 @@
     </div>
   </div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
