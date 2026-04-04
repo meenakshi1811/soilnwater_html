@@ -384,14 +384,15 @@
           </div>
         </div>
 
-        <!-- Popular Properties (SSNY style - list) -->
-        <div class="sec">
+        <!-- Popular Properties Near Greenwood (FIXED: full-width listing + side ad rail) -->
+        <div class="sec ppng-sec">
           <div class="sec-head">
-            <div class="sec-title">Popular Properties Near Greenwood</div>
+            <div class="sec-title"><span class="icon"><i class="fa-solid fa-map-location-dot"></i></span> Popular Properties Near Greenwood</div>
             <a class="view-all" href="#">Learn More ▶</a>
           </div>
-          <div class="two-col">
-            <div class="prop-list">
+          <div class="ppng-layout">
+            <!-- Listings column -->
+            <div class="ppng-listings">
               <div class="listing-card">
                 <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=200&q=70" alt="Property">
                 <div class="listing-info">
@@ -409,8 +410,8 @@
                   <h4>Royal Dairy Farm</h4>
                   <div class="addr">📍 Greenwood, IN</div>
                   <div class="stars">★★★★★</div>
-                  <div class="listing-meta">34 % 9 Sellers</div>
-                  <div class="listing-badge">📋 Consultant: 14 Sen</div>
+                  <div class="listing-meta">Dairy | 9 Products</div>
+                  <div class="listing-badge">📋 Verified Seller</div>
                 </div>
                 <button class="btn-view">View Details</button>
               </div>
@@ -426,51 +427,41 @@
                 <button class="btn-view">View Details</button>
               </div>
             </div>
-            <div class="property-ad-card">
-              <div class="property-ad-title">Trusted Builders &amp; Developers</div>
-              <div class="property-ad-sub">Locally &amp; Nationally</div>
-              <div class="property-ad-list">
-                <div><i class="fa-solid fa-check"></i> Trusted Local Builders</div>
-                <div><i class="fa-solid fa-check"></i> Nationwide Reach</div>
-                <div><i class="fa-solid fa-check"></i> Secure Payments</div>
+            <!-- Ad rail column -->
+            <aside class="ppng-ad-rail">
+              <div class="ppng-ad-card">
+                <img src="https://images.unsplash.com/photo-1556742400-b5b7c512bc0d?w=400&q=70" alt="Ad">
+                <div class="ppng-ad-body">
+                  <span class="ppng-ad-tag">Sponsored</span>
+                  <h4>Top Placement Ad</h4>
+                  <p>Premium visibility for your products and services.</p>
+                  <button class="ad-slot-btn">Book Slot</button>
+                </div>
               </div>
-              <button class="btn-learn">Learn More</button>
-            </div>
+              <div class="ppng-ad-card">
+                <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=70" alt="Ad">
+                <div class="ppng-ad-body">
+                  <span class="ppng-ad-tag">Sponsored</span>
+                  <h4>Right-Side Sponsored</h4>
+                  <p>High-intent audience. Better lead quality.</p>
+                  <button class="ad-slot-btn">Book Slot</button>
+                </div>
+              </div>
+              <div class="property-ad-card">
+                <div class="property-ad-title">Trusted Builders &amp; Developers</div>
+                <div class="property-ad-sub">Locally &amp; Nationally</div>
+                <div class="property-ad-list">
+                  <div><i class="fa-solid fa-check"></i> Trusted Local Builders</div>
+                  <div><i class="fa-solid fa-check"></i> Nationwide Reach</div>
+                  <div><i class="fa-solid fa-check"></i> Secure Payments</div>
+                </div>
+                <button class="btn-learn">Learn More</button>
+              </div>
+            </aside>
           </div>
         </div>
-      </div>
-
-      <aside class="section-ad-rail">
-        <div class="rail-ad-card">
-          <img src="https://images.unsplash.com/photo-1556742400-b5b7c512bc0d?w=500&q=70" alt="Top Banner Ad">
-          <div class="rail-ad-body">
-            <h4>Top Placement Ad</h4>
-            <p>Get premium visibility for your products and services.</p>
-          </div>
-        </div>
-        <div class="rail-ad-card">
-          <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&q=70" alt="Right Rail Ad">
-          <div class="rail-ad-body">
-            <h4>Right-Side Sponsored Slot</h4>
-            <p>High-intent audience. Better lead quality.</p>
-          </div>
-        </div>
-        <div class="rail-ad-card">
-          <img src="https://images.unsplash.com/photo-1556761175-4b46a572b786?w=500&q=70" alt="Verified Leads Ad">
-          <div class="rail-ad-body">
-            <h4>Get Verified Buyer Leads</h4>
-            <p>Show up where real buyers search first.</p>
-          </div>
-        </div>
-        <div class="rail-ad-card">
-          <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500&q=70" alt="Promote Services Ad">
-          <div class="rail-ad-body">
-            <h4>Promote Services Nationwide</h4>
-            <p>Capture enquiries across every major market.</p>
-          </div>
-        </div>
-      </aside>
-    </div>
+      </div><!-- /content-main-stack -->
+    </div><!-- /content-with-ad-rail -->
 
     <!-- Popular Properties + Experienced Consultants (side by side) -->
     <div class="two-col">
@@ -743,14 +734,72 @@
      FOOTER
 ══════════════════════════════════════════════════ -->
 <footer class="footer">
-  <div class="footer-links">
-    <span><i class="fa-solid fa-seedling"></i> Adiports Poultry Farms Hardware Conveyances</span>
+  <div class="footer-inner">
+
+    <!-- Brand column -->
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <span style="color:var(--green);">Soil</span><span style="color:#222;">n</span><span style="color:var(--green);">Water</span>
+      </div>
+      <p class="footer-tagline">India's trusted local &amp; national marketplace connecting buyers, sellers, and service providers across every category.</p>
+      <div class="footer-socials">
+        <a href="#" class="social-btn"><i class="fa-brands fa-facebook-f"></i></a>
+        <a href="#" class="social-btn"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#" class="social-btn"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="#" class="social-btn"><i class="fa-brands fa-linkedin-in"></i></a>
+      </div>
+    </div>
+
+    <!-- Marketplace links -->
+    <div class="footer-col">
+      <h4 class="footer-col-title">Marketplace</h4>
+      <ul class="footer-list">
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> E-Commerce</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Properties</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Vendors</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Services</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Consultants</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Builders</a></li>
+      </ul>
+    </div>
+
+    <!-- Business links -->
+    <div class="footer-col">
+      <h4 class="footer-col-title">For Business</h4>
+      <ul class="footer-list">
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Post an Ad</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Sponsored Listings</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Premium Packages</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Seller Dashboard</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Partner with Us</a></li>
+      </ul>
+    </div>
+
+    <!-- Contact -->
+    <div class="footer-col">
+      <h4 class="footer-col-title">Contact Us</h4>
+      <ul class="footer-list footer-contact-list">
+        <li><i class="fa-solid fa-location-dot"></i> Adiports Poultry Farms, Greenwood, IN</li>
+        <li><i class="fa-solid fa-phone"></i> +91 162725 / 236-353915</li>
+        <li><i class="fa-solid fa-envelope"></i> support@soilnwater.com</li>
+        <li><i class="fa-solid fa-clock"></i> Mon–Sat, 9 AM – 6 PM IST</li>
+      </ul>
+    </div>
+
   </div>
-  <div class="footer-contact">
-    <span><i class="fa-solid fa-phone"></i> A6-162725 / 236-353915</span>
-    <span><i class="fa-solid fa-envelope"></i> support@soilnwater.in</span>
+
+  <!-- Bottom bar -->
+  <div class="footer-bottom">
+    <div class="footer-bottom-inner">
+      <span>© 2025 SoilnWater. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Cookie Policy</a>
+        <a href="#">Help Center</a>
+      </div>
+    </div>
   </div>
 </footer>
-
 </body>
 </html>
