@@ -59,6 +59,14 @@
   }
   .search-wrap input:focus { border-color: var(--green-light); }
   /* Buttons */
+  .btn-offer {
+    background: var(--yellow-btn); color: #fff; border: none;
+    border-radius: 7px; padding: 9px 20px; font-weight: 700;
+    font-size: 13.5px; cursor: pointer; white-space: nowrap;
+    font-family: inherit; letter-spacing: .2px;
+    box-shadow: 0 2px 8px rgba(245,166,35,.3);
+  }
+  .btn-offer:hover { background: #e19a21; }
   .btn-post {
     background: var(--primary); color: #fff; border: none;
     border-radius: 7px; padding: 9px 22px; font-weight: 700;
