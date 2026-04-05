@@ -127,9 +127,29 @@
     });
 
     let activeIndex = 0;
+    const dotsWrap = document.createElement('div');
+    dotsWrap.className = 'ad-slider-dots';
+    const dots = slides.map((_, index) => {
+      const dot = document.createElement('button');
+      dot.className = 'ad-slider-dot';
+      dot.type = 'button';
+      dot.setAttribute('aria-label', `Go to ad ${index + 1}`);
+      dot.addEventListener('click', () => {
+        activeIndex = index;
+        showSlide(activeIndex);
+      });
+      dotsWrap.appendChild(dot);
+      return dot;
+    });
+
+    slider.appendChild(dotsWrap);
+
     const showSlide = (index) => {
       slides.forEach((slide, slideIndex) => {
         slide.classList.toggle('is-active', slideIndex === index);
+      });
+      dots.forEach((dot, dotIndex) => {
+        dot.classList.toggle('is-active', dotIndex === index);
       });
     };
 

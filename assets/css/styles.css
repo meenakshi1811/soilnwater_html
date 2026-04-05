@@ -579,7 +579,7 @@
   }
   .auto-ad-slider > .ad-slide {
     display: none;
-    animation: adFadeIn .45s ease;
+    animation: adSlideInRTL .5s ease;
   }
   .auto-ad-slider > .ad-slide.is-active {
     display: flex;
@@ -591,9 +591,28 @@
   .ad-wide-slider > .ad-wide-content.is-active {
     display: flex;
   }
-  @keyframes adFadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+  .ad-slider-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .ad-slider-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    border: 0;
+    background: #cfd8e3;
+    cursor: pointer;
+    padding: 0;
+  }
+  .ad-slider-dot.is-active {
+    width: 20px;
+    background: var(--primary);
+  }
+  @keyframes adSlideInRTL {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
   }
   .top-sidebar-ads .side-card {
     display: flex;
