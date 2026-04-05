@@ -728,6 +728,19 @@
   .popular-properties-section .section-side-ad {
     height: auto;
   }
+  .popular-properties-section .popular-inline-ads-slider .side-card,
+  .popular-properties-section .popular-side-ads-slider .side-card {
+    height: auto;
+  }
+  .popular-properties-section .popular-inline-ads-slider .side-card-body,
+  .popular-properties-section .popular-side-ads-slider .side-card-body {
+    display: block;
+    flex: 0 0 auto;
+  }
+  .popular-properties-section .popular-inline-ads-slider .btn-learn,
+  .popular-properties-section .popular-side-ads-slider .btn-learn {
+    margin-top: 12px;
+  }
   .section-with-side-ad > [class*="col-"] {
     display: flex;
   }
