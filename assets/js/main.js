@@ -152,3 +152,48 @@
     startAuto();
   });
 })();
+
+(function(){
+  const topFoldMain = document.querySelector('.top-fold-main');
+  const topSidebarAds = document.querySelector('.top-sidebar-ads');
+
+  if (!topFoldMain || !topSidebarAds) return;
+
+  const desktopMedia = window.matchMedia('(min-width: 992px)');
+  const leftSections = Array.from(topFoldMain.children).filter((child) => child.classList.contains('sec'));
+  const rightSlots = Array.from(topSidebarAds.children).filter((child) => child.classList.contains('ad-slider') || child.classList.contains('auto-ad-slider'));
+
+  if (!leftSections.length || !rightSlots.length) return;
+
+  const clearHeights = () => {
+    rightSlots.forEach((slot) => {
+      slot.style.height = '';
+      slot.style.minHeight = '';
+    });
+  };
+
+  const syncHeights = () => {
+    if (!desktopMedia.matches) {
+      clearHeights();
+      return;
+    }
+
+    leftSections.forEach((section, index) => {
+      const targetSlot = rightSlots[index];
+      if (!targetSlot) return;
+      const sectionHeight = Math.ceil(section.getBoundingClientRect().height);
+      targetSlot.style.height = `${sectionHeight}px`;
+      targetSlot.style.minHeight = `${sectionHeight}px`;
+    });
+  };
+
+  window.addEventListener('load', syncHeights);
+  window.addEventListener('resize', syncHeights);
+  window.setTimeout(syncHeights, 80);
+  window.setTimeout(syncHeights, 450);
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const observer = new ResizeObserver(syncHeights);
+    leftSections.forEach((section) => observer.observe(section));
+  }
+})();
