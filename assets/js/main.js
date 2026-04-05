@@ -139,8 +139,13 @@
       startAuto();
     };
 
-    slider.addEventListener('mouseenter', stopAuto);
-    slider.addEventListener('mouseleave', startAuto);
+    const pauseOnHover = slider.dataset.pauseOnHover !== 'false';
+
+    if (pauseOnHover) {
+      slider.addEventListener('mouseenter', stopAuto);
+      slider.addEventListener('mouseleave', startAuto);
+    }
+
     slider.addEventListener('focusin', stopAuto);
     slider.addEventListener('focusout', startAuto);
 
