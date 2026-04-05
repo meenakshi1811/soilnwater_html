@@ -123,7 +123,8 @@
     });
 
     Array.from(slider.querySelectorAll(':scope > .ad-slide')).slice(3).forEach((extra) => {
-      extra.style.display = 'none';
+      extra.hidden = true;
+      extra.classList.remove('is-active');
     });
 
     let activeIndex = 0;
@@ -148,6 +149,7 @@
 
     const showSlide = (index) => {
       slides.forEach((slide, slideIndex) => {
+        slide.hidden = slideIndex !== index;
         slide.classList.toggle('is-active', slideIndex === index);
       });
       dots.forEach((dot, dotIndex) => {

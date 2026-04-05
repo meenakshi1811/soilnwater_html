@@ -581,8 +581,11 @@
     display: none;
     animation: adSlideInRTL .5s ease;
   }
+  .auto-ad-slider > .ad-slide[hidden] {
+    display: none !important;
+  }
   .auto-ad-slider > .ad-slide.is-active {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
   }
   .top-ad-slider > .adv-strip.is-active {
