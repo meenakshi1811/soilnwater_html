@@ -577,13 +577,19 @@
     position: relative;
     overflow: hidden;
   }
-  .auto-ad-slider .side-card {
+  .auto-ad-slider > .ad-slide {
     display: none;
     animation: adFadeIn .45s ease;
   }
-  .auto-ad-slider .side-card.is-active {
+  .auto-ad-slider > .ad-slide.is-active {
     display: flex;
     flex-direction: column;
+  }
+  .top-ad-slider > .adv-strip.is-active {
+    display: block;
+  }
+  .ad-wide-slider > .ad-wide-content.is-active {
+    display: flex;
   }
   @keyframes adFadeIn {
     from { opacity: 0; transform: translateY(6px); }
