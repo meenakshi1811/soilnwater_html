@@ -573,6 +573,22 @@
     flex-direction: column;
     gap: 14px;
   }
+  .auto-ad-slider {
+    position: relative;
+    overflow: hidden;
+  }
+  .auto-ad-slider .side-card {
+    display: none;
+    animation: adFadeIn .45s ease;
+  }
+  .auto-ad-slider .side-card.is-active {
+    display: flex;
+    flex-direction: column;
+  }
+  @keyframes adFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .top-sidebar-ads .side-card {
     display: flex;
     flex-direction: column;

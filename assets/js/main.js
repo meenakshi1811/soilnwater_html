@@ -42,3 +42,42 @@
 
   startAuto();
 })();
+
+(function(){
+  const sliders = document.querySelectorAll('.auto-ad-slider');
+  if (!sliders.length) return;
+
+  sliders.forEach((slider) => {
+    const seedCards = Array.from(slider.querySelectorAll(':scope > .side-card'));
+    if (!seedCards.length) return;
+
+    if (seedCards.length < 3) {
+      const originalCards = [...seedCards];
+      let cloneIndex = 0;
+      while (slider.querySelectorAll(':scope > .side-card').length < 3) {
+        const clone = originalCards[cloneIndex % originalCards.length].cloneNode(true);
+        slider.appendChild(clone);
+        cloneIndex += 1;
+      }
+    }
+
+    const slides = Array.from(slider.querySelectorAll(':scope > .side-card')).slice(0, 3);
+    Array.from(slider.querySelectorAll(':scope > .side-card')).slice(3).forEach((extra) => {
+      extra.style.display = 'none';
+    });
+
+    let activeIndex = 0;
+    const showSlide = (index) => {
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle('is-active', slideIndex === index);
+      });
+    };
+
+    showSlide(activeIndex);
+
+    setInterval(() => {
+      activeIndex = (activeIndex + 1) % slides.length;
+      showSlide(activeIndex);
+    }, 3500);
+  });
+})();
