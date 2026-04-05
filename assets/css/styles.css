@@ -644,8 +644,8 @@
   .popular-properties-redesign .listing-card {
     min-height: 156px;
     display: grid;
-    grid-template-columns: 102px minmax(0, 1fr) auto;
-    align-items: center;
+    grid-template-columns: 102px minmax(0, 1fr);
+    align-items: start;
     gap: 14px;
     padding: 14px 16px;
   }
@@ -660,15 +660,21 @@
     margin-bottom: 4px;
   }
   .popular-properties-redesign .listing-info .addr,
-  .popular-properties-redesign .listing-meta {
+  .popular-properties-redesign .listing-meta,
+  .popular-properties-redesign .listing-price {
     font-size: 12px;
     line-height: 1.35;
   }
-  .popular-properties-redesign .stars {
-    margin: 5px 0 3px;
+  .popular-properties-redesign .listing-price {
+    margin-top: 6px;
+    font-weight: 700;
+    color: var(--green);
   }
   .popular-properties-redesign .btn-view {
+    grid-column: 1 / -1;
+    width: 100%;
     margin-left: 0;
+    margin-top: 4px;
     padding: 10px 20px;
     border-radius: 10px;
     font-size: 14px;
