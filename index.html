@@ -238,9 +238,10 @@
   <!-- LEFT / MAIN COLUMN -->
   <div class="main-col">
 
-    <!-- Top fold layout: categories + listings + ecommerce with right sidebar ads -->
-    <div class="row g-3 align-items-start top-fold-layout">
-      <div class="col-12 col-lg-9">
+    <!-- Top fold layout: categories + listings with right sidebar ads -->
+    <div class="top-fold-layout">
+      <div class="row g-3 align-items-start top-fold-upper">
+      <div class="col-12 col-lg-9 top-fold-main">
         <!-- Top Categories + Boost Ad -->
         <div class="sec">
           <div class="sec-head">
@@ -292,32 +293,6 @@
 
         <div class="adv-strip">PREMIUM ADVERTISEMENT SLOT</div>
 
-        <!-- E-Commerce Section -->
-        <div class="sec">
-          <div class="sec-head">
-            <div class="sec-title"><span class="icon"><i class="fa-solid fa-cart-shopping"></i></span> E-Commerce</div>
-            <a class="view-all" href="#">VIEW ALL ▶</a>
-          </div>
-          <div class="product-grid">
-            <div class="prod-card">
-              <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&q=70" alt="Phone">
-              <div class="prod-card-body"><p>Smartphone</p><div class="prod-price">₹15,999</div><div class="prod-badge">Sponsored</div></div>
-            </div>
-            <div class="prod-card">
-              <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=300&q=70" alt="Bag">
-              <div class="prod-card-body"><p>Stylish Handbag</p><div class="prod-price">₹2,499</div><div class="prod-badge">Sponsored</div></div>
-            </div>
-            <div class="prod-card">
-              <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=70" alt="Shoes">
-              <div class="prod-card-body"><p>Running Shoes</p><div class="prod-price">₹3,200</div><div class="prod-badge">Sponsored</div></div>
-            </div>
-            <div class="prod-card">
-              <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=70" alt="Headphone">
-              <div class="prod-card-body"><p>Wireless Headphone</p><div class="prod-price">₹1,800</div><div class="prod-badge">Sponsored</div></div>
-            </div>
-            <div class="view-all-card ad-slot-card"><div class="ad-tag">Sponsored</div><h4>Featured Ad Space</h4><p>Promote your product to active buyers.</p><button class="ad-slot-btn">Book Slot</button></div>
-          </div>
-        </div>
       </div>
 
       <aside class="col-12 col-lg-3 top-sidebar-ads">
@@ -337,6 +312,39 @@
             <button class="btn-learn">Learn More</button>
           </div>
         </div>
+      </aside>
+      </div>
+
+      <div class="row g-3 align-items-stretch ecommerce-with-side-ad">
+        <div class="col-12 col-lg-9">
+          <!-- E-Commerce Section -->
+          <div class="sec ecommerce-sec">
+            <div class="sec-head">
+              <div class="sec-title"><span class="icon"><i class="fa-solid fa-cart-shopping"></i></span> E-Commerce</div>
+              <a class="view-all" href="#">VIEW ALL ▶</a>
+            </div>
+            <div class="product-grid">
+              <div class="prod-card">
+                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&q=70" alt="Phone">
+                <div class="prod-card-body"><p>Smartphone</p><div class="prod-price">₹15,999</div><div class="prod-badge">Sponsored</div></div>
+              </div>
+              <div class="prod-card">
+                <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=300&q=70" alt="Bag">
+                <div class="prod-card-body"><p>Stylish Handbag</p><div class="prod-price">₹2,499</div><div class="prod-badge">Sponsored</div></div>
+              </div>
+              <div class="prod-card">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=70" alt="Shoes">
+                <div class="prod-card-body"><p>Running Shoes</p><div class="prod-price">₹3,200</div><div class="prod-badge">Sponsored</div></div>
+              </div>
+              <div class="prod-card">
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=70" alt="Headphone">
+                <div class="prod-card-body"><p>Wireless Headphone</p><div class="prod-price">₹1,800</div><div class="prod-badge">Sponsored</div></div>
+              </div>
+              <div class="view-all-card ad-slot-card"><div class="ad-tag">Sponsored</div><h4>Featured Ad Space</h4><p>Promote your product to active buyers.</p><button class="ad-slot-btn">Book Slot</button></div>
+            </div>
+          </div>
+        </div>
+        <aside class="col-12 col-lg-3 ecommerce-side-ad">
         <div class="side-card">
           <img class="side-card-img" src="https://images.unsplash.com/photo-1509391366360-2e959784a276?w=500&q=70" alt="Solar offer">
           <div class="side-card-body">
@@ -345,7 +353,8 @@
             <button class="btn-learn">Learn More</button>
           </div>
         </div>
-      </aside>
+        </aside>
+      </div>
     </div>
 
     <!-- Explore Products Near You (SSNY style) -->
