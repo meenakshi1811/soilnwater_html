@@ -95,34 +95,38 @@
       showSlide(activeIndex);
     };
 
-    const controlsWrap = document.createElement('div');
-    controlsWrap.className = 'ad-slider-arrows';
+    const showArrows = slider.dataset.showArrows !== 'false';
 
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'ad-slider-arrow ad-slider-arrow-prev';
-    prevBtn.type = 'button';
-    prevBtn.setAttribute('aria-label', 'Previous ad');
-    prevBtn.innerHTML = '&#10094;';
+    if (showArrows) {
+      const controlsWrap = document.createElement('div');
+      controlsWrap.className = 'ad-slider-arrows';
 
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'ad-slider-arrow ad-slider-arrow-next';
-    nextBtn.type = 'button';
-    nextBtn.setAttribute('aria-label', 'Next ad');
-    nextBtn.innerHTML = '&#10095;';
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'ad-slider-arrow ad-slider-arrow-prev';
+      prevBtn.type = 'button';
+      prevBtn.setAttribute('aria-label', 'Previous ad');
+      prevBtn.innerHTML = '&#10094;';
 
-    prevBtn.addEventListener('click', () => {
-      goTo(activeIndex - 1);
-      restartAuto();
-    });
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'ad-slider-arrow ad-slider-arrow-next';
+      nextBtn.type = 'button';
+      nextBtn.setAttribute('aria-label', 'Next ad');
+      nextBtn.innerHTML = '&#10095;';
 
-    nextBtn.addEventListener('click', () => {
-      goTo(activeIndex + 1);
-      restartAuto();
-    });
+      prevBtn.addEventListener('click', () => {
+        goTo(activeIndex - 1);
+        restartAuto();
+      });
 
-    controlsWrap.appendChild(prevBtn);
-    controlsWrap.appendChild(nextBtn);
-    slider.appendChild(controlsWrap);
+      nextBtn.addEventListener('click', () => {
+        goTo(activeIndex + 1);
+        restartAuto();
+      });
+
+      controlsWrap.appendChild(prevBtn);
+      controlsWrap.appendChild(nextBtn);
+      slider.appendChild(controlsWrap);
+    }
 
     const stopAuto = () => {
       if (autoTimer) clearInterval(autoTimer);

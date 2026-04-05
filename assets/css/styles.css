@@ -745,6 +745,20 @@
   .section-with-side-ad .section-side-ad .btn-learn {
     margin-top: auto;
   }
+  .popular-inline-ads-slider .side-card,
+  .popular-side-ads-slider .side-card {
+    flex: 0 0 auto;
+    height: auto;
+  }
+  .popular-inline-ads-slider .side-card-body,
+  .popular-side-ads-slider .side-card-body {
+    flex: 0 0 auto;
+    display: block;
+  }
+  .popular-inline-ads-slider .btn-learn,
+  .popular-side-ads-slider .btn-learn {
+    margin-top: 10px;
+  }
   .top-fold-main {
     display: flex;
     flex-direction: column;
