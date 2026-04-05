@@ -503,6 +503,64 @@
     align-items: start;
   }
   .ppng-listings { display: flex; flex-direction: column; gap: 10px; }
+  .ppng-listings-card {
+    background: transparent;
+    border: 0;
+    border-radius: 12px;
+    box-shadow: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .ppng-listings .listing-card {
+    background: var(--white);
+    border-color: #d8e2f0;
+    border-radius: 12px;
+    padding: 12px;
+    align-items: flex-start;
+    gap: 10px;
+    flex-direction: column;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+  }
+  .ppng-listings .listing-card img {
+    width: 100%;
+    height: 138px;
+    border-radius: 10px;
+  }
+  .ppng-listings .listing-info h4 {
+    font-size: 16px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .ppng-listings .listing-info .addr {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .ppng-listings .stars {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .ppng-listings .listing-meta,
+  .ppng-listings .listing-badge {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  .ppng-listings .listing-badge {
+    margin-top: 2px;
+  }
+  .ppng-listings .btn-view {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    width: auto;
+    margin-top: 6px;
+  }
+  .ppng-side-slider > .side-card.is-active {
+    display: flex !important;
+    flex-direction: column;
+    height: 100%;
+  }
   .ppng-ad-rail { display: flex; flex-direction: column; gap: 14px; }
   .ppng-ad-card {
     background: var(--white); border: 1px solid #e5eaf1; border-radius: 10px;
@@ -751,6 +809,7 @@
   .section-ad-rail { display: grid; grid-template-columns: 1fr 1fr; }
   .ppng-layout { grid-template-columns: 1fr; }
   .ppng-ad-rail { display: grid; grid-template-columns: 1fr 1fr; }
+  .ppng-listings-card { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-inner { grid-template-columns: 1fr 1fr; gap: 28px; }
 }
 
@@ -777,6 +836,10 @@
   .trusted-bar { grid-template-columns: 1fr; }
   .trust-item { justify-content: flex-start; }
   .section-ad-rail { grid-template-columns: 1fr; }
+  .ppng-listings-card { grid-template-columns: 1fr; }
+  .ppng-listings .listing-card img {
+    height: 170px;
+  }
   .ad-wide-content h3 { font-size: 18px; }
   .footer-inner { grid-template-columns: 1fr; gap: 24px; padding: 32px 18px 24px; }
   .footer-bottom-inner { flex-direction: column; text-align: center; }
