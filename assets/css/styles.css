@@ -688,10 +688,10 @@
   .popular-inline-ads {
     display: grid;
     gap: 10px;
-    height: 100%;
+    align-content: start;
   }
   .popular-inline-ads .side-card {
-    height: 100%;
+    height: auto;
     display: flex;
     flex-direction: column;
   }
@@ -733,6 +733,10 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+  }
+  .popular-side-ads-slider .side-card {
+    flex: 0 0 auto;
+    height: auto;
   }
   .section-with-side-ad .section-side-ad .side-card-img {
     height: 118px;
