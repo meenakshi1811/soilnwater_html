@@ -577,17 +577,53 @@
     position: relative;
     overflow: hidden;
   }
-  .auto-ad-slider .side-card {
+  .auto-ad-slider > .ad-slide {
     display: none;
-    animation: adFadeIn .45s ease;
+    animation: adSlideInRTL .5s ease;
   }
-  .auto-ad-slider .side-card.is-active {
-    display: flex;
+  .auto-ad-slider > .ad-slide[hidden] {
+    display: none !important;
+  }
+  .auto-ad-slider > .ad-slide.is-active {
+    display: flex !important;
     flex-direction: column;
   }
-  @keyframes adFadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+  .top-ad-slider > .adv-strip.is-active {
+    display: block;
+  }
+  .ad-wide-slider > .ad-wide-content.is-active {
+    display: flex;
+  }
+  .ad-slider-arrows {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    pointer-events: none;
+  }
+  .ad-slider-arrow {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(22, 50, 79, 0.75);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ad-slider-arrow:hover {
+    background: rgba(21, 101, 192, 0.92);
+  }
+  @keyframes adSlideInRTL {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
   }
   .top-sidebar-ads .side-card {
     display: flex;
