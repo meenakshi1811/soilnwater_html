@@ -373,13 +373,13 @@
   .listing-card { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: box-shadow .18s; }
   .listing-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,.1); }
   .listing-card img { width: 75px; height: 75px; object-fit: cover; border-radius: 7px; flex-shrink: 0; }
-  .listing-info { flex: 1; }
+  .listing-info { flex: 1; min-width: 0; }
   .listing-info h4 { font-size: 13.5px; font-weight: 700; margin-bottom: 3px; }
   .listing-info .addr { font-size: 11.5px; color: var(--text-muted); margin-bottom: 4px; }
   .stars { color: #f9a825; font-size: 12px; }
   .listing-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
   .listing-badge { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
-  .btn-view { background: var(--green); color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; align-self: center; }
+  .btn-view { background: var(--green); color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; align-self: center; margin-left: auto; }
 
   /* ── SIDEBAR CARDS ── */
   .side-card { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
@@ -643,6 +643,7 @@
 
   .popular-properties-redesign .listing-card {
     min-height: 132px;
+    align-items: center;
   }
   .popular-properties-layout {
     display: grid;
