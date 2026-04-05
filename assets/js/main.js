@@ -246,3 +246,48 @@
     observer.observe(topVendorSection);
   }
 })();
+
+(function(){
+  const ppngSideSlider = document.querySelector('.ppng-side-slider');
+  const ppngCards = Array.from(document.querySelectorAll('.ppng-listings .listing-card'));
+  const desktopMedia = window.matchMedia('(min-width: 992px)');
+
+  if (!ppngSideSlider || !ppngCards.length) return;
+
+  const getActiveSideCard = () =>
+    ppngSideSlider.querySelector('.side-card.is-active') || ppngSideSlider.querySelector('.side-card');
+
+  const clearCardHeight = () => {
+    ppngCards.forEach((card) => {
+      card.style.minHeight = '';
+      card.style.height = '';
+    });
+  };
+
+  const syncPpngCardHeight = () => {
+    if (!desktopMedia.matches) {
+      clearCardHeight();
+      return;
+    }
+
+    const activeSideCard = getActiveSideCard();
+    if (!activeSideCard) return;
+
+    const sideCardHeight = Math.ceil(activeSideCard.getBoundingClientRect().height);
+    if (!sideCardHeight) return;
+
+    ppngCards.forEach((card) => {
+      card.style.minHeight = `${sideCardHeight}px`;
+      card.style.height = `${sideCardHeight}px`;
+    });
+  };
+
+  window.addEventListener('load', syncPpngCardHeight);
+  window.addEventListener('resize', syncPpngCardHeight);
+  window.setInterval(syncPpngCardHeight, 1200);
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const observer = new ResizeObserver(syncPpngCardHeight);
+    observer.observe(ppngSideSlider);
+  }
+})();
