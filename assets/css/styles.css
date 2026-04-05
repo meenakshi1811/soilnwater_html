@@ -842,36 +842,87 @@
     margin-top: 10px;
   }
 
+
+
+  /* ── Popular Properties equal-height redesign ── */
+  .popular-properties-section {
+    --popular-section-gap: 12px;
+  }
+  .popular-properties-section > [class*="col-"] {
+    display: flex;
+    min-width: 0;
+  }
+  .popular-properties-section .popular-properties-redesign,
+  .popular-properties-section .section-side-ad {
+    width: 100%;
+    height: 100%;
+  }
+  .popular-properties-section .popular-properties-redesign {
+    display: flex;
+    flex-direction: column;
+  }
   .popular-properties-section .popular-properties-layout {
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    gap: var(--popular-section-gap);
     align-items: stretch;
+  }
+  .popular-properties-section .prop-list {
+    height: 100%;
+    align-items: stretch;
+  }
+  .popular-properties-section .listing-card {
+    height: 100%;
+    align-content: start;
   }
   .popular-properties-section .popular-inline-ads-slider,
   .popular-properties-section .popular-side-ads-slider {
-    height: 100%;
+    min-height: 100%;
   }
   .popular-properties-section .popular-inline-ads-slider > .side-card.is-active,
   .popular-properties-section .popular-side-ads-slider > .side-card.is-active {
-    height: 100%;
+    min-height: 100%;
     display: flex !important;
     flex-direction: column;
   }
   .popular-properties-section .section-side-ad .side-card,
   .popular-properties-section .popular-inline-ads-slider .side-card,
   .popular-properties-section .popular-side-ads-slider .side-card {
-    flex: 1 1 auto;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
   }
   .popular-properties-section .section-side-ad .side-card-body,
   .popular-properties-section .popular-inline-ads-slider .side-card-body,
   .popular-properties-section .popular-side-ads-slider .side-card-body {
     display: flex;
-    flex: 1 1 auto;
     flex-direction: column;
+    flex: 1;
+  }
+  .popular-properties-section .section-side-ad .side-card-img,
+  .popular-properties-section .popular-inline-ads-slider .side-card-img,
+  .popular-properties-section .popular-side-ads-slider .side-card-img {
+    height: clamp(180px, 30vh, 240px);
   }
   .popular-properties-section .section-side-ad .btn-learn,
   .popular-properties-section .popular-inline-ads-slider .btn-learn,
   .popular-properties-section .popular-side-ads-slider .btn-learn {
+    min-height: 48px;
     margin-top: auto;
   }
+
+
+  @media (min-width: 992px) {
+    .popular-properties-section {
+      flex-wrap: nowrap;
+    }
+    .popular-properties-section > .col-lg-9,
+    .popular-properties-section > .col-lg-3 {
+      min-width: 0;
+    }
+  }
+
   .top-fold-main {
     display: flex;
     flex-direction: column;
@@ -1219,6 +1270,15 @@
   .section-ad-rail { grid-template-columns: 1fr; }
   .ppng-listings-card { grid-template-columns: 1fr; }
   .prop-list { grid-template-columns: 1fr; }
+  .popular-properties-section .popular-properties-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .popular-properties-section .section-side-ad .side-card-img,
+  .popular-properties-section .popular-inline-ads-slider .side-card-img,
+  .popular-properties-section .popular-side-ads-slider .side-card-img {
+    height: 170px;
+  }
   .popular-properties-redesign .listing-card {
     grid-template-columns: 88px minmax(0, 1fr);
     align-items: start;
