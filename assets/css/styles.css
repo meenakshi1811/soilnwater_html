@@ -32,13 +32,11 @@
     position: sticky; top: 0; z-index: 100;
   }
   .logo {
-    display: flex; align-items: center; gap: 6px;
-    font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 26px;
-    color: var(--green); white-space: nowrap; letter-spacing: -.3px;
+    display: flex; align-items: center;
+    white-space: nowrap;
   }
-  .logo .logo-n { color: #222; }
   .logo-icon {
-    width: 38px; height: 38px; flex-shrink: 0;
+    width: 120px; height: auto; flex-shrink: 0;
   }
   /* Location pill */
   .loc-wrap {
