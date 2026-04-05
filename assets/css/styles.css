@@ -850,15 +850,21 @@
   }
   .popular-properties-section > [class*="col-"] {
     display: flex;
+    min-width: 0;
   }
   .popular-properties-section .popular-properties-redesign,
   .popular-properties-section .section-side-ad {
     width: 100%;
     height: 100%;
   }
+  .popular-properties-section .popular-properties-redesign {
+    display: flex;
+    flex-direction: column;
+  }
   .popular-properties-section .popular-properties-layout {
-    height: 100%;
-    grid-template-columns: minmax(0, 1.9fr) minmax(250px, 1fr);
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
     gap: var(--popular-section-gap);
     align-items: stretch;
   }
@@ -870,7 +876,6 @@
     height: 100%;
     align-content: start;
   }
-  .popular-properties-section .section-side-ad,
   .popular-properties-section .popular-inline-ads-slider,
   .popular-properties-section .popular-side-ads-slider {
     min-height: 100%;
@@ -878,16 +883,44 @@
   .popular-properties-section .popular-inline-ads-slider > .side-card.is-active,
   .popular-properties-section .popular-side-ads-slider > .side-card.is-active {
     min-height: 100%;
+    display: flex !important;
+    flex-direction: column;
+  }
+  .popular-properties-section .section-side-ad .side-card,
+  .popular-properties-section .popular-inline-ads-slider .side-card,
+  .popular-properties-section .popular-side-ads-slider .side-card {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .popular-properties-section .section-side-ad .side-card-body,
+  .popular-properties-section .popular-inline-ads-slider .side-card-body,
+  .popular-properties-section .popular-side-ads-slider .side-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
   .popular-properties-section .section-side-ad .side-card-img,
   .popular-properties-section .popular-inline-ads-slider .side-card-img,
   .popular-properties-section .popular-side-ads-slider .side-card-img {
-    height: clamp(200px, 36vh, 280px);
+    height: clamp(180px, 30vh, 240px);
   }
   .popular-properties-section .section-side-ad .btn-learn,
   .popular-properties-section .popular-inline-ads-slider .btn-learn,
   .popular-properties-section .popular-side-ads-slider .btn-learn {
-    min-height: 50px;
+    min-height: 48px;
+    margin-top: auto;
+  }
+
+
+  @media (min-width: 992px) {
+    .popular-properties-section {
+      flex-wrap: nowrap;
+    }
+    .popular-properties-section > .col-lg-9,
+    .popular-properties-section > .col-lg-3 {
+      min-width: 0;
+    }
   }
 
   .top-fold-main {
