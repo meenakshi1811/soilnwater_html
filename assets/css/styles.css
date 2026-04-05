@@ -591,24 +591,32 @@
   .ad-wide-slider > .ad-wide-content.is-active {
     display: flex;
   }
-  .ad-slider-dots {
+  .ad-slider-arrows {
+    position: absolute;
+    inset: 0;
     display: flex;
-    justify-content: center;
-    gap: 6px;
-    margin-top: 10px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    pointer-events: none;
   }
-  .ad-slider-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
+  .ad-slider-arrow {
+    width: 30px;
+    height: 30px;
     border: 0;
-    background: #cfd8e3;
+    border-radius: 999px;
+    background: rgba(22, 50, 79, 0.75);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
     cursor: pointer;
-    padding: 0;
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
-  .ad-slider-dot.is-active {
-    width: 20px;
-    background: var(--primary);
+  .ad-slider-arrow:hover {
+    background: rgba(21, 101, 192, 0.92);
   }
   @keyframes adSlideInRTL {
     from { opacity: 0; transform: translateX(24px); }

@@ -127,22 +127,24 @@
     });
 
     let activeIndex = 0;
-    const dotsWrap = document.createElement('div');
-    dotsWrap.className = 'ad-slider-dots';
-    const dots = slides.map((_, index) => {
-      const dot = document.createElement('button');
-      dot.className = 'ad-slider-dot';
-      dot.type = 'button';
-      dot.setAttribute('aria-label', `Go to ad ${index + 1}`);
-      dot.addEventListener('click', () => {
-        activeIndex = index;
-        showSlide(activeIndex);
-      });
-      dotsWrap.appendChild(dot);
-      return dot;
-    });
+    const controlsWrap = document.createElement('div');
+    controlsWrap.className = 'ad-slider-arrows';
 
-    slider.appendChild(dotsWrap);
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'ad-slider-arrow ad-slider-arrow-prev';
+    prevBtn.type = 'button';
+    prevBtn.setAttribute('aria-label', 'Previous ad');
+    prevBtn.innerHTML = '&#10094;';
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'ad-slider-arrow ad-slider-arrow-next';
+    nextBtn.type = 'button';
+    nextBtn.setAttribute('aria-label', 'Next ad');
+    nextBtn.innerHTML = '&#10095;';
+
+    controlsWrap.appendChild(prevBtn);
+    controlsWrap.appendChild(nextBtn);
+    slider.appendChild(controlsWrap);
 
     const showSlide = (index) => {
       slides.forEach((slide, slideIndex) => {
@@ -152,6 +154,16 @@
         dot.classList.toggle('is-active', dotIndex === index);
       });
     };
+
+    prevBtn.addEventListener('click', () => {
+      activeIndex = (activeIndex - 1 + slides.length) % slides.length;
+      showSlide(activeIndex);
+    });
+
+    nextBtn.addEventListener('click', () => {
+      activeIndex = (activeIndex + 1) % slides.length;
+      showSlide(activeIndex);
+    });
 
     showSlide(activeIndex);
 
