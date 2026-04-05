@@ -683,7 +683,7 @@
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(230px, 1fr);
     gap: 12px;
-    align-items: stretch;
+    align-items: start;
   }
   .popular-inline-ads {
     display: grid;
@@ -718,6 +718,15 @@
   .section-with-side-ad {
     margin: 0;
     align-items: stretch !important;
+  }
+  .popular-properties-section {
+    align-items: flex-start !important;
+  }
+  .popular-properties-section > [class*="col-"] {
+    display: block;
+  }
+  .popular-properties-section .section-side-ad {
+    height: auto;
   }
   .section-with-side-ad > [class*="col-"] {
     display: flex;
