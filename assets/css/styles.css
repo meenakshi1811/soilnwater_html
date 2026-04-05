@@ -612,6 +612,25 @@
     display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
     gap: 40px; padding: 48px 24px 36px;
   }
+  .footer-links-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    grid-column: span 3;
+  }
+  .footer-panel {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    padding: 18px 18px 16px;
+    min-height: 100%;
+    transition: border-color .2s ease, transform .2s ease, background .2s ease;
+  }
+  .footer-panel:hover {
+    border-color: rgba(67, 160, 71, .55);
+    background: rgba(255,255,255,.06);
+    transform: translateY(-2px);
+  }
   .footer-logo {
     font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 26px;
     letter-spacing: -.3px; margin-bottom: 10px;
@@ -1001,6 +1020,13 @@
   .ppng-ad-rail { display: grid; grid-template-columns: 1fr 1fr; }
   .ppng-listings-card { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-inner { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .footer-links-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-column: span 2;
+  }
+  .footer-panel:last-child {
+    grid-column: span 2;
+  }
   .popular-properties-layout { grid-template-columns: 1fr; }
   .section-with-side-ad > [class*="col-"] { display: block; }
   .section-with-side-ad .section-side-ad .side-card-img { height: 130px; }
@@ -1013,6 +1039,13 @@
   .ppng-layout { grid-template-columns: 1fr; }
   .ppng-ad-rail { display: grid; grid-template-columns: 1fr 1fr; }
   .footer-inner { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .footer-links-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-column: span 2;
+  }
+  .footer-panel:last-child {
+    grid-column: span 2;
+  }
 }
 
 @media (max-width: 760px) {
@@ -1059,6 +1092,14 @@
   }
   .ad-wide-content h3 { font-size: 18px; }
   .footer-inner { grid-template-columns: 1fr; gap: 24px; padding: 32px 18px 24px; }
+  .footer-links-grid {
+    grid-template-columns: 1fr;
+    grid-column: span 1;
+    gap: 12px;
+  }
+  .footer-panel:last-child {
+    grid-column: span 1;
+  }
   .footer-bottom-inner { flex-direction: column; text-align: center; }
   .footer-bottom-links { flex-wrap: wrap; justify-content: center; gap: 14px; }
 }
