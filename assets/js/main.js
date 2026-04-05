@@ -81,6 +81,16 @@
 
     let activeIndex = 0;
     let autoTimer;
+    let dots = [];
+
+    const updateDots = (index) => {
+      if (!dots.length) return;
+      dots.forEach((dot, dotIndex) => {
+        const isActive = dotIndex === index;
+        dot.classList.toggle('is-active', isActive);
+        dot.setAttribute('aria-selected', String(isActive));
+      });
+    };
 
     const showSlide = (index) => {
       slides.forEach((slide, slideIndex) => {
@@ -88,6 +98,7 @@
         slide.classList.toggle('is-active', isActive);
         slide.hidden = !isActive;
       });
+      updateDots(index);
     };
 
     const goTo = (nextIndex) => {
@@ -126,6 +137,31 @@
       controlsWrap.appendChild(prevBtn);
       controlsWrap.appendChild(nextBtn);
       slider.appendChild(controlsWrap);
+    }
+
+    const showDots = slider.dataset.showDots === 'true';
+    if (showDots) {
+      const dotsWrap = document.createElement('div');
+      dotsWrap.className = 'ad-slider-dots';
+      dotsWrap.setAttribute('role', 'tablist');
+      dotsWrap.setAttribute('aria-label', 'Slider pagination');
+
+      dots = slides.map((_, index) => {
+        const dotBtn = document.createElement('button');
+        dotBtn.className = `ad-slider-dot${index === 0 ? ' is-active' : ''}`;
+        dotBtn.type = 'button';
+        dotBtn.setAttribute('role', 'tab');
+        dotBtn.setAttribute('aria-label', `Go to slide ${index + 1}`);
+        dotBtn.setAttribute('aria-selected', String(index === 0));
+        dotBtn.addEventListener('click', () => {
+          goTo(index);
+          restartAuto();
+        });
+        dotsWrap.appendChild(dotBtn);
+        return dotBtn;
+      });
+
+      slider.appendChild(dotsWrap);
     }
 
     const stopAuto = () => {
