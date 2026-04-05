@@ -295,3 +295,41 @@
     observer.observe(ppngSideSlider);
   }
 })();
+
+
+(function(){
+  const buildersSection = document.querySelector('.builders-developers-sec');
+  const buildersSideSlider = document.querySelector('.builders-side-slider');
+  const desktopMedia = window.matchMedia('(min-width: 992px)');
+
+  if (!buildersSection || !buildersSideSlider) return;
+
+  const clearHeights = () => {
+    buildersSideSlider.style.height = '';
+    buildersSideSlider.style.minHeight = '';
+  };
+
+  const syncBuildersHeights = () => {
+    if (!desktopMedia.matches) {
+      clearHeights();
+      return;
+    }
+
+    const sectionHeight = Math.ceil(buildersSection.getBoundingClientRect().height);
+    if (!sectionHeight) return;
+
+    buildersSideSlider.style.height = `${sectionHeight}px`;
+    buildersSideSlider.style.minHeight = `${sectionHeight}px`;
+  };
+
+  window.addEventListener('load', syncBuildersHeights);
+  window.addEventListener('resize', syncBuildersHeights);
+  window.setTimeout(syncBuildersHeights, 100);
+  window.setInterval(syncBuildersHeights, 1200);
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const observer = new ResizeObserver(syncBuildersHeights);
+    observer.observe(buildersSection);
+    observer.observe(buildersSideSlider);
+  }
+})();
