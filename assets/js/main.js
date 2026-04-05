@@ -169,6 +169,7 @@
     rightSlots.forEach((slot) => {
       slot.style.height = '';
       slot.style.minHeight = '';
+      slot.style.flex = '';
     });
   };
 
@@ -182,8 +183,9 @@
       const targetSlot = rightSlots[index];
       if (!targetSlot) return;
       const sectionHeight = Math.ceil(section.getBoundingClientRect().height);
-      targetSlot.style.height = `${sectionHeight}px`;
-      targetSlot.style.minHeight = `${sectionHeight}px`;
+      targetSlot.style.setProperty('height', `${sectionHeight}px`, 'important');
+      targetSlot.style.setProperty('min-height', `${sectionHeight}px`, 'important');
+      targetSlot.style.flex = '0 0 auto';
     });
   };
 

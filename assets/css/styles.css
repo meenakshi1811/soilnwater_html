@@ -576,10 +576,6 @@
   .premium-wide-slider {
     width: 100%;
   }
-  .top-sidebar-ads > .ad-slider {
-    flex: 1;
-    display: flex;
-  }
   .top-sidebar-ads > .ad-slider > .ad-slide.is-active {
     width: 100%;
     height: 100%;
