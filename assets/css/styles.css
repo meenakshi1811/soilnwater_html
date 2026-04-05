@@ -784,8 +784,14 @@
   .section-with-side-ad .section-side-ad .btn-learn {
     margin-top: auto;
   }
-  .builders-side-slider {
-    min-height: 100%;
+  .builders-side-ads-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .builders-side-ads-stack .builders-side-slider {
+    flex: 1;
+    min-height: 0;
   }
   .builders-side-slider > .side-card.is-active {
     display: flex !important;
