@@ -44,7 +44,8 @@
 })();
 
 (function(){
-  const sliders = document.querySelectorAll('.auto-ad-slider');
+  const sliderCandidates = Array.from(document.querySelectorAll('.ad-slider, .auto-ad-slider, [data-ad-slider]'));
+  const sliders = sliderCandidates.filter((element, index) => sliderCandidates.indexOf(element) === index);
   if (!sliders.length) return;
 
   const dummyAds = [
@@ -98,6 +99,7 @@
   };
 
   sliders.forEach((slider) => {
+    slider.classList.add('ad-slider');
     const seedCards = slideSelectors
       .flatMap((selector) => Array.from(slider.querySelectorAll(selector)))
       .filter((element, index, arr) => arr.indexOf(element) === index);

@@ -573,17 +573,21 @@
     flex-direction: column;
     gap: 14px;
   }
+  .ad-slider,
   .auto-ad-slider {
     position: relative;
     overflow: hidden;
   }
+  .ad-slider > .ad-slide,
   .auto-ad-slider > .ad-slide {
     display: none;
     animation: adSlideInRTL .5s ease;
   }
+  .ad-slider > .ad-slide[hidden],
   .auto-ad-slider > .ad-slide[hidden] {
     display: none !important;
   }
+  .ad-slider > .ad-slide.is-active,
   .auto-ad-slider > .ad-slide.is-active {
     display: flex !important;
     flex-direction: column;
