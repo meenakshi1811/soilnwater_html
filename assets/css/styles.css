@@ -642,8 +642,36 @@
   .prop-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 
   .popular-properties-redesign .listing-card {
-    min-height: 132px;
+    min-height: 156px;
+    display: grid;
+    grid-template-columns: 102px minmax(0, 1fr) auto;
     align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+  .popular-properties-redesign .listing-card img {
+    width: 102px;
+    height: 102px;
+    border-radius: 10px;
+  }
+  .popular-properties-redesign .listing-info h4 {
+    font-size: 15px;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .popular-properties-redesign .listing-info .addr,
+  .popular-properties-redesign .listing-meta {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  .popular-properties-redesign .stars {
+    margin: 5px 0 3px;
+  }
+  .popular-properties-redesign .btn-view {
+    margin-left: 0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
   }
   .popular-properties-layout {
     display: grid;
@@ -866,6 +894,18 @@
   .section-ad-rail { grid-template-columns: 1fr; }
   .ppng-listings-card { grid-template-columns: 1fr; }
   .prop-list { grid-template-columns: 1fr; }
+  .popular-properties-redesign .listing-card {
+    grid-template-columns: 88px minmax(0, 1fr);
+    align-items: start;
+  }
+  .popular-properties-redesign .listing-card img {
+    width: 88px;
+    height: 88px;
+  }
+  .popular-properties-redesign .btn-view {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
   .ppng-listings .listing-card img {
     height: 170px;
   }
