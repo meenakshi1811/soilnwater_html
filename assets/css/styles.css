@@ -854,6 +854,24 @@
   .popular-side-ads-slider .btn-learn {
     margin-top: 10px;
   }
+
+  .popular-properties-section .section-side-ad .side-card,
+  .popular-properties-section .popular-inline-ads-slider .side-card,
+  .popular-properties-section .popular-side-ads-slider .side-card {
+    flex: 1 1 auto;
+    height: 100%;
+  }
+  .popular-properties-section .section-side-ad .side-card-body,
+  .popular-properties-section .popular-inline-ads-slider .side-card-body,
+  .popular-properties-section .popular-side-ads-slider .side-card-body {
+    display: block;
+    flex: 0 0 auto;
+  }
+  .popular-properties-section .section-side-ad .btn-learn,
+  .popular-properties-section .popular-inline-ads-slider .btn-learn,
+  .popular-properties-section .popular-side-ads-slider .btn-learn {
+    margin-top: 12px;
+  }
   .top-fold-main {
     display: flex;
     flex-direction: column;
