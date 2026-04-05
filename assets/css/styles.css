@@ -573,6 +573,17 @@
     flex-direction: column;
     gap: 14px;
   }
+  .premium-wide-slider {
+    width: 100%;
+  }
+  .top-sidebar-ads > .ad-slider {
+    flex: 1;
+    display: flex;
+  }
+  .top-sidebar-ads > .ad-slider > .ad-slide.is-active {
+    width: 100%;
+    height: 100%;
+  }
   .ad-slider,
   .auto-ad-slider {
     position: relative;
@@ -657,6 +668,10 @@
 @media (min-width: 992px) {
   .top-fold-upper {
     align-items: stretch !important;
+  }
+  .top-fold-upper > [class*="col-lg-"] {
+    display: flex;
+    flex-direction: column;
   }
   .top-sidebar-ads {
     height: 100%;
