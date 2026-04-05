@@ -44,7 +44,16 @@
 })();
 
 (function(){
-  const sliderCandidates = Array.from(document.querySelectorAll('.ad-slider, .auto-ad-slider, [data-ad-slider]'));
+  const sliderCandidates = Array.from(document.querySelectorAll([
+    '.ad-slider',
+    '.auto-ad-slider',
+    '[data-ad-slider]',
+    '.top-sidebar-ads',
+    '.section-side-ad',
+    '.ecommerce-side-ad',
+    '.top-ad-slider',
+    '.ad-wide-slider'
+  ].join(',')));
   const sliders = sliderCandidates.filter((element, index) => sliderCandidates.indexOf(element) === index);
   if (!sliders.length) return;
 
@@ -99,6 +108,8 @@
   };
 
   sliders.forEach((slider) => {
+    if (slider.dataset.sliderReady === 'true') return;
+    slider.dataset.sliderReady = 'true';
     slider.classList.add('ad-slider');
     const seedCards = slideSelectors
       .flatMap((selector) => Array.from(slider.querySelectorAll(selector)))
@@ -120,12 +131,26 @@
     }
 
     const slides = Array.from(slider.querySelectorAll(':scope > .ad-slide')).slice(0, 3);
+    if (!slides.length) return;
+
+    const getDisplayMode = (slide) => {
+      if (slide.classList.contains('adv-strip')) return 'block';
+      return 'flex';
+    };
+
+    slides.forEach((slide) => {
+      slide.style.setProperty('display', 'none', 'important');
+      slide.hidden = true;
+      slide.classList.remove('is-active');
+    });
+
     slides.forEach((slide, index) => {
       if (index > 0) hydrateSlide(slide, dummyAds[index % dummyAds.length]);
     });
 
     Array.from(slider.querySelectorAll(':scope > .ad-slide')).slice(3).forEach((extra) => {
       extra.hidden = true;
+      extra.style.setProperty('display', 'none', 'important');
       extra.classList.remove('is-active');
     });
 
@@ -151,8 +176,10 @@
 
     const showSlide = (index) => {
       slides.forEach((slide, slideIndex) => {
-        slide.hidden = slideIndex !== index;
-        slide.classList.toggle('is-active', slideIndex === index);
+        const isActive = slideIndex === index;
+        slide.hidden = !isActive;
+        slide.style.setProperty('display', isActive ? getDisplayMode(slide) : 'none', 'important');
+        slide.classList.toggle('is-active', isActive);
       });
       dots.forEach((dot, dotIndex) => {
         dot.classList.toggle('is-active', dotIndex === index);
