@@ -1549,41 +1549,46 @@
   color: #0f2f52;
 }
 
-.ppng-bootstrap-section .ppng-ads-card {
+.ppng-bootstrap-section .ppng-side-slider {
+  height: 100%;
+  min-height: 100%;
+}
+
+.ppng-bootstrap-section .ppng-side-slider > .side-card.is-active {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
   background: #0e2f53;
+  border: 1px solid #dbe6f3;
 }
 
-.ppng-bootstrap-section #ppngAdsCarousel,
-.ppng-bootstrap-section #ppngAdsCarousel .carousel-inner,
-.ppng-bootstrap-section #ppngAdsCarousel .carousel-item {
-  height: 100%;
-}
-
-.ppng-bootstrap-section .ppng-ad-image {
-  height: 100%;
-  min-height: 520px;
+.ppng-bootstrap-section .ppng-side-slider .side-card-img {
+  height: 300px;
+  width: 100%;
   object-fit: cover;
-  filter: brightness(.66);
 }
 
-.ppng-bootstrap-section .carousel-caption {
-  left: 1.5rem;
-  right: 1.5rem;
-  bottom: 1.5rem;
-  background: rgba(7, 25, 44, 0.68);
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 16px;
-  padding: 1.2rem;
+.ppng-bootstrap-section .ppng-side-slider .side-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  background: linear-gradient(180deg, #12395f 0%, #0b2a49 100%);
 }
 
-.ppng-bootstrap-section .carousel-caption p {
-  font-size: 1.05rem;
-  margin-bottom: .9rem;
+.ppng-bootstrap-section .ppng-side-slider .side-card-body p {
+  font-size: 1rem;
+  color: #d8e7f7;
+}
+
+.ppng-bootstrap-section .ppng-side-slider .btn {
+  margin-top: auto;
+  align-self: flex-start;
 }
 
 @media (max-width: 1199.98px) {
-  .ppng-bootstrap-section .ppng-ad-image {
-    min-height: 420px;
+  .ppng-bootstrap-section .ppng-side-slider .side-card-img {
+    height: 340px;
   }
 }
 
@@ -1592,22 +1597,19 @@
     min-height: 200px;
   }
 
-  .ppng-bootstrap-section .ppng-ad-image {
-    min-height: 340px;
+  .ppng-bootstrap-section .ppng-side-slider .side-card-img {
+    height: 240px;
   }
 
-  .ppng-bootstrap-section .carousel-caption {
-    left: 1rem;
-    right: 1rem;
-    bottom: 1rem;
-    padding: .95rem;
+  .ppng-bootstrap-section .ppng-side-slider .side-card-body {
+    padding: 1rem !important;
   }
 
-  .ppng-bootstrap-section .carousel-caption h3 {
+  .ppng-bootstrap-section .ppng-side-slider .side-card-body h3 {
     font-size: 1.2rem;
   }
 
-  .ppng-bootstrap-section .carousel-caption p {
+  .ppng-bootstrap-section .ppng-side-slider .side-card-body p {
     font-size: .95rem;
   }
 }
