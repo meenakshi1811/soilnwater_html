@@ -1343,6 +1343,31 @@
     align-items: flex-start;
     padding: 10px 10px 0;
   }
+  .ecommerce-ad-card img {
+    height: 148px;
+  }
+  .ecommerce-ad-card .prod-card-body {
+    padding: 12px;
+  }
+  .ecommerce-ad-card .prod-card-body p {
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: #0f3358;
+  }
+  .ecommerce-ad-card .prod-price {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .ecommerce-ad-card .btn-learn {
+    margin-top: 10px;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  .festival-ad-slider .ad-slider-arrows {
+    align-items: flex-start;
+    padding: 10px 10px 0;
+  }
 
 @media (min-width: 992px) {
   .ecommerce-layout {
@@ -1489,6 +1514,13 @@
   .builders-bs-card .card-title { font-size: 15px; }
   .builders-side-slider .side-card-img { height: 190px; }
   .consult-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ecommerce-layout > .col-lg-3 {
+    flex-basis: 290px;
+    max-width: 290px;
+  }
+  .ecommerce-layout > .col-lg-9 {
+    max-width: calc(100% - 306px);
+  }
 }
 
 @media (max-width: 1100px) {
