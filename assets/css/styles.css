@@ -338,11 +338,11 @@
   }
 
   /* ── VENDOR CARDS ── */
-  .vendor-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; align-items: stretch; }
-  .vendor-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: box-shadow .18s; display: flex; flex-direction: column; min-height: 320px; }
+  .vendor-grid { --bs-gutter-x: 0.75rem; --bs-gutter-y: 0.75rem; }
+  .vendor-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: box-shadow .18s; display: flex; flex-direction: column; min-height: 100%; }
   .vendor-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.13); }
-  .vendor-card img { width: 100%; height: clamp(180px, 14vw, 240px); object-fit: cover; display: block; }
-  .vendor-card-body { padding: 10px; flex: 1; display: flex; flex-direction: column; }
+  .vendor-card img { width: 100%; aspect-ratio: 4 / 3; height: auto; object-fit: cover; display: block; }
+  .vendor-card-body { padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
   .vendor-card-body p { font-size: 12.5px; font-weight: 700; margin-bottom: 6px; color: #0f3358; }
   .vendor-card-sub { font-size: 11px; color: #5b6f84; margin-bottom: 4px; }
   .vendor-card-meta { font-size: 10.5px; color: #6e7f8f; margin-bottom: 10px; }
@@ -355,6 +355,7 @@
     font-size: 11px;
     font-weight: 700;
     padding: 7px 10px;
+    line-height: 1.25;
     cursor: pointer;
     font-family: inherit;
   }
