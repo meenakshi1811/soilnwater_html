@@ -186,7 +186,7 @@
   .cat-arrow-right { right: 8px; }
 
   /* ── SECTION WRAPPER ── */
-  .main-wrap { display: flex; gap: 20px; padding: 24px 28px; width: 100%; max-width: 1480px; margin: 0 auto; }
+  .main-wrap { display: flex; gap: 20px; padding: 24px 28px; width: 100%; max-width: none; margin: 0; }
   .main-col { width: 100%; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
   .side-col { width: 240px; display: flex; flex-direction: column; gap: 16px; }
 
