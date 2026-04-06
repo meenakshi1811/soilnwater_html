@@ -1658,6 +1658,32 @@
   color: #0f2f52;
 }
 
+.ppng-bootstrap-section .ppng-property-card .card-body {
+  padding: 1rem !important;
+}
+
+.ppng-bootstrap-section .ppng-card-title {
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--blue-dark);
+}
+
+.ppng-bootstrap-section .ppng-card-meta {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.ppng-bootstrap-section .ppng-card-meta-muted {
+  color: var(--text-muted);
+}
+
+.ppng-bootstrap-section .ppng-card-stars {
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  color: #e09b12;
+}
+
 .ppng-bootstrap-section .ppng-side-slider {
   height: 100%;
   min-height: 100%;
@@ -1695,10 +1721,21 @@
   margin-bottom: 0;
 }
 
+.ppng-bootstrap-section .ppng-side-slider .ppng-ad-title {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
 .ppng-bootstrap-section .ppng-side-slider .side-card-body p {
   font-size: 1rem;
   color: #d8e7f7;
   margin-bottom: 0;
+}
+
+.ppng-bootstrap-section .ppng-side-slider .ppng-ad-copy {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: #d8e7f7;
 }
 
 .ppng-bootstrap-section .ppng-side-slider .btn {
@@ -1715,23 +1752,36 @@
 
 @media (max-width: 767.98px) {
   .ppng-bootstrap-section .ppng-property-card .ratio {
-    min-height: 200px;
+    min-height: 160px;
+  }
+
+  .ppng-bootstrap-section .ppng-property-card .card-body {
+    padding: 0.875rem !important;
+  }
+
+  .ppng-bootstrap-section .ppng-card-title {
+    font-size: 0.95rem;
+  }
+
+  .ppng-bootstrap-section .ppng-card-meta,
+  .ppng-bootstrap-section .ppng-card-stars {
+    font-size: 0.8125rem;
   }
 
   .ppng-bootstrap-section .ppng-side-slider .side-card-img {
-    height: 240px;
+    height: 180px;
   }
 
   .ppng-bootstrap-section .ppng-side-slider .side-card-body {
     padding: 1rem !important;
   }
 
-  .ppng-bootstrap-section .ppng-side-slider .side-card-body h3 {
-    font-size: 1.2rem;
+  .ppng-bootstrap-section .ppng-side-slider .ppng-ad-title {
+    font-size: 0.95rem;
   }
 
-  .ppng-bootstrap-section .ppng-side-slider .side-card-body p {
-    font-size: .95rem;
+  .ppng-bootstrap-section .ppng-side-slider .ppng-ad-copy {
+    font-size: .8125rem;
   }
 }
 
