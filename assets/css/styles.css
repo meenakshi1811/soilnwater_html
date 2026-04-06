@@ -1535,3 +1535,79 @@
     margin-left: 0;
   }
 }
+
+/* Popular Properties Near Greenwood bootstrap refresh */
+.ppng-bootstrap-section .ppng-property-card {
+  border: 1px solid #dbe6f3 !important;
+}
+
+.ppng-bootstrap-section .ppng-property-card .ratio {
+  min-height: 220px;
+}
+
+.ppng-bootstrap-section .ppng-property-card h4 {
+  color: #0f2f52;
+}
+
+.ppng-bootstrap-section .ppng-ads-card {
+  background: #0e2f53;
+}
+
+.ppng-bootstrap-section #ppngAdsCarousel,
+.ppng-bootstrap-section #ppngAdsCarousel .carousel-inner,
+.ppng-bootstrap-section #ppngAdsCarousel .carousel-item {
+  height: 100%;
+}
+
+.ppng-bootstrap-section .ppng-ad-image {
+  height: 100%;
+  min-height: 520px;
+  object-fit: cover;
+  filter: brightness(.66);
+}
+
+.ppng-bootstrap-section .carousel-caption {
+  left: 1.5rem;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  background: rgba(7, 25, 44, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 16px;
+  padding: 1.2rem;
+}
+
+.ppng-bootstrap-section .carousel-caption p {
+  font-size: 1.05rem;
+  margin-bottom: .9rem;
+}
+
+@media (max-width: 1199.98px) {
+  .ppng-bootstrap-section .ppng-ad-image {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .ppng-bootstrap-section .ppng-property-card .ratio {
+    min-height: 200px;
+  }
+
+  .ppng-bootstrap-section .ppng-ad-image {
+    min-height: 340px;
+  }
+
+  .ppng-bootstrap-section .carousel-caption {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    padding: .95rem;
+  }
+
+  .ppng-bootstrap-section .carousel-caption h3 {
+    font-size: 1.2rem;
+  }
+
+  .ppng-bootstrap-section .carousel-caption p {
+    font-size: .95rem;
+  }
+}
