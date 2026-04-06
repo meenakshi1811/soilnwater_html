@@ -1293,28 +1293,6 @@
   .ecommerce-layout .prod-card {
     width: 100%;
   }
-  .ecommerce-layout .prod-card-compact img {
-    height: clamp(180px, 14vw, 240px);
-  }
-  .ecommerce-layout .prod-card-compact .prod-card-body {
-    padding: 12px 12px 13px;
-  }
-  .ecommerce-layout .prod-card-compact .prod-card-body p {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-  .ecommerce-layout .prod-card-compact .prod-price {
-    font-size: 22px;
-    margin-bottom: 6px;
-  }
-  .ecommerce-layout .prod-card-compact .prod-badge {
-    font-size: 14px;
-  }
-  .ecommerce-layout .prod-card-compact .prod-badge::before {
-    width: 9px;
-    height: 9px;
-  }
   .ecommerce-layout .festival-ad-slider .prod-card {
     min-height: 100%;
   }
