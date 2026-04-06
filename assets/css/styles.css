@@ -917,18 +917,22 @@
   .builders-side-slider > .side-card.is-active {
     display: flex !important;
     flex-direction: column;
-    height: 100%;
+    height: auto;
   }
   .builders-side-slider .side-card-img {
     height: 220px;
   }
   .builders-side-slider .side-card-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+    display: block;
   }
   .builders-side-slider .btn-learn {
-    margin-top: auto;
+    margin-top: 10px;
+  }
+  .builders-section-with-side-ad {
+    align-items: flex-start !important;
+  }
+  .builders-section-with-side-ad > [class*="col-"] {
+    display: block;
   }
   .popular-inline-ads-slider .side-card,
   .popular-side-ads-slider .side-card {
