@@ -1288,13 +1288,39 @@
     flex-direction: row;
   }
   .ecommerce-layout .col-lg-9 .col {
-    display: flex;
+    display: block;
   }
-  .ecommerce-layout .prod-card {
+  .ecommerce-layout .col-lg-9 .prod-card {
     width: 100%;
+    min-height: 0;
   }
   .ecommerce-layout .festival-ad-slider .prod-card {
     min-height: 100%;
+  }
+  .ecommerce-ad-card img {
+    height: 148px;
+  }
+  .ecommerce-ad-card .prod-card-body {
+    padding: 12px;
+  }
+  .ecommerce-ad-card .prod-card-body p {
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: #0f3358;
+  }
+  .ecommerce-ad-card .prod-price {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .ecommerce-ad-card .btn-learn {
+    margin-top: 10px;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  .festival-ad-slider .ad-slider-arrows {
+    align-items: flex-start;
+    padding: 10px 10px 0;
   }
 
 @media (min-width: 992px) {
