@@ -1564,17 +1564,18 @@
 }
 
 .ppng-bootstrap-section .ppng-side-slider .side-card-img {
-  height: 300px;
+  height: auto;
+  min-height: 300px;
+  flex: 1 1 auto;
   width: 100%;
   object-fit: cover;
 }
 
 .ppng-bootstrap-section .ppng-side-slider .side-card-body {
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 14px;
   color: #fff;
   background: linear-gradient(180deg, #12395f 0%, #0b2a49 100%);
