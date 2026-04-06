@@ -1498,6 +1498,13 @@
   .builders-bs-card .card-title { font-size: 15px; }
   .builders-side-slider .side-card-img { height: 190px; }
   .consult-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ecommerce-layout > .col-lg-3 {
+    flex-basis: 290px;
+    max-width: 290px;
+  }
+  .ecommerce-layout > .col-lg-9 {
+    max-width: calc(100% - 306px);
+  }
 }
 
 @media (max-width: 1100px) {
