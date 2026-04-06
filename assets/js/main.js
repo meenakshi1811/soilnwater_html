@@ -225,18 +225,27 @@
       return;
     }
 
-    const mainHeight = Math.ceil(topFoldMain.getBoundingClientRect().height);
-    if (!mainHeight) return;
-
     const computedStyle = window.getComputedStyle(topSidebarAds);
     const gap = parseFloat(computedStyle.rowGap || computedStyle.gap || '0') || 0;
-    const totalGap = gap * Math.max(0, adSlots.length - 1);
-    const slotHeight = Math.max(0, Math.floor((mainHeight - totalGap) / adSlots.length));
+    const sponsoredSections = Array.from(topFoldMain.querySelectorAll('.sec'));
+    const sectionHeights = sponsoredSections
+      .map((section) => Math.ceil(section.getBoundingClientRect().height))
+      .filter((height) => height > 0);
 
-    topSidebarAds.style.height = `${mainHeight}px`;
-    topSidebarAds.style.minHeight = `${mainHeight}px`;
+    if (!sectionHeights.length) return;
 
-    adSlots.forEach((slot) => {
+    const resolvedSlotHeights = adSlots.map((_, index) => {
+      if (sectionHeights[index]) return sectionHeights[index];
+      return sectionHeights[sectionHeights.length - 1];
+    });
+
+    const totalSidebarHeight = resolvedSlotHeights.reduce((sum, height) => sum + height, 0) + (gap * Math.max(0, adSlots.length - 1));
+
+    topSidebarAds.style.height = `${totalSidebarHeight}px`;
+    topSidebarAds.style.minHeight = `${totalSidebarHeight}px`;
+
+    adSlots.forEach((slot, index) => {
+      const slotHeight = resolvedSlotHeights[index];
       slot.style.height = `${slotHeight}px`;
       slot.style.minHeight = `${slotHeight}px`;
       slot.style.flex = `0 0 ${slotHeight}px`;
