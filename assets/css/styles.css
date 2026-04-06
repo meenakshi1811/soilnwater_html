@@ -268,7 +268,7 @@
 
   /* ── PRODUCT CARDS ── */
   .product-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-  .ecommerce-product-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: stretch; }
+  .ecommerce-product-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch; }
   .product-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .popular-services-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1190,6 +1190,37 @@
   .top-vendors-featured-slider > .vendor-top-ad.is-active {
     display: flex !important;
     flex-direction: row;
+  }
+  .ecommerce-layout .col-lg-9 .col {
+    display: flex;
+  }
+  .ecommerce-layout .prod-card {
+    width: 100%;
+  }
+  .ecommerce-layout .prod-card-compact img {
+    height: clamp(180px, 14vw, 240px);
+  }
+  .ecommerce-layout .prod-card-compact .prod-card-body {
+    padding: 12px 12px 13px;
+  }
+  .ecommerce-layout .prod-card-compact .prod-card-body p {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .ecommerce-layout .prod-card-compact .prod-price {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  .ecommerce-layout .prod-card-compact .prod-badge {
+    font-size: 14px;
+  }
+  .ecommerce-layout .prod-card-compact .prod-badge::before {
+    width: 9px;
+    height: 9px;
+  }
+  .ecommerce-layout .festival-ad-slider .prod-card {
+    min-height: 100%;
   }
 
 @media (min-width: 992px) {
