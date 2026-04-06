@@ -292,15 +292,15 @@
   }
   .popular-services-grid .prod-card-body p {
     color: var(--blue-btn);
-    font-size: 22px;
-    font-weight: 800;
-    line-height: 1.25;
-    margin-bottom: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 4px;
   }
   .popular-service-meta {
-    font-size: 12px;
-    color: #5a6c82;
-    font-weight: 600;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -1484,10 +1484,10 @@
     height: 170px;
   }
   .popular-services-grid .prod-card-body p {
-    font-size: 18px;
+    font-size: 14px;
   }
   .popular-service-meta {
-    font-size: 11px;
+    font-size: 10px;
   }
   .cat-item { flex-basis: calc((100% - 16px) / 3); min-width: 90px; }
   .cat-bar { padding: 14px 16px; }
