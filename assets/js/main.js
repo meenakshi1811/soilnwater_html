@@ -195,17 +195,21 @@
 
 (function(){
   const topSidebarAds = document.querySelector('.top-sidebar-ads');
+  const topFoldMain = document.querySelector('.top-fold-main');
 
-  if (!topSidebarAds) return;
+  if (!topSidebarAds || !topFoldMain) return;
 
   const desktopMedia = window.matchMedia('(min-width: 992px)');
 
   const resetInlineHeights = () => {
     const adSlots = topSidebarAds.querySelectorAll('.ad-slider, .auto-ad-slider');
+    topSidebarAds.style.height = '';
+    topSidebarAds.style.minHeight = '';
     adSlots.forEach((slot) => {
       slot.style.height = '';
       slot.style.minHeight = '';
       slot.style.flex = '';
+      slot.style.overflow = '';
     });
   };
 
@@ -215,13 +219,41 @@
       return;
     }
 
-    // Keep sidebar ads content-driven on desktop to avoid giant blank slots.
-    resetInlineHeights();
+    const adSlots = Array.from(topSidebarAds.querySelectorAll('.ad-slider, .auto-ad-slider'));
+    if (!adSlots.length) {
+      resetInlineHeights();
+      return;
+    }
+
+    const mainHeight = Math.ceil(topFoldMain.getBoundingClientRect().height);
+    if (!mainHeight) return;
+
+    const computedStyle = window.getComputedStyle(topSidebarAds);
+    const gap = parseFloat(computedStyle.rowGap || computedStyle.gap || '0') || 0;
+    const totalGap = gap * Math.max(0, adSlots.length - 1);
+    const slotHeight = Math.max(0, Math.floor((mainHeight - totalGap) / adSlots.length));
+
+    topSidebarAds.style.height = `${mainHeight}px`;
+    topSidebarAds.style.minHeight = `${mainHeight}px`;
+
+    adSlots.forEach((slot) => {
+      slot.style.height = `${slotHeight}px`;
+      slot.style.minHeight = `${slotHeight}px`;
+      slot.style.flex = `0 0 ${slotHeight}px`;
+      slot.style.overflow = 'hidden';
+    });
   };
 
   window.addEventListener('load', applySidebarLayout);
   window.addEventListener('resize', applySidebarLayout);
   window.setTimeout(applySidebarLayout, 60);
+  window.setInterval(applySidebarLayout, 1200);
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const observer = new ResizeObserver(applySidebarLayout);
+    observer.observe(topSidebarAds);
+    observer.observe(topFoldMain);
+  }
 })();
 
 
