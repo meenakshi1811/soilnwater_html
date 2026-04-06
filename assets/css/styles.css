@@ -544,11 +544,44 @@
   .btn-chat { background: var(--green); color: #fff; border: none; border-radius: 5px; padding: 5px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: inherit; width: 100%; }
 
   /* ── CONSULTANT CARDS ── */
-  .consult-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .con-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; text-align: center; cursor: pointer; transition: box-shadow .18s; background: var(--white); }
-  .con-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.13); }
-  .con-card img { width: 100%; height: clamp(140px, 12vw, 190px); object-fit: cover; display: block; }
-  .con-card p { font-size: 12px; font-weight: 600; padding: 8px 6px; }
+  .consult-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+  .consult-grid-professional {
+    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    border: 1px solid #e1e8f2;
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .con-card {
+    border: 1px solid #dce6f1;
+    border-radius: 10px;
+    overflow: hidden;
+    text-align: center;
+    cursor: pointer;
+    transition: box-shadow .18s, transform .18s;
+    background: var(--white);
+  }
+  .con-card:hover { box-shadow: 0 6px 18px rgba(15,47,82,.16); transform: translateY(-2px); }
+  .con-card img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    height: auto;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+  .con-card-body { padding: 12px 10px; }
+  .con-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #102f52;
+    margin-bottom: 2px;
+  }
+  .con-role {
+    display: block;
+    font-size: 12px;
+    color: #5c6f82;
+    font-weight: 500;
+  }
 
   /* ── ENQUIRY CTA ── */
   .enquiry-cta { background: linear-gradient(135deg, #1a3a5c 0%, #1565c0 100%); border-radius: 8px; padding: 18px 16px; color: #fff; text-align: center; }
@@ -1428,6 +1461,7 @@
   .section-with-side-ad .section-side-ad .side-card-img { height: 130px; }
   .builders-bs-card .card-title { font-size: 15px; }
   .builders-side-slider .side-card-img { height: 190px; }
+  .consult-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 1100px) {
@@ -1488,6 +1522,12 @@
   }
   .popular-service-meta {
     font-size: 10px;
+  }
+  .consult-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .consult-grid-professional {
+    padding: 10px;
   }
   .cat-item { flex-basis: calc((100% - 16px) / 3); min-width: 90px; }
   .cat-bar { padding: 14px 16px; }
@@ -1588,9 +1628,12 @@
   }
   .prod-card img,
   .vendor-card img,
-  .exp-card img,
-  .con-card img {
+  .exp-card img {
     height: clamp(210px, 62vw, 300px);
+  }
+  .con-card img {
+    aspect-ratio: 4 / 3;
+    height: auto;
   }
 }
 
