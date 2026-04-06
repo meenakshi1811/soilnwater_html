@@ -194,51 +194,37 @@
 })();
 
 (function(){
-  const topFoldMain = document.querySelector('.top-fold-main');
   const topSidebarAds = document.querySelector('.top-sidebar-ads');
 
-  if (!topFoldMain || !topSidebarAds) return;
+  if (!topSidebarAds) return;
 
   const desktopMedia = window.matchMedia('(min-width: 992px)');
-  const leftSections = Array.from(topFoldMain.children).filter((child) => child.classList.contains('sec'));
-  const rightSlots = Array.from(topSidebarAds.children).filter((child) => child.classList.contains('ad-slider') || child.classList.contains('auto-ad-slider'));
 
-  if (!leftSections.length || !rightSlots.length) return;
-
-  const clearHeights = () => {
-    rightSlots.forEach((slot) => {
+  const resetInlineHeights = () => {
+    const adSlots = topSidebarAds.querySelectorAll('.ad-slider, .auto-ad-slider');
+    adSlots.forEach((slot) => {
       slot.style.height = '';
       slot.style.minHeight = '';
       slot.style.flex = '';
     });
   };
 
-  const syncHeights = () => {
+  const applySidebarLayout = () => {
     if (!desktopMedia.matches) {
-      clearHeights();
+      resetInlineHeights();
       return;
     }
 
-    leftSections.forEach((section, index) => {
-      const targetSlot = rightSlots[index];
-      if (!targetSlot) return;
-      const sectionHeight = Math.ceil(section.getBoundingClientRect().height);
-      targetSlot.style.setProperty('height', `${sectionHeight}px`, 'important');
-      targetSlot.style.setProperty('min-height', `${sectionHeight}px`, 'important');
-      targetSlot.style.flex = '0 0 auto';
-    });
+    // Keep sidebar ads content-driven on desktop to avoid giant blank slots.
+    resetInlineHeights();
   };
 
-  window.addEventListener('load', syncHeights);
-  window.addEventListener('resize', syncHeights);
-  window.setTimeout(syncHeights, 80);
-  window.setTimeout(syncHeights, 450);
-
-  if (typeof ResizeObserver !== 'undefined') {
-    const observer = new ResizeObserver(syncHeights);
-    leftSections.forEach((section) => observer.observe(section));
-  }
+  window.addEventListener('load', applySidebarLayout);
+  window.addEventListener('resize', applySidebarLayout);
+  window.setTimeout(applySidebarLayout, 60);
 })();
+
+
 
 (function(){
   const topVendorSection = document.querySelector('.top-vendors-featured-slider');
