@@ -1287,24 +1287,61 @@
     display: flex !important;
     flex-direction: row;
   }
-  .ecommerce-layout .col-lg-9 .col {
-    display: block;
-  }
-  .ecommerce-layout .col-lg-9 .prod-card {
-    width: 100%;
-    min-height: 0;
-  }
   .ecommerce-product-grid {
     margin: 0;
     --bs-gutter-x: 0.75rem;
     --bs-gutter-y: 0.75rem;
   }
-  .ecommerce-product-grid > .col {
-    flex: 1 1 0;
-    max-width: 100%;
+  .ecommerce-bs-card,
+  .ecommerce-ad-bs-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
   }
-  .ecommerce-layout .festival-ad-slider .prod-card {
-    min-height: 100%;
+  .ecommerce-bs-card .card-img-top {
+    height: 140px;
+    object-fit: cover;
+  }
+  .ecommerce-bs-card .card-body {
+    padding: 12px;
+  }
+  .ecommerce-bs-card .card-title {
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: #0f3358;
+    font-weight: 700;
+  }
+  .ecommerce-bs-card .prod-price {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .ecommerce-ad-bs-card .card-img-top {
+    height: 158px;
+    object-fit: cover;
+  }
+  .ecommerce-ad-bs-card .card-body {
+    padding: 14px;
+  }
+  .ecommerce-ad-bs-card .card-title {
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: #0f3358;
+    font-weight: 700;
+  }
+  .ecommerce-ad-bs-card .prod-price {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .ecommerce-ad-bs-card .btn-learn {
+    margin-top: 10px;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  .festival-ad-slider .ad-slider-arrows {
+    align-items: flex-start;
+    padding: 10px 10px 0;
   }
   .ecommerce-ad-card img {
     height: 148px;
@@ -1333,18 +1370,8 @@
   }
 
 @media (min-width: 992px) {
-  .ecommerce-layout > .col-lg-9 {
-    flex: 1 1 auto;
-    max-width: calc(100% - 336px);
-  }
-  .ecommerce-layout > .col-lg-3 {
-    flex: 0 0 320px;
-    max-width: 320px;
-    margin-left: auto;
-  }
-  .ecommerce-product-grid > .col {
-    flex: 0 0 25%;
-    max-width: 25%;
+  .ecommerce-layout {
+    align-items: stretch;
   }
   .top-fold-upper {
     align-items: stretch !important;
@@ -1542,10 +1569,8 @@
     line-height: 1.3;
   }
   .sp-card img { height: clamp(190px, 54vw, 260px); }
-  .ecommerce-layout > .col-lg-9,
-  .ecommerce-layout > .col-lg-3 {
-    max-width: 100%;
-    flex-basis: 100%;
+  .ecommerce-bs-card .card-img-top {
+    height: 170px;
   }
   .ecommerce-layout .prod-card-compact .prod-card-body p {
     font-size: 14px;
