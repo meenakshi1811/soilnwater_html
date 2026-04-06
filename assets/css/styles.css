@@ -1346,8 +1346,79 @@
     font-size: 14px;
   }
   .festival-ad-slider .ad-slider-arrows {
-    align-items: flex-start;
-    padding: 10px 10px 0;
+    align-items: center;
+    padding: 0 8px;
+  }
+  .ecommerce-layout {
+    --bs-gutter-x: 0.55rem;
+    --bs-gutter-y: 0.75rem;
+    --ecom-card-image-h: 170px;
+    --ecom-card-body-h: 146px;
+  }
+  .ecommerce-layout > [class*="col-"] {
+    display: flex;
+  }
+  .ecommerce-layout > .col-lg-9,
+  .ecommerce-layout > .col-lg-3 {
+    align-items: stretch;
+  }
+  .festival-ad-slider {
+    width: 100%;
+  }
+  .festival-ad-slider > .ad-slide.is-active {
+    display: flex !important;
+    flex: 1;
+    height: 100%;
+  }
+  .ecommerce-product-grid {
+    flex: 1;
+  }
+  .ecommerce-product-grid .ecommerce-bs-card {
+    min-height: 100%;
+  }
+  .ecommerce-bs-card,
+  .ecommerce-ad-bs-card {
+    display: flex;
+    flex-direction: column;
+    height: calc(var(--ecom-card-image-h) + var(--ecom-card-body-h));
+  }
+  .ecommerce-bs-card .card-img-top,
+  .ecommerce-ad-bs-card .card-img-top {
+    height: var(--ecom-card-image-h);
+  }
+  .ecommerce-bs-card .card-body,
+  .ecommerce-ad-bs-card .card-body {
+    display: flex;
+    flex-direction: column;
+    min-height: var(--ecom-card-body-h);
+  }
+  .ecommerce-bs-card .prod-badge,
+  .ecommerce-ad-bs-card .btn-learn {
+    margin-top: auto;
+  }
+  @media (min-width: 1200px) {
+    .ecommerce-layout {
+      --bs-gutter-x: 0.45rem;
+      --ecom-card-image-h: 186px;
+      --ecom-card-body-h: 150px;
+    }
+  }
+  @media (max-width: 1199.98px) {
+    .ecommerce-layout {
+      --ecom-card-image-h: 170px;
+      --ecom-card-body-h: 146px;
+    }
+  }
+  @media (max-width: 991.98px) {
+    .ecommerce-layout {
+      --bs-gutter-x: 0.75rem;
+    }
+  }
+  @media (max-width: 575.98px) {
+    .ecommerce-layout {
+      --ecom-card-image-h: 190px;
+      --ecom-card-body-h: 154px;
+    }
   }
 
 @media (min-width: 992px) {
@@ -1355,7 +1426,20 @@
     align-items: stretch;
   }
   .ecommerce-layout > .col-lg-3 {
-    margin-top: 2px;
+    margin-top: 0;
+  }
+  .ecommerce-layout > .col-lg-3,
+  .ecommerce-layout > .col-lg-3 .festival-ad-slider,
+  .ecommerce-layout > .col-lg-3 .ecommerce-ad-bs-card {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  .ecommerce-layout > .col-lg-3 .festival-ad-slider > .ad-slide.is-active {
+    align-self: stretch;
+  }
+  .ecommerce-layout > .col-lg-3 .ecommerce-ad-bs-card .card-img-top {
+    margin-top: 0 !important;
+    display: block;
   }
   .top-fold-upper {
     align-items: stretch !important;
