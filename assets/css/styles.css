@@ -1191,29 +1191,35 @@
     display: flex !important;
     flex-direction: row;
   }
-  .ecommerce-product-grid .prod-card-compact img {
+  .ecommerce-layout .col-lg-9 .col {
+    display: flex;
+  }
+  .ecommerce-layout .prod-card {
+    width: 100%;
+  }
+  .ecommerce-layout .prod-card-compact img {
     height: clamp(180px, 14vw, 240px);
   }
-  .ecommerce-product-grid .prod-card-compact .prod-card-body {
+  .ecommerce-layout .prod-card-compact .prod-card-body {
     padding: 12px 12px 13px;
   }
-  .ecommerce-product-grid .prod-card-compact .prod-card-body p {
-    font-size: 18px;
+  .ecommerce-layout .prod-card-compact .prod-card-body p {
+    font-size: 16px;
     font-weight: 700;
     margin-bottom: 6px;
   }
-  .ecommerce-product-grid .prod-card-compact .prod-price {
-    font-size: 20px;
+  .ecommerce-layout .prod-card-compact .prod-price {
+    font-size: 22px;
     margin-bottom: 6px;
   }
-  .ecommerce-product-grid .prod-card-compact .prod-badge {
+  .ecommerce-layout .prod-card-compact .prod-badge {
     font-size: 14px;
   }
-  .ecommerce-product-grid .prod-card-compact .prod-badge::before {
+  .ecommerce-layout .prod-card-compact .prod-badge::before {
     width: 9px;
     height: 9px;
   }
-  .ecommerce-product-grid .ad-slot-card {
+  .ecommerce-layout .festival-ad-slider .prod-card {
     min-height: 100%;
   }
 
