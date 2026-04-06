@@ -15,7 +15,7 @@
 <!-- ══════════════════════════════════════════════════
      HEADER
 ══════════════════════════════════════════════════ -->
-<header class="header">
+<header class="header container-fluid d-flex flex-wrap align-items-center">
   <!-- Logo: SVG leaf + SoilnWater wordmark -->
   <div class="logo">
     <img class="logo-icon" src="assets/images/logo_soilnwater.webp" alt="SoilnWater logo">
@@ -34,9 +34,11 @@
   </div>
 
   <!-- CTA buttons -->
-  <button class="btn-offer">Post Offer</button>
-  <button class="btn-post">Post Ad</button>
-  <button class="btn-login">Login</button>
+  <div class="header-actions d-flex align-items-center ms-auto gap-2">
+    <button class="btn-offer">Post Offer</button>
+    <button class="btn-post">Post Ad</button>
+    <button class="btn-login">Login</button>
+  </div>
 </header>
 
 
@@ -279,30 +281,42 @@
             <div class="sec-title"><span class="icon"><i class="fa-solid fa-bullhorn"></i></span> Sponsored Listings</div>
             <a class="view-all" href="#">VIEW ALL ▶</a>
           </div>
-          <div class="sponsored-grid">
-            <div class="sp-card">
+          <div class="sponsored-grid row g-3 row-cols-1 row-cols-sm-2 row-cols-xl-3">
+            <div class="col d-flex">
+              <div class="sp-card">
               <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=900&q=80" alt="Watch">
               <div class="sp-card-body"><p>Luxury Watch Sale</p><div class="sp-badge">Sponsored</div></div>
+              </div>
             </div>
-            <div class="sp-card">
+            <div class="col d-flex">
+              <div class="sp-card">
               <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=80" alt="Food">
               <div class="sp-card-body"><p>Local Food Mart Offers</p><div class="sp-badge">Sponsored</div></div>
+              </div>
             </div>
-            <div class="sp-card">
+            <div class="col d-flex">
+              <div class="sp-card">
               <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=900&q=80" alt="Property">
               <div class="sp-card-body"><p>Property For Sale</p><div class="sp-badge">Sponsored</div></div>
+              </div>
             </div>
-            <div class="sp-card">
+            <div class="col d-flex">
+              <div class="sp-card">
               <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=900&q=80" alt="Services">
               <div class="sp-card-body"><p>Top Home Services</p><div class="sp-badge">Sponsored</div></div>
+              </div>
             </div>
-            <div class="sp-card">
+            <div class="col d-flex">
+              <div class="sp-card">
               <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=900&q=80" alt="Business">
               <div class="sp-card-body"><p>Follow the Best Sellers</p><div class="sp-badge">Sponsored</div></div>
+              </div>
             </div>
-            <div class="sp-card">
+            <div class="col d-flex">
+              <div class="sp-card">
               <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=900&q=80" alt="Contract">
               <div class="sp-card-body"><p>Our Latest Contracts</p><div class="sp-badge">Sponsored</div></div>
+              </div>
             </div>
           </div>
         </div>
