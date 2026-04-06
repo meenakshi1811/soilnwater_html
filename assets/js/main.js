@@ -209,6 +209,7 @@
       slot.style.height = '';
       slot.style.minHeight = '';
       slot.style.flex = '';
+      slot.style.overflow = '';
     });
   };
 
@@ -230,7 +231,7 @@
     const computedStyle = window.getComputedStyle(topSidebarAds);
     const gap = parseFloat(computedStyle.rowGap || computedStyle.gap || '0') || 0;
     const totalGap = gap * Math.max(0, adSlots.length - 1);
-    const slotHeight = Math.max(220, Math.floor((mainHeight - totalGap) / adSlots.length));
+    const slotHeight = Math.max(0, Math.floor((mainHeight - totalGap) / adSlots.length));
 
     topSidebarAds.style.height = `${mainHeight}px`;
     topSidebarAds.style.minHeight = `${mainHeight}px`;
@@ -239,6 +240,7 @@
       slot.style.height = `${slotHeight}px`;
       slot.style.minHeight = `${slotHeight}px`;
       slot.style.flex = `0 0 ${slotHeight}px`;
+      slot.style.overflow = 'hidden';
     });
   };
 
