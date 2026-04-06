@@ -271,16 +271,44 @@
   .ecommerce-product-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch; }
   .product-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .popular-services-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 14px;
   }
   .popular-services-grid .prod-card img {
-    height: 210px;
+    height: 196px;
+  }
+  .popular-services-grid .popular-service-card {
+    border-radius: 14px;
+    border: 1px solid #d6e0ee;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    box-shadow: 0 8px 20px rgba(18, 52, 86, .08);
+  }
+  .popular-services-grid .popular-service-card:hover {
+    box-shadow: 0 12px 28px rgba(18, 52, 86, .14);
+    transform: translateY(-4px);
+  }
+  .popular-services-grid .popular-service-card .prod-card-body {
+    padding: 12px 14px 13px;
   }
   .popular-services-grid .prod-card-body p {
     color: var(--blue-btn);
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 6px;
+  }
+  .popular-service-meta {
+    font-size: 12px;
+    color: #5a6c82;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.4;
+  }
+  .popular-service-meta i {
+    color: #2f7ed1;
+    font-size: 11px;
   }
   .builders-developers-sec {
     padding: 24px;
@@ -1378,7 +1406,7 @@
 @media (max-width: 1100px) {
   .ecommerce-product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .popular-services-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .cat-item { flex-basis: calc((100% - 32px) / 5); min-width: 96px; }
   .hero-content h1 { font-size: 28px; }
@@ -1450,10 +1478,16 @@
   .sp-card img { height: clamp(190px, 54vw, 260px); }
   .ecommerce-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .popular-services-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .popular-services-grid .prod-card img {
-    height: 190px;
+    height: 170px;
+  }
+  .popular-services-grid .prod-card-body p {
+    font-size: 18px;
+  }
+  .popular-service-meta {
+    font-size: 11px;
   }
   .cat-item { flex-basis: calc((100% - 16px) / 3); min-width: 90px; }
   .cat-bar { padding: 14px 16px; }
@@ -1655,5 +1689,11 @@
 
   .ppng-bootstrap-section .ppng-side-slider .side-card-body p {
     font-size: .95rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .popular-services-grid {
+    grid-template-columns: 1fr;
   }
 }
