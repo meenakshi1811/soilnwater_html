@@ -2208,3 +2208,29 @@
     height: 100%;
   }
 }
+
+.combo-deals-slider {
+  border-radius: 12px;
+  overflow: hidden;
+}
+.combo-deals-slider > .offer-coupon-banner.ad-slide.is-active {
+  display: block !important;
+}
+.combo-deals-slider .ad-slider-dots {
+  margin-top: 10px;
+}
+.offer-coupon-wrap .offer-coupon-grid {
+  flex: 1;
+}
+.promo-layout .promo-side-slider,
+.promo-layout .promo-side-slider > .ad-slide.is-active,
+.promo-layout .promo-side-slider .promo-side-card {
+  height: 100%;
+}
+.promo-layout .promo-side-slider .promo-side-card {
+  display: flex;
+  flex-direction: column;
+}
+.promo-layout .promo-side-slider .side-card-body {
+  flex: 1;
+}
