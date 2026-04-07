@@ -1439,18 +1439,33 @@
     height: 100%;
     gap: 10px;
   }
+  .top-sidebar-ads .side-card {
+    min-height: 0;
+    height: 100%;
+  }
   .top-sidebar-ads .side-card-img {
-    height: auto;
-    min-height: 130px;
-    flex: 1 1 auto;
+    height: clamp(112px, 41%, 150px);
+    min-height: 112px;
+    flex: 0 0 auto;
     object-fit: cover;
   }
   .top-sidebar-ads .side-card-body {
-    padding: 12px;
-    flex: 0 0 auto;
+    padding: 10px 12px;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .top-sidebar-ads .side-card-body h3,
+  .top-sidebar-ads .side-card-body p {
+    margin: 0;
   }
   .top-sidebar-ads .side-card-body p {
-    margin-bottom: 8px;
+    line-height: 1.35;
+  }
+  .top-sidebar-ads .side-card-body .btn-learn {
+    margin-top: auto;
+    padding: 7px 14px;
   }
   .ecommerce-with-side-ad {
     align-items: stretch !important;
