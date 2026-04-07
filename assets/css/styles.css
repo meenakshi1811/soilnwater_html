@@ -386,7 +386,8 @@
   }
   .builders-bs-card .card-img-top {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 10;
+    height: auto;
     object-fit: cover;
     object-position: center;
     background: #ecf2f9;
@@ -1039,6 +1040,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    height: 100%;
   }
   .builders-side-ads-stack .ads-section-title {
     display: inline-flex;
@@ -1055,26 +1057,32 @@
   .builders-side-ads-stack .builders-side-slider {
     flex: 1;
     min-height: 0;
+    display: flex;
   }
+  .builders-side-slider > .ad-slide.is-active,
   .builders-side-slider > .side-card.is-active {
     display: flex !important;
     flex-direction: column;
-    height: auto;
+    height: 100%;
+    width: 100%;
+  }
+  .builders-side-slider .side-card {
+    height: 100%;
   }
   .builders-side-slider .side-card-img {
-    height: 220px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: center;
   }
   .builders-side-slider .side-card-body {
-    display: block;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
   }
   .builders-side-slider .btn-learn {
-    margin-top: 10px;
-  }
-  .builders-section-with-side-ad {
-    align-items: flex-start !important;
-  }
-  .builders-section-with-side-ad > [class*="col-"] {
-    display: block;
+    margin-top: auto;
   }
   .popular-inline-ads-slider .side-card,
   .popular-side-ads-slider .side-card {
@@ -1648,7 +1656,7 @@
   .section-with-side-ad > [class*="col-"] { display: block; }
   .section-with-side-ad .section-side-ad .side-card-img { height: 130px; }
   .builders-bs-card .card-title { font-size: 15px; }
-  .builders-side-slider .side-card-img { height: 190px; }
+  .builders-side-slider .side-card-img { aspect-ratio: 16 / 10; }
   .consult-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ecommerce-layout > .col-lg-3 {
     flex-basis: 290px;
