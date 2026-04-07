@@ -1,55 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SoilnWater – Local & National Marketplace</title>
-<link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-<link rel="stylesheet" href="assets/css/styles.css" id="mainStylesheet">
-<script>
-  (function () {
-    const stylesheet = document.getElementById('mainStylesheet');
-    if (!stylesheet) return;
-    const cssVersion = Math.floor(Date.now() / 60000);
-    stylesheet.href = `assets/css/styles.css?v=${cssVersion}`;
-  })();
-</script>
-</head>
-<body>
+@extends('frontend.layouts.app')
 
-<!-- ══════════════════════════════════════════════════
-     HEADER
-══════════════════════════════════════════════════ -->
-<header class="header container-fluid d-flex flex-wrap align-items-center">
-  <!-- Logo: SVG leaf + SoilnWater wordmark -->
-  <div class="logo">
-    <img class="logo-icon" src="assets/images/logo_soilnwater.webp" alt="SoilnWater logo">
-  </div>
-
-  <!-- Location picker -->
-  <div class="loc-wrap">
-    <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
-    <span>New Delhi</span>
-    <span class="loc-caret">▾</span>
-  </div>
-
-  <!-- Search bar -->
-  <div class="search-wrap">
-    <input type="text" placeholder="Search for products, services, properties...">
-  </div>
-
-  <!-- CTA buttons -->
-  <div class="header-actions">
-    <button class="btn-offer">Post Offer</button>
-    <button class="btn-post">Post Ad</button>
-    <button class="btn-login">Login</button>
-  </div>
-</header>
-
-
+@section('content')
 <!-- ══════════════════════════════════════════════════
      HERO BANNER
 ══════════════════════════════════════════════════ -->
@@ -237,7 +188,7 @@
   </div>
 </div>
 
-<script src="assets/js/main.js" defer></script>
+<script src="{{ asset('assets/js/main.js') }}" defer></script>
 
 
 <!-- ══════════════════════════════════════════════════
@@ -1292,80 +1243,4 @@
     <div class="trust-item"><span class="trust-icon"><i class="fa-solid fa-lock"></i></span> Secure Payments</div>
   </div>
 </div>
-
-
-<!-- ══════════════════════════════════════════════════
-     FOOTER
-══════════════════════════════════════════════════ -->
-<footer class="footer">
-  <div class="footer-inner">
-
-    <!-- Brand column -->
-    <div class="footer-brand">
-      <div class="footer-logo">
-        <img class="footer-logo-icon" src="assets/images/logo_soilnwater.webp" alt="SoilnWater logo">
-      </div>
-      <p class="footer-tagline">India's trusted local &amp; national marketplace connecting buyers, sellers, and service providers across every category.</p>
-      <div class="footer-socials">
-        <a href="#" class="social-btn" aria-label="Facebook"><i class="fa fa-facebook-f fab fa-facebook-f" aria-hidden="true"></i></a>
-        <a href="#" class="social-btn" aria-label="Instagram"><i class="fa fa-instagram fab fa-instagram" aria-hidden="true"></i></a>
-        <a href="#" class="social-btn" aria-label="Twitter"><i class="fa fa-twitter fab fa-twitter" aria-hidden="true"></i></a>
-        <a href="#" class="social-btn" aria-label="LinkedIn"><i class="fa fa-linkedin fab fa-linkedin-in" aria-hidden="true"></i></a>
-      </div>
-    </div>
-
-    <div class="footer-links-grid">
-      <!-- Marketplace links -->
-      <div class="footer-col footer-panel">
-        <h4 class="footer-col-title">Marketplace</h4>
-        <ul class="footer-list">
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> E-Commerce</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Properties</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Vendors</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Services</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Consultants</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Builders</a></li>
-        </ul>
-      </div>
-
-      <!-- Business links -->
-      <div class="footer-col footer-panel">
-        <h4 class="footer-col-title">For Business</h4>
-        <ul class="footer-list">
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Post an Ad</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Sponsored Listings</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Premium Packages</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Seller Dashboard</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Partner with Us</a></li>
-        </ul>
-      </div>
-
-      <!-- Contact -->
-      <div class="footer-col footer-panel">
-        <h4 class="footer-col-title">Contact Us</h4>
-        <ul class="footer-list footer-contact-list">
-          <li><i class="fa-solid fa-phone"></i> +91 162725 / 236-353915</li>
-          <li><i class="fa-solid fa-envelope"></i> support@soilnwater.com</li>
-          <li><i class="fa-solid fa-clock"></i> Mon–Sat, 9 AM – 6 PM IST</li>
-        </ul>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Bottom bar -->
-  <div class="footer-bottom">
-    <div class="footer-bottom-inner">
-      <span>© 2025 SoilnWater. All rights reserved.</span>
-      <div class="footer-bottom-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Cookie Policy</a>
-        <a href="#">Help Center</a>
-      </div>
-    </div>
-  </div>
-</footer>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-</body>
-</html>
+@endsection
