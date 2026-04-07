@@ -234,20 +234,9 @@
 
     if (!sectionHeights.length) return;
 
-    const getRequiredSlotHeight = (slot) => {
-      const slideCandidates = Array.from(slot.querySelectorAll('.side-card, .ad-slide'));
-      const measuredHeights = slideCandidates
-        .map((slide) => Math.ceil(slide.scrollHeight))
-        .filter((height) => height > 0);
-
-      if (!measuredHeights.length) return 0;
-      return Math.max(...measuredHeights);
-    };
-
-    const resolvedSlotHeights = adSlots.map((slot, index) => {
-      const baseHeight = sectionHeights[index] || sectionHeights[sectionHeights.length - 1];
-      const requiredHeight = getRequiredSlotHeight(slot);
-      return Math.max(baseHeight, requiredHeight);
+    const resolvedSlotHeights = adSlots.map((_, index) => {
+      if (sectionHeights[index]) return sectionHeights[index];
+      return sectionHeights[sectionHeights.length - 1];
     });
 
     const totalSidebarHeight = resolvedSlotHeights.reduce((sum, height) => sum + height, 0) + (gap * Math.max(0, adSlots.length - 1));
