@@ -1439,18 +1439,31 @@
     height: 100%;
     gap: 10px;
   }
-  .top-sidebar-ads .side-card-img {
+  .top-sidebar-ads .side-card {
+    min-height: 0;
     height: auto;
-    min-height: 130px;
-    flex: 1 1 auto;
+  }
+  .top-sidebar-ads .side-card-img {
+    height: clamp(108px, 34%, 136px);
+    min-height: 108px;
+    flex: 0 0 auto;
     object-fit: cover;
   }
   .top-sidebar-ads .side-card-body {
-    padding: 12px;
+    padding: 10px 12px;
     flex: 0 0 auto;
   }
+  .top-sidebar-ads .side-card-body h3,
   .top-sidebar-ads .side-card-body p {
+    margin: 0;
+  }
+  .top-sidebar-ads .side-card-body p {
+    margin-top: 4px;
     margin-bottom: 8px;
+    line-height: 1.35;
+  }
+  .top-sidebar-ads .side-card-body .btn-learn {
+    padding: 7px 14px;
   }
   .ecommerce-with-side-ad {
     align-items: stretch !important;
