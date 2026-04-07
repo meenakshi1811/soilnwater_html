@@ -1394,6 +1394,69 @@
     padding-inline: 14px;
     font-weight: 600;
   }
+  @media (max-width: 1199.98px) {
+    .recent-ads-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: .75rem;
+      margin: 0;
+    }
+    .recent-ads-grid .recent-ad-col {
+      max-width: none;
+      width: auto;
+      padding: 0;
+    }
+  }
+  @media (max-width: 991.98px) {
+    .recent-ads-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 767.98px) {
+    .recent-ads-section {
+      padding: 16px;
+    }
+    .recent-ads-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .65rem;
+    }
+    .recent-ads-grid .recent-ad-col {
+      flex-basis: auto;
+    }
+    .recent-ad-card {
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    }
+    .recent-ad-card .card-img-top {
+      aspect-ratio: 16 / 11;
+    }
+    .recent-ad-card .card-body {
+      gap: 8px;
+      padding: .8rem;
+    }
+    .recent-ad-card .card-title {
+      font-size: .95rem;
+      line-height: 1.3;
+    }
+    .recent-ad-card .card-text {
+      font-size: .84rem;
+      line-height: 1.35;
+    }
+    .recent-ad-card .btn {
+      width: 100%;
+      justify-content: center;
+      font-size: .85rem;
+      padding: .4rem .8rem;
+    }
+  }
+  @media (max-width: 479.98px) {
+    .recent-ads-grid {
+      grid-template-columns: 1fr;
+    }
+    .recent-ads-grid .recent-ad-col {
+      flex-basis: auto;
+    }
+  }
   @media (min-width: 1400px) {
     .recent-ads-grid .recent-ad-col {
       flex: 0 0 20%;
