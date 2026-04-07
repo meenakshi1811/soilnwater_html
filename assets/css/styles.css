@@ -1396,26 +1396,32 @@
   }
   @media (max-width: 1199.98px) {
     .recent-ads-grid {
-      --bs-gutter-x: .85rem;
-      --bs-gutter-y: .85rem;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      overflow-y: hidden;
-      padding-bottom: 6px;
-      scrollbar-width: thin;
-      -webkit-overflow-scrolling: touch;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: .75rem;
+      margin: 0;
     }
     .recent-ads-grid .recent-ad-col {
-      flex: 0 0 clamp(240px, 31vw, 320px);
       max-width: none;
+      width: auto;
+      padding: 0;
+    }
+  }
+  @media (max-width: 991.98px) {
+    .recent-ads-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
   @media (max-width: 767.98px) {
     .recent-ads-section {
       padding: 16px;
     }
+    .recent-ads-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .65rem;
+    }
     .recent-ads-grid .recent-ad-col {
-      flex-basis: clamp(220px, 80vw, 300px);
+      flex-basis: auto;
     }
     .recent-ad-card {
       border-radius: 12px;
@@ -1444,8 +1450,11 @@
     }
   }
   @media (max-width: 479.98px) {
+    .recent-ads-grid {
+      grid-template-columns: 1fr;
+    }
     .recent-ads-grid .recent-ad-col {
-      flex-basis: min(86vw, 280px);
+      flex-basis: auto;
     }
   }
   @media (min-width: 1400px) {
