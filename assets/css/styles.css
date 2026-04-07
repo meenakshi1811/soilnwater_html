@@ -2080,3 +2080,78 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Offer & Discount redesign with right ad slider */
+.promo-layout {
+  --bs-gutter-y: 14px;
+}
+.promo-layout > [class*="col-"] {
+  display: flex;
+}
+.promo-layout .promo-slider,
+.promo-layout .promo-side-slider {
+  width: 100%;
+}
+.promo-layout .promo-slider > .ad-slide.is-active {
+  height: 100%;
+}
+.promo-side-slider {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #d8e4f2;
+  background: #f7fbff;
+  min-height: 100%;
+}
+.promo-side-slider > .ad-slide.is-active {
+  height: 100%;
+}
+.promo-side-card {
+  height: 100%;
+  box-shadow: none;
+  border-radius: 14px;
+  border: 0;
+}
+.promo-side-card .side-card-img {
+  height: 58%;
+  min-height: 190px;
+  object-fit: cover;
+}
+.promo-side-card .side-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: space-between;
+  flex: 1;
+}
+.promo-side-card .side-card-body h3 {
+  margin: 0;
+}
+.promo-side-card .side-card-body p {
+  margin: 0;
+  font-size: 13px;
+}
+
+@media (min-width: 1200px) {
+  .promo-layout {
+    min-height: 270px;
+  }
+  .promo-layout .promo-slider,
+  .promo-layout .promo-side-slider,
+  .promo-layout .promo-slide,
+  .promo-layout .promo-side-card {
+    height: 100%;
+  }
+  .promo-layout .promo-slide {
+    min-height: 270px;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .promo-side-slider {
+    min-height: 260px;
+  }
+  .promo-side-card .side-card-img {
+    height: 180px;
+    min-height: 180px;
+  }
+}
