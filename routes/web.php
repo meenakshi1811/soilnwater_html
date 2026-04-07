@@ -12,6 +12,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login/otp/send', [LoginController::class, 'sendOtp'])->name('login.otp.send');
     Route::get('/login/otp', [LoginController::class, 'showOtpForm'])->name('login.otp.form');
     Route::post('/login/otp/verify', [LoginController::class, 'verifyOtp'])->name('login.otp.verify');
+    Route::post('/login/verification/resend', [LoginController::class, 'resendVerification'])->name('login.verification.resend');
     Route::get('/auth/google', [LoginController::class, 'googleLogin'])->name('login.google');
 });
 
