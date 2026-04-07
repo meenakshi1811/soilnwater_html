@@ -1394,17 +1394,28 @@
     padding-inline: 14px;
     font-weight: 600;
   }
+  @media (max-width: 1199.98px) {
+    .recent-ads-grid {
+      --bs-gutter-x: .85rem;
+      --bs-gutter-y: .85rem;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 6px;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+    }
+    .recent-ads-grid .recent-ad-col {
+      flex: 0 0 clamp(240px, 31vw, 320px);
+      max-width: none;
+    }
+  }
   @media (max-width: 767.98px) {
     .recent-ads-section {
       padding: 16px;
     }
-    .recent-ads-grid {
-      --bs-gutter-x: .75rem;
-      --bs-gutter-y: .75rem;
-    }
     .recent-ads-grid .recent-ad-col {
-      flex: 0 0 50%;
-      max-width: 50%;
+      flex-basis: clamp(220px, 80vw, 300px);
     }
     .recent-ad-card {
       border-radius: 12px;
@@ -1434,8 +1445,7 @@
   }
   @media (max-width: 479.98px) {
     .recent-ads-grid .recent-ad-col {
-      flex: 0 0 100%;
-      max-width: 100%;
+      flex-basis: min(86vw, 280px);
     }
   }
   @media (min-width: 1400px) {
