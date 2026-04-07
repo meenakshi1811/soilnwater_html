@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,10 +37,16 @@ class LoginController extends Controller
     /**
      * Ensure unverified users do not proceed after password login.
      */
-    protected function authenticated(Request $request, $user): RedirectResponse|null
+    protected function authenticated(Request $request, $user): RedirectResponse|JsonResponse|null
     {
         if (! $user->hasVerifiedEmail()) {
             Auth::logout();
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Your account is not verified yet. Please verify your email before signing in.',
+                ], 403);
+            }
 
             return redirect()
                 ->route('login')
@@ -49,10 +56,17 @@ class LoginController extends Controller
                 ]);
         }
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Login successful.',
+                'redirect' => $this->redirectPath(),
+            ]);
+        }
+
         return null;
     }
 
-    public function sendOtp(Request $request): RedirectResponse
+    public function sendOtp(Request $request): RedirectResponse|JsonResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -88,6 +102,13 @@ class LoginController extends Controller
 
         $request->session()->put('otp_login_email', $user->email);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'We sent a one-time password (OTP) to your email address.',
+                'redirect' => route('login.otp.form'),
+            ]);
+        }
+
         return redirect()
             ->route('login.otp.form')
             ->with('status', 'We sent a one-time password (OTP) to your email address.');
@@ -115,7 +136,7 @@ class LoginController extends Controller
         ]);
     }
 
-    public function verifyOtp(Request $request): RedirectResponse
+    public function verifyOtp(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
             'otp' => ['required', 'digits:6'],
@@ -124,8 +145,14 @@ class LoginController extends Controller
         $email = $request->session()->get('otp_login_email');
 
         if (! $email) {
+            $message = 'Your OTP session has expired. Please login again.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
             return redirect()->route('login')->withErrors([
-                'otp' => 'Your OTP session has expired. Please login again.',
+                'otp' => $message,
             ]);
         }
 
@@ -133,9 +160,14 @@ class LoginController extends Controller
 
         if (! $otpData || now()->isAfter($otpData['expires_at'])) {
             Cache::forget($this->otpCacheKey($email));
+            $message = 'OTP has expired. Please request a new code.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
 
             return redirect()->route('login')->withErrors([
-                'otp' => 'OTP has expired. Please request a new code.',
+                'otp' => $message,
             ]);
         }
 
@@ -150,9 +182,14 @@ class LoginController extends Controller
         if (! $user || ! $user->hasVerifiedEmail()) {
             Cache::forget($this->otpCacheKey($email));
             $request->session()->forget('otp_login_email');
+            $message = 'Your account is not verified yet. Please verify your email before signing in.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 403);
+            }
 
             return redirect()->route('login')->withErrors([
-                'email' => 'Your account is not verified yet. Please verify your email before signing in.',
+                'email' => $message,
             ]);
         }
 
@@ -160,6 +197,13 @@ class LoginController extends Controller
         $request->session()->forget('otp_login_email');
 
         Auth::login($user, true);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Login successful.',
+                'redirect' => $this->redirectPath(),
+            ]);
+        }
 
         return redirect()->intended($this->redirectPath());
     }
