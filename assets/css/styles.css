@@ -1339,6 +1339,60 @@
   .offer-slide-1 { background: linear-gradient(120deg, #ef6c00, #fb8c00 55%, #ffb74d); }
   .offer-slide-2 { background: linear-gradient(120deg, #00796b, #00897b 50%, #26a69a); }
   .offer-slide-3 { background: linear-gradient(120deg, #ad1457, #c2185b 48%, #e91e63); }
+  .recent-ads-section {
+    padding: 22px;
+  }
+  .recent-ad-card {
+    border: 1px solid #dde8f4;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .recent-ad-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
+  }
+  .recent-ad-card .card-img-top {
+    height: 170px;
+    object-fit: cover;
+  }
+  .recent-ad-card .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .recent-ad-card .card-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f2944;
+  }
+  .recent-ad-card .card-text {
+    margin: 0;
+    color: #4b657f;
+    font-size: .92rem;
+    line-height: 1.45;
+    flex: 1;
+  }
+  .recent-ad-badge {
+    display: inline-flex;
+    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #e7f1fc;
+    color: #1565c0;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+  }
+  .recent-ad-card .btn {
+    align-self: flex-start;
+    border-radius: 999px;
+    padding-inline: 14px;
+    font-weight: 600;
+  }
   .top-sidebar-ads .side-card {
     display: flex;
     flex-direction: column;
