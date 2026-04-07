@@ -1441,30 +1441,28 @@
   }
   .top-sidebar-ads .side-card {
     min-height: 0;
-    height: 100%;
+    height: auto;
   }
   .top-sidebar-ads .side-card-img {
-    height: clamp(112px, 41%, 150px);
-    min-height: 112px;
+    height: clamp(108px, 34%, 136px);
+    min-height: 108px;
     flex: 0 0 auto;
     object-fit: cover;
   }
   .top-sidebar-ads .side-card-body {
     padding: 10px 12px;
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    flex: 0 0 auto;
   }
   .top-sidebar-ads .side-card-body h3,
   .top-sidebar-ads .side-card-body p {
     margin: 0;
   }
   .top-sidebar-ads .side-card-body p {
+    margin-top: 4px;
+    margin-bottom: 8px;
     line-height: 1.35;
   }
   .top-sidebar-ads .side-card-body .btn-learn {
-    margin-top: auto;
     padding: 7px 14px;
   }
   .ecommerce-with-side-ad {
