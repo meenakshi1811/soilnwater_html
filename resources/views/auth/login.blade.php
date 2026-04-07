@@ -1,63 +1,28 @@
-@extends('layouts.app')
+@extends('frontend.layouts.app')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}?v={{ now()->timestamp }}">
+@endpush
 
 @section('content')
-<div class="container py-5">
-    <style>
-        :root {
-            --primary: #1976d2;
-            --secondary: #2e7d32;
-        }
-        .auth-split {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            min-height: 460px;
-        }
-        .auth-pill .nav-link.active {
-            background-color: var(--primary);
-        }
-        .btn-auth-primary {
-            background-color: var(--primary);
-            border-color: var(--primary);
-            color: #fff;
-        }
-        .btn-auth-secondary {
-            border-color: var(--secondary);
-            color: var(--secondary);
-        }
-        .btn-auth-secondary:hover {
-            background-color: var(--secondary);
-            color: #fff;
-        }
-        .btn-loader {
-            width: 1rem;
-            height: 1rem;
-            border: 2px solid rgba(255,255,255,.35);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin .75s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
-
-    <div class="row justify-content-center align-items-center g-4">
-        <div class="col-lg-5 d-none d-lg-block">
-            <div class="p-4 rounded-4 text-white auth-split">
-                <h2 class="fw-bold mb-3">Welcome back to SoilNWater</h2>
-                <p class="opacity-75 mb-4">Secure, professional access to your account with password, OTP, or Google sign-in.</p>
-                <ul class="list-unstyled small opacity-75 mb-0">
-                    <li class="mb-2">• Secure email verification checks</li>
-                    <li class="mb-2">• One-time password login via email</li>
-                    <li>• 5-minute OTP expiration protection</li>
+<section class="auth-page-wrap">
+    <div class="container">
+        <div class="auth-layout">
+            <aside class="auth-intro auth-intro-login d-none d-lg-block">
+                <span class="intro-pill">SOILNWATER</span>
+                <h1>Welcome back to SoilnWater</h1>
+                <p>Secure, professional access to your account with password, OTP, or Google sign-in.</p>
+                <ul class="intro-points">
+                    <li><i class="fa-solid fa-circle-check"></i> Secure email verification checks</li>
+                    <li><i class="fa-solid fa-circle-check"></i> One-time password login via email</li>
+                    <li><i class="fa-solid fa-circle-check"></i> 5-minute OTP expiration protection</li>
                 </ul>
-            </div>
-        </div>
+            </aside>
 
-        <div class="col-lg-6 col-xl-5">
-            <div class="card border-0 shadow-lg rounded-4">
-                <div class="card-body p-4 p-md-5">
-                    <h3 class="fw-bold mb-2">Sign in</h3>
-                    <p class="text-muted mb-4">Choose your preferred login method.</p>
+            <div class="card auth-form-card">
+                <div class="card-body">
+                    <h2 class="auth-title">Sign in</h2>
+                    <p class="auth-subtitle">Choose your preferred login method.</p>
 
                     <div id="loginAlert" class="alert d-none" role="alert"></div>
 
@@ -128,22 +93,20 @@
                         </div>
                     </div>
 
-                    <div class="position-relative text-center my-4">
-                        <hr>
-                        <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">or</span>
-                    </div>
+                    <div class="auth-divider"><span>or</span></div>
 
-                    <a href="{{ route('login.google') }}" class="btn btn-light border w-100 d-flex justify-content-center align-items-center gap-2">
+                    <a href="{{ route('login.google') }}" class="btn btn-google d-flex justify-content-center align-items-center gap-2">
                         <span class="fw-semibold">Sign in with Google</span>
                     </a>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
+@endsection
 
+@push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
-<script src="{{ asset('assets/js/login.js') }}?v={{ now()->timestamp }}"></script>
-@endsection
+@endpush
