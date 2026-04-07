@@ -1343,37 +1343,38 @@
     padding: 22px;
   }
   .recent-ad-card {
-    border: 1px solid #dde8f4;
-    border-radius: 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+    box-shadow: none;
     transition: transform .2s ease, box-shadow .2s ease;
   }
   .recent-ad-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,.13);
   }
   .recent-ad-card .card-img-top {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    height: clamp(140px, 12vw, 190px);
     object-fit: cover;
   }
   .recent-ad-card .card-body {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
+    padding: 8px 10px 10px;
   }
   .recent-ad-card .card-title {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 12px;
     font-weight: 700;
     color: #0f2944;
   }
   .recent-ad-card .card-text {
     margin: 0;
     color: #4b657f;
-    font-size: .92rem;
-    line-height: 1.45;
+    font-size: 11px;
+    line-height: 1.35;
     flex: 1;
   }
   .recent-ad-badge {
@@ -1390,78 +1391,22 @@
   }
   .recent-ad-card .btn {
     align-self: flex-start;
-    border-radius: 999px;
-    padding-inline: 14px;
-    font-weight: 600;
+    border-radius: 5px;
+    padding: 5px 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    width: 100%;
   }
-  @media (max-width: 1199.98px) {
-    .recent-ads-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: .75rem;
-      margin: 0;
-    }
-    .recent-ads-grid .recent-ad-col {
-      max-width: none;
-      width: auto;
-      padding: 0;
-    }
+  .recent-ads-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin: 0;
   }
-  @media (max-width: 991.98px) {
-    .recent-ads-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  @media (max-width: 767.98px) {
-    .recent-ads-section {
-      padding: 16px;
-    }
-    .recent-ads-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: .65rem;
-    }
-    .recent-ads-grid .recent-ad-col {
-      flex-basis: auto;
-    }
-    .recent-ad-card {
-      border-radius: 12px;
-      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
-    }
-    .recent-ad-card .card-img-top {
-      aspect-ratio: 16 / 11;
-    }
-    .recent-ad-card .card-body {
-      gap: 8px;
-      padding: .8rem;
-    }
-    .recent-ad-card .card-title {
-      font-size: .95rem;
-      line-height: 1.3;
-    }
-    .recent-ad-card .card-text {
-      font-size: .84rem;
-      line-height: 1.35;
-    }
-    .recent-ad-card .btn {
-      width: 100%;
-      justify-content: center;
-      font-size: .85rem;
-      padding: .4rem .8rem;
-    }
-  }
-  @media (max-width: 479.98px) {
-    .recent-ads-grid {
-      grid-template-columns: 1fr;
-    }
-    .recent-ads-grid .recent-ad-col {
-      flex-basis: auto;
-    }
-  }
-  @media (min-width: 1400px) {
-    .recent-ads-grid .recent-ad-col {
-      flex: 0 0 20%;
-      max-width: 20%;
-    }
+  .recent-ads-grid .recent-ad-col {
+    max-width: none;
+    width: auto;
+    padding: 0;
   }
   .top-sidebar-ads .side-card {
     display: flex;
@@ -1975,6 +1920,7 @@
   .vendor-grid,
   .consult-grid,
   .explore-grid,
+  .recent-ads-grid,
   .product-grid,
   .product-grid-4 {
     grid-template-columns: 1fr;
