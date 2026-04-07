@@ -1354,7 +1354,8 @@
     box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
   }
   .recent-ad-card .card-img-top {
-    height: 170px;
+    width: 100%;
+    aspect-ratio: 4 / 3;
     object-fit: cover;
   }
   .recent-ad-card .card-body {
@@ -1392,6 +1393,12 @@
     border-radius: 999px;
     padding-inline: 14px;
     font-weight: 600;
+  }
+  @media (min-width: 1400px) {
+    .recent-ads-grid .recent-ad-col {
+      flex: 0 0 20%;
+      max-width: 20%;
+    }
   }
   .top-sidebar-ads .side-card {
     display: flex;
