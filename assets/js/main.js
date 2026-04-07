@@ -401,3 +401,32 @@
     observer.observe(buildersSideStack);
   }
 })();
+
+(function(){
+  const promoLayout = document.querySelector('.promo-layout');
+  if (!promoLayout) return;
+
+  const leftColumn = promoLayout.querySelector('.offer-coupon-wrap');
+  const rightSlider = promoLayout.querySelector('.promo-side-slider');
+  const desktopMedia = window.matchMedia('(min-width: 1200px)');
+
+  if (!leftColumn || !rightSlider) return;
+
+  const syncHeights = () => {
+    rightSlider.style.height = '';
+    rightSlider.style.minHeight = '';
+
+    if (!desktopMedia.matches) return;
+
+    const leftHeight = Math.ceil(leftColumn.getBoundingClientRect().height);
+    if (leftHeight > 0) {
+      rightSlider.style.height = `${leftHeight}px`;
+      rightSlider.style.minHeight = `${leftHeight}px`;
+    }
+  };
+
+  window.addEventListener('load', syncHeights);
+  window.addEventListener('resize', syncHeights);
+  window.setTimeout(syncHeights, 80);
+  window.setInterval(syncHeights, 1200);
+})();
