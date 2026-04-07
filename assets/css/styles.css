@@ -2255,7 +2255,10 @@
   opacity: .95;
 }
 .offer-coupon-grid .card-body {
-  padding: 14px;
+  padding: 10px 11px;
+}
+.offer-coupon-card .card-body {
+  gap: 6px !important;
 }
 .offer-coupon-card {
   border-radius: 12px;
@@ -2269,8 +2272,8 @@
   background: #eef6ff;
   border-radius: 8px;
   text-align: center;
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 6px 9px;
+  font-size: 12px;
 }
 .w-fit { width: fit-content; }
 
