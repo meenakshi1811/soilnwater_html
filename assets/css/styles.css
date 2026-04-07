@@ -1428,6 +1428,19 @@
   .ecommerce-layout > .col-lg-3 {
     margin-top: 0;
   }
+  .ecommerce-layout > .col-lg-3,
+  .ecommerce-layout > .col-lg-3 .festival-ad-slider,
+  .ecommerce-layout > .col-lg-3 .ecommerce-ad-bs-card {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  .ecommerce-layout > .col-lg-3 .festival-ad-slider > .ad-slide.is-active {
+    align-self: stretch;
+  }
+  .ecommerce-layout > .col-lg-3 .ecommerce-ad-bs-card .card-img-top {
+    margin-top: 0 !important;
+    display: block;
+  }
   .top-fold-upper {
     align-items: stretch !important;
   }
