@@ -60,9 +60,15 @@ class RegisterController extends Controller
 
         event(new Registered($user = $this->create($request->all())));
 
-        return redirect()->route('login')->with(
-            'status',
-            'Thank you for registering. Please verify your account, we have sent you the verification mail on your registered email.'
-        );
+        $message = 'Thank you for registering. Please verify your account, we have sent you the verification mail on your registered email.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'redirect' => route('login'),
+            ]);
+        }
+
+        return redirect()->route('login')->with('status', $message);
     }
 }

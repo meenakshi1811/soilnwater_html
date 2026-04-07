@@ -68,6 +68,7 @@
             var $alert = $(config.alertSelector);
             var defaultText = config.defaultText || 'Submit';
             var loadingText = config.loadingText || 'Please wait...';
+            var csrfToken = $('meta[name="csrf-token"]').attr('content');
 
             self.ensureButtonParts($button);
 
@@ -99,7 +100,8 @@
                         data: $form.serialize(),
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken || ''
                         }
                     }).done(function (response) {
                         if (typeof config.onSuccess === 'function') {
@@ -205,9 +207,9 @@
                     }
                 },
                 fallbackErrorMessage: 'Unable to register right now. Please try again.',
-                onSuccess: function () {
-                    FormHelper.showAlert($('#registerAlert'), 'success', 'Registration successful. Redirecting...');
-                    window.location.href = '/home';
+                onSuccess: function (response) {
+                    FormHelper.showAlert($('#registerAlert'), 'success', response.message || 'Registration successful. Redirecting...');
+                    window.location.href = response.redirect || '/login';
                 }
             });
         },
@@ -260,6 +262,18 @@
                     FormHelper.showAlert($('#loginAlert'), 'success', response.message || 'OTP sent successfully. Redirecting...');
                     window.location.href = response.redirect || '/login/otp';
                 }
+            });
+
+            this.attachAjaxForm({
+                formSelector: '#resendVerificationForm',
+                buttonSelector: '#resendVerificationBtn',
+                alertSelector: '#loginAlert',
+                defaultText: 'Resend Verification Email',
+                loadingText: 'Sending verification link...',
+                rules: {
+                    email: { required: true, email: true }
+                },
+                fallbackErrorMessage: 'Unable to send verification email right now. Please try again.'
             });
         },
 
