@@ -1394,6 +1394,50 @@
     padding-inline: 14px;
     font-weight: 600;
   }
+  @media (max-width: 767.98px) {
+    .recent-ads-section {
+      padding: 16px;
+    }
+    .recent-ads-grid {
+      --bs-gutter-x: .75rem;
+      --bs-gutter-y: .75rem;
+    }
+    .recent-ads-grid .recent-ad-col {
+      flex: 0 0 50%;
+      max-width: 50%;
+    }
+    .recent-ad-card {
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    }
+    .recent-ad-card .card-img-top {
+      aspect-ratio: 16 / 11;
+    }
+    .recent-ad-card .card-body {
+      gap: 8px;
+      padding: .8rem;
+    }
+    .recent-ad-card .card-title {
+      font-size: .95rem;
+      line-height: 1.3;
+    }
+    .recent-ad-card .card-text {
+      font-size: .84rem;
+      line-height: 1.35;
+    }
+    .recent-ad-card .btn {
+      width: 100%;
+      justify-content: center;
+      font-size: .85rem;
+      padding: .4rem .8rem;
+    }
+  }
+  @media (max-width: 479.98px) {
+    .recent-ads-grid .recent-ad-col {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+  }
   @media (min-width: 1400px) {
     .recent-ads-grid .recent-ad-col {
       flex: 0 0 20%;
