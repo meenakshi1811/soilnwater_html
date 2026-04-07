@@ -234,9 +234,12 @@
 
     if (!sectionHeights.length) return;
 
-    const resolvedSlotHeights = adSlots.map((_, index) => {
-      if (sectionHeights[index]) return sectionHeights[index];
-      return sectionHeights[sectionHeights.length - 1];
+    const resolvedSlotHeights = adSlots.map((slot, index) => {
+      const matchedSectionHeight = sectionHeights[index] || sectionHeights[sectionHeights.length - 1];
+      const slotContentHeight = Array.from(slot.querySelectorAll('.ad-slide')).reduce((maxHeight, slide) => {
+        return Math.max(maxHeight, Math.ceil(slide.scrollHeight));
+      }, 0);
+      return Math.max(matchedSectionHeight, slotContentHeight);
     });
 
     const totalSidebarHeight = resolvedSlotHeights.reduce((sum, height) => sum + height, 0) + (gap * Math.max(0, adSlots.length - 1));
