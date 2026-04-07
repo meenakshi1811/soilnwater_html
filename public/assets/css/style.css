@@ -225,3 +225,141 @@ label.error,
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+.auth-page-wrap {
+    padding: 64px 0 84px;
+    background: radial-gradient(circle at top left, rgba(25, 118, 210, 0.08), transparent 45%),
+                radial-gradient(circle at bottom right, rgba(46, 125, 50, 0.1), transparent 40%),
+                #f5f8fc;
+}
+
+.auth-layout {
+    display: grid;
+    gap: 24px;
+    align-items: stretch;
+    grid-template-columns: minmax(280px, 1fr) minmax(320px, 540px);
+}
+
+.auth-intro {
+    border-radius: 20px;
+    padding: 38px 34px;
+    color: #fff;
+    box-shadow: 0 24px 48px rgba(16, 24, 40, 0.18);
+}
+
+.auth-intro-login {
+    background: linear-gradient(145deg, #125ea8 0%, #1976d2 60%, #2e7d32 100%);
+}
+
+.auth-intro h1 {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 18px 0 12px;
+}
+
+.auth-intro p {
+    font-size: 15px;
+    line-height: 1.65;
+    opacity: 0.94;
+    margin: 0;
+}
+
+.auth-form-card {
+    border: 0;
+    border-radius: 20px;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+}
+
+.auth-form-card .card-body {
+    padding: 36px;
+}
+
+.auth-pill .nav-link {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.auth-pill .nav-link.active {
+    background-color: var(--primary);
+}
+
+.btn-auth-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.btn-auth-primary:hover {
+    background-color: #145fa8;
+    border-color: #145fa8;
+    color: #fff;
+}
+
+.btn-auth-secondary {
+    border: 1px solid var(--secondary);
+    color: var(--secondary);
+}
+
+.btn-auth-secondary:hover {
+    background-color: var(--secondary);
+    color: #fff;
+}
+
+.otp-page-wrap {
+    min-height: 60vh;
+}
+
+.otp-layout {
+    display: flex;
+}
+
+.otp-form-card {
+    max-width: 520px;
+    width: 100%;
+}
+
+.otp-title {
+    color: var(--primary);
+}
+
+.otp-timer {
+    color: var(--secondary);
+    font-weight: 700;
+}
+
+.otp-btn {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.otp-btn:hover {
+    background-color: #145fa8;
+    border-color: #145fa8;
+    color: #fff;
+}
+
+.otp-back-link {
+    color: var(--secondary);
+    text-decoration: none;
+}
+
+.otp-back-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 992px) {
+    .auth-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-form-card .card-body,
+    .auth-intro {
+        padding: 28px;
+    }
+
+    .auth-intro h1 {
+        font-size: 28px;
+    }
+}

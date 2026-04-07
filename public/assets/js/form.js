@@ -19,24 +19,6 @@
                 $button.append($loader);
             }
 
-            if ($button.hasClass('js-auto-loader') && !$button.data('loaderStyled')) {
-                $loader.css({
-                    width: '1rem',
-                    height: '1rem',
-                    border: '2px solid rgba(255,255,255,.35)',
-                    borderTopColor: '#fff',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                    verticalAlign: 'middle',
-                    animation: 'formBtnSpin .75s linear infinite'
-                });
-                $button.data('loaderStyled', true);
-            }
-
-            if (!document.getElementById('form-helper-spinner-style')) {
-                $('head').append('<style id="form-helper-spinner-style">@keyframes formBtnSpin{to{transform:rotate(360deg);}}</style>');
-            }
-
             return { text: $text, loader: $loader };
         },
 
@@ -148,52 +130,176 @@
                     });
                 }
             });
+        },
+
+        initOtpTimer: function (selector) {
+            var $timer = $(selector);
+            if (!$timer.length) {
+                return;
+            }
+
+            var expiresAtRaw = $timer.data('expires-at');
+            if (!expiresAtRaw) {
+                return;
+            }
+
+            var expiresAt = new Date(expiresAtRaw).getTime();
+            if (isNaN(expiresAt)) {
+                return;
+            }
+
+            var updateCountdown = function () {
+                var distance = expiresAt - Date.now();
+
+                if (distance <= 0) {
+                    $timer.text('00:00 (Expired)');
+                    return;
+                }
+
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                $timer.text(String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0'));
+            };
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        },
+
+        initRegisterForm: function () {
+            this.attachAjaxForm({
+                formSelector: '#registerForm',
+                buttonSelector: '#registerSubmitBtn',
+                alertSelector: '#registerAlert',
+                defaultText: 'Create Account',
+                loadingText: 'Creating Account...',
+                rules: {
+                    fullname: { required: true, minlength: 3, maxlength: 255 },
+                    email: { required: true, email: true },
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    password: { required: true, minlength: 8 },
+                    password_confirmation: { required: true, equalTo: '#password' }
+                },
+                messages: {
+                    fullname: {
+                        required: 'Please enter your full name.',
+                        minlength: 'Full name must be at least 3 characters.'
+                    },
+                    email: {
+                        required: 'Please enter your email address.',
+                        email: 'Please enter a valid email address.'
+                    },
+                    phone_number: {
+                        required: 'Please enter your phone number.',
+                        digits: 'Phone number should contain only digits.',
+                        minlength: 'Phone number must be at least 10 digits.',
+                        maxlength: 'Phone number cannot exceed 15 digits.'
+                    },
+                    password: {
+                        required: 'Please create a password.',
+                        minlength: 'Password must be at least 8 characters long.'
+                    },
+                    password_confirmation: {
+                        required: 'Please confirm your password.',
+                        equalTo: 'Password confirmation does not match.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to register right now. Please try again.',
+                onSuccess: function () {
+                    FormHelper.showAlert($('#registerAlert'), 'success', 'Registration successful. Redirecting...');
+                    window.location.href = '/home';
+                }
+            });
+        },
+
+        initLoginForms: function () {
+            this.attachAjaxForm({
+                formSelector: '#passwordLoginForm',
+                buttonSelector: '#passwordSubmitBtn',
+                alertSelector: '#loginAlert',
+                defaultText: 'Login with Password',
+                loadingText: 'Signing in...',
+                rules: {
+                    email: { required: true, email: true },
+                    password: { required: true, minlength: 8 }
+                },
+                messages: {
+                    email: {
+                        required: 'Please enter your email address.',
+                        email: 'Please enter a valid email address.'
+                    },
+                    password: {
+                        required: 'Please enter your password.',
+                        minlength: 'Password must be at least 8 characters long.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to sign in right now. Please try again.',
+                onSuccess: function (response) {
+                    FormHelper.showAlert($('#loginAlert'), 'success', 'Login successful. Redirecting...');
+                    window.location.href = response.redirect || '/home';
+                }
+            });
+
+            this.attachAjaxForm({
+                formSelector: '#otpSendForm',
+                buttonSelector: '#otpSendBtn',
+                alertSelector: '#loginAlert',
+                defaultText: 'Send OTP to Email',
+                loadingText: 'Sending OTP...',
+                rules: {
+                    email: { required: true, email: true }
+                },
+                messages: {
+                    email: {
+                        required: 'Please enter your email address.',
+                        email: 'Please enter a valid email address.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to send OTP right now. Please try again.',
+                onSuccess: function (response) {
+                    FormHelper.showAlert($('#loginAlert'), 'success', response.message || 'OTP sent successfully. Redirecting...');
+                    window.location.href = response.redirect || '/login/otp';
+                }
+            });
+        },
+
+        initOtpVerifyForm: function () {
+            this.attachAjaxForm({
+                formSelector: '#otpVerifyForm',
+                buttonSelector: '#otpVerifyBtn',
+                alertSelector: '#otpAlert',
+                defaultText: 'Verify & Login',
+                loadingText: 'Verifying...',
+                rules: {
+                    otp: { required: true, digits: true, minlength: 6, maxlength: 6 }
+                },
+                messages: {
+                    otp: {
+                        required: 'Please enter the OTP sent to your email.',
+                        digits: 'OTP must contain only numbers.',
+                        minlength: 'OTP must be 6 digits.',
+                        maxlength: 'OTP must be 6 digits.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to verify OTP right now. Please try again.',
+                onSuccess: function (response) {
+                    FormHelper.showAlert($('#otpAlert'), 'success', 'OTP verified. Redirecting...');
+                    window.location.href = response.redirect || '/home';
+                }
+            });
+        },
+
+        init: function () {
+            this.initRegisterForm();
+            this.initLoginForms();
+            this.initOtpVerifyForm();
+            this.initOtpTimer('#otp-timer');
         }
     };
 
     window.FormHelper = FormHelper;
 
-    FormHelper.attachAjaxForm({
-        formSelector: '#registerForm',
-        buttonSelector: '#registerSubmitBtn',
-        alertSelector: '#registerAlert',
-        defaultText: 'Create Account',
-        loadingText: 'Creating Account...',
-        rules: {
-            fullname: { required: true, minlength: 3, maxlength: 255 },
-            email: { required: true, email: true },
-            phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
-            password: { required: true, minlength: 8 },
-            password_confirmation: { required: true, equalTo: '#password' }
-        },
-        messages: {
-            fullname: {
-                required: 'Please enter your full name.',
-                minlength: 'Full name must be at least 3 characters.'
-            },
-            email: {
-                required: 'Please enter your email address.',
-                email: 'Please enter a valid email address.'
-            },
-            phone_number: {
-                required: 'Please enter your phone number.',
-                digits: 'Phone number should contain only digits.',
-                minlength: 'Phone number must be at least 10 digits.',
-                maxlength: 'Phone number cannot exceed 15 digits.'
-            },
-            password: {
-                required: 'Please create a password.',
-                minlength: 'Password must be at least 8 characters long.'
-            },
-            password_confirmation: {
-                required: 'Please confirm your password.',
-                equalTo: 'Password confirmation does not match.'
-            }
-        },
-        fallbackErrorMessage: 'Unable to register right now. Please try again.',
-        onSuccess: function () {
-            FormHelper.showAlert($('#registerAlert'), 'success', 'Registration successful. Redirecting...');
-            window.location.href = '/home';
-        }
+    $(function () {
+        FormHelper.init();
     });
 })(window.jQuery);
