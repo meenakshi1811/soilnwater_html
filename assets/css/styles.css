@@ -2080,3 +2080,131 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Offer & Discount redesign with right ad slider */
+.promo-layout {
+  --bs-gutter-y: 14px;
+}
+.promo-layout > [class*="col-"] {
+  display: flex;
+}
+.promo-layout .promo-slider,
+.promo-layout .promo-side-slider {
+  width: 100%;
+}
+.promo-layout .promo-slider > .ad-slide.is-active {
+  height: 100%;
+}
+.promo-side-slider {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #d8e4f2;
+  background: #f7fbff;
+  min-height: 100%;
+}
+.promo-side-slider > .ad-slide.is-active {
+  height: 100%;
+}
+.promo-side-card {
+  height: 100%;
+  box-shadow: none;
+  border-radius: 14px;
+  border: 0;
+}
+.promo-side-card .side-card-img {
+  height: 58%;
+  min-height: 190px;
+  object-fit: cover;
+}
+.promo-side-card .side-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: space-between;
+  flex: 1;
+}
+.promo-side-card .side-card-body h3 {
+  margin: 0;
+}
+.promo-side-card .side-card-body p {
+  margin: 0;
+  font-size: 13px;
+}
+
+@media (min-width: 1200px) {
+  .promo-layout {
+    min-height: 270px;
+  }
+  .promo-layout .promo-slider,
+  .promo-layout .promo-side-slider,
+  .promo-layout .promo-slide,
+  .promo-layout .promo-side-card {
+    height: 100%;
+  }
+  .promo-layout .promo-slide {
+    min-height: 270px;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .promo-side-slider {
+    min-height: 260px;
+  }
+  .promo-side-card .side-card-img {
+    height: 180px;
+    min-height: 180px;
+  }
+}
+
+/* Offer coupon boxes redesign */
+.offer-coupon-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.offer-coupon-banner {
+  background: linear-gradient(120deg, #0f8f87, #20a39c);
+  color: #fff;
+  border-radius: 12px;
+  padding: 18px;
+}
+.offer-coupon-banner h3 {
+  margin: 8px 0 6px;
+  font-size: clamp(22px, 2vw, 30px);
+  font-family: "Manrope", sans-serif;
+  font-weight: 800;
+}
+.offer-coupon-banner p {
+  margin: 0;
+  opacity: .95;
+}
+.offer-coupon-grid .card-body {
+  padding: 14px;
+}
+.offer-coupon-card {
+  border-radius: 12px;
+  border: 1px solid #d9e7f3 !important;
+}
+.coupon-code {
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #14538b;
+  border: 1px dashed #79a8d3;
+  background: #eef6ff;
+  border-radius: 8px;
+  text-align: center;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+.w-fit { width: fit-content; }
+
+@media (min-width: 1200px) {
+  .offer-coupon-wrap {
+    height: 100%;
+  }
+  .offer-coupon-grid .col,
+  .offer-coupon-grid .offer-coupon-card {
+    height: 100%;
+  }
+}
