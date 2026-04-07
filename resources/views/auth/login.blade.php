@@ -32,6 +32,16 @@
 
                     @if ($errors->has('email'))
                         <div class="alert alert-warning" role="alert">{{ $errors->first('email') }}</div>
+                        @if (str_contains(strtolower($errors->first('email')), 'not verified'))
+                            <form id="resendVerificationForm" method="POST" action="{{ route('login.verification.resend') }}" class="mb-3">
+                                @csrf
+                                <input type="hidden" name="email" value="{{ old('email') }}">
+                                <button id="resendVerificationBtn" type="submit" class="btn btn-auth-secondary auth-action-btn w-100">
+                                    <span class="btn-text">Resend Verification Email</span>
+                                    <span class="btn-loader d-none" aria-hidden="true"></span>
+                                </button>
+                            </form>
+                        @endif
                     @endif
 
                     @if ($errors->has('google'))
@@ -71,7 +81,7 @@
                                     @endif
                                 </div>
 
-                                <button id="passwordSubmitBtn" type="submit" class="btn btn-auth-primary w-100 js-auto-loader">
+                                <button id="passwordSubmitBtn" type="submit" class="btn btn-auth-primary auth-action-btn w-100 js-auto-loader">
                                     <span class="btn-text">Login with Password</span>
                                     <span class="btn-loader d-none" aria-hidden="true"></span>
                                 </button>
@@ -85,7 +95,7 @@
                                     <label for="otp_email" class="form-label">Email Address</label>
                                     <input id="otp_email" type="email" class="form-control" name="email" value="{{ old('email') }}" required autocomplete="email">
                                 </div>
-                                <button id="otpSendBtn" type="submit" class="btn btn-auth-secondary w-100 js-auto-loader">
+                                <button id="otpSendBtn" type="submit" class="btn btn-auth-secondary auth-action-btn w-100 js-auto-loader">
                                     <span class="btn-text">Send OTP to Email</span>
                                     <span class="btn-loader d-none" aria-hidden="true"></span>
                                 </button>
@@ -98,6 +108,8 @@
                     <a href="{{ route('login.google') }}" class="btn btn-google d-flex justify-content-center align-items-center gap-2">
                         <span class="fw-semibold">Sign in with Google</span>
                     </a>
+
+                    <p class="signin-copy mt-3 mb-0">Don’t have an account? <a href="{{ route('register') }}">Sign up</a></p>
                 </div>
             </div>
         </div>

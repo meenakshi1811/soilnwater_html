@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
@@ -213,6 +214,41 @@ class LoginController extends Controller
         return redirect()->route('login')->withErrors([
             'google' => 'Google sign in is not configured yet. Please use password or OTP login.',
         ]);
+    }
+
+    public function resendVerification(Request $request): RedirectResponse|JsonResponse
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email', Rule::exists('users', 'email')],
+        ]);
+
+        $user = User::where('email', $data['email'])->first();
+
+        if (! $user) {
+            throw ValidationException::withMessages([
+                'email' => 'No account found with this email address.',
+            ]);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            $message = 'Your email is already verified. Please login with your password or OTP.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return redirect()->route('login')->with('status', $message);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        $message = 'A new verification email has been sent. Please check your inbox.';
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return redirect()->route('login')->with('status', $message);
     }
 
     private function otpCacheKey(string $email): string
