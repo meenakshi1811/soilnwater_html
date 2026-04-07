@@ -1503,6 +1503,7 @@
     display: flex !important;
     flex-direction: column;
     height: 100%;
+    border:1px solid #d8e4f2
   }
   .top-vendors-featured-slider > .vendor-top-ad.is-active {
     display: flex !important;
