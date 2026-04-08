@@ -259,13 +259,14 @@ class RegisterController extends Controller
         }
 
         try {
-            Http::asForm()
+            $response = Http::asForm()
                 ->withBasicAuth($sid, $token)
                 ->post("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json", [
                     'From' => $from,
                     'To' => $phoneNumber,
                     'Body' => "Your SoilNWater phone verification OTP is {$phoneOtpCode}. It expires in 5 minutes.",
                 ]);
+            // echo'<pre>';print_r($response);exit();
         } catch (\Throwable $exception) {
             Log::error('Twilio SMS OTP send failed.', [
                 'phone_number' => $phoneNumber,
