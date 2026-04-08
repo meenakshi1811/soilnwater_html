@@ -10,8 +10,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -40,6 +40,30 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user): RedirectResponse|JsonResponse|null
     {
+        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+            Auth::logout();
+
+            $message = 'Your email and phone number are not verified yet. Please verify your account first.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
+                ], 403);
+            }
+
+            return redirect()
+                ->route('login')
+                ->withInput([
+                    'login' => $request->input('login'),
+                    'remember' => $request->boolean('remember'),
+                    'verification_email' => $user->email,
+                ])
+                ->withErrors([
+                    'contact_verification' => $message,
+                ]);
+        }
+
         if (! $user->hasVerifiedEmail()) {
             Auth::logout();
 
@@ -51,7 +75,11 @@ class LoginController extends Controller
 
             return redirect()
                 ->route('login')
-                ->withInput($request->only('email', 'remember'))
+                ->withInput([
+                    'login' => $request->input('login'),
+                    'remember' => $request->boolean('remember'),
+                    'verification_email' => $user->email,
+                ])
                 ->withErrors([
                     'email' => 'Your account is not verified yet. Please verify your email before signing in.',
                 ]);
@@ -70,25 +98,25 @@ class LoginController extends Controller
     public function sendOtp(Request $request): RedirectResponse|JsonResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'login_contact' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $credentials['email'])->first();
+        $user = $this->findUserByLogin($credentials['login_contact']);
 
         if (! $user) {
             throw ValidationException::withMessages([
-                'email' => 'No account found with this email address.',
+                'login_contact' => 'No account found with this email address or phone number.',
             ]);
         }
 
-        if (! $user->hasVerifiedEmail()) {
+        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
             throw ValidationException::withMessages([
-                'email' => 'Your account is not verified yet. Please verify your email before signing in.',
+                'email' => 'Your email and phone number are not verified yet. Please complete verification first.',
             ]);
         }
 
         $otpCode = (string) random_int(100000, 999999);
-        $cacheKey = $this->otpCacheKey($user->email);
+        $cacheKey = $this->otpCacheKey($user->id);
         $expiresAt = now()->addMinutes(5);
 
         Cache::put($cacheKey, [
@@ -96,34 +124,48 @@ class LoginController extends Controller
             'expires_at' => $expiresAt->toIso8601String(),
         ], $expiresAt);
 
-        Mail::raw("Your SoilNWater login OTP is {$otpCode}. It expires in 5 minutes.", function ($message) use ($user) {
-            $message->to($user->email)
-                ->subject('Your SoilNWater Login OTP');
-        });
+        $isPhoneLogin = $this->looksLikePhone($credentials['login_contact']);
+        if ($isPhoneLogin) {
+            $this->sendLoginOtpToPhone($user->phone_number, $otpCode);
+        } else {
+            Mail::raw("Your SoilNWater login OTP is {$otpCode}. It expires in 5 minutes.", function ($message) use ($user) {
+                $message->to($user->email)
+                    ->subject('Your SoilNWater Login OTP');
+            });
+        }
 
-        $request->session()->put('otp_login_email', $user->email);
+        $request->session()->put('otp_login_user_id', $user->id);
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'We sent a one-time password (OTP) to your email address.',
+                'message' => $isPhoneLogin
+                    ? 'We sent a one-time password (OTP) to your phone number.'
+                    : 'We sent a one-time password (OTP) to your email address.',
                 'redirect' => route('login.otp.form'),
             ]);
         }
 
         return redirect()
             ->route('login.otp.form')
-            ->with('status', 'We sent a one-time password (OTP) to your email address.');
+            ->with('status', $isPhoneLogin
+                ? 'We sent a one-time password (OTP) to your phone number.'
+                : 'We sent a one-time password (OTP) to your email address.');
     }
 
     public function showOtpForm(Request $request)
     {
-        $email = $request->session()->get('otp_login_email');
+        $userId = $request->session()->get('otp_login_user_id');
 
-        if (! $email) {
+        if (! $userId) {
             return redirect()->route('login');
         }
 
-        $otpData = Cache::get($this->otpCacheKey($email));
+        $user = User::find($userId);
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $otpData = Cache::get($this->otpCacheKey($user->id));
 
         if (! $otpData) {
             return redirect()->route('login')->withErrors([
@@ -132,7 +174,7 @@ class LoginController extends Controller
         }
 
         return view('auth.otp-login', [
-            'email' => $email,
+            'email' => $user->email,
             'expiresAt' => $otpData['expires_at'],
         ]);
     }
@@ -143,9 +185,9 @@ class LoginController extends Controller
             'otp' => ['required', 'digits:6'],
         ]);
 
-        $email = $request->session()->get('otp_login_email');
+        $userId = $request->session()->get('otp_login_user_id');
 
-        if (! $email) {
+        if (! $userId) {
             $message = 'Your OTP session has expired. Please login again.';
 
             if ($request->expectsJson()) {
@@ -157,10 +199,10 @@ class LoginController extends Controller
             ]);
         }
 
-        $otpData = Cache::get($this->otpCacheKey($email));
+        $otpData = Cache::get($this->otpCacheKey($userId));
 
         if (! $otpData || now()->isAfter($otpData['expires_at'])) {
-            Cache::forget($this->otpCacheKey($email));
+            Cache::forget($this->otpCacheKey($userId));
             $message = 'OTP has expired. Please request a new code.';
 
             if ($request->expectsJson()) {
@@ -178,11 +220,11 @@ class LoginController extends Controller
             ]);
         }
 
-        $user = User::where('email', $email)->first();
+        $user = User::find($userId);
 
         if (! $user || ! $user->hasVerifiedEmail()) {
-            Cache::forget($this->otpCacheKey($email));
-            $request->session()->forget('otp_login_email');
+            Cache::forget($this->otpCacheKey($userId));
+            $request->session()->forget('otp_login_user_id');
             $message = 'Your account is not verified yet. Please verify your email before signing in.';
 
             if ($request->expectsJson()) {
@@ -194,8 +236,8 @@ class LoginController extends Controller
             ]);
         }
 
-        Cache::forget($this->otpCacheKey($email));
-        $request->session()->forget('otp_login_email');
+        Cache::forget($this->otpCacheKey($userId));
+        $request->session()->forget('otp_login_user_id');
 
         Auth::login($user, true);
 
@@ -251,8 +293,66 @@ class LoginController extends Controller
         return redirect()->route('login')->with('status', $message);
     }
 
-    private function otpCacheKey(string $email): string
+    public function username(): string
     {
-        return 'login_otp_'.Str::lower($email);
+        return 'login';
+    }
+
+    protected function validateLogin(Request $request): void
+    {
+        $request->validate([
+            'login' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ]);
+    }
+
+    protected function credentials(Request $request): array
+    {
+        $login = (string) $request->input('login');
+        $field = $this->looksLikePhone($login) ? 'phone_number' : 'email';
+
+        return [
+            $field => $login,
+            'password' => $request->input('password'),
+        ];
+    }
+
+    private function findUserByLogin(string $login): ?User
+    {
+        $field = $this->looksLikePhone($login) ? 'phone_number' : 'email';
+
+        return User::where($field, $login)->first();
+    }
+
+    private function looksLikePhone(string $value): bool
+    {
+        return (bool) preg_match('/^[0-9]{10,15}$/', $value);
+    }
+
+    private function sendLoginOtpToPhone(string $phoneNumber, string $otpCode): void
+    {
+        $sid = config('services.twilio.sid');
+        $token = config('services.twilio.auth_token');
+        $from = config('services.twilio.from');
+
+        if (! $sid || ! $token || ! $from) {
+            return;
+        }
+
+        try {
+            Http::asForm()
+                ->withBasicAuth($sid, $token)
+                ->post("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json", [
+                    'From' => $from,
+                    'To' => $phoneNumber,
+                    'Body' => "Your SoilNWater login OTP is {$otpCode}. It expires in 5 minutes.",
+                ]);
+        } catch (\Throwable) {
+        }
+    }
+
+    private function otpCacheKey(int $userId): string
+    {
+        return 'login_otp_'.$userId;
     }
 }

@@ -55,6 +55,21 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="role" class="form-label">Select Role</label>
+                            <select id="role" class="form-select @error('role') is-invalid @enderror" name="role" required>
+                                <option value="">Choose your role</option>
+                                <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
+                                <option value="vendor" {{ old('role') === 'vendor' ? 'selected' : '' }}>Vendor</option>
+                                <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
+                                <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
+                                <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
+                            </select>
+                            @error('role')
+                                <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
                             @error('password')
