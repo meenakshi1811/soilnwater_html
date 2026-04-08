@@ -243,13 +243,12 @@
                 defaultText: 'Login with Password',
                 loadingText: 'Signing in...',
                 rules: {
-                    email: { required: true, email: true },
+                    login: { required: true },
                     password: { required: true, minlength: 8 }
                 },
                 messages: {
-                    email: {
-                        required: 'Please enter your email address.',
-                        email: 'Please enter a valid email address.'
+                    login: {
+                        required: 'Please enter your email or phone number.'
                     },
                     password: {
                         required: 'Please enter your password.',
@@ -257,6 +256,17 @@
                     }
                 },
                 fallbackErrorMessage: 'Unable to sign in right now. Please try again.',
+                onError: function (xhr, message) {
+                    var firstError = message;
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        if (xhr.responseJSON.errors.login && xhr.responseJSON.errors.login[0]) {
+                            firstError = xhr.responseJSON.errors.login[0];
+                        } else if (xhr.responseJSON.errors.email && xhr.responseJSON.errors.email[0]) {
+                            firstError = xhr.responseJSON.errors.email[0];
+                        }
+                    }
+                    FormHelper.showAlert($('#loginAlert'), 'warning', firstError);
+                },
                 onSuccess: function (response) {
                     FormHelper.showAlert($('#loginAlert'), 'success', 'Login successful. Redirecting...');
                     window.location.href = response.redirect || '/home';
@@ -267,18 +277,28 @@
                 formSelector: '#otpSendForm',
                 buttonSelector: '#otpSendBtn',
                 alertSelector: '#loginAlert',
-                defaultText: 'Send OTP to Email',
+                defaultText: 'Send OTP',
                 loadingText: 'Sending OTP...',
                 rules: {
-                    email: { required: true, email: true }
+                    login_contact: { required: true }
                 },
                 messages: {
-                    email: {
-                        required: 'Please enter your email address.',
-                        email: 'Please enter a valid email address.'
+                    login_contact: {
+                        required: 'Please enter your email or phone number.'
                     }
                 },
                 fallbackErrorMessage: 'Unable to send OTP right now. Please try again.',
+                onError: function (xhr, message) {
+                    var firstError = message;
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        if (xhr.responseJSON.errors.login_contact && xhr.responseJSON.errors.login_contact[0]) {
+                            firstError = xhr.responseJSON.errors.login_contact[0];
+                        } else if (xhr.responseJSON.errors.email && xhr.responseJSON.errors.email[0]) {
+                            firstError = xhr.responseJSON.errors.email[0];
+                        }
+                    }
+                    FormHelper.showAlert($('#loginAlert'), 'warning', firstError);
+                },
                 onSuccess: function (response) {
                     FormHelper.showAlert($('#loginAlert'), 'success', response.message || 'OTP sent successfully. Redirecting...');
                     window.location.href = response.redirect || '/login/otp';
