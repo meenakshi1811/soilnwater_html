@@ -113,7 +113,7 @@
     box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.14);
 }
 
-.btn-create {
+.btn-create, .btn-auth {
     width: 100%;
     border: 0;
     border-radius: 10px;
@@ -390,4 +390,26 @@ label.error,
     .auth-intro h1 {
         font-size: 28px;
     }
+}
+
+.login-alert-floating {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    width: 100%;
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.login-alert-floating.alert-success {
+    background: #e6f4ea;
+    color: #1e7e34;
+}
+
+.login-alert-floating.alert-danger {
+    background: #fdecea;
+    color: #c82333;
 }

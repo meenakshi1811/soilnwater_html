@@ -24,10 +24,10 @@
                     <h2 class="auth-title">Sign in</h2>
                     <p class="auth-subtitle">Choose your preferred login method.</p>
 
-                    <div id="loginAlert" class="alert d-none" role="alert"></div>
-
+                    <!-- <div id="loginAlert" class="alert d-none" role="alert"></div> -->
+                    <div id="loginAlert" class="login-alert-floating d-none"></div>
                     @if (session('status'))
-                        <div class="alert alert-success" role="alert">{{ session('status') }}</div>
+                        <div class="login-alert-floating alert-success" >{{ session('status') }}</div>
                     @endif
 
                     @if ($errors->has('email'))
@@ -81,7 +81,7 @@
                                     @endif
                                 </div>
 
-                                <button id="passwordSubmitBtn" type="submit" class="btn btn-auth-primary auth-action-btn w-100 js-auto-loader">
+                                <button id="passwordSubmitBtn" type="submit" class="btn btn-primary btn-auth auth-action-btn w-100 js-auto-loader">
                                     <span class="btn-text">Login with Password</span>
                                     <span class="btn-loader d-none" aria-hidden="true"></span>
                                 </button>
@@ -95,7 +95,7 @@
                                     <label for="otp_email" class="form-label">Email Address</label>
                                     <input id="otp_email" type="email" class="form-control" name="email" value="{{ old('email') }}" required autocomplete="email">
                                 </div>
-                                <button id="otpSendBtn" type="submit" class="btn btn-auth-secondary auth-action-btn w-100 js-auto-loader">
+                                <button id="otpSendBtn" type="submit" class="btn btn-primary btn-auth auth-action-btn w-100 js-auto-loader">
                                     <span class="btn-text">Send OTP to Email</span>
                                     <span class="btn-loader d-none" aria-hidden="true"></span>
                                 </button>
