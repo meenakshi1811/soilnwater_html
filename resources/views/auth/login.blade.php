@@ -77,8 +77,8 @@
                             <form id="passwordLoginForm" method="POST" action="{{ route('login') }}" novalidate>
                                 @csrf
                                 <div class="mb-3">
-                                    <label for="email" class="form-label">Email Address</label>
-                                    <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+                                    <label for="login" class="form-label">Email or Phone Number</label>
+                                    <input id="login" type="text" class="form-control" name="login" value="{{ old('login') }}" placeholder="Enter email or phone number" required autofocus>
                                 </div>
 
                                 <div class="mb-3">
@@ -107,8 +107,8 @@
                             <form id="otpSendForm" method="POST" action="{{ route('login.otp.send') }}" novalidate>
                                 @csrf
                                 <div class="mb-3">
-                                    <label for="otp_email" class="form-label">Email Address</label>
-                                    <input id="otp_email" type="email" class="form-control" name="email" value="{{ old('email') }}" required autocomplete="email">
+                                    <label for="login_contact" class="form-label">Email or Phone Number</label>
+                                    <input id="login_contact" type="text" class="form-control" name="login_contact" value="{{ old('login') }}" placeholder="Enter email or phone number" required>
                                 </div>
                                 <button id="otpSendBtn" type="submit" class="btn btn-primary btn-auth auth-action-btn w-100 js-auto-loader">
                                     <span class="btn-text">Send OTP to Email</span>
