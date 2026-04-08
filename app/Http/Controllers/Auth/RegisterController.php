@@ -68,7 +68,7 @@ class RegisterController extends Controller
         $user = $this->create($request->all());
 
         if ($user->isGeneralUser()) {
-            $otpCode = $this->sendContactVerificationOtp($user);
+            $otpPayload = $this->sendContactVerificationOtp($user);
             $request->session()->put('contact_verification_user_id', $user->id);
 
             $message = 'Registration successful. We sent separate 6-digit verification codes to your email and phone number.';
@@ -77,7 +77,8 @@ class RegisterController extends Controller
                 return response()->json([
                     'message' => $message,
                     'redirect' => route('register.contact.verify.form'),
-                    'debug_otp' => app()->isLocal() ? $otpCode : null,
+                    'expires_at' => $otpPayload['expires_at'],
+                    'debug_otp' => app()->isLocal() ? $otpPayload['debug'] : null,
                 ]);
             }
 
@@ -181,14 +182,15 @@ class RegisterController extends Controller
             return $this->contactVerificationErrorResponse($request, 'Verification session expired. Please login and request verification again.');
         }
 
-        $otpCode = $this->sendContactVerificationOtp($user);
+        $otpPayload = $this->sendContactVerificationOtp($user);
 
         $message = 'New email and phone verification codes were sent successfully.';
 
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
-                'debug_otp' => app()->isLocal() ? $otpCode : null,
+                'expires_at' => $otpPayload['expires_at'],
+                'debug_otp' => app()->isLocal() ? $otpPayload['debug'] : null,
             ]);
         }
 
@@ -219,7 +221,7 @@ class RegisterController extends Controller
         return redirect()->route('register.contact.verify.form')->with('status', 'We sent new email and phone verification codes.');
     }
 
-    private function sendContactVerificationOtp(User $user): string
+    private function sendContactVerificationOtp(User $user): array
     {
         $emailOtpCode = (string) random_int(100000, 999999);
         $phoneOtpCode = (string) random_int(100000, 999999);
@@ -238,7 +240,10 @@ class RegisterController extends Controller
 
         $this->sendOtpToPhone($user->phone_number, $phoneOtpCode);
 
-        return "email:{$emailOtpCode}|phone:{$phoneOtpCode}";
+        return [
+            'expires_at' => $expiresAt->toIso8601String(),
+            'debug' => "email:{$emailOtpCode}|phone:{$phoneOtpCode}",
+        ];
     }
 
     private function sendOtpToPhone(string $phoneNumber, string $phoneOtpCode): void
@@ -258,7 +263,7 @@ class RegisterController extends Controller
                 ->withBasicAuth($sid, $token)
                 ->post("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json", [
                     'From' => $from,
-                    'To' => '+91'.$phoneNumber,
+                    'To' => $phoneNumber,
                     'Body' => "Your SoilNWater phone verification OTP is {$phoneOtpCode}. It expires in 5 minutes.",
                 ]);
         } catch (\Throwable $exception) {

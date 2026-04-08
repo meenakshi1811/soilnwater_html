@@ -165,7 +165,24 @@
             };
 
             updateCountdown();
-            setInterval(updateCountdown, 1000);
+            var existingInterval = $timer.data('timer-interval');
+            if (existingInterval) {
+                clearInterval(existingInterval);
+            }
+
+            var intervalId = setInterval(updateCountdown, 1000);
+            $timer.data('timer-interval', intervalId);
+        },
+
+        resetOtpTimer: function (selector, expiresAt) {
+            var $timer = $(selector);
+            if (!$timer.length || !expiresAt) {
+                return;
+            }
+
+            $timer.attr('data-expires-at', expiresAt);
+            $timer.data('expires-at', expiresAt);
+            this.initOtpTimer(selector);
         },
 
         initRegisterForm: function () {
@@ -343,7 +360,14 @@
                 alertSelector: '#contactVerifyAlert',
                 defaultText: 'Resend Verification Code',
                 loadingText: 'Sending code...',
-                fallbackErrorMessage: 'Unable to resend code right now. Please try again.'
+                fallbackErrorMessage: 'Unable to resend code right now. Please try again.',
+                onSuccess: function (response) {
+                    FormHelper.showAlert($('#contactVerifyAlert'), 'success', response.message || 'Verification codes resent successfully.');
+
+                    if (response.expires_at) {
+                        FormHelper.resetOtpTimer('#otp-timer', response.expires_at);
+                    }
+                }
             });
         },
 
