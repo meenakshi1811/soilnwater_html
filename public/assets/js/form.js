@@ -101,6 +101,10 @@
                         $alert.addClass('d-none').text('');
                     }
 
+                    if (typeof config.beforeSubmit === 'function') {
+                        config.beforeSubmit({ form: $form, button: $button, alert: $alert });
+                    }
+
                     self.setButtonLoading($button, true, loadingText, defaultText);
 
                     $.ajax({
@@ -265,6 +269,30 @@
                     }
                 },
                 fallbackErrorMessage: 'Unable to sign in right now. Please try again.',
+                beforeSubmit: function (ctx) {
+                    var $loginInput = ctx.form.find('[name="login"]');
+                    if ($loginInput.length) {
+                        $loginInput.val($.trim($loginInput.val()));
+                    }
+
+                    if ($loginInput.length && $loginInput.val()) {
+                        return;
+                    }
+
+                    var legacyLoginValue = $.trim(ctx.form.find('[name="email"]').val() || '');
+                    if (!legacyLoginValue) {
+                        return;
+                    }
+
+                    if ($loginInput.length) {
+                        $loginInput.val(legacyLoginValue);
+                        return;
+                    }
+
+                    $('<input type="hidden" name="login">')
+                        .val(legacyLoginValue)
+                        .appendTo(ctx.form);
+                },
                 onError: function (xhr, message) {
                     var firstError = message;
                     if (xhr.responseJSON && xhr.responseJSON.errors) {
