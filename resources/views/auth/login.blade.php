@@ -44,6 +44,15 @@
                         @endif
                     @endif
 
+                    @if ($errors->has('contact_verification'))
+                        <div class="alert alert-warning" role="alert">
+                            {{ $errors->first('contact_verification') }}
+                            <a href="{{ route('register.contact.verify.start', ['email' => old('email')]) }}" class="fw-semibold">
+                                Click here to verify your contact details.
+                            </a>
+                        </div>
+                    @endif
+
                     @if ($errors->has('google'))
                         <div class="alert alert-info" role="alert">{{ $errors->first('google') }}</div>
                     @endif
