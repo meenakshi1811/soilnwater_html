@@ -42,6 +42,15 @@
                 .text(message);
         },
 
+        showAlertHtml: function ($alert, type, html) {
+            if (!$alert || !$alert.length) {
+                return;
+            }
+            $alert.removeClass('d-none alert-success alert-danger alert-warning alert-info')
+                .addClass('alert-' + type)
+                .html(html);
+        },
+
         clearFormErrors: function ($form) {
             $form.find('.is-invalid').removeClass('is-invalid');
             $form.find('span.ajax-error').remove();
@@ -90,6 +99,10 @@
                     self.clearFormErrors($form);
                     if ($alert.length) {
                         $alert.addClass('d-none').text('');
+                    }
+
+                    if (typeof config.beforeSubmit === 'function') {
+                        config.beforeSubmit({ form: $form, button: $button, alert: $alert });
                     }
 
                     self.setButtonLoading($button, true, loadingText, defaultText);
@@ -256,6 +269,30 @@
                     }
                 },
                 fallbackErrorMessage: 'Unable to sign in right now. Please try again.',
+                beforeSubmit: function (ctx) {
+                    var $loginInput = ctx.form.find('[name="login"]');
+                    if ($loginInput.length) {
+                        $loginInput.val($.trim($loginInput.val()));
+                    }
+
+                    if ($loginInput.length && $loginInput.val()) {
+                        return;
+                    }
+
+                    var legacyLoginValue = $.trim(ctx.form.find('[name="email"]').val() || '');
+                    if (!legacyLoginValue) {
+                        return;
+                    }
+
+                    if ($loginInput.length) {
+                        $loginInput.val(legacyLoginValue);
+                        return;
+                    }
+
+                    $('<input type="hidden" name="login">')
+                        .val(legacyLoginValue)
+                        .appendTo(ctx.form);
+                },
                 onError: function (xhr, message) {
                     var firstError = message;
                     if (xhr.responseJSON && xhr.responseJSON.errors) {
@@ -265,6 +302,16 @@
                             firstError = xhr.responseJSON.errors.email[0];
                         }
                     }
+                    if (xhr.responseJSON && xhr.responseJSON.verification_redirect) {
+                        var verificationLink = xhr.responseJSON.verification_redirect;
+                        FormHelper.showAlertHtml(
+                            $('#loginAlert'),
+                            'warning',
+                            firstError + ' <a href="' + verificationLink + '" class="fw-semibold ms-1">Verify your account</a>'
+                        );
+                        return;
+                    }
+
                     FormHelper.showAlert($('#loginAlert'), 'warning', firstError);
                 },
                 onSuccess: function (response) {
