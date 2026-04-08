@@ -258,7 +258,7 @@ class RegisterController extends Controller
                 ->withBasicAuth($sid, $token)
                 ->post("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json", [
                     'From' => $from,
-                    'To' => $phoneNumber,
+                    'To' => '+91'.$phoneNumber,
                     'Body' => "Your SoilNWater phone verification OTP is {$phoneOtpCode}. It expires in 5 minutes.",
                 ]);
         } catch (\Throwable $exception) {
