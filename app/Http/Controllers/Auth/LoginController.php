@@ -308,7 +308,7 @@ class LoginController extends Controller
 
     protected function credentials(Request $request): array
     {
-        $login = (string) $request->input('login');
+        $login = $this->normalizeLoginIdentifier((string) $request->input('login'));
         $field = $this->looksLikePhone($login) ? 'phone_number' : 'email';
 
         return [
@@ -319,6 +319,7 @@ class LoginController extends Controller
 
     private function findUserByLogin(string $login): ?User
     {
+        $login = $this->normalizeLoginIdentifier($login);
         $field = $this->looksLikePhone($login) ? 'phone_number' : 'email';
 
         return User::where($field, $login)->first();
@@ -326,7 +327,17 @@ class LoginController extends Controller
 
     private function looksLikePhone(string $value): bool
     {
-        return (bool) preg_match('/^[0-9]{10,15}$/', $value);
+        return (bool) preg_match('/^[0-9]{10,15}$/', $this->normalizeLoginIdentifier($value));
+    }
+
+    private function normalizeLoginIdentifier(string $value): string
+    {
+        $value = trim($value);
+        if (str_contains($value, '@')) {
+            return strtolower($value);
+        }
+
+        return preg_replace('/\D+/', '', $value) ?? $value;
     }
 
     private function sendLoginOtpToPhone(string $phoneNumber, string $otpCode): void

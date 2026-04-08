@@ -90,7 +90,7 @@
                                 @csrf
                                 <div class="mb-3">
                                     <label for="login" class="form-label">Email or Phone Number</label>
-                                    <input id="login" type="text" class="form-control" name="login" value="{{ old('login') }}" required autofocus>
+                                    <input id="login" type="text" class="form-control" name="login" value="{{ old('login') }}" placeholder="Enter email or phone number" required autofocus>
                                 </div>
 
                                 <div class="mb-3">
@@ -120,7 +120,7 @@
                                 @csrf
                                 <div class="mb-3">
                                     <label for="login_contact" class="form-label">Email or Phone Number</label>
-                                    <input id="login_contact" type="text" class="form-control" name="login_contact" value="{{ old('login') }}" required>
+                                    <input id="login_contact" type="text" class="form-control" name="login_contact" value="{{ old('login') }}" placeholder="Enter email or phone number" required>
                                 </div>
                                 <button id="otpSendBtn" type="submit" class="btn btn-primary btn-auth auth-action-btn w-100 js-auto-loader">
                                     <span class="btn-text">Send OTP</span>
