@@ -71,7 +71,7 @@ class RegisterController extends Controller
             $otpCode = $this->sendContactVerificationOtp($user);
             $request->session()->put('contact_verification_user_id', $user->id);
 
-            $message = 'Registration successful. We sent a 6-digit verification code to your email and phone number.';
+            $message = 'Registration successful. We sent separate 6-digit verification codes to your email and phone number.';
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -126,7 +126,8 @@ class RegisterController extends Controller
     public function verifyContactOtp(Request $request): RedirectResponse|JsonResponse
     {
         $request->validate([
-            'otp' => ['required', 'digits:6'],
+            'email_otp' => ['required', 'digits:6'],
+            'phone_otp' => ['required', 'digits:6'],
         ]);
 
         $user = $this->verificationUserFromSession($request);
@@ -144,8 +145,12 @@ class RegisterController extends Controller
             return $this->contactVerificationErrorResponse($request, 'Verification code has expired. Please resend the code.');
         }
 
-        if (! hash_equals((string) $otpData['otp'], (string) $request->string('otp'))) {
-            return $this->contactVerificationErrorResponse($request, 'Invalid OTP. Please try again.', 422, 'otp');
+        if (! hash_equals((string) $otpData['email_otp'], (string) $request->string('email_otp'))) {
+            return $this->contactVerificationErrorResponse($request, 'Invalid email OTP. Please try again.', 422, 'email_otp');
+        }
+
+        if (! hash_equals((string) $otpData['phone_otp'], (string) $request->string('phone_otp'))) {
+            return $this->contactVerificationErrorResponse($request, 'Invalid phone OTP. Please try again.', 422, 'phone_otp');
         }
 
         $user->forceFill([
@@ -178,7 +183,7 @@ class RegisterController extends Controller
 
         $otpCode = $this->sendContactVerificationOtp($user);
 
-        $message = 'A new verification code was sent to your email and phone number.';
+        $message = 'New email and phone verification codes were sent successfully.';
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -211,30 +216,32 @@ class RegisterController extends Controller
         $request->session()->put('contact_verification_user_id', $user->id);
         $this->sendContactVerificationOtp($user);
 
-        return redirect()->route('register.contact.verify.form')->with('status', 'We sent a verification code to your email and phone number.');
+        return redirect()->route('register.contact.verify.form')->with('status', 'We sent new email and phone verification codes.');
     }
 
     private function sendContactVerificationOtp(User $user): string
     {
-        $otpCode = (string) random_int(100000, 999999);
+        $emailOtpCode = (string) random_int(100000, 999999);
+        $phoneOtpCode = (string) random_int(100000, 999999);
         $expiresAt = now()->addMinutes(5);
 
         Cache::put($this->contactOtpCacheKey($user->id), [
-            'otp' => $otpCode,
+            'email_otp' => $emailOtpCode,
+            'phone_otp' => $phoneOtpCode,
             'expires_at' => $expiresAt->toIso8601String(),
         ], $expiresAt);
 
-        Mail::raw("Your SoilNWater verification OTP is {$otpCode}. It expires in 5 minutes.", function ($message) use ($user) {
+        Mail::raw("Your SoilNWater email verification OTP is {$emailOtpCode}. It expires in 5 minutes.", function ($message) use ($user) {
             $message->to($user->email)
-                ->subject('Your SoilNWater Verification OTP');
+                ->subject('Your SoilNWater Email Verification OTP');
         });
 
-        $this->sendOtpToPhone($user->phone_number, $otpCode);
+        $this->sendOtpToPhone($user->phone_number, $phoneOtpCode);
 
-        return $otpCode;
+        return "email:{$emailOtpCode}|phone:{$phoneOtpCode}";
     }
 
-    private function sendOtpToPhone(string $phoneNumber, string $otpCode): void
+    private function sendOtpToPhone(string $phoneNumber, string $phoneOtpCode): void
     {
         $sid = config('services.twilio.sid');
         $token = config('services.twilio.auth_token');
@@ -252,7 +259,7 @@ class RegisterController extends Controller
                 ->post("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json", [
                     'From' => $from,
                     'To' => $phoneNumber,
-                    'Body' => "Your SoilNWater verification OTP is {$otpCode}. It expires in 5 minutes.",
+                    'Body' => "Your SoilNWater phone verification OTP is {$phoneOtpCode}. It expires in 5 minutes.",
                 ]);
         } catch (\Throwable $exception) {
             Log::error('Twilio SMS OTP send failed.', [

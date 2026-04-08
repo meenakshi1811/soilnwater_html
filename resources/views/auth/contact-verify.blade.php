@@ -11,7 +11,7 @@
             <div class="card auth-form-card otp-form-card">
                 <div class="card-body">
                     <h2 class="auth-title otp-title">Verify Your Account</h2>
-                    <p class="auth-subtitle mb-1">We've sent a 6-digit code to <strong>{{ $email }}</strong> and <strong>{{ $phoneNumber }}</strong>.</p>
+                    <p class="auth-subtitle mb-1">We've sent separate 6-digit codes to <strong>{{ $email }}</strong> and <strong>{{ $phoneNumber }}</strong>.</p>
                     <p class="auth-subtitle mb-4">Expires in <span id="otp-timer" class="otp-timer" data-expires-at="{{ $expiresAt }}">05:00</span></p>
 
                     <div id="contactVerifyAlert" class="alert d-none" role="alert"></div>
@@ -20,15 +20,24 @@
                         <div class="alert alert-success" role="alert">{{ session('status') }}</div>
                     @endif
 
-                    @if ($errors->has('otp'))
-                        <div class="alert alert-danger" role="alert">{{ $errors->first('otp') }}</div>
+                    @if ($errors->has('email_otp'))
+                        <div class="alert alert-danger" role="alert">{{ $errors->first('email_otp') }}</div>
+                    @endif
+
+                    @if ($errors->has('phone_otp'))
+                        <div class="alert alert-danger" role="alert">{{ $errors->first('phone_otp') }}</div>
                     @endif
 
                     <form id="contactVerifyForm" method="POST" action="{{ route('register.contact.verify') }}" novalidate>
                         @csrf
                         <div class="mb-3">
-                            <label for="otp" class="form-label">Verification Code</label>
-                            <input id="otp" type="text" inputmode="numeric" maxlength="6" class="form-control" name="otp" required placeholder="Enter 6-digit code">
+                            <label for="email_otp" class="form-label">Email Verification Code</label>
+                            <input id="email_otp" type="text" inputmode="numeric" maxlength="6" class="form-control" name="email_otp" required placeholder="Enter 6-digit email code">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone_otp" class="form-label">Phone Verification Code</label>
+                            <input id="phone_otp" type="text" inputmode="numeric" maxlength="6" class="form-control" name="phone_otp" required placeholder="Enter 6-digit phone code">
                         </div>
 
                         <button id="contactVerifyBtn" type="submit" class="btn otp-btn w-100 js-auto-loader">
