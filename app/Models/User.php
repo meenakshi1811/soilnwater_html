@@ -23,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'full_name',
         'email',
         'phone_number',
+        'role',
         'password',
     ];
 
@@ -45,7 +46,18 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function isGeneralUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    public function hasVerifiedContact(): bool
+    {
+        return ! is_null($this->email_verified_at) && ! is_null($this->phone_verified_at);
     }
 }
