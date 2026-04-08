@@ -179,6 +179,7 @@
                     fullname: { required: true, minlength: 3, maxlength: 255 },
                     email: { required: true, email: true },
                     phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    role: { required: true },
                     password: { required: true, minlength: 8 },
                     password_confirmation: { required: true, equalTo: '#password' }
                 },
@@ -197,6 +198,9 @@
                         minlength: 'Phone number must be at least 10 digits.',
                         maxlength: 'Phone number cannot exceed 15 digits.'
                     },
+                    role: {
+                        required: 'Please select your role.'
+                    },
                     password: {
                         required: 'Please create a password.',
                         minlength: 'Password must be at least 8 characters long.'
@@ -209,7 +213,7 @@
                 fallbackErrorMessage: 'Unable to register right now. Please try again.',
                 onSuccess: function (response) {
                     FormHelper.showAlert($('#registerAlert'), 'success', response.message || 'Registration successful. Redirecting...');
-                    window.location.href = response.redirect || '/login';
+                    window.location.href = response.redirect || '/verification/contact';
                 }
             });
         },
@@ -300,6 +304,46 @@
                     FormHelper.showAlert($('#otpAlert'), 'success', 'OTP verified. Redirecting...');
                     window.location.href = response.redirect || '/home';
                 }
+            });
+
+            this.attachAjaxForm({
+                formSelector: '#contactVerifyForm',
+                buttonSelector: '#contactVerifyBtn',
+                alertSelector: '#contactVerifyAlert',
+                defaultText: 'Verify Account',
+                loadingText: 'Verifying...',
+                rules: {
+                    email_otp: { required: true, digits: true, minlength: 6, maxlength: 6 },
+                    phone_otp: { required: true, digits: true, minlength: 6, maxlength: 6 }
+                },
+                messages: {
+                    email_otp: {
+                        required: 'Please enter the email verification code.',
+                        digits: 'Email code must contain only numbers.',
+                        minlength: 'Email code must be 6 digits.',
+                        maxlength: 'Email code must be 6 digits.'
+                    },
+                    phone_otp: {
+                        required: 'Please enter the phone verification code.',
+                        digits: 'Phone code must contain only numbers.',
+                        minlength: 'Phone code must be 6 digits.',
+                        maxlength: 'Phone code must be 6 digits.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to verify code right now. Please try again.',
+                onSuccess: function (response) {
+                    FormHelper.showAlert($('#contactVerifyAlert'), 'success', response.message || 'Verified. Redirecting...');
+                    window.location.href = response.redirect || '/login';
+                }
+            });
+
+            this.attachAjaxForm({
+                formSelector: '#contactResendForm',
+                buttonSelector: '#contactResendBtn',
+                alertSelector: '#contactVerifyAlert',
+                defaultText: 'Resend Verification Code',
+                loadingText: 'Sending code...',
+                fallbackErrorMessage: 'Unable to resend code right now. Please try again.'
             });
         },
 
