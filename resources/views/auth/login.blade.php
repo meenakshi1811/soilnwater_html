@@ -34,32 +34,20 @@
                         <div class="alert alert-warning" role="alert">{{ $errors->first('email') }}</div>
                         @if (str_contains(strtolower($errors->first('email')), 'phone number are not verified') || str_contains(strtolower($errors->first('email')), 'complete verification'))
                             <div class="mb-3">
-                                <a href="{{ route('register.contact.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
+                                <a href="{{ route('register.contact.verify.start', ['email' => old('email')]) }}" class="fw-semibold">
                                     Click here to verify your contact details.
                                 </a>
                             </div>
                         @elseif (str_contains(strtolower($errors->first('email')), 'not verified'))
                             <form id="resendVerificationForm" method="POST" action="{{ route('login.verification.resend') }}" class="mb-3">
                                 @csrf
-                                <input type="hidden" name="email" value="{{ old('verification_email', old('login')) }}">
+                                <input type="hidden" name="email" value="{{ old('email') }}">
                                 <button id="resendVerificationBtn" type="submit" class="btn btn-auth-secondary auth-action-btn w-100">
                                     <span class="btn-text">Resend Verification Email</span>
                                     <span class="btn-loader d-none" aria-hidden="true"></span>
                                 </button>
                             </form>
                         @endif
-                    @endif
-                    @if ($errors->has('login'))
-                        <div class="alert alert-warning" role="alert">{{ $errors->first('login') }}</div>
-                    @endif
-
-                    @if ($errors->has('contact_verification'))
-                        <div class="alert alert-warning" role="alert">
-                            {{ $errors->first('contact_verification') }}
-                            <a href="{{ route('register.contact.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
-                                Click here to verify your contact details.
-                            </a>
-                        </div>
                     @endif
 
                     @if ($errors->has('contact_verification'))
@@ -89,8 +77,8 @@
                             <form id="passwordLoginForm" method="POST" action="{{ route('login') }}" novalidate>
                                 @csrf
                                 <div class="mb-3">
-                                    <label for="login" class="form-label">Email or Phone Number</label>
-                                    <input id="login" type="text" class="form-control" name="login" value="{{ old('login') }}" required autofocus>
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
                                 </div>
 
                                 <div class="mb-3">
@@ -119,11 +107,11 @@
                             <form id="otpSendForm" method="POST" action="{{ route('login.otp.send') }}" novalidate>
                                 @csrf
                                 <div class="mb-3">
-                                    <label for="login_contact" class="form-label">Email or Phone Number</label>
-                                    <input id="login_contact" type="text" class="form-control" name="login_contact" value="{{ old('login') }}" required>
+                                    <label for="otp_email" class="form-label">Email Address</label>
+                                    <input id="otp_email" type="email" class="form-control" name="email" value="{{ old('email') }}" required autocomplete="email">
                                 </div>
                                 <button id="otpSendBtn" type="submit" class="btn btn-primary btn-auth auth-action-btn w-100 js-auto-loader">
-                                    <span class="btn-text">Send OTP</span>
+                                    <span class="btn-text">Send OTP to Email</span>
                                     <span class="btn-loader d-none" aria-hidden="true"></span>
                                 </button>
                             </form>

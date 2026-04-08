@@ -413,3 +413,7 @@ label.error,
     background: #fdecea;
     color: #c82333;
 }
+.login-alert-floating.alert-warning {
+    background: #fff3cd;
+    color: #856404;
+}
