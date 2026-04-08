@@ -40,6 +40,26 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user): RedirectResponse|JsonResponse|null
     {
+        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+            Auth::logout();
+
+            $message = 'Your email and phone number are not verified yet. Please verify your account first.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
+                ], 403);
+            }
+
+            return redirect()
+                ->route('login')
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors([
+                    'contact_verification' => $message,
+                ]);
+        }
+
         if (! $user->hasVerifiedEmail()) {
             Auth::logout();
 
@@ -81,9 +101,9 @@ class LoginController extends Controller
             ]);
         }
 
-        if (! $user->hasVerifiedEmail()) {
+        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
             throw ValidationException::withMessages([
-                'email' => 'Your account is not verified yet. Please verify your email before signing in.',
+                'email' => 'Your email and phone number are not verified yet. Please complete verification first.',
             ]);
         }
 
