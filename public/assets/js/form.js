@@ -42,6 +42,15 @@
                 .text(message);
         },
 
+        showAlertHtml: function ($alert, type, html) {
+            if (!$alert || !$alert.length) {
+                return;
+            }
+            $alert.removeClass('d-none alert-success alert-danger alert-warning alert-info')
+                .addClass('alert-' + type)
+                .html(html);
+        },
+
         clearFormErrors: function ($form) {
             $form.find('.is-invalid').removeClass('is-invalid');
             $form.find('span.ajax-error').remove();
@@ -265,6 +274,16 @@
                             firstError = xhr.responseJSON.errors.email[0];
                         }
                     }
+                    if (xhr.responseJSON && xhr.responseJSON.verification_redirect) {
+                        var verificationLink = xhr.responseJSON.verification_redirect;
+                        FormHelper.showAlertHtml(
+                            $('#loginAlert'),
+                            'warning',
+                            firstError + ' <a href="' + verificationLink + '" class="fw-semibold ms-1">Verify your account</a>'
+                        );
+                        return;
+                    }
+
                     FormHelper.showAlert($('#loginAlert'), 'warning', firstError);
                 },
                 onSuccess: function (response) {
