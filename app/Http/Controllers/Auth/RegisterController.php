@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use GuzzleHttp\Client;
 
 class RegisterController extends Controller
 {
@@ -248,35 +249,55 @@ class RegisterController extends Controller
 
     private function sendOtpToPhone(string $phoneNumber, string $phoneOtpCode): void
     {
-        $apikey = config('services.message.api_key');
-
-        if (! $apikey) {
-            Log::warning('Message API configuration is missing. Skipping SMS OTP send.', ['phone_number' => $phoneNumber]);
-
-            return;
-        }
-
         try {
-            $message = "Your SoilNWater phone verification OTP is {$phoneOtpCode}. It expires in 5 minutes. - Annuvedant Team";
-            // echo'<pre>'; print_r($phoneNumber); echo'</pre>';exit();
-            $response = Http::get('http://sms.messageindia.in/v2/sendSMS', [
-                'username'   => config('services.message.username'),
-                'message'    => $message,
-                'sendername' => config('services.message.sender'),
-                'smstype'    => config('services.message.smstype'),
+            $apikey   = config('services.message.api_key');
+            $username = config('services.message.username');
+            $sender   = config('services.message.sender');
+            $smstype  = config('services.message.smstype');
+            $peid     = config('services.message.peid');
+
+            $message = "Verification OTP Your login verification code is {$phoneOtpCode} This code is valid for 5 minutes. Do not share it with anyone. – Annuvedant Team";
+
+            $url = 'http://sms.messageindia.in/v2/sendSMS?' . http_build_query([
+                'username'   => $username,
+                'message'    => $message, // let http_build_query encode it
+                'sendername' => $sender,
+                'smstype'    => $smstype,
                 'numbers'    => $phoneNumber,
                 'apikey'     => $apikey,
-                'peid'       => config('services.message.peid'),
+                'peid'       => $peid,
                 'templateid' => 1707177571854887443,
             ]);
-            // echo'<pre>'; print_r($response->body()); echo'</pre>';exit();
 
-            
+            $curl = curl_init();
 
-        } catch (\Throwable $exception) {
-            Log::error('MessageIndia SMS OTP send failed.', [
-                'phone_number' => $phoneNumber,
-                'error' => $exception->getMessage(),
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'GET',
+            ]);
+
+            $response = curl_exec($curl);
+
+            if (curl_errno($curl)) {
+                throw new \Exception(curl_error($curl));
+            }
+
+            curl_close($curl);
+            Log::info('SMS sent successfully', [
+                'phone' => $phoneNumber,
+                'response' => $response,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('SMS sending failed', [
+                'phone' => $phoneNumber,
+                'error' => $e->getMessage(),
             ]);
         }
     }

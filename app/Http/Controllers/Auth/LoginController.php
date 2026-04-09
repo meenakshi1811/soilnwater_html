@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -353,26 +354,57 @@ class LoginController extends Controller
 
     private function sendLoginOtpToPhone(string $phoneNumber, string $otpCode): void
     {
-       $apiKey = config('services.message.api_key');
-       $username = config('services.message.username');
-       $sender = config('services.message.sender');
-       $smsType = config('services.message.smstype');
-       $peid = config('services.message.peid'); 
        try {
-           Http::post('https://api.message.com/send', [
-               'api_key' => $apiKey,
-               'username' => $username,
-               'sender' => $sender,
-               'to' => $phoneNumber,
-               'message' => "Your OTP for login is {$otpCode}.  It is valid for 5 minutes.
-Do not share this code with anyone. – Annuvedant Team",
-               'smstype' => $smsType,
-               'peid' => $peid,
-           ]);
-       } catch (\Exception $e) {
-           // Log the error but do not prevent login flow
-           \Log::error('Failed to send OTP SMS: '.$e->getMessage());
-       }
+            $apikey   = config('services.message.api_key');
+            $username = config('services.message.username');
+            $sender   = config('services.message.sender');
+            $smstype  = config('services.message.smstype');
+            $peid     = config('services.message.peid');
+
+            $message = "Verification OTP Your login verification code is {$phoneOtpCode} This code is valid for 5 minutes. Do not share it with anyone. – Annuvedant Team";
+
+            $url = 'http://sms.messageindia.in/v2/sendSMS?' . http_build_query([
+                'username'   => $username,
+                'message'    => $message, // let http_build_query encode it
+                'sendername' => $sender,
+                'smstype'    => $smstype,
+                'numbers'    => $phoneNumber,
+                'apikey'     => $apikey,
+                'peid'       => $peid,
+                'templateid' => 1707177571854887443,
+            ]);
+
+            $curl = curl_init();
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'GET',
+            ]);
+
+            $response = curl_exec($curl);
+
+            if (curl_errno($curl)) {
+                throw new \Exception(curl_error($curl));
+            }
+
+            curl_close($curl);
+            Log::info('SMS sent successfully', [
+                'phone' => $phoneNumber,
+                'response' => $response,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('SMS sending failed', [
+                'phone' => $phoneNumber,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function otpCacheKey(int $userId): string
