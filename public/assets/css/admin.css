@@ -1,0 +1,90 @@
+:root {
+    --admin-primary: var(--primary);
+    --admin-secondary: var(--secondary);
+}
+
+.admin-body {
+    background: #eef2f6;
+    color: #1f2937;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-header {
+    background: linear-gradient(90deg, var(--admin-primary), var(--admin-secondary));
+    padding: 0.75rem 0;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+}
+
+.admin-brand img {
+    width: 140px;
+    height: auto;
+}
+
+.admin-link {
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #fff;
+    font-weight: 600;
+}
+
+.admin-link.active,
+.admin-link:hover {
+    background: #ffffff;
+    color: var(--admin-primary);
+}
+
+.admin-logout {
+    background: #fff;
+    color: var(--admin-secondary);
+    font-weight: 700;
+}
+
+.admin-main {
+    flex: 1;
+}
+
+.admin-panel {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    padding: 1.5rem;
+}
+
+.admin-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #16324f;
+}
+
+.admin-stat-card {
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid #dbeafe;
+    background: linear-gradient(145deg, rgba(25, 118, 210, 0.1), rgba(46, 125, 50, 0.08));
+}
+
+.admin-stat-card span {
+    color: #4b5563;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.admin-stat-card h2 {
+    margin: 0.5rem 0 0;
+    font-size: 1.65rem;
+    color: var(--admin-primary);
+    font-weight: 800;
+}
+
+.admin-table-card {
+    border-color: #e5e7eb;
+}
+
+.admin-footer {
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    padding: 0.75rem 0;
+    color: #6b7280;
+}

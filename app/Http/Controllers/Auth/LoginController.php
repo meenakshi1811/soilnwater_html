@@ -35,6 +35,17 @@ class LoginController extends Controller
         $this->middleware('auth')->only('logout');
     }
 
+    protected function redirectTo(): string
+    {
+        $user = Auth::user();
+
+        if ($user && $user->role === 'admin') {
+            return route('admin.dashboard');
+        }
+
+        return '/home';
+    }
+
     /**
      * Ensure unverified users do not proceed after password login.
      */
