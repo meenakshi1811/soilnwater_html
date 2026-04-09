@@ -34,14 +34,14 @@
                         <div class="alert alert-warning" role="alert">{{ $errors->first('email') }}</div>
                         @if (str_contains(strtolower($errors->first('email')), 'phone number are not verified') || str_contains(strtolower($errors->first('email')), 'complete verification'))
                             <div class="mb-3">
-                                <a href="{{ route('register.contact.verify.start', ['email' => old('email')]) }}" class="fw-semibold">
+                                <a href="{{ route('register.contact.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
                                     Click here to verify your contact details.
                                 </a>
                             </div>
                         @elseif (str_contains(strtolower($errors->first('email')), 'not verified'))
                             <form id="resendVerificationForm" method="POST" action="{{ route('login.verification.resend') }}" class="mb-3">
                                 @csrf
-                                <input type="hidden" name="email" value="{{ old('email') }}">
+                                <input type="hidden" name="email" value="{{ old('verification_email', old('login')) }}">
                                 <button id="resendVerificationBtn" type="submit" class="btn btn-auth-secondary auth-action-btn w-100">
                                     <span class="btn-text">Resend Verification Email</span>
                                     <span class="btn-loader d-none" aria-hidden="true"></span>
@@ -53,7 +53,7 @@
                     @if ($errors->has('contact_verification'))
                         <div class="alert alert-warning" role="alert">
                             {{ $errors->first('contact_verification') }}
-                            <a href="{{ route('register.contact.verify.start', ['email' => old('email')]) }}" class="fw-semibold">
+                            <a href="{{ route('register.contact.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
                                 Click here to verify your contact details.
                             </a>
                         </div>

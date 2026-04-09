@@ -4,6 +4,44 @@
     }
 
     var FormHelper = {
+        alertTimers: {},
+
+        hideStackedAlerts: function ($alert) {
+            if (!$alert || !$alert.length) {
+                return;
+            }
+
+            var $scope = $alert.closest('.card-body');
+            if (!$scope.length) {
+                $scope = $alert.parent();
+            }
+
+            $scope.find('.alert, .login-alert-floating').not($alert).addClass('d-none');
+        },
+
+        autoHideAlert: function ($alert, type) {
+            if (!$alert || !$alert.length) {
+                return;
+            }
+
+            var shouldAutoHide = type === 'success' || type === 'danger';
+            var alertId = $alert.attr('id') || $alert.data('alert-key') || ('alert-' + Math.random().toString(36).slice(2));
+            $alert.data('alert-key', alertId);
+
+            if (this.alertTimers[alertId]) {
+                clearTimeout(this.alertTimers[alertId]);
+                delete this.alertTimers[alertId];
+            }
+
+            if (!shouldAutoHide) {
+                return;
+            }
+
+            this.alertTimers[alertId] = setTimeout(function () {
+                $alert.addClass('d-none').empty();
+            }, 10000);
+        },
+
         ensureButtonParts: function ($button) {
             var $text = $button.find('.btn-text');
             if (!$text.length) {
@@ -37,18 +75,22 @@
             if (!$alert || !$alert.length) {
                 return;
             }
+            this.hideStackedAlerts($alert);
             $alert.removeClass('d-none alert-success alert-danger alert-warning alert-info')
                 .addClass('alert-' + type)
                 .text(message);
+            this.autoHideAlert($alert, type);
         },
 
         showAlertHtml: function ($alert, type, html) {
             if (!$alert || !$alert.length) {
                 return;
             }
+            this.hideStackedAlerts($alert);
             $alert.removeClass('d-none alert-success alert-danger alert-warning alert-info')
                 .addClass('alert-' + type)
                 .html(html);
+            this.autoHideAlert($alert, type);
         },
 
         clearFormErrors: function ($form) {
@@ -344,6 +386,17 @@
                             firstError = xhr.responseJSON.errors.email[0];
                         }
                     }
+
+                    if (xhr.responseJSON && xhr.responseJSON.verification_redirect) {
+                        var verificationLink = xhr.responseJSON.verification_redirect;
+                        FormHelper.showAlertHtml(
+                            $('#loginAlert'),
+                            'warning',
+                            firstError + ' <a href="' + verificationLink + '" class="fw-semibold ms-1">Verify your account</a>'
+                        );
+                        return;
+                    }
+
                     FormHelper.showAlert($('#loginAlert'), 'warning', firstError);
                 },
                 onSuccess: function (response) {
@@ -384,6 +437,18 @@
                     }
                 },
                 fallbackErrorMessage: 'Unable to verify OTP right now. Please try again.',
+                onError: function (xhr, message) {
+                    if (xhr.responseJSON && xhr.responseJSON.verification_redirect) {
+                        FormHelper.showAlertHtml(
+                            $('#otpAlert'),
+                            'warning',
+                            message + ' <a href="' + xhr.responseJSON.verification_redirect + '" class="fw-semibold ms-1">Verify your account</a>'
+                        );
+                        return;
+                    }
+
+                    FormHelper.showAlert($('#otpAlert'), 'danger', message);
+                },
                 onSuccess: function (response) {
                     FormHelper.showAlert($('#otpAlert'), 'success', 'OTP verified. Redirecting...');
                     window.location.href = response.redirect || '/home';
