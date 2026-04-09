@@ -15,9 +15,13 @@
 <body class="admin-body">
     @include('backend.partials.header')
 
-    <main class="admin-main container-fluid py-4">
-        @yield('content')
-    </main>
+    <div class="admin-shell">
+        @include('backend.partials.sidebar')
+
+        <main class="admin-main container-fluid py-4">
+            @yield('content')
+        </main>
+    </div>
 
     @include('backend.partials.footer')
 
