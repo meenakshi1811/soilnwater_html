@@ -26,13 +26,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-    Route::prefix('admin')->name('admin.')->middleware(function ($request, $next) {
-        if ($request->user()?->role !== 'admin') {
-            abort(403, 'Only admins can access the admin dashboard.');
-        }
-
-        return $next($request);
-    })->group(function () {
+    Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [AdminController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
