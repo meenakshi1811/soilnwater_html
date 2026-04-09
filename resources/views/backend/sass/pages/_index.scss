@@ -1,0 +1,351 @@
+.categories-grid {
+    margin-bottom: 40px;
+
+    .grid {
+        gap: 30px;
+        display: flex;
+        flex-wrap: nowrap;
+
+        .coloum {
+            padding: 20px 20px;
+            height: 200px;
+            border-radius: 10px;
+            width: calc(100% / 4);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: top right;
+
+            &:nth-of-type(1) {
+                background-color: #E9FFF7;
+            }
+
+            &:nth-of-type(2) {
+                background-color: #F2F4FF;
+            }
+
+            &:nth-of-type(3) {
+                background-color: #FCEEF2;
+            }
+
+            &:nth-of-type(4) {
+                background-color: #e5f7ff;
+            }
+
+            .coloum-heading {
+                align-items: center;
+
+
+                figure {
+                    width: 30px;
+                    height: 30px;
+
+                    img {
+                        object-fit: contain;
+                        width: 100%;
+                        height: 100%;
+                    }
+
+                }
+
+                .h4 {
+                    width: calc(100% - 40px);
+                    padding-left: 5px;
+
+                }
+            }
+
+            h3.h2 {
+                font-family: $sans-serif;
+            }
+
+        }
+    }
+}
+
+.sec-search-bar {
+    align-items: center;
+    justify-content: space-between;
+
+    @include breakpoint(desktop) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    i.fa.fa-search,
+    i.fa.fa-filter {
+        color: #a3a3a3;
+    }
+
+    .h3,
+    h1 {
+        width: 490px;
+        font-family: $sans-serif-Merriweather;
+        font-weight: 600;
+
+        @include breakpoint(desktop) {
+            width: 100%;
+        }
+    }
+
+    form.d-flex {
+        width: calc(100% - 490px);
+
+        @include breakpoint(desktop) {
+            width: 100%;
+        }
+    }
+
+}
+
+.earning {
+    .grid {
+        margin-bottom: 15px;
+
+        .grid-heading {
+            display: flex;
+
+            h5 {
+                width: 50%;
+                font-weight: 600;
+
+                span {
+                    display: block;
+                    font-weight: 400;
+                    font-size: 18px;
+                }
+            }
+
+            .dropdown-grid {
+                width: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 10px;
+
+
+                .form-select {
+                    border-radius: 50px;
+                    height: 40px;
+                }
+
+            }
+
+        }
+
+
+    }
+}
+
+.route-planning-grid {
+    flex-wrap: wrap;
+    gap: 30px;
+
+    .coloum {
+        width: calc(100% / 4 - 23px);
+
+        .inner-coloum {
+            background: #FBFBFB;
+            border: 1px solid #E9E3E3;
+            border-radius: 10px;
+            padding: 20px 20px;
+            text-align: center;
+
+            &:hover {
+                border-color: $color-primary;
+            }
+
+            .view-route {
+                color: $color-primary;
+            }
+
+            .view-all {
+                color: #000;
+            }
+
+            a {
+                display: block;
+                width: fit-content;
+                margin: 0 auto 4px;
+                text-decoration: underline;
+            }
+        }
+    }
+}
+
+
+.job-detail-grid {
+    ul {
+        flex-wrap: wrap;
+        margin: 0 0;
+        padding: 0 0;
+        gap: 20px 30px;
+
+        li {
+            width: calc(100% / 3 - 20px);
+            display: flex;
+
+            @include breakpoint(x-large){
+                width: calc(100% / 2 - 20px);
+            }
+
+            span {
+                width: 120px;
+                display: block;
+                font-weight: 600;
+            }
+
+            a {
+                color: #000;
+            }
+        }
+    }
+
+    .img-grid {
+        margin-top: 30px;
+        gap: 10px;
+
+        li {
+            width: 100px;
+            height: 100px;
+
+            figure {
+                width: 100%;
+                height: 100%;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+            }
+        }
+    }
+
+}
+
+
+.today-planning-grid {
+    box-shadow: 0px 0px 16px rgba(0, 0, 0, 0.1294117647);
+    border-radius: 15px;
+    overflow: hidden;
+
+    .right-grid {
+        width: calc(100% - 45%);
+
+        @include breakpoint(x-large) {
+            width: calc(100% - 50%);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+        }
+    }
+
+    .left-grid {
+        width: calc(100% - 55%);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px 0px;
+        height: 630px;
+        overflow-y: scroll;
+
+        @include breakpoint(x-large) {
+            width: calc(100% - 50%);
+        }
+
+        .coloum {
+            // .punching {
+            //     margin-top: 10px;
+            // }
+
+
+            .inner-coloum {
+                background: #FCFCFC 0% 0% no-repeat padding-box;
+                border: 1px solid #E6E6E6;
+                border-radius: 5px;
+                padding: 20px 20px;
+
+                h6 {
+                    margin-top: 10px;
+                    font-weight: 500;
+                }
+
+                ul {
+                    padding: 0 0;
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                    margin-bottom: 0;
+
+                    @include breakpoint(desktop) {
+                        flex-direction: column;
+                    }
+
+                    &.punching {
+                        margin-top: 15px;
+                        flex-wrap: nowrap !important;
+                        align-items: center;
+                        gap: 10px 30px !important;
+
+                        @include breakpoint(desktop) {
+                            flex-direction: column;
+                            align-items: baseline;
+                        }
+
+                        li {
+                            width: calc(100% / 3 - 15px) !important;
+
+                            @include breakpoint(desktop) {
+                                width: 100%;
+                            }
+
+                            &:nth-child(3) {
+                                a {
+                                    margin-left: auto;
+                                }
+                            }
+
+                        }
+                    }
+
+                    li {
+                        width: calc(100% / 2 - 5px);
+                        display: flex;
+                        align-items: baseline;
+                        justify-content: flex-start;
+
+                        @include breakpoint(desktop) {
+                            width: 100%;
+                        }
+
+                        span {
+                            width: calc(100% - 20px);
+                            display: block;
+                        }
+
+                        .btn-sm {
+                            color: #fff;
+                        }
+
+                        a {
+                            color: #000;
+                        }
+
+                        i {
+                            color: $color-primary;
+                            width: 20px;
+                            height: 20px;
+                            font-size: 16px;
+                        }
+
+                    }
+                }
+
+            }
+        }
+    }
+
+}
