@@ -122,9 +122,24 @@ class LoginController extends Controller
         }
 
         if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
-            throw ValidationException::withMessages([
-                'email' => 'Your email and phone number are not verified yet. Please complete verification first.',
-            ]);
+            $message = 'Your email and phone number are not verified yet. Please verify your account first.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
+                ], 403);
+            }
+
+            return redirect()
+                ->route('login')
+                ->withInput([
+                    'login' => $credentials['login_contact'],
+                    'verification_email' => $user->email,
+                ])
+                ->withErrors([
+                    'contact_verification' => $message,
+                ]);
         }
 
         $otpCode = (string) random_int(100000, 999999);
@@ -234,13 +249,47 @@ class LoginController extends Controller
 
         $user = User::find($userId);
 
-        if (! $user || ! $user->hasVerifiedEmail()) {
+        if (! $user) {
+            Cache::forget($this->otpCacheKey($userId));
+            $request->session()->forget('otp_login_user_id');
+            $message = 'Your account could not be found. Please login again.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return redirect()->route('login')->withErrors([
+                'email' => $message,
+            ]);
+        }
+
+        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+            Cache::forget($this->otpCacheKey($userId));
+            $request->session()->forget('otp_login_user_id');
+            $message = 'Your email and phone number are not verified yet. Please verify your account first.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
+                ], 403);
+            }
+
+            return redirect()->route('login')->withErrors([
+                'contact_verification' => $message,
+            ]);
+        }
+
+        if (! $user->hasVerifiedEmail()) {
             Cache::forget($this->otpCacheKey($userId));
             $request->session()->forget('otp_login_user_id');
             $message = 'Your account is not verified yet. Please verify your email before signing in.';
 
             if ($request->expectsJson()) {
-                return response()->json(['message' => $message], 403);
+                return response()->json([
+                    'message' => $message,
+                    'verification_email' => $user->email,
+                ], 403);
             }
 
             return redirect()->route('login')->withErrors([
