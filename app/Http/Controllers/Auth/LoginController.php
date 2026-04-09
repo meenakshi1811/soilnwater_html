@@ -122,9 +122,24 @@ class LoginController extends Controller
         }
 
         if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
-            throw ValidationException::withMessages([
-                'email' => 'Your email and phone number are not verified yet. Please complete verification first.',
-            ]);
+            $message = 'Your email and phone number are not verified yet. Please verify your account first.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
+                ], 403);
+            }
+
+            return redirect()
+                ->route('login')
+                ->withInput([
+                    'login' => $credentials['login_contact'],
+                    'verification_email' => $user->email,
+                ])
+                ->withErrors([
+                    'contact_verification' => $message,
+                ]);
         }
 
         $otpCode = (string) random_int(100000, 999999);
