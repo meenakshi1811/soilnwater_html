@@ -248,27 +248,33 @@ class RegisterController extends Controller
 
     private function sendOtpToPhone(string $phoneNumber, string $phoneOtpCode): void
     {
-        $sid = config('services.twilio.sid');
-        $token = config('services.twilio.auth_token');
-        $from = config('services.twilio.from');
+        $apikey = config('services.message.api_key');
 
-        if (! $sid || ! $token || ! $from) {
-            Log::warning('Twilio SMS configuration is missing. Skipping SMS OTP send.', ['phone_number' => $phoneNumber]);
+        if (! $apikey) {
+            Log::warning('Message API configuration is missing. Skipping SMS OTP send.', ['phone_number' => $phoneNumber]);
 
             return;
         }
 
         try {
-            $response = Http::asForm()
-                ->withBasicAuth($sid, $token)
-                ->post("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json", [
-                    'From' => $from,
-                    'To' => $phoneNumber,
-                    'Body' => "Your SoilNWater phone verification OTP is {$phoneOtpCode}. It expires in 5 minutes.",
-                ]);
-            // echo'<pre>';print_r($response);exit();
+            $message = "Your SoilNWater phone verification OTP is {$phoneOtpCode}. It expires in 5 minutes. - Annuvedant Team";
+            // echo'<pre>'; print_r($phoneNumber); echo'</pre>';exit();
+            $response = Http::get('http://sms.messageindia.in/v2/sendSMS', [
+                'username'   => config('services.message.username'),
+                'message'    => $message,
+                'sendername' => config('services.message.sender'),
+                'smstype'    => config('services.message.smstype'),
+                'numbers'    => $phoneNumber,
+                'apikey'     => $apikey,
+                'peid'       => config('services.message.peid'),
+                'templateid' => 1707177571854887443,
+            ]);
+            // echo'<pre>'; print_r($response->body()); echo'</pre>';exit();
+
+            
+
         } catch (\Throwable $exception) {
-            Log::error('Twilio SMS OTP send failed.', [
+            Log::error('MessageIndia SMS OTP send failed.', [
                 'phone_number' => $phoneNumber,
                 'error' => $exception->getMessage(),
             ]);

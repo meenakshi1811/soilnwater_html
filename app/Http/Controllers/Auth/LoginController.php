@@ -353,24 +353,26 @@ class LoginController extends Controller
 
     private function sendLoginOtpToPhone(string $phoneNumber, string $otpCode): void
     {
-        $sid = config('services.twilio.sid');
-        $token = config('services.twilio.auth_token');
-        $from = config('services.twilio.from');
-
-        if (! $sid || ! $token || ! $from) {
-            return;
-        }
-
-        try {
-            Http::asForm()
-                ->withBasicAuth($sid, $token)
-                ->post("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json", [
-                    'From' => $from,
-                    'To' => $phoneNumber,
-                    'Body' => "Your SoilNWater login OTP is {$otpCode}. It expires in 5 minutes.",
-                ]);
-        } catch (\Throwable) {
-        }
+       $apiKey = config('services.message.api_key');
+       $username = config('services.message.username');
+       $sender = config('services.message.sender');
+       $smsType = config('services.message.smstype');
+       $peid = config('services.message.peid'); 
+       try {
+           Http::post('https://api.message.com/send', [
+               'api_key' => $apiKey,
+               'username' => $username,
+               'sender' => $sender,
+               'to' => $phoneNumber,
+               'message' => "Your OTP for login is {$otpCode}.  It is valid for 5 minutes.
+Do not share this code with anyone. – Annuvedant Team",
+               'smstype' => $smsType,
+               'peid' => $peid,
+           ]);
+       } catch (\Exception $e) {
+           // Log the error but do not prevent login flow
+           \Log::error('Failed to send OTP SMS: '.$e->getMessage());
+       }
     }
 
     private function otpCacheKey(int $userId): string
