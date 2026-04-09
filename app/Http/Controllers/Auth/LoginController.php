@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OtpMail;
 use App\Models\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\JsonResponse;
@@ -155,10 +156,12 @@ class LoginController extends Controller
         if ($isPhoneLogin) {
             $this->sendLoginOtpToPhone($user->phone_number, $otpCode);
         } else {
-            Mail::raw("Your SoilNWater login OTP is {$otpCode}. It expires in 5 minutes.", function ($message) use ($user) {
-                $message->to($user->email)
-                    ->subject('Your SoilNWater Login OTP');
-            });
+            Mail::to($user->email)->send(new OtpMail(
+                otpCode: $otpCode,
+                subjectLine: 'Your SoilNWater Login OTP',
+                headline: 'Confirm your sign in',
+                contextLine: 'Use the OTP below to securely complete your login to your SoilNWater account.',
+            ));
         }
 
         $request->session()->put('otp_login_user_id', $user->id);

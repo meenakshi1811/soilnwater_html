@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OtpMail;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\JsonResponse;
@@ -234,10 +235,12 @@ class RegisterController extends Controller
             'expires_at' => $expiresAt->toIso8601String(),
         ], $expiresAt);
 
-        Mail::raw("Your SoilNWater email verification OTP is {$emailOtpCode}. It expires in 5 minutes.", function ($message) use ($user) {
-            $message->to($user->email)
-                ->subject('Your SoilNWater Email Verification OTP');
-        });
+        Mail::to($user->email)->send(new OtpMail(
+            otpCode: $emailOtpCode,
+            subjectLine: 'Your SoilNWater Email Verification OTP',
+            headline: 'Verify your email address',
+            contextLine: 'Use the OTP below to complete your SoilNWater registration and verify your email address.',
+        ));
 
         $this->sendOtpToPhone($user->phone_number, $phoneOtpCode);
 
