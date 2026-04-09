@@ -1,6 +1,6 @@
 <aside class="admin-sidebar">
     <div class="admin-sidebar-logo d-none d-lg-flex">
-        <a href="{{ route('admin.dashboard') }}">
+        <a href="{{ route('frontend.index') }}" title="Go to Index Page">
             <img src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
         </a>
     </div>
