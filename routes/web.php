@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
@@ -22,6 +23,18 @@ Route::middleware('guest')->group(function () {
     Route::get('/verification/contact/start', [RegisterController::class, 'startContactVerificationFromLogin'])->name('register.contact.verify.start');
 });
 
-Route::get('/home', [HomeController::class, 'index'])
-    ->middleware('verified')
-    ->name('home');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+    Route::prefix('admin')->name('admin.')->middleware(function ($request, $next) {
+        if ($request->user()?->role !== 'admin') {
+            abort(403, 'Only admins can access the admin dashboard.');
+        }
+
+        return $next($request);
+    })->group(function () {
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profile', [AdminController::class, 'editProfile'])->name('profile.edit');
+        Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
+    });
+});
