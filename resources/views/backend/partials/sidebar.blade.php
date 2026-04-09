@@ -1,3 +1,6 @@
+@php
+    $emsModules = \App\Support\ModulePermissions::modules();
+@endphp
 <aside class="admin-sidebar">
     <div class="admin-sidebar-logo d-none d-lg-flex">
         <a href="{{ route('frontend.index') }}" title="Go to Index Page">
@@ -12,18 +15,49 @@
                 <span>Dashboard</span>
             </a>
         </li>
-        <li><a href="#"><i class="fa-solid fa-map-location-dot"></i><span>Regions</span></a></li>
-        <li><a href="#"><i class="fa-solid fa-gears"></i><span>Services</span></a></li>
-        <li><a href="#"><i class="fa-solid fa-users"></i><span>Customers</span></a></li>
-        <li><a href="#"><i class="fa-solid fa-route"></i><span>Route Planning</span></a></li>
-        <li><a href="#"><i class="fa-solid fa-briefcase"></i><span>All Jobs</span></a></li>
-        <li><a href="#"><i class="fa-solid fa-sliders"></i><span>Settings</span></a></li>
-        <li>
-            <a class="{{ request()->routeIs('admin.profile.*') ? 'active' : '' }}" href="{{ route('admin.profile.edit') }}">
-                <i class="fa-solid fa-user-gear"></i>
-                <span>Profile</span>
-            </a>
-        </li>
+        @if(auth()->user()->isAdmin())
+            <li class="sidebar-section-label">Employee system</li>
+            <li>
+                <a class="{{ request()->routeIs('admin.roles.*') ? 'active' : '' }}" href="{{ route('admin.roles.index') }}">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Roles &amp; Permissions</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('admin.employees.*') ? 'active' : '' }}" href="{{ route('admin.employees.index') }}">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Employees</span>
+                </a>
+            </li>
+            <hr>
+        @endif
+
+         @foreach($emsModules as $slug => $label)
+            @if(auth()->user()->isAdmin() || auth()->user()->can($slug.'.read'))
+                <li>
+                    <a class="{{ request()->routeIs('modules.show') && request()->route('module') === $slug ? 'active' : '' }}" href="{{ route('modules.show', $slug) }}">
+                        <i class="fa-solid fa-cube"></i><span>{{ $label }}</span>
+                    </a>
+                </li>
+            @endif
+        @endforeach
+       
+        
+        @if(auth()->user()->isAdmin())
+            <li>
+                <a class="{{ request()->routeIs('admin.profile.*') ? 'active' : '' }}" href="{{ route('admin.profile.edit') }}">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>Profile</span>
+                </a>
+            </li>
+        @else
+            <li>
+                <a class="{{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+        @endif
         <li>
             <form method="POST" action="{{ route('logout') }}" class="w-100">
                 @csrf

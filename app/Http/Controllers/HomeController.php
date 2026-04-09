@@ -24,8 +24,19 @@ class HomeController extends Controller
      */
     public function index(): RedirectResponse|\Illuminate\Contracts\Support\Renderable
     {
-        if (auth()->user()?->role === 'admin') {
+        $user = auth()->user();
+
+        if ($user?->role === 'admin') {
             return redirect()->route('admin.dashboard');
+        }
+
+        if ($user?->role === 'employee') {
+            $slug = $user->firstReadableModuleSlug();
+            if ($slug) {
+                return redirect()->route('modules.show', ['module' => $slug]);
+            }
+
+            return view('home');
         }
 
         return view('home');

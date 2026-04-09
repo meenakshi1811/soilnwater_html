@@ -45,6 +45,13 @@ class LoginController extends Controller
             return route('admin.dashboard');
         }
 
+        if ($user && $user->role === 'employee') {
+            $slug = $user->firstReadableModuleSlug();
+            if ($slug) {
+                return route('modules.show', ['module' => $slug]);
+            }
+        }
+
         return '/home';
     }
 

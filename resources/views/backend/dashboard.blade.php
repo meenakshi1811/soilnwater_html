@@ -6,75 +6,117 @@
 <div class="admin-panel dashboard-modern">
     <div class="dashboard-hero mb-4">
         <div>
-            <h2 class="admin-title mb-1">Performance Dashboard</h2>
-            <p class="mb-0">Modern insights for roles, ads and offers in one place.</p>
+            <h2 class="admin-title mb-1">Admin Dashboard</h2>
+            <p class="mb-0">Overview widgets, growth metrics and ad performance in one view.</p>
         </div>
         <a href="{{ route('admin.profile.edit') }}" class="btn btn-primary">Update Profile</a>
     </div>
 
+    <div class="section-label">Overview Widgets</div>
     <div class="row g-3 mb-4">
-        <div class="col-md-6 col-xl-3">
+        <div class="col-sm-6 col-xl-4">
+            <div class="modern-stat-card users">
+                <span>Total Users</span>
+                <h3>{{ number_format($totalUsers) }}</h3>
+                <small>{{ number_format($activeUsers) }} verified accounts</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+            <div class="modern-stat-card vendors">
+                <span>Active Vendors</span>
+                <h3>{{ number_format($activeVendors) }}</h3>
+                <small>Verified vendor accounts</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+            <div class="modern-stat-card products">
+                <span>Total Products</span>
+                <h3>{{ number_format($totalProducts) }}</h3>
+                <small>Catalog inventory</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
+            <div class="modern-stat-card properties">
+                <span>Total Properties</span>
+                <h3>{{ number_format($totalProperties) }}</h3>
+                <small>Listed properties</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
             <div class="modern-stat-card ads">
-                <span>Total Ads</span>
-                <h3>{{ number_format($totalAds) }}</h3>
+                <span>Active Ads</span>
+                <h3>{{ number_format($activeAds) }}</h3>
+                <small>Running campaigns</small>
             </div>
         </div>
-        <div class="col-md-6 col-xl-3">
-            <div class="modern-stat-card offers">
-                <span>Total Offers</span>
-                <h3>{{ number_format($totalOffers) }}</h3>
-            </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-            <div class="modern-stat-card roles">
-                <span>Total Non-Admin Users</span>
-                <h3>{{ number_format(collect($roleCounts)->sum()) }}</h3>
-            </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-            <div class="modern-stat-card conversion">
-                <span>Offer / Ad Ratio</span>
-                <h3>{{ $totalAds > 0 ? round(($totalOffers / $totalAds) * 100) : 0 }}%</h3>
+        <div class="col-sm-6 col-xl-4">
+            <div class="modern-stat-card revenue">
+                <span>Revenue Today / Month</span>
+                <h3>${{ number_format($revenueToday) }}</h3>
+                <small>${{ number_format($revenueMonth) }} since {{ $monthStart->format('M d') }}</small>
             </div>
         </div>
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-lg-8">
-            <div class="chart-card">
+            <div class="chart-card h-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Ads & Offers Trend</h5>
-                    <small>Last 7 snapshots</small>
+                    <h5 class="mb-0">Graphs: Revenue Trends</h5>
+                    <small>Monthly split</small>
                 </div>
-                <canvas id="adsOffersTrendChart" height="110"></canvas>
+                <canvas id="revenueTrendsChart" height="120"></canvas>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="chart-card h-100">
-                <h5 class="mb-3">Role Distribution</h5>
-                <canvas id="roleDistributionChart" height="220"></canvas>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Ad Performance</h5>
+                    <small>Circle chart</small>
+                </div>
+                <canvas id="adPerformanceChart" height="220"></canvas>
             </div>
         </div>
     </div>
 
-    <div class="chart-card">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Role Category Circles</h5>
-            <small>All role types (excluding admin)</small>
-        </div>
-
-        <div class="role-circle-grid">
-            @foreach($roleStats as $item)
-                <div class="role-circle-card">
-                    <div class="role-circle" style="--progress: {{ $item['percentage'] }};">
-                        <div class="role-circle-inner">
-                            <strong>{{ $item['count'] }}</strong>
-                            <span>{{ $item['percentage'] }}%</span>
-                        </div>
-                    </div>
-                    <h6 class="mb-0 mt-2">{{ $item['label'] }}</h6>
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="chart-card h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">User Growth</h5>
+                    <small>Last 7 days</small>
                 </div>
-            @endforeach
+                <canvas id="userGrowthChart" height="140"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="chart-card h-100">
+                <h5 class="mb-3">Notifications Panel</h5>
+                <div class="notification-list">
+                    <div class="notification-item">
+                        <span>New vendor registrations</span>
+                        <strong>{{ $newVendorRegistrations }}</strong>
+                    </div>
+                    <div class="notification-item">
+                        <span>Pending approvals</span>
+                        <strong>{{ $pendingApprovals }}</strong>
+                    </div>
+                    <div class="notification-item">
+                        <span>New leads</span>
+                        <strong>{{ $newLeads }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="chart-card h-100">
+                <h5 class="mb-3">Quick Actions</h5>
+                <div class="quick-action-list">
+                    <a href="#" class="quick-action-btn"><i class="fa-solid fa-layer-group"></i> Add Category</a>
+                    <a href="#" class="quick-action-btn"><i class="fa-solid fa-check-circle"></i> Approve Listings</a>
+                    <a href="#" class="quick-action-btn"><i class="fa-solid fa-bullhorn"></i> Create Ad Campaign</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -83,30 +125,17 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
-const trendLabels = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
-
-new Chart(document.getElementById('adsOffersTrendChart'), {
-    type: 'line',
+new Chart(document.getElementById('revenueTrendsChart'), {
+    type: 'bar',
     data: {
-        labels: trendLabels,
+        labels: @json($revenueLabels),
         datasets: [
             {
-                label: 'Ads',
-                data: @json($adsSeries),
-                borderColor: '#1976d2',
-                backgroundColor: 'rgba(25,118,210,.18)',
-                fill: true,
-                tension: .35,
-                pointRadius: 4
-            },
-            {
-                label: 'Offers',
-                data: @json($offersSeries),
-                borderColor: '#2e7d32',
-                backgroundColor: 'rgba(46,125,50,.14)',
-                fill: true,
-                tension: .35,
-                pointRadius: 4
+                label: 'Revenue',
+                data: @json($revenueTrends),
+                borderColor: '#1d4ed8',
+                backgroundColor: ['#1d4ed8', '#2563eb', '#3b82f6', '#60a5fa'],
+                borderRadius: 10
             }
         ]
     },
@@ -114,17 +143,50 @@ new Chart(document.getElementById('adsOffersTrendChart'), {
         responsive: true,
         plugins: {
             legend: { position: 'top' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
         }
     }
 });
 
-new Chart(document.getElementById('roleDistributionChart'), {
+new Chart(document.getElementById('userGrowthChart'), {
+    type: 'line',
+    data: {
+        labels: @json($userGrowthLabels),
+        datasets: [{
+            label: 'Total Users',
+            data: @json($userGrowthSeries),
+            borderColor: '#16a34a',
+            backgroundColor: 'rgba(22,163,74,.16)',
+            fill: true,
+            tension: .35,
+            pointRadius: 3,
+            pointHoverRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+new Chart(document.getElementById('adPerformanceChart'), {
     type: 'doughnut',
     data: {
-        labels: @json($roleLabels),
+        labels: @json($adPerformanceLabels),
         datasets: [{
-            data: @json($roleCounts),
-            backgroundColor: ['#1976d2','#2e7d32','#f9a825','#7c4dff','#0097a7','#ef6c00'],
+            data: @json($adPerformanceSeries),
+            backgroundColor: ['#4f46e5', '#f59e0b', '#22c55e'],
             borderWidth: 0
         }]
     },
