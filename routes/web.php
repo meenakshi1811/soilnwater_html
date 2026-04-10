@@ -20,12 +20,18 @@ Route::middleware('guest')->group(function () {
     Route::get('/login/otp', [LoginController::class, 'showOtpForm'])->name('login.otp.form');
     Route::post('/login/otp/verify', [LoginController::class, 'verifyOtp'])->name('login.otp.verify');
     Route::post('/login/verification/resend', [LoginController::class, 'resendVerification'])->name('login.verification.resend');
-    Route::get('/auth/google', [LoginController::class, 'googleLogin'])->name('login.google');
+    Route::get('/auth/google/login', [LoginController::class, 'googleLogin'])->name('login.google');
+    Route::post('/auth/google/register', [LoginController::class, 'googleRegister'])->name('register.google');
+    Route::get('/auth/google/callback', [LoginController::class, 'googleCallback'])->name('google.callback');
 
     Route::get('/verification/contact', [RegisterController::class, 'showContactVerificationForm'])->name('register.contact.verify.form');
     Route::post('/verification/contact', [RegisterController::class, 'verifyContactOtp'])->name('register.contact.verify');
     Route::post('/verification/contact/resend', [RegisterController::class, 'resendContactOtp'])->name('register.contact.verify.resend');
     Route::get('/verification/contact/start', [RegisterController::class, 'startContactVerificationFromLogin'])->name('register.contact.verify.start');
+    Route::get('/verification/phone/start', [RegisterController::class, 'startPhoneVerification'])->name('register.phone.verify.start');
+    Route::get('/verification/phone', [RegisterController::class, 'showPhoneVerificationForm'])->name('register.phone.verify.form');
+    Route::post('/verification/phone/send', [RegisterController::class, 'sendPhoneVerificationOtp'])->name('register.phone.verify.send');
+    Route::post('/verification/phone/verify', [RegisterController::class, 'verifyPhoneOtp'])->name('register.phone.verify');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

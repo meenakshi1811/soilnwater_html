@@ -188,9 +188,6 @@
   </div>
 </div>
 
-<script src="{{ asset('assets/js/main.js') }}" defer></script>
-
-
 <!-- ══════════════════════════════════════════════════
      MAIN CONTENT  (from Image 2 layout with sidebar)
 ══════════════════════════════════════════════════ -->

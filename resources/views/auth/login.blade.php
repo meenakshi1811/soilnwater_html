@@ -34,8 +34,8 @@
                         <div class="alert alert-warning" role="alert">{{ $errors->first('email') }}</div>
                         @if (str_contains(strtolower($errors->first('email')), 'phone number are not verified') || str_contains(strtolower($errors->first('email')), 'complete verification'))
                             <div class="mb-3">
-                                <a href="{{ route('register.contact.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
-                                    Click here to verify your contact details.
+                                <a href="{{ route('register.phone.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
+                                    Click here to verify your mobile number.
                                 </a>
                             </div>
                         @elseif (str_contains(strtolower($errors->first('email')), 'not verified'))
@@ -53,8 +53,8 @@
                     @if ($errors->has('contact_verification'))
                         <div class="alert alert-warning" role="alert">
                             {{ $errors->first('contact_verification') }}
-                            <a href="{{ route('register.contact.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
-                                Click here to verify your contact details.
+                            <a href="{{ route('register.phone.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
+                                Click here to verify your mobile number.
                             </a>
                         </div>
                     @endif

@@ -433,3 +433,46 @@
   window.setTimeout(syncHeights, 80);
   window.setInterval(syncHeights, 1200);
 })();
+
+(function () {
+  const trigger = document.getElementById('googleRegisterTrigger');
+  const modalElement = document.getElementById('googleRoleModal');
+  const roleSelect = document.getElementById('google_role');
+  const continueBtn = document.getElementById('googleRoleContinueBtn');
+  const registerRoleSelect = document.getElementById('role');
+
+  if (!trigger || !modalElement || !roleSelect || !continueBtn) return;
+  if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
+
+  const roleModal = new bootstrap.Modal(modalElement);
+
+  const syncContinueState = () => {
+    continueBtn.disabled = roleSelect.value.trim() === '';
+  };
+
+  if (registerRoleSelect && registerRoleSelect.value) {
+    roleSelect.value = registerRoleSelect.value;
+  }
+
+  syncContinueState();
+
+  trigger.addEventListener('click', () => {
+    if (registerRoleSelect && registerRoleSelect.value) {
+      roleSelect.value = registerRoleSelect.value;
+    }
+
+    syncContinueState();
+    roleModal.show();
+  });
+
+  roleSelect.addEventListener('change', () => {
+    if (registerRoleSelect) {
+      registerRoleSelect.value = roleSelect.value;
+    }
+    syncContinueState();
+  });
+
+  modalElement.addEventListener('shown.bs.modal', () => {
+    roleSelect.focus();
+  });
+})();

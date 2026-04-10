@@ -89,7 +89,7 @@
 
                         <div class="auth-divider"><span>or</span></div>
 
-                        <button type="button" class="btn btn-google">
+                        <button type="button" class="btn btn-google w-100" id="googleRegisterTrigger">
                             <i class="fa-brands fa-google me-2"></i> Continue with Google
                         </button>
 
@@ -100,6 +100,40 @@
         </div>
     </div>
 </section>
+
+<div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="googleRoleModalLabel">Continue with Google</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="role-picker-subtitle">Choose your role to continue. This step is required.</p>
+
+                <form id="googleRegisterRoleForm" method="POST" action="{{ route('register.google') }}">
+                    @csrf
+                    <label for="google_role" class="form-label">Select Role</label>
+                    <select id="google_role" class="form-select" name="role" required>
+                        <option value="">Choose your role</option>
+                        <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
+                        <option value="vendor" {{ old('role') === 'vendor' ? 'selected' : '' }}>Vendor</option>
+                        <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
+                        <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
+                        <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
+                    </select>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-auth-secondary flex-fill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="googleRoleContinueBtn" class="btn btn-google role-continue-btn flex-fill" disabled>
+                            <i class="fa-brands fa-google me-2"></i> Continue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')

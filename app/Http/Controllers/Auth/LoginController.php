@@ -12,10 +12,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
+use Laravel\Socialite\Facades\Socialite;
 
 class LoginController extends Controller
 {
@@ -322,11 +324,90 @@ class LoginController extends Controller
         return redirect()->intended($this->redirectPath());
     }
 
-    public function googleLogin(): RedirectResponse
+    public function googleLogin(Request $request): RedirectResponse
     {
-        return redirect()->route('login')->withErrors([
-            'google' => 'Google sign in is not configured yet. Please use password or OTP login.',
+        $request->session()->put('google_auth.intent', 'login');
+        $request->session()->forget('google_auth.role');
+
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function googleRegister(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
         ]);
+
+        $request->session()->put('google_auth.intent', 'register');
+        $request->session()->put('google_auth.role', $data['role']);
+
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function googleCallback(Request $request): RedirectResponse
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+        } catch (\Throwable $exception) {
+            return redirect()->route('login')->withErrors([
+                'google' => 'Google authentication failed. Please try again.',
+            ]);
+        }
+
+        $intent = (string) $request->session()->pull('google_auth.intent', 'login');
+        $roleFromRegisterFlow = $request->session()->pull('google_auth.role');
+        $email = strtolower((string) $googleUser->getEmail());
+
+        if ($email === '') {
+            return redirect()->route('login')->withErrors([
+                'google' => 'Google account email is missing. Please use another login method.',
+            ]);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if ($intent === 'register' && ! $user && ! in_array($roleFromRegisterFlow, ['user', 'vendor', 'builder', 'developer', 'consultant'], true)) {
+            return redirect()->route('register')->withErrors([
+                'role' => 'Please select a role before continuing with Google.',
+            ]);
+        }
+
+        if (! $user) {
+            $displayName = trim((string) ($googleUser->getName() ?: 'Google User'));
+            $role = $intent === 'register' ? $roleFromRegisterFlow : 'user';
+
+            $user = User::create([
+                'name' => $displayName,
+                'full_name' => $displayName,
+                'email' => $email,
+                'role' => $role,
+                'password' => Hash::make(str()->random(40)),
+                'email_verified_at' => now(),
+            ]);
+        }
+
+        if ($user->isGeneralUser() && ! $user->phone_verified_at) {
+            if ($intent === 'login') {
+                return redirect()
+                    ->route('login')
+                    ->withInput([
+                        'verification_email' => $user->email,
+                    ])
+                    ->withErrors([
+                        'contact_verification' => 'Your mobile number is not verified yet. Please verify your number to continue.',
+                    ]);
+            }
+
+            $request->session()->put('phone_verification_user_id', $user->id);
+
+            return redirect()
+                ->route('register.phone.verify.form')
+                ->with('status', 'Email is verified via Google. Please add and verify your mobile number to complete registration.');
+        }
+
+        Auth::login($user, true);
+
+        return redirect()->intended($this->redirectPath());
     }
 
     public function resendVerification(Request $request): RedirectResponse|JsonResponse
