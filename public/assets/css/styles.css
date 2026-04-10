@@ -2321,3 +2321,156 @@
 .promo-layout .promo-side-slider .side-card-body {
   flex: 1;
 }
+
+  h1 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; }
+  h2 { font-size: 1.5rem; font-weight: 600; }
+  h3 { font-size: 1.1rem; font-weight: 600; }
+  h4 { font-size: 1rem; font-weight: 600;}
+  p  { font-size: 0.97rem; line-height: 1.75; }
+  ul { padding-left: 20px; }
+  li { font-size: 0.95rem;  line-height: 1.75; }
+  strong { color: var(--color-text-primary); }
+
+  .about-page {
+    background: #eef2f6;
+  }
+
+  .about-banner {
+    background: linear-gradient(125deg, #163f72 0%, #1f66b4 45%, #2e7d32 100%);
+    color: #fff;
+    padding: 64px 20px;
+    text-align: center;
+  }
+
+  .about-banner h1 {
+    font-size: clamp(30px, 4vw, 46px);
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+
+  .about-banner p {
+    margin: 0 auto;
+    max-width: 760px;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .about-inner {
+    margin: 0 auto;
+    padding: 22px 28px 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .about-inner .sec {
+    padding: 22px;
+  }
+
+  .about-intro p:last-child,
+  .about-company p:last-child {
+    margin-bottom: 0;
+  }
+
+  .about-list {
+    margin: 0;
+    padding-left: 20px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .about-list li {
+    color: #30475f;
+    line-height: 1.5;
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .about-box {
+    border: 1px solid #dce6f3;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    padding: 16px;
+  }
+
+  .about-box h4 {
+    font-size: 18px;
+    color: #12395f;
+    margin-bottom: 10px;
+  }
+
+  .about-approach {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .about-approach-item {
+    border: 1px solid #dce6f3;
+    border-radius: 12px;
+    background: #fff;
+    padding: 14px;
+  }
+
+  .about-approach-item h5 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #14538b;
+    margin-bottom: 6px;
+  }
+
+  .about-approach-item p {
+    margin: 0;
+    font-size: 13px;
+    color: #4a6077;
+    line-height: 1.4;
+  }
+
+  .about-mission-why {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .about-cta {
+    background: linear-gradient(125deg, #163f72 0%, #1f66b4 45%, #2e7d32 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .about-cta h2 {
+    font-family: "Manrope", sans-serif;
+    margin-bottom: 8px;
+  }
+
+  .about-cta p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  @media (max-width: 991.98px) {
+    .about-inner {
+      padding: 16px;
+    }
+
+    .about-grid,
+    .about-mission-why {
+      grid-template-columns: 1fr;
+    }
+
+    .about-approach {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    .about-approach {
+      grid-template-columns: 1fr;
+    }
+  }

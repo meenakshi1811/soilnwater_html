@@ -7,9 +7,11 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ModuleAccessController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'frontend.index')->name('frontend.index');
+Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 
 Auth::routes(['verify' => true]);
 

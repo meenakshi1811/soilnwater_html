@@ -52,6 +52,7 @@
     <div class="footer-bottom-inner">
       <span>© 2025 SoilnWater. All rights reserved.</span>
       <div class="footer-bottom-links">
+        <a href="{{ route('frontend.about-us') }}">About Us</a>
         <a href="#">Privacy Policy</a>
         <a href="#">Terms of Service</a>
         <a href="#">Cookie Policy</a>
