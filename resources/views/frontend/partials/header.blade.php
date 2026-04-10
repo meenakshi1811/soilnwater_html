@@ -1,7 +1,7 @@
 <header class="header container-fluid d-flex flex-wrap align-items-center">
-  <div class="logo">
+  <a href="/" class="logo">
     <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
-  </div>
+  </a>
 
   <div class="loc-wrap">
     <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
