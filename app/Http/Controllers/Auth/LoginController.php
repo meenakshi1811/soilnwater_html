@@ -298,12 +298,12 @@ class LoginController extends Controller
 
     public function googleRegister(Request $request): RedirectResponse
     {
-        $data = $request->validate([
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
-        ]);
+        // $data = $request->validate([
+        //     'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
+        // ]);
 
         $request->session()->put('google_auth.intent', 'register');
-        $request->session()->put('google_auth.role', $data['role']);
+        $request->session()->put('google_auth.role', 'user');
 
         return Socialite::driver('google')->redirect();
     }

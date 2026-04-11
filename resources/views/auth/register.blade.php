@@ -101,7 +101,10 @@
     </div>
 </section>
 
-<div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true">
+<a href="{{ route('register.google') }}" class="btn btn-google d-flex justify-content-center align-items-center gap-2">
+    <span class="fw-semibold">Continue with Google</span>
+</a>
+{{-- <div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -133,7 +136,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 @endsection
 
 @push('scripts')
