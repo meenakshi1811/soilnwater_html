@@ -39,6 +39,10 @@ class HomeController extends Controller
             return view('home');
         }
 
+        if ($user?->isGeneralUser()) {
+            return redirect()->route('user.dashboard');
+        }
+
         return view('home');
     }
 }

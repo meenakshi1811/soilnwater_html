@@ -476,3 +476,23 @@
     roleSelect.focus();
   });
 })();
+
+(function () {
+  if (document.body.classList.contains('admin-body')) {
+    return;
+  }
+
+  const hash = window.location.hash;
+  if (hash !== '#post-ad' && hash !== '#post-offer') {
+    return;
+  }
+
+  const target = document.querySelector(hash);
+  if (!target) {
+    return;
+  }
+
+  window.requestAnimationFrame(() => {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+})();

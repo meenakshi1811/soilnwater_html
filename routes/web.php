@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ModuleAccessController;
+use App\Http\Controllers\UserDashboardController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +41,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/modules/{module}', [ModuleAccessController::class, 'show'])
         ->where('module', 'ecommerce|vendors|services|properties|builders|consultants|enquiry|products|user_enquiry')
         ->name('modules.show');
+
+    Route::prefix('user')->name('user.')->middleware('user')->group(function () {
+        Route::get('/dashboard', [UserDashboardController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profile', [UserDashboardController::class, 'editProfile'])->name('profile.edit');
+        Route::put('/profile', [UserDashboardController::class, 'updateProfile'])->name('profile.update');
+        Route::get('/post-ad', function () {
+            return redirect()->to(route('frontend.index').'#post-ad');
+        })->name('post-ad');
+        Route::get('/post-offer', function () {
+            return redirect()->to(route('frontend.index').'#post-offer');
+        })->name('post-offer');
+    });
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');

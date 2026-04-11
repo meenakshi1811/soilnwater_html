@@ -168,6 +168,50 @@
 .modern-stat-card.products { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
 .modern-stat-card.properties { background: linear-gradient(135deg, #ea580c, #fb923c); }
 .modern-stat-card.revenue { background: linear-gradient(135deg, #0c4a6e, #0284c7); }
+.modern-stat-card.offers { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+
+.admin-header .admin-header-action-offer {
+    background: #f5a623;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    font-weight: 700;
+    font-size: 0.8125rem;
+    padding: 0.4rem 0.85rem;
+    box-shadow: 0 2px 8px rgba(245, 166, 35, 0.35);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.admin-header .admin-header-action-offer:hover {
+    background: #e19a21;
+    color: #fff;
+}
+
+.admin-header .admin-header-action-ad {
+    background: #fff;
+    color: var(--admin-primary, #1976d2);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 7px;
+    font-weight: 700;
+    font-size: 0.8125rem;
+    padding: 0.4rem 0.85rem;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.22);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.admin-header .admin-header-action-ad:hover {
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--admin-primary, #1565c0);
+}
+
+.user-dashboard-panel .modern-stat-card small {
+    display: block;
+    margin-top: 0.35rem;
+    opacity: 0.92;
+    font-size: 0.8rem;
+}
 
 .chart-card {
     border: 1px solid #e5e7eb;

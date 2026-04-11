@@ -54,6 +54,10 @@ class LoginController extends Controller
             }
         }
 
+        if ($user && $user->isGeneralUser()) {
+            return route('user.dashboard');
+        }
+
         return '/home';
     }
 
@@ -62,36 +66,13 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user): RedirectResponse|JsonResponse|null
     {
-        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
-            Auth::logout();
-
-            $message = 'Your email and phone number are not verified yet. Please verify your account first.';
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => $message,
-                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
-                ], 403);
-            }
-
-            return redirect()
-                ->route('login')
-                ->withInput([
-                    'login' => $request->input('login'),
-                    'remember' => $request->boolean('remember'),
-                    'verification_email' => $user->email,
-                ])
-                ->withErrors([
-                    'contact_verification' => $message,
-                ]);
-        }
-
         if (! $user->hasVerifiedEmail()) {
             Auth::logout();
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Your account is not verified yet. Please verify your email before signing in.',
+                     'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
                 ], 403);
             }
 
@@ -130,8 +111,8 @@ class LoginController extends Controller
                 'login_contact' => 'No account found with this email address or phone number.',
             ]);
         }
-
-        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+        if ($user->isGeneralUser() && ! $user->hasVerifiedEmail()) {    
+        
             $message = 'Your email and phone number are not verified yet. Please verify your account first.';
 
             if ($request->expectsJson()) {
@@ -272,23 +253,6 @@ class LoginController extends Controller
 
             return redirect()->route('login')->withErrors([
                 'email' => $message,
-            ]);
-        }
-
-        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
-            Cache::forget($this->otpCacheKey($userId));
-            $request->session()->forget('otp_login_user_id');
-            $message = 'Your email and phone number are not verified yet. Please verify your account first.';
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => $message,
-                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
-                ], 403);
-            }
-
-            return redirect()->route('login')->withErrors([
-                'contact_verification' => $message,
             ]);
         }
 
@@ -501,7 +465,7 @@ class LoginController extends Controller
             $smstype  = config('services.message.smstype');
             $peid     = config('services.message.peid');
 
-            $message = "Verification OTP Your login verification code is {$phoneOtpCode} This code is valid for 5 minutes. Do not share it with anyone. – Annuvedant Team";
+            $message = "Verification OTP Your login verification code is {$otpCode} This code is valid for 5 minutes. Do not share it with anyone. – Annuvedant Team";
 
             $url = 'http://sms.messageindia.in/v2/sendSMS?' . http_build_query([
                 'username'   => $username,

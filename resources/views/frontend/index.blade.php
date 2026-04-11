@@ -1,6 +1,8 @@
 @extends('frontend.layouts.app')
 
 @section('content')
+<div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
+<div id="post-offer" class="visually-hidden" aria-hidden="true"></div>
 <!-- ══════════════════════════════════════════════════
      HERO BANNER
 ══════════════════════════════════════════════════ -->
