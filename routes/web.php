@@ -22,7 +22,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login/otp/verify', [LoginController::class, 'verifyOtp'])->name('login.otp.verify');
     Route::post('/login/verification/resend', [LoginController::class, 'resendVerification'])->name('login.verification.resend');
     Route::get('/auth/google/login', [LoginController::class, 'googleLogin'])->name('login.google');
-    Route::post('/auth/google/register', [LoginController::class, 'googleRegister'])->name('register.google');
+    Route::get('/auth/google/register', [LoginController::class, 'googleRegister'])->name('register.google');
     Route::get('/auth/google/callback', [LoginController::class, 'googleCallback'])->name('google.callback');
 
     Route::get('/verification/contact', [RegisterController::class, 'showContactVerificationForm'])->name('register.contact.verify.form');
