@@ -303,7 +303,7 @@ class LoginController extends Controller
         // ]);
 
         $request->session()->put('google_auth.intent', 'register');
-        $request->session()->put('google_auth.role', 'user');
+        $request->session()->forget('google_auth.role');
 
         return Socialite::driver('google')->redirect();
     }

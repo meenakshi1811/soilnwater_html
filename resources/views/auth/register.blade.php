@@ -95,15 +95,17 @@
 
                         <p class="signin-copy">Already have an account? <a href="{{ route('login') }}">Sign in</a></p>
                     </form>
+                    <div class="auth-divider"><span>or</span></div>
+                    <a href="{{ route('register.google') }}" class="btn btn-google d-flex justify-content-center align-items-center gap-2">
+                        <span class="fw-semibold">Continue with Google</span>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<a href="{{ route('register.google') }}" class="btn btn-google d-flex justify-content-center align-items-center gap-2">
-    <span class="fw-semibold">Continue with Google</span>
-</a>
+
 {{-- <div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
