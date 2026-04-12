@@ -44,6 +44,12 @@
                     <span>Employees</span>
                 </a>
             </li>
+            <li>
+                <a class="{{ request()->routeIs('admin.terms-and-conditions.*') ? 'active' : '' }}" href="{{ route('admin.terms-and-conditions.index') }}">
+                    <i class="fa-solid fa-file-contract"></i>
+                    <span>Terms &amp; Conditions</span>
+                </a>
+            </li>
             <hr>
         @endif
 
