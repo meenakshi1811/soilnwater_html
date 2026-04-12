@@ -579,11 +579,69 @@
             });
         },
 
+        initAdminProfileForm: function () {
+            this.attachAjaxForm({
+                formSelector: '#adminProfileForm',
+                buttonSelector: '#adminProfileSubmitBtn',
+                alertSelector: '#adminProfileAlert',
+                defaultText: 'Save Changes',
+                loadingText: 'Saving...',
+                rules: {
+                    name: { required: true, minlength: 3, maxlength: 255 },
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    email: { required: true, email: true, maxlength: 255 },
+                    password: { minlength: 8 },
+                    password_confirmation: {
+                        required: function () {
+                            return $.trim($('#password').val()).length > 0;
+                        },
+                        equalTo: '#password'
+                    }
+                },
+                messages: {
+                    name: {
+                        required: 'Please enter your full name.',
+                        minlength: 'Full name must be at least 3 characters.'
+                    },
+                    phone_number: {
+                        required: 'Please enter your phone number.',
+                        digits: 'Phone number should contain only digits.',
+                        minlength: 'Phone number must be at least 10 digits.',
+                        maxlength: 'Phone number cannot exceed 15 digits.'
+                    },
+                    email: {
+                        required: 'Please enter your email address.',
+                        email: 'Please enter a valid email address.'
+                    },
+                    password: {
+                        minlength: 'Password must be at least 8 characters long.'
+                    },
+                    password_confirmation: {
+                        required: 'Please confirm your password.',
+                        equalTo: 'Password confirmation does not match.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to update profile right now. Please try again.',
+                onSuccess: function (response, ctx) {
+                    if (ctx && ctx.form && ctx.form.length) {
+                        ctx.form.find('input[name="password"], input[name="password_confirmation"]').val('');
+                    }
+
+                    FormHelper.showAlert(
+                        $('#adminProfileAlert'),
+                        'success',
+                        response.message || 'Profile updated successfully.'
+                    );
+                }
+            });
+        },
+
         init: function () {
             this.initRegisterForm();
             this.initLoginForms();
             this.initOtpVerifyForm();
             this.initPhoneVerificationForm();
+            this.initAdminProfileForm();
             this.initOtpTimer('#otp-timer');
         }
     };
