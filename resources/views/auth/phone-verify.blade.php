@@ -26,25 +26,33 @@
                         <div class="alert alert-danger" role="alert">{{ $errors->first('otp') }}</div>
                     @endif
 
-                    <form method="POST" action="{{ route('register.phone.verify.send') }}" novalidate>
+                    <div id="phoneVerifyAlert" class="alert d-none" role="alert"></div>
+
+                    <form id="phoneOtpSendForm" method="POST" action="{{ route('register.phone.verify.send') }}" novalidate>
                         @csrf
                         <div class="mb-3">
                             <label for="phone_number" class="form-label">Mobile Number</label>
                             <input id="phone_number" type="text" inputmode="numeric" class="form-control" name="phone_number" value="{{ $phoneNumber }}" required placeholder="Enter 10-15 digit mobile number">
                         </div>
-                        <button type="submit" class="btn otp-btn w-100">Send OTP</button>
+                        <button id="phoneOtpSendBtn" type="submit" class="btn otp-btn w-100 js-auto-loader">
+                            <span class="btn-text">Send OTP</span>
+                            <span class="btn-loader d-none" aria-hidden="true"></span>
+                        </button>
                     </form>
 
                     <hr class="my-3">
 
-                    <form method="POST" action="{{ route('register.phone.verify') }}" novalidate>
+                    <form id="phoneOtpVerifyForm" method="POST" action="{{ route('register.phone.verify') }}" novalidate>
                         @csrf
                         <input type="hidden" name="phone_number" value="{{ $phoneNumber }}">
                         <div class="mb-3">
                             <label for="otp" class="form-label">OTP Code</label>
                             <input id="otp" type="text" inputmode="numeric" maxlength="6" class="form-control" name="otp" required placeholder="Enter 6-digit OTP">
                         </div>
-                        <button type="submit" class="btn otp-btn w-100">Verify Number</button>
+                        <button id="phoneOtpVerifyBtn" type="submit" class="btn otp-btn w-100 js-auto-loader">
+                            <span class="btn-text">Verify Number</span>
+                            <span class="btn-loader d-none" aria-hidden="true"></span>
+                        </button>
                     </form>
 
                     <a href="{{ route('login') }}" class="btn btn-link w-100 mt-2 otp-back-link">Back to login</a>
@@ -54,3 +62,9 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
+@endpush
