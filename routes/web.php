@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\TermsAndConditionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
@@ -76,6 +77,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{employee}', [EmployeeController::class, 'show'])->name('show');
             Route::put('/{employee}', [EmployeeController::class, 'update'])->name('update');
             Route::delete('/{employee}', [EmployeeController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('terms-and-conditions')->name('terms-and-conditions.')->group(function () {
+            Route::get('/', [TermsAndConditionController::class, 'index'])->name('index');
+            Route::get('/data', [TermsAndConditionController::class, 'data'])->name('data');
+            Route::get('/modules', [TermsAndConditionController::class, 'moduleOptions'])->name('modules');
+            Route::post('/', [TermsAndConditionController::class, 'store'])->name('store');
+            Route::get('/{termsAndCondition}', [TermsAndConditionController::class, 'show'])->name('show');
+            Route::put('/{termsAndCondition}', [TermsAndConditionController::class, 'update'])->name('update');
+            Route::delete('/{termsAndCondition}', [TermsAndConditionController::class, 'destroy'])->name('destroy');
         });
     });
 });
