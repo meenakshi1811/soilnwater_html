@@ -45,6 +45,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
+                    <i class="fa-solid fa-folder-tree"></i>
+                    <span>Categories</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('admin.terms-and-conditions.*') ? 'active' : '' }}" href="{{ route('admin.terms-and-conditions.index') }}">
                     <i class="fa-solid fa-file-contract"></i>
                     <span>Terms &amp; Conditions</span>
