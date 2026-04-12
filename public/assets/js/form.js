@@ -262,7 +262,8 @@
                     phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                     role: { required: true },
                     password: { required: true, minlength: 8 },
-                    password_confirmation: { required: true, equalTo: '#password' }
+                    password_confirmation: { required: true, equalTo: '#password' },
+                    accept_terms: { required: true }
                 },
                 messages: {
                     fullname: {
@@ -289,6 +290,9 @@
                     password_confirmation: {
                         required: 'Please confirm your password.',
                         equalTo: 'Password confirmation does not match.'
+                    },
+                    accept_terms: {
+                        required: 'Please accept the terms and conditions to continue.'
                     }
                 },
                 fallbackErrorMessage: 'Unable to register right now. Please try again.',

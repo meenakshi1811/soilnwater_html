@@ -41,8 +41,10 @@ class RegisterController extends Controller
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
             'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'accept_terms' => ['accepted'],
         ], [
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+            'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
         ]);
     }
 
