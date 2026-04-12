@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TermsAndConditionController;
 use App\Http\Controllers\Auth\LoginController;
@@ -79,6 +80,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{employee}', [EmployeeController::class, 'show'])->name('show');
             Route::put('/{employee}', [EmployeeController::class, 'update'])->name('update');
             Route::delete('/{employee}', [EmployeeController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Route::get('/', [CategoryController::class, 'index'])->name('index');
+            Route::get('/data', [CategoryController::class, 'data'])->name('data');
+            Route::get('/parents/options', [CategoryController::class, 'parentOptions'])->name('parents.options');
+            Route::post('/', [CategoryController::class, 'store'])->name('store');
+            Route::get('/{category}', [CategoryController::class, 'show'])->name('show');
+            Route::put('/{category}', [CategoryController::class, 'update'])->name('update');
+            Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('terms-and-conditions')->name('terms-and-conditions.')->group(function () {
