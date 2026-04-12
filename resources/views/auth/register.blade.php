@@ -82,6 +82,17 @@
                             <input id="password_confirmation" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
                         </div>
 
+                        <div class="form-check mb-3">
+                            <input class="form-check-input @error('accept_terms') is-invalid @enderror" type="checkbox" value="1" id="accept_terms" name="accept_terms" required {{ old('accept_terms') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="accept_terms">
+                                I accept the
+                                <a href="{{ route('frontend.terms.show', ['moduleKey' => 'register']) }}" target="_blank" rel="noopener">Terms &amp; Conditions</a>
+                            </label>
+                            @error('accept_terms')
+                                <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                            @enderror
+                        </div>
+
                         <button id="registerSubmitBtn" type="submit" class="btn btn-primary btn-create auth-action-btn js-auto-loader">
                             <span class="btn-text">Create Account</span>
                             <span class="btn-loader d-none" aria-hidden="true"></span>
@@ -139,6 +150,7 @@
         </div>
     </div>
 </div> --}}
+
 @endsection
 
 @push('scripts')
