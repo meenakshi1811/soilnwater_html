@@ -123,6 +123,12 @@
 
             self.ensureButtonParts($button);
 
+            if (config.showLoaderOnClick === true && $button.length) {
+                $button.off('click.ajaxLoader').on('click.ajaxLoader', function () {
+                    self.setButtonLoading($button, true, loadingText, defaultText);
+                });
+            }
+
             $form.validate({
                 errorElement: 'span',
                 errorPlacement: function (error, element) {
@@ -134,6 +140,9 @@
                 },
                 unhighlight: function (element) {
                     $(element).removeClass('is-invalid');
+                },
+                invalidHandler: function () {
+                    self.setButtonLoading($button, false, loadingText, defaultText);
                 },
                 rules: config.rules || {},
                 messages: config.messages || {},
@@ -503,10 +512,78 @@
             });
         },
 
+        initPhoneVerificationForm: function () {
+            this.attachAjaxForm({
+                formSelector: '#phoneOtpSendForm',
+                buttonSelector: '#phoneOtpSendBtn',
+                alertSelector: '#phoneVerifyAlert',
+                defaultText: 'Send OTP',
+                loadingText: 'Sending OTP...',
+                showLoaderOnClick: true,
+                rules: {
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 }
+                },
+                messages: {
+                    phone_number: {
+                        required: 'Please enter your mobile number.',
+                        digits: 'Mobile number should contain only digits.',
+                        minlength: 'Mobile number must be at least 10 digits.',
+                        maxlength: 'Mobile number cannot exceed 15 digits.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to send OTP right now. Please try again.',
+                onSuccess: function (response, ctx) {
+                    FormHelper.showAlert($('#phoneVerifyAlert'), 'success', response.message || 'OTP sent successfully.');
+
+                    if (ctx && ctx.form && ctx.form.length) {
+                        var currentPhoneNumber = $.trim(ctx.form.find('[name="phone_number"]').val() || '');
+                        $('form#phoneOtpVerifyForm').find('input[name="phone_number"]').val(currentPhoneNumber);
+                    }
+
+                    if (response.expires_at) {
+                        FormHelper.resetOtpTimer('#otp-timer', response.expires_at);
+                    }
+                }
+            });
+
+            this.attachAjaxForm({
+                formSelector: '#phoneOtpVerifyForm',
+                buttonSelector: '#phoneOtpVerifyBtn',
+                alertSelector: '#phoneVerifyAlert',
+                defaultText: 'Verify Number',
+                loadingText: 'Verifying...',
+                showLoaderOnClick: true,
+                rules: {
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    otp: { required: true, digits: true, minlength: 6, maxlength: 6 }
+                },
+                messages: {
+                    phone_number: {
+                        required: 'Please enter your mobile number.',
+                        digits: 'Mobile number should contain only digits.',
+                        minlength: 'Mobile number must be at least 10 digits.',
+                        maxlength: 'Mobile number cannot exceed 15 digits.'
+                    },
+                    otp: {
+                        required: 'Please enter the OTP sent to your mobile number.',
+                        digits: 'OTP must contain only numbers.',
+                        minlength: 'OTP must be 6 digits.',
+                        maxlength: 'OTP must be 6 digits.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to verify OTP right now. Please try again.',
+                onSuccess: function (response) {
+                    FormHelper.showAlert($('#phoneVerifyAlert'), 'success', response.message || 'Mobile number verified successfully.');
+                    window.location.href = response.redirect || '/login';
+                }
+            });
+        },
+
         init: function () {
             this.initRegisterForm();
             this.initLoginForms();
             this.initOtpVerifyForm();
+            this.initPhoneVerificationForm();
             this.initOtpTimer('#otp-timer');
         }
     };
