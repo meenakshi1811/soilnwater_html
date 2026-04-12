@@ -417,6 +417,7 @@
     border-radius: 0.5rem;
     border: 2px solid #dee2e6;
     transition: all 0.3s ease;
+    margin: 0px 10px 6px 0px
 }
 
 .ems-modal .form-check-input:checked {
