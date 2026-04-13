@@ -123,8 +123,8 @@
             var $text = $btn.find('.btn-text');
             var $loader = $btn.find('.btn-loader');
 
-            function setButtonLoading(isLoading) {
-                $btn.prop('disabled', isLoading);
+            function setButtonLoading(isLoading, shouldDisable) {
+                $btn.prop('disabled', !!(isLoading && shouldDisable));
                 $text.toggleClass('d-none', isLoading);
                 $loader.toggleClass('d-none', !isLoading);
 
@@ -136,7 +136,7 @@
             }
 
             $btn.off('click.offerLoader').on('click.offerLoader', function () {
-                setButtonLoading(true);
+                setButtonLoading(true, false);
             });
 
             $form.validate({
@@ -191,13 +191,13 @@
                     $(element).removeClass('is-invalid').addClass('is-valid');
                 },
                 invalidHandler: function () {
-                    setButtonLoading(false);
+                    setButtonLoading(false, false);
                 },
                 errorPlacement: function (error, element) {
                     error.insertAfter(element);
                 },
                 submitHandler: function (form) {
-                    setButtonLoading(true);
+                    setButtonLoading(true, true);
 
                     // Build FormData manually so file is included
                     var formData = new FormData(form);
@@ -248,7 +248,7 @@
                             FormHelper.showAlert($('#offerAlert'), 'danger', msg);
                         },
                         complete: function () {
-                            setButtonLoading(false);
+                            setButtonLoading(false, false);
                         }
                     });
                 }
