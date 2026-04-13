@@ -501,21 +501,19 @@
         <div class="col-12 col-xl-9 d-flex">
           <div class="offer-coupon-wrap w-100">
             <div class="ad-slider auto-ad-slider combo-deals-slider" data-show-dots="true" data-show-arrows="false" aria-label="Combo deals slider">
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Combo Deals</span>
-                <h3>Buy more, save more on agri + home products</h3>
-                <p>Unlock bundled discounts from trusted sellers and apply coupon codes at checkout.</p>
-              </div>
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Limited Time</span>
-                <h3>Stack offers on tools, seeds and irrigation kits</h3>
-                <p>Apply marketplace coupons and get extra discounts from featured sellers.</p>
-              </div>
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Weekend Special</span>
-                <h3>Top savings for farm + garden essentials</h3>
-                <p>Discover curated deals and activate codes instantly at checkout.</p>
-              </div>
+              @forelse ($heroOffers as $heroOffer)
+                <div class="offer-coupon-banner ad-slide" style="background-image: linear-gradient(120deg, rgba(0,145,139,.94), rgba(34,166,153,.9)), url('{{ asset('storage/' . $heroOffer->banner_image) }}'); background-size: cover; background-position: center;">
+                  <span class="promo-tag">{{ $heroOffer->discount_tag }}</span>
+                  <h3>{{ $heroOffer->title }}</h3>
+                  <p>{{ $heroOffer->short_description ?: 'Limited-time savings from trusted sellers.' }}</p>
+                </div>
+              @empty
+                <div class="offer-coupon-banner ad-slide">
+                  <span class="promo-tag">No Live Offers</span>
+                  <h3>Fresh deals will appear here shortly</h3>
+                  <p>Check back soon for active offers and coupon codes.</p>
+                </div>
+              @endforelse
             </div>
             <div class="ad-slider auto-ad-slider offer-coupon-grid-slider" data-show-arrows="true" data-show-dots="false" aria-label="Offer coupon cards slider">
               @forelse ($offers->chunk(5) as $offerChunk)
