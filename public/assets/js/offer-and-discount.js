@@ -272,4 +272,166 @@
         OffersAdmin.init();
     });
 
+    var MyOffersAdmin = {
+        table: null,
+        modal: null,
+
+        initTable: function () {
+            this.table = $('#myOffersTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '/user/offers/data'
+                },
+                columns: [
+                    { data: 'title', name: 'title' },
+                    { data: 'discount_tag', name: 'discount_tag' },
+                    { data: 'coupon_code', name: 'coupon_code' },
+                    { data: 'category_name', name: 'category_name', orderable: false, searchable: false },
+                    { data: 'subcategory_name', name: 'subcategory_name', orderable: false, searchable: false },
+                    { data: 'valid_until', name: 'valid_until' },
+                    { data: 'status_badge', name: 'status_badge', orderable: false, searchable: false },
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                ],
+                order: [[7, 'desc']]
+            });
+        },
+
+        bindUi: function () {
+            var self = this;
+            self.modal = new bootstrap.Modal(document.getElementById('myOfferModal'));
+
+            $(document).on('click', '.js-edit-offer', function () {
+                var id = $(this).data('id');
+
+                $('#myOfferForm')[0].reset();
+                $('#myOfferForm').attr('action', '/user/offers/' + id);
+
+                $.get('/user/offers/' + id, function (response) {
+                    var offer = response.offer || {};
+                    $('#myOfferTitle').val(offer.title || '');
+                    $('#myOfferDiscountTag').val(offer.discount_tag || '');
+                    $('#myOfferCouponCode').val(offer.coupon_code || '');
+                    $('#myOfferValidUntil').val(offer.valid_until || '');
+                    $('#myOfferShortDescription').val(offer.short_description || '');
+                    $('#myOfferStatus').val(offer.status || 'inactive');
+
+                    self.modal.show();
+                }).fail(function () {
+                    FormHelper.showAlert($('#myOfferAlert'), 'danger', 'Unable to load offer details.');
+                });
+            });
+
+            $(document).on('click', '.js-delete-offer', function () {
+                var id = $(this).data('id');
+                if (!confirm('Delete this offer?')) {
+                    return;
+                }
+
+                $.ajax({
+                    url: '/user/offers/' + id,
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json'
+                    }
+                }).done(function (response) {
+                    FormHelper.showAlert($('#myOfferAlert'), 'success', response.message || 'Offer deleted.');
+                    if (self.table) {
+                        self.table.ajax.reload(null, false);
+                    }
+                }).fail(function (xhr) {
+                    var message = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'Unable to delete offer.';
+                    FormHelper.showAlert($('#myOfferAlert'), 'danger', message);
+                });
+            });
+        },
+
+        initForm: function () {
+            var self = this;
+            var $form = $('#myOfferForm');
+            var $button = $('#myOfferSubmitBtn');
+            var $alert = $('#myOfferAlert');
+            var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+            $form.validate({
+                errorElement: 'span',
+                errorPlacement: function (error, element) {
+                    error.addClass('invalid-feedback d-block');
+                    error.insertAfter(element);
+                },
+                highlight: function (element) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function (element) {
+                    $(element).removeClass('is-invalid');
+                },
+                rules: {
+                    title: { required: true, minlength: 3, maxlength: 255 },
+                    discount_tag: { required: true, maxlength: 255 },
+                    coupon_code: { maxlength: 50 },
+                    valid_until: { date: true },
+                    short_description: { maxlength: 300 },
+                    status: { required: true }
+                },
+                submitHandler: function () {
+                    var formData = new FormData($form[0]);
+                    formData.append('_method', 'PUT');
+
+                    FormHelper.setButtonLoading($button, true, 'Updating...', 'Update Offer');
+
+                    $.ajax({
+                        url: $form.attr('action'),
+                        method: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken || ''
+                        }
+                    }).done(function (response) {
+                        FormHelper.showAlert($alert, 'success', response.message || 'Offer updated successfully.');
+                        if (self.table) {
+                            self.table.ajax.reload(null, false);
+                        }
+                        self.modal.hide();
+                    }).fail(function (xhr) {
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            FormHelper.clearFormErrors($form);
+                            FormHelper.renderFieldErrors($form, xhr.responseJSON.errors);
+                            FormHelper.showAlert($alert, 'warning', 'Please fix the highlighted fields and try again.');
+                            return;
+                        }
+
+                        var message = (xhr.responseJSON && xhr.responseJSON.message)
+                            ? xhr.responseJSON.message
+                            : 'Unable to update offer.';
+                        FormHelper.showAlert($alert, 'danger', message);
+                    }).always(function () {
+                        FormHelper.setButtonLoading($button, false, 'Updating...', 'Update Offer');
+                    });
+                }
+            });
+        },
+
+        init: function () {
+            if (!$('#myOffersTable').length) {
+                return;
+            }
+
+            this.initTable();
+            this.bindUi();
+            this.initForm();
+        }
+    };
+
+    $(function () {
+        MyOffersAdmin.init();
+    });
+
 })(window.jQuery);

@@ -78,6 +78,12 @@
             </li>
         @elseif($isGeneralUser)
             <li>
+                <a class="{{ request()->routeIs('user.offers.*') ? 'active' : '' }}" href="{{ route('user.offers.index') }}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>My Offers &amp; Discounts</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('user.profile.*') ? 'active' : '' }}" href="{{ route('user.profile.edit') }}">
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Profile</span>

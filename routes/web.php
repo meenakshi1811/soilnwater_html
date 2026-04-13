@@ -56,7 +56,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('post-ad');
         Route::get('/post-offer', [PostOfferController::class, 'index'])->name('post-offer');
         Route::get('categories/{category}/subcategories', [PostOfferController::class, 'subcategories'])->name('user.categories.subcategories');
+        Route::get('/offers', [PostOfferController::class, 'offersIndex'])->name('offers.index');
+        Route::get('/offers/data', [PostOfferController::class, 'offersData'])->name('offers.data');
+        Route::get('/offers/{offer}', [PostOfferController::class, 'show'])->name('offers.show');
         Route::post('/offers', [PostOfferController::class, 'store'])->name('offers.store');
+        Route::put('/offers/{offer}', [PostOfferController::class, 'update'])->name('offers.update');
+        Route::delete('/offers/{offer}', [PostOfferController::class, 'destroy'])->name('offers.destroy');
     });
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
