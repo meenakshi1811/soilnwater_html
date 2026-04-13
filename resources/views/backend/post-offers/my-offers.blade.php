@@ -11,8 +11,10 @@
     <div class="ems-hero mb-4">
         <div>
             <p class="ems-kicker mb-1">Offer Management</p>
-            <h2 class="admin-title mb-1">My Offers &amp; Discounts</h2>
-            <p class="mb-0 text-secondary">View, edit, and delete all offers posted by your account.</p>
+            <h2 class="admin-title mb-1">{{ $isAdminView ? 'Offers & Discounts' : 'My Offers & Discounts' }}</h2>
+            <p class="mb-0 text-secondary">
+                {{ $isAdminView ? 'As admin you can view, edit, delete, and change status for all offers.' : 'View, edit, and delete all offers posted by your account.' }}
+            </p>
         </div>
     </div>
 
@@ -43,6 +45,7 @@
                 <thead>
                 <tr>
                     <th>Title</th>
+                    <th>Created By</th>
                     <th>Banner</th>
                     <th>Discount</th>
                     <th>Coupon</th>

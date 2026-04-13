@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Offer;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -68,6 +69,7 @@ class PostOfferController extends Controller
             'canEditOffer' => $this->canWrite($user),
             'canDeleteOffer' => $this->canDelete($user),
             'canApproveOffer' => $this->canApprove($user),
+            'isAdminView' => $user->isAdmin(),
         ]);
     }
 
@@ -79,7 +81,7 @@ class PostOfferController extends Controller
         $isStaff = $user->isAdmin() || $user->isEmployee();
 
         $offers = Offer::query()
-            ->with(['category:id,name', 'subcategory:id,name'])
+            ->with(['user:id,name,full_name', 'category:id,name', 'subcategory:id,name'])
             ->when(! $isStaff, fn ($query) => $query->where('user_id', $user->id))
             ->latest();
 
@@ -97,9 +99,16 @@ class PostOfferController extends Controller
 
                 return '<img src="'.$url.'" alt="Offer banner" style="width:70px;height:44px;object-fit:cover;border-radius:6px;">';
             })
+            ->addColumn('created_by_name', fn (Offer $offer) => $offer->user?->full_name ?: ($offer->user?->name ?? '-'))
             ->addColumn('category_name', fn (Offer $offer) => $offer->category?->name ?? '-')
             ->addColumn('subcategory_name', fn (Offer $offer) => $offer->subcategory?->name ?? '-')
-            ->addColumn('status_badge', function (Offer $offer) {
+            ->addColumn('status_badge', function (Offer $offer) use ($canApprove) {
+                $isExpired = $offer->valid_until && $offer->valid_until->lt(Carbon::today());
+
+                if ($isExpired) {
+                    return '<span class="badge bg-danger">Expired</span>';
+                }
+
                 if (! $canApprove) {
                     $class = $offer->status === 'active' ? 'success' : 'secondary';
                     $label = ucfirst($offer->status);
@@ -218,27 +227,27 @@ class PostOfferController extends Controller
 
     private function canRead($user): bool
     {
-        return $user->isGeneralUser() || $user->canModule('vendors', 'read');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'read');
     }
 
     private function canCreate($user): bool
     {
-        return $user->isGeneralUser() || $user->canModule('vendors', 'add');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'add');
     }
 
     private function canWrite($user): bool
     {
-        return $user->isGeneralUser() || $user->canModule('vendors', 'write');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'write');
     }
 
     private function canDelete($user): bool
     {
-        return $user->isGeneralUser() || $user->canModule('vendors', 'delete');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'delete');
     }
 
     private function canApprove($user): bool
     {
-        return $user->isGeneralUser() || $user->canModule('vendors', 'approve');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'approve');
     }
 
     private function isStaff($user): bool

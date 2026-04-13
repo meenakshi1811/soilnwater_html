@@ -304,6 +304,7 @@
                 },
                 columns: [
                     { data: 'title', name: 'title' },
+                    { data: 'created_by_name', name: 'created_by_name', orderable: false, searchable: false },
                     { data: 'banner_preview', name: 'banner_preview', orderable: false, searchable: false },
                     { data: 'discount_tag', name: 'discount_tag' },
                     { data: 'coupon_code', name: 'coupon_code' },
@@ -314,7 +315,7 @@
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[8, 'desc']]
+                order: [[9, 'desc']]
             });
         },
 
