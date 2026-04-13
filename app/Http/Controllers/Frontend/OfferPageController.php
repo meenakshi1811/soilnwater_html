@@ -15,11 +15,8 @@ class OfferPageController extends Controller
             ->limit(10)
             ->get();
 
-        $heroOffers = $offers->take(3);
-
         return view('frontend.index', [
             'offers' => $offers,
-            'heroOffers' => $heroOffers,
         ]);
     }
 

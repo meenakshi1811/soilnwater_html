@@ -516,28 +516,38 @@
               @endforelse
             </div>
             <div class="ad-slider auto-ad-slider offer-coupon-grid-slider" data-show-arrows="true" data-show-dots="false" aria-label="Offer coupon cards slider">
-              @forelse ($offers as $offer)
+              @forelse ($offers->chunk(5) as $offerChunk)
                 <div class="ad-slide">
-                  <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                    <div class="card-body d-flex flex-column gap-2">
-                      <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
-                      <h4 class="h6 mb-1">{{ $offer->title }}</h4>
-                      <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special marketplace offer available now.' }}</p>
-                      @if ($offer->coupon_code)
-                        <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
-                      @endif
-                      <a href="{{ route('frontend.offers.show', $offer) }}" class="btn btn-sm btn-outline-primary mt-auto">View Offer</a>
-                    </div>
-                  </article>
+                  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-1 offer-coupon-grid">
+                    @foreach ($offerChunk as $offer)
+                      <div class="col">
+                        <article class="card h-100 shadow-sm border-0 offer-coupon-card">
+                          <div class="card-body d-flex flex-column gap-2">
+                            <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
+                            <h4 class="h6 mb-1">{{ $offer->title }}</h4>
+                            <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special marketplace offer available now.' }}</p>
+                            @if ($offer->coupon_code)
+                              <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
+                            @endif
+                            <a href="{{ route('frontend.offers.show', $offer) }}" class="btn btn-sm btn-outline-primary mt-auto">View Offer</a>
+                          </div>
+                        </article>
+                      </div>
+                    @endforeach
+                  </div>
                 </div>
               @empty
                 <div class="ad-slide">
-                  <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                    <div class="card-body d-flex flex-column gap-2 justify-content-center text-center">
-                      <h4 class="h6 mb-1">No active offers available</h4>
-                      <p class="small text-muted mb-2">Please check back later for fresh deals.</p>
+                  <div class="row row-cols-1 g-1 offer-coupon-grid">
+                    <div class="col">
+                      <article class="card h-100 shadow-sm border-0 offer-coupon-card">
+                        <div class="card-body d-flex flex-column gap-2 justify-content-center text-center">
+                          <h4 class="h6 mb-1">No active offers available</h4>
+                          <p class="small text-muted mb-2">Please check back later for fresh deals.</p>
+                        </div>
+                      </article>
                     </div>
-                  </article>
+                  </div>
                 </div>
               @endforelse
             </div>
