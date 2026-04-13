@@ -66,6 +66,15 @@ class PostOfferController extends Controller
             ->latest();
 
         return DataTables::of($offers)
+            ->addColumn('banner_preview', function (Offer $offer) {
+                if (!$offer->banner_image) {
+                    return '-';
+                }
+
+                $url = asset('storage/'.$offer->banner_image);
+
+                return '<img src="'.$url.'" alt="Offer banner" style="width:70px;height:44px;object-fit:cover;border-radius:6px;">';
+            })
             ->addColumn('category_name', fn (Offer $offer) => $offer->category?->name ?? '-')
             ->addColumn('subcategory_name', fn (Offer $offer) => $offer->subcategory?->name ?? '-')
             ->addColumn('status_badge', function (Offer $offer) {
@@ -82,7 +91,7 @@ class PostOfferController extends Controller
                     . '<button type="button" class="btn btn-sm btn-outline-danger js-delete-offer" data-id="'.$offer->id.'"><i class="fa-solid fa-trash"></i></button>'
                     . '</div>';
             })
-            ->rawColumns(['status_badge', 'actions'])
+            ->rawColumns(['banner_preview', 'status_badge', 'actions'])
             ->make(true);
     }
 

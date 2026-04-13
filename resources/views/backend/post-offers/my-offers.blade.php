@@ -31,6 +31,7 @@
                 <thead>
                 <tr>
                     <th>Title</th>
+                    <th>Banner</th>
                     <th>Discount</th>
                     <th>Coupon</th>
                     <th>Category</th>
