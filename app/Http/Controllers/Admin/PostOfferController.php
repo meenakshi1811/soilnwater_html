@@ -126,7 +126,7 @@ class PostOfferController extends Controller
             })
             ->editColumn('valid_until', fn (Offer $offer) => $offer->valid_until?->format('Y-m-d') ?? '-')
             ->editColumn('created_at', fn (Offer $offer) => $offer->created_at?->format('Y-m-d H:i'))
-            ->addColumn('actions', function (Offer $offer) {
+            ->addColumn('actions', function (Offer $offer) use ($canEdit, $canDelete) {
                 $actions = [];
 
                 if ($canEdit) {
