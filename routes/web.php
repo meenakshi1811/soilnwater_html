@@ -11,6 +11,7 @@ use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ModuleAccessController;
 use App\Http\Controllers\UserDashboardController;
+use App\Http\Controllers\Admin\PostOfferController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -53,9 +54,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/post-ad', function () {
             return redirect()->to(route('frontend.index').'#post-ad');
         })->name('post-ad');
-        Route::get('/post-offer', function () {
-            return redirect()->to(route('frontend.index').'#post-offer');
-        })->name('post-offer');
+        Route::get('/post-offer', [PostOfferController::class, 'index'])->name('post-offer');
+        Route::get('categories/{category}/subcategories', [PostOfferController::class, 'subcategories'])->name('user.categories.subcategories');
+        Route::post('/offers', [PostOfferController::class, 'store'])->name('offers.store');
     });
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {

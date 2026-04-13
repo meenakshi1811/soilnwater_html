@@ -25,8 +25,8 @@ class CategoryController extends Controller
 
         $categories = Category::query()
             ->with(['parent:id,name'])
-            ->withCount('children')
-            ->select(['id', 'name', 'parent_id', 'modules', 'created_at']);
+            ->select(['id', 'name', 'parent_id', 'modules', 'created_at'])            
+            ->withCount('children');
 
         return DataTables::of($categories)
             ->addColumn('category_type', fn (Category $category): string => $category->parent_id ? 'Sub Category' : 'Category')
