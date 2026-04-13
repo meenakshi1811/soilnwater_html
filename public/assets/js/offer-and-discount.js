@@ -299,6 +299,7 @@
             this.table = $('#myOffersTable').DataTable({
                 processing: true,
                 serverSide: true,
+                autoWidth: false,
                 ajax: {
                     url: this.routes.data
                 },

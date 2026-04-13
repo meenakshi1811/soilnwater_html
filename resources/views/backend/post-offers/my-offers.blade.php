@@ -4,6 +4,26 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<style>
+    .offers-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    #myOffersTable {
+        width: 100% !important;
+    }
+
+    #myOffersTable th,
+    #myOffersTable td {
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    #myOffersTable td:last-child {
+        white-space: nowrap;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -30,7 +50,7 @@
 
         <div id="myOfferAlert" class="alert d-none" role="alert"></div>
 
-        <div class="table-responsive">
+        <div class="table-responsive offers-table-wrap">
             <table
                 id="myOffersTable"
                 class="table table-bordered align-middle w-100"
