@@ -495,79 +495,51 @@
     <div class="sec promo-slider-section">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-tags"></i></span> Offer &amp; Discount</div>
-        <a class="view-all" href="#">VIEW ALL ▶</a>
+        <a class="view-all" href="{{ route('frontend.offers.index') }}">VIEW ALL ▶</a>
       </div>
       <div class="promo-layout row g-3 g-lg-4 align-items-stretch">
         <div class="col-12 col-xl-9 d-flex">
           <div class="offer-coupon-wrap w-100">
             <div class="ad-slider auto-ad-slider combo-deals-slider" data-show-dots="true" data-show-arrows="false" aria-label="Combo deals slider">
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Combo Deals</span>
-                <h3>Buy more, save more on agri + home products</h3>
-                <p>Unlock bundled discounts from trusted sellers and apply coupon codes at checkout.</p>
-              </div>
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Limited Time</span>
-                <h3>Stack offers on tools, seeds and irrigation kits</h3>
-                <p>Apply marketplace coupons and get extra discounts from featured sellers.</p>
-              </div>
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Weekend Special</span>
-                <h3>Top savings for farm + garden essentials</h3>
-                <p>Discover curated deals and activate codes instantly at checkout.</p>
-              </div>
+              @forelse ($heroOffers as $heroOffer)
+                <div class="offer-coupon-banner ad-slide" style="background-image: linear-gradient(120deg, rgba(0,145,139,.94), rgba(34,166,153,.9)), url('{{ asset('storage/' . $heroOffer->banner_image) }}'); background-size: cover; background-position: center;">
+                  <span class="promo-tag">{{ $heroOffer->discount_tag }}</span>
+                  <h3>{{ $heroOffer->title }}</h3>
+                  <p>{{ $heroOffer->short_description ?: 'Limited-time savings from trusted sellers.' }}</p>
+                </div>
+              @empty
+                <div class="offer-coupon-banner ad-slide">
+                  <span class="promo-tag">No Live Offers</span>
+                  <h3>Fresh deals will appear here shortly</h3>
+                  <p>Check back soon for active offers and coupon codes.</p>
+                </div>
+              @endforelse
             </div>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-1 offer-coupon-grid">
-              <div class="col">
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-success w-fit">Flat 15% OFF</span>
-                    <h4 class="h6 mb-1">Seeds &amp; Fertilizers</h4>
-                    <p class="small text-muted mb-2">Valid for orders above ₹999.</p>
-                    <div class="coupon-code mt-auto">SEED15</div>
-                  </div>
-                </article>
-              </div>
-              <div class="col">
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-primary w-fit">Save ₹300</span>
-                    <h4 class="h6 mb-1">Irrigation Tools</h4>
-                    <p class="small text-muted mb-2">On pump &amp; drip kit bundles.</p>
-                    <div class="coupon-code mt-auto">WATER300</div>
-                  </div>
-                </article>
-              </div>
-              <div class="col">
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-warning w-fit">20% OFF</span>
-                    <h4 class="h6 mb-1">Farm Safety Gear</h4>
-                    <p class="small text-muted mb-2">Minimum purchase ₹1,499.</p>
-                    <div class="coupon-code mt-auto">SAFE20</div>
-                  </div>
-                </article>
-              </div>
-              <div class="col">
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-info w-fit">Buy 2 Get 1</span>
-                    <h4 class="h6 mb-1">Garden Essentials</h4>
-                    <p class="small text-muted mb-2">Applies on selected tools.</p>
-                    <div class="coupon-code mt-auto">GREEN3</div>
-                  </div>
-                </article>
-              </div>
-              <div class="col">
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-danger w-fit">Extra 10% OFF</span>
-                    <h4 class="h6 mb-1">Weekend Flash Deal</h4>
-                    <p class="small text-muted mb-2">Limited-time seller campaigns.</p>
-                    <div class="coupon-code mt-auto">FLASH10</div>
-                  </div>
-                </article>
-              </div>
+            <div class="ad-slider auto-ad-slider offer-coupon-grid-slider" data-show-arrows="true" data-show-dots="false" aria-label="Offer coupon cards slider">
+              @forelse ($offers as $offer)
+                <div class="ad-slide">
+                  <article class="card h-100 shadow-sm border-0 offer-coupon-card">
+                    <div class="card-body d-flex flex-column gap-2">
+                      <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
+                      <h4 class="h6 mb-1">{{ $offer->title }}</h4>
+                      <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special marketplace offer available now.' }}</p>
+                      @if ($offer->coupon_code)
+                        <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
+                      @endif
+                      <a href="{{ route('frontend.offers.show', $offer) }}" class="btn btn-sm btn-outline-primary mt-auto">View Offer</a>
+                    </div>
+                  </article>
+                </div>
+              @empty
+                <div class="ad-slide">
+                  <article class="card h-100 shadow-sm border-0 offer-coupon-card">
+                    <div class="card-body d-flex flex-column gap-2 justify-content-center text-center">
+                      <h4 class="h6 mb-1">No active offers available</h4>
+                      <p class="small text-muted mb-2">Please check back later for fresh deals.</p>
+                    </div>
+                  </article>
+                </div>
+              @endforelse
             </div>
           </div>
         </div>
