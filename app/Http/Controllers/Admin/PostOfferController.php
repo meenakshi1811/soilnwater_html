@@ -102,7 +102,7 @@ class PostOfferController extends Controller
             ->addColumn('created_by_name', fn (Offer $offer) => $offer->user?->full_name ?: ($offer->user?->name ?? '-'))
             ->addColumn('category_name', fn (Offer $offer) => $offer->category?->name ?? '-')
             ->addColumn('subcategory_name', fn (Offer $offer) => $offer->subcategory?->name ?? '-')
-            ->addColumn('status_badge', function (Offer $offer) {
+            ->addColumn('status_badge', function (Offer $offer) use ($canApprove) {
                 $isExpired = $offer->valid_until && $offer->valid_until->lt(Carbon::today());
 
                 if ($isExpired) {
@@ -227,27 +227,27 @@ class PostOfferController extends Controller
 
     private function canRead($user): bool
     {
-        return $user->isGeneralUser() || $user->canModule('vendors', 'read');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'read');
     }
 
     private function canCreate($user): bool
     {
-        return $user->isGeneralUser() || $user->canModule('vendors', 'add');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'add');
     }
 
     private function canWrite($user): bool
     {
-        return $user->isGeneralUser() || $user->canModule('vendors', 'write');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'write');
     }
 
     private function canDelete($user): bool
     {
-        return $user->isGeneralUser() || $user->canModule('vendors', 'delete');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'delete');
     }
 
     private function canApprove($user): bool
     {
-        return $user->isGeneralUser() || $user->canModule('vendors', 'approve');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'approve');
     }
 
     private function isStaff($user): bool
