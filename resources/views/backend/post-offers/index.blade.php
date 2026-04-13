@@ -205,5 +205,5 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
-<script src="{{ asset('assets/js/offers-and-discount.js') }}?v={{ now()->timestamp }}"></script>
+<script src="{{ asset('assets/js/offer-and-discount.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
