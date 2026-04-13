@@ -19,6 +19,7 @@
         /* ── 2. Dynamic Subcategories ─────────────────────────── */
         loadSubcategories: function (categoryId, selectedSubId) {
             var $sub = $('#subcategorySelect');
+            var subcategoryEndpointBase = $('#offerForm').data('subcategory-url-base') || '/offers/categories';
 
             if (!categoryId) {
                 $sub.html('<option value="">— Select a category first —</option>').prop('disabled', true);
@@ -27,7 +28,7 @@
 
             $sub.html('<option value="">Loading…</option>').prop('disabled', true);
 
-            $.get('/user/categories/' + categoryId + '/subcategories').done(function (data) {
+            $.get(subcategoryEndpointBase + '/' + categoryId + '/subcategories').done(function (data) {
                 if (!data || data.length === 0) {
                     $sub.html('<option value="">No subcategories available</option>');
                 } else {
@@ -275,13 +276,31 @@
     var MyOffersAdmin = {
         table: null,
         modal: null,
+        canEdit: false,
+        canDelete: false,
+        canApprove: false,
+        routes: {
+            data: '/offers/data',
+            showBase: '/offers',
+            updateBase: '/offers',
+            deleteBase: '/offers'
+        },
 
         initTable: function () {
+            var $table = $('#myOffersTable');
+            this.canEdit = $table.data('can-edit') === 1 || $table.data('can-edit') === '1';
+            this.canDelete = $table.data('can-delete') === 1 || $table.data('can-delete') === '1';
+            this.canApprove = $table.data('can-approve') === 1 || $table.data('can-approve') === '1';
+            this.routes.data = $table.data('url') || this.routes.data;
+            this.routes.showBase = $table.data('show-url-base') || this.routes.showBase;
+            this.routes.updateBase = $table.data('update-url-base') || this.routes.updateBase;
+            this.routes.deleteBase = $table.data('delete-url-base') || this.routes.deleteBase;
+
             this.table = $('#myOffersTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '/user/offers/data'
+                    url: this.routes.data
                 },
                 columns: [
                     { data: 'title', name: 'title' },
@@ -304,12 +323,15 @@
             self.modal = new bootstrap.Modal(document.getElementById('myOfferModal'));
 
             $(document).on('click', '.js-edit-offer', function () {
+                if (!self.canEdit) {
+                    return;
+                }
                 var id = $(this).data('id');
 
                 $('#myOfferForm')[0].reset();
-                $('#myOfferForm').attr('action', '/user/offers/' + id);
+                $('#myOfferForm').attr('action', self.routes.updateBase + '/' + id);
 
-                $.get('/user/offers/' + id, function (response) {
+                $.get(self.routes.showBase + '/' + id, function (response) {
                     var offer = response.offer || {};
                     $('#myOfferTitle').val(offer.title || '');
                     $('#myOfferDiscountTag').val(offer.discount_tag || '');
@@ -325,13 +347,16 @@
             });
 
             $(document).on('click', '.js-delete-offer', function () {
+                if (!self.canDelete) {
+                    return;
+                }
                 var id = $(this).data('id');
                 if (!confirm('Delete this offer?')) {
                     return;
                 }
 
                 $.ajax({
-                    url: '/user/offers/' + id,
+                    url: self.routes.deleteBase + '/' + id,
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -347,6 +372,41 @@
                         ? xhr.responseJSON.message
                         : 'Unable to delete offer.';
                     FormHelper.showAlert($('#myOfferAlert'), 'danger', message);
+                });
+            });
+
+            $(document).on('change', '.js-offer-status', function () {
+                if (!self.canApprove) {
+                    return;
+                }
+
+                var id = $(this).data('id');
+                var selectedStatus = $(this).val();
+
+                $.ajax({
+                    url: self.routes.updateBase + '/' + id,
+                    method: 'POST',
+                    data: {
+                        _method: 'PUT',
+                        status: selectedStatus
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json'
+                    }
+                }).done(function (response) {
+                    FormHelper.showAlert($('#myOfferAlert'), 'success', response.message || 'Offer status updated.');
+                    if (self.table) {
+                        self.table.ajax.reload(null, false);
+                    }
+                }).fail(function (xhr) {
+                    var message = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'Unable to update offer status.';
+                    FormHelper.showAlert($('#myOfferAlert'), 'danger', message);
+                    if (self.table) {
+                        self.table.ajax.reload(null, false);
+                    }
                 });
             });
         },

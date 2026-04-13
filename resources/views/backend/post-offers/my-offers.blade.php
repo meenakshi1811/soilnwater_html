@@ -19,15 +19,27 @@
     <div class="chart-card">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h5 class="mb-0">Offer listing</h5>
-            <a href="{{ route('user.post-offer') }}" class="btn btn-primary ems-btn-primary">
-                <i class="fa-solid fa-plus me-2"></i>Post New Offer
-            </a>
+            @if($canCreateOffer)
+                <a href="{{ route('post-offer') }}" class="btn btn-primary ems-btn-primary">
+                    <i class="fa-solid fa-plus me-2"></i>Post New Offer
+                </a>
+            @endif
         </div>
 
         <div id="myOfferAlert" class="alert d-none" role="alert"></div>
 
         <div class="table-responsive">
-            <table id="myOffersTable" class="table table-bordered align-middle w-100">
+            <table
+                id="myOffersTable"
+                class="table table-bordered align-middle w-100"
+                data-url="{{ route('offers.data') }}"
+                data-show-url-base="{{ url('/offers') }}"
+                data-update-url-base="{{ url('/offers') }}"
+                data-delete-url-base="{{ url('/offers') }}"
+                data-can-edit="{{ $canEditOffer ? '1' : '0' }}"
+                data-can-delete="{{ $canDeleteOffer ? '1' : '0' }}"
+                data-can-approve="{{ $canApproveOffer ? '1' : '0' }}"
+            >
                 <thead>
                 <tr>
                     <th>Title</th>
@@ -74,9 +86,9 @@
                             <label class="form-label">Valid Until</label>
                             <input type="date" name="valid_until" id="myOfferValidUntil" class="form-control">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 {{ $canApproveOffer ? '' : 'd-none' }}">
                             <label class="form-label">Status</label>
-                            <select name="status" id="myOfferStatus" class="form-select">
+                            <select name="status" id="myOfferStatus" class="form-select" {{ $canApproveOffer ? '' : 'disabled' }}>
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>

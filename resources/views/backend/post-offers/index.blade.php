@@ -20,7 +20,7 @@
 
         <div id="offerAlert" class="alert d-none" role="alert"></div>
 
-        <form id="offerForm" method="POST" action="{{ route('user.offers.store') }}" enctype="multipart/form-data" novalidate>
+        <form id="offerForm" method="POST" action="{{ route('offers.store') }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/offers/categories') }}">
             @csrf
             <input type="hidden" name="offer_id" id="offerId" value="">
 
@@ -187,7 +187,7 @@
             </div>{{-- end .row --}}
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                <a href="{{ route('user.post-offer') }}" class="btn btn-light px-4">Cancel</a>
+                <a href="{{ route('post-offer') }}" class="btn btn-light px-4">Cancel</a>
                 <button type="submit" id="offerSubmitBtn" class="btn btn-primary ems-btn-primary px-5">
                     <span class="btn-text">
                         <i class="fa-solid fa-paper-plane me-2"></i>Post Offer

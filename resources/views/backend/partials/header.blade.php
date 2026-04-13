@@ -24,7 +24,7 @@
             </a>
             <a class="btn btn-sm admin-link {{ $dashboardActive ? 'active' : '' }}" href="{{ $dashboardUrl }}">Dashboard</a>
             @if($isGeneralUser)
-                <a class="btn btn-sm admin-header-action-offer" href="{{ route('user.post-offer') }}">Post Offer</a>
+                <a class="btn btn-sm admin-header-action-offer" href="{{ route('post-offer') }}">Post Offer</a>
                 <a class="btn btn-sm admin-header-action-ad" href="{{ route('user.post-ad') }}">Post Ad</a>
             @endif
             <a class="btn btn-sm admin-link {{ $profileActive ? 'active' : '' }}" href="{{ $profileUrl }}">Profile</a>

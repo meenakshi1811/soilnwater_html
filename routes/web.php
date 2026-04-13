@@ -43,6 +43,19 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
+    Route::prefix('offers')->name('offers.')->group(function () {
+        Route::get('/', [PostOfferController::class, 'offersIndex'])->name('index');
+        Route::get('/data', [PostOfferController::class, 'offersData'])->name('data');
+        Route::get('/{offer}', [PostOfferController::class, 'show'])->name('show');
+        Route::post('/', [PostOfferController::class, 'store'])->name('store');
+        Route::put('/{offer}', [PostOfferController::class, 'update'])->name('update');
+        Route::delete('/{offer}', [PostOfferController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::get('offers/categories/{category}/subcategories', [PostOfferController::class, 'subcategories'])
+        ->name('offers.categories.subcategories');
+    Route::get('/post-offer', [PostOfferController::class, 'index'])->name('post-offer');
+
     Route::get('/modules/{module}', [ModuleAccessController::class, 'show'])
         ->where('module', 'ecommerce|vendors|services|properties|builders|consultants|enquiry|products|user_enquiry')
         ->name('modules.show');
@@ -54,14 +67,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/post-ad', function () {
             return redirect()->to(route('frontend.index').'#post-ad');
         })->name('post-ad');
-        Route::get('/post-offer', [PostOfferController::class, 'index'])->name('post-offer');
-        Route::get('categories/{category}/subcategories', [PostOfferController::class, 'subcategories'])->name('user.categories.subcategories');
-        Route::get('/offers', [PostOfferController::class, 'offersIndex'])->name('offers.index');
-        Route::get('/offers/data', [PostOfferController::class, 'offersData'])->name('offers.data');
-        Route::get('/offers/{offer}', [PostOfferController::class, 'show'])->name('offers.show');
-        Route::post('/offers', [PostOfferController::class, 'store'])->name('offers.store');
-        Route::put('/offers/{offer}', [PostOfferController::class, 'update'])->name('offers.update');
-        Route::delete('/offers/{offer}', [PostOfferController::class, 'destroy'])->name('offers.destroy');
     });
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {

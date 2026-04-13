@@ -15,6 +15,8 @@ class PostOfferController extends Controller
 {
     public function index()
     {
+        abort_unless($this->canCreate(request()->user()), 403);
+
         $categories = Category::whereNull('parent_id')->orderBy('name')->get();
         return view('backend.post-offers.index', compact('categories'));
     }
@@ -28,6 +30,8 @@ class PostOfferController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        abort_unless($this->canCreate($request->user()), 403);
+
         $validated = $request->validate([
             'title'             => 'required|string|max:255',
             'discount_tag'      => 'required|string|max:255',
@@ -55,15 +59,33 @@ class PostOfferController extends Controller
 
     public function offersIndex()
     {
-        return view('backend.post-offers.my-offers');
+        abort_unless($this->canRead(request()->user()), 403);
+
+        $user = request()->user();
+
+        return view('backend.post-offers.my-offers', [
+            'canCreateOffer' => $this->canCreate($user),
+            'canEditOffer' => $this->canWrite($user),
+            'canDeleteOffer' => $this->canDelete($user),
+            'canApproveOffer' => $this->canApprove($user),
+        ]);
     }
 
     public function offersData(Request $request): JsonResponse
     {
+        abort_unless($this->canRead($request->user()), 403);
+
+        $user = $request->user();
+        $isStaff = $user->isAdmin() || $user->isEmployee();
+
         $offers = Offer::query()
             ->with(['category:id,name', 'subcategory:id,name'])
-            ->where('user_id', $request->user()->id)
+            ->when(! $isStaff, fn ($query) => $query->where('user_id', $user->id))
             ->latest();
+
+        $canEdit = $this->canWrite($user);
+        $canDelete = $this->canDelete($user);
+        $canApprove = $this->canApprove($user);
 
         return DataTables::of($offers)
             ->addColumn('banner_preview', function (Offer $offer) {
@@ -78,18 +100,39 @@ class PostOfferController extends Controller
             ->addColumn('category_name', fn (Offer $offer) => $offer->category?->name ?? '-')
             ->addColumn('subcategory_name', fn (Offer $offer) => $offer->subcategory?->name ?? '-')
             ->addColumn('status_badge', function (Offer $offer) {
-                $class = $offer->status === 'active' ? 'success' : 'secondary';
-                $label = ucfirst($offer->status);
+                if (! $canApprove) {
+                    $class = $offer->status === 'active' ? 'success' : 'secondary';
+                    $label = ucfirst($offer->status);
 
-                return '<span class="badge bg-'.$class.'">'.$label.'</span>';
+                    return '<span class="badge bg-'.$class.'">'.$label.'</span>';
+                }
+
+                $activeSelected = $offer->status === 'active' ? 'selected' : '';
+                $inactiveSelected = $offer->status === 'inactive' ? 'selected' : '';
+
+                return '<select class="form-select form-select-sm js-offer-status" data-id="'.$offer->id.'" style="min-width:110px;">'
+                    . '<option value="active" '.$activeSelected.'>Active</option>'
+                    . '<option value="inactive" '.$inactiveSelected.'>Inactive</option>'
+                    . '</select>';
             })
             ->editColumn('valid_until', fn (Offer $offer) => $offer->valid_until?->format('Y-m-d') ?? '-')
             ->editColumn('created_at', fn (Offer $offer) => $offer->created_at?->format('Y-m-d H:i'))
             ->addColumn('actions', function (Offer $offer) {
-                return '<div class="d-flex justify-content-end gap-2">'
-                    . '<button type="button" class="btn btn-sm btn-outline-primary js-edit-offer" data-id="'.$offer->id.'"><i class="fa-solid fa-pen"></i></button>'
-                    . '<button type="button" class="btn btn-sm btn-outline-danger js-delete-offer" data-id="'.$offer->id.'"><i class="fa-solid fa-trash"></i></button>'
-                    . '</div>';
+                $actions = [];
+
+                if ($canEdit) {
+                    $actions[] = '<button type="button" class="btn btn-sm btn-outline-primary js-edit-offer" data-id="'.$offer->id.'"><i class="fa-solid fa-pen"></i></button>';
+                }
+
+                if ($canDelete) {
+                    $actions[] = '<button type="button" class="btn btn-sm btn-outline-danger js-delete-offer" data-id="'.$offer->id.'"><i class="fa-solid fa-trash"></i></button>';
+                }
+
+                if ($actions === []) {
+                    return '<span class="text-muted">—</span>';
+                }
+
+                return '<div class="d-flex justify-content-end gap-2">'.implode('', $actions).'</div>';
             })
             ->rawColumns(['banner_preview', 'status_badge', 'actions'])
             ->make(true);
@@ -97,24 +140,52 @@ class PostOfferController extends Controller
 
     public function show(Offer $offer): JsonResponse
     {
-        abort_unless((int) $offer->user_id === (int) auth()->id(), 403);
+        $user = request()->user();
+        $isOwner = (int) $offer->user_id === (int) $user->id;
+        $canAccess = $this->canRead($user) && ($this->isStaff($user) || $isOwner);
+
+        abort_unless($canAccess, 403);
 
         return response()->json(['offer' => $offer]);
     }
 
     public function update(Request $request, Offer $offer): JsonResponse
     {
-        abort_unless((int) $offer->user_id === (int) $request->user()->id, 403);
+        $user = $request->user();
+        $isOwner = (int) $offer->user_id === (int) $user->id;
+        $canWrite = $this->canWrite($user) && ($this->isStaff($user) || $isOwner);
+        $canApprove = $this->canApprove($user) && ($this->isStaff($user) || $isOwner);
 
-        $validated = $request->validate([
-            'title'             => 'required|string|max:255',
-            'discount_tag'      => 'required|string|max:255',
-            'coupon_code'       => 'nullable|string|max:50',
-            'valid_until'       => 'nullable|date|after_or_equal:today',
-            'short_description' => 'nullable|string|max:300',
-            'status'            => ['required', Rule::in(['active', 'inactive'])],
-            'banner_image'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
+        abort_unless($canWrite || $canApprove, 403);
+
+        $rules = [
+            'status' => ['sometimes', 'required', Rule::in(['active', 'inactive'])],
+        ];
+
+        if ($canWrite) {
+            $rules = array_merge($rules, [
+                'title' => 'required|string|max:255',
+                'discount_tag' => 'required|string|max:255',
+                'coupon_code' => 'nullable|string|max:50',
+                'valid_until' => 'nullable|date|after_or_equal:today',
+                'short_description' => 'nullable|string|max:300',
+                'banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            ]);
+        }
+
+        $validated = $request->validate($rules);
+
+        if (! $canApprove) {
+            unset($validated['status']);
+        }
+
+        if (! $canWrite) {
+            $offer->update([
+                'status' => $validated['status'] ?? $offer->status,
+            ]);
+
+            return response()->json(['message' => 'Offer status updated successfully.']);
+        }
 
         if ($request->hasFile('banner_image')) {
             if ($offer->banner_image) {
@@ -131,7 +202,10 @@ class PostOfferController extends Controller
 
     public function destroy(Request $request, Offer $offer): JsonResponse
     {
-        abort_unless((int) $offer->user_id === (int) $request->user()->id, 403);
+        $user = $request->user();
+        $isOwner = (int) $offer->user_id === (int) $user->id;
+
+        abort_unless($this->canDelete($user) && ($this->isStaff($user) || $isOwner), 403);
 
         if ($offer->banner_image) {
             Storage::disk('public')->delete($offer->banner_image);
@@ -140,5 +214,35 @@ class PostOfferController extends Controller
         $offer->delete();
 
         return response()->json(['message' => 'Offer deleted successfully.']);
+    }
+
+    private function canRead($user): bool
+    {
+        return $user->isGeneralUser() || $user->canModule('vendors', 'read');
+    }
+
+    private function canCreate($user): bool
+    {
+        return $user->isGeneralUser() || $user->canModule('vendors', 'add');
+    }
+
+    private function canWrite($user): bool
+    {
+        return $user->isGeneralUser() || $user->canModule('vendors', 'write');
+    }
+
+    private function canDelete($user): bool
+    {
+        return $user->isGeneralUser() || $user->canModule('vendors', 'delete');
+    }
+
+    private function canApprove($user): bool
+    {
+        return $user->isGeneralUser() || $user->canModule('vendors', 'approve');
+    }
+
+    private function isStaff($user): bool
+    {
+        return $user->isAdmin() || $user->isEmployee();
     }
 }
