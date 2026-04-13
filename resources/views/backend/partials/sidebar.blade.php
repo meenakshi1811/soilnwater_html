@@ -58,6 +58,12 @@
                 </a>
             </li>
             <hr>
+            <li>
+                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>Offers &amp; Discounts</span>
+                </a>
+            </li>
         @endif
 
          @foreach($emsModules as $slug => $label)
