@@ -3,6 +3,7 @@
     $isGeneralUser = auth()->user()->isGeneralUser();
     $isAdmin = auth()->user()->isAdmin();
     $isEmployee = auth()->user()->isEmployee();
+    $canAccessOffers = $isAdmin || $isGeneralUser || auth()->user()->canModule('vendors', 'read');
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -57,6 +58,12 @@
                 </a>
             </li>
             <hr>
+            <li>
+                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>Offers &amp; Discounts</span>
+                </a>
+            </li>
         @endif
 
          @foreach($emsModules as $slug => $label)
@@ -77,16 +84,33 @@
                 </a>
             </li>
         @elseif($isGeneralUser)
+            @if($canAccessOffers)
             <li>
-                <a class="{{ request()->routeIs('user.offers.*') ? 'active' : '' }}" href="{{ route('user.offers.index') }}">
+                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
                     <i class="fa-solid fa-tags"></i>
-                    <span>My Offers &amp; Discounts</span>
+                    <span>Offers &amp; Discounts</span>
                 </a>
             </li>
+            @endif
             <li>
                 <a class="{{ request()->routeIs('user.profile.*') ? 'active' : '' }}" href="{{ route('user.profile.edit') }}">
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Profile</span>
+                </a>
+            </li>
+        @elseif($isEmployee)
+            @if($canAccessOffers)
+                <li>
+                    <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Offers &amp; Discounts</span>
+                    </a>
+                </li>
+            @endif
+            <li>
+                <a class="{{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Home</span>
                 </a>
             </li>
         @else
