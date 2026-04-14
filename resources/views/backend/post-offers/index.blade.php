@@ -186,6 +186,25 @@
 
             </div>{{-- end .row --}}
 
+            <div class="form-check mt-4">
+                <input
+                    class="form-check-input @error('accept_terms') is-invalid @enderror"
+                    type="checkbox"
+                    value="1"
+                    id="acceptTerms"
+                    name="accept_terms"
+                    {{ old('accept_terms') ? 'checked' : '' }}
+                >
+                <label class="form-check-label" for="acceptTerms">
+                    I accept the
+                    <a href="{{ route('frontend.terms.show', ['moduleKey' => 'offer']) }}" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>
+                    for offers.
+                </label>
+                @error('accept_terms')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
+
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ route('post-offer') }}" class="btn btn-light px-4">Cancel</a>
                 <button type="submit" id="offerSubmitBtn" class="btn btn-primary ems-btn-primary px-5">
