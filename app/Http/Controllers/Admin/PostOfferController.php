@@ -42,6 +42,7 @@ class PostOfferController extends Controller
             'subcategory_id'    => ['nullable', Rule::exists('categories', 'id')],
             'banner_image'      => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
             'short_description' => 'nullable|string|max:300',
+            'accept_terms'      => 'accepted',
         ]);
 
         // Handle banner image upload
@@ -52,6 +53,7 @@ class PostOfferController extends Controller
 
         // Attach the authenticated user
         $validated['user_id'] = auth()->id();
+        unset($validated['accept_terms']);
 
         Offer::create($validated);
 

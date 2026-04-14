@@ -163,6 +163,9 @@
                     },
                     short_description: {
                         maxlength: 300
+                    },
+                    accept_terms: {
+                        required: true
                     }
                 },
                 messages: {
@@ -181,6 +184,9 @@
                     },
                     short_description: {
                         maxlength: 'Description must not exceed 300 characters.'
+                    },
+                    accept_terms: {
+                        required: 'Please accept the offer terms and conditions.'
                     }
                 },
                 errorElement: 'div',
