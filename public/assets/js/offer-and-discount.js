@@ -51,6 +51,7 @@
 
         /* ── 3. Banner Image Preview ──────────────────────────── */
         initBannerUpload: function () {
+            var self = this;
             function showPreview(file) {
                 if (!file || !file.type.startsWith('image/')) return;
                 var reader = new FileReader();
@@ -64,7 +65,7 @@
 
             $('#bannerImage').on('change', function () {
                 if (this.files[0]) {
-                    $('input[name="selected_template"]').prop('checked', false).trigger('change');
+                    $('#generatedBannerData').val('');
                     showPreview(this.files[0]);
                 }
             });
@@ -75,6 +76,7 @@
                 $('#bannerPreview').attr('src', '#');
                 $('#bannerPreviewWrap').addClass('d-none');
                 $('#bannerPlaceholder').removeClass('d-none');
+                self.renderTemplateCanvas();
             });
 
             $('input[name="selected_template"]').on('change', function () {
@@ -103,9 +105,58 @@
                         var dt = new DataTransfer();
                         dt.items.add(file);
                         $('#bannerImage')[0].files = dt.files;
+                        $('#generatedBannerData').val('');
                         showPreview(file);
                     }
                 });
+        },
+
+        renderTemplateCanvas: function () {
+            var canvas = document.getElementById('bannerTemplateCanvas');
+            if (!canvas) return;
+
+            var ctx = canvas.getContext('2d');
+            var bg = $('#bannerBgColor').val() || '#2f7de1';
+            var textColor = $('#bannerTextColor').val() || '#ffffff';
+            var fontSize = parseInt($('#bannerFontSize').val() || '44', 10);
+            var align = $('#bannerTextAlign').val() || 'left';
+            var title = ($('#offerTitle').val() || 'Offer Name').trim();
+            var discount = ($('#discountTag').val() || 'Discount %').trim();
+            var couponValue = ($('#couponCode').val() || '').trim();
+            var coupon = 'Coupon: ' + (couponValue ? couponValue.toUpperCase() : 'N/A');
+            var extra = ($('#bannerExtraText').val() || '').trim();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            var x = 60;
+            if (align === 'center') x = canvas.width / 2;
+            if (align === 'right') x = canvas.width - 60;
+            ctx.textAlign = align;
+            ctx.fillStyle = textColor;
+            ctx.shadowColor = 'rgba(0,0,0,0.4)';
+            ctx.shadowBlur = 4;
+            ctx.font = '700 ' + fontSize + 'px Arial';
+            ctx.fillText(title.substring(0, 40), x, 120);
+            ctx.font = '700 ' + Math.max(24, fontSize - 10) + 'px Arial';
+            ctx.fillText(discount.substring(0, 35), x, 195);
+            ctx.font = '600 ' + Math.max(18, fontSize - 18) + 'px Arial';
+            ctx.fillText(coupon.substring(0, 38), x, 250);
+
+            if (extra) {
+                ctx.font = '500 ' + Math.max(16, fontSize - 20) + 'px Arial';
+                ctx.fillText(extra.substring(0, 50), x, 305);
+            }
+
+            var overlayImg = $('#bannerOverlayImage').data('imageObj');
+            if (overlayImg) {
+                ctx.drawImage(overlayImg, canvas.width - 220, canvas.height - 220, 180, 180);
+            }
+
+            if (!$('#bannerImage').val()) {
+                $('#generatedBannerData').val(canvas.toDataURL('image/png'));
+            }
         },
 
         /* ── 4. Misc UI Bindings ──────────────────────────────── */
@@ -136,13 +187,34 @@
                 var pos = this.selectionStart;
                 $(this).val($(this).val().toUpperCase());
                 this.setSelectionRange(pos, pos);
-                syncTemplateOverlay();
+                self.renderTemplateCanvas();
             });
 
-            $('#offerTitle, #discountTag').on('input', syncTemplateOverlay);
-            syncTemplateOverlay();
-            syncTemplateSelectionUi();
-            $('input[name="selected_template"]').on('change', syncTemplateSelectionUi);
+            $('#offerTitle, #discountTag, #bannerExtraText, #bannerBgColor, #bannerTextColor, #bannerFontSize, #bannerTextAlign').on('input change', function () {
+                self.renderTemplateCanvas();
+            });
+
+            $('#bannerOverlayImage').on('change', function () {
+                var file = this.files && this.files[0] ? this.files[0] : null;
+                if (!file) {
+                    $('#bannerOverlayImage').removeData('imageObj');
+                    self.renderTemplateCanvas();
+                    return;
+                }
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var img = new Image();
+                    img.onload = function () {
+                        $('#bannerOverlayImage').data('imageObj', img);
+                        self.renderTemplateCanvas();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            self.renderTemplateCanvas();
 
             // Description character counter
             $('#descCharCount').text($('#shortDescription').val().length);
@@ -152,6 +224,7 @@
         },
         /* ── 5. Form (Ajax + Validation) ─────────────────────── */
         initForm: function () {
+            var self = this;
             var $form = $('#offerForm');
             var $btn = $('#offerSubmitBtn');
             var $text = $btn.find('.btn-text');
@@ -192,11 +265,11 @@
                     },
                     banner_image: {
                         required: function () {
-                            return !$('input[name="selected_template"]:checked').length;
+                            return !$('#generatedBannerData').val();
                         },
                         extension: 'jpg|jpeg|png|webp'
                     },
-                    selected_template: {
+                    generated_banner_data: {
                         required: function () {
                             return !$('#bannerImage').val();
                         }
@@ -219,11 +292,11 @@
                         maxlength: 'Discount tag must not exceed 100 characters.'
                     },
                     banner_image: {
-                        required: 'Please upload a banner image or choose a template.',
+                        required: 'Please upload a banner image or customize a template.',
                         extension: 'Only JPG, PNG, or WebP images are allowed.'
                     },
-                    selected_template: {
-                        required: 'Please choose a template or upload a banner image.'
+                    generated_banner_data: {
+                        required: 'Please customize template or upload a banner image.'
                     },
                     short_description: {
                         maxlength: 'Description must not exceed 300 characters.'
@@ -274,6 +347,9 @@
                             $('#bannerPreview').attr('src', '#');
                             $('#bannerPreviewWrap').addClass('d-none');
                             $('#bannerPlaceholder').removeClass('d-none');
+                            $('#bannerOverlayImage').val('');
+                            $('#bannerOverlayImage').removeData('imageObj');
+                            self.renderTemplateCanvas();
 
                             // Reset validation states
                             $('#offerForm .is-valid').removeClass('is-valid');
