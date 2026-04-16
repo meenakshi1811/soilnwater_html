@@ -14,8 +14,16 @@
   </div>
 
   <div class="header-actions">
-    <button class="btn-offer">Post Offer</button>
+    <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Create Offer</a>
     <button class="btn-post">Post Ad</button>
-    <a class="btn-login" href="{{ route('login') }}">Login</a>
+
+    @auth
+      <form method="POST" action="{{ route('logout') }}" class="d-inline">
+        @csrf
+        <button type="submit" class="btn-login">Logout</button>
+      </form>
+    @else
+      <a class="btn-login" href="{{ route('login') }}">Login</a>
+    @endauth
   </div>
 </header>
