@@ -79,6 +79,16 @@
                 self.renderTemplateCanvas();
             });
 
+            $('input[name="selected_template"]').on('change', function () {
+                if (!this.checked) {
+                    return;
+                }
+                $('#bannerImage').val('');
+                $('#bannerPreview').attr('src', '#');
+                $('#bannerPreviewWrap').addClass('d-none');
+                $('#bannerPlaceholder').removeClass('d-none');
+            });
+
             $('#bannerDropzone')
                 .on('dragover', function (e) {
                     e.preventDefault();
@@ -152,6 +162,20 @@
         /* ── 4. Misc UI Bindings ──────────────────────────────── */
         bindUi: function () {
             var self = this;
+            var syncTemplateSelectionUi = function () {
+                $('.offer-template-card').removeClass('is-selected');
+                $('input[name="selected_template"]:checked').each(function () {
+                    $(this).closest('.offer-template-card').addClass('is-selected');
+                });
+            };
+            var syncTemplateOverlay = function () {
+                var title = $('#offerTitle').val().trim() || 'Offer Name';
+                var discount = $('#discountTag').val().trim() || 'Discount %';
+                var coupon = $('#couponCode').val().trim();
+                $('.js-template-title').text(title);
+                $('.js-template-discount').text(discount);
+                $('.js-template-coupon').text('Coupon: ' + (coupon ? coupon.toUpperCase() : 'N/A'));
+            };
 
             // Category → load subcategories
             $('#categorySelect').on('change', function () {
