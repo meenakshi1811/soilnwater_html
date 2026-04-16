@@ -254,7 +254,7 @@ class PostOfferController extends Controller
 
     private function canApprove($user): bool
     {
-        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'approve');
+        return $user->isAdmin() || $user->canModule('vendors', 'approve');
     }
 
     private function isStaff($user): bool
