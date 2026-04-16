@@ -501,3 +501,19 @@
 .banner-placeholder-content {
     pointer-events: none;
 }
+
+.template-customizer-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    background: #f8fafc;
+}
+
+.banner-template-canvas {
+    width: 100%;
+    height: auto;
+    border: 1px solid #dbe3ed;
+    border-radius: 10px;
+    background: #ffffff;
+    display: block;
+}

@@ -138,6 +138,47 @@
                     <label class="form-label fw-semibold">
                         Banner Image <span class="text-danger">*</span>
                     </label>
+                    <p class="text-secondary mb-3" style="font-size:0.9rem;">
+                        Upload your own image or fully customize a PNG banner template below (background, text, font size, alignment, extra text, and optional image overlay).
+                    </p>
+
+                    <div class="template-customizer-wrap mb-3">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Background Color</label>
+                                <input type="color" id="bannerBgColor" class="form-control form-control-color w-100" value="#2f7de1">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Text Color</label>
+                                <input type="color" id="bannerTextColor" class="form-control form-control-color w-100" value="#ffffff">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Font Size</label>
+                                <input type="range" id="bannerFontSize" class="form-range" min="24" max="72" value="44">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Text Alignment</label>
+                                <select id="bannerTextAlign" class="form-select">
+                                    <option value="left">Left</option>
+                                    <option value="center">Center</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Additional Text</label>
+                                <input type="text" id="bannerExtraText" class="form-control" placeholder="e.g. Limited time only!">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Add Image Overlay</label>
+                                <input type="file" id="bannerOverlayImage" class="form-control" accept="image/png,image/jpeg,image/webp">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Live Template Preview (PNG)</label>
+                                <canvas id="bannerTemplateCanvas" width="1200" height="400" class="banner-template-canvas"></canvas>
+                                <input type="hidden" name="generated_banner_data" id="generatedBannerData" value="">
+                            </div>
+                        </div>
+                    </div>
                     <div id="bannerDropzone" class="banner-dropzone" onclick="document.getElementById('bannerImage').click()">
                         <div id="bannerPreviewWrap" class="d-none position-relative">
                             <img id="bannerPreview" src="#" alt="Banner Preview" class="banner-preview-img">
@@ -159,6 +200,9 @@
                         accept="image/png,image/jpeg,image/webp"
                     >
                     @error('banner_image')
+                        <div class="text-danger mt-1" style="font-size:0.875rem;">{{ $message }}</div>
+                    @enderror
+                    @error('generated_banner_data')
                         <div class="text-danger mt-1" style="font-size:0.875rem;">{{ $message }}</div>
                     @enderror
                 </div>
