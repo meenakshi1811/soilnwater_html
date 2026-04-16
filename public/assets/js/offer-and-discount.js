@@ -4,6 +4,13 @@
     }
 
     var OffersAdmin = {
+        designer: {
+            layers: [],
+            activeId: null,
+            drag: null,
+            width: 1200,
+            height: 600
+        },
 
         /* ── 1. Validator Methods ─────────────────────────────── */
         initValidatorMethods: function () {
@@ -76,17 +83,7 @@
                 $('#bannerPreview').attr('src', '#');
                 $('#bannerPreviewWrap').addClass('d-none');
                 $('#bannerPlaceholder').removeClass('d-none');
-                self.renderTemplateCanvas();
-            });
-
-            $('input[name="selected_template"]').on('change', function () {
-                if (!this.checked) {
-                    return;
-                }
-                $('#bannerImage').val('');
-                $('#bannerPreview').attr('src', '#');
-                $('#bannerPreviewWrap').addClass('d-none');
-                $('#bannerPlaceholder').removeClass('d-none');
+                self.renderDesignerStage();
             });
 
             $('#bannerDropzone')
@@ -111,52 +108,152 @@
                 });
         },
 
-        renderTemplateCanvas: function () {
-            var canvas = document.getElementById('bannerTemplateCanvas');
-            if (!canvas) return;
+        addTextLayer: function (text, options) {
+            options = options || {};
+            this.designer.layers.push({
+                id: 'layer_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+                type: 'text',
+                text: text || 'New Text',
+                x: options.x || 60,
+                y: options.y || 60,
+                fontSize: options.fontSize || 42,
+                color: options.color || '#ffffff',
+                align: options.align || 'left',
+                fontFamily: options.fontFamily || 'Arial'
+            });
+            this.designer.activeId = this.designer.layers[this.designer.layers.length - 1].id;
+            this.renderDesignerStage();
+        },
 
+        addImageLayer: function (src) {
+            var imgObj = new Image();
+            imgObj.src = src;
+            this.designer.layers.push({
+                id: 'layer_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+                type: 'image',
+                src: src,
+                imageObj: imgObj,
+                x: 850,
+                y: 300,
+                width: 220,
+                height: 220
+            });
+            this.designer.activeId = this.designer.layers[this.designer.layers.length - 1].id;
+            this.renderDesignerStage();
+        },
+
+        findActiveLayer: function () {
+            for (var i = 0; i < this.designer.layers.length; i++) {
+                if (this.designer.layers[i].id === this.designer.activeId) {
+                    return this.designer.layers[i];
+                }
+            }
+            return null;
+        },
+
+        syncLayerControls: function () {
+            var layer = this.findActiveLayer();
+            if (!layer || layer.type !== 'text') {
+                $('#layerTextInput').val('');
+                return;
+            }
+            $('#layerTextInput').val(layer.text || '');
+            $('#layerFontSizeInput').val(layer.fontSize || 42);
+            $('#layerTextColorInput').val(layer.color || '#ffffff');
+            $('#layerTextAlignInput').val(layer.align || 'left');
+            $('#layerFontFamilyInput').val(layer.fontFamily || 'Arial');
+        },
+
+        renderDesignerStage: function () {
+            var self = this;
+            var $stage = $('#bannerDesignerStage');
+            if (!$stage.length) return;
+
+            $stage.css('background', $('#bannerBgColor').val() || '#2f7de1');
+            $stage.empty();
+
+            this.designer.layers.forEach(function (layer) {
+                var $layer;
+                if (layer.type === 'text') {
+                    $layer = $('<div class="banner-designer-layer text-layer"></div>');
+                    $layer.text(layer.text || '');
+                    $layer.css({
+                        left: (layer.x / self.designer.width * 100) + '%',
+                        top: (layer.y / self.designer.height * 100) + '%',
+                        color: layer.color,
+                        fontSize: Math.max(10, layer.fontSize) + 'px',
+                        textAlign: layer.align,
+                        fontFamily: layer.fontFamily,
+                        transform: 'translate(-0%, -0%)'
+                    });
+                } else {
+                    $layer = $('<div class="banner-designer-layer image-layer"><img></div>');
+                    $layer.find('img').attr('src', layer.src);
+                    $layer.css({
+                        left: (layer.x / self.designer.width * 100) + '%',
+                        top: (layer.y / self.designer.height * 100) + '%',
+                        width: (layer.width / self.designer.width * 100) + '%'
+                    });
+                }
+
+                $layer.attr('data-layer-id', layer.id);
+                if (layer.id === self.designer.activeId) {
+                    $layer.addClass('active');
+                }
+                $stage.append($layer);
+            });
+
+            this.syncLayerControls();
+            if (!$('#bannerImage').val()) {
+                this.updateGeneratedBanner();
+            }
+        },
+
+        updateGeneratedBanner: function () {
+            var self = this;
+            var canvas = document.createElement('canvas');
+            canvas.width = this.designer.width;
+            canvas.height = this.designer.height;
             var ctx = canvas.getContext('2d');
-            var bg = $('#bannerBgColor').val() || '#2f7de1';
-            var textColor = $('#bannerTextColor').val() || '#ffffff';
-            var fontSize = parseInt($('#bannerFontSize').val() || '44', 10);
-            var align = $('#bannerTextAlign').val() || 'left';
-            var title = ($('#offerTitle').val() || 'Offer Name').trim();
-            var discount = ($('#discountTag').val() || 'Discount %').trim();
-            var couponValue = ($('#couponCode').val() || '').trim();
-            var coupon = 'Coupon: ' + (couponValue ? couponValue.toUpperCase() : 'N/A');
-            var extra = ($('#bannerExtraText').val() || '').trim();
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = bg;
+            ctx.fillStyle = $('#bannerBgColor').val() || '#2f7de1';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            var x = 60;
-            if (align === 'center') x = canvas.width / 2;
-            if (align === 'right') x = canvas.width - 60;
-            ctx.textAlign = align;
-            ctx.fillStyle = textColor;
-            ctx.shadowColor = 'rgba(0,0,0,0.4)';
-            ctx.shadowBlur = 4;
-            ctx.font = '700 ' + fontSize + 'px Arial';
-            ctx.fillText(title.substring(0, 40), x, 120);
-            ctx.font = '700 ' + Math.max(24, fontSize - 10) + 'px Arial';
-            ctx.fillText(discount.substring(0, 35), x, 195);
-            ctx.font = '600 ' + Math.max(18, fontSize - 18) + 'px Arial';
-            ctx.fillText(coupon.substring(0, 38), x, 250);
+            var drawNext = function (index) {
+                if (index >= self.designer.layers.length) {
+                    $('#generatedBannerData').val(canvas.toDataURL('image/png'));
+                    return;
+                }
 
-            if (extra) {
-                ctx.font = '500 ' + Math.max(16, fontSize - 20) + 'px Arial';
-                ctx.fillText(extra.substring(0, 50), x, 305);
-            }
+                var layer = self.designer.layers[index];
+                if (layer.type === 'text') {
+                    ctx.textAlign = layer.align || 'left';
+                    ctx.fillStyle = layer.color || '#ffffff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+                    ctx.shadowBlur = 4;
+                    ctx.font = '700 ' + (layer.fontSize || 42) + 'px ' + (layer.fontFamily || 'Arial');
+                    ctx.fillText((layer.text || '').substring(0, 80), layer.x, layer.y + (layer.fontSize || 42));
+                    drawNext(index + 1);
+                } else {
+                    if (layer.imageObj && layer.imageObj.complete) {
+                        ctx.drawImage(layer.imageObj, layer.x, layer.y, layer.width, layer.height);
+                        drawNext(index + 1);
+                        return;
+                    }
+                    var img = new Image();
+                    img.onload = function () {
+                        layer.imageObj = img;
+                        ctx.drawImage(img, layer.x, layer.y, layer.width, layer.height);
+                        drawNext(index + 1);
+                    };
+                    img.onerror = function () {
+                        drawNext(index + 1);
+                    };
+                    img.src = layer.src;
+                }
+            };
 
-            var overlayImg = $('#bannerOverlayImage').data('imageObj');
-            if (overlayImg) {
-                ctx.drawImage(overlayImg, canvas.width - 220, canvas.height - 220, 180, 180);
-            }
-
-            if (!$('#bannerImage').val()) {
-                $('#generatedBannerData').val(canvas.toDataURL('image/png'));
-            }
+            drawNext(0);
         },
 
         /* ── 4. Misc UI Bindings ──────────────────────────────── */
@@ -187,34 +284,114 @@
                 var pos = this.selectionStart;
                 $(this).val($(this).val().toUpperCase());
                 this.setSelectionRange(pos, pos);
-                self.renderTemplateCanvas();
+                if (self.designer.layers[2] && self.designer.layers[2].type === 'text') {
+                    self.designer.layers[2].text = 'Coupon: ' + ($(this).val() || 'N/A');
+                }
+                self.renderDesignerStage();
             });
 
-            $('#offerTitle, #discountTag, #bannerExtraText, #bannerBgColor, #bannerTextColor, #bannerFontSize, #bannerTextAlign').on('input change', function () {
-                self.renderTemplateCanvas();
+            $('#offerTitle').on('input', function () {
+                if (self.designer.layers[0] && self.designer.layers[0].type === 'text') {
+                    self.designer.layers[0].text = $(this).val() || 'Offer Name';
+                }
+                self.renderDesignerStage();
             });
 
-            $('#bannerOverlayImage').on('change', function () {
-                var file = this.files && this.files[0] ? this.files[0] : null;
-                if (!file) {
-                    $('#bannerOverlayImage').removeData('imageObj');
-                    self.renderTemplateCanvas();
+            $('#discountTag').on('input', function () {
+                if (self.designer.layers[1] && self.designer.layers[1].type === 'text') {
+                    self.designer.layers[1].text = $(this).val() || 'Discount %';
+                }
+                self.renderDesignerStage();
+            });
+
+            $('#bannerBgColor').on('input change', function () {
+                self.renderDesignerStage();
+            });
+
+            $('#addTextLayerBtn').on('click', function () {
+                self.addTextLayer('New Text', { x: 80, y: 80, fontSize: 42 });
+            });
+
+            $('#bannerImageLayers').on('change', function () {
+                var files = this.files ? Array.prototype.slice.call(this.files) : [];
+                if (!files.length) {
                     return;
                 }
 
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    var img = new Image();
-                    img.onload = function () {
-                        $('#bannerOverlayImage').data('imageObj', img);
-                        self.renderTemplateCanvas();
+                files.forEach(function (file) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        self.addImageLayer(e.target.result);
                     };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
+                    reader.readAsDataURL(file);
+                });
+
+                $(this).val('');
             });
 
-            self.renderTemplateCanvas();
+            $('#removeSelectedLayerBtn').on('click', function () {
+                if (!self.designer.activeId) return;
+                self.designer.layers = self.designer.layers.filter(function (layer) {
+                    return layer.id !== self.designer.activeId;
+                });
+                self.designer.activeId = null;
+                self.renderDesignerStage();
+            });
+
+            $('#layerTextInput, #layerFontSizeInput, #layerTextColorInput, #layerTextAlignInput, #layerFontFamilyInput').on('input change', function () {
+                var layer = self.findActiveLayer();
+                if (!layer || layer.type !== 'text') return;
+
+                layer.text = $('#layerTextInput').val();
+                layer.fontSize = parseInt($('#layerFontSizeInput').val() || '42', 10);
+                layer.color = $('#layerTextColorInput').val() || '#ffffff';
+                layer.align = $('#layerTextAlignInput').val() || 'left';
+                layer.fontFamily = $('#layerFontFamilyInput').val() || 'Arial';
+                self.renderDesignerStage();
+            });
+
+            $('#bannerDesignerStage').on('mousedown', '.banner-designer-layer', function (e) {
+                e.preventDefault();
+                var layerId = $(this).data('layer-id');
+                self.designer.activeId = layerId;
+                self.renderDesignerStage();
+
+                var layer = self.findActiveLayer();
+                if (!layer) return;
+
+                var stageRect = document.getElementById('bannerDesignerStage').getBoundingClientRect();
+                self.designer.drag = {
+                    layerId: layerId,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    origX: layer.x,
+                    origY: layer.y,
+                    scaleX: self.designer.width / stageRect.width,
+                    scaleY: self.designer.height / stageRect.height
+                };
+            });
+
+            $(document).on('mousemove', function (e) {
+                if (!self.designer.drag) return;
+                var layer = self.findActiveLayer();
+                if (!layer) return;
+
+                var dx = (e.clientX - self.designer.drag.startX) * self.designer.drag.scaleX;
+                var dy = (e.clientY - self.designer.drag.startY) * self.designer.drag.scaleY;
+                layer.x = Math.max(0, Math.min(self.designer.width - 20, self.designer.drag.origX + dx));
+                layer.y = Math.max(0, Math.min(self.designer.height - 20, self.designer.drag.origY + dy));
+                self.renderDesignerStage();
+            }).on('mouseup', function () {
+                self.designer.drag = null;
+            });
+
+            if (!self.designer.layers.length) {
+                self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56 });
+                self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46 });
+                self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32 });
+            } else {
+                self.renderDesignerStage();
+            }
 
             // Description character counter
             $('#descCharCount').text($('#shortDescription').val().length);
@@ -322,6 +499,10 @@
                 submitHandler: function (form) {
                     setButtonLoading(true, true);
 
+                    if (!$('#bannerImage').val()) {
+                        self.updateGeneratedBanner();
+                    }
+
                     // Build FormData manually so file is included
                     var formData = new FormData(form);
 
@@ -347,9 +528,12 @@
                             $('#bannerPreview').attr('src', '#');
                             $('#bannerPreviewWrap').addClass('d-none');
                             $('#bannerPlaceholder').removeClass('d-none');
-                            $('#bannerOverlayImage').val('');
-                            $('#bannerOverlayImage').removeData('imageObj');
-                            self.renderTemplateCanvas();
+                            $('#bannerImageLayers').val('');
+                            self.designer.layers = [];
+                            self.designer.activeId = null;
+                            self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56 });
+                            self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46 });
+                            self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32 });
 
                             // Reset validation states
                             $('#offerForm .is-valid').removeClass('is-valid');

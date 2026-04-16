@@ -139,7 +139,7 @@
                         Banner Image <span class="text-danger">*</span>
                     </label>
                     <p class="text-secondary mb-3" style="font-size:0.9rem;">
-                        Upload your own image or fully customize a PNG banner template below (background, text, font size, alignment, extra text, and optional image overlay).
+                        Upload your own image or design your own banner image with full controls (multiple images, draggable text blocks, font family, color, alignment, and drag/drop positioning).
                     </p>
 
                     <div class="template-customizer-wrap mb-3">
@@ -149,32 +149,53 @@
                                 <input type="color" id="bannerBgColor" class="form-control form-control-color w-100" value="#2f7de1">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Text Color</label>
-                                <input type="color" id="bannerTextColor" class="form-control form-control-color w-100" value="#ffffff">
+                                <label class="form-label">Add Text Block</label>
+                                <button type="button" id="addTextLayerBtn" class="btn btn-outline-primary w-100">+ Add Text</button>
                             </div>
                             <div class="col-md-3">
+                                <label class="form-label">Add Images</label>
+                                <input type="file" id="bannerImageLayers" class="form-control" accept="image/png,image/jpeg,image/webp" multiple>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Remove Selected</label>
+                                <button type="button" id="removeSelectedLayerBtn" class="btn btn-outline-danger w-100">Remove Layer</button>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Layer Text</label>
+                                <input type="text" id="layerTextInput" class="form-control" placeholder="Edit selected text block">
+                            </div>
+                            <div class="col-md-2">
                                 <label class="form-label">Font Size</label>
-                                <input type="range" id="bannerFontSize" class="form-range" min="24" max="72" value="44">
+                                <input type="number" id="layerFontSizeInput" class="form-control" min="10" max="140" value="42">
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Text Alignment</label>
-                                <select id="bannerTextAlign" class="form-select">
+                            <div class="col-md-2">
+                                <label class="form-label">Text Color</label>
+                                <input type="color" id="layerTextColorInput" class="form-control form-control-color w-100" value="#ffffff">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Alignment</label>
+                                <select id="layerTextAlignInput" class="form-select">
                                     <option value="left">Left</option>
                                     <option value="center">Center</option>
                                     <option value="right">Right</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Additional Text</label>
-                                <input type="text" id="bannerExtraText" class="form-control" placeholder="e.g. Limited time only!">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Add Image Overlay</label>
-                                <input type="file" id="bannerOverlayImage" class="form-control" accept="image/png,image/jpeg,image/webp">
+                                <label class="form-label">Font Family</label>
+                                <select id="layerFontFamilyInput" class="form-select">
+                                    <option value="Arial">Arial</option>
+                                    <option value="Verdana">Verdana</option>
+                                    <option value="Tahoma">Tahoma</option>
+                                    <option value="Trebuchet MS">Trebuchet MS</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Courier New">Courier New</option>
+                                </select>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Live Template Preview (PNG)</label>
-                                <canvas id="bannerTemplateCanvas" width="1200" height="400" class="banner-template-canvas"></canvas>
+                                <label class="form-label">Banner Designer (Frontend ratio 2:1)</label>
+                                <div id="bannerDesignerStage" class="banner-designer-stage"></div>
+                                <small class="text-secondary d-block mt-1">Tip: drag text/images to any position. Final export is PNG in 1200×600.</small>
                                 <input type="hidden" name="generated_banner_data" id="generatedBannerData" value="">
                             </div>
                         </div>
