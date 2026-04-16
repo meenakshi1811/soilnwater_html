@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -19,7 +20,9 @@ class PostOfferController extends Controller
         abort_unless($this->canCreate(request()->user()), 403);
 
         $categories = Category::whereNull('parent_id')->orderBy('name')->get();
-        return view('backend.post-offers.index', compact('categories'));
+        $offerTemplates = $this->offerTemplates();
+
+        return view('backend.post-offers.index', compact('categories', 'offerTemplates'));
     }
 
     public function subcategories(Category $category)
@@ -40,7 +43,8 @@ class PostOfferController extends Controller
             'valid_until'       => 'nullable|date|after_or_equal:today',
             'category_id'       => ['nullable', Rule::exists('categories', 'id')],
             'subcategory_id'    => ['nullable', Rule::exists('categories', 'id')],
-            'banner_image'      => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'banner_image'      => 'nullable|required_without:selected_template|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'selected_template' => ['nullable', 'required_without:banner_image', Rule::in(array_keys($this->offerTemplates()))],
             'short_description' => 'nullable|string|max:300',
             'accept_terms'      => 'accepted',
         ]);
@@ -49,11 +53,18 @@ class PostOfferController extends Controller
         if ($request->hasFile('banner_image')) {
             $validated['banner_image'] = $request->file('banner_image')
                 ->store('offers/banners', 'public');
+        } elseif (!empty($validated['selected_template'])) {
+            $validated['banner_image'] = $this->generateOfferBannerFromTemplate(
+                $validated['selected_template'],
+                $validated['title'],
+                $validated['discount_tag'],
+                $validated['coupon_code'] ?? null
+            );
         }
 
         // Attach the authenticated user
         $validated['user_id'] = auth()->id();
-        unset($validated['accept_terms']);
+        unset($validated['accept_terms'], $validated['selected_template']);
 
         Offer::create($validated);
 
@@ -255,5 +266,89 @@ class PostOfferController extends Controller
     private function isStaff($user): bool
     {
         return $user->isAdmin() || $user->isEmployee();
+    }
+
+    private function offerTemplates(): array
+    {
+        return [
+            'summer' => [
+                'name' => 'Summer Blast',
+                'colors' => [[255, 140, 66], [255, 94, 98]],
+            ],
+            'forest' => [
+                'name' => 'Green Saver',
+                'colors' => [[67, 160, 71], [21, 101, 192]],
+            ],
+            'night' => [
+                'name' => 'Night Deal',
+                'colors' => [[142, 68, 173], [44, 62, 80]],
+            ],
+        ];
+    }
+
+    private function generateOfferBannerFromTemplate(string $templateKey, string $title, string $discountTag, ?string $couponCode): string
+    {
+        $templates = $this->offerTemplates();
+        $template = $templates[$templateKey] ?? null;
+        abort_unless($template !== null, 422);
+
+        $image = imagecreatetruecolor(1200, 400);
+        abort_unless($image !== false, 422, 'Could not create selected offer template.');
+
+        imagealphablending($image, true);
+        imagesavealpha($image, true);
+
+        $start = $template['colors'][0];
+        $end = $template['colors'][1];
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        for ($x = 0; $x < $width; $x++) {
+            $r = (int) ($start[0] + (($end[0] - $start[0]) * ($x / max(1, $width - 1))));
+            $g = (int) ($start[1] + (($end[1] - $start[1]) * ($x / max(1, $width - 1))));
+            $b = (int) ($start[2] + (($end[2] - $start[2]) * ($x / max(1, $width - 1))));
+            $lineColor = imagecolorallocate($image, $r, $g, $b);
+            imageline($image, $x, 0, $x, $height, $lineColor);
+        }
+
+        $shape = imagecolorallocatealpha($image, 255, 255, 255, 95);
+        imagefilledellipse($image, 190, 85, 250, 250, $shape);
+        imagefilledellipse($image, 1000, 320, 390, 390, $shape);
+
+        $white = imagecolorallocate($image, 255, 255, 255);
+        $shadow = imagecolorallocatealpha($image, 0, 0, 0, 65);
+
+        $fontPath = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
+        $hasTrueType = file_exists($fontPath);
+
+        if ($hasTrueType) {
+            $this->drawTtfText($image, $title, 42, 56, 120, $white, $shadow, $fontPath);
+            $this->drawTtfText($image, $discountTag, 34, 56, 198, $white, $shadow, $fontPath);
+            $couponText = 'Coupon: '.strtoupper($couponCode ?: 'N/A');
+            $this->drawTtfText($image, $couponText, 28, 56, 262, $white, $shadow, $fontPath);
+        } else {
+            imagestring($image, 5, 56, 96, Str::limit($title, 35), $white);
+            imagestring($image, 5, 56, 140, Str::limit($discountTag, 30), $white);
+            imagestring($image, 5, 56, 182, 'Coupon: '.strtoupper($couponCode ?: 'N/A'), $white);
+        }
+
+        $relativePath = 'offers/banners/template-'.Str::uuid().'.png';
+        $targetPath = storage_path('app/public/'.$relativePath);
+        $directory = dirname($targetPath);
+
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        imagepng($image, $targetPath, 9);
+        imagedestroy($image);
+
+        return $relativePath;
+    }
+
+    private function drawTtfText($image, string $text, int $size, int $x, int $y, int $color, int $shadow, string $fontPath): void
+    {
+        imagettftext($image, $size, 0, $x + 2, $y + 2, $shadow, $fontPath, Str::limit($text, 42));
+        imagettftext($image, $size, 0, $x, $y, $color, $fontPath, Str::limit($text, 42));
     }
 }

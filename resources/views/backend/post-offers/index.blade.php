@@ -138,6 +138,32 @@
                     <label class="form-label fw-semibold">
                         Banner Image <span class="text-danger">*</span>
                     </label>
+                    <p class="text-secondary mb-3" style="font-size:0.9rem;">
+                        Upload your own image or pick one of the ready templates below. For template images, offer title, discount tag, and coupon code will be stamped automatically.
+                    </p>
+
+                    <div class="row g-3 mb-3">
+                        @foreach ($offerTemplates as $templateKey => $template)
+                            <div class="col-md-4">
+                                <label class="offer-template-card">
+                                    <input
+                                        type="radio"
+                                        name="selected_template"
+                                        value="{{ $templateKey }}"
+                                        class="offer-template-radio"
+                                        {{ old('selected_template') === $templateKey ? 'checked' : '' }}
+                                    >
+                                    <div class="offer-template-preview offer-template-{{ $templateKey }}" aria-label="{{ $template['name'] }} template"></div>
+                                    <div class="offer-template-overlay">
+                                        <small class="js-template-title">{{ old('title') ?: 'Offer Name' }}</small>
+                                        <strong class="js-template-discount">{{ old('discount_tag') ?: 'Discount %' }}</strong>
+                                        <span class="js-template-coupon">{{ old('coupon_code') ? 'Coupon: '.strtoupper(old('coupon_code')) : 'Coupon: N/A' }}</span>
+                                    </div>
+                                    <div class="offer-template-name">{{ $template['name'] }}</div>
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
                     <div id="bannerDropzone" class="banner-dropzone" onclick="document.getElementById('bannerImage').click()">
                         <div id="bannerPreviewWrap" class="d-none position-relative">
                             <img id="bannerPreview" src="#" alt="Banner Preview" class="banner-preview-img">
@@ -159,6 +185,9 @@
                         accept="image/png,image/jpeg,image/webp"
                     >
                     @error('banner_image')
+                        <div class="text-danger mt-1" style="font-size:0.875rem;">{{ $message }}</div>
+                    @enderror
+                    @error('selected_template')
                         <div class="text-danger mt-1" style="font-size:0.875rem;">{{ $message }}</div>
                     @enderror
                 </div>

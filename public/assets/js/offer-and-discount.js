@@ -63,11 +63,24 @@
             }
 
             $('#bannerImage').on('change', function () {
-                if (this.files[0]) showPreview(this.files[0]);
+                if (this.files[0]) {
+                    $('input[name="selected_template"]').prop('checked', false).trigger('change');
+                    showPreview(this.files[0]);
+                }
             });
 
             $('#removeBannerBtn').on('click', function (e) {
                 e.stopPropagation();
+                $('#bannerImage').val('');
+                $('#bannerPreview').attr('src', '#');
+                $('#bannerPreviewWrap').addClass('d-none');
+                $('#bannerPlaceholder').removeClass('d-none');
+            });
+
+            $('input[name="selected_template"]').on('change', function () {
+                if (!this.checked) {
+                    return;
+                }
                 $('#bannerImage').val('');
                 $('#bannerPreview').attr('src', '#');
                 $('#bannerPreviewWrap').addClass('d-none');
@@ -98,6 +111,20 @@
         /* ── 4. Misc UI Bindings ──────────────────────────────── */
         bindUi: function () {
             var self = this;
+            var syncTemplateSelectionUi = function () {
+                $('.offer-template-card').removeClass('is-selected');
+                $('input[name="selected_template"]:checked').each(function () {
+                    $(this).closest('.offer-template-card').addClass('is-selected');
+                });
+            };
+            var syncTemplateOverlay = function () {
+                var title = $('#offerTitle').val().trim() || 'Offer Name';
+                var discount = $('#discountTag').val().trim() || 'Discount %';
+                var coupon = $('#couponCode').val().trim();
+                $('.js-template-title').text(title);
+                $('.js-template-discount').text(discount);
+                $('.js-template-coupon').text('Coupon: ' + (coupon ? coupon.toUpperCase() : 'N/A'));
+            };
 
             // Category → load subcategories
             $('#categorySelect').on('change', function () {
@@ -109,7 +136,13 @@
                 var pos = this.selectionStart;
                 $(this).val($(this).val().toUpperCase());
                 this.setSelectionRange(pos, pos);
+                syncTemplateOverlay();
             });
+
+            $('#offerTitle, #discountTag').on('input', syncTemplateOverlay);
+            syncTemplateOverlay();
+            syncTemplateSelectionUi();
+            $('input[name="selected_template"]').on('change', syncTemplateSelectionUi);
 
             // Description character counter
             $('#descCharCount').text($('#shortDescription').val().length);
@@ -158,8 +191,15 @@
                         date: true
                     },
                     banner_image: {
-                        required: true,
+                        required: function () {
+                            return !$('input[name="selected_template"]:checked').length;
+                        },
                         extension: 'jpg|jpeg|png|webp'
+                    },
+                    selected_template: {
+                        required: function () {
+                            return !$('#bannerImage').val();
+                        }
                     },
                     short_description: {
                         maxlength: 300
@@ -179,8 +219,11 @@
                         maxlength: 'Discount tag must not exceed 100 characters.'
                     },
                     banner_image: {
-                        required: 'Please upload a banner image.',
+                        required: 'Please upload a banner image or choose a template.',
                         extension: 'Only JPG, PNG, or WebP images are allowed.'
+                    },
+                    selected_template: {
+                        required: 'Please choose a template or upload a banner image.'
                     },
                     short_description: {
                         maxlength: 'Description must not exceed 300 characters.'
