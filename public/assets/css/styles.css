@@ -2264,6 +2264,26 @@
 .offer-coupon-card {
   border-radius: 12px;
   border: 1px solid #d9e7f3 !important;
+  overflow: hidden;
+}
+.offer-coupon-image {
+  width: 100%;
+  height: 124px;
+  object-fit: cover;
+}
+.offer-coupon-title {
+  min-height: 38px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.offer-coupon-description {
+  min-height: 48px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .coupon-code {
   font-weight: 800;

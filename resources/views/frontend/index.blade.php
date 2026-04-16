@@ -524,10 +524,17 @@
                     @foreach ($offerChunk as $offer)
                       <div class="col">
                         <article class="card h-100 shadow-sm border-0 offer-coupon-card">
+                          @if ($offer->banner_image)
+                            <img
+                              src="{{ asset('storage/' . $offer->banner_image) }}"
+                              alt="{{ $offer->title }}"
+                              class="offer-coupon-image"
+                            >
+                          @endif
                           <div class="card-body d-flex flex-column gap-2">
                             <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
-                            <h4 class="h6 mb-1">{{ $offer->title }}</h4>
-                            <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special marketplace offer available now.' }}</p>
+                            <h4 class="h6 mb-1 offer-coupon-title">{{ $offer->title }}</h4>
+                            <p class="small text-muted mb-2 offer-coupon-description">{{ $offer->short_description ?: 'Special marketplace offer available now.' }}</p>
                             @if ($offer->coupon_code)
                               <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
                             @endif
