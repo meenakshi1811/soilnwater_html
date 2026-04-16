@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -19,6 +20,7 @@ class PostOfferController extends Controller
         abort_unless($this->canCreate(request()->user()), 403);
 
         $categories = Category::whereNull('parent_id')->orderBy('name')->get();
+
         return view('backend.post-offers.index', compact('categories'));
     }
 
@@ -40,7 +42,8 @@ class PostOfferController extends Controller
             'valid_until'       => 'nullable|date|after_or_equal:today',
             'category_id'       => ['nullable', Rule::exists('categories', 'id')],
             'subcategory_id'    => ['nullable', Rule::exists('categories', 'id')],
-            'banner_image'      => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'banner_image'      => 'nullable|required_without:generated_banner_data|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'generated_banner_data' => 'nullable|required_without:banner_image|string',
             'short_description' => 'nullable|string|max:300',
             'accept_terms'      => 'accepted',
         ]);
@@ -49,11 +52,13 @@ class PostOfferController extends Controller
         if ($request->hasFile('banner_image')) {
             $validated['banner_image'] = $request->file('banner_image')
                 ->store('offers/banners', 'public');
+        } elseif (!empty($validated['generated_banner_data'])) {
+            $validated['banner_image'] = $this->storeGeneratedBanner($validated['generated_banner_data']);
         }
 
         // Attach the authenticated user
         $validated['user_id'] = auth()->id();
-        unset($validated['accept_terms']);
+        unset($validated['accept_terms'], $validated['generated_banner_data']);
 
         Offer::create($validated);
 
@@ -255,5 +260,23 @@ class PostOfferController extends Controller
     private function isStaff($user): bool
     {
         return $user->isAdmin() || $user->isEmployee();
+    }
+
+    private function storeGeneratedBanner(string $base64Png): string
+    {
+        if (!preg_match('/^data:image\/png;base64,/', $base64Png)) {
+            abort(422, 'Only PNG template exports are supported.');
+        }
+
+        $decoded = base64_decode(substr($base64Png, strpos($base64Png, ',') + 1), true);
+
+        if ($decoded === false) {
+            abort(422, 'Invalid generated banner data.');
+        }
+
+        $relativePath = 'offers/banners/custom-'.Str::uuid().'.png';
+        Storage::disk('public')->put($relativePath, $decoded);
+
+        return $relativePath;
     }
 }
