@@ -5,6 +5,7 @@
 
     var FormHelper = {
         alertTimers: {},
+        toastTimers: {},
 
         hideStackedAlerts: function ($alert) {
             if (!$alert || !$alert.length) {
@@ -91,6 +92,96 @@
                 .addClass('alert-' + type)
                 .html(html);
             this.autoHideAlert($alert, type);
+        },
+
+        getToastContainer: function () {
+            var containerId = 'jqueryToastContainer';
+            var $container = $('#' + containerId);
+            if ($container.length) {
+                return $container;
+            }
+
+            $container = $('<div id="' + containerId + '" class="jquery-toast-container" aria-live="polite" aria-atomic="true"></div>');
+            $('body').append($container);
+            return $container;
+        },
+
+        showToast: function (type, message) {
+            var styles = {
+                success: '#198754',
+                danger: '#dc3545',
+                warning: '#fd7e14',
+                info: '#0d6efd'
+            };
+            var bg = styles[type] || styles.info;
+            var toastId = 'toast-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            var $container = this.getToastContainer();
+            var $toast = $(
+                '<div id="' + toastId + '" class="jquery-toast-item" role="status">' +
+                    '<button type="button" class="jquery-toast-close" aria-label="Close">&times;</button>' +
+                    '<div class="jquery-toast-message"></div>' +
+                '</div>'
+            );
+
+            $toast.css({
+                backgroundColor: bg,
+                color: '#fff',
+                padding: '12px 42px 12px 14px',
+                borderRadius: '8px',
+                boxShadow: '0 10px 24px rgba(0,0,0,0.2)',
+                fontSize: '14px',
+                lineHeight: '1.4',
+                position: 'relative',
+                marginTop: '10px',
+                minWidth: '260px',
+                maxWidth: '380px',
+                opacity: 0,
+                transform: 'translateY(-8px)',
+                transition: 'all 0.2s ease'
+            });
+
+            $toast.find('.jquery-toast-message').text(message || '');
+            $toast.find('.jquery-toast-close').css({
+                position: 'absolute',
+                top: '8px',
+                right: '10px',
+                border: 0,
+                background: 'transparent',
+                color: '#fff',
+                fontSize: '18px',
+                lineHeight: 1,
+                cursor: 'pointer'
+            });
+
+            $container.css({
+                position: 'fixed',
+                top: '16px',
+                right: '16px',
+                zIndex: 1080
+            });
+
+            $container.append($toast);
+            requestAnimationFrame(function () {
+                $toast.css({ opacity: 1, transform: 'translateY(0)' });
+            });
+
+            var self = this;
+            var removeToast = function () {
+                $toast.css({ opacity: 0, transform: 'translateY(-8px)' });
+                setTimeout(function () {
+                    $toast.remove();
+                }, 220);
+            };
+
+            if (self.toastTimers[toastId]) {
+                clearTimeout(self.toastTimers[toastId]);
+            }
+            self.toastTimers[toastId] = setTimeout(removeToast, 4500);
+
+            $toast.find('.jquery-toast-close').on('click', function () {
+                clearTimeout(self.toastTimers[toastId]);
+                removeToast();
+            });
         },
 
         clearFormErrors: function ($form) {
