@@ -538,19 +538,22 @@
                             @if ($offer->coupon_code)
                               <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
                             @endif
+                            @php
+                              $offerPayload = [
+                                'title' => $offer->title,
+                                'discount_tag' => $offer->discount_tag,
+                                'short_description' => $offer->short_description ?: 'Special marketplace offer available now.',
+                                'coupon_code' => $offer->coupon_code ? strtoupper($offer->coupon_code) : null,
+                                'valid_until' => $offer->valid_until?->format('d M Y') ?? 'No expiry',
+                                'banner_image' => $offer->banner_image ? asset($offer->banner_image) : null,
+                              ];
+                            @endphp
                             <button
                               type="button"
                               class="btn btn-sm btn-outline-primary mt-auto js-offer-modal-trigger"
                               data-bs-toggle="modal"
                               data-bs-target="#offerDetailsModal"
-                              data-offer='@json([
-                                "title" => $offer->title,
-                                "discount_tag" => $offer->discount_tag,
-                                "short_description" => $offer->short_description ?: "Special marketplace offer available now.",
-                                "coupon_code" => $offer->coupon_code ? strtoupper($offer->coupon_code) : null,
-                                "valid_until" => $offer->valid_until?->format("d M Y") ?? "No expiry",
-                                "banner_image" => $offer->banner_image ? asset($offer->banner_image) : null,
-                              ])'
+                              data-offer="{{ e(json_encode($offerPayload)) }}"
                             >
                               View Offer
                             </button>
