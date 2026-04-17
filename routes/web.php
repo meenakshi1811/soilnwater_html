@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [PostOfferController::class, 'offersIndex'])->name('index');
         Route::get('/data', [PostOfferController::class, 'offersData'])->name('data');
         Route::get('/{offer}', [PostOfferController::class, 'show'])->name('show');
+        Route::put('/{offer}/update-offer-status', [PostOfferController::class, 'updateOfferStatus'])->name('update-offer-status');
         Route::post('/', [PostOfferController::class, 'store'])->name('store');
         Route::put('/{offer}', [PostOfferController::class, 'update'])->name('update');
         Route::delete('/{offer}', [PostOfferController::class, 'destroy'])->name('destroy');

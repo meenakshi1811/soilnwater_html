@@ -753,6 +753,7 @@
             data: '/offers/data',
             showBase: '/offers',
             updateBase: '/offers',
+            updateStatusTemplate: '/offers/__ID__/update-offer-status',
             deleteBase: '/offers'
         },
 
@@ -764,6 +765,7 @@
             this.routes.data = $table.data('url') || this.routes.data;
             this.routes.showBase = $table.data('show-url-base') || this.routes.showBase;
             this.routes.updateBase = $table.data('update-url-base') || this.routes.updateBase;
+            this.routes.updateStatusTemplate = $table.data('update-status-url-template') || this.routes.updateStatusTemplate;
             this.routes.deleteBase = $table.data('delete-url-base') || this.routes.deleteBase;
 
             this.table = $('#myOffersTable').DataTable({
@@ -854,12 +856,12 @@
 
                 var id = $(this).data('id');
                 var selectedStatus = $(this).val();
+                var statusUrl = self.routes.updateStatusTemplate.replace('__ID__', id);
 
                 $.ajax({
-                    url: self.routes.updateBase + '/' + id,
-                    method: 'POST',
+                    url: statusUrl,
+                    method: 'PUT',
                     data: {
-                        _method: 'PUT',
                         status: selectedStatus
                     },
                     headers: {
