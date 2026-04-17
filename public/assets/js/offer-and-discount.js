@@ -751,10 +751,10 @@
         canApprove: false,
         routes: {
             data: '/offers/data',
-            showBase: '/offers',
-            updateBase: '/offers',
-            updateStatusTemplate: '/offers/__ID__/update-offer-status',
-            deleteBase: '/offers'
+            showBase: '/dashboard/offers',
+            updateBase: '/dashboard/offers',
+            updateStatusTemplate: '/dashboard/offers/__ID__/update-offer-status',
+            deleteBase: '/dashboard/offers'
         },
 
         initTable: function () {
