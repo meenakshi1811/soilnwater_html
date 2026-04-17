@@ -869,7 +869,7 @@
                         'Accept': 'application/json'
                     }
                 }).done(function (response) {
-                    FormHelper.showAlert($('#myOfferAlert'), 'success', response.message || 'Offer status updated.');
+                    FormHelper.showToast('success', response.message || 'Offer status updated.');
                     if (self.table) {
                         self.table.ajax.reload(null, false);
                     }
@@ -877,7 +877,7 @@
                     var message = (xhr.responseJSON && xhr.responseJSON.message)
                         ? xhr.responseJSON.message
                         : 'Unable to update offer status.';
-                    FormHelper.showAlert($('#myOfferAlert'), 'danger', message);
+                    FormHelper.showToast('danger', message);
                     if (self.table) {
                         self.table.ajax.reload(null, false);
                     }
