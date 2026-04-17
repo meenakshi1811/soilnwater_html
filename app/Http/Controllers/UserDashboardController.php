@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class UserDashboardController extends Controller
@@ -32,17 +34,30 @@ class UserDashboardController extends Controller
         ]);
     }
 
-    public function updateProfile(Request $request): RedirectResponse
+    public function updateProfile(Request $request): RedirectResponse|JsonResponse
     {
         $user = $request->user();
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone_number' => ['nullable', 'string', 'max:30'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user->fill($validated);
+        $user->name = $validated['name'];
+        $user->phone_number = $validated['phone_number'] ?? null;
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
         $user->save();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Profile updated successfully.',
+            ]);
+        }
 
         return redirect()
             ->route('user.profile.edit')
