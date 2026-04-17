@@ -57,6 +57,7 @@
                 data-url="{{ route('offers.data') }}"
                 data-show-url-base="{{ url('/offers') }}"
                 data-update-url-base="{{ url('/offers') }}"
+                data-update-status-url-template="{{ route('offers.update-offer-status', ['offer' => '__ID__']) }}"
                 data-delete-url-base="{{ url('/offers') }}"
                 data-can-edit="{{ $canEditOffer ? '1' : '0' }}"
                 data-can-delete="{{ $canDeleteOffer ? '1' : '0' }}"

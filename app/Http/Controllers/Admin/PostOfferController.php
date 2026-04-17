@@ -216,6 +216,25 @@ class PostOfferController extends Controller
         return response()->json(['message' => 'Offer updated successfully.']);
     }
 
+    public function updateOfferStatus(Request $request, Offer $offer): JsonResponse
+    {
+        $user = $request->user();
+        $isOwner = (int) $offer->user_id === (int) $user->id;
+        $canApprove = $this->canApprove($user) && ($this->isStaff($user) || $isOwner);
+
+        abort_unless($canApprove, 403);
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['active', 'inactive'])],
+        ]);
+
+        $offer->update([
+            'status' => $validated['status'],
+        ]);
+
+        return response()->json(['message' => 'Offer status updated successfully.']);
+    }
+
     public function destroy(Request $request, Offer $offer): JsonResponse
     {
         $user = $request->user();
