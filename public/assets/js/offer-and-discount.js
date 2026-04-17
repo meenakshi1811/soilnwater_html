@@ -757,6 +757,25 @@
             deleteBase: '/dashboard/offers'
         },
 
+        normalizeDateInputValue: function (rawDate) {
+            if (!rawDate) {
+                return '';
+            }
+
+            if (typeof rawDate === 'string') {
+                if (rawDate.length >= 10 && rawDate.indexOf('-') === 4) {
+                    return rawDate.substring(0, 10);
+                }
+            }
+
+            var parsedDate = new Date(rawDate);
+            if (!isNaN(parsedDate.getTime())) {
+                return parsedDate.toISOString().substring(0, 10);
+            }
+
+            return '';
+        },
+
         initTable: function () {
             var $table = $('#myOffersTable');
             this.canEdit = $table.data('can-edit') === 1 || $table.data('can-edit') === '1';
@@ -804,20 +823,34 @@
 
                 $('#myOfferForm')[0].reset();
                 $('#myOfferForm').attr('action', self.routes.updateBase + '/' + id);
+                $('#myOfferExistingBannerWrap').addClass('d-none');
+                $('#myOfferExistingBannerLink').attr('href', '#');
+                $('#myOfferExistingBannerPreview').attr('src', '#');
 
                 $.get(self.routes.showBase + '/' + id, function (response) {
                     var offer = response.offer || {};
                     $('#myOfferTitle').val(offer.title || '');
                     $('#myOfferDiscountTag').val(offer.discount_tag || '');
                     $('#myOfferCouponCode').val(offer.coupon_code || '');
-                    $('#myOfferValidUntil').val(offer.valid_until || '');
+                    $('#myOfferValidUntil').val(self.normalizeDateInputValue(offer.valid_until));
                     $('#myOfferShortDescription').val(offer.short_description || '');
                     $('#myOfferStatus').val(offer.status || 'inactive');
+                    if (response.banner_url) {
+                        $('#myOfferExistingBannerLink').attr('href', response.banner_url);
+                        $('#myOfferExistingBannerPreview').attr('src', response.banner_url);
+                        $('#myOfferExistingBannerWrap').removeClass('d-none');
+                    }
 
                     self.modal.show();
                 }).fail(function () {
                     FormHelper.showAlert($('#myOfferAlert'), 'danger', 'Unable to load offer details.');
                 });
+            });
+
+            $('#myOfferBannerImage').on('change', function () {
+                if (this.files && this.files.length > 0) {
+                    $('#myOfferExistingBannerWrap').addClass('d-none');
+                }
             });
 
             $(document).on('click', '.js-delete-offer', function () {
