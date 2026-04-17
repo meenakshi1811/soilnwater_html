@@ -8,7 +8,6 @@ use App\Models\Offer;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
@@ -50,8 +49,7 @@ class PostOfferController extends Controller
 
         // Handle banner image upload
         if ($request->hasFile('banner_image')) {
-            $validated['banner_image'] = $request->file('banner_image')
-                ->store('offers/banners', 'public');
+            $validated['banner_image'] = $this->storeUploadedBanner($request);
         } elseif (!empty($validated['generated_banner_data'])) {
             $validated['banner_image'] = $this->storeGeneratedBanner($validated['generated_banner_data']);
         }
@@ -102,7 +100,7 @@ class PostOfferController extends Controller
                     return '-';
                 }
 
-                $url = asset('storage/'.$offer->banner_image);
+                $url = $this->bannerPublicUrl($offer->banner_image);
 
                 return '<img src="'.$url.'" alt="Offer banner" style="width:70px;height:44px;object-fit:cover;border-radius:6px;">';
             })
@@ -205,10 +203,10 @@ class PostOfferController extends Controller
 
         if ($request->hasFile('banner_image')) {
             if ($offer->banner_image) {
-                Storage::disk('public')->delete($offer->banner_image);
+                $this->deleteBannerFile($offer->banner_image);
             }
 
-            $validated['banner_image'] = $request->file('banner_image')->store('offers/banners', 'public');
+            $validated['banner_image'] = $this->storeUploadedBanner($request);
         }
 
         $offer->update($validated);
@@ -243,7 +241,7 @@ class PostOfferController extends Controller
         abort_unless($this->canDelete($user) && ($this->isStaff($user) || $isOwner), 403);
 
         if ($offer->banner_image) {
-            Storage::disk('public')->delete($offer->banner_image);
+            $this->deleteBannerFile($offer->banner_image);
         }
 
         $offer->delete();
@@ -294,8 +292,45 @@ class PostOfferController extends Controller
         }
 
         $relativePath = 'offers/banners/custom-'.Str::uuid().'.png';
-        Storage::disk('public')->put($relativePath, $decoded);
+        $absoluteDirectory = public_path('offers/banners');
+
+        if (!is_dir($absoluteDirectory)) {
+            mkdir($absoluteDirectory, 0755, true);
+        }
+
+        file_put_contents(public_path($relativePath), $decoded);
 
         return $relativePath;
+    }
+
+    private function storeUploadedBanner(Request $request): string
+    {
+        $file = $request->file('banner_image');
+        $extension = $file->getClientOriginalExtension() ?: $file->extension();
+        $fileName = 'banner-'.Str::uuid().'.'.$extension;
+        $relativeDirectory = 'offers/banners';
+        $absoluteDirectory = public_path($relativeDirectory);
+
+        if (!is_dir($absoluteDirectory)) {
+            mkdir($absoluteDirectory, 0755, true);
+        }
+
+        $file->move($absoluteDirectory, $fileName);
+
+        return $relativeDirectory.'/'.$fileName;
+    }
+
+    private function deleteBannerFile(string $relativePath): void
+    {
+        $filePath = public_path($relativePath);
+
+        if (is_file($filePath)) {
+            unlink($filePath);
+        }
+    }
+
+    private function bannerPublicUrl(string $relativePath): string
+    {
+        return asset(ltrim($relativePath, '/'));
     }
 }
