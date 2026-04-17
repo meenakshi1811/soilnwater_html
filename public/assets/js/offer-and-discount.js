@@ -676,7 +676,7 @@
                             'Accept': 'application/json'
                         },
                         success: function (response) {
-                            FormHelper.showAlert($('#offerAlert'), 'success', response.message || 'Offer posted successfully.');
+                            FormHelper.showToast('success', response.message || 'Offer posted successfully.');
 
                             // Reset form
                             form.reset();
@@ -716,7 +716,7 @@
                                     });
                                 }
                             }
-                            FormHelper.showAlert($('#offerAlert'), 'danger', msg);
+                            FormHelper.showToast('danger', msg);
                         },
                         complete: function () {
                             setButtonLoading(false, false);
