@@ -192,10 +192,22 @@
                                     <option value="Courier New">Courier New</option>
                                 </select>
                             </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Image Width</label>
+                                <input type="number" id="layerImageWidthInput" class="form-control" min="40" max="1200" value="220" disabled>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Image Height</label>
+                                <input type="number" id="layerImageHeightInput" class="form-control" min="40" max="600" value="220" disabled>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Quick Scale</label>
+                                <input type="range" id="layerImageScaleInput" class="form-range" min="5" max="100" step="1" value="18" disabled>
+                            </div>
                             <div class="col-12">
                                 <label class="form-label">Banner Designer (Frontend ratio 2:1)</label>
                                 <div id="bannerDesignerStage" class="banner-designer-stage"></div>
-                                <small class="text-secondary d-block mt-1">Tip: drag text/images to any position. Final export is PNG in 1200×600.</small>
+                                <small class="text-secondary d-block mt-1">Tip: drag text/images to any position. Select an image layer to resize by Width/Height, quick scale slider, or mouse wheel. Final export is PNG in 1200×600.</small>
                                 <input type="hidden" name="generated_banner_data" id="generatedBannerData" value="">
                             </div>
                         </div>

@@ -12,6 +12,18 @@
             height: 600
         },
 
+        clamp: function (value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        },
+
+        ensureLayerWithinBounds: function (layer) {
+            if (!layer) return;
+            var maxX = this.designer.width - (layer.type === 'image' ? (layer.width || 20) : 20);
+            var maxY = this.designer.height - (layer.type === 'image' ? (layer.height || 20) : 20);
+            layer.x = this.clamp(layer.x || 0, 0, Math.max(0, maxX));
+            layer.y = this.clamp(layer.y || 0, 0, Math.max(0, maxY));
+        },
+
         /* ── 1. Validator Methods ─────────────────────────────── */
         initValidatorMethods: function () {
             if ($.validator) {
@@ -126,9 +138,9 @@
         },
 
         addImageLayer: function (src) {
+            var self = this;
             var imgObj = new Image();
-            imgObj.src = src;
-            this.designer.layers.push({
+            var layer = {
                 id: 'layer_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
                 type: 'image',
                 src: src,
@@ -136,8 +148,21 @@
                 x: 850,
                 y: 300,
                 width: 220,
-                height: 220
-            });
+                height: 220,
+                aspectRatio: 1
+            };
+
+            imgObj.onload = function () {
+                if (imgObj.naturalWidth > 0 && imgObj.naturalHeight > 0) {
+                    layer.aspectRatio = imgObj.naturalWidth / imgObj.naturalHeight;
+                    layer.height = Math.round(layer.width / layer.aspectRatio);
+                    self.ensureLayerWithinBounds(layer);
+                }
+                self.renderDesignerStage();
+            };
+            imgObj.src = src;
+
+            this.designer.layers.push(layer);
             this.designer.activeId = this.designer.layers[this.designer.layers.length - 1].id;
             this.renderDesignerStage();
         },
@@ -153,15 +178,38 @@
 
         syncLayerControls: function () {
             var layer = this.findActiveLayer();
-            if (!layer || layer.type !== 'text') {
+            var isText = !!(layer && layer.type === 'text');
+            var isImage = !!(layer && layer.type === 'image');
+
+            if (!isText) {
                 $('#layerTextInput').val('');
-                return;
+                $('#layerFontSizeInput').val(42);
+                $('#layerTextColorInput').val('#ffffff');
+                $('#layerTextAlignInput').val('left');
+                $('#layerFontFamilyInput').val('Arial');
+            } else {
+                $('#layerTextInput').val(layer.text || '');
+                $('#layerFontSizeInput').val(layer.fontSize || 42);
+                $('#layerTextColorInput').val(layer.color || '#ffffff');
+                $('#layerTextAlignInput').val(layer.align || 'left');
+                $('#layerFontFamilyInput').val(layer.fontFamily || 'Arial');
             }
-            $('#layerTextInput').val(layer.text || '');
-            $('#layerFontSizeInput').val(layer.fontSize || 42);
-            $('#layerTextColorInput').val(layer.color || '#ffffff');
-            $('#layerTextAlignInput').val(layer.align || 'left');
-            $('#layerFontFamilyInput').val(layer.fontFamily || 'Arial');
+
+            $('#layerTextInput, #layerFontSizeInput, #layerTextColorInput, #layerTextAlignInput, #layerFontFamilyInput')
+                .prop('disabled', !isText);
+
+            if (!isImage) {
+                $('#layerImageWidthInput').val(220);
+                $('#layerImageHeightInput').val(220);
+                $('#layerImageScaleInput').val(18);
+            } else {
+                $('#layerImageWidthInput').val(Math.round(layer.width || 220));
+                $('#layerImageHeightInput').val(Math.round(layer.height || 220));
+                $('#layerImageScaleInput').val(Math.round(((layer.width || 220) / this.designer.width) * 100));
+            }
+
+            $('#layerImageWidthInput, #layerImageHeightInput, #layerImageScaleInput')
+                .prop('disabled', !isImage);
         },
 
         renderDesignerStage: function () {
@@ -192,7 +240,8 @@
                     $layer.css({
                         left: (layer.x / self.designer.width * 100) + '%',
                         top: (layer.y / self.designer.height * 100) + '%',
-                        width: (layer.width / self.designer.width * 100) + '%'
+                        width: (layer.width / self.designer.width * 100) + '%',
+                        height: (layer.height / self.designer.height * 100) + '%'
                     });
                 }
 
@@ -350,6 +399,56 @@
                 self.renderDesignerStage();
             });
 
+            $('#layerImageWidthInput').on('input change', function () {
+                var layer = self.findActiveLayer();
+                if (!layer || layer.type !== 'image') return;
+
+                var width = parseInt($(this).val() || layer.width || '220', 10);
+                width = self.clamp(width, 40, self.designer.width);
+                layer.width = width;
+
+                if (layer.aspectRatio && layer.aspectRatio > 0) {
+                    layer.height = Math.round(layer.width / layer.aspectRatio);
+                }
+
+                self.ensureLayerWithinBounds(layer);
+                self.renderDesignerStage();
+            });
+
+            $('#layerImageHeightInput').on('input change', function () {
+                var layer = self.findActiveLayer();
+                if (!layer || layer.type !== 'image') return;
+
+                var height = parseInt($(this).val() || layer.height || '220', 10);
+                height = self.clamp(height, 40, self.designer.height);
+                layer.height = height;
+
+                if (layer.aspectRatio && layer.aspectRatio > 0) {
+                    layer.width = Math.round(layer.height * layer.aspectRatio);
+                    layer.width = self.clamp(layer.width, 40, self.designer.width);
+                    layer.height = Math.round(layer.width / layer.aspectRatio);
+                }
+
+                self.ensureLayerWithinBounds(layer);
+                self.renderDesignerStage();
+            });
+
+            $('#layerImageScaleInput').on('input change', function () {
+                var layer = self.findActiveLayer();
+                if (!layer || layer.type !== 'image') return;
+
+                var percent = parseInt($(this).val() || '18', 10);
+                var width = Math.round((percent / 100) * self.designer.width);
+                layer.width = self.clamp(width, 40, self.designer.width);
+
+                if (layer.aspectRatio && layer.aspectRatio > 0) {
+                    layer.height = Math.round(layer.width / layer.aspectRatio);
+                }
+
+                self.ensureLayerWithinBounds(layer);
+                self.renderDesignerStage();
+            });
+
             $('#bannerDesignerStage').on('mousedown', '.banner-designer-layer', function (e) {
                 e.preventDefault();
                 var layerId = $(this).data('layer-id');
@@ -378,11 +477,32 @@
 
                 var dx = (e.clientX - self.designer.drag.startX) * self.designer.drag.scaleX;
                 var dy = (e.clientY - self.designer.drag.startY) * self.designer.drag.scaleY;
-                layer.x = Math.max(0, Math.min(self.designer.width - 20, self.designer.drag.origX + dx));
-                layer.y = Math.max(0, Math.min(self.designer.height - 20, self.designer.drag.origY + dy));
+                var maxX = self.designer.width - (layer.type === 'image' ? layer.width : 20);
+                var maxY = self.designer.height - (layer.type === 'image' ? layer.height : 20);
+                layer.x = self.clamp(self.designer.drag.origX + dx, 0, Math.max(0, maxX));
+                layer.y = self.clamp(self.designer.drag.origY + dy, 0, Math.max(0, maxY));
                 self.renderDesignerStage();
             }).on('mouseup', function () {
                 self.designer.drag = null;
+            });
+
+            $('#bannerDesignerStage').on('wheel', '.banner-designer-layer.image-layer', function (e) {
+                var event = e.originalEvent || e;
+                var layerId = $(this).data('layer-id');
+                var layer = self.designer.layers.find(function (item) { return item.id === layerId; });
+                if (!layer || layer.type !== 'image') return;
+
+                e.preventDefault();
+                self.designer.activeId = layerId;
+
+                var delta = event.deltaY < 0 ? 20 : -20;
+                layer.width = self.clamp((layer.width || 220) + delta, 40, self.designer.width);
+                if (layer.aspectRatio && layer.aspectRatio > 0) {
+                    layer.height = Math.round(layer.width / layer.aspectRatio);
+                }
+
+                self.ensureLayerWithinBounds(layer);
+                self.renderDesignerStage();
             });
 
             if (!self.designer.layers.length) {
