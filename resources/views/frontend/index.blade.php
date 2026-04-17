@@ -538,7 +538,22 @@
                             @if ($offer->coupon_code)
                               <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
                             @endif
-                            <a href="{{ route('frontend.offers.show', $offer) }}" class="btn btn-sm btn-outline-primary mt-auto">View Offer</a>
+                            <button
+                              type="button"
+                              class="btn btn-sm btn-outline-primary mt-auto js-offer-modal-trigger"
+                              data-bs-toggle="modal"
+                              data-bs-target="#offerDetailsModal"
+                              data-offer='@json([
+                                "title" => $offer->title,
+                                "discount_tag" => $offer->discount_tag,
+                                "short_description" => $offer->short_description ?: "Special marketplace offer available now.",
+                                "coupon_code" => $offer->coupon_code ? strtoupper($offer->coupon_code) : null,
+                                "valid_until" => $offer->valid_until?->format("d M Y") ?? "No expiry",
+                                "banner_image" => $offer->banner_image ? asset($offer->banner_image) : null,
+                              ])'
+                            >
+                              View Offer
+                            </button>
                           </div>
                         </article>
                       </div>
@@ -590,6 +605,27 @@
             </article>
           </div>
         </aside>
+      </div>
+    </div>
+
+    <div class="modal fade" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="offerDetailsModalLabel">Offer Details</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <img id="offerDetailsModalImage" src="" alt="Offer image" class="img-fluid rounded mb-3 d-none" style="max-height: 280px; width: 100%; object-fit: cover;">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+              <span class="badge text-bg-primary" id="offerDetailsModalDiscount"></span>
+              <span class="coupon-code mb-0 d-none" id="offerDetailsModalCoupon"></span>
+            </div>
+            <h3 class="h4 mb-2" id="offerDetailsModalTitle"></h3>
+            <p class="text-muted mb-3" id="offerDetailsModalDescription"></p>
+            <p class="mb-0"><strong>Valid until:</strong> <span id="offerDetailsModalExpiry"></span></p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1234,3 +1270,49 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const triggers = document.querySelectorAll('.js-offer-modal-trigger');
+    if (!triggers.length) return;
+
+    const titleEl = document.getElementById('offerDetailsModalTitle');
+    const discountEl = document.getElementById('offerDetailsModalDiscount');
+    const descriptionEl = document.getElementById('offerDetailsModalDescription');
+    const couponEl = document.getElementById('offerDetailsModalCoupon');
+    const expiryEl = document.getElementById('offerDetailsModalExpiry');
+    const imageEl = document.getElementById('offerDetailsModalImage');
+
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        const offerDataRaw = trigger.getAttribute('data-offer');
+        if (!offerDataRaw) return;
+
+        const offer = JSON.parse(offerDataRaw);
+
+        titleEl.textContent = offer.title || 'Offer Details';
+        discountEl.textContent = offer.discount_tag || '';
+        descriptionEl.textContent = offer.short_description || '';
+        expiryEl.textContent = offer.valid_until || 'No expiry';
+
+        if (offer.coupon_code) {
+          couponEl.textContent = offer.coupon_code;
+          couponEl.classList.remove('d-none');
+        } else {
+          couponEl.textContent = '';
+          couponEl.classList.add('d-none');
+        }
+
+        if (offer.banner_image) {
+          imageEl.src = offer.banner_image;
+          imageEl.classList.remove('d-none');
+        } else {
+          imageEl.src = '';
+          imageEl.classList.add('d-none');
+        }
+      });
+    });
+  });
+</script>
+@endpush
