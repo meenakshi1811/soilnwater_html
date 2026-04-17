@@ -11,6 +11,7 @@
             width: 1200,
             height: 600
         },
+        currentBannerMode: 'upload',
 
         clamp: function (value, min, max) {
             return Math.max(min, Math.min(max, value));
@@ -118,6 +119,35 @@
                         showPreview(file);
                     }
                 });
+        },
+
+        syncBannerModeCards: function () {
+            $('.banner-mode-option').each(function () {
+                var $option = $(this);
+                var isChecked = $option.find('.banner-mode-radio').is(':checked');
+                $option.toggleClass('is-active', isChecked);
+            });
+        },
+
+        applyBannerMode: function (mode) {
+            this.currentBannerMode = mode === 'customize' ? 'customize' : 'upload';
+
+            var isCustomize = this.currentBannerMode === 'customize';
+            $('#bannerUploadWrap').toggleClass('d-none', isCustomize);
+            $('#bannerDesignerWrap').toggleClass('d-none', !isCustomize);
+
+            if (isCustomize) {
+                $('#bannerImage').val('');
+                $('#bannerPreview').attr('src', '#');
+                $('#bannerPreviewWrap').addClass('d-none');
+                $('#bannerPlaceholder').removeClass('d-none');
+                this.renderDesignerStage();
+                this.updateGeneratedBanner();
+            } else {
+                $('#generatedBannerData').val('');
+            }
+
+            this.syncBannerModeCards();
         },
 
         addTextLayer: function (text, options) {
@@ -357,6 +387,10 @@
                 self.renderDesignerStage();
             });
 
+            $('input[name="banner_mode"]').on('change', function () {
+                self.applyBannerMode($(this).val());
+            });
+
             $('#addTextLayerBtn').on('click', function () {
                 self.addTextLayer('New Text', { x: 80, y: 80, fontSize: 42 });
             });
@@ -513,6 +547,8 @@
                 self.renderDesignerStage();
             }
 
+            self.applyBannerMode($('input[name="banner_mode"]:checked').val() || 'upload');
+
             // Description character counter
             $('#descCharCount').text($('#shortDescription').val().length);
             $('#shortDescription').on('input', function () {
@@ -562,13 +598,13 @@
                     },
                     banner_image: {
                         required: function () {
-                            return !$('#generatedBannerData').val();
+                            return self.currentBannerMode === 'upload';
                         },
                         extension: 'jpg|jpeg|png|webp'
                     },
                     generated_banner_data: {
                         required: function () {
-                            return !$('#bannerImage').val();
+                            return self.currentBannerMode === 'customize';
                         }
                     },
                     short_description: {
@@ -589,11 +625,11 @@
                         maxlength: 'Discount tag must not exceed 100 characters.'
                     },
                     banner_image: {
-                        required: 'Please upload a banner image or customize a template.',
+                        required: 'Please upload a banner image.',
                         extension: 'Only JPG, PNG, or WebP images are allowed.'
                     },
                     generated_banner_data: {
-                        required: 'Please customize template or upload a banner image.'
+                        required: 'Please customize and generate a banner.'
                     },
                     short_description: {
                         maxlength: 'Description must not exceed 300 characters.'
@@ -619,8 +655,11 @@
                 submitHandler: function (form) {
                     setButtonLoading(true, true);
 
-                    if (!$('#bannerImage').val()) {
+                    if (self.currentBannerMode === 'customize') {
                         self.updateGeneratedBanner();
+                        $('#bannerImage').val('');
+                    } else {
+                        $('#generatedBannerData').val('');
                     }
 
                     // Build FormData manually so file is included
@@ -649,6 +688,8 @@
                             $('#bannerPreviewWrap').addClass('d-none');
                             $('#bannerPlaceholder').removeClass('d-none');
                             $('#bannerImageLayers').val('');
+                            $('input[name="banner_mode"][value="upload"]').prop('checked', true);
+                            self.applyBannerMode('upload');
                             self.designer.layers = [];
                             self.designer.activeId = null;
                             self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56 });

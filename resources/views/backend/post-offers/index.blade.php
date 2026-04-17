@@ -142,7 +142,36 @@
                         Upload your own image or design your own banner image with full controls (multiple images, draggable text blocks, font family, color, alignment, and drag/drop positioning).
                     </p>
 
-                    <div class="template-customizer-wrap mb-3">
+                    <div class="banner-mode-switch mb-4">
+                        <label class="banner-mode-option">
+                            <input
+                                type="radio"
+                                name="banner_mode"
+                                value="upload"
+                                class="banner-mode-radio"
+                                {{ old('banner_mode', 'upload') === 'upload' ? 'checked' : '' }}
+                            >
+                            <span class="banner-mode-card">
+                                <span class="banner-mode-title">Upload Banner</span>
+                                <small class="banner-mode-text">Use your ready-made design (PNG/JPG/WebP).</small>
+                            </span>
+                        </label>
+                        <label class="banner-mode-option">
+                            <input
+                                type="radio"
+                                name="banner_mode"
+                                value="customize"
+                                class="banner-mode-radio"
+                                {{ old('banner_mode') === 'customize' ? 'checked' : '' }}
+                            >
+                            <span class="banner-mode-card">
+                                <span class="banner-mode-title">Customize Banner</span>
+                                <small class="banner-mode-text">Build a banner with the designer tools below.</small>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="template-customizer-wrap mb-3 d-none" id="bannerDesignerWrap">
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <label class="form-label">Background Color</label>
@@ -212,7 +241,8 @@
                             </div>
                         </div>
                     </div>
-                    <div id="bannerDropzone" class="banner-dropzone" onclick="document.getElementById('bannerImage').click()">
+                    <div id="bannerUploadWrap">
+                        <div id="bannerDropzone" class="banner-dropzone" onclick="document.getElementById('bannerImage').click()">
                         <div id="bannerPreviewWrap" class="d-none position-relative">
                             <img id="bannerPreview" src="#" alt="Banner Preview" class="banner-preview-img">
                             <button type="button" class="btn btn-sm btn-danger banner-remove-btn" id="removeBannerBtn">
@@ -224,6 +254,7 @@
                             <p class="mb-1 fw-semibold">Click or drag to upload banner</p>
                             <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: 1200×400px · PNG, JPG, WebP · Max 2MB</p>
                         </div>
+                    </div>
                     </div>
                     <input
                         type="file"
