@@ -676,7 +676,7 @@
                             'Accept': 'application/json'
                         },
                         success: function (response) {
-                            FormHelper.showAlert($('#offerAlert'), 'success', response.message || 'Offer posted successfully.');
+                            FormHelper.showToast('success', response.message || 'Offer posted successfully.');
 
                             // Reset form
                             form.reset();
@@ -716,7 +716,7 @@
                                     });
                                 }
                             }
-                            FormHelper.showAlert($('#offerAlert'), 'danger', msg);
+                            FormHelper.showToast('danger', msg);
                         },
                         complete: function () {
                             setButtonLoading(false, false);
@@ -869,7 +869,7 @@
                         'Accept': 'application/json'
                     }
                 }).done(function (response) {
-                    FormHelper.showAlert($('#myOfferAlert'), 'success', response.message || 'Offer status updated.');
+                    FormHelper.showToast('success', response.message || 'Offer status updated.');
                     if (self.table) {
                         self.table.ajax.reload(null, false);
                     }
@@ -877,7 +877,7 @@
                     var message = (xhr.responseJSON && xhr.responseJSON.message)
                         ? xhr.responseJSON.message
                         : 'Unable to update offer status.';
-                    FormHelper.showAlert($('#myOfferAlert'), 'danger', message);
+                    FormHelper.showToast('danger', message);
                     if (self.table) {
                         self.table.ajax.reload(null, false);
                     }
