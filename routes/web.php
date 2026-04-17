@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [OfferPageController::class, 'home'])->name('frontend.index');
-Route::get('/offers-market', [OfferPageController::class, 'index'])->name('frontend.offers.index');
-Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
+Route::get('/offers', [OfferPageController::class, 'index'])->name('frontend.offers.index');
+Route::get('/offers/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::get('/terms-and-condition/{moduleKey}', [TermsAndConditionPageController::class, 'show'])->name('frontend.terms.show');
 
@@ -46,7 +46,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-    Route::prefix('offers')->name('offers.')->group(function () {
+    Route::prefix('dashboard/offers')->name('offers.')->group(function () {
         Route::get('/', [PostOfferController::class, 'offersIndex'])->name('index');
         Route::get('/data', [PostOfferController::class, 'offersData'])->name('data');
         Route::get('/{offer}', [PostOfferController::class, 'show'])->name('show');
@@ -56,7 +56,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/{offer}', [PostOfferController::class, 'destroy'])->name('destroy');
     });
 
-    Route::get('offers/categories/{category}/subcategories', [PostOfferController::class, 'subcategories'])
+    Route::get('dashboard/offers/categories/{category}/subcategories', [PostOfferController::class, 'subcategories'])
         ->name('offers.categories.subcategories');
     Route::get('/post-offer', [PostOfferController::class, 'index'])->name('post-offer');
 
