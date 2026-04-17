@@ -102,7 +102,9 @@ class PostOfferController extends Controller
 
                 $url = $this->bannerPublicUrl($offer->banner_image);
 
-                return '<img src="'.$url.'" alt="Offer banner" style="width:70px;height:44px;object-fit:cover;border-radius:6px;">';
+                return '<a href="'.$url.'" target="_blank" rel="noopener noreferrer">'
+                    . '<img src="'.$url.'" alt="Offer banner" style="width:70px;height:44px;object-fit:cover;border-radius:6px;">'
+                    . '</a>';
             })
             ->addColumn('created_by_name', fn (Offer $offer) => $offer->user?->full_name ?: ($offer->user?->name ?? '-'))
             ->addColumn('category_name', fn (Offer $offer) => $offer->category?->name ?? '-')
@@ -160,7 +162,10 @@ class PostOfferController extends Controller
 
         abort_unless($canAccess, 403);
 
-        return response()->json(['offer' => $offer]);
+        return response()->json([
+            'offer' => $offer,
+            'banner_url' => $offer->banner_image ? $this->bannerPublicUrl($offer->banner_image) : null,
+        ]);
     }
 
     public function update(Request $request, Offer $offer): JsonResponse

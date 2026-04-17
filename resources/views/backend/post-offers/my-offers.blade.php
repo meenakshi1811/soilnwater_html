@@ -120,6 +120,17 @@
                         <div class="col-md-6">
                             <label class="form-label">Banner Image (optional)</label>
                             <input type="file" name="banner_image" id="myOfferBannerImage" class="form-control" accept="image/png,image/jpeg,image/webp">
+                            <div id="myOfferExistingBannerWrap" class="mt-2 d-none">
+                                <small class="text-secondary d-block mb-1">Existing Banner</small>
+                                <a id="myOfferExistingBannerLink" href="#" target="_blank" rel="noopener noreferrer">
+                                    <img
+                                        id="myOfferExistingBannerPreview"
+                                        src="#"
+                                        alt="Existing offer banner"
+                                        style="width: 180px; height: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #dee2e6;"
+                                    >
+                                </a>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Short Description</label>
