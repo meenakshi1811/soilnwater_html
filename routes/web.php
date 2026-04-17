@@ -46,7 +46,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-    Route::prefix('offers')->name('offers.')->group(function () {
+    Route::prefix('dashboard/offers')->name('offers.')->group(function () {
         Route::get('/', [PostOfferController::class, 'offersIndex'])->name('index');
         Route::get('/data', [PostOfferController::class, 'offersData'])->name('data');
         Route::get('/{offer}', [PostOfferController::class, 'show'])->name('show');
@@ -56,7 +56,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/{offer}', [PostOfferController::class, 'destroy'])->name('destroy');
     });
 
-    Route::get('offers/categories/{category}/subcategories', [PostOfferController::class, 'subcategories'])
+    Route::get('dashboard/offers/categories/{category}/subcategories', [PostOfferController::class, 'subcategories'])
         ->name('offers.categories.subcategories');
     Route::get('/post-offer', [PostOfferController::class, 'index'])->name('post-offer');
 
