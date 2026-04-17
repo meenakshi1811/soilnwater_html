@@ -416,14 +416,6 @@ class PostOfferController extends Controller
         $destX = max(0, $bannerWidth - $targetLogoWidth - $padding);
         $destY = max(0, $bannerHeight - $targetLogoHeight - $padding);
 
-        $overlayPadding = max(6, (int) round($padding * 0.7));
-        $rectX1 = max(0, $destX - $overlayPadding);
-        $rectY1 = max(0, $destY - $overlayPadding);
-        $rectX2 = min($bannerWidth - 1, $destX + $targetLogoWidth + $overlayPadding);
-        $rectY2 = min($bannerHeight - 1, $destY + $targetLogoHeight + $overlayPadding);
-        $overlayColor = imagecolorallocatealpha($bannerImage, 0, 0, 0, 90);
-        imagefilledrectangle($bannerImage, $rectX1, $rectY1, $rectX2, $rectY2, $overlayColor);
-
         imagecopyresampled(
             $bannerImage,
             $logoImage,
