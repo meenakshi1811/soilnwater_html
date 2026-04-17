@@ -526,7 +526,7 @@
                         <article class="card h-100 shadow-sm border-0 offer-coupon-card">
                           @if ($offer->banner_image)
                             <img
-                              src="{{ asset('storage/' . $offer->banner_image) }}"
+                              src="{{ asset($offer->banner_image) }}"
                               alt="{{ $offer->title }}"
                               class="offer-coupon-image"
                             >
