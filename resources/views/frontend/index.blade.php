@@ -538,22 +538,17 @@
                             @if ($offer->coupon_code)
                               <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
                             @endif
-                            @php
-                              $offerPayload = [
-                                'title' => $offer->title,
-                                'discount_tag' => $offer->discount_tag,
-                                'short_description' => $offer->short_description ?: 'Special marketplace offer available now.',
-                                'coupon_code' => $offer->coupon_code ? strtoupper($offer->coupon_code) : null,
-                                'valid_until' => $offer->valid_until?->format('d M Y') ?? 'No expiry',
-                                'banner_image' => $offer->banner_image ? asset($offer->banner_image) : null,
-                              ];
-                            @endphp
                             <button
                               type="button"
                               class="btn btn-sm btn-outline-primary mt-auto js-offer-modal-trigger"
                               data-bs-toggle="modal"
                               data-bs-target="#offerDetailsModal"
-                              data-offer="{{ e(json_encode($offerPayload)) }}"
+                              data-offer-title="{{ $offer->title }}"
+                              data-offer-discount="{{ $offer->discount_tag }}"
+                              data-offer-description="{{ $offer->short_description ?: 'Special marketplace offer available now.' }}"
+                              data-offer-coupon="{{ $offer->coupon_code ? strtoupper($offer->coupon_code) : '' }}"
+                              data-offer-validity="{{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}"
+                              data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
                             >
                               View Offer
                             </button>
@@ -611,14 +606,14 @@
       </div>
     </div>
 
-    <div class="modal fade" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
+    <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header border-0 pb-2">
             <h2 class="modal-title fs-5" id="offerDetailsModalLabel">Offer Details</h2>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body">
+          <div class="modal-body pt-1">
             <img id="offerDetailsModalImage" src="" alt="Offer image" class="img-fluid rounded mb-3 d-none" style="max-height: 280px; width: 100%; object-fit: cover;">
             <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
               <span class="badge text-bg-primary" id="offerDetailsModalDiscount"></span>
@@ -1274,12 +1269,32 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+  .offer-details-modal .modal-content {
+    border: 0;
+    border-radius: 14px;
+    box-shadow: 0 18px 44px rgba(26, 58, 92, 0.2);
+  }
+  .offer-details-modal .modal-title {
+    color: #1a3a5c;
+    font-weight: 800;
+  }
+  .offer-details-modal #offerDetailsModalTitle {
+    color: #1a3a5c;
+    font-weight: 700;
+  }
+  .offer-details-modal #offerDetailsModalDescription {
+    line-height: 1.55;
+  }
+</style>
+@endpush
+
 @push('scripts')
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const triggers = document.querySelectorAll('.js-offer-modal-trigger');
-    if (!triggers.length) return;
-
+    const offerModal = document.getElementById('offerDetailsModal');
+    if (!offerModal) return;
     const titleEl = document.getElementById('offerDetailsModalTitle');
     const discountEl = document.getElementById('offerDetailsModalDiscount');
     const descriptionEl = document.getElementById('offerDetailsModalDescription');
@@ -1287,34 +1302,32 @@
     const expiryEl = document.getElementById('offerDetailsModalExpiry');
     const imageEl = document.getElementById('offerDetailsModalImage');
 
-    triggers.forEach(function (trigger) {
-      trigger.addEventListener('click', function () {
-        const offerDataRaw = trigger.getAttribute('data-offer');
-        if (!offerDataRaw) return;
+    offerModal.addEventListener('show.bs.modal', function (event) {
+      const trigger = event.relatedTarget;
+      if (!trigger || !trigger.classList.contains('js-offer-modal-trigger')) return;
 
-        const offer = JSON.parse(offerDataRaw);
+      titleEl.textContent = trigger.getAttribute('data-offer-title') || 'Offer Details';
+      discountEl.textContent = trigger.getAttribute('data-offer-discount') || '';
+      descriptionEl.textContent = trigger.getAttribute('data-offer-description') || '';
+      expiryEl.textContent = trigger.getAttribute('data-offer-validity') || 'No expiry';
 
-        titleEl.textContent = offer.title || 'Offer Details';
-        discountEl.textContent = offer.discount_tag || '';
-        descriptionEl.textContent = offer.short_description || '';
-        expiryEl.textContent = offer.valid_until || 'No expiry';
+      const couponCode = trigger.getAttribute('data-offer-coupon');
+      if (couponCode) {
+        couponEl.textContent = couponCode;
+        couponEl.classList.remove('d-none');
+      } else {
+        couponEl.textContent = '';
+        couponEl.classList.add('d-none');
+      }
 
-        if (offer.coupon_code) {
-          couponEl.textContent = offer.coupon_code;
-          couponEl.classList.remove('d-none');
-        } else {
-          couponEl.textContent = '';
-          couponEl.classList.add('d-none');
-        }
-
-        if (offer.banner_image) {
-          imageEl.src = offer.banner_image;
-          imageEl.classList.remove('d-none');
-        } else {
-          imageEl.src = '';
-          imageEl.classList.add('d-none');
-        }
-      });
+      const bannerImage = trigger.getAttribute('data-offer-image');
+      if (bannerImage) {
+        imageEl.src = bannerImage;
+        imageEl.classList.remove('d-none');
+      } else {
+        imageEl.src = '';
+        imageEl.classList.add('d-none');
+      }
     });
   });
 </script>
