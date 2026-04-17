@@ -237,6 +237,9 @@
                                 <label class="form-label">Banner Designer (Frontend ratio 2:1)</label>
                                 <div id="bannerDesignerStage" class="banner-designer-stage"></div>
                                 <small class="text-secondary d-block mt-1">Tip: drag text/images to any position. Select an image layer to resize by Width/Height, quick scale slider, or mouse wheel. Final export is PNG in 1200×600.</small>
+                                <small class="text-secondary d-block mt-2">
+                                    Important: You are solely responsible for the banner content you create using this designer, including its accuracy, quality, branding, and legal compliance. We do not accept responsibility for any outcomes resulting from customized banner designs.
+                                </small>
                                 <input type="hidden" name="generated_banner_data" id="generatedBannerData" value="">
                             </div>
                         </div>
