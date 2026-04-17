@@ -291,8 +291,8 @@ class PostOfferController extends Controller
             abort(422, 'Invalid generated banner data.');
         }
 
-        $relativePath = 'offers/banners/custom-'.Str::uuid().'.png';
-        $absoluteDirectory = public_path('offers/banners');
+        $relativePath = 'uploads/offers/banners/custom-'.Str::uuid().'.png';
+        $absoluteDirectory = public_path('uploads/offers/banners');
 
         if (!is_dir($absoluteDirectory)) {
             mkdir($absoluteDirectory, 0755, true);
@@ -308,7 +308,7 @@ class PostOfferController extends Controller
         $file = $request->file('banner_image');
         $extension = $file->getClientOriginalExtension() ?: $file->extension();
         $fileName = 'banner-'.Str::uuid().'.'.$extension;
-        $relativeDirectory = 'offers/banners';
+        $relativeDirectory = 'uploads/offers/banners';
         $absoluteDirectory = public_path($relativeDirectory);
 
         if (!is_dir($absoluteDirectory)) {
