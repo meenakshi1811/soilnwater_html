@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [OfferPageController::class, 'home'])->name('frontend.index');
-Route::get('/offers', [OfferPageController::class, 'index'])->name('frontend.offers.index');
-Route::get('/offers/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
+Route::get('/offers-market', [OfferPageController::class, 'index'])->name('frontend.offers.index');
+Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::get('/terms-and-condition/{moduleKey}', [TermsAndConditionPageController::class, 'show'])->name('frontend.terms.show');
 
