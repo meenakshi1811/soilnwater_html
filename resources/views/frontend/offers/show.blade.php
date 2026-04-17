@@ -7,7 +7,7 @@
     <article class="card border-0 shadow-sm">
         @if ($offer->banner_image)
             <img
-                src="{{ asset('storage/' . $offer->banner_image) }}"
+                src="{{ asset($offer->banner_image) }}"
                 alt="{{ $offer->title }}"
                 class="card-img-top"
                 style="max-height: 360px; object-fit: cover;"
