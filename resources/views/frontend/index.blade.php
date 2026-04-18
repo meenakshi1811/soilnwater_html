@@ -614,7 +614,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body pt-1">
-            <img id="offerDetailsModalImage" src="" alt="Offer image" class="img-fluid rounded mb-3 d-none" style="max-height: 280px; width: 100%; object-fit: cover;">
+            <img id="offerDetailsModalImage" src="" alt="Offer image" class="img-fluid rounded mb-3 d-none offer-details-modal-image">
             <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
               <span class="badge text-bg-primary" id="offerDetailsModalDiscount"></span>
               <span class="coupon-code mb-0 d-none" id="offerDetailsModalCoupon"></span>
@@ -1286,6 +1286,14 @@
   }
   .offer-details-modal #offerDetailsModalDescription {
     line-height: 1.55;
+  }
+  .offer-details-modal-image {
+    width: 100%;
+    height: 280px;
+    object-fit: contain;
+    object-position: center;
+    background: #f5f9ff;
+    padding: 8px;
   }
 </style>
 @endpush
