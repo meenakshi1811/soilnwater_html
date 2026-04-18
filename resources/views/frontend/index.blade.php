@@ -523,7 +523,19 @@
                   <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-1 offer-coupon-grid">
                     @foreach ($offerChunk as $offer)
                       <div class="col">
-                        <article class="card h-100 shadow-sm border-0 offer-coupon-card">
+                        <article
+                          class="card h-100 shadow-sm border-0 offer-coupon-card js-offer-modal-trigger"
+                          role="button"
+                          tabindex="0"
+                          data-bs-toggle="modal"
+                          data-bs-target="#offerDetailsModal"
+                          data-offer-title="{{ $offer->title }}"
+                          data-offer-discount="{{ $offer->discount_tag }}"
+                          data-offer-description="{{ $offer->short_description ?: 'Special marketplace offer available now.' }}"
+                          data-offer-coupon="{{ $offer->coupon_code ? strtoupper($offer->coupon_code) : '' }}"
+                          data-offer-validity="{{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}"
+                          data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
+                        >
                           @if ($offer->banner_image)
                             <img
                               src="{{ asset($offer->banner_image) }}"
@@ -538,20 +550,7 @@
                             @if ($offer->coupon_code)
                               <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
                             @endif
-                            <button
-                              type="button"
-                              class="btn btn-sm btn-outline-primary mt-auto js-offer-modal-trigger"
-                              data-bs-toggle="modal"
-                              data-bs-target="#offerDetailsModal"
-                              data-offer-title="{{ $offer->title }}"
-                              data-offer-discount="{{ $offer->discount_tag }}"
-                              data-offer-description="{{ $offer->short_description ?: 'Special marketplace offer available now.' }}"
-                              data-offer-coupon="{{ $offer->coupon_code ? strtoupper($offer->coupon_code) : '' }}"
-                              data-offer-validity="{{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}"
-                              data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
-                            >
-                              View Offer
-                            </button>
+                            <span class="small text-primary fw-semibold mt-auto">Tap to view offer details</span>
                           </div>
                         </article>
                       </div>
@@ -1301,6 +1300,16 @@
     const couponEl = document.getElementById('offerDetailsModalCoupon');
     const expiryEl = document.getElementById('offerDetailsModalExpiry');
     const imageEl = document.getElementById('offerDetailsModalImage');
+    const offerTriggers = document.querySelectorAll('.offer-coupon-card.js-offer-modal-trigger');
+
+    offerTriggers.forEach(function (trigger) {
+      trigger.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          trigger.click();
+        }
+      });
+    });
 
     offerModal.addEventListener('show.bs.modal', function (event) {
       const trigger = event.relatedTarget;
