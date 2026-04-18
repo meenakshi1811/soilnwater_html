@@ -18,7 +18,7 @@
             <p class="text-secondary mb-0 mt-1" style="font-size:0.875rem;">Fill in the details below to publish a new offer.</p>
         </div>
 
-        <form id="offerForm" method="POST" action="{{ route('offers.store') }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/offers/categories') }}">
+        <form id="offerForm" method="POST" action="{{ route('offers.store') }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/offers/categories') }}">
             @csrf
             <input type="hidden" name="offer_id" id="offerId" value="">
 

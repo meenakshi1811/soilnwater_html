@@ -39,7 +39,7 @@
         /* ── 2. Dynamic Subcategories ─────────────────────────── */
         loadSubcategories: function (categoryId, selectedSubId) {
             var $sub = $('#subcategorySelect');
-            var subcategoryEndpointBase = $('#offerForm').data('subcategory-url-base') || '/offers/categories';
+            var subcategoryEndpointBase = $('#offerForm').data('subcategory-url-base') || '/dashboard/offers/categories';
 
             if (!categoryId) {
                 $sub.html('<option value="">— Select a category first —</option>').prop('disabled', true);
