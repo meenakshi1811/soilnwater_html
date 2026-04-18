@@ -537,11 +537,13 @@
                           data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
                         >
                           @if ($offer->banner_image)
-                            <img
-                              src="{{ asset($offer->banner_image) }}"
-                              alt="{{ $offer->title }}"
-                              class="offer-coupon-image"
-                            >
+                            <div class="offer-coupon-image-wrap">
+                              <img
+                                src="{{ asset($offer->banner_image) }}"
+                                alt="{{ $offer->title }}"
+                                class="offer-coupon-image"
+                              >
+                            </div>
                           @endif
                           <div class="card-body d-flex flex-column gap-2">
                             <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
@@ -550,7 +552,6 @@
                             @if ($offer->coupon_code)
                               <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
                             @endif
-                            <span class="small text-primary fw-semibold mt-auto">Tap to view offer details</span>
                           </div>
                         </article>
                       </div>
