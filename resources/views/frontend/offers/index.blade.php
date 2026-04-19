@@ -7,9 +7,9 @@
         <a href="{{ route('frontend.index') }}" class="view-all">Back to home ▶</a>
     </div>
 
-    <div class="row g-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-3">
         @forelse ($offers as $offer)
-            <div class="col-12 col-sm-6 col-lg-3">
+            <div class="col">
                 <article
                     class="card h-100 shadow-sm border-0 offer-coupon-card js-offer-modal-trigger"
                     role="button"
@@ -85,6 +85,23 @@
 
 @push('styles')
 <style>
+    .offer-coupon-image-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        background: #f5f9ff;
+        padding: 10px;
+        overflow: hidden;
+    }
+
+    .offer-coupon-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+    }
+
     .offer-details-modal-image {
         width: 100%;
         height: 280px;
