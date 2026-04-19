@@ -34,18 +34,15 @@
                     @endif
                     <div class="card-body d-flex flex-column gap-2">
                         <div class="d-flex align-items-center flex-wrap gap-2">
-                            <span class="badge text-bg-primary w-fit">
+                            <span class="badge text-bg-primary w-fit offer-meta-pill offer-meta-pill-discount">
                                 {{ $offer->discount_tag }}
                             </span>
                             @if ($offer->coupon_code)
-                                <span class="coupon-code mb-0">{{ strtoupper($offer->coupon_code) }}</span>
+                                <span class="coupon-code mb-0 offer-meta-pill offer-meta-pill-coupon">{{ strtoupper($offer->coupon_code) }}</span>
                             @endif
                         </div>
                         <h2 class="h5 mb-1">{{ $offer->title }}</h2>
                         <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special offer available now.' }}</p>
-                        @if ($offer->coupon_code)
-                            <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
-                        @endif
                     </div>
                 </article>
             </div>
@@ -100,6 +97,26 @@
         height: 100%;
         object-fit: contain;
         object-position: center;
+    }
+
+    .offer-meta-pill {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 16px;
+        border-radius: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        line-height: 1;
+    }
+
+    .offer-meta-pill-discount {
+        font-size: 1.1rem;
+    }
+
+    .offer-meta-pill-coupon {
+        font-size: 1.1rem;
     }
 
     .offer-details-modal-image {
