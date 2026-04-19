@@ -196,6 +196,13 @@
                                 <input type="number" id="layerFontSizeInput" class="form-control" min="10" max="140" value="42">
                             </div>
                             <div class="col-md-2">
+                                <label class="form-label d-block">Text Style</label>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="layerBoldInput">
+                                    <label class="form-check-label" for="layerBoldInput">Bold</label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
                                 <label class="form-label">Text Color</label>
                                 <input type="color" id="layerTextColorInput" class="form-control form-control-color w-100" value="#ffffff">
                             </div>

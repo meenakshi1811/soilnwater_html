@@ -159,6 +159,7 @@
                 x: options.x || 60,
                 y: options.y || 60,
                 fontSize: options.fontSize || 42,
+                fontWeight: options.fontWeight || '700',
                 color: options.color || '#ffffff',
                 align: options.align || 'left',
                 fontFamily: options.fontFamily || 'Arial'
@@ -214,18 +215,20 @@
             if (!isText) {
                 $('#layerTextInput').val('');
                 $('#layerFontSizeInput').val(42);
+                $('#layerBoldInput').prop('checked', true);
                 $('#layerTextColorInput').val('#ffffff');
                 $('#layerTextAlignInput').val('left');
                 $('#layerFontFamilyInput').val('Arial');
             } else {
                 $('#layerTextInput').val(layer.text || '');
                 $('#layerFontSizeInput').val(layer.fontSize || 42);
+                $('#layerBoldInput').prop('checked', (layer.fontWeight || '700') === '700');
                 $('#layerTextColorInput').val(layer.color || '#ffffff');
                 $('#layerTextAlignInput').val(layer.align || 'left');
                 $('#layerFontFamilyInput').val(layer.fontFamily || 'Arial');
             }
 
-            $('#layerTextInput, #layerFontSizeInput, #layerTextColorInput, #layerTextAlignInput, #layerFontFamilyInput')
+            $('#layerTextInput, #layerFontSizeInput, #layerBoldInput, #layerTextColorInput, #layerTextAlignInput, #layerFontFamilyInput')
                 .prop('disabled', !isText);
 
             if (!isImage) {
@@ -260,6 +263,7 @@
                         top: (layer.y / self.designer.height * 100) + '%',
                         color: layer.color,
                         fontSize: Math.max(10, layer.fontSize) + 'px',
+                        fontWeight: layer.fontWeight || '700',
                         textAlign: layer.align,
                         fontFamily: layer.fontFamily,
                         transform: 'translate(-0%, -0%)'
@@ -310,7 +314,7 @@
                     ctx.fillStyle = layer.color || '#ffffff';
                     ctx.shadowColor = 'rgba(0,0,0,0.4)';
                     ctx.shadowBlur = 4;
-                    ctx.font = '700 ' + (layer.fontSize || 42) + 'px ' + (layer.fontFamily || 'Arial');
+                    ctx.font = (layer.fontWeight || '700') + ' ' + (layer.fontSize || 42) + 'px ' + (layer.fontFamily || 'Arial');
                     ctx.fillText((layer.text || '').substring(0, 80), layer.x, layer.y + (layer.fontSize || 42));
                     drawNext(index + 1);
                 } else {
@@ -421,12 +425,13 @@
                 self.renderDesignerStage();
             });
 
-            $('#layerTextInput, #layerFontSizeInput, #layerTextColorInput, #layerTextAlignInput, #layerFontFamilyInput').on('input change', function () {
+            $('#layerTextInput, #layerFontSizeInput, #layerBoldInput, #layerTextColorInput, #layerTextAlignInput, #layerFontFamilyInput').on('input change', function () {
                 var layer = self.findActiveLayer();
                 if (!layer || layer.type !== 'text') return;
 
                 layer.text = $('#layerTextInput').val();
                 layer.fontSize = parseInt($('#layerFontSizeInput').val() || '42', 10);
+                layer.fontWeight = $('#layerBoldInput').is(':checked') ? '700' : '400';
                 layer.color = $('#layerTextColorInput').val() || '#ffffff';
                 layer.align = $('#layerTextAlignInput').val() || 'left';
                 layer.fontFamily = $('#layerFontFamilyInput').val() || 'Arial';
