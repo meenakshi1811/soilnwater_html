@@ -34,7 +34,7 @@
                     @endif
                     <div class="card-body d-flex flex-column gap-2">
                         <span class="badge text-bg-primary w-fit">
-                            {{ $offer->coupon_code ? strtoupper($offer->coupon_code) : $offer->discount_tag }}
+                            {{ $offer->discount_tag }}
                         </span>
                         <h2 class="h5 mb-1">{{ $offer->title }}</h2>
                         <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special offer available now.' }}</p>
@@ -118,7 +118,6 @@
             titleEl.textContent = trigger.getAttribute('data-offer-title') || 'Offer Details';
             const couponCode = trigger.getAttribute('data-offer-coupon') || '';
             const discountText = trigger.getAttribute('data-offer-discount') || '';
-            const looksLikeBogoText = /buy\s*one|get\s*one|buy\s*\d+/i.test(discountText);
 
             if (couponCode) {
                 couponEl.textContent = couponCode;
@@ -128,12 +127,12 @@
                 couponEl.classList.add('d-none');
             }
 
-            if (looksLikeBogoText && !couponCode) {
+            if (discountText) {
+                discountEl.textContent = discountText;
+                discountEl.classList.remove('d-none');
+            } else {
                 discountEl.textContent = '';
                 discountEl.classList.add('d-none');
-            } else {
-                discountEl.textContent = couponCode || discountText;
-                discountEl.classList.remove('d-none');
             }
             descriptionEl.textContent = trigger.getAttribute('data-offer-description') || '';
             expiryEl.textContent = trigger.getAttribute('data-offer-validity') || 'No expiry';
