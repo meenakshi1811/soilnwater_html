@@ -33,9 +33,14 @@
                         </div>
                     @endif
                     <div class="card-body d-flex flex-column gap-2">
-                        <span class="badge text-bg-primary w-fit">
-                            {{ $offer->discount_tag }}
-                        </span>
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge text-bg-primary w-fit">
+                                {{ $offer->discount_tag }}
+                            </span>
+                            @if ($offer->coupon_code)
+                                <span class="coupon-code mb-0">{{ strtoupper($offer->coupon_code) }}</span>
+                            @endif
+                        </div>
                         <h2 class="h5 mb-1">{{ $offer->title }}</h2>
                         <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special offer available now.' }}</p>
                         @if ($offer->coupon_code)
