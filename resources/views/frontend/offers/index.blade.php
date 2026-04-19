@@ -24,18 +24,17 @@
                     data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
                 >
                     @if ($offer->banner_image)
-                        <div class="d-flex justify-content-center pt-3">
+                        <div class="offer-coupon-image-wrap">
                             <img
                                 src="{{ asset($offer->banner_image) }}"
                                 alt="{{ $offer->title }}"
-                                class="card-img-top"
-                                style="height: 220px; width: 75%; object-fit: cover; border-radius: .5rem;"
+                                class="offer-coupon-image"
                             >
                         </div>
                     @endif
                     <div class="card-body d-flex flex-column gap-2">
                         <span class="badge text-bg-primary w-fit">
-                            {{ $offer->coupon_code ? strtoupper($offer->coupon_code) : $offer->discount_tag }}
+                            {{ $offer->discount_tag }}
                         </span>
                         <h2 class="h5 mb-1">{{ $offer->title }}</h2>
                         <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special offer available now.' }}</p>
@@ -62,9 +61,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <img id="offerDetailsModalImage" src="" alt="Offer image" class="img-fluid rounded mb-3 d-none" style="max-height: 220px; width: 100%; object-fit: cover;">
+                <img id="offerDetailsModalImage" src="" alt="Offer image" class="img-fluid rounded mb-3 d-none offer-details-modal-image">
                 <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
                     <span class="badge text-bg-primary" id="offerDetailsModalDiscount"></span>
+                    <span class="coupon-code mb-0 d-none" id="offerDetailsModalCoupon"></span>
                 </div>
                 <h3 class="h4 mb-2" id="offerDetailsModalTitle"></h3>
                 <p class="text-muted mb-3" id="offerDetailsModalDescription"></p>
@@ -75,6 +75,19 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    .offer-details-modal-image {
+        width: 100%;
+        height: 280px;
+        object-fit: contain;
+        object-position: center;
+        background: #f5f9ff;
+        padding: 8px;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
     (function () {
@@ -84,6 +97,7 @@
         const titleEl = document.getElementById('offerDetailsModalTitle');
         const discountEl = document.getElementById('offerDetailsModalDiscount');
         const descriptionEl = document.getElementById('offerDetailsModalDescription');
+        const couponEl = document.getElementById('offerDetailsModalCoupon');
         const expiryEl = document.getElementById('offerDetailsModalExpiry');
         const imageEl = document.getElementById('offerDetailsModalImage');
         const offerTriggers = document.querySelectorAll('.offer-coupon-card.js-offer-modal-trigger');
@@ -102,8 +116,24 @@
             if (!trigger || !trigger.classList.contains('js-offer-modal-trigger')) return;
 
             titleEl.textContent = trigger.getAttribute('data-offer-title') || 'Offer Details';
-            const couponCode = trigger.getAttribute('data-offer-coupon');
-            discountEl.textContent = couponCode || trigger.getAttribute('data-offer-discount') || '';
+            const couponCode = trigger.getAttribute('data-offer-coupon') || '';
+            const discountText = trigger.getAttribute('data-offer-discount') || '';
+
+            if (couponCode) {
+                couponEl.textContent = couponCode;
+                couponEl.classList.remove('d-none');
+            } else {
+                couponEl.textContent = '';
+                couponEl.classList.add('d-none');
+            }
+
+            if (discountText) {
+                discountEl.textContent = discountText;
+                discountEl.classList.remove('d-none');
+            } else {
+                discountEl.textContent = '';
+                discountEl.classList.add('d-none');
+            }
             descriptionEl.textContent = trigger.getAttribute('data-offer-description') || '';
             expiryEl.textContent = trigger.getAttribute('data-offer-validity') || 'No expiry';
 
