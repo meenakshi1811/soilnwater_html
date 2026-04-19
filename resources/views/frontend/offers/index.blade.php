@@ -38,6 +38,9 @@
                         </span>
                         <h2 class="h5 mb-1">{{ $offer->title }}</h2>
                         <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special offer available now.' }}</p>
+                        @if ($offer->coupon_code)
+                            <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
+                        @endif
                     </div>
                 </article>
             </div>
