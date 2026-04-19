@@ -7,9 +7,9 @@
         <a href="{{ route('frontend.index') }}" class="view-all">Back to home ▶</a>
     </div>
 
-    <div class="row g-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-3">
         @forelse ($offers as $offer)
-            <div class="col-12 col-sm-6 col-lg-3">
+            <div class="col">
                 <article
                     class="card h-100 shadow-sm border-0 offer-coupon-card js-offer-modal-trigger"
                     role="button"
@@ -34,18 +34,15 @@
                     @endif
                     <div class="card-body d-flex flex-column gap-2">
                         <div class="d-flex align-items-center flex-wrap gap-2">
-                            <span class="badge text-bg-primary w-fit">
+                            <span class="badge text-bg-primary w-fit offer-meta-pill offer-meta-pill-discount">
                                 {{ $offer->discount_tag }}
                             </span>
                             @if ($offer->coupon_code)
-                                <span class="coupon-code mb-0">{{ strtoupper($offer->coupon_code) }}</span>
+                                <span class="coupon-code mb-0 offer-meta-pill offer-meta-pill-coupon">{{ strtoupper($offer->coupon_code) }}</span>
                             @endif
                         </div>
                         <h2 class="h5 mb-1">{{ $offer->title }}</h2>
                         <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special offer available now.' }}</p>
-                        @if ($offer->coupon_code)
-                            <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
-                        @endif
                     </div>
                 </article>
             </div>
@@ -85,6 +82,43 @@
 
 @push('styles')
 <style>
+    .offer-coupon-image-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        background: #f5f9ff;
+        padding: 10px;
+        overflow: hidden;
+    }
+
+    .offer-coupon-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center;
+    }
+
+    .offer-meta-pill {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 16px;
+        border-radius: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        line-height: 1;
+    }
+
+    .offer-meta-pill-discount {
+        font-size: 1.1rem;
+    }
+
+    .offer-meta-pill-coupon {
+        font-size: 1.1rem;
+    }
+
     .offer-details-modal-image {
         width: 100%;
         height: 280px;
