@@ -33,7 +33,7 @@
                         </div>
                     @endif
                     <div class="card-body d-flex flex-column gap-2">
-                        <div class="d-flex align-items-center flex-wrap gap-2">
+                        <div class="offer-meta-row">
                             <span class="badge text-bg-primary w-fit offer-meta-pill offer-meta-pill-discount">
                                 {{ $offer->discount_tag }}
                             </span>
@@ -100,23 +100,41 @@
     }
 
     .offer-meta-pill {
-        min-height: 40px;
+        height: 36px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0 16px;
-        border-radius: 12px;
+        padding: 0 14px;
+        border-radius: 10px;
         font-weight: 700;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.2px;
         line-height: 1;
+        font-size: 1rem;
+    }
+
+    .offer-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: nowrap;
+        margin-bottom: 2px;
     }
 
     .offer-meta-pill-discount {
-        font-size: 1.1rem;
+        flex: 0 0 auto;
+        white-space: nowrap;
     }
 
     .offer-meta-pill-coupon {
-        font-size: 1.1rem;
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border: 1px dashed #9cc8ff;
+        background-color: #edf5ff;
+        color: #0c4f93;
     }
 
     .offer-details-modal-image {
