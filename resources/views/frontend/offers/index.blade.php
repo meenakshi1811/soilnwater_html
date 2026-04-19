@@ -33,16 +33,16 @@
                         </div>
                     @endif
                     <div class="card-body d-flex flex-column gap-2">
-                        <div class="offer-meta-row">
+                        <div>
                             <span class="badge text-bg-primary w-fit offer-meta-pill offer-meta-pill-discount">
                                 {{ $offer->discount_tag }}
                             </span>
-                            @if ($offer->coupon_code)
-                                <span class="coupon-code mb-0 offer-meta-pill offer-meta-pill-coupon">{{ strtoupper($offer->coupon_code) }}</span>
-                            @endif
                         </div>
                         <h2 class="h5 mb-1">{{ $offer->title }}</h2>
-                        <p class="small text-muted mb-2">{{ $offer->short_description ?: 'Special offer available now.' }}</p>
+                        <p class="small text-muted mb-2 offer-short-description">{{ $offer->short_description ?: 'Special offer available now.' }}</p>
+                        @if ($offer->coupon_code)
+                            <span class="coupon-code mb-0 offer-meta-pill offer-meta-pill-coupon mt-auto align-self-start">{{ strtoupper($offer->coupon_code) }}</span>
+                        @endif
                     </div>
                 </article>
             </div>
@@ -100,41 +100,38 @@
     }
 
     .offer-meta-pill {
-        height: 36px;
+        height: 34px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0 14px;
+        padding: 0 12px;
         border-radius: 10px;
         font-weight: 700;
         letter-spacing: 0.2px;
         line-height: 1;
-        font-size: 1rem;
-    }
-
-    .offer-meta-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: nowrap;
-        margin-bottom: 2px;
+        font-size: 0.95rem;
     }
 
     .offer-meta-pill-discount {
-        flex: 0 0 auto;
+        font-size: 0.8rem;
+        height: 30px;
+        padding: 0 10px;
+        border-radius: 8px;
         white-space: nowrap;
     }
 
     .offer-meta-pill-coupon {
-        flex: 1 1 auto;
-        min-width: 0;
-        max-width: 100%;
+        min-width: 150px;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
         border: 1px dashed #9cc8ff;
         background-color: #edf5ff;
         color: #0c4f93;
+    }
+
+    .offer-short-description {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .offer-details-modal-image {
