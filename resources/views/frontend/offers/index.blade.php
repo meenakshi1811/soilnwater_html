@@ -34,7 +34,7 @@
                     @endif
                     <div class="card-body d-flex flex-column gap-2">
                         <div>
-                            <span class="badge text-bg-primary w-fit offer-meta-pill offer-meta-pill-discount">
+                            <span class="badge text-bg-primary w-fit">
                                 {{ $offer->discount_tag }}
                             </span>
                         </div>
