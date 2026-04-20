@@ -1289,11 +1289,12 @@
   }
   .offer-details-modal-image {
     width: 100%;
-    height: 280px;
-    object-fit: contain;
+    aspect-ratio: 768 / 1080;
+    height: auto;
+    object-fit: cover;
     object-position: center;
     background: #f5f9ff;
-    padding: 8px;
+    padding: 0;
   }
 </style>
 @endpush

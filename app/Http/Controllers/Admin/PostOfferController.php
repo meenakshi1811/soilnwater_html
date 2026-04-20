@@ -14,6 +14,9 @@ use Yajra\DataTables\Facades\DataTables;
 
 class PostOfferController extends Controller
 {
+    private const BANNER_TARGET_WIDTH = 768;
+    private const BANNER_TARGET_HEIGHT = 1080;
+
     public function index()
     {
         abort_unless($this->canCreate(request()->user()), 403);
@@ -305,6 +308,7 @@ class PostOfferController extends Controller
 
         $absolutePath = public_path($relativePath);
         file_put_contents($absolutePath, $decoded);
+        $this->resizeBannerToTargetSize($absolutePath);
         $this->applyCopyrightLogoToBanner($absolutePath);
 
         return $relativePath;
@@ -323,7 +327,9 @@ class PostOfferController extends Controller
         }
 
         $file->move($absoluteDirectory, $fileName);
-        $this->applyCopyrightLogoToBanner($absoluteDirectory.'/'.$fileName);
+        $absolutePath = $absoluteDirectory.'/'.$fileName;
+        $this->resizeBannerToTargetSize($absolutePath);
+        $this->applyCopyrightLogoToBanner($absolutePath);
 
         return $relativeDirectory.'/'.$fileName;
     }
@@ -438,6 +444,104 @@ class PostOfferController extends Controller
 
         imagedestroy($logoImage);
         imagedestroy($bannerImage);
+    }
+
+    private function resizeBannerToTargetSize(string $bannerPath): void
+    {
+        if (!is_file($bannerPath)) {
+            return;
+        }
+
+        $imageInfo = @getimagesize($bannerPath);
+        if (!is_array($imageInfo) || empty($imageInfo[2])) {
+            return;
+        }
+
+        $createImageByType = match ($imageInfo[2]) {
+            IMAGETYPE_JPEG => function (string $path) {
+                return @imagecreatefromjpeg($path);
+            },
+            IMAGETYPE_PNG => function (string $path) {
+                return @imagecreatefrompng($path);
+            },
+            IMAGETYPE_WEBP => function (string $path) {
+                if (!function_exists('imagecreatefromwebp')) {
+                    return false;
+                }
+
+                return @imagecreatefromwebp($path);
+            },
+            default => null,
+        };
+
+        if ($createImageByType === null) {
+            return;
+        }
+
+        $sourceImage = $createImageByType($bannerPath);
+        if (!is_resource($sourceImage) && !is_object($sourceImage)) {
+            return;
+        }
+
+        $sourceWidth = imagesx($sourceImage);
+        $sourceHeight = imagesy($sourceImage);
+        if ($sourceWidth <= 0 || $sourceHeight <= 0) {
+            imagedestroy($sourceImage);
+
+            return;
+        }
+
+        $targetWidth = self::BANNER_TARGET_WIDTH;
+        $targetHeight = self::BANNER_TARGET_HEIGHT;
+        $targetImage = imagecreatetruecolor($targetWidth, $targetHeight);
+        if (!is_resource($targetImage) && !is_object($targetImage)) {
+            imagedestroy($sourceImage);
+
+            return;
+        }
+
+        imagealphablending($targetImage, false);
+        imagesavealpha($targetImage, true);
+        $transparent = imagecolorallocatealpha($targetImage, 0, 0, 0, 127);
+        imagefilledrectangle($targetImage, 0, 0, $targetWidth, $targetHeight, $transparent);
+
+        $sourceRatio = $sourceWidth / $sourceHeight;
+        $targetRatio = $targetWidth / $targetHeight;
+
+        if ($sourceRatio > $targetRatio) {
+            $copyHeight = $sourceHeight;
+            $copyWidth = (int) round($sourceHeight * $targetRatio);
+            $sourceX = (int) round(($sourceWidth - $copyWidth) / 2);
+            $sourceY = 0;
+        } else {
+            $copyWidth = $sourceWidth;
+            $copyHeight = (int) round($sourceWidth / $targetRatio);
+            $sourceX = 0;
+            $sourceY = (int) round(($sourceHeight - $copyHeight) / 2);
+        }
+
+        imagecopyresampled(
+            $targetImage,
+            $sourceImage,
+            0,
+            0,
+            $sourceX,
+            $sourceY,
+            $targetWidth,
+            $targetHeight,
+            $copyWidth,
+            $copyHeight
+        );
+
+        match ($imageInfo[2]) {
+            IMAGETYPE_JPEG => imagejpeg($targetImage, $bannerPath, 90),
+            IMAGETYPE_PNG => imagepng($targetImage, $bannerPath, 6),
+            IMAGETYPE_WEBP => function_exists('imagewebp') ? imagewebp($targetImage, $bannerPath, 90) : null,
+            default => null,
+        };
+
+        imagedestroy($sourceImage);
+        imagedestroy($targetImage);
     }
 
     private function deleteBannerFile(string $relativePath): void

@@ -2275,7 +2275,8 @@
 }
 .offer-coupon-image-wrap {
   width: 100%;
-  height: 130px;
+  aspect-ratio: 768 / 1080;
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2286,9 +2287,9 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  padding: 6px;
+  padding: 0;
 }
 .offer-coupon-title {
   min-height: 38px;

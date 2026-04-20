@@ -10,7 +10,7 @@
                 src="{{ asset($offer->banner_image) }}"
                 alt="{{ $offer->title }}"
                 class="card-img-top"
-                style="max-height: 360px; object-fit: cover;"
+                style="width:100%; aspect-ratio:768/1080; object-fit:cover;"
             >
         @endif
         <div class="card-body">
