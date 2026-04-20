@@ -84,8 +84,8 @@
 @push('styles')
 <style>
     .offer-details-modal .modal-dialog.offer-details-dialog {
-        width: min(100% - 1.5rem, 920px);
-        max-width: 920px;
+        width: min(100% - 1.5rem, 640px);
+        max-width: 640px;
         margin-inline: auto;
     }
 
@@ -167,11 +167,11 @@
         display: block;
         width: 100%;
         height: auto;
-        max-height: 56vh;
+        max-height: none;
         object-fit: contain;
         object-position: center;
         margin: 0;
-        background: radial-gradient(circle at center, #ffffff 0%, #f0f7ff 100%);
+        background: transparent;
     }
 
     .offer-details-content {
@@ -218,7 +218,8 @@
         }
 
         .offer-details-modal-image {
-            max-height: 38vh;
+            height: auto;
+            max-height: none;
         }
     }
 </style>
