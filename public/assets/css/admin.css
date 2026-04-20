@@ -561,10 +561,10 @@
 }
 
 .banner-designer-stage {
-    width: 100%;
+    width: min(100%, calc(720px * 768 / 1080));
     aspect-ratio: 768 / 1080;
     min-height: 320px;
-    max-height: 720px;
+    margin: 0 auto;
     border: 1px solid #dbe3ed;
     border-radius: 10px;
     background: #2f7de1;
