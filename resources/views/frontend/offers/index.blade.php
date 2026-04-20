@@ -25,11 +25,6 @@
                 >
                     @if ($offer->banner_image)
                         <div class="offer-coupon-image-wrap">
-                            @if ($offer->discount_tag || $offer->coupon_code)
-                                <span class="offer-image-badge" aria-label="Offer highlight">
-                                    {{ $offer->discount_tag ?: strtoupper($offer->coupon_code) }}
-                                </span>
-                            @endif
                             <img
                                 src="{{ asset($offer->banner_image) }}"
                                 alt="{{ $offer->title }}"
@@ -63,7 +58,7 @@
 </div>
 
 <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title fs-5" id="offerDetailsModalLabel">Offer Details</h2>
@@ -102,31 +97,6 @@
         height: 100%;
         object-fit: cover;
         object-position: center;
-    }
-
-    .offer-coupon-image-wrap {
-        position: relative;
-    }
-
-    .offer-image-badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 2;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: #0d6efd;
-        color: #fff;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        font-size: 0.65rem;
-        line-height: 1.15;
-        font-weight: 700;
-        padding: 6px;
-        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.35);
     }
 
     .offer-card-title {
