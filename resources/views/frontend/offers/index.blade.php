@@ -86,16 +86,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 200px;
+        aspect-ratio: 768 / 1080;
+        height: auto;
         background: #f5f9ff;
-        padding: 10px;
+        padding: 0;
         overflow: hidden;
     }
 
     .offer-coupon-image {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
         object-position: center;
     }
 
@@ -136,11 +137,12 @@
 
     .offer-details-modal-image {
         width: 100%;
-        height: 280px;
-        object-fit: contain;
+        aspect-ratio: 768 / 1080;
+        height: auto;
+        object-fit: cover;
         object-position: center;
         background: #f5f9ff;
-        padding: 8px;
+        padding: 0;
     }
 </style>
 @endpush
