@@ -179,7 +179,7 @@
                 x: 120,
                 y: 240,
                 width: 520,
-                height: 360,
+                height: 520,
                 aspectRatio: 1
             };
 
