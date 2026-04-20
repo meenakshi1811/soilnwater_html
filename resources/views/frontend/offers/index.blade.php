@@ -58,7 +58,7 @@
 </div>
 
 <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable offer-details-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title fs-5" id="offerDetailsModalLabel">Offer Details</h2>
@@ -83,6 +83,37 @@
 
 @push('styles')
 <style>
+    .offer-details-modal .modal-dialog.offer-details-dialog {
+        width: min(100% - 1.5rem, 920px);
+        max-width: 920px;
+        margin-inline: auto;
+    }
+
+    .offer-details-modal .modal-content {
+        border: 0;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 22px 50px rgba(13, 44, 94, 0.18);
+        background: linear-gradient(180deg, #f7fbff 0%, #ffffff 26%, #ffffff 100%);
+    }
+
+    .offer-details-modal .modal-header {
+        padding: 0.95rem 1.25rem;
+        border-bottom: 1px solid #e6effa;
+        background: rgba(255, 255, 255, 0.86);
+        backdrop-filter: blur(4px);
+    }
+
+    .offer-details-modal .modal-title {
+        font-weight: 700;
+        color: #12355b;
+        letter-spacing: 0.2px;
+    }
+
+    .offer-details-modal .modal-body {
+        overflow-y: auto;
+    }
+
     .offer-coupon-image-wrap {
         display: flex;
         align-items: center;
@@ -136,14 +167,59 @@
         display: block;
         width: 100%;
         height: auto;
-        max-height: none;
+        max-height: 56vh;
         object-fit: contain;
         object-position: center;
         margin: 0;
+        background: radial-gradient(circle at center, #ffffff 0%, #f0f7ff 100%);
     }
 
     .offer-details-content {
-        padding: 1rem 1.25rem 1.25rem;
+        padding: 1.1rem 1.25rem 1.3rem;
+    }
+
+    .offer-details-content #offerDetailsModalTitle {
+        color: #0e3157;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+
+    .offer-details-content #offerDetailsModalDescription {
+        font-size: 0.97rem;
+        line-height: 1.6;
+    }
+
+    .offer-details-content .badge {
+        border-radius: 999px;
+        padding: 0.45rem 0.68rem;
+        font-size: 0.74rem;
+        letter-spacing: 0.2px;
+    }
+
+    .offer-details-content .coupon-code {
+        border: 1px dashed #9dc3ef;
+        background-color: #edf5ff;
+        color: #0c4f93;
+        border-radius: 999px;
+        padding: 0.38rem 0.7rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+
+    @media (min-width: 768px) {
+        .offer-details-content {
+            padding: 1.35rem 1.5rem 1.55rem;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .offer-details-modal .modal-dialog.offer-details-dialog {
+            width: calc(100% - 1rem);
+        }
+
+        .offer-details-modal-image {
+            max-height: 38vh;
+        }
     }
 </style>
 @endpush
