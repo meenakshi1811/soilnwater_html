@@ -25,6 +25,11 @@
                 >
                     @if ($offer->banner_image)
                         <div class="offer-coupon-image-wrap">
+                            @if ($offer->discount_tag || $offer->coupon_code)
+                                <span class="offer-image-badge" aria-label="Offer highlight">
+                                    {{ $offer->discount_tag ?: strtoupper($offer->coupon_code) }}
+                                </span>
+                            @endif
                             <img
                                 src="{{ asset($offer->banner_image) }}"
                                 alt="{{ $offer->title }}"
@@ -33,16 +38,15 @@
                         </div>
                     @endif
                     <div class="card-body d-flex flex-column gap-2">
-                        <div>
-                            <span class="badge text-bg-primary w-fit">
-                                {{ $offer->discount_tag }}
-                            </span>
+                        <h2 class="offer-card-title mb-1">{{ $offer->title }}</h2>
+                        <div class="d-flex align-items-center flex-wrap gap-2 mt-auto">
+                            @if ($offer->discount_tag)
+                                <span class="offer-meta-pill offer-meta-pill-discount">{{ $offer->discount_tag }}</span>
+                            @endif
+                            @if ($offer->coupon_code)
+                                <span class="offer-meta-pill offer-meta-pill-coupon">{{ strtoupper($offer->coupon_code) }}</span>
+                            @endif
                         </div>
-                        <h2 class="h5 mb-1">{{ $offer->title }}</h2>
-                        <p class="small text-muted mb-2 offer-short-description">{{ $offer->short_description ?: 'Special offer available now.' }}</p>
-                        @if ($offer->coupon_code)
-                            <span class="coupon-code mb-0 offer-meta-pill offer-meta-pill-coupon mt-auto align-self-start">{{ strtoupper($offer->coupon_code) }}</span>
-                        @endif
                     </div>
                 </article>
             </div>
@@ -100,39 +104,60 @@
         object-position: center;
     }
 
-    .offer-meta-pill {
-        height: 34px;
+    .offer-coupon-image-wrap {
+        position: relative;
+    }
+
+    .offer-image-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #0d6efd;
+        color: #fff;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0 12px;
-        border-radius: 10px;
+        text-align: center;
+        font-size: 0.65rem;
+        line-height: 1.15;
         font-weight: 700;
-        letter-spacing: 0.2px;
-        line-height: 1;
+        padding: 6px;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.35);
+    }
+
+    .offer-card-title {
         font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.35;
+    }
+
+    .offer-meta-pill {
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-weight: 600;
+        letter-spacing: 0.15px;
+        line-height: 1;
+        font-size: 0.7rem;
+        white-space: nowrap;
     }
 
     .offer-meta-pill-discount {
-        font-size: 0.8rem;
-        height: 30px;
-        padding: 0 10px;
-        border-radius: 8px;
-        white-space: nowrap;
+        background-color: #e9f2ff;
+        color: #0d6efd;
     }
 
     .offer-meta-pill-coupon {
-        min-width: 150px;
-        white-space: nowrap;
         border: 1px dashed #9cc8ff;
         background-color: #edf5ff;
         color: #0c4f93;
-    }
-
-    .offer-short-description {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 
     .offer-details-modal-image {
