@@ -166,12 +166,12 @@
     .offer-details-modal-image {
         display: block;
         width: 100%;
-        height: auto;
+        height: 56vh;
         max-height: 56vh;
-        object-fit: contain;
+        object-fit: cover;
         object-position: center;
         margin: 0;
-        background: radial-gradient(circle at center, #ffffff 0%, #f0f7ff 100%);
+        background: #f0f7ff;
     }
 
     .offer-details-content {
@@ -218,6 +218,7 @@
         }
 
         .offer-details-modal-image {
+            height: 38vh;
             max-height: 38vh;
         }
     }
