@@ -9,7 +9,7 @@
             activeId: null,
             drag: null,
             width: 1200,
-            height: 600
+            height: 400
         },
         currentBannerMode: 'upload',
 
@@ -176,10 +176,10 @@
                 type: 'image',
                 src: src,
                 imageObj: imgObj,
-                x: 850,
-                y: 300,
-                width: 220,
-                height: 220,
+                x: 820,
+                y: 220,
+                width: 280,
+                height: 200,
                 aspectRatio: 1
             };
 
