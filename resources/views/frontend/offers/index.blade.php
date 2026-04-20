@@ -84,8 +84,8 @@
 @push('styles')
 <style>
     .offer-details-modal .modal-dialog.offer-details-dialog {
-        width: min(100% - 1.5rem, 920px);
-        max-width: 920px;
+        width: min(100% - 1.5rem, 640px);
+        max-width: 640px;
         margin-inline: auto;
     }
 
