@@ -8,8 +8,8 @@
             layers: [],
             activeId: null,
             drag: null,
-            width: 1200,
-            height: 600
+            width: 403,
+            height: 284
         },
         currentBannerMode: 'upload',
 
@@ -176,10 +176,10 @@
                 type: 'image',
                 src: src,
                 imageObj: imgObj,
-                x: 850,
-                y: 300,
-                width: 220,
-                height: 220,
+                x: 200,
+                y: 140,
+                width: 160,
+                height: 120,
                 aspectRatio: 1
             };
 

@@ -228,20 +228,20 @@
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">Image Width</label>
-                                <input type="number" id="layerImageWidthInput" class="form-control" min="40" max="1200" value="220" disabled>
+                                <input type="number" id="layerImageWidthInput" class="form-control" min="40" max="403" value="220" disabled>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">Image Height</label>
-                                <input type="number" id="layerImageHeightInput" class="form-control" min="40" max="600" value="220" disabled>
+                                <input type="number" id="layerImageHeightInput" class="form-control" min="40" max="284" value="220" disabled>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Quick Scale</label>
                                 <input type="range" id="layerImageScaleInput" class="form-range" min="5" max="100" step="1" value="18" disabled>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Banner Designer (Frontend ratio 2:1)</label>
+                                <label class="form-label">Banner Designer (Frontend ratio 403:284)</label>
                                 <div id="bannerDesignerStage" class="banner-designer-stage"></div>
-                                <small class="text-secondary d-block mt-1">Tip: drag text/images to any position. Select an image layer to resize by Width/Height, quick scale slider, or mouse wheel. Final export is PNG in 1200×600.</small>
+                                <small class="text-secondary d-block mt-1">Tip: drag text/images to any position. Select an image layer to resize by Width/Height, quick scale slider, or mouse wheel. Final export is PNG in 403×284.</small>
                                 <small class="text-secondary d-block mt-2">
                                     Important: You are solely responsible for the banner content you create using this designer, including its accuracy, quality, branding, and legal compliance. We do not accept responsibility for any outcomes resulting from customized banner designs.
                                 </small>
@@ -260,7 +260,7 @@
                         <div id="bannerPlaceholder" class="banner-placeholder-content">
                             <i class="fa-solid fa-image fa-2x mb-2 text-secondary"></i>
                             <p class="mb-1 fw-semibold">Click or drag to upload banner</p>
-                            <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: 1200×400px · PNG, JPG, WebP · Max 2MB</p>
+                            <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: 403×284px · PNG, JPG, WebP · Max 2MB</p>
                         </div>
                     </div>
                     </div>
