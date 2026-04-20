@@ -58,7 +58,7 @@
 </div>
 
 <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title fs-5" id="offerDetailsModalLabel">Offer Details</h2>
@@ -136,10 +136,9 @@
         display: block;
         width: 100%;
         height: auto;
-        max-height: 72vh;
+        max-height: none;
         object-fit: contain;
         object-position: center;
-        background: #fff;
         margin: 0;
     }
 
