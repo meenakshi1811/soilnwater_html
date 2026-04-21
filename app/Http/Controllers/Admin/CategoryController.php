@@ -29,9 +29,15 @@ class CategoryController extends Controller
             ->withCount('children');
 
         return DataTables::of($categories)
-            ->addColumn('category_type', fn (Category $category): string => $category->parent_id ? 'Sub Category' : 'Category')
-            ->addColumn('parent_name', function (Category $category): string {
-                return $category->parent?->name ? e($category->parent->name) : '<span class="text-muted">—</span>';
+            ->addColumn('category_name', function (Category $category): string {
+                return $category->parent_id
+                    ? e($category->parent?->name ?? '—')
+                    : e($category->name);
+            })
+            ->addColumn('subcategory_name', function (Category $category): string {
+                return $category->parent_id
+                    ? e($category->name)
+                    : '<span class="text-muted">—</span>';
             })
             ->addColumn('modules_list', function (Category $category): string {
                 $labels = ModulePermissions::modules();
@@ -51,22 +57,17 @@ class CategoryController extends Controller
                     . '<button type="button" class="btn btn-sm btn-outline-danger js-delete-category" data-id="'.$category->id.'"><i class="fa-solid fa-trash"></i></button>'
                     . '</div>';
             })
-            ->filterColumn('category_type', function ($query, $keyword): void {
-                $k = strtolower((string) $keyword);
-                if (str_contains($k, 'sub')) {
-                    $query->whereNotNull('parent_id');
-
-                    return;
-                }
-
-                if (str_contains($k, 'category')) {
-                    $query->whereNull('parent_id');
-                }
-            })
-            ->filterColumn('parent_name', function ($query, $keyword): void {
-                $query->whereHas('parent', function ($q) use ($keyword): void {
-                    $q->where('name', 'like', '%'.$keyword.'%');
+            ->filterColumn('category_name', function ($query, $keyword): void {
+                $query->where(function ($q) use ($keyword): void {
+                    $q->where(function ($inner) use ($keyword): void {
+                        $inner->whereNull('parent_id')->where('name', 'like', '%'.$keyword.'%');
+                    })->orWhereHas('parent', function ($parentQuery) use ($keyword): void {
+                        $parentQuery->where('name', 'like', '%'.$keyword.'%');
+                    });
                 });
+            })
+            ->filterColumn('subcategory_name', function ($query, $keyword): void {
+                $query->whereNotNull('parent_id')->where('name', 'like', '%'.$keyword.'%');
             })
             ->filterColumn('modules_list', function ($query, $keyword): void {
                 $labels = ModulePermissions::modules();
@@ -89,7 +90,7 @@ class CategoryController extends Controller
                     }
                 });
             })
-            ->rawColumns(['parent_name', 'modules_list', 'actions'])
+            ->rawColumns(['subcategory_name', 'modules_list', 'actions'])
             ->make(true);
     }
 

@@ -83,15 +83,14 @@
                     url: '/admin/categories/data'
                 },
                 columns: [
-                    { data: 'name', name: 'name' },
-                    { data: 'category_type', name: 'category_type', orderable: false, searchable: true },
-                    { data: 'parent_name', name: 'parent_name', orderable: false, searchable: true },
+                    { data: 'category_name', name: 'category_name', orderable: false, searchable: true },
+                    { data: 'subcategory_name', name: 'subcategory_name', orderable: false, searchable: true },
                     { data: 'modules_list', name: 'modules_list', orderable: false, searchable: true },
                     { data: 'children_count', name: 'children_count', searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[5, 'desc']]
+                order: [[4, 'desc']]
             });
         },
 

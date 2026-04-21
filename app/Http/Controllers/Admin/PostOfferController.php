@@ -21,7 +21,11 @@ class PostOfferController extends Controller
     {
         abort_unless($this->canCreate(request()->user()), 403);
 
-        $categories = Category::whereNull('parent_id')->orderBy('name')->get();
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'offers')
+            ->orderBy('name')
+            ->get();
 
         return view('backend.post-offers.index', [
             'categories' => $categories,
@@ -39,7 +43,11 @@ class PostOfferController extends Controller
 
         abort_unless($canWrite, 403);
 
-        $categories = Category::whereNull('parent_id')->orderBy('name')->get();
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'offers')
+            ->orderBy('name')
+            ->get();
 
         return view('backend.post-offers.index', [
             'categories' => $categories,
@@ -51,6 +59,8 @@ class PostOfferController extends Controller
 
     public function subcategories(Category $category)
     {
+        abort_if(! in_array('offers', $category->modules ?? [], true), 404);
+
         return response()->json(
             $category->children()->orderBy('name')->get(['id', 'name'])
         );
@@ -65,7 +75,12 @@ class PostOfferController extends Controller
             'discount_tag'      => 'required|string|max:255',
             'coupon_code'       => 'nullable|string|max:50',
             'valid_until'       => 'nullable|date|after_or_equal:today',
-            'category_id'       => ['nullable', Rule::exists('categories', 'id')],
+            'category_id'       => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(fn ($query) => $query
+                    ->whereNull('parent_id')
+                    ->whereJsonContains('modules', 'offers')),
+            ],
             'subcategory_id'    => ['nullable', Rule::exists('categories', 'id')],
             'banner_image'      => 'nullable|required_without:generated_banner_data|image|mimes:jpg,jpeg,png,webp|max:2048',
             'generated_banner_data' => 'nullable|required_without:banner_image|string',
@@ -83,6 +98,21 @@ class PostOfferController extends Controller
         // Attach the authenticated user
         $validated['user_id'] = auth()->id();
         unset($validated['accept_terms'], $validated['generated_banner_data']);
+
+        if (! empty($validated['subcategory_id'])) {
+            if (empty($validated['category_id'])) {
+                return response()->json(['message' => 'Please select a category before choosing a subcategory.'], 422);
+            }
+
+            $isValidSubcategory = Category::query()
+                ->where('id', $validated['subcategory_id'])
+                ->where('parent_id', $validated['category_id'])
+                ->exists();
+
+            if (! $isValidSubcategory) {
+                return response()->json(['message' => 'Selected subcategory does not belong to the selected category.'], 422);
+            }
+        }
 
         Offer::create($validated);
 
@@ -213,6 +243,13 @@ class PostOfferController extends Controller
                 'discount_tag' => 'required|string|max:255',
                 'coupon_code' => 'nullable|string|max:50',
                 'valid_until' => 'nullable|date|after_or_equal:today',
+                'category_id' => [
+                    'nullable',
+                    Rule::exists('categories', 'id')->where(fn ($query) => $query
+                        ->whereNull('parent_id')
+                        ->whereJsonContains('modules', 'offers')),
+                ],
+                'subcategory_id' => ['nullable', Rule::exists('categories', 'id')],
                 'short_description' => 'nullable|string|max:300',
                 'banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             ]);
@@ -238,6 +275,21 @@ class PostOfferController extends Controller
             }
 
             $validated['banner_image'] = $this->storeUploadedBanner($request);
+        }
+
+        if (! empty($validated['subcategory_id'])) {
+            if (empty($validated['category_id'])) {
+                return response()->json(['message' => 'Please select a category before choosing a subcategory.'], 422);
+            }
+
+            $isValidSubcategory = Category::query()
+                ->where('id', $validated['subcategory_id'])
+                ->where('parent_id', $validated['category_id'])
+                ->exists();
+
+            if (! $isValidSubcategory) {
+                return response()->json(['message' => 'Selected subcategory does not belong to the selected category.'], 422);
+            }
         }
 
         $offer->update($validated);
