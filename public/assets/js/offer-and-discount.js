@@ -469,6 +469,9 @@
                     var fontSize = layer.fontSize || 42;
                     var maxWidth = Math.max(40, layer.width || Math.round(self.designer.width * 0.84));
                     var lineHeight = Math.round(fontSize * 1.2);
+
+                    // Ensure line measurements match the actual draw font.
+                    ctx.font = (layer.fontWeight || '700') + ' ' + fontSize + 'px ' + (layer.fontFamily || 'Arial');
                     var lines = self.wrapTextToLines(ctx, layer.text || '', maxWidth, (layer.align || 'left') !== 'left');
                     var baseX = layer.x;
 
@@ -477,7 +480,6 @@
                     ctx.shadowColor = 'rgba(0,0,0,0.4)';
                     ctx.shadowBlur = 4;
                     ctx.textBaseline = 'top';
-                    ctx.font = (layer.fontWeight || '700') + ' ' + fontSize + 'px ' + (layer.fontFamily || 'Arial');
 
                     if ((layer.align || 'left') === 'center') {
                         baseX = layer.x + (maxWidth / 2);
