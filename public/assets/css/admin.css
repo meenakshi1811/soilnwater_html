@@ -502,6 +502,24 @@
     pointer-events: none;
 }
 
+.banner-final-preview-wrap {
+    border: 1px solid #d9e1ee;
+    border-radius: 10px;
+    background: #f8f9fa;
+    padding: 0.75rem;
+    max-width: 300px;
+}
+
+.banner-final-preview-img {
+    width: 100%;
+    aspect-ratio: 768 / 1080;
+    object-fit: contain;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    display: block;
+}
+
 .template-customizer-wrap {
     border: 1px solid #e2e8f0;
     border-radius: 12px;

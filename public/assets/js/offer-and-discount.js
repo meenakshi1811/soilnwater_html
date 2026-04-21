@@ -8,10 +8,34 @@
             layers: [],
             activeId: null,
             drag: null,
+            backgroundImageSrc: null,
+            backgroundImageObj: null,
             width: 768,
             height: 1080
         },
         currentBannerMode: 'upload',
+
+        updateFinalBannerPreview: function (src) {
+            var hasSrc = !!src;
+            $('#bannerFinalPreview').attr('src', hasSrc ? src : '#').toggleClass('d-none', !hasSrc);
+            $('#bannerFinalPreviewPlaceholder').toggleClass('d-none', hasSrc);
+        },
+
+        updateUploadMeta: function (file) {
+            if (!file || !file.type || !file.type.startsWith('image/')) {
+                $('#bannerImageMeta').text('Uploaded image dimensions will appear here for quick validation.');
+                return;
+            }
+
+            var img = new Image();
+            img.onload = function () {
+                $('#bannerImageMeta').text(
+                    'Uploaded image: ' + img.naturalWidth + '×' + img.naturalHeight
+                    + 'px. Recommended: 768×1080px (4:5) to avoid auto-padding.'
+                );
+            };
+            img.src = URL.createObjectURL(file);
+        },
 
         clamp: function (value, min, max) {
             return Math.max(min, Math.min(max, value));
@@ -79,8 +103,10 @@
                     $('#bannerPreview').attr('src', e.target.result);
                     $('#bannerPreviewWrap').removeClass('d-none');
                     $('#bannerPlaceholder').addClass('d-none');
+                    self.updateFinalBannerPreview(e.target.result);
                 };
                 reader.readAsDataURL(file);
+                self.updateUploadMeta(file);
             }
 
             $('#bannerImage').on('change', function () {
@@ -96,6 +122,8 @@
                 $('#bannerPreview').attr('src', '#');
                 $('#bannerPreviewWrap').addClass('d-none');
                 $('#bannerPlaceholder').removeClass('d-none');
+                self.updateUploadMeta(null);
+                self.updateFinalBannerPreview(null);
                 self.renderDesignerStage();
             });
 
@@ -141,10 +169,12 @@
                 $('#bannerPreview').attr('src', '#');
                 $('#bannerPreviewWrap').addClass('d-none');
                 $('#bannerPlaceholder').removeClass('d-none');
+                this.updateUploadMeta(null);
                 this.renderDesignerStage();
                 this.updateGeneratedBanner();
             } else {
                 $('#generatedBannerData').val('');
+                this.updateFinalBannerPreview($('#bannerPreview').attr('src') !== '#' ? $('#bannerPreview').attr('src') : null);
             }
 
             this.syncBannerModeCards();
@@ -250,7 +280,13 @@
             var $stage = $('#bannerDesignerStage');
             if (!$stage.length) return;
 
-            $stage.css('background', $('#bannerBgColor').val() || '#2f7de1');
+            $stage.css({
+                backgroundColor: $('#bannerBgColor').val() || '#2f7de1',
+                backgroundImage: this.designer.backgroundImageSrc ? 'url(' + this.designer.backgroundImageSrc + ')' : 'none',
+                backgroundPosition: 'center',
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat'
+            });
             $stage.empty();
 
             this.designer.layers.forEach(function (layer) {
@@ -299,12 +335,51 @@
             canvas.height = this.designer.height;
             var ctx = canvas.getContext('2d');
 
-            ctx.fillStyle = $('#bannerBgColor').val() || '#2f7de1';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            var drawBackground = function () {
+                ctx.fillStyle = $('#bannerBgColor').val() || '#2f7de1';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                if (!self.designer.backgroundImageSrc) {
+                    return Promise.resolve();
+                }
+
+                return new Promise(function (resolve) {
+                    var drawBgImage = function (img) {
+                        var scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                        var drawWidth = Math.max(1, Math.round(img.width * scale));
+                        var drawHeight = Math.max(1, Math.round(img.height * scale));
+                        var drawX = Math.round((canvas.width - drawWidth) / 2);
+                        var drawY = Math.round((canvas.height - drawHeight) / 2);
+
+                        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+                    };
+
+                    if (self.designer.backgroundImageObj && self.designer.backgroundImageObj.complete) {
+                        drawBgImage(self.designer.backgroundImageObj);
+                        resolve();
+                        return;
+                    }
+
+                    var bgImg = new Image();
+                    bgImg.onload = function () {
+                        self.designer.backgroundImageObj = bgImg;
+                        drawBgImage(bgImg);
+                        resolve();
+                    };
+                    bgImg.onerror = function () {
+                        resolve();
+                    };
+                    bgImg.src = self.designer.backgroundImageSrc;
+                });
+            };
 
             var drawNext = function (index) {
                 if (index >= self.designer.layers.length) {
-                    $('#generatedBannerData').val(canvas.toDataURL('image/png'));
+                    var dataUrl = canvas.toDataURL('image/png');
+                    $('#generatedBannerData').val(dataUrl);
+                    if (self.currentBannerMode === 'customize') {
+                        self.updateFinalBannerPreview(dataUrl);
+                    }
                     return;
                 }
 
@@ -336,7 +411,9 @@
                 }
             };
 
-            drawNext(0);
+            drawBackground().then(function () {
+                drawNext(0);
+            });
         },
 
         /* ── 4. Misc UI Bindings ──────────────────────────────── */
@@ -388,6 +465,28 @@
             });
 
             $('#bannerBgColor').on('input change', function () {
+                self.renderDesignerStage();
+            });
+
+            $('#bannerBgImage').on('change', function () {
+                var file = this.files && this.files[0] ? this.files[0] : null;
+                if (!file || !file.type || !file.type.startsWith('image/')) {
+                    return;
+                }
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    self.designer.backgroundImageSrc = e.target.result;
+                    self.designer.backgroundImageObj = null;
+                    self.renderDesignerStage();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            $('#removeBannerBgImageBtn').on('click', function () {
+                self.designer.backgroundImageSrc = null;
+                self.designer.backgroundImageObj = null;
+                $('#bannerBgImage').val('');
                 self.renderDesignerStage();
             });
 
@@ -692,11 +791,16 @@
                             $('#bannerPreview').attr('src', '#');
                             $('#bannerPreviewWrap').addClass('d-none');
                             $('#bannerPlaceholder').removeClass('d-none');
+                            $('#bannerImageMeta').text('Uploaded image dimensions will appear here for quick validation.');
+                            self.updateFinalBannerPreview(null);
                             $('#bannerImageLayers').val('');
+                            $('#bannerBgImage').val('');
                             $('input[name="banner_mode"][value="upload"]').prop('checked', true);
                             self.applyBannerMode('upload');
                             self.designer.layers = [];
                             self.designer.activeId = null;
+                            self.designer.backgroundImageSrc = null;
+                            self.designer.backgroundImageObj = null;
                             self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56 });
                             self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46 });
                             self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32 });
