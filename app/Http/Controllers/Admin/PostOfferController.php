@@ -504,33 +504,28 @@ class PostOfferController extends Controller
         imagesavealpha($targetImage, true);
         $transparent = imagecolorallocatealpha($targetImage, 0, 0, 0, 127);
         imagefilledrectangle($targetImage, 0, 0, $targetWidth, $targetHeight, $transparent);
-
-        $sourceRatio = $sourceWidth / $sourceHeight;
-        $targetRatio = $targetWidth / $targetHeight;
-
-        if ($sourceRatio > $targetRatio) {
-            $copyHeight = $sourceHeight;
-            $copyWidth = (int) round($sourceHeight * $targetRatio);
-            $sourceX = (int) round(($sourceWidth - $copyWidth) / 2);
-            $sourceY = 0;
-        } else {
-            $copyWidth = $sourceWidth;
-            $copyHeight = (int) round($sourceWidth / $targetRatio);
-            $sourceX = 0;
-            $sourceY = (int) round(($sourceHeight - $copyHeight) / 2);
+        if ($imageInfo[2] === IMAGETYPE_JPEG) {
+            $white = imagecolorallocate($targetImage, 255, 255, 255);
+            imagefilledrectangle($targetImage, 0, 0, $targetWidth, $targetHeight, $white);
         }
+
+        $scale = min($targetWidth / $sourceWidth, $targetHeight / $sourceHeight);
+        $drawWidth = max(1, (int) round($sourceWidth * $scale));
+        $drawHeight = max(1, (int) round($sourceHeight * $scale));
+        $destX = (int) round(($targetWidth - $drawWidth) / 2);
+        $destY = (int) round(($targetHeight - $drawHeight) / 2);
 
         imagecopyresampled(
             $targetImage,
             $sourceImage,
+            $destX,
+            $destY,
             0,
             0,
-            $sourceX,
-            $sourceY,
-            $targetWidth,
-            $targetHeight,
-            $copyWidth,
-            $copyHeight
+            $drawWidth,
+            $drawHeight,
+            $sourceWidth,
+            $sourceHeight
         );
 
         match ($imageInfo[2]) {
