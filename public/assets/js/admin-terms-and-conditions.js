@@ -8,6 +8,7 @@
         modal: null,
         isEdit: false,
         editor: null,
+        isSourceMode: false,
 
         initEditor: function () {
             var self = this;
@@ -16,6 +17,33 @@
                 .then(function (editor) {
                     self.editor = editor;
                 });
+        },
+
+        switchToSourceMode: function () {
+            var self = this;
+            if (!self.editor || self.isSourceMode) {
+                return Promise.resolve();
+            }
+
+            $('#termsContent').val(self.editor.getData());
+
+            return self.editor.destroy().then(function () {
+                self.editor = null;
+                self.isSourceMode = true;
+                $('#termsContent').show();
+                $('#toggleSourceModeBtn').text('Close Source Code');
+            });
+        },
+
+        switchToEditorMode: function () {
+            var self = this;
+            if (!self.isSourceMode) {
+                return Promise.resolve();
+            }
+
+            self.isSourceMode = false;
+            $('#toggleSourceModeBtn').text('Show Source Code');
+            return self.initEditor();
         },
 
         loadModuleOptions: function (editingId, selected) {
@@ -61,13 +89,15 @@
                 $('#termsModalTitle').text('Add Terms & Conditions');
                 $('#termsForm')[0].reset();
                 $('#termsId').val('');
-                if (self.editor) {
-                    self.editor.setData('');
-                }
+                self.switchToEditorMode().then(function () {
+                    if (self.editor) {
+                        self.editor.setData('');
+                    }
 
-                self.loadModuleOptions().always(function () {
-                    $('#termsForm').attr('action', '/admin/terms-and-conditions').attr('method', 'POST');
-                    self.modal.show();
+                    self.loadModuleOptions().always(function () {
+                        $('#termsForm').attr('action', '/admin/terms-and-conditions').attr('method', 'POST');
+                        self.modal.show();
+                    });
                 });
             });
 
@@ -80,14 +110,25 @@
 
                 $.get('/admin/terms-and-conditions/' + id).done(function (response) {
                     var item = response.item || {};
-                    self.loadModuleOptions(id, item.module_key).always(function () {
-                        if (self.editor) {
-                            self.editor.setData(item.content || '');
-                        }
-                        $('#termsForm').attr('action', '/admin/terms-and-conditions/' + id).attr('method', 'POST');
-                        self.modal.show();
+                    self.switchToEditorMode().then(function () {
+                        self.loadModuleOptions(id, item.module_key).always(function () {
+                            if (self.editor) {
+                                self.editor.setData(item.content || '');
+                            }
+                            $('#termsForm').attr('action', '/admin/terms-and-conditions/' + id).attr('method', 'POST');
+                            self.modal.show();
+                        });
                     });
                 });
+            });
+
+            $('#toggleSourceModeBtn').on('click', function () {
+                if (self.isSourceMode) {
+                    self.switchToEditorMode();
+                    return;
+                }
+
+                self.switchToSourceMode();
             });
 
             $(document).on('click', '.js-delete-terms', function () {
