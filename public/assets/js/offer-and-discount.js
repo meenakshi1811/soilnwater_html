@@ -8,6 +8,8 @@
             layers: [],
             activeId: null,
             drag: null,
+            backgroundImageSrc: null,
+            backgroundImageObj: null,
             width: 768,
             height: 1080
         },
@@ -284,7 +286,13 @@
             var $stage = $('#bannerDesignerStage');
             if (!$stage.length) return;
 
-            $stage.css('background', $('#bannerBgColor').val() || '#2f7de1');
+            $stage.css({
+                backgroundColor: $('#bannerBgColor').val() || '#2f7de1',
+                backgroundImage: this.designer.backgroundImageSrc ? 'url(' + this.designer.backgroundImageSrc + ')' : 'none',
+                backgroundPosition: 'center',
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat'
+            });
             $stage.empty();
 
             this.designer.layers.forEach(function (layer) {
@@ -333,8 +341,43 @@
             canvas.height = this.designer.height;
             var ctx = canvas.getContext('2d');
 
-            ctx.fillStyle = $('#bannerBgColor').val() || '#2f7de1';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            var drawBackground = function () {
+                ctx.fillStyle = $('#bannerBgColor').val() || '#2f7de1';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                if (!self.designer.backgroundImageSrc) {
+                    return Promise.resolve();
+                }
+
+                return new Promise(function (resolve) {
+                    var drawBgImage = function (img) {
+                        var scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                        var drawWidth = Math.max(1, Math.round(img.width * scale));
+                        var drawHeight = Math.max(1, Math.round(img.height * scale));
+                        var drawX = Math.round((canvas.width - drawWidth) / 2);
+                        var drawY = Math.round((canvas.height - drawHeight) / 2);
+
+                        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+                    };
+
+                    if (self.designer.backgroundImageObj && self.designer.backgroundImageObj.complete) {
+                        drawBgImage(self.designer.backgroundImageObj);
+                        resolve();
+                        return;
+                    }
+
+                    var bgImg = new Image();
+                    bgImg.onload = function () {
+                        self.designer.backgroundImageObj = bgImg;
+                        drawBgImage(bgImg);
+                        resolve();
+                    };
+                    bgImg.onerror = function () {
+                        resolve();
+                    };
+                    bgImg.src = self.designer.backgroundImageSrc;
+                });
+            };
 
             var drawNext = function (index) {
                 if (index >= self.designer.layers.length) {
@@ -374,7 +417,9 @@
                 }
             };
 
-            drawNext(0);
+            drawBackground().then(function () {
+                drawNext(0);
+            });
         },
 
         /* ── 4. Misc UI Bindings ──────────────────────────────── */
@@ -767,6 +812,8 @@
                             self.applyBannerMode('upload');
                             self.designer.layers = [];
                             self.designer.activeId = null;
+                            self.designer.backgroundImageSrc = null;
+                            self.designer.backgroundImageObj = null;
                             self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56 });
                             self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46 });
                             self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32 });
