@@ -325,6 +325,11 @@
             var $stage = $('#bannerDesignerStage');
             if (!$stage.length) return;
             this.maintainDefaultTextSpacing();
+            var stageNode = $stage.get(0);
+            var stageScale = 1;
+            if (stageNode && stageNode.clientWidth) {
+                stageScale = stageNode.clientWidth / this.designer.width;
+            }
 
             $stage.css({
                 backgroundColor: $('#bannerBgColor').val() || '#2f7de1',
@@ -344,7 +349,7 @@
                         left: (layer.x / self.designer.width * 100) + '%',
                         top: (layer.y / self.designer.height * 100) + '%',
                         color: layer.color,
-                        fontSize: Math.max(10, layer.fontSize) + 'px',
+                        fontSize: Math.max(10, layer.fontSize) * stageScale + 'px',
                         fontWeight: layer.fontWeight || '700',
                         textAlign: layer.align,
                         fontFamily: layer.fontFamily,
