@@ -182,7 +182,7 @@
 
         addTextLayer: function (text, options) {
             options = options || {};
-            this.designer.layers.push({
+            var layer = {
                 id: 'layer_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
                 type: 'text',
                 text: text || 'New Text',
@@ -194,7 +194,8 @@
                 align: options.align || 'left',
                 fontFamily: options.fontFamily || 'Arial',
                 sourceTag: options.sourceTag || 'text_layer'
-            });
+            };
+            this.designer.layers.push(layer);
             this.designer.activeId = layer.id;
             this.renderDesignerStage();
         },
