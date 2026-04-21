@@ -284,7 +284,7 @@
                 backgroundColor: $('#bannerBgColor').val() || '#2f7de1',
                 backgroundImage: this.designer.backgroundImageSrc ? 'url(' + this.designer.backgroundImageSrc + ')' : 'none',
                 backgroundPosition: 'center',
-                backgroundSize: 'cover',
+                backgroundSize: 'contain',
                 backgroundRepeat: 'no-repeat'
             });
             $stage.empty();
@@ -345,22 +345,11 @@
 
                 return new Promise(function (resolve) {
                     var drawBgImage = function (img) {
-                        var imgRatio = img.width / img.height;
-                        var canvasRatio = canvas.width / canvas.height;
-                        var drawWidth;
-                        var drawHeight;
-                        var drawX = 0;
-                        var drawY = 0;
-
-                        if (imgRatio > canvasRatio) {
-                            drawHeight = canvas.height;
-                            drawWidth = Math.round(drawHeight * imgRatio);
-                            drawX = Math.round((canvas.width - drawWidth) / 2);
-                        } else {
-                            drawWidth = canvas.width;
-                            drawHeight = Math.round(drawWidth / imgRatio);
-                            drawY = Math.round((canvas.height - drawHeight) / 2);
-                        }
+                        var scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                        var drawWidth = Math.max(1, Math.round(img.width * scale));
+                        var drawHeight = Math.max(1, Math.round(img.height * scale));
+                        var drawX = Math.round((canvas.width - drawWidth) / 2);
+                        var drawY = Math.round((canvas.height - drawHeight) / 2);
 
                         ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
                     };
