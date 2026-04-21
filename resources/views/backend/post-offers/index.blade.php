@@ -176,6 +176,14 @@
                                 <input type="color" id="bannerBgColor" class="form-control form-control-color w-100" value="#2f7de1">
                             </div>
                             <div class="col-md-3">
+                                <label class="form-label">Background Image (optional)</label>
+                                <input type="file" id="bannerBgImage" class="form-control" accept="image/png,image/jpeg,image/webp">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Clear Background</label>
+                                <button type="button" id="removeBannerBgImageBtn" class="btn btn-outline-secondary w-100">Remove BG Image</button>
+                            </div>
+                            <div class="col-md-3">
                                 <label class="form-label">Add Text Block</label>
                                 <button type="button" id="addTextLayerBtn" class="btn btn-outline-primary w-100">+ Add Text</button>
                             </div>
@@ -260,9 +268,17 @@
                         <div id="bannerPlaceholder" class="banner-placeholder-content">
                             <i class="fa-solid fa-image fa-2x mb-2 text-secondary"></i>
                             <p class="mb-1 fw-semibold">Click or drag to upload banner</p>
-                            <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: 768×1080px · PNG, JPG, WebP · Max 2MB</p>
+                            <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: 768×1080px (4:5) · PNG, JPG, WebP · Max 2MB</p>
                         </div>
                     </div>
+                    </div>
+                    <small id="bannerImageMeta" class="text-secondary d-block mt-2">Uploaded image dimensions will appear here for quick validation.</small>
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold">Final Banner Preview (what users will see)</label>
+                        <div class="banner-final-preview-wrap">
+                            <img id="bannerFinalPreview" src="#" alt="Final banner preview" class="banner-final-preview-img d-none">
+                            <div id="bannerFinalPreviewPlaceholder" class="text-secondary small">No preview yet. Upload a banner or design one to generate a final preview.</div>
+                        </div>
                     </div>
                     <input
                         type="file"
