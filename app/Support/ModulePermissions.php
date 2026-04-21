@@ -23,6 +23,8 @@ final class ModulePermissions
             'consultants' => 'Consultants',
             'enquiry' => 'Enquiry',
             'products' => 'Products',
+            'offers' => 'Offers',
+            'ads' => 'Ads',
             'user_enquiry' => 'User Enquery',
         ];
     }

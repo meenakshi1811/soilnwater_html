@@ -28,9 +28,8 @@
             <table id="categoriesTable" class="table table-bordered align-middle w-100">
                 <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Parent Category</th>
+                    <th>Category</th>
+                    <th>Sub Category</th>
                     <th>Modules</th>
                     <th>Sub Categories</th>
                     <th>Created</th>
@@ -56,7 +55,13 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Category name</label>
-                            <input type="text" name="name" id="categoryName" class="form-control">
+                            <input type="text" name="name" id="categoryName" class="form-control" placeholder="Enter category name">
+                            <small class="text-secondary">Use this field when creating/updating a top-level category.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Sub category name</label>
+                            <input type="text" id="subcategoryName" class="form-control" placeholder="Enter sub category name">
+                            <small class="text-secondary">Use this field when creating/updating a sub category.</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Parent category (optional)</label>
