@@ -28,9 +28,8 @@
             <table id="categoriesTable" class="table table-bordered align-middle w-100">
                 <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Parent Category</th>
+                    <th>Category</th>
+                    <th>Sub Category</th>
                     <th>Modules</th>
                     <th>Sub Categories</th>
                     <th>Created</th>

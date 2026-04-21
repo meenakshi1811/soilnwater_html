@@ -62,7 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/post-offer', [PostOfferController::class, 'index'])->name('post-offer');
 
     Route::get('/modules/{module}', [ModuleAccessController::class, 'show'])
-        ->where('module', 'ecommerce|vendors|services|properties|builders|consultants|enquiry|products|user_enquiry')
+        ->where('module', 'ecommerce|vendors|services|properties|builders|consultants|enquiry|products|offers|ads|user_enquiry')
         ->name('modules.show');
 
     Route::prefix('user')->name('user.')->middleware('user')->group(function () {
