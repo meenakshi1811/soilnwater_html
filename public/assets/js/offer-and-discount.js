@@ -193,11 +193,39 @@
                 color: options.color || '#ffffff',
                 align: options.align || 'left',
                 fontFamily: options.fontFamily || 'Arial',
-                sourceTag: options.sourceTag || 'text_layer'
+                sourceTag: options.sourceTag || 'text_layer',
+                manuallyPositioned: !!options.manuallyPositioned
             };
             this.designer.layers.push(layer);
             this.designer.activeId = layer.id;
             this.renderDesignerStage();
+        },
+
+        maintainDefaultTextSpacing: function () {
+            var orderedTags = ['offer_title', 'discount_tag', 'coupon_code'];
+            var stackLayers = [];
+            var i;
+
+            for (i = 0; i < orderedTags.length; i++) {
+                var layer = this.findLayerBySourceTag(orderedTags[i]);
+                if (layer && layer.type === 'text' && !layer.manuallyPositioned) {
+                    stackLayers.push(layer);
+                }
+            }
+
+            if (!stackLayers.length) {
+                return;
+            }
+
+            var nextY = 70;
+            for (i = 0; i < stackLayers.length; i++) {
+                var textLayer = stackLayers[i];
+                var fontSize = Math.max(10, parseInt(textLayer.fontSize || 42, 10));
+                var textHeight = Math.round(fontSize * 1.25);
+                textLayer.y = nextY;
+                nextY += textHeight + 22;
+                this.ensureLayerWithinBounds(textLayer);
+            }
         },
 
         findLayerBySourceTag: function (sourceTag) {
@@ -296,6 +324,7 @@
             var self = this;
             var $stage = $('#bannerDesignerStage');
             if (!$stage.length) return;
+            this.maintainDefaultTextSpacing();
 
             $stage.css({
                 backgroundColor: $('#bannerBgColor').val() || '#2f7de1',
@@ -651,6 +680,9 @@
                 var maxY = self.designer.height - (layer.type === 'image' ? layer.height : 20);
                 layer.x = self.clamp(self.designer.drag.origX + dx, 0, Math.max(0, maxX));
                 layer.y = self.clamp(self.designer.drag.origY + dy, 0, Math.max(0, maxY));
+                if (layer.type === 'text' && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) {
+                    layer.manuallyPositioned = true;
+                }
                 self.renderDesignerStage();
             }).on('mouseup', function () {
                 self.designer.drag = null;
