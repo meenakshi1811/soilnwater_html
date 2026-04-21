@@ -472,7 +472,7 @@
 
                     // Ensure line measurements match the actual draw font.
                     ctx.font = (layer.fontWeight || '700') + ' ' + fontSize + 'px ' + (layer.fontFamily || 'Arial');
-                    var lines = self.wrapTextToLines(ctx, layer.text || '', maxWidth, (layer.align || 'left') !== 'left');
+                    var lines = self.wrapTextToLines(ctx, layer.text || '', maxWidth, true);
                     var baseX = layer.x;
 
                     ctx.textAlign = layer.align || 'left';
