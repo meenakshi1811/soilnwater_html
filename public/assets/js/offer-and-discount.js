@@ -194,23 +194,25 @@
                 align: options.align || 'left',
                 fontFamily: options.fontFamily || 'Arial'
             });
-            this.designer.activeId = this.designer.layers[this.designer.layers.length - 1].id;
+            this.designer.activeId = layer.id;
             this.renderDesignerStage();
         },
 
-        addImageLayer: function (src) {
+        addImageLayer: function (src, options) {
             var self = this;
+            options = options || {};
             var imgObj = new Image();
             var layer = {
                 id: 'layer_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
                 type: 'image',
                 src: src,
                 imageObj: imgObj,
-                x: 120,
-                y: 240,
-                width: 520,
-                height: 520,
-                aspectRatio: 1
+                x: options.x || 120,
+                y: options.y || 240,
+                width: options.width || 520,
+                height: options.height || 520,
+                aspectRatio: 1,
+                sourceTag: options.sourceTag || 'image_layer'
             };
 
             imgObj.onload = function () {
@@ -224,7 +226,11 @@
             imgObj.src = src;
 
             this.designer.layers.push(layer);
-            this.designer.activeId = this.designer.layers[this.designer.layers.length - 1].id;
+            if (options.toBack) {
+                this.designer.layers.pop();
+                this.designer.layers.unshift(layer);
+            }
+            this.designer.activeId = layer.id;
             this.renderDesignerStage();
         },
 
@@ -476,16 +482,23 @@
 
                 var reader = new FileReader();
                 reader.onload = function (e) {
-                    self.designer.backgroundImageSrc = e.target.result;
-                    self.designer.backgroundImageObj = null;
-                    self.renderDesignerStage();
+                    self.addImageLayer(e.target.result, {
+                        x: 70,
+                        y: 220,
+                        width: 320,
+                        height: 320,
+                        sourceTag: 'background_upload',
+                        toBack: true
+                    });
                 };
                 reader.readAsDataURL(file);
+                $(this).val('');
             });
 
             $('#removeBannerBgImageBtn').on('click', function () {
-                self.designer.backgroundImageSrc = null;
-                self.designer.backgroundImageObj = null;
+                self.designer.layers = self.designer.layers.filter(function (layer) {
+                    return layer.sourceTag !== 'background_upload';
+                });
                 $('#bannerBgImage').val('');
                 self.renderDesignerStage();
             });
