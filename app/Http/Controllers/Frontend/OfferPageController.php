@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Offer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class OfferPageController extends Controller
 {
@@ -20,9 +22,18 @@ class OfferPageController extends Controller
         ]);
     }
 
-    public function index(): View
+    public function index(Request $request): View|JsonResponse
     {
         $offers = $this->baseOfferQuery()->paginate(12);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('frontend.offers.partials.cards', ['offers' => $offers])->render(),
+                'next_page_url' => $offers->nextPageUrl(),
+                'loaded_to' => $offers->lastItem() ?? 0,
+                'total' => $offers->total(),
+            ]);
+        }
 
         return view('frontend.offers.index', [
             'offers' => $offers,

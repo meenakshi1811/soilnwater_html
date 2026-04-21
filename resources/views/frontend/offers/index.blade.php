@@ -7,54 +7,24 @@
         <a href="{{ route('frontend.index') }}" class="view-all">Back to home ▶</a>
     </div>
 
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-3">
-        @forelse ($offers as $offer)
-            <div class="col">
-                <article
-                    class="card h-100 shadow-sm border-0 offer-coupon-card js-offer-modal-trigger"
-                    role="button"
-                    tabindex="0"
-                    data-bs-toggle="modal"
-                    data-bs-target="#offerDetailsModal"
-                    data-offer-title="{{ $offer->title }}"
-                    data-offer-discount="{{ $offer->discount_tag }}"
-                    data-offer-description="{{ $offer->short_description ?: 'Special marketplace offer available now.' }}"
-                    data-offer-coupon="{{ $offer->coupon_code ? strtoupper($offer->coupon_code) : '' }}"
-                    data-offer-validity="{{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}"
-                    data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
-                >
-                    @if ($offer->banner_image)
-                        <div class="offer-coupon-image-wrap">
-                            <img
-                                src="{{ asset($offer->banner_image) }}"
-                                alt="{{ $offer->title }}"
-                                class="offer-coupon-image"
-                            >
-                        </div>
-                    @endif
-                    <div class="card-body d-flex flex-column gap-2">
-                        <h2 class="offer-card-title mb-1">{{ $offer->title }}</h2>
-                        <div class="d-flex align-items-center flex-wrap gap-2 mt-auto">
-                            @if ($offer->discount_tag)
-                                <span class="offer-meta-pill offer-meta-pill-discount">{{ $offer->discount_tag }}</span>
-                            @endif
-                            @if ($offer->coupon_code)
-                                <span class="offer-meta-pill offer-meta-pill-coupon">{{ strtoupper($offer->coupon_code) }}</span>
-                            @endif
-                        </div>
-                    </div>
-                </article>
-            </div>
-        @empty
-            <div class="col-12">
-                <div class="alert alert-info mb-0">No active offers available right now.</div>
-            </div>
-        @endforelse
+    <div
+        id="offersGrid"
+        class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-3"
+        data-next-page-url="{{ $offers->nextPageUrl() }}"
+    >
+        @include('frontend.offers.partials.cards', ['offers' => $offers])
     </div>
 
-    <div class="mt-4">
-        {{ $offers->links() }}
+    <div class="mt-4 offer-pagination-wrap" id="offersPaginationState">
+        @if ($offers->total() > 0)
+            <p class="offer-pagination-summary mb-0" id="offersSummaryText">
+                Showing {{ $offers->firstItem() }} to {{ $offers->lastItem() }} of {{ $offers->total() }} results
+            </p>
+        @endif
+        <p class="offer-pagination-loading mb-0 d-none" id="offersLoadingText">Loading more offers…</p>
     </div>
+
+    <div id="offersScrollSentinel" class="offer-scroll-sentinel" aria-hidden="true"></div>
 </div>
 
 <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
@@ -206,6 +176,30 @@
         font-weight: 700;
     }
 
+
+    .offer-pagination-wrap {
+        width: fit-content;
+        max-width: 100%;
+        min-height: 1.5rem;
+    }
+
+    .offer-pagination-summary {
+        margin-top: 0.25rem;
+        font-size: 1rem;
+        color: #0f2742;
+    }
+
+    .offer-pagination-loading {
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+        color: #66788a;
+    }
+
+    .offer-scroll-sentinel {
+        width: 100%;
+        height: 1px;
+    }
+
     @media (min-width: 768px) {
         .offer-details-content {
             padding: 1.35rem 1.5rem 1.55rem;
@@ -237,16 +231,93 @@
         const couponEl = document.getElementById('offerDetailsModalCoupon');
         const expiryEl = document.getElementById('offerDetailsModalExpiry');
         const imageEl = document.getElementById('offerDetailsModalImage');
-        const offerTriggers = document.querySelectorAll('.offer-coupon-card.js-offer-modal-trigger');
+        const offersGrid = document.getElementById('offersGrid');
+        const loadingText = document.getElementById('offersLoadingText');
+        const summaryText = document.getElementById('offersSummaryText');
+        const scrollSentinel = document.getElementById('offersScrollSentinel');
+        let nextPageUrl = offersGrid ? offersGrid.dataset.nextPageUrl || '' : '';
+        let isLoading = false;
 
-        offerTriggers.forEach(function (trigger) {
-            trigger.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    trigger.click();
-                }
-            });
+        document.addEventListener('keydown', function (event) {
+            const trigger = event.target.closest('.offer-coupon-card.js-offer-modal-trigger');
+            if (!trigger) return;
+
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                trigger.click();
+            }
         });
+
+        function setLoadingState(show) {
+            if (!loadingText) return;
+            loadingText.classList.toggle('d-none', !show);
+        }
+
+        async function loadNextOffersPage() {
+            if (!nextPageUrl || isLoading || !offersGrid) return;
+
+            isLoading = true;
+            setLoadingState(true);
+
+            try {
+                const response = await fetch(nextPageUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load more offers');
+                }
+
+                const payload = await response.json();
+
+                const emptyState = offersGrid.querySelector('.offer-empty-state');
+                if (emptyState) {
+                    emptyState.remove();
+                }
+
+                if (payload.html) {
+                    offersGrid.insertAdjacentHTML('beforeend', payload.html);
+                }
+
+                nextPageUrl = payload.next_page_url || '';
+                offersGrid.dataset.nextPageUrl = nextPageUrl;
+
+                if (summaryText && payload.total > 0) {
+                    summaryText.textContent = `Showing 1 to ${payload.loaded_to} of ${payload.total} results`;
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                isLoading = false;
+                setLoadingState(false);
+            }
+        }
+
+        if (scrollSentinel && offersGrid && 'IntersectionObserver' in window) {
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        loadNextOffersPage();
+                    }
+                });
+            }, {
+                rootMargin: '300px 0px',
+            });
+
+            observer.observe(scrollSentinel);
+        } else {
+            window.addEventListener('scroll', function () {
+                if (!nextPageUrl || isLoading || !scrollSentinel) return;
+
+                const sentinelTop = scrollSentinel.getBoundingClientRect().top;
+                if (sentinelTop <= window.innerHeight + 300) {
+                    loadNextOffersPage();
+                }
+            }, { passive: true });
+        }
 
         offerModal.addEventListener('show.bs.modal', function (event) {
             const trigger = event.relatedTarget;
