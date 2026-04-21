@@ -959,6 +959,31 @@
         bindUi: function () {
             var self = this;
 
+            $('#myOfferRemoveBannerBtn').on('click', function (e) {
+                e.stopPropagation();
+                clearEditBannerSelection();
+            });
+
+            $('#myOfferBannerDropzone')
+                .on('dragover', function (e) {
+                    e.preventDefault();
+                    $(this).addClass('drag-over');
+                })
+                .on('dragleave', function () {
+                    $(this).removeClass('drag-over');
+                })
+                .on('drop', function (e) {
+                    e.preventDefault();
+                    $(this).removeClass('drag-over');
+                    var file = e.originalEvent.dataTransfer.files[0];
+                    if (file) {
+                        var dt = new DataTransfer();
+                        dt.items.add(file);
+                        $('#myOfferBannerImage')[0].files = dt.files;
+                        handleEditBannerFile(file);
+                    }
+                });
+
             $(document).on('click', '.js-delete-offer', function () {
                 if (!self.canDelete) {
                     return;
