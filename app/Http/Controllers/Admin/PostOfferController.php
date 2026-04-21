@@ -71,8 +71,8 @@ class PostOfferController extends Controller
         abort_unless($this->canCreate($request->user()), 403);
 
         $validated = $request->validate([
-            'title'             => 'required|string|max:255',
-            'discount_tag'      => 'required|string|max:255',
+            'title'             => 'required|string|max:120',
+            'discount_tag'      => 'required|string|max:100',
             'coupon_code'       => 'nullable|string|max:50',
             'valid_until'       => 'nullable|date|after_or_equal:today',
             'category_id'       => [
@@ -239,8 +239,8 @@ class PostOfferController extends Controller
 
         if ($canWrite) {
             $rules = array_merge($rules, [
-                'title' => 'required|string|max:255',
-                'discount_tag' => 'required|string|max:255',
+                'title' => 'required|string|max:120',
+                'discount_tag' => 'required|string|max:100',
                 'coupon_code' => 'nullable|string|max:50',
                 'valid_until' => 'nullable|date|after_or_equal:today',
                 'category_id' => [
