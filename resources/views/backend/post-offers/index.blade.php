@@ -38,14 +38,19 @@
                     <label class="form-label fw-semibold">
                         Offer Title <span class="text-danger">*</span>
                     </label>
-                    <input
-                        type="text"
+                    <textarea
                         name="title"
                         id="offerTitle"
                         class="form-control @error('title') is-invalid @enderror"
                         placeholder="e.g. Summer Sale — 30% Off All Plans"
-                        value="{{ old('title', $offer?->title) }}"
-                    >
+                        rows="2"
+                        maxlength="120"
+                    >{{ old('title', $offer?->title) }}</textarea>
+                    <div class="d-flex justify-content-end mt-1">
+                        <small class="text-secondary">
+                            <span id="titleCharCount">0</span>/120
+                        </small>
+                    </div>
                     @error('title')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -63,7 +68,13 @@
                         class="form-control @error('discount_tag') is-invalid @enderror"
                         placeholder="e.g. 30% OFF, Buy 1 Get 1, Flat ₹500 Off"
                         value="{{ old('discount_tag', $offer?->discount_tag) }}"
+                        maxlength="100"
                     >
+                    <div class="d-flex justify-content-end mt-1">
+                        <small class="text-secondary">
+                            <span id="discountCharCount">0</span>/100
+                        </small>
+                    </div>
                     @error('discount_tag')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -82,7 +93,13 @@
                         placeholder="e.g. SUMMER30"
                         value="{{ old('coupon_code', $offer?->coupon_code) }}"
                         style="text-transform: uppercase; letter-spacing: 0.05em;"
+                        maxlength="50"
                     >
+                    <div class="d-flex justify-content-end mt-1">
+                        <small class="text-secondary">
+                            <span id="couponCharCount">0</span>/50
+                        </small>
+                    </div>
                     @error('coupon_code')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -207,7 +224,8 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Layer Text</label>
-                                <input type="text" id="layerTextInput" class="form-control" placeholder="Edit selected text block">
+                                <textarea id="layerTextInput" class="form-control" placeholder="Edit selected text block" rows="2" maxlength="120"></textarea>
+                                <small class="text-secondary"><span id="layerTextCharCount">0</span>/120</small>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">Font Size</label>

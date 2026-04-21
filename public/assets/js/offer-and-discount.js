@@ -4,6 +4,13 @@
     }
 
     var OffersAdmin = {
+        FIELD_LIMITS: {
+            title: 120,
+            discount: 100,
+            coupon: 50,
+            description: 300,
+            layerText: 120
+        },
         designer: {
             layers: [],
             activeId: null,
@@ -39,6 +46,21 @@
 
         clamp: function (value, min, max) {
             return Math.max(min, Math.min(max, value));
+        },
+
+        truncateValue: function (value, limit) {
+            if (typeof value !== 'string') return '';
+            return value.length > limit ? value.substring(0, limit) : value;
+        },
+
+        updateCounter: function (selector, countSelector, limit) {
+            var $field = $(selector);
+            var value = $field.val() || '';
+            var normalized = this.truncateValue(value, limit);
+            if (normalized !== value) {
+                $field.val(normalized);
+            }
+            $(countSelector).text(normalized.length);
         },
 
         ensureLayerWithinBounds: function (layer) {
@@ -185,9 +207,10 @@
             var layer = {
                 id: 'layer_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
                 type: 'text',
-                text: text || 'New Text',
+                text: this.truncateValue(text || 'New Text', this.FIELD_LIMITS.layerText),
                 x: options.x || 60,
                 y: options.y || 60,
+                width: options.width || Math.round(this.designer.width * 0.84),
                 fontSize: options.fontSize || 42,
                 fontWeight: options.fontWeight || '700',
                 color: options.color || '#ffffff',
@@ -289,6 +312,7 @@
 
             if (!isText) {
                 $('#layerTextInput').val('');
+                $('#layerTextCharCount').text('0');
                 $('#layerFontSizeInput').val(42);
                 $('#layerBoldInput').prop('checked', true);
                 $('#layerTextColorInput').val('#ffffff');
@@ -296,6 +320,7 @@
                 $('#layerFontFamilyInput').val('Arial');
             } else {
                 $('#layerTextInput').val(layer.text || '');
+                $('#layerTextCharCount').text((layer.text || '').length);
                 $('#layerFontSizeInput').val(layer.fontSize || 42);
                 $('#layerBoldInput').prop('checked', (layer.fontWeight || '700') === '700');
                 $('#layerTextColorInput').val(layer.color || '#ffffff');
@@ -348,11 +373,16 @@
                     $layer.css({
                         left: (layer.x / self.designer.width * 100) + '%',
                         top: (layer.y / self.designer.height * 100) + '%',
+                        width: (Math.max(40, layer.width || 420) / self.designer.width * 100) + '%',
                         color: layer.color,
                         fontSize: Math.max(10, layer.fontSize) * stageScale + 'px',
                         fontWeight: layer.fontWeight || '700',
                         textAlign: layer.align,
                         fontFamily: layer.fontFamily,
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'anywhere',
+                        lineHeight: '1.2',
                         transform: 'translate(-0%, -0%)'
                     });
                 } else {
@@ -436,12 +466,28 @@
 
                 var layer = self.designer.layers[index];
                 if (layer.type === 'text') {
+                    var fontSize = layer.fontSize || 42;
+                    var maxWidth = Math.max(40, layer.width || Math.round(self.designer.width * 0.84));
+                    var lineHeight = Math.round(fontSize * 1.2);
+                    var lines = self.wrapTextToLines(ctx, layer.text || '', maxWidth, (layer.align || 'left') !== 'left');
+                    var baseX = layer.x;
+
                     ctx.textAlign = layer.align || 'left';
                     ctx.fillStyle = layer.color || '#ffffff';
                     ctx.shadowColor = 'rgba(0,0,0,0.4)';
                     ctx.shadowBlur = 4;
-                    ctx.font = (layer.fontWeight || '700') + ' ' + (layer.fontSize || 42) + 'px ' + (layer.fontFamily || 'Arial');
-                    ctx.fillText((layer.text || '').substring(0, 80), layer.x, layer.y + (layer.fontSize || 42));
+                    ctx.textBaseline = 'top';
+                    ctx.font = (layer.fontWeight || '700') + ' ' + fontSize + 'px ' + (layer.fontFamily || 'Arial');
+
+                    if ((layer.align || 'left') === 'center') {
+                        baseX = layer.x + (maxWidth / 2);
+                    } else if ((layer.align || 'left') === 'right') {
+                        baseX = layer.x + maxWidth;
+                    }
+
+                    lines.forEach(function (line, lineIndex) {
+                        ctx.fillText(line, baseX, layer.y + (lineIndex * lineHeight));
+                    });
                     drawNext(index + 1);
                 } else {
                     if (layer.imageObj && layer.imageObj.complete) {
@@ -465,6 +511,60 @@
             drawBackground().then(function () {
                 drawNext(0);
             });
+        },
+
+        wrapTextToLines: function (ctx, text, maxWidth, allowWordBreak) {
+            var safeText = this.truncateValue(text || '', this.FIELD_LIMITS.layerText);
+            if (!safeText) return [''];
+
+            var lines = [];
+            var paragraphs = safeText.split('\n');
+            var self = this;
+
+            paragraphs.forEach(function (paragraph) {
+                var words = paragraph.split(' ');
+                var current = '';
+
+                if (words.length === 1 && words[0] === '') {
+                    lines.push('');
+                    return;
+                }
+
+                words.forEach(function (word) {
+                    var candidate = current ? (current + ' ' + word) : word;
+                    if (ctx.measureText(candidate).width <= maxWidth) {
+                        current = candidate;
+                        return;
+                    }
+
+                    if (current) {
+                        lines.push(current);
+                        current = '';
+                    }
+
+                    if (allowWordBreak && ctx.measureText(word).width > maxWidth) {
+                        var chunk = '';
+                        word.split('').forEach(function (ch) {
+                            var withChar = chunk + ch;
+                            if (ctx.measureText(withChar).width > maxWidth && chunk) {
+                                lines.push(chunk);
+                                chunk = ch;
+                            } else {
+                                chunk = withChar;
+                            }
+                        });
+                        current = chunk;
+                    } else {
+                        current = word;
+                    }
+                });
+
+                if (current) {
+                    lines.push(current);
+                }
+            });
+
+            return lines.length ? lines : [self.truncateValue(safeText, 1)];
         },
 
         /* ── 4. Misc UI Bindings ──────────────────────────────── */
@@ -499,26 +599,29 @@
             $('#couponCode').on('input', function () {
                 var pos = this.selectionStart;
                 $(this).val($(this).val().toUpperCase());
+                self.updateCounter('#couponCode', '#couponCharCount', self.FIELD_LIMITS.coupon);
                 this.setSelectionRange(pos, pos);
                 var couponLayer = self.findLayerBySourceTag('coupon_code');
                 if (couponLayer && couponLayer.type === 'text') {
-                    couponLayer.text = 'Coupon: ' + ($(this).val() || 'N/A');
+                    couponLayer.text = self.truncateValue('Coupon: ' + ($(this).val() || 'N/A'), self.FIELD_LIMITS.layerText);
                 }
                 self.renderDesignerStage();
             });
 
             $('#offerTitle').on('input', function () {
+                self.updateCounter('#offerTitle', '#titleCharCount', self.FIELD_LIMITS.title);
                 var titleLayer = self.findLayerBySourceTag('offer_title');
                 if (titleLayer && titleLayer.type === 'text') {
-                    titleLayer.text = $(this).val() || 'Offer Name';
+                    titleLayer.text = self.truncateValue($(this).val() || 'Offer Name', self.FIELD_LIMITS.layerText);
                 }
                 self.renderDesignerStage();
             });
 
             $('#discountTag').on('input', function () {
+                self.updateCounter('#discountTag', '#discountCharCount', self.FIELD_LIMITS.discount);
                 var discountLayer = self.findLayerBySourceTag('discount_tag');
                 if (discountLayer && discountLayer.type === 'text') {
-                    discountLayer.text = $(this).val() || 'Discount %';
+                    discountLayer.text = self.truncateValue($(this).val() || 'Discount %', self.FIELD_LIMITS.layerText);
                 }
                 self.renderDesignerStage();
             });
@@ -594,7 +697,8 @@
                 var layer = self.findActiveLayer();
                 if (!layer || layer.type !== 'text') return;
 
-                layer.text = $('#layerTextInput').val();
+                self.updateCounter('#layerTextInput', '#layerTextCharCount', self.FIELD_LIMITS.layerText);
+                layer.text = self.truncateValue($('#layerTextInput').val(), self.FIELD_LIMITS.layerText);
                 layer.fontSize = parseInt($('#layerFontSizeInput').val() || '42', 10);
                 layer.fontWeight = $('#layerBoldInput').is(':checked') ? '700' : '400';
                 layer.color = $('#layerTextColorInput').val() || '#ffffff';
@@ -723,9 +827,14 @@
             self.applyBannerMode($('input[name="banner_mode"]:checked').val() || 'upload');
 
             // Description character counter
-            $('#descCharCount').text($('#shortDescription').val().length);
+            this.updateCounter('#offerTitle', '#titleCharCount', this.FIELD_LIMITS.title);
+            this.updateCounter('#discountTag', '#discountCharCount', this.FIELD_LIMITS.discount);
+            this.updateCounter('#couponCode', '#couponCharCount', this.FIELD_LIMITS.coupon);
+            this.updateCounter('#shortDescription', '#descCharCount', this.FIELD_LIMITS.description);
+            this.updateCounter('#layerTextInput', '#layerTextCharCount', this.FIELD_LIMITS.layerText);
+
             $('#shortDescription').on('input', function () {
-                $('#descCharCount').text($(this).val().length);
+                self.updateCounter('#shortDescription', '#descCharCount', self.FIELD_LIMITS.description);
             });
         },
         /* ── 5. Form (Ajax + Validation) ─────────────────────── */
@@ -758,7 +867,7 @@
                     title: {
                         required: true,
                         minlength: 3,
-                        maxlength: 255
+                        maxlength: 120
                     },
                     discount_tag: {
                         required: true,
@@ -792,7 +901,7 @@
                     title: {
                         required: 'Please enter an offer title.',
                         minlength: 'Title must be at least 3 characters.',
-                        maxlength: 'Title must not exceed 255 characters.'
+                        maxlength: 'Title must not exceed 120 characters.'
                     },
                     discount_tag: {
                         required: 'Please enter a discount tag (e.g. 30% OFF).',
@@ -861,6 +970,10 @@
                             form.reset();
                             $('#subcategorySelect').html('<option value="">— Select a category first —</option>').prop('disabled', true);
                             $('#descCharCount').text('0');
+                            $('#titleCharCount').text('0');
+                            $('#discountCharCount').text('0');
+                            $('#couponCharCount').text('0');
+                            $('#layerTextCharCount').text('0');
 
                             // Reset banner preview
                             $('#bannerPreview').attr('src', '#');
