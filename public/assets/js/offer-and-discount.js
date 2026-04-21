@@ -948,6 +948,53 @@
         bindUi: function () {
             var self = this;
             self.modal = new bootstrap.Modal(document.getElementById('myOfferModal'));
+            self.currentExistingBannerUrl = null;
+
+            function updateEditBannerMeta(file) {
+                if (!file || !file.type || !file.type.startsWith('image/')) {
+                    $('#myOfferBannerImageMeta').text('Uploaded image dimensions will appear here for quick validation.');
+                    return;
+                }
+
+                var img = new Image();
+                img.onload = function () {
+                    $('#myOfferBannerImageMeta').text(
+                        'Uploaded image: ' + img.naturalWidth + '×' + img.naturalHeight
+                        + 'px. Recommended: 768×1080px (4:5) to avoid auto-padding.'
+                    );
+                };
+                img.src = URL.createObjectURL(file);
+            }
+
+            function showEditBannerPreview(src) {
+                var hasSrc = !!src;
+                $('#myOfferBannerPreview').attr('src', hasSrc ? src : '#');
+                $('#myOfferBannerPreviewWrap').toggleClass('d-none', !hasSrc);
+                $('#myOfferBannerPlaceholder').toggleClass('d-none', hasSrc);
+            }
+
+            function clearEditBannerSelection() {
+                $('#myOfferBannerImage').val('');
+                showEditBannerPreview(null);
+                updateEditBannerMeta(null);
+                if (self.currentExistingBannerUrl) {
+                    $('#myOfferExistingBannerWrap').removeClass('d-none');
+                }
+            }
+
+            function handleEditBannerFile(file) {
+                if (!file || !file.type || !file.type.startsWith('image/')) {
+                    return;
+                }
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    showEditBannerPreview(e.target.result);
+                    $('#myOfferExistingBannerWrap').addClass('d-none');
+                };
+                reader.readAsDataURL(file);
+                updateEditBannerMeta(file);
+            }
 
             $(document).on('click', '.js-edit-offer', function () {
                 if (!self.canEdit) {
@@ -960,6 +1007,8 @@
                 $('#myOfferExistingBannerWrap').addClass('d-none');
                 $('#myOfferExistingBannerLink').attr('href', '#');
                 $('#myOfferExistingBannerPreview').attr('src', '#');
+                self.currentExistingBannerUrl = null;
+                clearEditBannerSelection();
 
                 $.get(self.routes.showBase + '/' + id, function (response) {
                     var offer = response.offer || {};
@@ -970,6 +1019,7 @@
                     $('#myOfferShortDescription').val(offer.short_description || '');
                     $('#myOfferStatus').val(offer.status || 'inactive');
                     if (response.banner_url) {
+                        self.currentExistingBannerUrl = response.banner_url;
                         $('#myOfferExistingBannerLink').attr('href', response.banner_url);
                         $('#myOfferExistingBannerPreview').attr('src', response.banner_url);
                         $('#myOfferExistingBannerWrap').removeClass('d-none');
@@ -983,9 +1033,34 @@
 
             $('#myOfferBannerImage').on('change', function () {
                 if (this.files && this.files.length > 0) {
-                    $('#myOfferExistingBannerWrap').addClass('d-none');
+                    handleEditBannerFile(this.files[0]);
                 }
             });
+
+            $('#myOfferRemoveBannerBtn').on('click', function (e) {
+                e.stopPropagation();
+                clearEditBannerSelection();
+            });
+
+            $('#myOfferBannerDropzone')
+                .on('dragover', function (e) {
+                    e.preventDefault();
+                    $(this).addClass('drag-over');
+                })
+                .on('dragleave', function () {
+                    $(this).removeClass('drag-over');
+                })
+                .on('drop', function (e) {
+                    e.preventDefault();
+                    $(this).removeClass('drag-over');
+                    var file = e.originalEvent.dataTransfer.files[0];
+                    if (file) {
+                        var dt = new DataTransfer();
+                        dt.items.add(file);
+                        $('#myOfferBannerImage')[0].files = dt.files;
+                        handleEditBannerFile(file);
+                    }
+                });
 
             $(document).on('click', '.js-delete-offer', function () {
                 if (!self.canDelete) {

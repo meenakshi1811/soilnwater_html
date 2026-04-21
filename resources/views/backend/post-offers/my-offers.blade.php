@@ -119,7 +119,21 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Banner Image (optional)</label>
-                            <input type="file" name="banner_image" id="myOfferBannerImage" class="form-control" accept="image/png,image/jpeg,image/webp">
+                            <div id="myOfferBannerDropzone" class="banner-dropzone" onclick="document.getElementById('myOfferBannerImage').click()">
+                                <div id="myOfferBannerPreviewWrap" class="d-none position-relative">
+                                    <img id="myOfferBannerPreview" src="#" alt="Banner Preview" class="banner-preview-img">
+                                    <button type="button" class="btn btn-sm btn-danger banner-remove-btn" id="myOfferRemoveBannerBtn">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                                <div id="myOfferBannerPlaceholder" class="banner-placeholder-content">
+                                    <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2"></i>
+                                    <p class="mb-1 fw-semibold">Click or drag to upload banner</p>
+                                    <small class="text-muted">PNG, JPG or WEBP (max 2 MB)</small>
+                                </div>
+                            </div>
+                            <small id="myOfferBannerImageMeta" class="text-secondary d-block mt-2">Uploaded image dimensions will appear here for quick validation.</small>
+                            <input type="file" name="banner_image" id="myOfferBannerImage" class="d-none" accept="image/png,image/jpeg,image/webp">
                             <div id="myOfferExistingBannerWrap" class="mt-2 d-none">
                                 <small class="text-secondary d-block mb-1">Existing Banner</small>
                                 <a id="myOfferExistingBannerLink" href="#" target="_blank" rel="noopener noreferrer">
