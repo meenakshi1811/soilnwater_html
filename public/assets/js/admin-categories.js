@@ -31,6 +31,22 @@
                 $('<input type="hidden" name="modules[]" data-generated="1">').val(slug).appendTo('#categoryForm');
             });
         },
+        
+        syncNameFields: function () {
+            var subcategoryName = $.trim($('#subcategoryName').val());
+            var parentId = $('#categoryParentId').val();
+            var useSubcategory = subcategoryName.length > 0;
+            $('#categoryParentId').prop('required', useSubcategory);
+            $('#categoryName').prop('readonly', useSubcategory);
+
+            if (useSubcategory) {
+                $('#categoryName').val(subcategoryName);
+            }
+
+            if (!useSubcategory && parentId) {
+                $('#categoryParentId').val('').trigger('change');
+            }
+        },
 
         loadParents: function (selectedParentId, excludeId) {
             return $.get('/admin/categories/parents/options', { exclude_id: excludeId || '' }).done(function (response) {
@@ -103,12 +119,19 @@
                 $('#categoryModalTitle').text('Add Category');
                 $('#categoryForm')[0].reset();
                 $('#categoryId').val('');
+                $('#categoryName').val('');
+                $('#subcategoryName').val('');
                 self.clearModuleChecks();
 
                 self.loadParents('', '').always(function () {
                     $('#categoryForm').attr('action', '/admin/categories').attr('method', 'POST');
+                    self.syncNameFields();
                     self.modal.show();
                 });
+            });
+
+            $('#categoryName, #subcategoryName').on('input', function () {
+                self.syncNameFields();
             });
 
             $('#categoryParentId').on('change', function () {
@@ -121,13 +144,20 @@
                 $('#categoryModalTitle').text('Edit Category');
                 $('#categoryForm')[0].reset();
                 $('#categoryId').val(id);
+                $('#categoryName').val('');
+                $('#subcategoryName').val('');
 
                 $.get('/admin/categories/' + id, function (response) {
                     var category = response.category || {};
 
-                    $('#categoryName').val(category.name || '');
+                    if (category.parent_id) {
+                        $('#subcategoryName').val(category.name || '');
+                    } else {
+                        $('#categoryName').val(category.name || '');
+                    }
                     self.setModuleChecks(category.modules || []);
                     self.loadParents(category.parent_id || '', id).always(function () {
+                        self.syncNameFields();
                         $('#categoryForm').attr('action', '/admin/categories/' + id).attr('method', 'POST');
                         self.modal.show();
                     });
@@ -170,7 +200,17 @@
                 defaultText: 'Save Category',
                 loadingText: 'Saving...',
                 rules: {
-                    name: { required: true, minlength: 2, maxlength: 255 }
+                    name: { required: true, minlength: 2, maxlength: 255 },
+                    parent_id: {
+                        required: function () {
+                            return $.trim($('#subcategoryName').val()).length > 0;
+                        }
+                    }
+                },
+                messages: {
+                    parent_id: {
+                        required: 'Please choose a parent category for the sub category.'
+                    }
                 },
                 beforeSubmit: function () {
                     $('#categoryForm').find('input[name="_method"]').remove();
@@ -178,6 +218,7 @@
                         $('<input type="hidden" name="_method" value="PUT">').appendTo('#categoryForm');
                     }
 
+                    self.syncNameFields();
                     self.appendHiddenModules();
                 },
                 onSuccess: function (response) {
