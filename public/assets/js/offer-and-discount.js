@@ -13,6 +13,28 @@
         },
         currentBannerMode: 'upload',
 
+        updateFinalBannerPreview: function (src) {
+            var hasSrc = !!src;
+            $('#bannerFinalPreview').attr('src', hasSrc ? src : '#').toggleClass('d-none', !hasSrc);
+            $('#bannerFinalPreviewPlaceholder').toggleClass('d-none', hasSrc);
+        },
+
+        updateUploadMeta: function (file) {
+            if (!file || !file.type || !file.type.startsWith('image/')) {
+                $('#bannerImageMeta').text('Uploaded image dimensions will appear here for quick validation.');
+                return;
+            }
+
+            var img = new Image();
+            img.onload = function () {
+                $('#bannerImageMeta').text(
+                    'Uploaded image: ' + img.naturalWidth + '×' + img.naturalHeight
+                    + 'px. Recommended: 768×1080px (4:5) to avoid auto-padding.'
+                );
+            };
+            img.src = URL.createObjectURL(file);
+        },
+
         clamp: function (value, min, max) {
             return Math.max(min, Math.min(max, value));
         },
@@ -79,8 +101,10 @@
                     $('#bannerPreview').attr('src', e.target.result);
                     $('#bannerPreviewWrap').removeClass('d-none');
                     $('#bannerPlaceholder').addClass('d-none');
+                    self.updateFinalBannerPreview(e.target.result);
                 };
                 reader.readAsDataURL(file);
+                self.updateUploadMeta(file);
             }
 
             $('#bannerImage').on('change', function () {
@@ -96,6 +120,8 @@
                 $('#bannerPreview').attr('src', '#');
                 $('#bannerPreviewWrap').addClass('d-none');
                 $('#bannerPlaceholder').removeClass('d-none');
+                self.updateUploadMeta(null);
+                self.updateFinalBannerPreview(null);
                 self.renderDesignerStage();
             });
 
@@ -141,10 +167,12 @@
                 $('#bannerPreview').attr('src', '#');
                 $('#bannerPreviewWrap').addClass('d-none');
                 $('#bannerPlaceholder').removeClass('d-none');
+                this.updateUploadMeta(null);
                 this.renderDesignerStage();
                 this.updateGeneratedBanner();
             } else {
                 $('#generatedBannerData').val('');
+                this.updateFinalBannerPreview($('#bannerPreview').attr('src') !== '#' ? $('#bannerPreview').attr('src') : null);
             }
 
             this.syncBannerModeCards();
@@ -162,25 +190,37 @@
                 fontWeight: options.fontWeight || '700',
                 color: options.color || '#ffffff',
                 align: options.align || 'left',
-                fontFamily: options.fontFamily || 'Arial'
+                fontFamily: options.fontFamily || 'Arial',
+                sourceTag: options.sourceTag || 'text_layer'
             });
             this.designer.activeId = this.designer.layers[this.designer.layers.length - 1].id;
             this.renderDesignerStage();
         },
 
-        addImageLayer: function (src) {
+        findLayerBySourceTag: function (sourceTag) {
+            for (var i = 0; i < this.designer.layers.length; i++) {
+                if (this.designer.layers[i].sourceTag === sourceTag) {
+                    return this.designer.layers[i];
+                }
+            }
+            return null;
+        },
+
+        addImageLayer: function (src, options) {
             var self = this;
+            options = options || {};
             var imgObj = new Image();
             var layer = {
                 id: 'layer_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
                 type: 'image',
                 src: src,
                 imageObj: imgObj,
-                x: 120,
-                y: 240,
-                width: 520,
-                height: 520,
-                aspectRatio: 1
+                x: options.x || 120,
+                y: options.y || 240,
+                width: options.width || 520,
+                height: options.height || 520,
+                aspectRatio: 1,
+                sourceTag: options.sourceTag || 'image_layer'
             };
 
             imgObj.onload = function () {
@@ -194,7 +234,11 @@
             imgObj.src = src;
 
             this.designer.layers.push(layer);
-            this.designer.activeId = this.designer.layers[this.designer.layers.length - 1].id;
+            if (options.toBack) {
+                this.designer.layers.pop();
+                this.designer.layers.unshift(layer);
+            }
+            this.designer.activeId = layer.id;
             this.renderDesignerStage();
         },
 
@@ -304,7 +348,11 @@
 
             var drawNext = function (index) {
                 if (index >= self.designer.layers.length) {
-                    $('#generatedBannerData').val(canvas.toDataURL('image/png'));
+                    var dataUrl = canvas.toDataURL('image/png');
+                    $('#generatedBannerData').val(dataUrl);
+                    if (self.currentBannerMode === 'customize') {
+                        self.updateFinalBannerPreview(dataUrl);
+                    }
                     return;
                 }
 
@@ -367,27 +415,59 @@
                 var pos = this.selectionStart;
                 $(this).val($(this).val().toUpperCase());
                 this.setSelectionRange(pos, pos);
-                if (self.designer.layers[2] && self.designer.layers[2].type === 'text') {
-                    self.designer.layers[2].text = 'Coupon: ' + ($(this).val() || 'N/A');
+                var couponLayer = self.findLayerBySourceTag('coupon_code');
+                if (couponLayer && couponLayer.type === 'text') {
+                    couponLayer.text = 'Coupon: ' + ($(this).val() || 'N/A');
                 }
                 self.renderDesignerStage();
             });
 
             $('#offerTitle').on('input', function () {
-                if (self.designer.layers[0] && self.designer.layers[0].type === 'text') {
-                    self.designer.layers[0].text = $(this).val() || 'Offer Name';
+                var titleLayer = self.findLayerBySourceTag('offer_title');
+                if (titleLayer && titleLayer.type === 'text') {
+                    titleLayer.text = $(this).val() || 'Offer Name';
                 }
                 self.renderDesignerStage();
             });
 
             $('#discountTag').on('input', function () {
-                if (self.designer.layers[1] && self.designer.layers[1].type === 'text') {
-                    self.designer.layers[1].text = $(this).val() || 'Discount %';
+                var discountLayer = self.findLayerBySourceTag('discount_tag');
+                if (discountLayer && discountLayer.type === 'text') {
+                    discountLayer.text = $(this).val() || 'Discount %';
                 }
                 self.renderDesignerStage();
             });
 
             $('#bannerBgColor').on('input change', function () {
+                self.renderDesignerStage();
+            });
+
+            $('#bannerBgImage').on('change', function () {
+                var file = this.files && this.files[0] ? this.files[0] : null;
+                if (!file || !file.type || !file.type.startsWith('image/')) {
+                    return;
+                }
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    self.addImageLayer(e.target.result, {
+                        x: 70,
+                        y: 220,
+                        width: 320,
+                        height: 320,
+                        sourceTag: 'background_upload',
+                        toBack: true
+                    });
+                };
+                reader.readAsDataURL(file);
+                $(this).val('');
+            });
+
+            $('#removeBannerBgImageBtn').on('click', function () {
+                self.designer.layers = self.designer.layers.filter(function (layer) {
+                    return layer.sourceTag !== 'background_upload';
+                });
+                $('#bannerBgImage').val('');
                 self.renderDesignerStage();
             });
 
@@ -545,9 +625,9 @@
             });
 
             if (!self.designer.layers.length) {
-                self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56 });
-                self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46 });
-                self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32 });
+                self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56, sourceTag: 'offer_title' });
+                self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46, sourceTag: 'discount_tag' });
+                self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32, sourceTag: 'coupon_code' });
             } else {
                 self.renderDesignerStage();
             }
@@ -692,14 +772,17 @@
                             $('#bannerPreview').attr('src', '#');
                             $('#bannerPreviewWrap').addClass('d-none');
                             $('#bannerPlaceholder').removeClass('d-none');
+                            $('#bannerImageMeta').text('Uploaded image dimensions will appear here for quick validation.');
+                            self.updateFinalBannerPreview(null);
                             $('#bannerImageLayers').val('');
+                            $('#bannerBgImage').val('');
                             $('input[name="banner_mode"][value="upload"]').prop('checked', true);
                             self.applyBannerMode('upload');
                             self.designer.layers = [];
                             self.designer.activeId = null;
-                            self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56 });
-                            self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46 });
-                            self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32 });
+                            self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56, sourceTag: 'offer_title' });
+                            self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46, sourceTag: 'discount_tag' });
+                            self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32, sourceTag: 'coupon_code' });
 
                             // Reset validation states
                             $('#offerForm .is-valid').removeClass('is-valid');
