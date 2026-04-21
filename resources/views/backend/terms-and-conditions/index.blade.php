@@ -58,7 +58,12 @@
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Terms &amp; Conditions Content</label>
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <label class="form-label mb-0">Terms &amp; Conditions Content</label>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="toggleSourceModeBtn">
+                                    Show Source Code
+                                </button>
+                            </div>
                             <textarea name="content" id="termsContent" class="form-control" rows="8"></textarea>
                         </div>
                     </div>
