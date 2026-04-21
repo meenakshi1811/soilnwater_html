@@ -192,10 +192,20 @@
                 fontWeight: options.fontWeight || '700',
                 color: options.color || '#ffffff',
                 align: options.align || 'left',
-                fontFamily: options.fontFamily || 'Arial'
+                fontFamily: options.fontFamily || 'Arial',
+                sourceTag: options.sourceTag || 'text_layer'
             });
             this.designer.activeId = layer.id;
             this.renderDesignerStage();
+        },
+
+        findLayerBySourceTag: function (sourceTag) {
+            for (var i = 0; i < this.designer.layers.length; i++) {
+                if (this.designer.layers[i].sourceTag === sourceTag) {
+                    return this.designer.layers[i];
+                }
+            }
+            return null;
         },
 
         addImageLayer: function (src, options) {
@@ -450,22 +460,25 @@
                 var pos = this.selectionStart;
                 $(this).val($(this).val().toUpperCase());
                 this.setSelectionRange(pos, pos);
-                if (self.designer.layers[2] && self.designer.layers[2].type === 'text') {
-                    self.designer.layers[2].text = 'Coupon: ' + ($(this).val() || 'N/A');
+                var couponLayer = self.findLayerBySourceTag('coupon_code');
+                if (couponLayer && couponLayer.type === 'text') {
+                    couponLayer.text = 'Coupon: ' + ($(this).val() || 'N/A');
                 }
                 self.renderDesignerStage();
             });
 
             $('#offerTitle').on('input', function () {
-                if (self.designer.layers[0] && self.designer.layers[0].type === 'text') {
-                    self.designer.layers[0].text = $(this).val() || 'Offer Name';
+                var titleLayer = self.findLayerBySourceTag('offer_title');
+                if (titleLayer && titleLayer.type === 'text') {
+                    titleLayer.text = $(this).val() || 'Offer Name';
                 }
                 self.renderDesignerStage();
             });
 
             $('#discountTag').on('input', function () {
-                if (self.designer.layers[1] && self.designer.layers[1].type === 'text') {
-                    self.designer.layers[1].text = $(this).val() || 'Discount %';
+                var discountLayer = self.findLayerBySourceTag('discount_tag');
+                if (discountLayer && discountLayer.type === 'text') {
+                    discountLayer.text = $(this).val() || 'Discount %';
                 }
                 self.renderDesignerStage();
             });
@@ -657,9 +670,9 @@
             });
 
             if (!self.designer.layers.length) {
-                self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56 });
-                self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46 });
-                self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32 });
+                self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56, sourceTag: 'offer_title' });
+                self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46, sourceTag: 'discount_tag' });
+                self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32, sourceTag: 'coupon_code' });
             } else {
                 self.renderDesignerStage();
             }
@@ -812,11 +825,9 @@
                             self.applyBannerMode('upload');
                             self.designer.layers = [];
                             self.designer.activeId = null;
-                            self.designer.backgroundImageSrc = null;
-                            self.designer.backgroundImageObj = null;
-                            self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56 });
-                            self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46 });
-                            self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32 });
+                            self.addTextLayer($('#offerTitle').val() || 'Offer Name', { x: 60, y: 70, fontSize: 56, sourceTag: 'offer_title' });
+                            self.addTextLayer($('#discountTag').val() || 'Discount %', { x: 60, y: 170, fontSize: 46, sourceTag: 'discount_tag' });
+                            self.addTextLayer('Coupon: ' + ($('#couponCode').val() || 'N/A'), { x: 60, y: 255, fontSize: 32, sourceTag: 'coupon_code' });
 
                             // Reset validation states
                             $('#offerForm .is-valid').removeClass('is-valid');
