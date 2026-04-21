@@ -52,8 +52,26 @@
         @endforelse
     </div>
 
-    <div class="mt-4">
-        {{ $offers->links() }}
+    <div class="mt-4 offer-pagination-wrap">
+        <div class="offer-pagination-nav" role="navigation" aria-label="Offers pagination">
+            @if ($offers->onFirstPage())
+                <span class="offer-page-btn is-disabled" aria-disabled="true">&laquo; Previous</span>
+            @else
+                <a href="{{ $offers->previousPageUrl() }}" class="offer-page-btn" rel="prev">&laquo; Previous</a>
+            @endif
+
+            @if ($offers->hasMorePages())
+                <a href="{{ $offers->nextPageUrl() }}" class="offer-page-btn" rel="next">Next &raquo;</a>
+            @else
+                <span class="offer-page-btn is-disabled" aria-disabled="true">Next &raquo;</span>
+            @endif
+        </div>
+
+        @if ($offers->total() > 0)
+            <p class="offer-pagination-summary mb-0">
+                Showing {{ $offers->firstItem() }} to {{ $offers->lastItem() }} of {{ $offers->total() }} results
+            </p>
+        @endif
     </div>
 </div>
 
@@ -204,6 +222,76 @@
         padding: 0.38rem 0.7rem;
         font-size: 0.72rem;
         font-weight: 700;
+    }
+
+
+    .offer-pagination-wrap {
+        width: fit-content;
+        max-width: 100%;
+    }
+
+    .offer-pagination-nav {
+        display: inline-flex;
+        border: 1px solid #d6dbe2;
+        background-color: #fff;
+    }
+
+    .offer-page-btn {
+        min-width: 140px;
+        height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 1rem;
+        color: #0f2742;
+        text-decoration: none;
+        font-size: 1rem;
+        line-height: 1;
+        border-right: 1px solid #d6dbe2;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .offer-page-btn:last-child {
+        border-right: 0;
+    }
+
+    .offer-page-btn:not(.is-disabled):hover,
+    .offer-page-btn:not(.is-disabled):focus-visible {
+        background-color: #f4f7fb;
+        color: #0b5ed7;
+    }
+
+    .offer-page-btn.is-disabled {
+        color: #9aa4b2;
+        background-color: #f8f9fb;
+        pointer-events: none;
+    }
+
+    .offer-pagination-summary {
+        margin-top: 0.5rem;
+        font-size: 1rem;
+        color: #0f2742;
+    }
+
+    @media (max-width: 575.98px) {
+        .offer-pagination-wrap {
+            width: 100%;
+        }
+
+        .offer-pagination-nav {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+        }
+
+        .offer-page-btn {
+            min-width: 0;
+            font-size: 1rem;
+        }
+
+        .offer-pagination-summary {
+            font-size: 1rem;
+        }
     }
 
     @media (min-width: 768px) {
