@@ -31,8 +31,8 @@ class CategoryController extends Controller
         return DataTables::of($categories)
             ->addColumn('category_name', function (Category $category): string {
                 return $category->parent_id
-                    ? e($category->parent?->name ?? '—')
-                    : e($category->name);
+                    ? ($category->parent?->name ?? '—')
+                    : $category->name;
             })
             ->addColumn('subcategory_name', function (Category $category): string {
                 return $category->parent_id
