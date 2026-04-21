@@ -1,26 +1,35 @@
 @extends('backend.layouts.app')
 
-@section('title', 'Post Offer')
+@php
+    $isEditMode = $isEditMode ?? false;
+    $offer = $offer ?? null;
+    $existingBannerUrl = $existingBannerUrl ?? null;
+@endphp
+
+@section('title', $isEditMode ? 'Edit Offer' : 'Post Offer')
 
 @section('content')
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div>
             <p class="ems-kicker mb-1">Admin CMS</p>
-            <h2 class="admin-title mb-1">Post Offer</h2>
-            <p class="mb-0 text-secondary">Create and publish a new offer for your users across different categories.</p>
+            <h2 class="admin-title mb-1">{{ $isEditMode ? 'Edit Offer' : 'Post Offer' }}</h2>
+            <p class="mb-0 text-secondary">{{ $isEditMode ? 'Update and republish your offer details with a refreshed banner.' : 'Create and publish a new offer for your users across different categories.' }}</p>
         </div>
     </div>
 
     <div class="chart-card">
         <div class="mb-4">
             <h5 class="mb-0">Offer Details</h5>
-            <p class="text-secondary mb-0 mt-1" style="font-size:0.875rem;">Fill in the details below to publish a new offer.</p>
+            <p class="text-secondary mb-0 mt-1" style="font-size:0.875rem;">{{ $isEditMode ? 'Update the details below and save changes.' : 'Fill in the details below to publish a new offer.' }}</p>
         </div>
 
-        <form id="offerForm" method="POST" action="{{ route('offers.store') }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/offers/categories') }}">
+        <form id="offerForm" method="POST" action="{{ $isEditMode && $offer ? route('offers.update', $offer) : route('offers.store') }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/offers/categories') }}" data-is-edit="{{ $isEditMode ? '1' : '0' }}">
             @csrf
-            <input type="hidden" name="offer_id" id="offerId" value="">
+            @if($isEditMode)
+                @method('PUT')
+            @endif
+            <input type="hidden" name="offer_id" id="offerId" value="{{ old('offer_id', $offer?->id) }}">
 
             <div class="row g-4">
 
@@ -35,7 +44,7 @@
                         id="offerTitle"
                         class="form-control @error('title') is-invalid @enderror"
                         placeholder="e.g. Summer Sale — 30% Off All Plans"
-                        value="{{ old('title') }}"
+                        value="{{ old('title', $offer?->title) }}"
                     >
                     @error('title')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -53,7 +62,7 @@
                         id="discountTag"
                         class="form-control @error('discount_tag') is-invalid @enderror"
                         placeholder="e.g. 30% OFF, Buy 1 Get 1, Flat ₹500 Off"
-                        value="{{ old('discount_tag') }}"
+                        value="{{ old('discount_tag', $offer?->discount_tag) }}"
                     >
                     @error('discount_tag')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -71,7 +80,7 @@
                         id="couponCode"
                         class="form-control @error('coupon_code') is-invalid @enderror"
                         placeholder="e.g. SUMMER30"
-                        value="{{ old('coupon_code') }}"
+                        value="{{ old('coupon_code', $offer?->coupon_code) }}"
                         style="text-transform: uppercase; letter-spacing: 0.05em;"
                     >
                     @error('coupon_code')
@@ -87,7 +96,7 @@
                         name="valid_until"
                         id="validUntil"
                         class="form-control @error('valid_until') is-invalid @enderror"
-                        value="{{ old('valid_until') }}"
+                        value="{{ old('valid_until', $offer?->valid_until?->format('Y-m-d')) }}"
                         min="{{ now()->toDateString() }}"
                     >
                     @error('valid_until')
@@ -105,7 +114,7 @@
                     >
                         <option value="">— Select a category —</option>
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                            <option value="{{ $category->id }}" {{ (string) old('category_id', $offer?->category_id) === (string) $category->id ? 'selected' : '' }}>
                                 {{ $category->name }}
                             </option>
                         @endforeach
@@ -122,6 +131,7 @@
                         name="subcategory_id"
                         id="subcategorySelect"
                         class="form-select @error('subcategory_id') is-invalid @enderror"
+                        data-selected-subcategory="{{ old('subcategory_id', $offer?->subcategory_id) }}"
                         disabled
                     >
                         <option value="">— Select a category first —</option>
@@ -259,25 +269,25 @@
                     </div>
                     <div id="bannerUploadWrap">
                         <div id="bannerDropzone" class="banner-dropzone" onclick="document.getElementById('bannerImage').click()">
-                        <div id="bannerPreviewWrap" class="d-none position-relative">
-                            <img id="bannerPreview" src="#" alt="Banner Preview" class="banner-preview-img">
+                        <div id="bannerPreviewWrap" class="{{ $existingBannerUrl ? '' : 'd-none' }} position-relative">
+                            <img id="bannerPreview" src="{{ $existingBannerUrl ?: '#' }}" alt="Banner Preview" class="banner-preview-img">
                             <button type="button" class="btn btn-sm btn-danger banner-remove-btn" id="removeBannerBtn">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                         </div>
-                        <div id="bannerPlaceholder" class="banner-placeholder-content">
+                        <div id="bannerPlaceholder" class="banner-placeholder-content {{ $existingBannerUrl ? 'd-none' : '' }}">
                             <i class="fa-solid fa-image fa-2x mb-2 text-secondary"></i>
                             <p class="mb-1 fw-semibold">Click or drag to upload banner</p>
                             <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: 768×1080px (4:5) · PNG, JPG, WebP · Max 2MB</p>
                         </div>
                     </div>
                     </div>
-                    <small id="bannerImageMeta" class="text-secondary d-block mt-2">Uploaded image dimensions will appear here for quick validation.</small>
+                    <small id="bannerImageMeta" class="text-secondary d-block mt-2">{{ $existingBannerUrl ? 'Existing banner loaded. Upload a new image to replace it.' : 'Uploaded image dimensions will appear here for quick validation.' }}</small>
                     <div class="mt-3">
                         <label class="form-label fw-semibold">Final Banner Preview (what users will see)</label>
                         <div class="banner-final-preview-wrap">
-                            <img id="bannerFinalPreview" src="#" alt="Final banner preview" class="banner-final-preview-img d-none">
-                            <div id="bannerFinalPreviewPlaceholder" class="text-secondary small">No preview yet. Upload a banner or design one to generate a final preview.</div>
+                            <img id="bannerFinalPreview" src="{{ $existingBannerUrl ?: '#' }}" alt="Final banner preview" class="banner-final-preview-img {{ $existingBannerUrl ? '' : 'd-none' }}">
+                            <div id="bannerFinalPreviewPlaceholder" class="text-secondary small {{ $existingBannerUrl ? 'd-none' : '' }}">No preview yet. Upload a banner or design one to generate a final preview.</div>
                         </div>
                     </div>
                     <input
@@ -305,7 +315,7 @@
                         rows="3"
                         placeholder="Write a brief, enticing description of this offer (max 300 characters)..."
                         maxlength="300"
-                    >{{ old('short_description') }}</textarea>
+                    >{{ old('short_description', $offer?->short_description) }}</textarea>
                     <div class="d-flex justify-content-end mt-1">
                         <small class="text-secondary">
                             <span id="descCharCount">0</span>/300
@@ -318,7 +328,7 @@
 
             </div>{{-- end .row --}}
 
-            <div class="form-check mt-4">
+            <div class="form-check mt-4 {{ $isEditMode ? 'd-none' : '' }}">
                 <input
                     class="form-check-input @error('accept_terms') is-invalid @enderror"
                     type="checkbox"
@@ -338,10 +348,10 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                <a href="{{ route('post-offer') }}" class="btn btn-light px-4">Cancel</a>
+                <a href="{{ $isEditMode ? route('offers.index') : route('post-offer') }}" class="btn btn-light px-4">Cancel</a>
                 <button type="submit" id="offerSubmitBtn" class="btn btn-primary ems-btn-primary px-5">
                     <span class="btn-text">
-                        <i class="fa-solid fa-paper-plane me-2"></i>Post Offer
+                        <i class="fa-solid {{ $isEditMode ? 'fa-floppy-disk' : 'fa-paper-plane' }} me-2"></i>{{ $isEditMode ? 'Update Offer' : 'Post Offer' }}
                     </span>
                     <span class="btn-loader d-none" aria-hidden="true"></span>
                 </button>
