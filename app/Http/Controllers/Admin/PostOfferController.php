@@ -23,7 +23,30 @@ class PostOfferController extends Controller
 
         $categories = Category::whereNull('parent_id')->orderBy('name')->get();
 
-        return view('backend.post-offers.index', compact('categories'));
+        return view('backend.post-offers.index', [
+            'categories' => $categories,
+            'isEditMode' => false,
+            'offer' => null,
+            'existingBannerUrl' => null,
+        ]);
+    }
+
+    public function edit(Offer $offer)
+    {
+        $user = request()->user();
+        $isOwner = (int) $offer->user_id === (int) $user->id;
+        $canWrite = $this->canWrite($user) && ($this->isStaff($user) || $isOwner);
+
+        abort_unless($canWrite, 403);
+
+        $categories = Category::whereNull('parent_id')->orderBy('name')->get();
+
+        return view('backend.post-offers.index', [
+            'categories' => $categories,
+            'isEditMode' => true,
+            'offer' => $offer,
+            'existingBannerUrl' => $offer->banner_image ? $this->bannerPublicUrl($offer->banner_image) : null,
+        ]);
     }
 
     public function subcategories(Category $category)
@@ -140,7 +163,7 @@ class PostOfferController extends Controller
                 $actions = [];
 
                 if ($canEdit) {
-                    $actions[] = '<button type="button" class="btn btn-sm btn-outline-primary js-edit-offer" data-id="'.$offer->id.'"><i class="fa-solid fa-pen"></i></button>';
+                    $actions[] = '<a href="'.route('offers.edit', $offer).'" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>';
                 }
 
                 if ($canDelete) {

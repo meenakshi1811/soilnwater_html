@@ -455,6 +455,11 @@
             $('#categorySelect').on('change', function () {
                 self.loadSubcategories($(this).val(), '');
             });
+            var initialCategoryId = $('#categorySelect').val();
+            var initialSubcategoryId = $('#subcategorySelect').data('selected-subcategory');
+            if (initialCategoryId) {
+                self.loadSubcategories(initialCategoryId, initialSubcategoryId || '');
+            }
 
             // Coupon code → auto uppercase
             $('#couponCode').on('input', function () {
@@ -693,6 +698,7 @@
             var $btn = $('#offerSubmitBtn');
             var $text = $btn.find('.btn-text');
             var $loader = $btn.find('.btn-loader');
+            var isEditMode = String($form.data('is-edit')) === '1';
 
             function setButtonLoading(isLoading, shouldDisable) {
                 $btn.prop('disabled', !!(isLoading && shouldDisable));
@@ -700,7 +706,7 @@
                 $loader.toggleClass('d-none', !isLoading);
 
                 if (isLoading) {
-                    $loader.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Posting…');
+                    $loader.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> ' + (isEditMode ? 'Updating…' : 'Posting…'));
                 } else {
                     $loader.empty();
                 }
@@ -742,7 +748,7 @@
                         maxlength: 300
                     },
                     accept_terms: {
-                        required: true
+                        required: !isEditMode
                     }
                 },
                 messages: {
@@ -807,7 +813,12 @@
                             'Accept': 'application/json'
                         },
                         success: function (response) {
-                            FormHelper.showToast('success', response.message || 'Offer posted successfully.');
+                            FormHelper.showToast('success', response.message || (isEditMode ? 'Offer updated successfully.' : 'Offer posted successfully.'));
+
+                            if (isEditMode) {
+                                window.location.href = '/dashboard/offers';
+                                return;
+                            }
 
                             // Reset form
                             form.reset();
@@ -947,95 +958,6 @@
 
         bindUi: function () {
             var self = this;
-            self.modal = new bootstrap.Modal(document.getElementById('myOfferModal'));
-            self.currentExistingBannerUrl = null;
-
-            function updateEditBannerMeta(file) {
-                if (!file || !file.type || !file.type.startsWith('image/')) {
-                    $('#myOfferBannerImageMeta').text('Uploaded image dimensions will appear here for quick validation.');
-                    return;
-                }
-
-                var img = new Image();
-                img.onload = function () {
-                    $('#myOfferBannerImageMeta').text(
-                        'Uploaded image: ' + img.naturalWidth + '×' + img.naturalHeight
-                        + 'px. Recommended: 768×1080px (4:5) to avoid auto-padding.'
-                    );
-                };
-                img.src = URL.createObjectURL(file);
-            }
-
-            function showEditBannerPreview(src) {
-                var hasSrc = !!src;
-                $('#myOfferBannerPreview').attr('src', hasSrc ? src : '#');
-                $('#myOfferBannerPreviewWrap').toggleClass('d-none', !hasSrc);
-                $('#myOfferBannerPlaceholder').toggleClass('d-none', hasSrc);
-            }
-
-            function clearEditBannerSelection() {
-                $('#myOfferBannerImage').val('');
-                showEditBannerPreview(null);
-                updateEditBannerMeta(null);
-                if (self.currentExistingBannerUrl) {
-                    $('#myOfferExistingBannerWrap').removeClass('d-none');
-                }
-            }
-
-            function handleEditBannerFile(file) {
-                if (!file || !file.type || !file.type.startsWith('image/')) {
-                    return;
-                }
-
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    showEditBannerPreview(e.target.result);
-                    $('#myOfferExistingBannerWrap').addClass('d-none');
-                };
-                reader.readAsDataURL(file);
-                updateEditBannerMeta(file);
-            }
-
-            $(document).on('click', '.js-edit-offer', function () {
-                if (!self.canEdit) {
-                    return;
-                }
-                var id = $(this).data('id');
-
-                $('#myOfferForm')[0].reset();
-                $('#myOfferForm').attr('action', self.routes.updateBase + '/' + id);
-                $('#myOfferExistingBannerWrap').addClass('d-none');
-                $('#myOfferExistingBannerLink').attr('href', '#');
-                $('#myOfferExistingBannerPreview').attr('src', '#');
-                self.currentExistingBannerUrl = null;
-                clearEditBannerSelection();
-
-                $.get(self.routes.showBase + '/' + id, function (response) {
-                    var offer = response.offer || {};
-                    $('#myOfferTitle').val(offer.title || '');
-                    $('#myOfferDiscountTag').val(offer.discount_tag || '');
-                    $('#myOfferCouponCode').val(offer.coupon_code || '');
-                    $('#myOfferValidUntil').val(self.normalizeDateInputValue(offer.valid_until));
-                    $('#myOfferShortDescription').val(offer.short_description || '');
-                    $('#myOfferStatus').val(offer.status || 'inactive');
-                    if (response.banner_url) {
-                        self.currentExistingBannerUrl = response.banner_url;
-                        $('#myOfferExistingBannerLink').attr('href', response.banner_url);
-                        $('#myOfferExistingBannerPreview').attr('src', response.banner_url);
-                        $('#myOfferExistingBannerWrap').removeClass('d-none');
-                    }
-
-                    self.modal.show();
-                }).fail(function () {
-                    FormHelper.showAlert($('#myOfferAlert'), 'danger', 'Unable to load offer details.');
-                });
-            });
-
-            $('#myOfferBannerImage').on('change', function () {
-                if (this.files && this.files.length > 0) {
-                    handleEditBannerFile(this.files[0]);
-                }
-            });
 
             $('#myOfferRemoveBannerBtn').on('click', function (e) {
                 e.stopPropagation();
@@ -1127,75 +1049,6 @@
             });
         },
 
-        initForm: function () {
-            var self = this;
-            var $form = $('#myOfferForm');
-            var $button = $('#myOfferSubmitBtn');
-            var $alert = $('#myOfferAlert');
-            var csrfToken = $('meta[name="csrf-token"]').attr('content');
-
-            $form.validate({
-                errorElement: 'span',
-                errorPlacement: function (error, element) {
-                    error.addClass('invalid-feedback d-block');
-                    error.insertAfter(element);
-                },
-                highlight: function (element) {
-                    $(element).addClass('is-invalid');
-                },
-                unhighlight: function (element) {
-                    $(element).removeClass('is-invalid');
-                },
-                rules: {
-                    title: { required: true, minlength: 3, maxlength: 255 },
-                    discount_tag: { required: true, maxlength: 255 },
-                    coupon_code: { maxlength: 50 },
-                    valid_until: { date: true },
-                    short_description: { maxlength: 300 },
-                    status: { required: true }
-                },
-                submitHandler: function () {
-                    var formData = new FormData($form[0]);
-                    formData.append('_method', 'PUT');
-
-                    FormHelper.setButtonLoading($button, true, 'Updating...', 'Update Offer');
-
-                    $.ajax({
-                        url: $form.attr('action'),
-                        method: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken || ''
-                        }
-                    }).done(function (response) {
-                        FormHelper.showAlert($alert, 'success', response.message || 'Offer updated successfully.');
-                        if (self.table) {
-                            self.table.ajax.reload(null, false);
-                        }
-                        self.modal.hide();
-                    }).fail(function (xhr) {
-                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                            FormHelper.clearFormErrors($form);
-                            FormHelper.renderFieldErrors($form, xhr.responseJSON.errors);
-                            FormHelper.showAlert($alert, 'warning', 'Please fix the highlighted fields and try again.');
-                            return;
-                        }
-
-                        var message = (xhr.responseJSON && xhr.responseJSON.message)
-                            ? xhr.responseJSON.message
-                            : 'Unable to update offer.';
-                        FormHelper.showAlert($alert, 'danger', message);
-                    }).always(function () {
-                        FormHelper.setButtonLoading($button, false, 'Updating...', 'Update Offer');
-                    });
-                }
-            });
-        },
-
         init: function () {
             if (!$('#myOffersTable').length) {
                 return;
@@ -1203,7 +1056,6 @@
 
             this.initTable();
             this.bindUi();
-            this.initForm();
         }
     };
 
