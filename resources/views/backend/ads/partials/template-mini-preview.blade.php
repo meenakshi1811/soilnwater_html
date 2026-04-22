@@ -1,6 +1,7 @@
 @php
     /** @var \App\Models\AdTemplate $template */
     $placeholder = asset('assets/images/ad-sample.png');
+    $previewImage = !empty($template->preview_image) ? asset($template->preview_image) : null;
     $previewHtml = \App\Support\AdTemplatePreview::render(
         $template->layout_html,
         \App\Support\AdTemplatePreview::sampleFieldsForTemplateName($template->name),
@@ -8,9 +9,17 @@
     );
 @endphp
 
-<div class="ads-template-preview ads-mini-preview" style="aspect-ratio: {{ $size['ratio'] }};">
-    <div class="ads-mini-preview-inner">
-        {!! $previewHtml !!}
-    </div>
+<div
+    class="ads-template-preview ads-mini-preview js-ads-scaled-preview"
+    style="aspect-ratio: {{ $size['ratio'] }};"
+    data-source-width="{{ $size['w'] }}"
+    data-source-height="{{ $size['h'] }}"
+>
+    @if($previewImage)
+        <img src="{{ $previewImage }}" alt="{{ $template->name }} preview" class="w-100 h-100 object-fit-cover rounded">
+    @else
+        <div class="ads-mini-preview-inner">
+            {!! $previewHtml !!}
+        </div>
+    @endif
 </div>
-
