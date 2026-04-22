@@ -101,6 +101,16 @@
         });
     }
 
+    function initScaledPreviews() {
+        var $items = $('.js-ads-scaled-preview');
+        if (!$items.length) return;
+
+        applyScaledPreview($items);
+        $(window).on('resize', function () {
+            applyScaledPreview($items);
+        });
+    }
+
     function initAdminSubmissionsTable() {
         var $table = $('#adminAdSubmissionsTable');
         if (!$table.length || !$.fn.DataTable) return;
@@ -376,5 +386,6 @@
         initAjaxTemplateForm();
         initAjaxApprovalActions();
         initAdminTemplateLivePreview();
+        initScaledPreviews();
     });
 })(window.jQuery);
