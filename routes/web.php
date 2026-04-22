@@ -80,12 +80,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('dashboard/ads')->name('ads.')->middleware('user')->group(function () {
         Route::get('/', [UserAdController::class, 'index'])->name('index');
         Route::get('/data', [UserAdController::class, 'data'])->name('data');
-        Route::get('/{ad}', [UserAdController::class, 'show'])->name('show');
         Route::get('/create', [UserAdController::class, 'selectSize'])->name('create.size');
         Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->name('create.template');
         Route::get('/create/{sizeType}/template/{template}', [UserAdController::class, 'customize'])->name('create.customize');
         Route::post('/create/{sizeType}/template/{template}', [UserAdController::class, 'store'])->name('store');
         Route::get('/view/{ad}', [UserAdController::class, 'show'])->name('show');
+        Route::get('/{ad}', [UserAdController::class, 'show'])->name('legacy.show');
     });
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
