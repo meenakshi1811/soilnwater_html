@@ -62,7 +62,7 @@
                     </div>
 
                     <div class="ads-fields">
-                        <p class="small text-secondary mb-2">Upload template images here. Edit all text/link content directly in live preview.</p>
+                        <p class="small text-secondary mb-2">Upload template images here. Edit all text content directly in live preview.</p>
                         @foreach($fields as $field)
                             @php
                                 $key = (string) ($field['key'] ?? '');
@@ -115,7 +115,7 @@
                     <script type="application/json" id="adTemplateHtml">@json($template->layout_html)</script>
                     <script type="application/json" id="adTemplateFieldKeys">@json($fields)</script>
 
-                    <small class="text-secondary d-block mt-2">Tip: Click any text to edit. Double-click text/button to add or update URL link.</small>
+                    <small class="text-secondary d-block mt-2">Tip: Click any text to edit directly in the preview.</small>
                 </div>
             </div>
 
@@ -292,33 +292,6 @@
                 });
             });
 
-            preview.querySelectorAll('[data-ad-field], [data-ad-static-id], a, button, span, div, p').forEach((node) => {
-                node.addEventListener('dblclick', (event) => {
-                    event.preventDefault();
-                    if (node.querySelector('img')) return;
-                    const anchor = node.tagName.toLowerCase() === 'a'
-                        ? node
-                        : node.closest('a');
-                    const current = anchor ? (anchor.getAttribute('href') || '') : '';
-                    const next = window.prompt('Enter link URL', current || 'https://');
-                    if (!next) return;
-                    if (anchor) {
-                        anchor.setAttribute('href', next);
-                        anchor.setAttribute('target', '_blank');
-                        anchor.setAttribute('rel', 'noopener noreferrer');
-                        return;
-                    }
-
-                    const wrapped = document.createElement('a');
-                    wrapped.setAttribute('href', next);
-                    wrapped.setAttribute('target', '_blank');
-                    wrapped.setAttribute('rel', 'noopener noreferrer');
-                    wrapped.style.textDecoration = 'none';
-                    wrapped.style.color = 'inherit';
-                    node.parentNode.insertBefore(wrapped, node);
-                    wrapped.appendChild(node);
-                });
-            });
         }
 
         document.querySelectorAll('.js-ad-hidden-text').forEach((el) => {
