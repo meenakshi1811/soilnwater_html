@@ -5,6 +5,7 @@
 @php
     $schema = is_array($template->schema_json) ? $template->schema_json : [];
     $fields = is_array($schema['fields'] ?? null) ? $schema['fields'] : [];
+    $textFieldKeys = [];
 
     $layoutHtml = (string) ($template->layout_html ?? '');
     $usedKeys = [];
@@ -17,6 +18,15 @@
         $imageKeys = $imgMatches[1] ?? [];
 
         $usedKeys = array_values(array_unique(array_map('strtolower', array_merge($placeholderKeys, $imageKeys))));
+    }
+
+    foreach ($fields as $field) {
+        $key = (string) ($field['key'] ?? '');
+        $type = (string) ($field['type'] ?? 'text');
+        if ($key === '' || $type === 'image') {
+            continue;
+        }
+        $textFieldKeys[] = $key;
     }
 @endphp
 
@@ -37,6 +47,9 @@
         <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" enctype="multipart/form-data" novalidate>
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
+            @foreach($textFieldKeys as $hiddenTextKey)
+                <input type="hidden" name="{{ $hiddenTextKey }}" value="{{ old($hiddenTextKey) }}" class="js-ad-hidden-text" data-key="{{ $hiddenTextKey }}">
+            @endforeach
 
             <div class="row g-4">
                 <div class="col-12 col-lg-5">
@@ -49,16 +62,16 @@
                     </div>
 
                     <div class="ads-fields">
+                        <p class="small text-secondary mb-2">Upload template images here. Edit all text/link content directly in live preview.</p>
                         @foreach($fields as $field)
                             @php
                                 $key = (string) ($field['key'] ?? '');
                                 $label = (string) ($field['label'] ?? $key);
                                 $type = (string) ($field['type'] ?? 'text');
                                 $required = (bool) ($field['required'] ?? false);
-                                $max = (int) ($field['max'] ?? 0);
                                 $isUsedInTemplate = $key !== '' && in_array(strtolower($key), $usedKeys, true);
                             @endphp
-                            @if($key !== '' && ($required || $isUsedInTemplate))
+                            @if($key !== '' && $type === 'image' && ($required || $isUsedInTemplate))
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">
                                         {{ $label }} @if($required)<span class="text-danger">*</span>@endif
@@ -77,31 +90,6 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                         <small class="text-secondary">PNG/JPG/WebP · Max 2MB</small>
-                                    @elseif(($field['multiline'] ?? false) === true)
-                                        <textarea
-                                            name="{{ $key }}"
-                                            class="form-control @error($key) is-invalid @enderror js-ad-text"
-                                            rows="3"
-                                            data-key="{{ $key }}"
-                                            maxlength="{{ $max > 0 ? $max : 500 }}"
-                                            placeholder="Enter {{ strtolower($label) }}"
-                                        >{{ old($key) }}</textarea>
-                                        @error($key)
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    @else
-                                        <input
-                                            type="text"
-                                            name="{{ $key }}"
-                                            value="{{ old($key) }}"
-                                            class="form-control @error($key) is-invalid @enderror js-ad-text"
-                                            data-key="{{ $key }}"
-                                            maxlength="{{ $max > 0 ? $max : 255 }}"
-                                            placeholder="Enter {{ strtolower($label) }}"
-                                        >
-                                        @error($key)
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
                                     @endif
                                 </div>
                             @endif
@@ -127,7 +115,7 @@
                     <script type="application/json" id="adTemplateHtml">@json($template->layout_html)</script>
                     <script type="application/json" id="adTemplateFieldKeys">@json($fields)</script>
 
-                    <small class="text-secondary d-block mt-2">Tip: Click text in preview to edit directly. Double-click a link/button text to set URL.</small>
+                    <small class="text-secondary d-block mt-2">Tip: Click any text to edit. Double-click text/button to add or update URL link.</small>
                 </div>
             </div>
 
@@ -204,7 +192,7 @@
             const titleVal = titleInput ? (titleInput.value || '').toString().trim() : '';
             map.title = titleVal;
 
-            document.querySelectorAll('.js-ad-text').forEach((el) => {
+            document.querySelectorAll('.js-ad-hidden-text').forEach((el) => {
                 const key = el.getAttribute('data-key');
                 if (!key) return;
                 const val = (el.value || '').toString().trim();
@@ -291,7 +279,7 @@
                     if (!key) return;
                     const val = (node.textContent || '').trim();
                     textState[key] = val;
-                    const input = document.querySelector('.js-ad-text[data-key="' + key + '"]');
+                    const input = document.querySelector('.js-ad-hidden-text[data-key="' + key + '"]');
                     if (input) input.value = val;
                 });
             });
@@ -304,24 +292,36 @@
                 });
             });
 
-            preview.querySelectorAll('a, button').forEach((node) => {
+            preview.querySelectorAll('[data-ad-field], [data-ad-static-id], a, button, span, div, p').forEach((node) => {
                 node.addEventListener('dblclick', (event) => {
                     event.preventDefault();
-                    const current = node.tagName.toLowerCase() === 'a'
-                        ? (node.getAttribute('href') || '')
-                        : (node.getAttribute('data-href') || '');
+                    if (node.querySelector('img')) return;
+                    const anchor = node.tagName.toLowerCase() === 'a'
+                        ? node
+                        : node.closest('a');
+                    const current = anchor ? (anchor.getAttribute('href') || '') : '';
                     const next = window.prompt('Enter link URL', current || 'https://');
                     if (!next) return;
-                    if (node.tagName.toLowerCase() === 'a') {
-                        node.setAttribute('href', next);
-                    } else {
-                        node.setAttribute('data-href', next);
+                    if (anchor) {
+                        anchor.setAttribute('href', next);
+                        anchor.setAttribute('target', '_blank');
+                        anchor.setAttribute('rel', 'noopener noreferrer');
+                        return;
                     }
+
+                    const wrapped = document.createElement('a');
+                    wrapped.setAttribute('href', next);
+                    wrapped.setAttribute('target', '_blank');
+                    wrapped.setAttribute('rel', 'noopener noreferrer');
+                    wrapped.style.textDecoration = 'none';
+                    wrapped.style.color = 'inherit';
+                    node.parentNode.insertBefore(wrapped, node);
+                    wrapped.appendChild(node);
                 });
             });
         }
 
-        document.querySelectorAll('.js-ad-text').forEach((el) => {
+        document.querySelectorAll('.js-ad-hidden-text').forEach((el) => {
             el.addEventListener('input', updatePreview);
         });
 
@@ -345,6 +345,13 @@
 
         if (form) {
             form.addEventListener('submit', () => {
+                preview.querySelectorAll('[data-ad-field]').forEach((node) => {
+                    const key = node.getAttribute('data-ad-field');
+                    if (!key) return;
+                    const val = (node.textContent || '').trim();
+                    const input = document.querySelector('.js-ad-hidden-text[data-key="' + key + '"]');
+                    if (input) input.value = val;
+                });
                 if (customHtmlInput) {
                     customHtmlInput.value = preview.innerHTML;
                 }
