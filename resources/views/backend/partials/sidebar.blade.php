@@ -64,6 +64,18 @@
                     <span>Offers &amp; Discounts</span>
                 </a>
             </li>
+            <li>
+                <a class="{{ request()->routeIs('admin.ads.templates.*') ? 'active' : '' }}" href="{{ route('admin.ads.templates.index') }}">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Ad Templates</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('admin.ads.submissions.*') ? 'active' : '' }}" href="{{ route('admin.ads.submissions.index') }}">
+                    <i class="fa-solid fa-inbox"></i>
+                    <span>Ad Submissions</span>
+                </a>
+            </li>
         @endif
 
          @foreach($emsModules as $slug => $label)
@@ -92,6 +104,12 @@
                 </a>
             </li>
             @endif
+            <li>
+                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-ad"></i>
+                    <span>My Ads</span>
+                </a>
+            </li>
             <li>
                 <a class="{{ request()->routeIs('user.profile.*') ? 'active' : '' }}" href="{{ route('user.profile.edit') }}">
                     <i class="fa-solid fa-user-gear"></i>

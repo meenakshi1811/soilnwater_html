@@ -13,6 +13,9 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ModuleAccessController;
 use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\Admin\PostOfferController;
+use App\Http\Controllers\User\UserAdController;
+use App\Http\Controllers\Admin\AdTemplateController;
+use App\Http\Controllers\Admin\AdSubmissionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -74,10 +77,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('post-ad');
     });
 
+    Route::prefix('dashboard/ads')->name('ads.')->middleware('user')->group(function () {
+        Route::get('/', [UserAdController::class, 'index'])->name('index');
+        Route::get('/data', [UserAdController::class, 'data'])->name('data');
+        Route::get('/create', [UserAdController::class, 'selectSize'])->name('create.size');
+        Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->name('create.template');
+        Route::get('/create/{sizeType}/template/{template}', [UserAdController::class, 'customize'])->name('create.customize');
+        Route::post('/create/{sizeType}/template/{template}', [UserAdController::class, 'store'])->name('store');
+    });
+
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [AdminController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
+
+        Route::prefix('ads')->name('ads.')->group(function () {
+            Route::prefix('templates')->name('templates.')->group(function () {
+                Route::get('/', [AdTemplateController::class, 'index'])->name('index');
+                Route::get('/data', [AdTemplateController::class, 'data'])->name('data');
+                Route::get('/create', [AdTemplateController::class, 'create'])->name('create');
+                Route::post('/', [AdTemplateController::class, 'store'])->name('store');
+                Route::get('/{template}/edit', [AdTemplateController::class, 'edit'])->name('edit');
+                Route::put('/{template}', [AdTemplateController::class, 'update'])->name('update');
+            });
+
+            Route::prefix('submissions')->name('submissions.')->group(function () {
+                Route::get('/', [AdSubmissionController::class, 'index'])->name('index');
+                Route::get('/data', [AdSubmissionController::class, 'data'])->name('data');
+                Route::get('/{ad}', [AdSubmissionController::class, 'show'])->name('show');
+                Route::post('/{ad}/approve', [AdSubmissionController::class, 'approve'])->name('approve');
+                Route::post('/{ad}/reject', [AdSubmissionController::class, 'reject'])->name('reject');
+            });
+        });
 
         Route::prefix('roles')->name('roles.')->group(function () {
             Route::get('/', [RoleController::class, 'index'])->name('index');

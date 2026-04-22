@@ -27,7 +27,7 @@
                 <a class="btn btn-sm admin-header-action-offer" href="{{ route('post-offer') }}">Post Offer</a>
             @endif
             @if($isGeneralUser)
-                <a class="btn btn-sm admin-header-action-ad" href="{{ route('user.post-ad') }}">Post Ad</a>
+                <a class="btn btn-sm admin-header-action-ad" href="{{ route('ads.create.size') }}">Post Ad</a>
             @endif
             <a class="btn btn-sm admin-link {{ $profileActive ? 'active' : '' }}" href="{{ $profileUrl }}">Profile</a>
             <form method="POST" action="{{ route('logout') }}">
