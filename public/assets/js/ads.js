@@ -19,10 +19,12 @@
                 { data: 'size_label', name: 'size_type', orderable: false, searchable: false },
                 { data: 'template_name', name: 'template.name', orderable: false, searchable: false },
                 { data: 'status_badge', name: 'status', orderable: false, searchable: false },
-                { data: 'submitted_at', name: 'submitted_at' }
+                { data: 'submitted_at', name: 'submitted_at' },
+                { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
             createdRow: function (row, data) {
                 $(row).find('td').eq(3).html(data.status_badge);
+                $(row).find('td').eq(5).html(data.actions);
             }
         });
     }
@@ -153,6 +155,7 @@
             $approveForm.on('submit', function (e) {
                 e.preventDefault();
                 var $btn = $approveForm.find('button[type="submit"]');
+                $btn.prop('disabled', true);
                 var fd = new FormData($approveForm.get(0));
                 $.ajax({
                     url: $approveForm.attr('action'),
@@ -175,6 +178,7 @@
             $rejectForm.on('submit', function (e) {
                 e.preventDefault();
                 var $btn = $rejectForm.find('button[type="submit"]');
+                $btn.prop('disabled', true);
                 var fd = new FormData($rejectForm.get(0));
                 $.ajax({
                     url: $rejectForm.attr('action'),
@@ -186,7 +190,10 @@
                     FormHelper.showToast('success', (res && res.message) ? res.message : 'Rejected.');
                     setTimeout(function () { window.location.reload(); }, 600);
                 }).fail(function (xhr) {
-                    var msg = (xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error)) || 'Failed.';
+                    var errors = xhr.responseJSON && xhr.responseJSON.errors ? xhr.responseJSON.errors : null;
+                    var msg = errors && errors.review_note && errors.review_note[0]
+                        ? errors.review_note[0]
+                        : ((xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error)) || 'Failed.');
                     FormHelper.showToast('danger', msg);
                     $btn.prop('disabled', false);
                 });
@@ -203,4 +210,3 @@
         initAjaxApprovalActions();
     });
 })(window.jQuery);
-

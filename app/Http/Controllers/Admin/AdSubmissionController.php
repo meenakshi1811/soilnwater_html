@@ -66,7 +66,7 @@ class AdSubmissionController extends Controller
         ]);
     }
 
-    public function approve(Request $request, UserAd $ad): RedirectResponse
+    public function approve(Request $request, UserAd $ad): RedirectResponse|JsonResponse
     {
         $ad->update([
             'status' => 'approved',
@@ -82,7 +82,7 @@ class AdSubmissionController extends Controller
         return back()->with('success', 'Ad approved.');
     }
 
-    public function reject(Request $request, UserAd $ad): RedirectResponse
+    public function reject(Request $request, UserAd $ad): RedirectResponse|JsonResponse
     {
         $request->validate([
             'review_note' => 'required|string|max:400',
@@ -102,4 +102,3 @@ class AdSubmissionController extends Controller
         return back()->with('success', 'Ad rejected.');
     }
 }
-
