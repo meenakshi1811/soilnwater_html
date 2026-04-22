@@ -220,24 +220,7 @@
                 });
             }
 
-            $form.validate({
-                errorElement: 'span',
-                errorPlacement: function (error, element) {
-                    error.addClass('invalid-feedback d-block');
-                    error.insertAfter(element);
-                },
-                highlight: function (element) {
-                    $(element).addClass('is-invalid');
-                },
-                unhighlight: function (element) {
-                    $(element).removeClass('is-invalid');
-                },
-                invalidHandler: function () {
-                    self.setButtonLoading($button, false, loadingText, defaultText);
-                },
-                rules: config.rules || {},
-                messages: config.messages || {},
-                submitHandler: function () {
+            var submitViaAjax = function () {
                     self.clearFormErrors($form);
                     if ($alert.length) {
                         $alert.addClass('d-none').text('');
@@ -285,8 +268,34 @@
                     }).always(function () {
                         self.setButtonLoading($button, false, loadingText, defaultText);
                     });
-                }
-            });
+            };
+
+            if ($.fn && typeof $.fn.validate === 'function') {
+                $form.validate({
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback d-block');
+                        error.insertAfter(element);
+                    },
+                    highlight: function (element) {
+                        $(element).addClass('is-invalid');
+                    },
+                    unhighlight: function (element) {
+                        $(element).removeClass('is-invalid');
+                    },
+                    invalidHandler: function () {
+                        self.setButtonLoading($button, false, loadingText, defaultText);
+                    },
+                    rules: config.rules || {},
+                    messages: config.messages || {},
+                    submitHandler: submitViaAjax
+                });
+            } else {
+                $form.off('submit.ajaxForm').on('submit.ajaxForm', function (e) {
+                    e.preventDefault();
+                    submitViaAjax();
+                });
+            }
         },
 
         initOtpTimer: function (selector) {
