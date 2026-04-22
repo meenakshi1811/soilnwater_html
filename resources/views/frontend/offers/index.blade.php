@@ -106,6 +106,15 @@
         font-size: 0.95rem;
         font-weight: 600;
         line-height: 1.35;
+        min-height: 1.35em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .offer-coupon-card .card-body,
+    .offer-meta-row {
+        min-width: 0;
     }
 
     .offer-meta-pill {
@@ -120,6 +129,9 @@
         line-height: 1;
         font-size: 0.7rem;
         white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .offer-meta-pill-discount {

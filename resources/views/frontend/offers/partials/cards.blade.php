@@ -24,7 +24,7 @@
             @endif
             <div class="card-body d-flex flex-column gap-2">
                 <h2 class="offer-card-title mb-1">{{ $offer->title }}</h2>
-                <div class="d-flex align-items-center flex-wrap gap-2 mt-auto">
+                <div class="d-flex align-items-center flex-wrap gap-2 mt-auto offer-meta-row">
                     @if ($offer->discount_tag)
                         <span class="offer-meta-pill offer-meta-pill-discount">{{ $offer->discount_tag }}</span>
                     @endif
