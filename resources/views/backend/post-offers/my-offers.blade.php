@@ -60,6 +60,34 @@
 
         <div id="myOfferAlert" class="alert d-none" role="alert"></div>
 
+        <div class="row g-2 mb-3">
+            <div class="col-12 col-md-4">
+                <label for="offersFilterCategory" class="form-label mb-1">Category</label>
+                <select id="offersFilterCategory" class="form-select">
+                    <option value="">All categories</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label for="offersFilterSubcategory" class="form-label mb-1">Subcategory</label>
+                <select id="offersFilterSubcategory" class="form-select" disabled>
+                    <option value="">All subcategories</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label for="offersFilterValidity" class="form-label mb-1">Validity</label>
+                <select id="offersFilterValidity" class="form-select">
+                    <option value="">All</option>
+                    <option value="valid">Valid (Not expired)</option>
+                    <option value="expired">Expired</option>
+                    <option value="expires_today">Expires today</option>
+                    <option value="no_expiry">No expiry</option>
+                </select>
+            </div>
+        </div>
+
         <div class="table-responsive offers-table-wrap">
             <table
                 id="myOffersTable"
@@ -72,6 +100,7 @@
                 data-can-edit="{{ $canEditOffer ? '1' : '0' }}"
                 data-can-delete="{{ $canDeleteOffer ? '1' : '0' }}"
                 data-can-approve="{{ $canApproveOffer ? '1' : '0' }}"
+                data-categories='@json($categoriesForFilter)'
             >
                 <thead>
                 <tr>

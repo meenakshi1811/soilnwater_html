@@ -124,6 +124,25 @@ class PostOfferController extends Controller
         abort_unless($this->canRead(request()->user()), 403);
 
         $user = request()->user();
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'offers')
+            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        $categoriesForFilter = $categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'children' => $category->children->map(function ($child) {
+                    return [
+                        'id' => $child->id,
+                        'name' => $child->name,
+                        'parent_id' => $child->parent_id,
+                    ];
+                })->values()->all(),
+            ];
+        })->values()->all();
 
         return view('backend.post-offers.my-offers', [
             'canCreateOffer' => $this->canCreate($user),
@@ -131,6 +150,8 @@ class PostOfferController extends Controller
             'canDeleteOffer' => $this->canDelete($user),
             'canApproveOffer' => $this->canApprove($user),
             'isAdminView' => $user->isAdmin(),
+            'categories' => $categories,
+            'categoriesForFilter' => $categoriesForFilter,
         ]);
     }
 
@@ -144,6 +165,21 @@ class PostOfferController extends Controller
         $offers = Offer::query()
             ->with(['user:id,name,full_name', 'category:id,name', 'subcategory:id,name'])
             ->when(! $isStaff, fn ($query) => $query->where('user_id', $user->id))
+            ->when($request->filled('category_id'), fn ($query) => $query->where('category_id', $request->integer('category_id')))
+            ->when($request->filled('subcategory_id'), fn ($query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
+            ->when($request->filled('validity'), function ($query) use ($request) {
+                $today = Carbon::today();
+
+                return match ($request->string('validity')->toString()) {
+                    'valid' => $query->where(function ($validityQuery) use ($today) {
+                        $validityQuery->whereNull('valid_until')->orWhereDate('valid_until', '>=', $today);
+                    }),
+                    'expired' => $query->whereDate('valid_until', '<', $today),
+                    'expires_today' => $query->whereDate('valid_until', '=', $today),
+                    'no_expiry' => $query->whereNull('valid_until'),
+                    default => $query,
+                };
+            })
             ->latest();
 
         $canEdit = $this->canWrite($user);
