@@ -14,10 +14,20 @@
         width: 100% !important;
     }
 
-    #myOffersTable th,
+    #myOffersTable th {
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
     #myOffersTable td {
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    #myOffersTable td.offer-col-wrap {
         white-space: normal;
         word-break: break-word;
+        min-width: 220px;
     }
 
     #myOffersTable td:last-child {

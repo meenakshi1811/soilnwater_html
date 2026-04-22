@@ -1088,21 +1088,22 @@
                 processing: true,
                 serverSide: true,
                 autoWidth: false,
+                scrollX: true,
                 ajax: {
                     url: this.routes.data
                 },
                 columns: [
-                    { data: 'title', name: 'title' },
-                    { data: 'created_by_name', name: 'created_by_name', orderable: false, searchable: false },
-                    { data: 'banner_preview', name: 'banner_preview', orderable: false, searchable: false },
-                    { data: 'discount_tag', name: 'discount_tag' },
-                    { data: 'coupon_code', name: 'coupon_code' },
-                    { data: 'category_name', name: 'category_name', orderable: false, searchable: false },
-                    { data: 'subcategory_name', name: 'subcategory_name', orderable: false, searchable: false },
-                    { data: 'valid_until', name: 'valid_until' },
-                    { data: 'status_badge', name: 'status_badge', orderable: false, searchable: false },
-                    { data: 'created_at', name: 'created_at' },
-                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                    { data: 'title', name: 'title', className: 'offer-col-wrap' },
+                    { data: 'created_by_name', name: 'created_by_name', orderable: false, searchable: false, className: 'text-nowrap' },
+                    { data: 'banner_preview', name: 'banner_preview', orderable: false, searchable: false, className: 'text-center text-nowrap' },
+                    { data: 'discount_tag', name: 'discount_tag', className: 'offer-col-wrap' },
+                    { data: 'coupon_code', name: 'coupon_code', className: 'offer-col-wrap' },
+                    { data: 'category_name', name: 'category_name', orderable: false, searchable: false, className: 'text-nowrap' },
+                    { data: 'subcategory_name', name: 'subcategory_name', orderable: false, searchable: false, className: 'text-nowrap' },
+                    { data: 'valid_until', name: 'valid_until', className: 'text-nowrap' },
+                    { data: 'status_badge', name: 'status_badge', orderable: false, searchable: false, className: 'text-nowrap' },
+                    { data: 'created_at', name: 'created_at', className: 'text-nowrap' },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end text-nowrap' }
                 ],
                 order: [[9, 'desc']]
             });
