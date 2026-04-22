@@ -130,6 +130,19 @@ class PostOfferController extends Controller
             ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
             ->orderBy('name')
             ->get(['id', 'name']);
+        $categoriesForFilter = $categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'children' => $category->children->map(function ($child) {
+                    return [
+                        'id' => $child->id,
+                        'name' => $child->name,
+                        'parent_id' => $child->parent_id,
+                    ];
+                })->values()->all(),
+            ];
+        })->values()->all();
 
         return view('backend.post-offers.my-offers', [
             'canCreateOffer' => $this->canCreate($user),
@@ -138,6 +151,7 @@ class PostOfferController extends Controller
             'canApproveOffer' => $this->canApprove($user),
             'isAdminView' => $user->isAdmin(),
             'categories' => $categories,
+            'categoriesForFilter' => $categoriesForFilter,
         ]);
     }
 

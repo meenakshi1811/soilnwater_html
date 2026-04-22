@@ -100,15 +100,7 @@
                 data-can-edit="{{ $canEditOffer ? '1' : '0' }}"
                 data-can-delete="{{ $canDeleteOffer ? '1' : '0' }}"
                 data-can-approve="{{ $canApproveOffer ? '1' : '0' }}"
-                data-categories='@json($categories->map(fn($category) => [
-                    "id" => $category->id,
-                    "name" => $category->name,
-                    "children" => $category->children->map(fn($child) => [
-                        "id" => $child->id,
-                        "name" => $child->name,
-                        "parent_id" => $child->parent_id,
-                    ])->values(),
-                ])->values())'
+                data-categories='@json($categoriesForFilter)'
             >
                 <thead>
                 <tr>
