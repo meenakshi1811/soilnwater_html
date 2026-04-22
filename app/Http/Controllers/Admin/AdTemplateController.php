@@ -43,6 +43,13 @@ class AdTemplateController extends Controller
         return DataTables::of($query)
             ->addColumn('preview_html', function (AdTemplate $template) use ($sizes, $placeholder) {
                 $size = $sizes[$template->size_type] ?? ['ratio' => '1 / 1', 'w' => 1, 'h' => 1];
+
+                if (!empty($template->preview_image)) {
+                    $previewImage = asset($template->preview_image);
+
+                    return '<div class="ads-dt-preview js-ads-scaled-preview" data-source-width="'.(int) $size['w'].'" data-source-height="'.(int) $size['h'].'" style="aspect-ratio: '.$size['ratio'].';"><img src="'.$previewImage.'" alt="Template preview" class="w-100 h-100 object-fit-cover rounded"></div>';
+                }
+
                 $html = AdTemplatePreview::render($template->layout_html, AdTemplatePreview::sampleFieldsForTemplateName($template->name), $placeholder);
 
                 return '<div class="ads-dt-preview js-ads-scaled-preview" data-source-width="'.(int) $size['w'].'" data-source-height="'.(int) $size['h'].'" style="aspect-ratio: '.$size['ratio'].';"><div class="ads-mini-preview-inner">'.$html.'</div></div>';

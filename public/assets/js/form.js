@@ -232,10 +232,16 @@
 
                     self.setButtonLoading($button, true, loadingText, defaultText);
 
+                    var hasFileInputs = $form.find('input[type="file"]').length > 0;
+                    var isMultipart = (($form.attr('enctype') || '').toLowerCase() === 'multipart/form-data');
+                    var requestData = (hasFileInputs || isMultipart) ? new FormData($form.get(0)) : $form.serialize();
+
                     $.ajax({
                         url: $form.attr('action'),
                         method: config.method || $form.attr('method') || 'POST',
-                        data: $form.serialize(),
+                        data: requestData,
+                        processData: !(hasFileInputs || isMultipart),
+                        contentType: (hasFileInputs || isMultipart) ? false : 'application/x-www-form-urlencoded; charset=UTF-8',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json',
