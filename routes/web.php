@@ -85,6 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->name('create.template');
         Route::get('/create/{sizeType}/template/{template}', [UserAdController::class, 'customize'])->name('create.customize');
         Route::post('/create/{sizeType}/template/{template}', [UserAdController::class, 'store'])->name('store');
+        Route::get('/{ad}', [UserAdController::class, 'show'])->name('show');
     });
 
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
