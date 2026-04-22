@@ -42,10 +42,10 @@ class AdTemplateController extends Controller
 
         return DataTables::of($query)
             ->addColumn('preview_html', function (AdTemplate $template) use ($sizes, $placeholder) {
-                $size = $sizes[$template->size_type] ?? ['ratio' => '1 / 1'];
+                $size = $sizes[$template->size_type] ?? ['ratio' => '1 / 1', 'w' => 1, 'h' => 1];
                 $html = AdTemplatePreview::render($template->layout_html, AdTemplatePreview::sampleFieldsForTemplateName($template->name), $placeholder);
 
-                return '<div class="ads-dt-preview" style="aspect-ratio: '.$size['ratio'].';"><div class="ads-mini-preview-inner">'.$html.'</div></div>';
+                return '<div class="ads-dt-preview js-ads-scaled-preview" data-source-width="'.(int) $size['w'].'" data-source-height="'.(int) $size['h'].'" style="aspect-ratio: '.$size['ratio'].';"><div class="ads-mini-preview-inner">'.$html.'</div></div>';
             })
             ->addColumn('size_label', fn (AdTemplate $t) => $sizes[$t->size_type]['name'] ?? $t->size_type)
             ->addColumn('status_badge', fn (AdTemplate $t) => '<span class="badge bg-'.($t->is_active ? 'success' : 'secondary').'">'.($t->is_active ? 'Active' : 'Inactive').'</span>')
@@ -165,4 +165,3 @@ class AdTemplateController extends Controller
         return $relativeDirectory.'/'.$fileName;
     }
 }
-
