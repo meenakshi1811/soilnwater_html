@@ -36,6 +36,7 @@
         <div id="adCustomizeAlert" class="alert d-none" role="alert"></div>
         <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" enctype="multipart/form-data" novalidate>
             @csrf
+            <input type="hidden" name="custom_html" id="customHtmlInput" value="">
 
             <div class="row g-4">
                 <div class="col-12 col-lg-5">
@@ -126,7 +127,7 @@
                     <script type="application/json" id="adTemplateHtml">@json($template->layout_html)</script>
                     <script type="application/json" id="adTemplateFieldKeys">@json($fields)</script>
 
-                    <small class="text-secondary d-block mt-2">Tip: Upload images and type text to see the preview update.</small>
+                    <small class="text-secondary d-block mt-2">Tip: Click text in preview to edit directly. Double-click a link/button text to set URL.</small>
                 </div>
             </div>
 
@@ -164,6 +165,37 @@
 
         const placeholderSrc = '{{ asset('assets/images/ad-sample.png') }}';
         const imageState = {}; // key -> objectURL
+        const textState = {};
+        const staticState = {};
+        const form = preview.closest('form');
+        const customHtmlInput = document.getElementById('customHtmlInput');
+
+        function getFieldByKey(key) {
+            return schemaFields.find((field) => (field && field.key) === key) || null;
+        }
+
+        function getDefaultValue(key) {
+            const field = getFieldByKey(key);
+            if (field && typeof field.default !== 'undefined' && field.default !== null && String(field.default).trim() !== '') {
+                return String(field.default);
+            }
+
+            const map = {
+                headline: 'Your Headline',
+                subheadline: 'Add your message here',
+                cta: 'Book Now',
+                phone: '+1 000 000 0000',
+                website: 'www.example.com',
+                badge: '50% OFF',
+                line1: 'Service 1',
+                line2: 'Service 2',
+                line3: 'Service 3',
+            };
+
+            if (Object.prototype.hasOwnProperty.call(map, key)) return map[key];
+            if (field && field.label) return String(field.label);
+            return '';
+        }
 
         function computeTextReplacements() {
             const map = {};
@@ -175,8 +207,8 @@
             document.querySelectorAll('.js-ad-text').forEach((el) => {
                 const key = el.getAttribute('data-key');
                 if (!key) return;
-                const val = (el.value || '').toString();
-                map[key] = val;
+                const val = (el.value || '').toString().trim();
+                map[key] = val === '' ? getDefaultValue(key) : val;
             });
 
             
@@ -200,10 +232,14 @@
             Object.keys(replacements).forEach((key) => {
                 const pattern = escapeRegExp(OPEN) + '\\s*' + escapeRegExp(key) + '\\s*' + escapeRegExp(CLOSE);
                 const re = new RegExp(pattern, 'gi');
-                html = html.replace(re, escapeHtml(replacements[key] || ''));
+                const value = replacements[key] || getDefaultValue(key);
+                textState[key] = value;
+                html = html.replace(re, '<span data-ad-field="' + key + '" contenteditable="true" spellcheck="false">' + escapeHtml(value) + '</span>');
             });
 
             preview.innerHTML = html;
+            applyStaticEditable();
+            bindInlineEditors();
         }
 
         function applyLiveImages() {
@@ -229,6 +265,62 @@
             applyLiveImages();
         }
 
+        function applyStaticEditable() {
+            const editableNodes = preview.querySelectorAll('div, span, p, li, h1, h2, h3, h4, h5, h6, a, button');
+            let idx = 0;
+            editableNodes.forEach((node) => {
+                if (node.closest('[data-ad-field]')) return;
+                if (node.querySelector('img')) return;
+                if (node.children.length > 0) return;
+                const raw = (node.textContent || '').trim();
+                if (!raw) return;
+                const id = 's_' + idx++;
+                node.setAttribute('data-ad-static-id', id);
+                node.setAttribute('contenteditable', 'true');
+                node.setAttribute('spellcheck', 'false');
+                if (Object.prototype.hasOwnProperty.call(staticState, id)) {
+                    node.textContent = staticState[id];
+                }
+            });
+        }
+
+        function bindInlineEditors() {
+            preview.querySelectorAll('[data-ad-field]').forEach((node) => {
+                node.addEventListener('input', () => {
+                    const key = node.getAttribute('data-ad-field');
+                    if (!key) return;
+                    const val = (node.textContent || '').trim();
+                    textState[key] = val;
+                    const input = document.querySelector('.js-ad-text[data-key="' + key + '"]');
+                    if (input) input.value = val;
+                });
+            });
+
+            preview.querySelectorAll('[data-ad-static-id]').forEach((node) => {
+                node.addEventListener('input', () => {
+                    const id = node.getAttribute('data-ad-static-id');
+                    if (!id) return;
+                    staticState[id] = node.textContent || '';
+                });
+            });
+
+            preview.querySelectorAll('a, button').forEach((node) => {
+                node.addEventListener('dblclick', (event) => {
+                    event.preventDefault();
+                    const current = node.tagName.toLowerCase() === 'a'
+                        ? (node.getAttribute('href') || '')
+                        : (node.getAttribute('data-href') || '');
+                    const next = window.prompt('Enter link URL', current || 'https://');
+                    if (!next) return;
+                    if (node.tagName.toLowerCase() === 'a') {
+                        node.setAttribute('href', next);
+                    } else {
+                        node.setAttribute('data-href', next);
+                    }
+                });
+            });
+        }
+
         document.querySelectorAll('.js-ad-text').forEach((el) => {
             el.addEventListener('input', updatePreview);
         });
@@ -251,8 +343,15 @@
             });
         });
 
+        if (form) {
+            form.addEventListener('submit', () => {
+                if (customHtmlInput) {
+                    customHtmlInput.value = preview.innerHTML;
+                }
+            });
+        }
+
         updatePreview();
     })();
 </script>
 @endpush
-
