@@ -108,8 +108,15 @@
                     </div>
 
                     <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] }};">
-                        <div class="ads-live-preview-inner" id="adPreview">
-                            {!! $template->layout_html !!}
+                        <div
+                            class="ads-live-preview-inner"
+                            id="adPreviewFrame"
+                            data-source-width="{{ $size['w'] }}"
+                            data-source-height="{{ $size['h'] }}"
+                        >
+                            <div class="ads-mini-preview-inner" id="adPreview">
+                                {!! $template->layout_html !!}
+                            </div>
                         </div>
                     </div>
                     <script type="application/json" id="adTemplateHtml">@json($template->layout_html)</script>
@@ -133,8 +140,9 @@
 @push('scripts')
 <script>
     (function () {
+        const previewFrame = document.getElementById('adPreviewFrame');
         const preview = document.getElementById('adPreview');
-        if (!preview) return;
+        if (!previewFrame || !preview) return;
 
         const templateScript = document.getElementById('adTemplateHtml');
         const fieldKeysScript = document.getElementById('adTemplateFieldKeys');
@@ -157,6 +165,21 @@
         const staticState = {};
         const form = preview.closest('form');
         const customHtmlInput = document.getElementById('customHtmlInput');
+
+        function scalePreview() {
+            const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0);
+            const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0);
+            const targetWidth = previewFrame.clientWidth || 0;
+            const targetHeight = previewFrame.clientHeight || 0;
+
+            if (!sourceWidth || !sourceHeight || !targetWidth || !targetHeight) return;
+
+            const scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
+            preview.style.width = sourceWidth + 'px';
+            preview.style.height = sourceHeight + 'px';
+            preview.style.transform = 'scale(' + scale + ')';
+            preview.style.transformOrigin = 'top left';
+        }
 
         function getFieldByKey(key) {
             return schemaFields.find((field) => (field && field.key) === key) || null;
@@ -251,6 +274,7 @@
         function updatePreview() {
             renderPreviewHtml();
             applyLiveImages();
+            scalePreview();
         }
 
         function applyStaticEditable() {
@@ -331,6 +355,7 @@
             });
         }
 
+        window.addEventListener('resize', scalePreview);
         updatePreview();
     })();
 </script>
