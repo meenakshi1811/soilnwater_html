@@ -5,6 +5,7 @@
 @php
     $schema = is_array($template->schema_json) ? $template->schema_json : [];
     $fields = is_array($schema['fields'] ?? null) ? $schema['fields'] : [];
+    $textFieldKeys = [];
 
     $layoutHtml = (string) ($template->layout_html ?? '');
     $usedKeys = [];
@@ -17,6 +18,15 @@
         $imageKeys = $imgMatches[1] ?? [];
 
         $usedKeys = array_values(array_unique(array_map('strtolower', array_merge($placeholderKeys, $imageKeys))));
+    }
+
+    foreach ($fields as $field) {
+        $key = (string) ($field['key'] ?? '');
+        $type = (string) ($field['type'] ?? 'text');
+        if ($key === '' || $type === 'image') {
+            continue;
+        }
+        $textFieldKeys[] = $key;
     }
 @endphp
 
@@ -36,6 +46,10 @@
         <div id="adCustomizeAlert" class="alert d-none" role="alert"></div>
         <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" enctype="multipart/form-data" novalidate>
             @csrf
+            <input type="hidden" name="custom_html" id="customHtmlInput" value="">
+            @foreach($textFieldKeys as $hiddenTextKey)
+                <input type="hidden" name="{{ $hiddenTextKey }}" value="{{ old($hiddenTextKey) }}" class="js-ad-hidden-text" data-key="{{ $hiddenTextKey }}">
+            @endforeach
 
             <div class="row g-4">
                 <div class="col-12 col-lg-5">
@@ -48,16 +62,16 @@
                     </div>
 
                     <div class="ads-fields">
+                        <p class="small text-secondary mb-2">Upload template images here. Edit all text/link content directly in live preview.</p>
                         @foreach($fields as $field)
                             @php
                                 $key = (string) ($field['key'] ?? '');
                                 $label = (string) ($field['label'] ?? $key);
                                 $type = (string) ($field['type'] ?? 'text');
                                 $required = (bool) ($field['required'] ?? false);
-                                $max = (int) ($field['max'] ?? 0);
                                 $isUsedInTemplate = $key !== '' && in_array(strtolower($key), $usedKeys, true);
                             @endphp
-                            @if($key !== '' && ($required || $isUsedInTemplate))
+                            @if($key !== '' && $type === 'image' && ($required || $isUsedInTemplate))
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">
                                         {{ $label }} @if($required)<span class="text-danger">*</span>@endif
@@ -76,31 +90,6 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                         <small class="text-secondary">PNG/JPG/WebP · Max 2MB</small>
-                                    @elseif(($field['multiline'] ?? false) === true)
-                                        <textarea
-                                            name="{{ $key }}"
-                                            class="form-control @error($key) is-invalid @enderror js-ad-text"
-                                            rows="3"
-                                            data-key="{{ $key }}"
-                                            maxlength="{{ $max > 0 ? $max : 500 }}"
-                                            placeholder="Enter {{ strtolower($label) }}"
-                                        >{{ old($key) }}</textarea>
-                                        @error($key)
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    @else
-                                        <input
-                                            type="text"
-                                            name="{{ $key }}"
-                                            value="{{ old($key) }}"
-                                            class="form-control @error($key) is-invalid @enderror js-ad-text"
-                                            data-key="{{ $key }}"
-                                            maxlength="{{ $max > 0 ? $max : 255 }}"
-                                            placeholder="Enter {{ strtolower($label) }}"
-                                        >
-                                        @error($key)
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
                                     @endif
                                 </div>
                             @endif
@@ -126,7 +115,7 @@
                     <script type="application/json" id="adTemplateHtml">@json($template->layout_html)</script>
                     <script type="application/json" id="adTemplateFieldKeys">@json($fields)</script>
 
-                    <small class="text-secondary d-block mt-2">Tip: Upload images and type text to see the preview update.</small>
+                    <small class="text-secondary d-block mt-2">Tip: Click any text to edit. Double-click text/button to add or update URL link.</small>
                 </div>
             </div>
 
@@ -164,6 +153,37 @@
 
         const placeholderSrc = '{{ asset('assets/images/ad-sample.png') }}';
         const imageState = {}; // key -> objectURL
+        const textState = {};
+        const staticState = {};
+        const form = preview.closest('form');
+        const customHtmlInput = document.getElementById('customHtmlInput');
+
+        function getFieldByKey(key) {
+            return schemaFields.find((field) => (field && field.key) === key) || null;
+        }
+
+        function getDefaultValue(key) {
+            const field = getFieldByKey(key);
+            if (field && typeof field.default !== 'undefined' && field.default !== null && String(field.default).trim() !== '') {
+                return String(field.default);
+            }
+
+            const map = {
+                headline: 'Your Headline',
+                subheadline: 'Add your message here',
+                cta: 'Book Now',
+                phone: '+1 000 000 0000',
+                website: 'www.example.com',
+                badge: '50% OFF',
+                line1: 'Service 1',
+                line2: 'Service 2',
+                line3: 'Service 3',
+            };
+
+            if (Object.prototype.hasOwnProperty.call(map, key)) return map[key];
+            if (field && field.label) return String(field.label);
+            return '';
+        }
 
         function computeTextReplacements() {
             const map = {};
@@ -172,11 +192,11 @@
             const titleVal = titleInput ? (titleInput.value || '').toString().trim() : '';
             map.title = titleVal;
 
-            document.querySelectorAll('.js-ad-text').forEach((el) => {
+            document.querySelectorAll('.js-ad-hidden-text').forEach((el) => {
                 const key = el.getAttribute('data-key');
                 if (!key) return;
-                const val = (el.value || '').toString();
-                map[key] = val;
+                const val = (el.value || '').toString().trim();
+                map[key] = val === '' ? getDefaultValue(key) : val;
             });
 
             
@@ -200,10 +220,14 @@
             Object.keys(replacements).forEach((key) => {
                 const pattern = escapeRegExp(OPEN) + '\\s*' + escapeRegExp(key) + '\\s*' + escapeRegExp(CLOSE);
                 const re = new RegExp(pattern, 'gi');
-                html = html.replace(re, escapeHtml(replacements[key] || ''));
+                const value = replacements[key] || getDefaultValue(key);
+                textState[key] = value;
+                html = html.replace(re, '<span data-ad-field="' + key + '" contenteditable="true" spellcheck="false">' + escapeHtml(value) + '</span>');
             });
 
             preview.innerHTML = html;
+            applyStaticEditable();
+            bindInlineEditors();
         }
 
         function applyLiveImages() {
@@ -229,7 +253,75 @@
             applyLiveImages();
         }
 
-        document.querySelectorAll('.js-ad-text').forEach((el) => {
+        function applyStaticEditable() {
+            const editableNodes = preview.querySelectorAll('div, span, p, li, h1, h2, h3, h4, h5, h6, a, button');
+            let idx = 0;
+            editableNodes.forEach((node) => {
+                if (node.closest('[data-ad-field]')) return;
+                if (node.querySelector('img')) return;
+                if (node.children.length > 0) return;
+                const raw = (node.textContent || '').trim();
+                if (!raw) return;
+                const id = 's_' + idx++;
+                node.setAttribute('data-ad-static-id', id);
+                node.setAttribute('contenteditable', 'true');
+                node.setAttribute('spellcheck', 'false');
+                if (Object.prototype.hasOwnProperty.call(staticState, id)) {
+                    node.textContent = staticState[id];
+                }
+            });
+        }
+
+        function bindInlineEditors() {
+            preview.querySelectorAll('[data-ad-field]').forEach((node) => {
+                node.addEventListener('input', () => {
+                    const key = node.getAttribute('data-ad-field');
+                    if (!key) return;
+                    const val = (node.textContent || '').trim();
+                    textState[key] = val;
+                    const input = document.querySelector('.js-ad-hidden-text[data-key="' + key + '"]');
+                    if (input) input.value = val;
+                });
+            });
+
+            preview.querySelectorAll('[data-ad-static-id]').forEach((node) => {
+                node.addEventListener('input', () => {
+                    const id = node.getAttribute('data-ad-static-id');
+                    if (!id) return;
+                    staticState[id] = node.textContent || '';
+                });
+            });
+
+            preview.querySelectorAll('[data-ad-field], [data-ad-static-id], a, button, span, div, p').forEach((node) => {
+                node.addEventListener('dblclick', (event) => {
+                    event.preventDefault();
+                    if (node.querySelector('img')) return;
+                    const anchor = node.tagName.toLowerCase() === 'a'
+                        ? node
+                        : node.closest('a');
+                    const current = anchor ? (anchor.getAttribute('href') || '') : '';
+                    const next = window.prompt('Enter link URL', current || 'https://');
+                    if (!next) return;
+                    if (anchor) {
+                        anchor.setAttribute('href', next);
+                        anchor.setAttribute('target', '_blank');
+                        anchor.setAttribute('rel', 'noopener noreferrer');
+                        return;
+                    }
+
+                    const wrapped = document.createElement('a');
+                    wrapped.setAttribute('href', next);
+                    wrapped.setAttribute('target', '_blank');
+                    wrapped.setAttribute('rel', 'noopener noreferrer');
+                    wrapped.style.textDecoration = 'none';
+                    wrapped.style.color = 'inherit';
+                    node.parentNode.insertBefore(wrapped, node);
+                    wrapped.appendChild(node);
+                });
+            });
+        }
+
+        document.querySelectorAll('.js-ad-hidden-text').forEach((el) => {
             el.addEventListener('input', updatePreview);
         });
 
@@ -251,8 +343,22 @@
             });
         });
 
+        if (form) {
+            form.addEventListener('submit', () => {
+                preview.querySelectorAll('[data-ad-field]').forEach((node) => {
+                    const key = node.getAttribute('data-ad-field');
+                    if (!key) return;
+                    const val = (node.textContent || '').trim();
+                    const input = document.querySelector('.js-ad-hidden-text[data-key="' + key + '"]');
+                    if (input) input.value = val;
+                });
+                if (customHtmlInput) {
+                    customHtmlInput.value = preview.innerHTML;
+                }
+            });
+        }
+
         updatePreview();
     })();
 </script>
 @endpush
-
