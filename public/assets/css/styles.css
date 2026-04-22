@@ -2260,6 +2260,15 @@
 }
 .offer-coupon-card .card-body {
   gap: 6px !important;
+  min-width: 0;
+}
+.offer-coupon-card .badge {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: top;
 }
 .offer-coupon-card {
   border-radius: 12px;
@@ -2315,6 +2324,10 @@
   text-align: center;
   padding: 6px 9px;
   font-size: 12px;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .w-fit { width: fit-content; }
 
