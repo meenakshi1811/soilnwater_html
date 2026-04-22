@@ -99,13 +99,29 @@
                         <small class="text-secondary d-block mt-1">Supported field types: <strong>text</strong>, <strong>image</strong>. Optional: <code>multiline</code>, <code>required</code>, <code>max</code>.</small>
                     </div>
 
-                    <div class="mb-0">
+                    <div class="mb-3">
                         <label class="form-label fw-semibold">Layout HTML <span class="text-danger">*</span></label>
                         <textarea name="layout_html" rows="12" class="form-control font-monospace @error('layout_html') is-invalid @enderror" placeholder="<div>...{{ '{' }}{{ '{' }}headline{{ '}' }}{{ '}' }}...</div>">{{ old('layout_html', $template?->layout_html) }}</textarea>
                         @error('layout_html')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <small class="text-secondary d-block mt-1">For image fields, place an <code>&lt;img data-ad-key=&quot;image_main&quot; src=&quot;...&quot;&gt;</code> so the user preview updates on upload.</small>
+                    </div>
+
+                    <div class="border rounded-3 p-3 bg-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                            <h6 class="mb-0">Live Preview</h6>
+                            <small class="text-secondary">Updates instantly as you edit schema/layout.</small>
+                        </div>
+
+                        <div id="adminTemplatePreviewPlaceholders" class="d-flex flex-wrap gap-2 mb-3"></div>
+
+                        <div class="ads-live-preview ads-admin-template-live-preview" id="adminTemplateLivePreviewWrap" style="aspect-ratio: 1 / 1;">
+                            <div class="ads-live-preview-inner" id="adminTemplateLivePreview"></div>
+                        </div>
+                        <small id="adminTemplateLivePreviewMessage" class="d-block mt-2 text-secondary">
+                            Add HTML and placeholders (like <code>{{ '{' }}{{ '{' }}headline{{ '}' }}{{ '}' }}</code>) to see your final rendering.
+                        </small>
                     </div>
                 </div>
             </div>
@@ -126,4 +142,3 @@
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/ads.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
-
