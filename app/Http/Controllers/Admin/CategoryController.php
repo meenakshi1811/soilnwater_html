@@ -110,7 +110,11 @@ class CategoryController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $this->validateCategory($request);
-        $modules = $this->resolveModules($validated['parent_id'] ?? null, $validated['modules'] ?? []);
+        $modules = $this->resolveModules(
+            $validated['parent_id'] ?? null,
+            $validated['modules'] ?? [],
+            $request->has('modules_present')
+        );
 
         Category::create([
             'name' => $validated['name'],
@@ -130,7 +134,11 @@ class CategoryController extends Controller
             return response()->json(['message' => 'A category cannot be parent of itself.'], 422);
         }
 
-        $modules = $this->resolveModules($parentId, $validated['modules'] ?? []);
+        $modules = $this->resolveModules(
+            $parentId,
+            $validated['modules'] ?? [],
+            $request->has('modules_present')
+        );
 
         $category->update([
             'name' => $validated['name'],
@@ -183,17 +191,23 @@ class CategoryController extends Controller
                 })->ignore($category?->id),
             ],
             'parent_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'modules_present' => ['nullable', 'boolean'],
             'modules' => ['nullable', 'array'],
             'modules.*' => ['string', Rule::in(array_keys(ModulePermissions::modules()))],
         ]);
     }
 
-    private function resolveModules(?int $parentId, array $requestedModules): array
+    private function resolveModules(?int $parentId, array $requestedModules, bool $hasModulesInput = false): array
     {
         if ($parentId) {
             $parent = Category::query()->whereNull('parent_id')->findOrFail($parentId);
+            $parentModules = array_values(array_unique($parent->modules ?? []));
 
-            return array_values(array_unique($parent->modules ?? []));
+            if (! $hasModulesInput) {
+                return $parentModules;
+            }
+
+            return array_values(array_unique(array_values(array_intersect($parentModules, $requestedModules))));
         }
 
         $allowedSlugs = array_keys(ModulePermissions::modules());

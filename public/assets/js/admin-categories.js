@@ -26,6 +26,8 @@
         },
 
         appendHiddenModules: function () {
+            $('#categoryForm').find('input[name="modules_present"][data-generated="1"]').remove();
+            $('<input type="hidden" name="modules_present" value="1" data-generated="1">').appendTo('#categoryForm');
             $('#categoryForm').find('input[name="modules[]"][data-generated="1"]').remove();
             this.selectedModules().forEach(function (slug) {
                 $('<input type="hidden" name="modules[]" data-generated="1">').val(slug).appendTo('#categoryForm');
@@ -83,10 +85,9 @@
                 this.setModuleChecks(inherited);
             }
 
-            $('.js-module-check').prop('disabled', isSubCategory);
             $('#modulesHelpText').text(
                 isSubCategory
-                    ? 'Modules are inherited automatically from the selected parent category.'
+                    ? 'All parent category modules are selected by default. You can deselect modules for this sub category.'
                     : 'Select one or more modules for this category.'
             );
         },
