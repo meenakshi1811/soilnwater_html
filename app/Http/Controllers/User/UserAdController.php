@@ -104,6 +104,8 @@ class UserAdController extends Controller
         $fieldRules = [];
         $imageKeys = [];
 
+        $hasCustomHtml = trim((string) $request->input('custom_html', '')) !== '';
+
         foreach (($schema['fields'] ?? []) as $field) {
             $key = (string) ($field['key'] ?? '');
             $type = (string) ($field['type'] ?? 'text');
@@ -123,7 +125,7 @@ class UserAdController extends Controller
                     'max:2048',
                 ]);
             } else {
-                $rule = $required ? 'required|string' : 'nullable|string';
+                $rule = ($required && !$hasCustomHtml) ? 'required|string' : 'nullable|string';
                 if ($max > 0) {
                     $rule .= '|max:'.$max;
                 }
@@ -133,6 +135,7 @@ class UserAdController extends Controller
 
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
+            'custom_html' => 'nullable|string',
         ], $fieldRules));
 
         $fields = [];
@@ -169,7 +172,11 @@ class UserAdController extends Controller
                 $fields[$key] = $relativeDirectory.'/'.$fileName;
             }
 
-            $renderedHtml = $this->renderTemplateHtml($template->layout_html, $fields);
+            $layoutHtml = trim((string) ($validated['custom_html'] ?? '')) !== ''
+                ? (string) $validated['custom_html']
+                : (string) $template->layout_html;
+
+            $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
             return UserAd::create([
                 'user_id' => $user->id,
@@ -242,4 +249,3 @@ class UserAdController extends Controller
         return $html;
     }
 }
-
