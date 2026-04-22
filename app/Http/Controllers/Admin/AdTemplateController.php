@@ -75,7 +75,7 @@ class AdTemplateController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $this->validated($request);
 
@@ -96,7 +96,7 @@ class AdTemplateController extends Controller
             ->with('success', 'Template created successfully.');
     }
 
-    public function update(Request $request, AdTemplate $template): RedirectResponse
+    public function update(Request $request, AdTemplate $template): RedirectResponse|JsonResponse
     {
         $validated = $this->validated($request);
 
