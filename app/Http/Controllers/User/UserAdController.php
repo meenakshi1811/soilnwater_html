@@ -60,8 +60,21 @@ class UserAdController extends Controller
                 return '<span class="badge bg-'.$badge.'">'.ucfirst($ad->status).'</span>';
             })
             ->editColumn('submitted_at', fn (UserAd $ad) => $ad->submitted_at?->format('Y-m-d H:i') ?? '-')
-            ->rawColumns(['status_badge'])
+            ->addColumn('actions', fn (UserAd $ad) => '<div class="d-flex justify-content-end"><a href="'.route('ads.show', $ad).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a></div>')
+            ->rawColumns(['status_badge', 'actions'])
             ->make(true);
+    }
+
+    public function show(Request $request, UserAd $ad): View
+    {
+        abort_unless($ad->user_id === $request->user()->id, 404);
+
+        $ad->load(['template:id,name,size_type']);
+
+        return view('backend.ads.user.show', [
+            'ad' => $ad,
+            'size' => AdSizes::all()[$ad->size_type] ?? null,
+        ]);
     }
 
     public function selectTemplate(string $sizeType): View
