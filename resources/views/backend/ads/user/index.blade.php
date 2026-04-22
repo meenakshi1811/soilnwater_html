@@ -39,6 +39,7 @@
                     <th>Template</th>
                     <th>Status</th>
                     <th>Submitted</th>
+                    <th class="text-end">Action</th>
                 </tr>
                 </thead>
             </table>
@@ -57,4 +58,3 @@
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/ads.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
-
