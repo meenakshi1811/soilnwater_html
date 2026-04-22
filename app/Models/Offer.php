@@ -20,11 +20,16 @@ class Offer extends Model
         'valid_until',
         'banner_image',
         'short_description',
+        'location',
+        'location_lat',
+        'location_lng',
         'status',
     ];
 
     protected $casts = [
         'valid_until' => 'date',
+        'location_lat' => 'float',
+        'location_lng' => 'float',
     ];
 
     public function user(): BelongsTo

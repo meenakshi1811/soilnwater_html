@@ -24,7 +24,7 @@
             <p class="text-secondary mb-0 mt-1" style="font-size:0.875rem;">{{ $isEditMode ? 'Update the details below and save changes.' : 'Fill in the details below to publish a new offer.' }}</p>
         </div>
 
-        <form id="offerForm" method="POST" action="{{ $isEditMode && $offer ? route('offers.update', $offer) : route('offers.store') }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/offers/categories') }}" data-is-edit="{{ $isEditMode ? '1' : '0' }}">
+        <form id="offerForm" method="POST" action="{{ $isEditMode && $offer ? route('offers.update', $offer) : route('offers.store') }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/offers/categories') }}" data-is-edit="{{ $isEditMode ? '1' : '0' }}" data-google-maps-api-key="{{ config('services.google.maps_api_key') }}">
             @csrf
             @if($isEditMode)
                 @method('PUT')
@@ -155,6 +155,32 @@
                     </select>
                     @error('subcategory_id')
                         <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                {{-- Location --}}
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Location <span class="text-muted fw-normal">(Optional)</span></label>
+                    <input
+                        type="text"
+                        name="location"
+                        id="offerLocation"
+                        class="form-control @error('location') is-invalid @enderror"
+                        placeholder="Search Indian location (e.g. Jaipur, Rajasthan)"
+                        value="{{ old('location', $offer?->location) }}"
+                        autocomplete="off"
+                    >
+                    <input type="hidden" name="location_lat" id="offerLocationLat" value="{{ old('location_lat', $offer?->location_lat) }}">
+                    <input type="hidden" name="location_lng" id="offerLocationLng" value="{{ old('location_lng', $offer?->location_lng) }}">
+                    <small class="text-secondary">Pick a location from Google suggestions to save latitude and longitude.</small>
+                    @error('location')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                    @error('location_lat')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                    @error('location_lng')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -385,4 +411,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/offer-and-discount.js') }}?v={{ now()->timestamp }}"></script>
+@if(config('services.google.maps_api_key'))
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initOfferLocationAutocomplete"></script>
+@endif
 @endpush

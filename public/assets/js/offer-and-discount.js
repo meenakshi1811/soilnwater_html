@@ -115,6 +115,46 @@
             });
         },
 
+        initLocationAutocomplete: function () {
+            var $location = $('#offerLocation');
+            if (!$location.length) {
+                return;
+            }
+
+            var latInput = document.getElementById('offerLocationLat');
+            var lngInput = document.getElementById('offerLocationLng');
+            var input = $location.get(0);
+
+            $location.on('input', function () {
+                if (latInput) latInput.value = '';
+                if (lngInput) lngInput.value = '';
+            });
+
+            if (!window.google || !window.google.maps || !window.google.maps.places) {
+                return;
+            }
+
+            var autocomplete = new google.maps.places.Autocomplete(input, {
+                fields: ['formatted_address', 'geometry', 'name'],
+                componentRestrictions: { country: 'in' }
+            });
+
+            autocomplete.addListener('place_changed', function () {
+                var place = autocomplete.getPlace();
+                var hasGeometry = !!(place && place.geometry && place.geometry.location);
+
+                if (!hasGeometry) {
+                    if (latInput) latInput.value = '';
+                    if (lngInput) lngInput.value = '';
+                    return;
+                }
+
+                input.value = place.formatted_address || place.name || input.value;
+                if (latInput) latInput.value = String(place.geometry.location.lat());
+                if (lngInput) lngInput.value = String(place.geometry.location.lng());
+            });
+        },
+
         /* ── 3. Banner Image Preview ──────────────────────────── */
         initBannerUpload: function () {
             var self = this;
@@ -895,6 +935,9 @@
                     short_description: {
                         maxlength: 300
                     },
+                    location: {
+                        maxlength: 255
+                    },
                     accept_terms: {
                         required: !isEditMode
                     }
@@ -918,6 +961,9 @@
                     },
                     short_description: {
                         maxlength: 'Description must not exceed 300 characters.'
+                    },
+                    location: {
+                        maxlength: 'Location must not exceed 255 characters.'
                     },
                     accept_terms: {
                         required: 'Please accept the offer terms and conditions.'
@@ -976,6 +1022,8 @@
                             $('#discountCharCount').text('0');
                             $('#couponCharCount').text('0');
                             $('#layerTextCharCount').text('0');
+                            $('#offerLocationLat').val('');
+                            $('#offerLocationLng').val('');
 
                             // Reset banner preview
                             $('#bannerPreview').attr('src', '#');
@@ -1033,12 +1081,21 @@
             this.initBannerUpload();
             this.bindUi();
             this.initForm();
+            this.initLocationAutocomplete();
         }
     };
 
     $(function () {
         OffersAdmin.init();
     });
+
+    window.initOfferLocationAutocomplete = function () {
+        if (window.OffersAdmin && typeof window.OffersAdmin.initLocationAutocomplete === 'function') {
+            window.OffersAdmin.initLocationAutocomplete();
+        } else {
+            OffersAdmin.initLocationAutocomplete();
+        }
+    };
 
     var MyOffersAdmin = {
         table: null,
