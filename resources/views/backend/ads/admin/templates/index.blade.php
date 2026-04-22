@@ -19,15 +19,15 @@
     <div class="chart-card">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <form method="GET" action="{{ route('admin.ads.templates.index') }}" class="d-flex align-items-center gap-2 flex-wrap">
-                    <select name="size_type" class="form-select" style="min-width:220px;">
+                <div>
+                    <label for="adminTemplateFilterSize" class="form-label mb-1">Size</label>
+                    <select id="adminTemplateFilterSize" name="size_type" class="form-select" style="min-width:220px;">
                         <option value="">All sizes</option>
                         @foreach($sizes as $key => $s)
-                            <option value="{{ $key }}" {{ request('size_type') === $key ? 'selected' : '' }}>{{ $s['name'] }}</option>
+                            <option value="{{ $key }}" {{ $activeSizeType === $key ? 'selected' : '' }}>{{ $s['name'] }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="btn btn-outline-secondary">Filter</button>
-                </form>
+                </div>
             </div>
             <a href="{{ route('admin.ads.templates.create') }}" class="btn btn-primary ems-btn-primary">
                 <i class="fa-solid fa-plus me-2"></i>New Template
@@ -68,4 +68,3 @@
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/ads.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
-
