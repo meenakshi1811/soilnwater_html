@@ -1043,6 +1043,7 @@
     var MyOffersAdmin = {
         table: null,
         modal: null,
+        categories: [],
         canEdit: false,
         canDelete: false,
         canApprove: false,
@@ -1083,6 +1084,7 @@
             this.routes.updateBase = $table.data('update-url-base') || this.routes.updateBase;
             this.routes.updateStatusTemplate = $table.data('update-status-url-template') || this.routes.updateStatusTemplate;
             this.routes.deleteBase = $table.data('delete-url-base') || this.routes.deleteBase;
+            this.categories = $table.data('categories') || [];
 
             this.table = $('#myOffersTable').DataTable({
                 processing: true,
@@ -1090,7 +1092,12 @@
                 autoWidth: false,
                 scrollX: true,
                 ajax: {
-                    url: this.routes.data
+                    url: this.routes.data,
+                    data: function (d) {
+                        d.category_id = $('#offersFilterCategory').val() || '';
+                        d.subcategory_id = $('#offersFilterSubcategory').val() || '';
+                        d.validity = $('#offersFilterValidity').val() || '';
+                    }
                 },
                 columns: [
                     { data: 'title', name: 'title', className: 'offer-col-wrap' },
@@ -1109,8 +1116,54 @@
             });
         },
 
+        getCategoryChildren: function (categoryId) {
+            if (!categoryId) {
+                return [];
+            }
+
+            for (var i = 0; i < this.categories.length; i++) {
+                if (String(this.categories[i].id) === String(categoryId)) {
+                    return this.categories[i].children || [];
+                }
+            }
+
+            return [];
+        },
+
+        populateSubcategoryFilter: function (categoryId) {
+            var $sub = $('#offersFilterSubcategory');
+            var subcategories = this.getCategoryChildren(categoryId);
+
+            $sub.empty().append('<option value="">All subcategories</option>');
+
+            if (!subcategories.length) {
+                $sub.prop('disabled', true);
+                return;
+            }
+
+            for (var i = 0; i < subcategories.length; i++) {
+                $sub.append(
+                    $('<option>', { value: subcategories[i].id, text: subcategories[i].name })
+                );
+            }
+            $sub.prop('disabled', false);
+        },
+
         bindUi: function () {
             var self = this;
+
+            $('#offersFilterCategory').on('change', function () {
+                self.populateSubcategoryFilter($(this).val());
+                if (self.table) {
+                    self.table.ajax.reload();
+                }
+            });
+
+            $('#offersFilterSubcategory, #offersFilterValidity').on('change', function () {
+                if (self.table) {
+                    self.table.ajax.reload();
+                }
+            });
 
             $('#myOfferRemoveBannerBtn').on('click', function (e) {
                 e.stopPropagation();
