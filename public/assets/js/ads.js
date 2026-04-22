@@ -33,13 +33,14 @@
         var $table = $('#adminAdTemplatesTable');
         if (!$table.length || !$.fn.DataTable) return;
 
-        $table.DataTable({
+        var $sizeFilter = $('#adminTemplateFilterSize');
+        var dt = $table.DataTable({
             processing: true,
             serverSide: true,
             ajax: {
                 url: $table.data('url'),
                 data: function (d) {
-                    var sizeType = $('select[name="size_type"]').val();
+                    var sizeType = $sizeFilter.val();
                     if (sizeType) d.size_type = sizeType;
                 }
             },
@@ -57,6 +58,46 @@
                 $(row).find('td').eq(3).html(data.status_badge);
                 $(row).find('td').eq(5).html(data.actions);
             }
+        });
+
+        if ($sizeFilter.length) {
+            $sizeFilter.on('change', function () {
+                dt.ajax.reload();
+            });
+        }
+
+        $table.on('draw.dt', function () {
+            applyScaledPreview($table.find('.js-ads-scaled-preview'));
+        });
+
+        applyScaledPreview($table.find('.js-ads-scaled-preview'));
+    }
+
+    function applyScaledPreview($items) {
+        if (!$items || !$items.length) return;
+
+        $items.each(function () {
+            var $item = $(this);
+            var $inner = $item.find('.ads-mini-preview-inner').first();
+            if (!$inner.length) return;
+
+            var sourceWidth = parseFloat($item.data('source-width')) || 0;
+            var sourceHeight = parseFloat($item.data('source-height')) || 0;
+            if (!sourceWidth || !sourceHeight) {
+                $inner.css({ transform: '', width: '100%', height: '100%' });
+                return;
+            }
+
+            var targetWidth = $item.innerWidth();
+            var targetHeight = $item.innerHeight();
+            if (!targetWidth || !targetHeight) return;
+
+            var scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
+            $inner.css({
+                width: sourceWidth + 'px',
+                height: sourceHeight + 'px',
+                transform: 'scale(' + scale + ')'
+            });
         });
     }
 
@@ -201,6 +242,132 @@
         }
     }
 
+    function initAdminTemplateLivePreview() {
+        var $form = $('form[action*="/admin/ads/templates"]');
+        if (!$form.length) return;
+
+        var $layoutInput = $form.find('textarea[name="layout_html"]');
+        var $schemaInput = $form.find('textarea[name="schema_json"]');
+        var $sizeInput = $form.find('select[name="size_type"], input[name="size_type"]').first();
+        var $previewWrap = $('#adminTemplateLivePreviewWrap');
+        var $preview = $('#adminTemplateLivePreview');
+        var $message = $('#adminTemplateLivePreviewMessage');
+        var $placeholderContainer = $('#adminTemplatePreviewPlaceholders');
+
+        if (!$layoutInput.length || !$preview.length) return;
+
+        var sizeMap = {
+            square: { ratio: '1 / 1', w: 600, h: 600 },
+            vertical_rectangle: { ratio: '2 / 3', w: 600, h: 900 },
+            horizontal: { ratio: '3 / 2', w: 900, h: 600 },
+            square_large: { ratio: '1 / 1', w: 900, h: 900 },
+            banner: { ratio: '4 / 1', w: 1200, h: 300 },
+            full_page: { ratio: '3 / 4', w: 900, h: 1200 }
+        };
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function parseSchema() {
+            if (!$schemaInput.length) return { fields: [] };
+            try {
+                var parsed = JSON.parse($schemaInput.val() || '{}');
+                return (parsed && typeof parsed === 'object') ? parsed : { fields: [] };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function getSampleValue(field) {
+            var key = String(field.key || '').toLowerCase();
+            if (field.type === 'image') {
+                return 'https://via.placeholder.com/1200x800?text=Preview';
+            }
+            if (key.indexOf('headline') !== -1) return 'Your Headline';
+            if (key.indexOf('subheadline') !== -1) return 'Subheadline goes here';
+            if (key.indexOf('cta') !== -1) return 'Learn More';
+            if (key.indexOf('phone') !== -1) return '+1 555 123 4567';
+            if (key.indexOf('website') !== -1) return 'www.example.com';
+            return field.label ? String(field.label) : 'Sample';
+        }
+
+        function updatePreviewScale() {
+            var sizeKey = ($sizeInput.val() || '').toString();
+            var sizeDef = sizeMap[sizeKey] || { ratio: '1 / 1', w: 600, h: 600 };
+            $previewWrap.css('aspect-ratio', sizeDef.ratio);
+            $previewWrap.attr('data-source-width', sizeDef.w);
+            $previewWrap.attr('data-source-height', sizeDef.h);
+            applyScaledPreview($previewWrap);
+        }
+
+        function render() {
+            var layoutHtml = $layoutInput.val() || '';
+            if (!layoutHtml.trim()) {
+                $preview.html('');
+                $placeholderContainer.html('');
+                $message.removeClass('text-danger').addClass('text-secondary').text('Add HTML and placeholders (like {{headline}}) to see your final rendering.');
+                return;
+            }
+
+            var schema = parseSchema();
+            if (schema === null) {
+                $message.removeClass('text-secondary').addClass('text-danger').text('Schema JSON is invalid. Fix it to build better live placeholder previews.');
+            } else {
+                $message.removeClass('text-danger').addClass('text-secondary').text('Updates instantly as you type. Placeholders are auto-filled from schema fields.');
+            }
+
+            var fields = (schema && Array.isArray(schema.fields)) ? schema.fields : [];
+            var sampleData = {};
+            var placeholderChips = [];
+
+            fields.forEach(function (field) {
+                if (!field || typeof field !== 'object' || !field.key) return;
+                sampleData[field.key] = getSampleValue(field);
+                placeholderChips.push('<span class="badge rounded-pill text-bg-light border">{{' + escapeHtml(field.key) + '}}</span>');
+            });
+
+            if (!fields.length) {
+                var fromLayout = layoutHtml.match(/\{\{([a-zA-Z][a-zA-Z0-9_]*)\}\}/g) || [];
+                fromLayout.forEach(function (token) {
+                    var key = token.replace(/[{}]/g, '');
+                    if (!sampleData[key]) {
+                        sampleData[key] = 'Sample';
+                        placeholderChips.push('<span class="badge rounded-pill text-bg-light border">{{' + escapeHtml(key) + '}}</span>');
+                    }
+                });
+            }
+
+            $placeholderContainer.html(placeholderChips.join(''));
+
+            var rendered = layoutHtml;
+            Object.keys(sampleData).forEach(function (key) {
+                var pattern = new RegExp('\\{\\{' + key + '\\}\\}', 'g');
+                rendered = rendered.replace(pattern, escapeHtml(sampleData[key]));
+            });
+            rendered = rendered.replace(/\{\{[a-zA-Z][a-zA-Z0-9_]*\}\}/g, '');
+
+            var $canvas = $('<div class="ad-canvas"></div>').html(rendered);
+            $preview.html($canvas);
+            updatePreviewScale();
+        }
+
+        $layoutInput.on('input', render);
+        $schemaInput.on('input', render);
+        $sizeInput.on('change', function () {
+            updatePreviewScale();
+            render();
+        });
+        $(window).on('resize', updatePreviewScale);
+
+        render();
+    }
+
     $(function () {
         initUserAdsTable();
         initAdminTemplatesTable();
@@ -208,5 +375,6 @@
         initAjaxAdSubmit();
         initAjaxTemplateForm();
         initAjaxApprovalActions();
+        initAdminTemplateLivePreview();
     });
 })(window.jQuery);
