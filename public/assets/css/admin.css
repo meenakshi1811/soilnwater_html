@@ -659,6 +659,14 @@
     background: #fff;
 }
 
+.ads-template-grid .ads-template-card {
+    padding: .8rem;
+}
+
+.ads-template-grid .ads-template-card .ads-template-preview {
+    max-width: 100%;
+}
+
 .ads-size-dim {
     background: rgba(255,255,255,.85);
     border: 1px solid rgba(15,23,42,.10);
