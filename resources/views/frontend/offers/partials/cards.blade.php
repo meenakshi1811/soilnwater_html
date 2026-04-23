@@ -37,6 +37,16 @@
     </div>
 @empty
     <div class="col-12 offer-empty-state">
-        <div class="alert alert-info mb-0">No active offers available right now.</div>
+        <div class="offer-empty-state-card">
+            <div class="offer-empty-state-icon" aria-hidden="true">
+                <i class="fa-solid fa-tags"></i>
+            </div>
+            <div class="offer-empty-state-content">
+                <h3 class="offer-empty-state-title mb-1">No offers found</h3>
+                <p class="offer-empty-state-text mb-0">
+                    We couldn’t find any matching offers at the moment. Try changing category, subcategory, or validity filters.
+                </p>
+            </div>
+        </div>
     </div>
 @endforelse

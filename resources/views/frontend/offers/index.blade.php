@@ -7,6 +7,34 @@
         <a href="{{ route('frontend.index') }}" class="view-all">Back to home ▶</a>
     </div>
 
+    <div class="row g-2 mb-3" id="offersFilterBar" data-categories='@json($categoriesForFilter)'>
+        <div class="col-12 col-md-4">
+            <label for="offersMarketFilterCategory" class="form-label mb-1">Category</label>
+            <select id="offersMarketFilterCategory" class="form-select">
+                <option value="">All categories</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <label for="offersMarketFilterSubcategory" class="form-label mb-1">Subcategory</label>
+            <select id="offersMarketFilterSubcategory" class="form-select" disabled>
+                <option value="">All subcategories</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <label for="offersMarketFilterValidity" class="form-label mb-1">Validity</label>
+            <select id="offersMarketFilterValidity" class="form-select">
+                <option value="valid" @selected(request('validity', 'valid') === 'valid')>Valid (Not expired)</option>
+                <option value="" @selected(request('validity') === '')>All</option>
+                <option value="expired" @selected(request('validity') === 'expired')>Expired</option>
+                <option value="expires_today" @selected(request('validity') === 'expires_today')>Expires today</option>
+                <option value="no_expiry" @selected(request('validity') === 'no_expiry')>No expiry</option>
+            </select>
+        </div>
+    </div>
+
     <div
         id="offersGrid"
         class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-3"
@@ -212,6 +240,42 @@
         height: 1px;
     }
 
+    .offer-empty-state-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.9rem;
+        width: min(100%, 640px);
+        padding: 1rem 1.1rem;
+        border-radius: 0.85rem;
+        border: 1px solid #d6e7ff;
+        background: linear-gradient(180deg, #f7fbff 0%, #f2f8ff 100%);
+        box-shadow: 0 8px 20px rgba(13, 83, 168, 0.08);
+    }
+
+    .offer-empty-state-icon {
+        width: 2.15rem;
+        height: 2.15rem;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #e6f0ff;
+        color: #235da8;
+        flex: 0 0 2.15rem;
+    }
+
+    .offer-empty-state-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #12355b;
+    }
+
+    .offer-empty-state-text {
+        font-size: 0.92rem;
+        color: #335678;
+        line-height: 1.5;
+    }
+
     @media (min-width: 768px) {
         .offer-details-content {
             padding: 1.35rem 1.5rem 1.55rem;
@@ -247,6 +311,12 @@
         const loadingText = document.getElementById('offersLoadingText');
         const summaryText = document.getElementById('offersSummaryText');
         const scrollSentinel = document.getElementById('offersScrollSentinel');
+        const filtersWrap = document.getElementById('offersFilterBar');
+        const categoryFilter = document.getElementById('offersMarketFilterCategory');
+        const subcategoryFilter = document.getElementById('offersMarketFilterSubcategory');
+        const validityFilter = document.getElementById('offersMarketFilterValidity');
+        const categories = filtersWrap ? JSON.parse(filtersWrap.dataset.categories || '[]') : [];
+        const initialSubcategoryId = '{{ (string) request('subcategory_id', '') }}';
         let nextPageUrl = offersGrid ? offersGrid.dataset.nextPageUrl || '' : '';
         let isLoading = false;
 
@@ -265,6 +335,104 @@
             loadingText.classList.toggle('d-none', !show);
         }
 
+        function getCurrentFilters() {
+            return {
+                category_id: categoryFilter ? (categoryFilter.value || '') : '',
+                subcategory_id: subcategoryFilter ? (subcategoryFilter.value || '') : '',
+                validity: validityFilter ? (validityFilter.value || 'valid') : 'valid',
+            };
+        }
+
+        function getCategoryChildren(categoryId) {
+            if (!categoryId) return [];
+
+            for (let i = 0; i < categories.length; i++) {
+                if (String(categories[i].id) === String(categoryId)) {
+                    return categories[i].children || [];
+                }
+            }
+
+            return [];
+        }
+
+        function populateSubcategoryFilter(categoryId) {
+            if (!subcategoryFilter) return;
+
+            const subcategories = getCategoryChildren(categoryId);
+            subcategoryFilter.innerHTML = '<option value="">All subcategories</option>';
+
+            if (!subcategories.length) {
+                subcategoryFilter.disabled = true;
+                return;
+            }
+
+            subcategories.forEach(function (subcategory) {
+                const option = document.createElement('option');
+                option.value = String(subcategory.id);
+                option.textContent = subcategory.name;
+                subcategoryFilter.appendChild(option);
+            });
+            subcategoryFilter.disabled = false;
+
+            if (initialSubcategoryId) {
+                subcategoryFilter.value = initialSubcategoryId;
+            }
+        }
+
+        function buildOffersUrl(pageUrl) {
+            const url = new URL(pageUrl || window.location.href, window.location.origin);
+            const filters = getCurrentFilters();
+
+            Object.entries(filters).forEach(function ([key, value]) {
+                if (value) {
+                    url.searchParams.set(key, value);
+                } else {
+                    url.searchParams.delete(key);
+                }
+            });
+
+            return url.toString();
+        }
+
+        async function reloadOffersFromStart() {
+            if (!offersGrid || isLoading) return;
+
+            isLoading = true;
+            setLoadingState(true);
+
+            try {
+                const response = await fetch(buildOffersUrl('{{ route('frontend.offers.index') }}'), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to apply filters');
+                }
+
+                const payload = await response.json();
+                offersGrid.innerHTML = payload.html || '';
+                nextPageUrl = payload.next_page_url || '';
+                offersGrid.dataset.nextPageUrl = nextPageUrl;
+
+                if (summaryText) {
+                    if (payload.total > 0) {
+                        summaryText.textContent = `Showing 1 to ${payload.loaded_to} of ${payload.total} results`;
+                        summaryText.classList.remove('d-none');
+                    } else {
+                        summaryText.classList.add('d-none');
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                isLoading = false;
+                setLoadingState(false);
+            }
+        }
+
         async function loadNextOffersPage() {
             if (!nextPageUrl || isLoading || !offersGrid) return;
 
@@ -272,7 +440,7 @@
             setLoadingState(true);
 
             try {
-                const response = await fetch(nextPageUrl, {
+                const response = await fetch(buildOffersUrl(nextPageUrl), {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json',
@@ -307,6 +475,27 @@
                 setLoadingState(false);
             }
         }
+
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', function () {
+                populateSubcategoryFilter(categoryFilter.value || '');
+                reloadOffersFromStart();
+            });
+        }
+
+        if (subcategoryFilter) {
+            subcategoryFilter.addEventListener('change', function () {
+                reloadOffersFromStart();
+            });
+        }
+
+        if (validityFilter) {
+            validityFilter.addEventListener('change', function () {
+                reloadOffersFromStart();
+            });
+        }
+
+        populateSubcategoryFilter(categoryFilter ? categoryFilter.value : '');
 
         if (scrollSentinel && offersGrid && 'IntersectionObserver' in window) {
             const observer = new IntersectionObserver(function (entries) {
