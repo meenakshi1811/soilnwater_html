@@ -80,6 +80,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('dashboard/ads')->name('ads.')->middleware('user')->group(function () {
         Route::get('/', [UserAdController::class, 'index'])->name('index');
         Route::get('/data', [UserAdController::class, 'data'])->name('data');
+        Route::get('/categories/{category}/subcategories', [UserAdController::class, 'subcategories'])->name('categories.subcategories');
         Route::get('/create', [UserAdController::class, 'selectSize'])->name('create.size');
         Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->name('create.template');
         Route::get('/create/{sizeType}/template/{template}', [UserAdController::class, 'customize'])->name('create.customize');

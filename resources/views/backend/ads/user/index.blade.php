@@ -37,6 +37,9 @@
                     <th>Title</th>
                     <th>Size</th>
                     <th>Template</th>
+                    <th>Category</th>
+                    <th>Sub Category</th>
+                    <th>Location</th>
                     <th>Status</th>
                     <th>Submitted</th>
                     <th class="text-end">Action</th>

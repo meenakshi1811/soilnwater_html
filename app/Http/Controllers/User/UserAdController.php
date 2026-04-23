@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdTemplate;
+use App\Models\Category;
 use App\Models\UserAd;
 use App\Support\AdSizes;
 use Illuminate\Http\RedirectResponse;
@@ -11,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -19,7 +21,7 @@ class UserAdController extends Controller
     public function index(Request $request): View
     {
         $ads = UserAd::query()
-            ->with(['template:id,name,size_type'])
+            ->with(['template:id,name,size_type', 'category:id,name', 'subcategory:id,name'])
             ->where('user_id', $request->user()->id)
             ->latest()
             ->paginate(12);
@@ -40,7 +42,7 @@ class UserAdController extends Controller
     public function data(Request $request): JsonResponse
     {
         $ads = UserAd::query()
-            ->with(['template:id,name'])
+            ->with(['template:id,name', 'category:id,name', 'subcategory:id,name'])
             ->where('user_id', $request->user()->id)
             ->latest();
 
@@ -49,6 +51,9 @@ class UserAdController extends Controller
         return DataTables::of($ads)
             ->addColumn('size_label', fn (UserAd $ad) => $sizes[$ad->size_type]['name'] ?? $ad->size_type)
             ->addColumn('template_name', fn (UserAd $ad) => $ad->template?->name ?? '-')
+            ->addColumn('category_name', fn (UserAd $ad) => $ad->category?->name ?? '-')
+            ->addColumn('subcategory_name', fn (UserAd $ad) => $ad->subcategory?->name ?? '-')
+            ->addColumn('location_name', fn (UserAd $ad) => $ad->location ?? '-')
             ->addColumn('status_badge', function (UserAd $ad) {
                 $badge = match ($ad->status) {
                     'approved' => 'success',
@@ -69,7 +74,7 @@ class UserAdController extends Controller
     {
         abort_unless($ad->user_id === $request->user()->id, 404);
 
-        $ad->load(['template:id,name,size_type']);
+        $ad->load(['template:id,name,size_type', 'category:id,name', 'subcategory:id,name']);
 
         return view('backend.ads.user.show', [
             'ad' => $ad,
@@ -104,7 +109,21 @@ class UserAdController extends Controller
             'sizeType' => $sizeType,
             'size' => AdSizes::all()[$sizeType],
             'template' => $template,
+            'categories' => Category::query()
+                ->whereNull('parent_id')
+                ->whereJsonContains('modules', 'ads')
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
+    }
+
+    public function subcategories(Category $category): JsonResponse
+    {
+        abort_if(! in_array('ads', $category->modules ?? [], true), 404);
+
+        return response()->json(
+            $category->children()->orderBy('name')->get(['id', 'name'])
+        );
     }
 
     public function store(Request $request, string $sizeType, AdTemplate $template): RedirectResponse
@@ -149,7 +168,28 @@ class UserAdController extends Controller
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
             'custom_html' => 'nullable|string',
+            'category_id' => [
+                'required',
+                Rule::exists('categories', 'id')->where(fn ($query) => $query
+                    ->whereNull('parent_id')
+                    ->whereJsonContains('modules', 'ads')),
+            ],
+            'subcategory_id' => ['required', Rule::exists('categories', 'id')],
+            'location' => 'required|string|max:255',
+            'location_lat' => 'required|numeric|between:-90,90',
+            'location_lng' => 'required|numeric|between:-180,180',
         ], $fieldRules));
+
+        $isValidSubcategory = Category::query()
+            ->where('id', $validated['subcategory_id'])
+            ->where('parent_id', $validated['category_id'])
+            ->exists();
+
+        if (! $isValidSubcategory) {
+            return back()->withErrors([
+                'subcategory_id' => 'Selected subcategory does not belong to the selected category.',
+            ])->withInput();
+        }
 
         $fields = [];
         foreach (($schema['fields'] ?? []) as $field) {
@@ -196,6 +236,11 @@ class UserAdController extends Controller
                 'ad_template_id' => $template->id,
                 'size_type' => $sizeType,
                 'title' => $validated['title'],
+                'category_id' => $validated['category_id'],
+                'subcategory_id' => $validated['subcategory_id'],
+                'location' => $validated['location'],
+                'location_lat' => $validated['location_lat'],
+                'location_lng' => $validated['location_lng'],
                 'status' => 'pending',
                 'fields_json' => $fields,
                 'rendered_html' => $renderedHtml,
