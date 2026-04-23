@@ -2,9 +2,12 @@
     /** @var \App\Models\AdTemplate $template */
     $placeholder = asset('assets/images/ad-sample.png');
     $previewImage = !empty($template->preview_image) ? asset($template->preview_image) : null;
+    $schema = is_array($template->schema_json) ? $template->schema_json : [];
+    $schemaFields = is_array($schema['fields'] ?? null) ? $schema['fields'] : [];
+
     $previewHtml = \App\Support\AdTemplatePreview::render(
         $template->layout_html,
-        \App\Support\AdTemplatePreview::sampleFieldsForTemplateName($template->name),
+        \App\Support\AdTemplatePreview::sampleFieldsForSchema($schemaFields, (string) $template->name),
         $placeholder
     );
 @endphp

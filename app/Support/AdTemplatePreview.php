@@ -52,7 +52,7 @@ final class AdTemplatePreview
     {
         return [
             'headline' => 'Beauty Clinic',
-            'subheadline' => 'Glow up with premium skin care & treatments',
+            'subheadline' => 'Glow up with premium treatments',
             'badge' => '50% OFF',
             'line1' => 'Skin Care',
             'line2' => 'Facial Treatment',
@@ -63,6 +63,50 @@ final class AdTemplatePreview
         ];
     }
 
+
+    public static function sampleFieldsForSchema(array $fields, string $templateName = ''): array
+    {
+        $fallback = self::sampleFieldsForTemplateName($templateName);
+        $resolved = [];
+
+        foreach ($fields as $field) {
+            if (!is_array($field)) {
+                continue;
+            }
+
+            $key = (string) ($field['key'] ?? '');
+            if ($key === '') {
+                continue;
+            }
+
+            $type = (string) ($field['type'] ?? 'text');
+            if (mb_strtolower($type) === 'image') {
+                continue;
+            }
+
+            $default = array_key_exists('default', $field) ? (string) ($field['default'] ?? '') : '';
+            $label = (string) ($field['label'] ?? '');
+
+            if (trim($default) !== '') {
+                $resolved[$key] = $default;
+                continue;
+            }
+
+            if (array_key_exists($key, $fallback) && trim((string) $fallback[$key]) !== '') {
+                $resolved[$key] = (string) $fallback[$key];
+                continue;
+            }
+
+            $resolved[$key] = trim($label) !== '' ? $label : 'Sample';
+        }
+
+        if ($resolved === []) {
+            return $fallback;
+        }
+
+        return $resolved + $fallback;
+    }
+
     public static function sampleFieldsForTemplateName(string $templateName): array
     {
         $name = mb_strtolower($templateName);
@@ -70,7 +114,7 @@ final class AdTemplatePreview
         if (str_contains($name, 'grand opening') || str_contains($name, 'opening')) {
             return [
                 'headline' => 'Grand Opening',
-                'subheadline' => 'Join us this weekend for offers & giveaways',
+                'subheadline' => 'Weekend offers & giveaways',
                 'badge' => 'NEW',
                 'line1' => 'Live Music',
                 'line2' => 'Door Prizes',
