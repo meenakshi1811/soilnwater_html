@@ -667,8 +667,16 @@
 .ads-admin-preview img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
     display: block;
+}
+
+.ads-template-preview img {
+    object-fit: contain;
+    background: #fff;
+}
+
+.ads-admin-preview img {
+    object-fit: cover;
 }
 
 .ads-mini-preview-inner {
