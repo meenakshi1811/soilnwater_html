@@ -41,6 +41,7 @@
                                 @if($template->description)
                                     <div class="text-secondary small text-truncate">{{ $template->description }}</div>
                                 @endif
+                                <div class="text-secondary small mt-1">Preview ratio: {{ $size['w'] }}×{{ $size['h'] }}</div>
                             </div>
                         </a>
                     </div>
