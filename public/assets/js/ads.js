@@ -270,7 +270,7 @@
         if (!$layoutInput.length || !$preview.length) return;
 
         var sizeMap = {
-            square: { ratio: '1 / 1', w: 600, h: 600 },
+            square: { ratio: '1 / 1', w: 640, h: 640 },
             vertical_rectangle: { ratio: '2 / 3', w: 600, h: 900 },
             horizontal: { ratio: '3 / 2', w: 900, h: 600 },
             square_large: { ratio: '1 / 1', w: 900, h: 900 },
@@ -312,7 +312,7 @@
 
         function updatePreviewScale() {
             var sizeKey = ($sizeInput.val() || '').toString();
-            var sizeDef = sizeMap[sizeKey] || { ratio: '1 / 1', w: 600, h: 600 };
+            var sizeDef = sizeMap[sizeKey] || { ratio: '1 / 1', w: 640, h: 640 };
             $previewWrap.css('aspect-ratio', sizeDef.ratio);
             $previewWrap.attr('data-source-width', sizeDef.w);
             $previewWrap.attr('data-source-height', sizeDef.h);

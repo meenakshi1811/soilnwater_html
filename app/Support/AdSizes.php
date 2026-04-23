@@ -10,7 +10,7 @@ final class AdSizes
     public static function all(): array
     {
         return [
-            'square' => ['name' => 'Square', 'ratio' => '1 / 1', 'w' => 600, 'h' => 600],
+            'square' => ['name' => 'Square', 'ratio' => '1 / 1', 'w' => 640, 'h' => 640],
             'vertical_rectangle' => ['name' => 'Vertical Rectangle', 'ratio' => '2 / 3', 'w' => 600, 'h' => 900],
             'horizontal' => ['name' => 'Horizontal', 'ratio' => '3 / 2', 'w' => 900, 'h' => 600],
             'square_large' => ['name' => 'Square Large', 'ratio' => '1 / 1', 'w' => 900, 'h' => 900],
