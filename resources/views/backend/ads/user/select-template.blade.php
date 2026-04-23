@@ -18,16 +18,24 @@
                 No templates available for this size yet. Please try again later.
             </div>
         @else
+            @php
+                $previewWidth = max((int) ($size['w'] ?? 0), 1);
+            @endphp
             <div class="row g-3">
                 @foreach($templates as $template)
-                    <div class="col-12 col-md-6 col-xl-4">
-                        <a href="{{ route('ads.create.customize', ['sizeType' => $sizeType, 'template' => $template->id]) }}" class="ads-template-card d-block text-decoration-none">
+                    <div class="col-12">
+                        <a
+                            href="{{ route('ads.create.customize', ['sizeType' => $sizeType, 'template' => $template->id]) }}"
+                            class="ads-template-card ads-template-card-actual d-block text-decoration-none"
+                            style="--ads-preview-natural-width: {{ $previewWidth }}px;"
+                        >
                             @include('backend.ads.partials.template-mini-preview', ['template' => $template, 'size' => $size])
                             <div class="mt-3">
                                 <div class="fw-semibold text-dark">{{ $template->name }}</div>
                                 @if($template->description)
                                     <div class="text-secondary small">{{ $template->description }}</div>
                                 @endif
+                                <div class="text-secondary small mt-1">Preview ratio: {{ $size['w'] }}×{{ $size['h'] }}</div>
                             </div>
                         </a>
                     </div>
@@ -41,4 +49,3 @@
     </div>
 </div>
 @endsection
-
