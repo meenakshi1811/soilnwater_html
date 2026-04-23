@@ -240,6 +240,42 @@
         height: 1px;
     }
 
+    .offer-empty-state-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.9rem;
+        width: min(100%, 640px);
+        padding: 1rem 1.1rem;
+        border-radius: 0.85rem;
+        border: 1px solid #d6e7ff;
+        background: linear-gradient(180deg, #f7fbff 0%, #f2f8ff 100%);
+        box-shadow: 0 8px 20px rgba(13, 83, 168, 0.08);
+    }
+
+    .offer-empty-state-icon {
+        width: 2.15rem;
+        height: 2.15rem;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #e6f0ff;
+        color: #235da8;
+        flex: 0 0 2.15rem;
+    }
+
+    .offer-empty-state-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #12355b;
+    }
+
+    .offer-empty-state-text {
+        font-size: 0.92rem;
+        color: #335678;
+        line-height: 1.5;
+    }
+
     @media (min-width: 768px) {
         .offer-details-content {
             padding: 1.35rem 1.5rem 1.55rem;
