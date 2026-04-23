@@ -122,7 +122,10 @@ class UserAdController extends Controller
         abort_if(! in_array('ads', $category->modules ?? [], true), 404);
 
         return response()->json(
-            $category->children()->orderBy('name')->get(['id', 'name'])
+            $category->children()
+                ->whereJsonContains('modules', 'ads')
+                ->orderBy('name')
+                ->get(['id', 'name'])
         );
     }
 
@@ -183,6 +186,7 @@ class UserAdController extends Controller
         $isValidSubcategory = Category::query()
             ->where('id', $validated['subcategory_id'])
             ->where('parent_id', $validated['category_id'])
+            ->whereJsonContains('modules', 'ads')
             ->exists();
 
         if (! $isValidSubcategory) {
