@@ -16,7 +16,7 @@
     data-source-height="{{ $size['h'] }}"
 >
     @if($previewImage)
-        <img src="{{ $previewImage }}" alt="{{ $template->name }} preview" class="w-100 h-100 object-fit-cover rounded">
+        <img src="{{ $previewImage }}" alt="{{ $template->name }} preview" class="w-100 h-100 object-fit-contain rounded p-1 bg-white">
     @else
         <div class="ads-mini-preview-inner">
             {!! $previewHtml !!}
