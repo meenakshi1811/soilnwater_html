@@ -108,10 +108,19 @@
         var $items = $('.js-ads-scaled-preview');
         if (!$items.length) return;
 
-        applyScaledPreview($items);
-        $(window).on('resize', function () {
+        var runScale = function () {
             applyScaledPreview($items);
-        });
+        };
+
+        runScale();
+        $(window).on('resize load', runScale);
+
+        if (window.ResizeObserver) {
+            var ro = new ResizeObserver(runScale);
+            $items.each(function () {
+                ro.observe(this);
+            });
+        }
     }
 
     function initAdminSubmissionsTable() {

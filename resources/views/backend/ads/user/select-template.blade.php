@@ -29,7 +29,7 @@
 
             <div class="row g-3 ads-template-grid">
                 @foreach($templates as $template)
-                    <div class="col-12 col-md-6 col-xl-4">
+                    <div class="col-12 col-lg-6">
                         <a
                             href="{{ route('ads.create.customize', ['sizeType' => $sizeType, 'template' => $template->id]) }}"
                             class="ads-template-card ads-template-card-actual d-block text-decoration-none"
