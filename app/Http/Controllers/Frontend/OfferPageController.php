@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Offer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class OfferPageController extends Controller
 {
@@ -24,7 +26,27 @@ class OfferPageController extends Controller
 
     public function index(Request $request): View|JsonResponse
     {
-        $offers = $this->baseOfferQuery()->paginate(12);
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'offers')
+            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        $categoriesForFilter = $categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'children' => $category->children->map(function ($child) {
+                    return [
+                        'id' => $child->id,
+                        'name' => $child->name,
+                        'parent_id' => $child->parent_id,
+                    ];
+                })->values()->all(),
+            ];
+        })->values()->all();
+
+        $offers = $this->baseOfferQuery($request)->paginate(12)->appends($request->query());
 
         if ($request->ajax()) {
             return response()->json([
@@ -37,6 +59,8 @@ class OfferPageController extends Controller
 
         return view('frontend.offers.index', [
             'offers' => $offers,
+            'categories' => $categories,
+            'categoriesForFilter' => $categoriesForFilter,
         ]);
     }
 
@@ -49,20 +73,36 @@ class OfferPageController extends Controller
         ]);
     }
 
-    private function baseOfferQuery(): Builder
+    private function baseOfferQuery(?Request $request = null): Builder
     {
         $today = now()->toDateString();
+        $request = $request ?? request();
 
         return Offer::query()
             ->where('status', 'active')
-            ->where(function (Builder $query) use ($today) {
-                $query->whereNull('valid_until')
-                    ->orWhereDate('valid_until', '>=', $today);
+            ->when($request->filled('category_id'), fn (Builder $query) => $query->where('category_id', $request->integer('category_id')))
+            ->when($request->filled('subcategory_id'), fn (Builder $query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
+            ->when($request->filled('validity'), function (Builder $query) use ($request): void {
+                $this->applyValidityFilter($query, $request->string('validity')->toString(), Carbon::today());
+            }, function (Builder $query): void {
+                $this->applyValidityFilter($query, 'valid', Carbon::today());
             })
             ->orderByRaw('CASE WHEN valid_until = ? THEN 0 ELSE 1 END', [$today])
             ->orderByRaw('CASE WHEN valid_until IS NULL THEN 1 ELSE 0 END')
             ->orderBy('valid_until')
             ->latest('id');
+    }
+
+    private function applyValidityFilter(Builder $query, string $validity, Carbon $today): void
+    {
+        match ($validity) {
+            'expired' => $query->whereDate('valid_until', '<', $today),
+            'expires_today' => $query->whereDate('valid_until', '=', $today),
+            'no_expiry' => $query->whereNull('valid_until'),
+            default => $query->where(function (Builder $validityQuery) use ($today): void {
+                $validityQuery->whereNull('valid_until')->orWhereDate('valid_until', '>=', $today);
+            }),
+        };
     }
 
     private function isPublished(Offer $offer): bool
