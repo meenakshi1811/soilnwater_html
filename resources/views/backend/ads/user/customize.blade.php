@@ -44,7 +44,7 @@
 
     <div class="chart-card">
         <div id="adCustomizeAlert" class="alert d-none" role="alert"></div>
-        <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" enctype="multipart/form-data" novalidate>
+        <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             @foreach($textFieldKeys as $hiddenTextKey)
@@ -58,6 +58,64 @@
                         <input type="text" name="title" value="{{ old('title') }}" class="form-control @error('title') is-invalid @enderror js-ad-title" maxlength="140" placeholder="e.g. Beauty Clinic — 50% OFF">
                         @error('title')
                             <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="categorySelect" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                        <select
+                            name="category_id"
+                            id="categorySelect"
+                            class="form-select @error('category_id') is-invalid @enderror"
+                            data-selected-category="{{ old('category_id') }}"
+                        >
+                            <option value="">— Select category —</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" @selected((string) old('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('category_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="subcategorySelect" class="form-label fw-semibold">Sub Category <span class="text-danger">*</span></label>
+                        <select
+                            name="subcategory_id"
+                            id="subcategorySelect"
+                            class="form-select @error('subcategory_id') is-invalid @enderror"
+                            data-selected-subcategory="{{ old('subcategory_id') }}"
+                            disabled
+                        >
+                            <option value="">— Select a category first —</option>
+                        </select>
+                        @error('subcategory_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Location <span class="text-danger">*</span></label>
+                        <input
+                            type="text"
+                            name="location"
+                            id="adLocation"
+                            class="form-control @error('location') is-invalid @enderror"
+                            placeholder="Search location"
+                            value="{{ old('location') }}"
+                            autocomplete="off"
+                        >
+                        <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat') }}">
+                        <input type="hidden" name="location_lng" id="adLocationLng" value="{{ old('location_lng') }}">
+                        @error('location')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        @error('location_lat')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        @error('location_lng')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -359,4 +417,81 @@
         updatePreview();
     })();
 </script>
+<script>
+    (function () {
+        const form = document.querySelector('form[action*="/dashboard/ads/create/"]');
+        if (!form) return;
+
+        const categorySelect = document.getElementById('categorySelect');
+        const subcategorySelect = document.getElementById('subcategorySelect');
+        const subcategoryBaseUrl = form.dataset.subcategoryUrlBase || '';
+        const selectedSubcategory = subcategorySelect ? (subcategorySelect.dataset.selectedSubcategory || '') : '';
+        const locationInput = document.getElementById('adLocation');
+        const locationLatInput = document.getElementById('adLocationLat');
+        const locationLngInput = document.getElementById('adLocationLng');
+
+        async function loadSubcategories(categoryId, selectedId = '') {
+            if (!subcategorySelect) return;
+            if (!categoryId || !subcategoryBaseUrl) {
+                subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
+                subcategorySelect.disabled = true;
+                return;
+            }
+
+            try {
+                const response = await fetch(`${subcategoryBaseUrl}/${categoryId}/subcategories`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                const options = ['<option value="">— Select subcategory —</option>'];
+                (Array.isArray(data) ? data : []).forEach((item) => {
+                    const isSelected = String(item.id) === String(selectedId);
+                    options.push(`<option value="${item.id}" ${isSelected ? 'selected' : ''}>${item.name}</option>`);
+                });
+                subcategorySelect.innerHTML = options.join('');
+                subcategorySelect.disabled = false;
+            } catch (error) {
+                subcategorySelect.innerHTML = '<option value="">— Unable to load subcategories —</option>';
+                subcategorySelect.disabled = true;
+            }
+        }
+
+        if (categorySelect && subcategorySelect) {
+            categorySelect.addEventListener('change', function () {
+                loadSubcategories(this.value, '');
+            });
+
+            if (categorySelect.value) {
+                loadSubcategories(categorySelect.value, selectedSubcategory);
+            }
+        }
+
+        if (locationInput) {
+            locationInput.addEventListener('input', function () {
+                if (locationLatInput) locationLatInput.value = '';
+                if (locationLngInput) locationLngInput.value = '';
+            });
+        }
+
+        window.initAdLocationAutocomplete = function () {
+            if (!locationInput || !window.google || !google.maps || !google.maps.places) {
+                return;
+            }
+
+            const autocomplete = new google.maps.places.Autocomplete(locationInput, {
+                fields: ['formatted_address', 'geometry', 'name'],
+            });
+
+            autocomplete.addListener('place_changed', function () {
+                const place = autocomplete.getPlace();
+                const lat = place?.geometry?.location?.lat?.();
+                const lng = place?.geometry?.location?.lng?.();
+                locationInput.value = place?.formatted_address || place?.name || locationInput.value;
+                if (locationLatInput) locationLatInput.value = typeof lat === 'number' ? String(lat) : '';
+                if (locationLngInput) locationLngInput.value = typeof lng === 'number' ? String(lng) : '';
+            });
+        };
+    })();
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
 @endpush
