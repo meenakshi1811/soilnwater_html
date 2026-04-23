@@ -18,10 +18,29 @@
     <button class="btn-post">Post Ad</button>
 
     @auth
-      <form method="POST" action="{{ route('logout') }}" class="d-inline">
-        @csrf
-        <button type="submit" class="btn-login">Logout</button>
-      </form>
+      @php
+        $dashboardUrl = auth()->user()->isGeneralUser() ? route('user.dashboard') : route('admin.dashboard');
+      @endphp
+      <div class="dropdown user-menu-dropdown">
+        <button
+          class="btn-login dropdown-toggle user-menu-toggle"
+          type="button"
+          id="headerUserMenu"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          My Account
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerUserMenu">
+          <li><a class="dropdown-item" href="{{ $dashboardUrl }}">Dashboard</a></li>
+          <li>
+            <form method="POST" action="{{ route('logout') }}">
+              @csrf
+              <button type="submit" class="dropdown-item">Logout</button>
+            </form>
+          </li>
+        </ul>
+      </div>
     @else
       <a class="btn-login" href="{{ route('login') }}">Login</a>
     @endauth

@@ -89,6 +89,27 @@
     margin-left: auto;
   }
 
+  .user-menu-toggle::after {
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .user-menu {
+    min-width: 10rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+    padding: 6px 0;
+  }
+  .user-menu .dropdown-item {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 14px;
+  }
+  .user-menu .dropdown-item:hover,
+  .user-menu .dropdown-item:focus {
+    background: #f3f7fb;
+  }
+
   /* ── HERO BANNER ── */
   .hero {
     background: linear-gradient(160deg, #d6eaf8 0%, #dff0ea 40%, #e8f5e9 70%, #fef9e7 100%);
