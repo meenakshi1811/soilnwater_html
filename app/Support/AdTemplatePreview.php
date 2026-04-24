@@ -114,6 +114,40 @@ final class AdTemplatePreview
     {
         $name = mb_strtolower($templateName);
 
+        if (str_contains($name, 'school') || str_contains($name, 'college') || str_contains($name, 'university') || str_contains($name, 'admission')) {
+            return [
+                'headline' => 'Admissions Open 2026',
+                'subheadline' => 'Apply now for top faculty, modern labs and scholarships.',
+                'badge' => 'Apply Now',
+                'line1' => 'Scholarship up to 40%',
+                'line2' => 'Smart classrooms & labs',
+                'line3' => 'Limited seats available',
+                'cta' => 'Enroll Today',
+                'offer_text' => 'Admission fee waiver',
+                'date_text' => 'Last date: June 30',
+                'location_text' => 'City Campus, Sector 12',
+                'phone' => '+1 212 555 0190',
+                'website' => 'www.campusadmissions.com',
+            ];
+        }
+
+        if (str_contains($name, 'coaching')) {
+            return [
+                'headline' => 'Coaching Batch Enrollment',
+                'subheadline' => 'Expert mentors for competitive exams with weekly mock tests.',
+                'badge' => 'Limited Seats',
+                'line1' => 'Daily doubt sessions',
+                'line2' => 'Rank booster material',
+                'line3' => 'Weekend revision classes',
+                'cta' => 'Join Batch',
+                'offer_text' => 'Flat 25% early-bird off',
+                'date_text' => 'Batch starts Monday',
+                'location_text' => 'Main Road Learning Hub',
+                'phone' => '+1 646 555 0122',
+                'website' => 'www.topcoachinghub.com',
+            ];
+        }
+
         if (str_contains($name, 'grand opening') || str_contains($name, 'opening')) {
             return [
                 'headline' => 'Grand Opening',
@@ -153,19 +187,18 @@ final class AdTemplatePreview
         }
 
         return [
-            'headline' => 'Your Brand',
-            'subheadline' => 'Add your headline, images and CTA',
-            'badge' => 'OFFER',
-            'line1' => 'Feature One',
-            'line2' => 'Feature Two',
-            'line3' => 'Feature Three',
-            'cta' => 'Learn More',
-            'offer_text' => 'Early-bird offer available',
-            'date_text' => 'Limited time campaign',
-            'location_text' => 'Main branch & online',
-            'phone' => '123-456-7890',
-            'website' => 'www.yourwebsite.com',
+            'headline' => 'Mega Sale Campaign',
+            'subheadline' => 'Modern and professional ad design for real business promotions.',
+            'badge' => '50% OFF',
+            'line1' => 'Weekend flash discount',
+            'line2' => 'Limited stock available',
+            'line3' => 'Free delivery today',
+            'cta' => 'Claim Offer',
+            'offer_text' => 'Buy 1 Get 1 Free',
+            'date_text' => 'Offer valid till Sunday',
+            'location_text' => 'Downtown store and online',
+            'phone' => '+1 310 555 0147',
+            'website' => 'www.brandoffers.com',
         ];
     }
 }
-
