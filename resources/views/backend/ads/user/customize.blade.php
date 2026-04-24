@@ -39,6 +39,9 @@
             <p class="mb-0 text-secondary">
                 Template: <strong>{{ $template->name }}</strong> · Size: <strong>{{ $size['name'] }}</strong>
             </p>
+            @if(($size['admin_only'] ?? false) === true)
+                <p class="mb-0 mt-1"><span class="badge text-bg-warning">Admin Placement</span> <span class="text-secondary">Submit this ad directly to admin for homepage placement approval.</span></p>
+            @endif
         </div>
     </div>
 
@@ -154,9 +157,15 @@
                         @endforeach
                     </div>
 
-                    <div class="alert alert-info mb-0">
-                        After submission, your ad will be reviewed by admin before it goes live.
-                    </div>
+                    @if(($size['admin_only'] ?? false) === true)
+                        <div class="alert alert-warning mb-0">
+                            This is an admin-placement size. After submission, your ad will be posted to admin for homepage review and approval.
+                        </div>
+                    @else
+                        <div class="alert alert-info mb-0">
+                            After submission, your ad will be reviewed by admin before it goes live.
+                        </div>
+                    @endif
                 </div>
 
                 <div class="col-12 col-lg-7">

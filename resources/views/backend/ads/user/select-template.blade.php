@@ -9,6 +9,9 @@
             <p class="ems-kicker mb-1">Ads</p>
             <h2 class="admin-title mb-1">Choose a Design Template</h2>
             <p class="mb-0 text-secondary">Size: <strong>{{ $size['name'] }}</strong> ({{ $size['w'] }}×{{ $size['h'] }})</p>
+            @if(($size['admin_only'] ?? false) === true)
+                <p class="mb-0 mt-1"><span class="badge text-bg-warning">Admin Placement</span> <span class="text-secondary">This ad request will be submitted to admin for homepage placement review.</span></p>
+            @endif
         </div>
     </div>
 
