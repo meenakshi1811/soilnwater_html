@@ -252,6 +252,14 @@ HTML
       </div>
       <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
     </div>
+    <div style="background:#ffffffd6;border:1px solid ACCENT44;border-radius:10px;padding:8px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="font-size:10px;font-weight:900;color:ACCENT;text-transform:uppercase;">{{badge}}</div>
+        <div style="margin-top:4px;font-size:18px;line-height:1.02;font-weight:900;color:TEXT;">{{headline}}</div>
+        <div style="margin-top:3px;font-size:11px;line-height:1.3;font-weight:600;color:TEXT;">{{subheadline}}</div>
+      </div>
+      <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+    </div>
     <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#dc2626;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
   </div>
 </div>
@@ -317,7 +325,7 @@ HTML;
 
     private function layoutRibbonAdmissions(): string
     {
-        return <<<'HTML'
+        $html = <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Poppins,Inter,sans-serif;overflow:hidden;border-radius:14px;background:linear-gradient(120deg,#dbeafe,#e0f2fe);">
   <div style="position:absolute;left:-10%;top:-25%;width:60%;height:90%;background:rgba(2,132,199,.18);transform:rotate(18deg);"></div>
   <div style="position:absolute;right:-18%;bottom:-30%;width:58%;height:95%;background:rgba(30,64,175,.16);transform:rotate(-16deg);"></div>
@@ -337,16 +345,6 @@ HTML;
       <span style="font-size:11px;font-weight:700;color:#075985;">{{phone}}</span>
     </div>
   </div>
-</div>
-HTML;
-        $html = str_replace('BG_REPLACE', $bg, $html);
-        return str_replace('ACCENT_REPLACE', $accent, $html);
-    }
-
-    private function compactSquareLayout(string $templateName): string
-    {
-        $type = $this->compactType($templateName);
-        $accent = $type === 'sale' ? '#b91c1c' : ($type === 'opening' ? '#c2410c' : '#1e3a8a');
 
   <div style="position:absolute;right:4%;top:10%;bottom:10%;width:34%;display:grid;grid-template-rows:1fr 1fr;gap:8px;">
     <div style="border-radius:16px;overflow:hidden;border:3px solid rgba(255,255,255,.8);box-shadow:0 14px 24px rgba(2,132,199,.25);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
@@ -357,7 +355,7 @@ HTML;
   </div>
 </div>
 HTML;
-        return str_replace('ACCENT_REPLACE', $accent, $html);
+        return $html;
     }
 
     private function layoutSplitCollege(): string
