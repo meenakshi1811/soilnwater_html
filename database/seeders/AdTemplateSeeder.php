@@ -14,7 +14,11 @@ class AdTemplateSeeder extends Seeder
 
         foreach (array_keys(AdSizes::all()) as $sizeType) {
             foreach ($this->templateDefinitions() as $template) {
-                $layoutHtml = $this->layoutForSize((string) $template['layout_html'], $sizeType);
+                $layoutHtml = $this->layoutForSize(
+                    (string) $template['layout_html'],
+                    (string) $template['name'],
+                    $sizeType
+                );
 
                 AdTemplate::query()->updateOrCreate(
                     [
@@ -126,7 +130,7 @@ class AdTemplateSeeder extends Seeder
         ];
     }
 
-    private function layoutForSize(string $defaultLayout, string $sizeType): string
+    private function layoutForSize(string $defaultLayout, string $templateName, string $sizeType): string
     {
         $size = AdSizes::all()[$sizeType] ?? null;
         if (!$size) {
@@ -142,21 +146,24 @@ class AdTemplateSeeder extends Seeder
         // fewer text blocks and a single image so content doesn't overflow.
         if ($w <= 320 || $h <= 180 || $area <= 110000) {
             if ($ratio >= 1.5) {
-                return $this->compactHorizontalLayout();
+                return $this->compactHorizontalLayout($templateName);
             }
             if ($ratio <= 0.75) {
-                return $this->compactVerticalLayout();
+                return $this->compactVerticalLayout($templateName);
             }
 
-            return $this->compactSquareLayout();
+            return $this->compactSquareLayout($templateName);
         }
 
         return $defaultLayout;
     }
 
-    private function compactHorizontalLayout(): string
+    private function compactHorizontalLayout(string $templateName): string
     {
-        return <<<'HTML'
+        $type = $this->compactType($templateName);
+
+        if ($type === 'admissions') {
+            return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#e0f2fe,#dbeafe);">
   <div style="position:absolute;left:0;top:0;bottom:0;width:66%;padding:4% 5%;display:flex;flex-direction:column;justify-content:space-between;">
     <div>
@@ -174,32 +181,109 @@ class AdTemplateSeeder extends Seeder
   </div>
 </div>
 HTML;
+        }
+
+        if ($type === 'coaching') {
+            return <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#ccfbf1,#d1fae5);">
+  <div style="position:absolute;left:2%;right:2%;top:8%;bottom:8%;display:grid;grid-template-columns:62% 38%;gap:6px;">
+    <div style="background:#042f2ecc;border:1px solid rgba(20,184,166,.35);border-radius:8px;padding:6px;color:#ecfeff;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="font-size:10px;font-weight:900;color:#5eead4;text-transform:uppercase;">{{badge}}</div>
+        <div style="margin-top:4px;font-size:20px;line-height:1.02;font-weight:900;">{{headline}}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:6px;align-items:center;">
+        <span style="padding:4px 7px;border-radius:7px;background:#14b8a6;color:#042f2e;font-size:10px;font-weight:900;">{{cta}}</span>
+        <span style="font-size:10px;color:#99f6e4;font-weight:800;">{{offer_text}}</span>
+      </div>
+      <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:#1d4ed8;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+    </div>
+    <div style="border-radius:8px;overflow:hidden;border:1px solid rgba(15,23,42,.14);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1519452575417-564c1401ecc0?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+  </div>
+</div>
+HTML;
+        }
+
+        if ($type === 'opening') {
+            return <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#fff7ed,#ffedd5);">
+  <div style="position:absolute;left:0;top:0;bottom:0;width:60%;padding:5% 5%;display:flex;flex-direction:column;justify-content:space-between;">
+    <div>
+      <span style="display:inline-flex;padding:4px 8px;border-radius:999px;background:#c2410c;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
+      <div style="margin-top:6px;font-size:21px;line-height:1.02;font-weight:900;color:#7c2d12;">{{headline}}</div>
+      <div style="margin-top:4px;font-size:10px;font-weight:700;color:#9a3412;">{{date_text}}</div>
+    </div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#ea580c;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+  </div>
+  <div style="position:absolute;right:2%;top:8%;bottom:8%;width:36%;border-radius:10px;overflow:hidden;border:1px solid rgba(124,45,18,.2);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+</div>
+HTML;
+        }
+
+        if ($type === 'sale') {
+            return <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#fee2e2,#fecaca);">
+  <div style="position:absolute;left:3%;top:10%;bottom:10%;width:62%;display:flex;flex-direction:column;justify-content:space-between;">
+    <div>
+      <span style="display:inline-flex;padding:4px 8px;border-radius:6px;background:#b91c1c;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
+      <div style="margin-top:5px;font-size:20px;line-height:1.02;font-weight:900;color:#7f1d1d;">{{headline}}</div>
+      <div style="margin-top:4px;font-size:10px;color:#991b1b;font-weight:700;">{{offer_text}}</div>
+    </div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#dc2626;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+  </div>
+  <div style="position:absolute;right:3%;top:12%;bottom:12%;width:32%;border-radius:999px;overflow:hidden;border:2px solid rgba(255,255,255,.8);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+</div>
+HTML;
+        }
+
+        return <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#e0e7ff,#c7d2fe);">
+  <div style="position:absolute;left:4%;top:10%;bottom:10%;width:60%;display:flex;flex-direction:column;justify-content:space-between;">
+    <div>
+      <span style="display:inline-flex;padding:4px 8px;border-radius:999px;background:#4338ca;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
+      <div style="margin-top:6px;font-size:20px;line-height:1.03;font-weight:900;color:#312e81;">{{headline}}</div>
+      <div style="margin-top:4px;font-size:10px;color:#3730a3;font-weight:700;">{{location_text}}</div>
+    </div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#312e81;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+  </div>
+  <div style="position:absolute;right:3%;top:10%;bottom:10%;width:34%;border-radius:10px;overflow:hidden;border:1px solid rgba(49,46,129,.25);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+</div>
+HTML;
     }
 
-    private function compactVerticalLayout(): string
+    private function compactVerticalLayout(string $templateName): string
     {
-        return <<<'HTML'
-<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(160deg,#f0f9ff,#e2e8f0);">
+        $type = $this->compactType($templateName);
+        $bg = $type === 'sale' ? 'linear-gradient(160deg,#fee2e2,#fecaca)' : ($type === 'opening' ? 'linear-gradient(160deg,#fff7ed,#ffedd5)' : 'linear-gradient(160deg,#f0f9ff,#e2e8f0)');
+        $accent = $type === 'sale' ? '#b91c1c' : ($type === 'opening' ? '#c2410c' : '#1d4ed8');
+
+        $html = <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:BG_REPLACE;">
   <div style="position:absolute;left:6%;right:6%;top:4%;bottom:4%;display:grid;grid-template-rows:44% 56%;gap:6px;">
     <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(30,41,59,.14);">
       <img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;">
     </div>
     <div style="background:#ffffffd6;border:1px solid rgba(30,41,59,.12);border-radius:10px;padding:8px;display:flex;flex-direction:column;justify-content:space-between;">
       <div>
-        <div style="font-size:10px;font-weight:900;color:#1d4ed8;text-transform:uppercase;">{{badge}}</div>
+        <div style="font-size:10px;font-weight:900;color:ACCENT_REPLACE;text-transform:uppercase;">{{badge}}</div>
         <div style="margin-top:4px;font-size:18px;line-height:1.02;font-weight:900;color:#0f172a;">{{headline}}</div>
         <div style="margin-top:3px;font-size:11px;line-height:1.3;font-weight:600;color:#334155;">{{subheadline}}</div>
       </div>
-      <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:#1d4ed8;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+      <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:ACCENT_REPLACE;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
     </div>
   </div>
 </div>
 HTML;
+        $html = str_replace('BG_REPLACE', $bg, $html);
+        return str_replace('ACCENT_REPLACE', $accent, $html);
     }
 
-    private function compactSquareLayout(): string
+    private function compactSquareLayout(string $templateName): string
     {
-        return <<<'HTML'
+        $type = $this->compactType($templateName);
+        $accent = $type === 'sale' ? '#b91c1c' : ($type === 'opening' ? '#c2410c' : '#1e3a8a');
+
+        $html = <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:12px;background:linear-gradient(145deg,#eff6ff,#f8fafc);">
   <div style="position:absolute;left:6%;right:6%;top:6%;bottom:6%;display:grid;grid-template-rows:1fr auto;gap:8px;">
     <div style="border-radius:12px;overflow:hidden;border:1px solid rgba(30,58,138,.2);">
@@ -207,7 +291,7 @@ HTML;
     </div>
     <div style="background:#fff;border:1px solid rgba(30,58,138,.2);border-radius:10px;padding:8px;">
       <div style="display:flex;justify-content:space-between;gap:6px;align-items:center;">
-        <span style="font-size:10px;font-weight:900;color:#1e3a8a;">{{badge}}</span>
+        <span style="font-size:10px;font-weight:900;color:ACCENT_REPLACE;">{{badge}}</span>
         <span style="font-size:10px;font-weight:800;color:#334155;">{{offer_text}}</span>
       </div>
       <div style="margin-top:4px;font-size:18px;line-height:1.03;font-weight:900;color:#0f172a;">{{headline}}</div>
@@ -216,6 +300,27 @@ HTML;
   </div>
 </div>
 HTML;
+        return str_replace('ACCENT_REPLACE', $accent, $html);
+    }
+
+    private function compactType(string $templateName): string
+    {
+        $name = mb_strtolower($templateName);
+
+        if (str_contains($name, 'admission') || str_contains($name, 'school') || str_contains($name, 'college') || str_contains($name, 'university')) {
+            return 'admissions';
+        }
+        if (str_contains($name, 'coaching')) {
+            return 'coaching';
+        }
+        if (str_contains($name, 'opening') || str_contains($name, 'cafe') || str_contains($name, 'hotel') || str_contains($name, 'salon')) {
+            return 'opening';
+        }
+        if (str_contains($name, 'sale') || str_contains($name, 'offer')) {
+            return 'sale';
+        }
+
+        return 'property';
     }
 
     private function layoutRibbonAdmissions(): string
