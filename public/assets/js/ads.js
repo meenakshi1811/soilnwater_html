@@ -284,7 +284,22 @@
             horizontal: { ratio: '3 / 2', w: 900, h: 600 },
             square_large: { ratio: '1 / 1', w: 900, h: 900 },
             banner: { ratio: '4 / 1', w: 1200, h: 300 },
-            full_page: { ratio: '3 / 4', w: 900, h: 1200 }
+            full_page: { ratio: '3 / 4', w: 900, h: 1200 },
+            top_categories_ad_1: { ratio: '879 / 118', w: 879, h: 118 },
+            top_categories_ad_2: { ratio: '296 / 132', w: 296, h: 132 },
+            sponsored_listings_ad: { ratio: '296 / 624', w: 296, h: 624 },
+            below_sponsored_ad: { ratio: '1232 / 145', w: 1232, h: 145 },
+            ecommerce_ad: { ratio: '289 / 186', w: 289, h: 186 },
+            offer_discount_ad_1: { ratio: '884 / 160', w: 884, h: 160 },
+            offer_discount_ad_2: { ratio: '277 / 340', w: 277, h: 340 },
+            explore_products_ad: { ratio: '1191 / 138', w: 1191, h: 138 },
+            top_vendors_ad_1: { ratio: '1191 / 77', w: 1191, h: 77 },
+            top_vendors_ad_2: { ratio: '301 / 247', w: 301, h: 247 },
+            popular_greenwood_ad: { ratio: '382 / 749', w: 382, h: 749 },
+            popular_properties_ad: { ratio: '462 / 413', w: 462, h: 413 },
+            below_popular_ad: { ratio: '1232 / 145', w: 1232, h: 145 },
+            builders_developers_ad: { ratio: '292 / 271', w: 292, h: 271 },
+            below_builders_ad: { ratio: '1232 / 145', w: 1232, h: 145 }
         };
 
         function escapeHtml(str) {
