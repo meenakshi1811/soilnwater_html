@@ -252,6 +252,15 @@ HTML
       </div>
       <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
     </div>
+    <div style="background:#ffffffd6;border:1px solid ACCENT44;border-radius:10px;padding:8px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="font-size:10px;font-weight:900;color:ACCENT;text-transform:uppercase;">{{badge}}</div>
+        <div style="margin-top:4px;font-size:18px;line-height:1.02;font-weight:900;color:TEXT;">{{headline}}</div>
+        <div style="margin-top:3px;font-size:11px;line-height:1.3;font-weight:600;color:TEXT;">{{subheadline}}</div>
+      </div>
+      <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+    </div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#dc2626;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
   </div>
 </div>
 HTML;
