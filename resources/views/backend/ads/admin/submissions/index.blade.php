@@ -18,6 +18,11 @@
 
     <div class="chart-card">
         <div id="adminAdSubmissionAlert" class="alert d-none" role="alert"></div>
+        <div class="d-flex justify-content-end mb-3">
+            <a href="{{ route('ads.create.size') }}" class="btn btn-primary ems-btn-primary">
+                <i class="fa-solid fa-plus me-2"></i>Post New Ad
+            </a>
+        </div>
 
         <div class="row g-2 mb-3">
             <div class="col-12 col-md-4">
@@ -76,4 +81,3 @@
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/ads.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
-
