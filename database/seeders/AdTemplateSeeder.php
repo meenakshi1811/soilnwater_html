@@ -494,6 +494,8 @@ HTML;
       </div>
     </div>
   </div>
+
+  <div style="position:absolute;right:7%;top:8%;padding:5px 10px;border-radius:999px;background:{$surface};border:1px solid {$accent}3a;color:{$accent};font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;">{$badge}</div>
 </div>
 HTML;
     }
