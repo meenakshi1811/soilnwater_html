@@ -26,9 +26,9 @@ final class AdTemplatePreview
                 function (array $m) use ($placeholderImageUrl) {
                     $tag = $m[0] ?? '';
                     if (stripos($tag, 'src=') !== false) {
-                        // Replace src value
-                        $tag = preg_replace('/src="[^"]*"/i', 'src="'.$placeholderImageUrl.'"', $tag) ?? $tag;
-                        $tag = preg_replace("/src='[^']*'/i", "src='".$placeholderImageUrl."'", $tag) ?? $tag;
+                        // Keep existing image URL if present; only fill when src is empty.
+                        $tag = preg_replace('/src=""/i', 'src="'.$placeholderImageUrl.'"', $tag) ?? $tag;
+                        $tag = preg_replace("/src=''/i", "src='".$placeholderImageUrl."'", $tag) ?? $tag;
                         return $tag;
                     }
 

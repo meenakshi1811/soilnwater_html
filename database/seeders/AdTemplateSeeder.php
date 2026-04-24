@@ -49,8 +49,8 @@ class AdTemplateSeeder extends Seeder
                 'layout_html' => $this->layoutSplitCollege(),
             ],
             [
-                'name' => 'University Application Drive',
-                'description' => 'Editorial poster style for university intake campaigns.',
+                'name' => 'University Admissions 2026',
+                'description' => 'Editorial admissions creative for university applications and enrollment windows.',
                 'layout_html' => $this->layoutEditorialUniversity(),
             ],
             [
@@ -59,43 +59,43 @@ class AdTemplateSeeder extends Seeder
                 'layout_html' => $this->layoutBoardCoaching(),
             ],
             [
-                'name' => 'Restaurant Grand Opening',
-                'description' => 'Restaurant-style dark hero banner with food photo and launch highlights.',
+                'name' => 'Hotel Grand Opening',
+                'description' => 'Luxury hospitality launch banner for hotel and resort openings.',
                 'layout_html' => $this->layoutRestaurantLaunch(),
             ],
             [
-                'name' => 'New Shop or Mall Launch',
-                'description' => 'Bright retail launch template with geometric product windows.',
+                'name' => 'New Shop Opening',
+                'description' => 'Modern retail launch template for new shop openings and branch announcements.',
                 'layout_html' => $this->layoutRetailLaunch(),
             ],
             [
-                'name' => 'Opening Ceremony Invitation',
-                'description' => 'Elegant invitation with premium framing and ceremony detail panel.',
+                'name' => 'Cafe Opening Launch',
+                'description' => 'Stylish cafe launch design with premium invitation-like aesthetics.',
                 'layout_html' => $this->layoutCeremonyInvite(),
             ],
             [
-                'name' => 'Mega Sales Offer Campaign',
-                'description' => 'Energetic burst layout with discount-first visual hierarchy.',
+                'name' => 'Salon Opening Special',
+                'description' => 'Premium beauty salon launch design with service highlights and opening offer.',
                 'layout_html' => $this->layoutMegaSaleBurst(),
             ],
             [
-                'name' => 'Furniture Sale Festival',
-                'description' => 'Minimal architecture-inspired furniture sale design.',
+                'name' => 'Shop Mega Sales Offer',
+                'description' => 'High-conversion sales design for seasonal shop discounts and festival deals.',
                 'layout_html' => $this->layoutFurnitureMinimal(),
             ],
             [
-                'name' => 'Electronics Clearance Sale',
-                'description' => 'Futuristic neon-card style for electronics deals and exchange offers.',
+                'name' => 'Products For Sale Campaign',
+                'description' => 'Modern product selling ad template for e-commerce and local stores.',
                 'layout_html' => $this->layoutElectronicsNeon(),
             ],
             [
-                'name' => 'Health Clinic Opening',
-                'description' => 'Trust-centric clinical layout with service points and appointment CTA.',
+                'name' => 'Properties For Sale Showcase',
+                'description' => 'Professional real-estate layout for apartments, plots, and property promotions.',
                 'layout_html' => $this->layoutHealthClinic(),
             ],
             [
-                'name' => 'Real Estate Open House',
-                'description' => 'Property showcase layout with premium listing highlights.',
+                'name' => 'Products For Rent Promotion',
+                'description' => 'Clean rental product ad for electronics, furniture, tools, and event inventory.',
                 'layout_html' => $this->layoutRealEstate(),
             ],
         ];
@@ -148,10 +148,10 @@ class AdTemplateSeeder extends Seeder
   </div>
 
   <div style="position:absolute;right:4%;top:10%;bottom:10%;width:34%;display:grid;grid-template-rows:1fr 1fr;gap:8px;">
-    <div style="border-radius:16px;overflow:hidden;border:3px solid rgba(255,255,255,.8);box-shadow:0 14px 24px rgba(2,132,199,.25);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+    <div style="border-radius:16px;overflow:hidden;border:3px solid rgba(255,255,255,.8);box-shadow:0 14px 24px rgba(2,132,199,.25);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div style="border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.8);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
-      <div style="border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.8);"><img data-ad-key="image_2" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.8);"><img data-ad-key="image_1" src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.8);"><img data-ad-key="image_2" src="https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=800&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
     </div>
   </div>
 </div>
@@ -178,7 +178,7 @@ HTML;
   </div>
 
   <div style="position:absolute;right:4%;top:10%;bottom:10%;width:46%;display:grid;grid-template-rows:1fr auto;gap:8px;">
-    <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(29,78,216,.16);box-shadow:0 8px 22px rgba(37,99,235,.18);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+    <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(29,78,216,.16);box-shadow:0 8px 22px rgba(37,99,235,.18);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
     <div style="background:#fff;border-radius:10px;border:1px solid rgba(29,78,216,.2);padding:8px;display:flex;justify-content:space-between;gap:8px;align-items:center;">
       <div style="font-size:11px;color:#1e3a8a;font-weight:800;">{{date_text}}<br><span style="color:#334155;font-weight:700;">{{location_text}}</span></div>
       <span style="padding:7px 10px;border-radius:8px;background:#1d4ed8;color:#fff;font-size:11px;font-weight:900;white-space:nowrap;">{{cta}}</span>
@@ -207,7 +207,7 @@ HTML;
     </div>
 
     <div style="background:#fff;border:1px solid rgba(109,40,217,.28);border-radius:16px;padding:8px;display:grid;grid-template-rows:1fr auto;gap:8px;">
-      <div style="border-radius:12px;overflow:hidden;"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:12px;overflow:hidden;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
       <div style="font-family:Inter,sans-serif;background:#faf5ff;border-radius:10px;padding:8px;display:grid;gap:5px;">
         <div style="font-size:11px;color:#6d28d9;font-weight:800;">{{offer_text}}</div>
         <div style="font-size:10px;color:#6b21a8;font-weight:700;">{{date_text}}</div>
@@ -239,7 +239,7 @@ HTML;
       </div>
     </div>
     <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
-      <div style="border-radius:10px;overflow:hidden;border:2px dashed rgba(153,246,228,.7);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:10px;overflow:hidden;border:2px dashed rgba(153,246,228,.7);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1519452575417-564c1401ecc0?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
       <div style="background:#134e4a;border-radius:10px;padding:7px;display:grid;gap:4px;">
         <div style="font-size:10px;color:#5eead4;font-weight:900;">{{offer_text}}</div>
         <div style="font-size:10px;color:#99f6e4;font-weight:700;">{{date_text}}</div>
@@ -274,9 +274,9 @@ HTML;
       </div>
     </div>
     <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
-      <div style="border-radius:14px;overflow:hidden;border:2px solid rgba(255,237,213,.4);box-shadow:0 14px 25px rgba(0,0,0,.38);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:14px;overflow:hidden;border:2px solid rgba(255,237,213,.4);box-shadow:0 14px 25px rgba(0,0,0,.38);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,237,213,.35);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,237,213,.35);"><img data-ad-key="image_1" src="https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
         <div style="background:#292524;border-radius:10px;border:1px solid rgba(251,146,60,.4);padding:7px;display:grid;gap:3px;align-content:center;">
           <div style="font-size:10px;color:#fb923c;font-weight:900;">{{offer_text}}</div>
           <div style="font-size:10px;color:#fdba74;font-weight:700;">{{date_text}}</div>
@@ -310,8 +310,8 @@ HTML;
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;">
-      <div style="grid-column:1 / span 2;border-radius:12px;overflow:hidden;border:2px solid rgba(180,83,9,.22);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
-      <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(180,83,9,.2);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="grid-column:1 / span 2;border-radius:12px;overflow:hidden;border:2px solid rgba(180,83,9,.22);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(180,83,9,.2);"><img data-ad-key="image_1" src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=900&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
       <div style="border-radius:10px;background:#fffbeb;border:1px dashed rgba(180,83,9,.35);padding:7px;display:grid;align-content:center;gap:3px;">
         <div style="font-size:10px;color:#a16207;font-weight:900;">{{offer_text}}</div>
         <div style="font-size:10px;color:#92400e;font-weight:700;">{{date_text}}</div>
@@ -342,7 +342,7 @@ HTML;
         </div>
       </div>
       <div style="display:grid;grid-template-rows:1fr auto;gap:7px;">
-        <div style="border-radius:12px;overflow:hidden;border:2px solid rgba(162,28,175,.28);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="border-radius:12px;overflow:hidden;border:2px solid rgba(162,28,175,.28);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
         <div style="background:#faf5ff;border-radius:10px;border:1px solid rgba(162,28,175,.25);padding:7px;display:flex;justify-content:space-between;gap:8px;align-items:center;font-family:Inter,sans-serif;">
           <span style="font-size:10px;font-weight:800;color:#86198f;">{{offer_text}}</span>
           <span style="padding:5px 9px;border-radius:999px;background:#a21caf;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
@@ -375,9 +375,9 @@ HTML;
       </div>
     </div>
     <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
-      <div style="clip-path:polygon(0 0,95% 0,100% 20%,100% 100%,5% 100%,0 80%);border:2px solid rgba(185,28,28,.28);overflow:hidden;"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="clip-path:polygon(0 0,95% 0,100% 20%,100% 100%,5% 100%,0 80%);border:2px solid rgba(185,28,28,.28);overflow:hidden;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(185,28,28,.25);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(185,28,28,.25);"><img data-ad-key="image_1" src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
         <div style="border-radius:10px;background:#fff;border:1px solid rgba(185,28,28,.25);padding:7px;display:grid;gap:3px;align-content:center;">
           <div style="font-size:10px;color:#b91c1c;font-weight:900;">{{date_text}}</div>
           <div style="font-size:10px;color:#7f1d1d;font-weight:700;">{{location_text}}</div>
@@ -412,9 +412,9 @@ HTML;
       </div>
     </div>
     <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
-      <div style="border-radius:12px;overflow:hidden;border:1px solid rgba(51,65,85,.3);box-shadow:0 12px 20px rgba(15,23,42,.18);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;filter:saturate(.9);"></div>
+      <div style="border-radius:12px;overflow:hidden;border:1px solid rgba(51,65,85,.3);box-shadow:0 12px 20px rgba(15,23,42,.18);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;filter:saturate(.9);"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(51,65,85,.2);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(51,65,85,.2);"><img data-ad-key="image_1" src="https://images.unsplash.com/photo-1470309864661-68328b2cd0a5?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
         <div style="font-size:10px;color:#e2e8f0;font-weight:700;background:rgba(15,23,42,.78);border-radius:10px;padding:7px;display:grid;gap:3px;align-content:center;">
           <div>{{date_text}}</div><div>{{location_text}}</div><div>{{website}}</div>
         </div>
@@ -448,9 +448,9 @@ HTML;
       </div>
     </div>
     <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
-      <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(34,211,238,.45);box-shadow:0 0 0 2px rgba(56,189,248,.15),0 0 24px rgba(6,182,212,.26);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;mix-blend-mode:screen;opacity:.92;"></div>
+      <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(34,211,238,.45);box-shadow:0 0 0 2px rgba(56,189,248,.15),0 0 24px rgba(6,182,212,.26);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;mix-blend-mode:screen;opacity:.92;"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(168,85,247,.45);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(168,85,247,.45);"><img data-ad-key="image_1" src="https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
         <div style="border-radius:10px;background:rgba(15,23,42,.8);border:1px solid rgba(56,189,248,.4);padding:7px;display:grid;gap:3px;align-content:center;">
           <div style="font-size:10px;color:#67e8f9;font-weight:900;">{{date_text}}</div>
           <div style="font-size:10px;color:#a5f3fc;font-weight:700;">{{website}}</div>
@@ -485,8 +485,8 @@ HTML;
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto;gap:8px;">
-      <div style="grid-column:1 / span 2;border-radius:12px;overflow:hidden;border:1px solid rgba(21,128,61,.26);box-shadow:0 10px 18px rgba(22,101,52,.16);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
-      <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(21,128,61,.22);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="grid-column:1 / span 2;border-radius:12px;overflow:hidden;border:1px solid rgba(21,128,61,.26);box-shadow:0 10px 18px rgba(22,101,52,.16);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(21,128,61,.22);"><img data-ad-key="image_1" src="https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
       <div style="border-radius:10px;background:#f0fdf4;border:1px solid rgba(34,197,94,.3);padding:7px;display:grid;gap:3px;align-content:center;">
         <div style="font-size:10px;color:#15803d;font-weight:900;">{{date_text}}</div>
         <div style="font-size:10px;color:#166534;font-weight:700;">{{location_text}}</div>
@@ -494,8 +494,6 @@ HTML;
       </div>
     </div>
   </div>
-
-  <div style="position:absolute;right:7%;top:8%;padding:5px 10px;border-radius:999px;background:{$surface};border:1px solid {$accent}3a;color:{$accent};font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;">{$badge}</div>
 </div>
 HTML;
     }
@@ -522,9 +520,9 @@ HTML;
       </div>
     </div>
     <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
-      <div style="border-radius:14px;overflow:hidden;border:2px solid rgba(79,70,229,.26);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:14px;overflow:hidden;border:2px solid rgba(79,70,229,.26);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(79,70,229,.2);"><img data-ad-key="image_2" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(79,70,229,.2);"><img data-ad-key="image_2" src="https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
         <div style="border-radius:10px;background:rgba(30,27,75,.9);color:#e0e7ff;padding:7px;display:grid;gap:3px;align-content:center;">
           <div style="font-size:10px;font-weight:800;">{{date_text}}</div>
           <div style="font-size:10px;font-weight:700;">{{location_text}}</div>
