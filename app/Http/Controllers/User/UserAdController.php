@@ -34,8 +34,10 @@ class UserAdController extends Controller
 
     public function selectSize(): View
     {
+        $user = request()->user();
+
         return view('backend.ads.user.select-size', [
-            'sizes' => AdSizes::all(),
+            'sizes' => $this->visibleSizesForUser($user),
         ]);
     }
 
@@ -85,6 +87,7 @@ class UserAdController extends Controller
     public function selectTemplate(string $sizeType): View
     {
         abort_unless(AdSizes::exists($sizeType), 404);
+        abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
 
         $templates = AdTemplate::query()
             ->where('size_type', $sizeType)
@@ -102,6 +105,7 @@ class UserAdController extends Controller
     public function customize(string $sizeType, AdTemplate $template): View
     {
         abort_unless(AdSizes::exists($sizeType), 404);
+        abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
         abort_unless($template->size_type === $sizeType, 404);
         abort_if(! $template->is_active, 404);
 
@@ -132,6 +136,7 @@ class UserAdController extends Controller
     public function store(Request $request, string $sizeType, AdTemplate $template): RedirectResponse
     {
         abort_unless(AdSizes::exists($sizeType), 404);
+        abort_unless($this->canUserAccessSize($request->user(), $sizeType), 404);
         abort_unless($template->size_type === $sizeType, 404);
         abort_if(! $template->is_active, 404);
 
@@ -309,5 +314,20 @@ class UserAdController extends Controller
         $html = preg_replace('/\{\{[a-zA-Z][a-zA-Z0-9_]*\}\}/', '', $html) ?? $html;
 
         return $html;
+    }
+
+    private function visibleSizesForUser($user): array
+    {
+        $isAdmin = (bool) ($user?->isAdmin());
+
+        return array_filter(
+            AdSizes::all(),
+            fn (array $size) => ($size['admin_only'] ?? false) === $isAdmin
+        );
+    }
+
+    private function canUserAccessSize($user, string $sizeType): bool
+    {
+        return array_key_exists($sizeType, $this->visibleSizesForUser($user));
     }
 }
