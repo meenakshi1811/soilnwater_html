@@ -26,9 +26,9 @@ final class AdTemplatePreview
                 function (array $m) use ($placeholderImageUrl) {
                     $tag = $m[0] ?? '';
                     if (stripos($tag, 'src=') !== false) {
-                        // Replace src value
-                        $tag = preg_replace('/src="[^"]*"/i', 'src="'.$placeholderImageUrl.'"', $tag) ?? $tag;
-                        $tag = preg_replace("/src='[^']*'/i", "src='".$placeholderImageUrl."'", $tag) ?? $tag;
+                        // Keep existing image URL if present; only fill when src is empty.
+                        $tag = preg_replace('/src=""/i', 'src="'.$placeholderImageUrl.'"', $tag) ?? $tag;
+                        $tag = preg_replace("/src=''/i", "src='".$placeholderImageUrl."'", $tag) ?? $tag;
                         return $tag;
                     }
 
@@ -58,6 +58,9 @@ final class AdTemplatePreview
             'line2' => 'Facial Treatment',
             'line3' => 'Body Treatment',
             'cta' => 'More Info',
+            'offer_text' => 'Scholarship up to 40%',
+            'date_text' => 'Admissions close: June 30',
+            'location_text' => 'Downtown Campus, Springfield',
             'phone' => '123-456-7890',
             'website' => 'www.yourwebsite.com',
         ];
@@ -120,6 +123,9 @@ final class AdTemplatePreview
                 'line2' => 'Door Prizes',
                 'line3' => 'Limited Deals',
                 'cta' => 'Visit Now',
+                'offer_text' => 'Free tasting on launch day',
+                'date_text' => 'Saturday, 10:00 AM',
+                'location_text' => 'MG Road, Sector 9',
                 'phone' => '987-654-3210',
                 'website' => 'www.brand.com',
             ];
@@ -134,6 +140,9 @@ final class AdTemplatePreview
                 'line2' => 'Tables',
                 'line3' => 'Wardrobes',
                 'cta' => 'Shop Now',
+                'offer_text' => 'Flat 35% off + free delivery',
+                'date_text' => 'Weekend Special',
+                'location_text' => 'City Furniture Hub',
                 'phone' => '123-000-4567',
                 'website' => 'www.furniture.com',
             ];
@@ -151,6 +160,9 @@ final class AdTemplatePreview
             'line2' => 'Feature Two',
             'line3' => 'Feature Three',
             'cta' => 'Learn More',
+            'offer_text' => 'Early-bird offer available',
+            'date_text' => 'Limited time campaign',
+            'location_text' => 'Main branch & online',
             'phone' => '123-456-7890',
             'website' => 'www.yourwebsite.com',
         ];
