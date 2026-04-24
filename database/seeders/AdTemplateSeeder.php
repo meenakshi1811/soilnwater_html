@@ -160,167 +160,159 @@ class AdTemplateSeeder extends Seeder
 
     private function compactHorizontalLayout(string $templateName): string
     {
-        $type = $this->compactType($templateName);
+        $preset = $this->compactPreset($templateName);
+        $variant = (int) ($preset['variant'] ?? 1);
+        $bg = (string) $preset['bg'];
+        $accent = (string) $preset['accent'];
+        $text = (string) $preset['text'];
+        $image = (string) $preset['image'];
 
-        if ($type === 'admissions') {
-            return <<<'HTML'
-<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#e0f2fe,#dbeafe);">
+        $html = match ($variant) {
+            2 => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:BG;">
+  <div style="position:absolute;left:2%;right:2%;top:8%;bottom:8%;display:grid;grid-template-columns:60% 40%;gap:6px;">
+    <div style="background:#ffffffd8;border:1px solid ACCENT44;border-radius:8px;padding:6px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="font-size:10px;font-weight:900;color:ACCENT;text-transform:uppercase;">{{badge}}</div>
+        <div style="margin-top:4px;font-size:20px;line-height:1.02;font-weight:900;color:TEXT;">{{headline}}</div>
+      </div>
+      <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:7px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+    </div>
+    <div style="border-radius:8px;overflow:hidden;border:1px solid rgba(15,23,42,.14);"><img data-ad-key="image_hero" src="IMG" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+  </div>
+</div>
+HTML,
+            3 => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:BG;">
+  <div style="position:absolute;left:3%;right:3%;top:10%;bottom:10%;display:grid;grid-template-columns:64% 36%;gap:6px;align-items:stretch;">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <span style="display:inline-flex;padding:4px 8px;border-radius:999px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
+        <div style="margin-top:5px;font-size:20px;line-height:1.03;font-weight:900;color:TEXT;">{{headline}}</div>
+        <div style="margin-top:4px;font-size:10px;font-weight:700;color:ACCENT;">{{offer_text}}</div>
+      </div>
+      <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:TEXT;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+    </div>
+    <div style="clip-path:polygon(0 0,100% 0,88% 100%,0 100%);overflow:hidden;border:1px solid ACCENT44;"><img data-ad-key="image_hero" src="IMG" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+  </div>
+</div>
+HTML,
+            4 => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:BG;">
+  <div style="position:absolute;left:0;top:0;bottom:0;width:64%;padding:5% 5%;display:flex;flex-direction:column;justify-content:space-between;">
+    <div>
+      <span style="display:inline-flex;padding:4px 8px;border-radius:6px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
+      <div style="margin-top:6px;font-size:21px;line-height:1.03;font-weight:900;color:TEXT;">{{headline}}</div>
+      <div style="margin-top:4px;font-size:10px;font-weight:700;color:TEXT;">{{location_text}}</div>
+    </div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+  </div>
+  <div style="position:absolute;right:2%;top:10%;bottom:10%;width:32%;border-radius:999px;overflow:hidden;border:2px solid rgba(255,255,255,.85);"><img data-ad-key="image_hero" src="IMG" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+</div>
+HTML,
+            default => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:BG;">
   <div style="position:absolute;left:0;top:0;bottom:0;width:66%;padding:4% 5%;display:flex;flex-direction:column;justify-content:space-between;">
     <div>
-      <span style="display:inline-flex;padding:4px 8px;border-radius:999px;background:#1d4ed8;color:#fff;font-size:10px;font-weight:900;line-height:1;">{{badge}}</span>
-      <div style="margin-top:6px;font-size:22px;line-height:1.02;font-weight:900;color:#0f172a;">{{headline}}</div>
-      <div style="margin-top:4px;font-size:11px;line-height:1.3;font-weight:600;color:#334155;">{{subheadline}}</div>
+      <span style="display:inline-flex;padding:4px 8px;border-radius:999px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
+      <div style="margin-top:6px;font-size:22px;line-height:1.02;font-weight:900;color:TEXT;">{{headline}}</div>
+      <div style="margin-top:4px;font-size:11px;line-height:1.3;font-weight:600;color:TEXT;">{{subheadline}}</div>
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-      <span style="padding:4px 8px;border-radius:8px;background:#1e40af;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
-      <span style="font-size:10px;font-weight:800;color:#1e3a8a;">{{offer_text}}</span>
+      <span style="padding:4px 8px;border-radius:8px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+      <span style="font-size:10px;font-weight:800;color:TEXT;">{{offer_text}}</span>
     </div>
   </div>
-  <div style="position:absolute;right:0;top:0;bottom:0;width:34%;overflow:hidden;border-left:1px solid rgba(15,23,42,.14);">
-    <img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;">
-  </div>
+  <div style="position:absolute;right:0;top:0;bottom:0;width:34%;overflow:hidden;border-left:1px solid ACCENT44;"><img data-ad-key="image_hero" src="IMG" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
 </div>
-HTML;
-        }
+HTML
+        };
 
-        if ($type === 'coaching') {
-            return <<<'HTML'
-<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#ccfbf1,#d1fae5);">
-  <div style="position:absolute;left:2%;right:2%;top:8%;bottom:8%;display:grid;grid-template-columns:62% 38%;gap:6px;">
-    <div style="background:#042f2ecc;border:1px solid rgba(20,184,166,.35);border-radius:8px;padding:6px;color:#ecfeff;display:flex;flex-direction:column;justify-content:space-between;">
-      <div>
-        <div style="font-size:10px;font-weight:900;color:#5eead4;text-transform:uppercase;">{{badge}}</div>
-        <div style="margin-top:4px;font-size:20px;line-height:1.02;font-weight:900;">{{headline}}</div>
-      </div>
-      <div style="display:flex;justify-content:space-between;gap:6px;align-items:center;">
-        <span style="padding:4px 7px;border-radius:7px;background:#14b8a6;color:#042f2e;font-size:10px;font-weight:900;">{{cta}}</span>
-        <span style="font-size:10px;color:#99f6e4;font-weight:800;">{{offer_text}}</span>
-      </div>
-      <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:#1d4ed8;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
-    </div>
-    <div style="border-radius:8px;overflow:hidden;border:1px solid rgba(15,23,42,.14);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1519452575417-564c1401ecc0?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
-  </div>
-</div>
-HTML;
-        }
-
-        if ($type === 'opening') {
-            return <<<'HTML'
-<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#fff7ed,#ffedd5);">
-  <div style="position:absolute;left:0;top:0;bottom:0;width:60%;padding:5% 5%;display:flex;flex-direction:column;justify-content:space-between;">
-    <div>
-      <span style="display:inline-flex;padding:4px 8px;border-radius:999px;background:#c2410c;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
-      <div style="margin-top:6px;font-size:21px;line-height:1.02;font-weight:900;color:#7c2d12;">{{headline}}</div>
-      <div style="margin-top:4px;font-size:10px;font-weight:700;color:#9a3412;">{{date_text}}</div>
-    </div>
-    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#ea580c;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
-  </div>
-  <div style="position:absolute;right:2%;top:8%;bottom:8%;width:36%;border-radius:10px;overflow:hidden;border:1px solid rgba(124,45,18,.2);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
-</div>
-HTML;
-        }
-
-        if ($type === 'sale') {
-            return <<<'HTML'
-<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#fee2e2,#fecaca);">
-  <div style="position:absolute;left:3%;top:10%;bottom:10%;width:62%;display:flex;flex-direction:column;justify-content:space-between;">
-    <div>
-      <span style="display:inline-flex;padding:4px 8px;border-radius:6px;background:#b91c1c;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
-      <div style="margin-top:5px;font-size:20px;line-height:1.02;font-weight:900;color:#7f1d1d;">{{headline}}</div>
-      <div style="margin-top:4px;font-size:10px;color:#991b1b;font-weight:700;">{{offer_text}}</div>
-    </div>
-    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#dc2626;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
-  </div>
-  <div style="position:absolute;right:3%;top:12%;bottom:12%;width:32%;border-radius:999px;overflow:hidden;border:2px solid rgba(255,255,255,.8);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
-</div>
-HTML;
-        }
-
-        return <<<'HTML'
-<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#e0e7ff,#c7d2fe);">
-  <div style="position:absolute;left:4%;top:10%;bottom:10%;width:60%;display:flex;flex-direction:column;justify-content:space-between;">
-    <div>
-      <span style="display:inline-flex;padding:4px 8px;border-radius:999px;background:#4338ca;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
-      <div style="margin-top:6px;font-size:20px;line-height:1.03;font-weight:900;color:#312e81;">{{headline}}</div>
-      <div style="margin-top:4px;font-size:10px;color:#3730a3;font-weight:700;">{{location_text}}</div>
-    </div>
-    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#312e81;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
-  </div>
-  <div style="position:absolute;right:3%;top:10%;bottom:10%;width:34%;border-radius:10px;overflow:hidden;border:1px solid rgba(49,46,129,.25);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
-</div>
-HTML;
+        return str_replace(
+            ['BG', 'ACCENT44', 'ACCENT', 'TEXT', 'IMG'],
+            [$bg, $accent.'44', $accent, $text, $image],
+            $html
+        );
     }
 
     private function compactVerticalLayout(string $templateName): string
     {
-        $type = $this->compactType($templateName);
-        $bg = $type === 'sale' ? 'linear-gradient(160deg,#fee2e2,#fecaca)' : ($type === 'opening' ? 'linear-gradient(160deg,#fff7ed,#ffedd5)' : 'linear-gradient(160deg,#f0f9ff,#e2e8f0)');
-        $accent = $type === 'sale' ? '#b91c1c' : ($type === 'opening' ? '#c2410c' : '#1d4ed8');
-
+        $preset = $this->compactPreset($templateName);
         $html = <<<'HTML'
-<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:BG_REPLACE;">
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:BG;">
   <div style="position:absolute;left:6%;right:6%;top:4%;bottom:4%;display:grid;grid-template-rows:44% 56%;gap:6px;">
-    <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(30,41,59,.14);">
-      <img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;">
+    <div style="border-radius:10px;overflow:hidden;border:1px solid ACCENT44;">
+      <img data-ad-key="image_hero" src="IMG" alt="" style="width:100%;height:100%;object-fit:cover;">
     </div>
-    <div style="background:#ffffffd6;border:1px solid rgba(30,41,59,.12);border-radius:10px;padding:8px;display:flex;flex-direction:column;justify-content:space-between;">
+    <div style="background:#ffffffd6;border:1px solid ACCENT44;border-radius:10px;padding:8px;display:flex;flex-direction:column;justify-content:space-between;">
       <div>
-        <div style="font-size:10px;font-weight:900;color:ACCENT_REPLACE;text-transform:uppercase;">{{badge}}</div>
-        <div style="margin-top:4px;font-size:18px;line-height:1.02;font-weight:900;color:#0f172a;">{{headline}}</div>
-        <div style="margin-top:3px;font-size:11px;line-height:1.3;font-weight:600;color:#334155;">{{subheadline}}</div>
+        <div style="font-size:10px;font-weight:900;color:ACCENT;text-transform:uppercase;">{{badge}}</div>
+        <div style="margin-top:4px;font-size:18px;line-height:1.02;font-weight:900;color:TEXT;">{{headline}}</div>
+        <div style="margin-top:3px;font-size:11px;line-height:1.3;font-weight:600;color:TEXT;">{{subheadline}}</div>
       </div>
-      <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:ACCENT_REPLACE;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+      <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
     </div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#dc2626;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
   </div>
 </div>
 HTML;
-        $html = str_replace('BG_REPLACE', $bg, $html);
-        return str_replace('ACCENT_REPLACE', $accent, $html);
+
+        return str_replace(
+            ['BG', 'ACCENT44', 'ACCENT', 'TEXT', 'IMG'],
+            [(string) $preset['bg'], ((string) $preset['accent']).'44', (string) $preset['accent'], (string) $preset['text'], (string) $preset['image']],
+            $html
+        );
     }
 
     private function compactSquareLayout(string $templateName): string
     {
-        $type = $this->compactType($templateName);
-        $accent = $type === 'sale' ? '#b91c1c' : ($type === 'opening' ? '#c2410c' : '#1e3a8a');
-
+        $preset = $this->compactPreset($templateName);
         $html = <<<'HTML'
-<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:12px;background:linear-gradient(145deg,#eff6ff,#f8fafc);">
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:12px;background:BG;">
   <div style="position:absolute;left:6%;right:6%;top:6%;bottom:6%;display:grid;grid-template-rows:1fr auto;gap:8px;">
-    <div style="border-radius:12px;overflow:hidden;border:1px solid rgba(30,58,138,.2);">
-      <img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;">
+    <div style="border-radius:12px;overflow:hidden;border:1px solid ACCENT44;">
+      <img data-ad-key="image_hero" src="IMG" alt="" style="width:100%;height:100%;object-fit:cover;">
     </div>
-    <div style="background:#fff;border:1px solid rgba(30,58,138,.2);border-radius:10px;padding:8px;">
+    <div style="background:#fff;border:1px solid ACCENT44;border-radius:10px;padding:8px;">
       <div style="display:flex;justify-content:space-between;gap:6px;align-items:center;">
-        <span style="font-size:10px;font-weight:900;color:ACCENT_REPLACE;">{{badge}}</span>
-        <span style="font-size:10px;font-weight:800;color:#334155;">{{offer_text}}</span>
+        <span style="font-size:10px;font-weight:900;color:ACCENT;">{{badge}}</span>
+        <span style="font-size:10px;font-weight:800;color:TEXT;">{{offer_text}}</span>
       </div>
-      <div style="margin-top:4px;font-size:18px;line-height:1.03;font-weight:900;color:#0f172a;">{{headline}}</div>
-      <div style="margin-top:4px;font-size:11px;font-weight:600;color:#334155;">{{subheadline}}</div>
+      <div style="margin-top:4px;font-size:18px;line-height:1.03;font-weight:900;color:TEXT;">{{headline}}</div>
+      <div style="margin-top:4px;font-size:11px;font-weight:600;color:TEXT;">{{subheadline}}</div>
     </div>
   </div>
 </div>
 HTML;
-        return str_replace('ACCENT_REPLACE', $accent, $html);
+
+        return str_replace(
+            ['BG', 'ACCENT44', 'ACCENT', 'TEXT', 'IMG'],
+            [(string) $preset['bg'], ((string) $preset['accent']).'44', (string) $preset['accent'], (string) $preset['text'], (string) $preset['image']],
+            $html
+        );
     }
 
-    private function compactType(string $templateName): string
+    /**
+     * @return array{bg:string,accent:string,text:string,image:string,variant:int}
+     */
+    private function compactPreset(string $templateName): array
     {
-        $name = mb_strtolower($templateName);
+        $map = [
+            'School Admissions Open 2026' => ['bg' => 'linear-gradient(120deg,#e0f2fe,#dbeafe)', 'accent' => '#1d4ed8', 'text' => '#0f172a', 'image' => 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1000&q=80', 'variant' => 1],
+            'College Admission Notice' => ['bg' => 'linear-gradient(120deg,#eef2ff,#dbeafe)', 'accent' => '#3730a3', 'text' => '#1e1b4b', 'image' => 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80', 'variant' => 2],
+            'University Admissions 2026' => ['bg' => 'linear-gradient(120deg,#f3e8ff,#ede9fe)', 'accent' => '#7c3aed', 'text' => '#3b0764', 'image' => 'https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=1000&q=80', 'variant' => 3],
+            'Coaching Class Enrollment' => ['bg' => 'linear-gradient(120deg,#ccfbf1,#d1fae5)', 'accent' => '#0f766e', 'text' => '#042f2e', 'image' => 'https://images.unsplash.com/photo-1519452575417-564c1401ecc0?auto=format&fit=crop&w=1000&q=80', 'variant' => 2],
+            'Hotel Grand Opening' => ['bg' => 'linear-gradient(120deg,#fff7ed,#ffedd5)', 'accent' => '#c2410c', 'text' => '#7c2d12', 'image' => 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1000&q=80', 'variant' => 4],
+            'New Shop Opening' => ['bg' => 'linear-gradient(120deg,#fffbeb,#fef3c7)', 'accent' => '#a16207', 'text' => '#713f12', 'image' => 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=80', 'variant' => 1],
+            'Cafe Opening Launch' => ['bg' => 'linear-gradient(120deg,#fff1f2,#ffe4e6)', 'accent' => '#be123c', 'text' => '#881337', 'image' => 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1000&q=80', 'variant' => 3],
+            'Salon Opening Special' => ['bg' => 'linear-gradient(120deg,#fdf4ff,#fae8ff)', 'accent' => '#a21caf', 'text' => '#701a75', 'image' => 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1000&q=80', 'variant' => 4],
+            'Shop Mega Sales Offer' => ['bg' => 'linear-gradient(120deg,#fee2e2,#fecaca)', 'accent' => '#b91c1c', 'text' => '#7f1d1d', 'image' => 'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1000&q=80', 'variant' => 3],
+            'Products For Sale Campaign' => ['bg' => 'linear-gradient(120deg,#ecfeff,#cffafe)', 'accent' => '#0e7490', 'text' => '#164e63', 'image' => 'https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=1000&q=80', 'variant' => 1],
+            'Properties For Sale Showcase' => ['bg' => 'linear-gradient(120deg,#eef2ff,#e0e7ff)', 'accent' => '#4338ca', 'text' => '#312e81', 'image' => 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1000&q=80', 'variant' => 2],
+            'Products For Rent Promotion' => ['bg' => 'linear-gradient(120deg,#f1f5f9,#e2e8f0)', 'accent' => '#334155', 'text' => '#0f172a', 'image' => 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1000&q=80', 'variant' => 4],
+        ];
 
-        if (str_contains($name, 'admission') || str_contains($name, 'school') || str_contains($name, 'college') || str_contains($name, 'university')) {
-            return 'admissions';
-        }
-        if (str_contains($name, 'coaching')) {
-            return 'coaching';
-        }
-        if (str_contains($name, 'opening') || str_contains($name, 'cafe') || str_contains($name, 'hotel') || str_contains($name, 'salon')) {
-            return 'opening';
-        }
-        if (str_contains($name, 'sale') || str_contains($name, 'offer')) {
-            return 'sale';
-        }
-
-        return 'property';
+        return $map[$templateName] ?? ['bg' => 'linear-gradient(120deg,#e0f2fe,#dbeafe)', 'accent' => '#1d4ed8', 'text' => '#0f172a', 'image' => 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80', 'variant' => 1];
     }
 
     private function layoutRibbonAdmissions(): string
@@ -345,6 +337,16 @@ HTML;
       <span style="font-size:11px;font-weight:700;color:#075985;">{{phone}}</span>
     </div>
   </div>
+</div>
+HTML;
+        $html = str_replace('BG_REPLACE', $bg, $html);
+        return str_replace('ACCENT_REPLACE', $accent, $html);
+    }
+
+    private function compactSquareLayout(string $templateName): string
+    {
+        $type = $this->compactType($templateName);
+        $accent = $type === 'sale' ? '#b91c1c' : ($type === 'opening' ? '#c2410c' : '#1e3a8a');
 
   <div style="position:absolute;right:4%;top:10%;bottom:10%;width:34%;display:grid;grid-template-rows:1fr 1fr;gap:8px;">
     <div style="border-radius:16px;overflow:hidden;border:3px solid rgba(255,255,255,.8);box-shadow:0 14px 24px rgba(2,132,199,.25);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
@@ -355,6 +357,7 @@ HTML;
   </div>
 </div>
 HTML;
+        return str_replace('ACCENT_REPLACE', $accent, $html);
     }
 
     private function layoutSplitCollege(): string
