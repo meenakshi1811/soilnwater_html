@@ -126,7 +126,7 @@ class AdTemplateSeeder extends Seeder
 
     private function layoutRibbonAdmissions(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Poppins,Inter,sans-serif;overflow:hidden;border-radius:14px;background:linear-gradient(120deg,#dbeafe,#e0f2fe);">
   <div style="position:absolute;left:-10%;top:-25%;width:60%;height:90%;background:rgba(2,132,199,.18);transform:rotate(18deg);"></div>
   <div style="position:absolute;right:-18%;bottom:-30%;width:58%;height:95%;background:rgba(30,64,175,.16);transform:rotate(-16deg);"></div>
@@ -160,7 +160,7 @@ HTML;
 
     private function layoutSplitCollege(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Nunito Sans,Inter,sans-serif;overflow:hidden;border-radius:14px;background:#f8fafc;">
   <div style="position:absolute;left:0;top:0;bottom:0;width:48%;background:linear-gradient(160deg,#1d4ed8,#2563eb 60%,#60a5fa);"></div>
   <div style="position:absolute;right:0;top:0;bottom:0;width:52%;background:linear-gradient(180deg,#eff6ff,#dbeafe);"></div>
@@ -190,7 +190,7 @@ HTML;
 
     private function layoutEditorialUniversity(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:'DM Serif Display',Georgia,serif;overflow:hidden;border-radius:14px;background:linear-gradient(145deg,#ede9fe,#faf5ff);">
   <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,rgba(109,40,217,.08) 0 1px,transparent 1px 24px);"></div>
 
@@ -224,7 +224,7 @@ HTML;
 
     private function layoutBoardCoaching(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:#ccfbf1;">
   <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,148,136,.12),rgba(20,184,166,.24));"></div>
   <div style="position:absolute;left:5%;right:5%;top:12%;bottom:12%;background:#042f2e;border-radius:12px;border:4px solid #115e59;box-shadow:inset 0 0 0 2px rgba(255,255,255,.08),0 14px 24px rgba(6,78,59,.26);padding:12px;display:grid;grid-template-columns:1.2fr .8fr;gap:10px;color:#ecfeff;">
@@ -253,7 +253,7 @@ HTML;
 
     private function layoutRestaurantLaunch(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Montserrat,Inter,sans-serif;overflow:hidden;border-radius:14px;background:#1c1917;">
   <div style="position:absolute;inset:0;background:linear-gradient(120deg,rgba(194,65,12,.92),rgba(28,25,23,.88) 62%);"></div>
   <div style="position:absolute;right:-10%;top:-20%;width:45%;height:60%;border-radius:50%;background:rgba(251,146,60,.18);"></div>
@@ -291,7 +291,7 @@ HTML;
 
     private function layoutRetailLaunch(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:linear-gradient(135deg,#fefce8,#fff7ed 45%,#fef3c7);">
   <div style="position:absolute;inset:0;opacity:.4;background-image:linear-gradient(90deg,rgba(161,98,7,.16) 1px,transparent 1px),linear-gradient(180deg,rgba(161,98,7,.16) 1px,transparent 1px);background-size:18px 18px;"></div>
   <div style="position:absolute;left:5%;right:5%;top:10%;bottom:10%;display:grid;grid-template-columns:.95fr 1.05fr;gap:10px;">
@@ -325,7 +325,7 @@ HTML;
 
     private function layoutCeremonyInvite(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:'Playfair Display',Georgia,serif;overflow:hidden;border-radius:14px;background:radial-gradient(circle at top,#fdf4ff,#fae8ff 55%,#f3e8ff);">
   <div style="position:absolute;left:3%;right:3%;top:8%;bottom:8%;border:2px solid rgba(162,28,175,.32);border-radius:16px;padding:10px;background:rgba(255,255,255,.55);">
     <div style="position:absolute;left:10px;right:10px;top:10px;bottom:10px;border:1px dashed rgba(162,28,175,.4);border-radius:12px;"></div>
@@ -356,7 +356,7 @@ HTML;
 
     private function layoutMegaSaleBurst(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:#fef2f2;">
   <div style="position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(239,68,68,.32),transparent 36%),radial-gradient(circle at 80% 70%,rgba(220,38,38,.28),transparent 40%),linear-gradient(135deg,#fff1f2,#fee2e2);"></div>
   <div style="position:absolute;left:4%;right:4%;top:10%;bottom:10%;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -391,7 +391,7 @@ HTML;
 
     private function layoutFurnitureMinimal(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:#f8fafc;">
   <div style="position:absolute;inset:0;background:linear-gradient(180deg,#f8fafc,#e2e8f0 55%,#f8fafc);"></div>
   <div style="position:absolute;left:0;bottom:0;width:100%;height:34%;background:linear-gradient(90deg,#334155,#475569);"></div>
@@ -427,7 +427,7 @@ HTML;
 
     private function layoutElectronicsNeon(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:#020617;">
   <div style="position:absolute;inset:0;background:radial-gradient(circle at 15% 20%,rgba(6,182,212,.36),transparent 32%),radial-gradient(circle at 78% 25%,rgba(168,85,247,.3),transparent 32%),radial-gradient(circle at 70% 85%,rgba(34,211,238,.22),transparent 34%);"></div>
   <div style="position:absolute;inset:0;opacity:.16;background-image:linear-gradient(90deg,rgba(148,163,184,.4) 1px,transparent 1px),linear-gradient(180deg,rgba(148,163,184,.4) 1px,transparent 1px);background-size:24px 24px;"></div>
@@ -465,7 +465,7 @@ HTML;
 
     private function layoutHealthClinic(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:linear-gradient(140deg,#ecfdf5,#dcfce7);">
   <div style="position:absolute;left:0;top:0;width:46%;height:100%;background:linear-gradient(170deg,rgba(22,101,52,.16),rgba(34,197,94,.12));clip-path:polygon(0 0,100% 0,78% 100%,0 100%);"></div>
 
@@ -494,13 +494,15 @@ HTML;
       </div>
     </div>
   </div>
+
+  <div style="position:absolute;right:7%;top:8%;padding:5px 10px;border-radius:999px;background:{$surface};border:1px solid {$accent}3a;color:{$accent};font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;">{$badge}</div>
 </div>
 HTML;
     }
 
     private function layoutRealEstate(): string
     {
-        return <<<HTML
+        return <<<'HTML'
 <div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:linear-gradient(130deg,#eef2ff,#e0e7ff 40%,#f8fafc);">
   <div style="position:absolute;left:0;right:0;bottom:0;height:36%;background:linear-gradient(90deg,#1e1b4b,#3730a3);"></div>
 
@@ -531,8 +533,6 @@ HTML;
       </div>
     </div>
   </div>
-
-  <div style="position:absolute;right:7%;top:8%;padding:5px 10px;border-radius:999px;background:{$surface};border:1px solid {$accent}3a;color:{$accent};font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;">{$badge}</div>
 </div>
 HTML;
     }
