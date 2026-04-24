@@ -14,6 +14,8 @@ class AdTemplateSeeder extends Seeder
 
         foreach (array_keys(AdSizes::all()) as $sizeType) {
             foreach ($this->templateDefinitions() as $template) {
+                $layoutHtml = $this->layoutForSize((string) $template['layout_html'], $sizeType);
+
                 AdTemplate::query()->updateOrCreate(
                     [
                         'size_type' => $sizeType,
@@ -22,7 +24,7 @@ class AdTemplateSeeder extends Seeder
                     [
                         'description' => $template['description'],
                         'preview_image' => null,
-                        'layout_html' => $template['layout_html'],
+                        'layout_html' => $layoutHtml,
                         'schema_json' => $schema,
                         'is_active' => true,
                         'created_by' => null,
@@ -122,6 +124,98 @@ class AdTemplateSeeder extends Seeder
                 ['key' => 'image_2', 'label' => 'Supporting Image 2', 'type' => 'image', 'required' => false],
             ],
         ];
+    }
+
+    private function layoutForSize(string $defaultLayout, string $sizeType): string
+    {
+        $size = AdSizes::all()[$sizeType] ?? null;
+        if (!$size) {
+            return $defaultLayout;
+        }
+
+        $w = (int) ($size['w'] ?? 0);
+        $h = (int) ($size['h'] ?? 0);
+        $area = $w * $h;
+        $ratio = $h > 0 ? ($w / $h) : 1.0;
+
+        // For very small placements, use a strict compact layout:
+        // fewer text blocks and a single image so content doesn't overflow.
+        if ($w <= 320 || $h <= 180 || $area <= 110000) {
+            if ($ratio >= 1.5) {
+                return $this->compactHorizontalLayout();
+            }
+            if ($ratio <= 0.75) {
+                return $this->compactVerticalLayout();
+            }
+
+            return $this->compactSquareLayout();
+        }
+
+        return $defaultLayout;
+    }
+
+    private function compactHorizontalLayout(): string
+    {
+        return <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(120deg,#e0f2fe,#dbeafe);">
+  <div style="position:absolute;left:0;top:0;bottom:0;width:66%;padding:4% 5%;display:flex;flex-direction:column;justify-content:space-between;">
+    <div>
+      <span style="display:inline-flex;padding:4px 8px;border-radius:999px;background:#1d4ed8;color:#fff;font-size:10px;font-weight:900;line-height:1;">{{badge}}</span>
+      <div style="margin-top:6px;font-size:22px;line-height:1.02;font-weight:900;color:#0f172a;">{{headline}}</div>
+      <div style="margin-top:4px;font-size:11px;line-height:1.3;font-weight:600;color:#334155;">{{subheadline}}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <span style="padding:4px 8px;border-radius:8px;background:#1e40af;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+      <span style="font-size:10px;font-weight:800;color:#1e3a8a;">{{offer_text}}</span>
+    </div>
+  </div>
+  <div style="position:absolute;right:0;top:0;bottom:0;width:34%;overflow:hidden;border-left:1px solid rgba(15,23,42,.14);">
+    <img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;">
+  </div>
+</div>
+HTML;
+    }
+
+    private function compactVerticalLayout(): string
+    {
+        return <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:10px;background:linear-gradient(160deg,#f0f9ff,#e2e8f0);">
+  <div style="position:absolute;left:6%;right:6%;top:4%;bottom:4%;display:grid;grid-template-rows:44% 56%;gap:6px;">
+    <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(30,41,59,.14);">
+      <img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;">
+    </div>
+    <div style="background:#ffffffd6;border:1px solid rgba(30,41,59,.12);border-radius:10px;padding:8px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="font-size:10px;font-weight:900;color:#1d4ed8;text-transform:uppercase;">{{badge}}</div>
+        <div style="margin-top:4px;font-size:18px;line-height:1.02;font-weight:900;color:#0f172a;">{{headline}}</div>
+        <div style="margin-top:3px;font-size:11px;line-height:1.3;font-weight:600;color:#334155;">{{subheadline}}</div>
+      </div>
+      <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:#1d4ed8;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function compactSquareLayout(): string
+    {
+        return <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:12px;background:linear-gradient(145deg,#eff6ff,#f8fafc);">
+  <div style="position:absolute;left:6%;right:6%;top:6%;bottom:6%;display:grid;grid-template-rows:1fr auto;gap:8px;">
+    <div style="border-radius:12px;overflow:hidden;border:1px solid rgba(30,58,138,.2);">
+      <img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;">
+    </div>
+    <div style="background:#fff;border:1px solid rgba(30,58,138,.2);border-radius:10px;padding:8px;">
+      <div style="display:flex;justify-content:space-between;gap:6px;align-items:center;">
+        <span style="font-size:10px;font-weight:900;color:#1e3a8a;">{{badge}}</span>
+        <span style="font-size:10px;font-weight:800;color:#334155;">{{offer_text}}</span>
+      </div>
+      <div style="margin-top:4px;font-size:18px;line-height:1.03;font-weight:900;color:#0f172a;">{{headline}}</div>
+      <div style="margin-top:4px;font-size:11px;font-weight:600;color:#334155;">{{subheadline}}</div>
+    </div>
+  </div>
+</div>
+HTML;
     }
 
     private function layoutRibbonAdmissions(): string
