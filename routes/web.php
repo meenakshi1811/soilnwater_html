@@ -77,7 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('post-ad');
     });
 
-    Route::prefix('dashboard/ads')->name('ads.')->middleware('user')->group(function () {
+    Route::prefix('dashboard/ads')->name('ads.')->group(function () {
         Route::get('/', [UserAdController::class, 'index'])->name('index');
         Route::get('/data', [UserAdController::class, 'data'])->name('data');
         Route::get('/categories/{category}/subcategories', [UserAdController::class, 'subcategories'])->name('categories.subcategories');

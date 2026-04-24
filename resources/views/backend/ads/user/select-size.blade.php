@@ -17,14 +17,22 @@
             @foreach($sizes as $sizeType => $size)
                 <div class="col-12 col-md-6 col-xl-4">
                     <a href="{{ route('ads.create.template', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none">
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <div class="fw-semibold text-dark">{{ $size['name'] }}</div>
+                            @if(($size['admin_only'] ?? false) === true)
+                                <span class="badge text-bg-warning">Admin Placement</span>
+                            @endif
+                        </div>
                         <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }};">
                             <div class="ads-size-shape-inner">
                                 <span class="ads-size-dim">{{ $size['w'] }}×{{ $size['h'] }}</span>
                             </div>
                         </div>
                         <div class="mt-3">
-                            <div class="fw-semibold text-dark">{{ $size['name'] }}</div>
                             <div class="text-secondary small">Aspect ratio {{ $size['ratio'] }}</div>
+                            @if(($size['admin_only'] ?? false) === true)
+                                <div class="text-secondary small mt-1">Use this size to post a homepage-placement ad request to admin.</div>
+                            @endif
                         </div>
                     </a>
                 </div>
@@ -37,4 +45,3 @@
     </div>
 </div>
 @endsection
-

@@ -284,7 +284,12 @@
             horizontal: { ratio: '3 / 2', w: 900, h: 600 },
             square_large: { ratio: '1 / 1', w: 900, h: 900 },
             banner: { ratio: '4 / 1', w: 1200, h: 300 },
-            full_page: { ratio: '3 / 4', w: 900, h: 1200 }
+            full_page: { ratio: '3 / 4', w: 900, h: 1200 },
+            home_top_slider: { ratio: '4 / 1', w: 1200, h: 300 },
+            home_side_slider: { ratio: '5 / 7', w: 500, h: 700 },
+            home_recent_card: { ratio: '4 / 3', w: 800, h: 600 },
+            home_offer_poster: { ratio: '64 / 90', w: 768, h: 1080 },
+            home_wide_slider: { ratio: '16 / 5', w: 1600, h: 500 }
         };
 
         function escapeHtml(str) {
