@@ -160,6 +160,109 @@ class AdTemplateSeeder extends Seeder
 
     private function compactHorizontalLayout(string $templateName): string
     {
+        $exact = match ($templateName) {
+            'School Admissions Open 2026' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(110deg,#dbeafe,#e0f2fe);">
+  <div style="position:absolute;left:4%;top:10%;bottom:10%;width:58%;display:flex;flex-direction:column;justify-content:space-between;">
+    <div><span style="padding:3px 7px;border-radius:999px;background:#1d4ed8;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span><div style="margin-top:4px;font-size:20px;font-weight:900;line-height:1.02;color:#0f172a;">{{headline}}</div><div style="margin-top:3px;font-size:10px;color:#334155;font-weight:700;">{{subheadline}}</div></div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#1d4ed8;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+  </div>
+  <div style="position:absolute;right:2%;top:10%;bottom:10%;width:34%;border-radius:12px;overflow:hidden;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div>
+</div>
+HTML,
+            'College Admission Notice' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:#e0e7ff;">
+  <div style="position:absolute;left:2%;top:8%;bottom:8%;width:66%;background:#ffffffd9;border:1px solid #6366f166;border-radius:10px;padding:7px;display:flex;flex-direction:column;justify-content:space-between;">
+    <div><div style="font-size:10px;font-weight:900;color:#3730a3;">{{badge}}</div><div style="margin-top:4px;font-size:20px;line-height:1.02;font-weight:900;color:#1e1b4b;">{{headline}}</div></div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:7px;background:#4338ca;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+  </div>
+  <div style="position:absolute;right:2%;top:10%;bottom:10%;width:30%;clip-path:polygon(8% 0,100% 0,100% 100%,0 100%);overflow:hidden;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div>
+</div>
+HTML,
+            'University Admissions 2026' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(115deg,#f3e8ff,#ede9fe);">
+  <div style="position:absolute;left:4%;right:4%;top:10%;bottom:10%;display:grid;grid-template-columns:63% 37%;gap:6px;">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;"><div><span style="padding:3px 8px;border-radius:999px;background:#7c3aed;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span><div style="margin-top:5px;font-size:20px;font-weight:900;line-height:1.02;color:#3b0764;">{{headline}}</div><div style="margin-top:3px;font-size:10px;font-weight:800;color:#6d28d9;">{{offer_text}}</div></div><span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#4c1d95;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span></div>
+    <div style="border-radius:0 12px 12px 0;overflow:hidden;border:1px solid #7c3aed55;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div>
+  </div>
+</div>
+HTML,
+            'Coaching Class Enrollment' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(120deg,#ccfbf1,#d1fae5);">
+  <div style="position:absolute;left:3%;top:10%;bottom:10%;width:57%;background:#042f2ed9;border:1px solid #14b8a655;border-radius:8px;padding:6px;color:#ecfeff;display:flex;flex-direction:column;justify-content:space-between;">
+    <div><div style="font-size:10px;font-weight:900;color:#5eead4;">{{badge}}</div><div style="margin-top:4px;font-size:20px;line-height:1.02;font-weight:900;">{{headline}}</div></div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:7px;background:#14b8a6;color:#042f2e;font-size:10px;font-weight:900;">{{cta}}</span>
+  </div>
+  <div style="position:absolute;right:3%;top:12%;bottom:12%;width:34%;border-radius:999px;overflow:hidden;border:2px dashed #0f766e88;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1519452575417-564c1401ecc0?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div>
+</div>
+HTML,
+            'Hotel Grand Opening' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(120deg,#fff7ed,#ffedd5);">
+  <div style="position:absolute;left:0;top:0;bottom:0;width:64%;padding:5% 5%;display:flex;flex-direction:column;justify-content:space-between;">
+    <div><span style="padding:3px 8px;border-radius:999px;background:#c2410c;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span><div style="margin-top:5px;font-size:20px;line-height:1.02;font-weight:900;color:#7c2d12;">{{headline}}</div><div style="margin-top:3px;font-size:10px;color:#9a3412;font-weight:800;">{{date_text}}</div></div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#ea580c;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+  </div>
+  <div style="position:absolute;right:2%;top:10%;bottom:10%;width:32%;border-radius:10px;overflow:hidden;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div>
+</div>
+HTML,
+            'New Shop Opening' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(120deg,#fffbeb,#fef3c7);">
+  <div style="position:absolute;left:4%;right:4%;top:11%;bottom:11%;display:grid;grid-template-columns:62% 38%;gap:6px;">
+    <div><span style="padding:3px 8px;border-radius:8px;background:#a16207;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span><div style="margin-top:4px;font-size:20px;line-height:1.03;font-weight:900;color:#713f12;">{{headline}}</div><div style="margin-top:3px;font-size:10px;font-weight:700;color:#92400e;">{{offer_text}}</div></div>
+    <div style="border-radius:10px 999px 999px 10px;overflow:hidden;border:1px solid #a1620744;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div>
+  </div>
+</div>
+HTML,
+            'Cafe Opening Launch' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(120deg,#fff1f2,#ffe4e6);">
+  <div style="position:absolute;left:3%;top:9%;bottom:9%;width:56%;display:flex;flex-direction:column;justify-content:space-between;">
+    <div><div style="font-size:10px;font-weight:900;color:#be123c;">{{badge}}</div><div style="margin-top:4px;font-size:20px;line-height:1.02;font-weight:900;color:#881337;">{{headline}}</div></div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:7px;background:#be123c;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+  </div>
+  <div style="position:absolute;right:3%;top:9%;bottom:9%;width:38%;display:grid;grid-template-rows:1fr 1fr;gap:4px;"><div style="border-radius:10px;overflow:hidden;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div><div style="border-radius:10px;overflow:hidden;"><img data-ad-key="image_1" src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div></div>
+</div>
+HTML,
+            'Salon Opening Special' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(120deg,#fdf4ff,#fae8ff);">
+  <div style="position:absolute;left:4%;right:4%;top:10%;bottom:10%;display:grid;grid-template-columns:64% 36%;gap:6px;">
+    <div style="background:#ffffffbf;border:1px solid #a21caf55;border-radius:10px;padding:6px;display:flex;flex-direction:column;justify-content:space-between;"><div><div style="font-size:10px;font-weight:900;color:#a21caf;">{{badge}}</div><div style="margin-top:4px;font-size:20px;line-height:1.03;font-weight:900;color:#701a75;">{{headline}}</div></div><span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#a21caf;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span></div>
+    <div style="border-radius:999px;overflow:hidden;border:2px solid #e9d5ff;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div>
+  </div>
+</div>
+HTML,
+            'Shop Mega Sales Offer' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(120deg,#fee2e2,#fecaca);">
+  <div style="position:absolute;left:3%;top:10%;bottom:10%;width:61%;"><span style="padding:3px 8px;border-radius:6px;background:#b91c1c;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span><div style="margin-top:5px;font-size:20px;line-height:1.02;font-weight:900;color:#7f1d1d;">{{headline}}</div><div style="margin-top:3px;font-size:10px;font-weight:800;color:#991b1b;">{{offer_text}}</div></div>
+  <div style="position:absolute;right:3%;top:12%;bottom:12%;width:33%;clip-path:polygon(0 0,100% 8%,92% 100%,0 92%);overflow:hidden;border:1px solid #b91c1c55;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div>
+</div>
+HTML,
+            'Products For Sale Campaign' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(120deg,#ecfeff,#cffafe);">
+  <div style="position:absolute;left:4%;top:10%;bottom:10%;width:58%;display:flex;flex-direction:column;justify-content:space-between;"><div><span style="padding:3px 8px;border-radius:999px;background:#0e7490;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span><div style="margin-top:4px;font-size:20px;font-weight:900;line-height:1.02;color:#164e63;">{{headline}}</div></div><span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#155e75;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span></div>
+  <div style="position:absolute;right:3%;top:9%;bottom:9%;width:36%;display:grid;grid-template-columns:1fr 1fr;gap:4px;"><div style="border-radius:10px;overflow:hidden;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div><div style="border-radius:10px;overflow:hidden;"><img data-ad-key="image_1" src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div></div>
+</div>
+HTML,
+            'Properties For Sale Showcase' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(120deg,#eef2ff,#e0e7ff);">
+  <div style="position:absolute;left:3%;right:3%;top:10%;bottom:10%;display:grid;grid-template-columns:62% 38%;gap:6px;">
+    <div><span style="padding:3px 8px;border-radius:999px;background:#4338ca;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span><div style="margin-top:4px;font-size:20px;line-height:1.02;font-weight:900;color:#312e81;">{{headline}}</div><div style="margin-top:3px;font-size:10px;font-weight:700;color:#4338ca;">{{location_text}}</div></div>
+    <div style="border-radius:12px 12px 0 0;overflow:hidden;border:1px solid #4338ca44;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div>
+  </div>
+</div>
+HTML,
+            'Products For Rent Promotion' => <<<'HTML'
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;border-radius:10px;overflow:hidden;background:linear-gradient(120deg,#f1f5f9,#e2e8f0);">
+  <div style="position:absolute;left:4%;top:10%;bottom:10%;width:55%;background:#ffffffbf;border:1px solid #33415544;border-radius:10px;padding:6px;display:flex;flex-direction:column;justify-content:space-between;"><div><div style="font-size:10px;font-weight:900;color:#334155;">{{badge}}</div><div style="margin-top:4px;font-size:20px;line-height:1.03;font-weight:900;color:#0f172a;">{{headline}}</div></div><span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:7px;background:#334155;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span></div>
+  <div style="position:absolute;right:3%;top:10%;bottom:10%;width:36%;border-radius:10px;overflow:hidden;border:1px dashed #33415566;"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=1000&q=80" style="width:100%;height:100%;object-fit:cover;"></div>
+</div>
+HTML,
+            default => '',
+        };
+
+        if ($exact !== '') {
+            return $exact;
+        }
+
         $preset = $this->compactPreset($templateName);
         $variant = (int) ($preset['variant'] ?? 1);
         $bg = (string) $preset['bg'];
@@ -386,6 +489,7 @@ HTML;
   </div>
 </div>
 HTML;
+        return $html;
     }
 
     private function layoutEditorialUniversity(): string
