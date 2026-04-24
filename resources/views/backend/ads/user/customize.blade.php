@@ -5,6 +5,7 @@
 @php
     $schema = is_array($template->schema_json) ? $template->schema_json : [];
     $fields = is_array($schema['fields'] ?? null) ? $schema['fields'] : [];
+    $sampleDefaults = \App\Support\AdTemplatePreview::sampleFieldsForSchema($fields, (string) $template->name);
     $textFieldKeys = [];
 
     $layoutHtml = (string) ($template->layout_html ?? '');
@@ -188,6 +189,7 @@
                     </div>
                     <script type="application/json" id="adTemplateHtml">@json($template->layout_html)</script>
                     <script type="application/json" id="adTemplateFieldKeys">@json($fields)</script>
+                    <script type="application/json" id="adTemplateSampleDefaults">@json($sampleDefaults)</script>
 
                     <small class="text-secondary d-block mt-2">Tip: Click any text to edit directly in the preview.</small>
                 </div>
@@ -213,8 +215,10 @@
 
         const templateScript = document.getElementById('adTemplateHtml');
         const fieldKeysScript = document.getElementById('adTemplateFieldKeys');
+        const sampleDefaultsScript = document.getElementById('adTemplateSampleDefaults');
         let originalHtml = '';
         let schemaFields = [];
+        let sampleDefaults = {};
         try {
             originalHtml = templateScript ? JSON.parse(templateScript.textContent || '""') : '';
         } catch (e) {
@@ -224,6 +228,11 @@
             schemaFields = fieldKeysScript ? JSON.parse(fieldKeysScript.textContent || '[]') : [];
         } catch (e) {
             schemaFields = [];
+        }
+        try {
+            sampleDefaults = sampleDefaultsScript ? JSON.parse(sampleDefaultsScript.textContent || '{}') : {};
+        } catch (e) {
+            sampleDefaults = {};
         }
 
         const placeholderSrc = '{{ asset('assets/images/ad-sample.png') }}';
@@ -258,16 +267,23 @@
                 return String(field.default);
             }
 
+            if (Object.prototype.hasOwnProperty.call(sampleDefaults, key) && String(sampleDefaults[key]).trim() !== '') {
+                return String(sampleDefaults[key]);
+            }
+
             const map = {
-                headline: 'Your Headline',
-                subheadline: 'Add your message here',
-                cta: 'Book Now',
-                phone: '+1 000 000 0000',
-                website: 'www.example.com',
+                headline: 'Grand Opening Sale',
+                subheadline: 'Modern design for real-world promotions',
+                cta: 'Claim Offer',
+                phone: '+1 234 567 8900',
+                website: 'www.yourbrand.com',
                 badge: '50% OFF',
-                line1: 'Service 1',
-                line2: 'Service 2',
-                line3: 'Service 3',
+                line1: 'Up to 50% discount',
+                line2: 'Limited-time launch deal',
+                line3: 'Offer valid this week',
+                offer_text: 'Flat 30% OFF',
+                date_text: 'Offer ends Sunday',
+                location_text: 'Main branch, Downtown',
             };
 
             if (Object.prototype.hasOwnProperty.call(map, key)) return map[key];
@@ -324,7 +340,8 @@
             preview.querySelectorAll('img[data-ad-key]').forEach((img) => {
                 const key = img.getAttribute('data-ad-key');
                 if (!key) return;
-                const desired = imageState[key] || placeholderSrc;
+                const existing = (img.getAttribute('src') || '').trim();
+                const desired = imageState[key] || existing || placeholderSrc;
                 img.setAttribute('src', desired);
             });
         }
