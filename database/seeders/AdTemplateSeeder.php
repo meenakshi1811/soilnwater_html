@@ -252,6 +252,7 @@ HTML
       </div>
       <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:ACCENT;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
     </div>
+    <span style="display:inline-flex;align-self:flex-start;padding:4px 8px;border-radius:8px;background:#dc2626;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
   </div>
 </div>
 HTML;
@@ -336,6 +337,16 @@ HTML;
       <span style="font-size:11px;font-weight:700;color:#075985;">{{phone}}</span>
     </div>
   </div>
+</div>
+HTML;
+        $html = str_replace('BG_REPLACE', $bg, $html);
+        return str_replace('ACCENT_REPLACE', $accent, $html);
+    }
+
+    private function compactSquareLayout(string $templateName): string
+    {
+        $type = $this->compactType($templateName);
+        $accent = $type === 'sale' ? '#b91c1c' : ($type === 'opening' ? '#c2410c' : '#1e3a8a');
 
   <div style="position:absolute;right:4%;top:10%;bottom:10%;width:34%;display:grid;grid-template-rows:1fr 1fr;gap:8px;">
     <div style="border-radius:16px;overflow:hidden;border:3px solid rgba(255,255,255,.8);box-shadow:0 14px 24px rgba(2,132,199,.25);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1200&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
@@ -346,6 +357,7 @@ HTML;
   </div>
 </div>
 HTML;
+        return str_replace('ACCENT_REPLACE', $accent, $html);
     }
 
     private function layoutSplitCollege(): string
