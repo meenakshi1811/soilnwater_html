@@ -196,6 +196,7 @@ HTML;
         <span style="padding:4px 7px;border-radius:7px;background:#14b8a6;color:#042f2e;font-size:10px;font-weight:900;">{{cta}}</span>
         <span style="font-size:10px;color:#99f6e4;font-weight:800;">{{offer_text}}</span>
       </div>
+      <span style="display:inline-flex;align-self:flex-start;padding:5px 8px;border-radius:8px;background:#1d4ed8;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
     </div>
     <div style="border-radius:8px;overflow:hidden;border:1px solid rgba(15,23,42,.14);"><img data-ad-key="image_hero" src="https://images.unsplash.com/photo-1519452575417-564c1401ecc0?auto=format&fit=crop&w=1000&q=80" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
   </div>
