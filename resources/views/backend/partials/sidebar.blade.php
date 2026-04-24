@@ -76,6 +76,12 @@
                     <span>Ad Submissions</span>
                 </a>
             </li>
+            <li>
+                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-ad"></i>
+                    <span>My Ads</span>
+                </a>
+            </li>
         @endif
 
          @foreach($emsModules as $slug => $label)

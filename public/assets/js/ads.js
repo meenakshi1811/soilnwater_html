@@ -284,7 +284,19 @@
             horizontal: { ratio: '3 / 2', w: 900, h: 600 },
             square_large: { ratio: '1 / 1', w: 900, h: 900 },
             banner: { ratio: '4 / 1', w: 1200, h: 300 },
-            full_page: { ratio: '3 / 4', w: 900, h: 1200 }
+            full_page: { ratio: '3 / 4', w: 900, h: 1200 },
+            attached_ads_side: { ratio: '5 / 7', w: 500, h: 700 },
+            ecommerce_ads_section: { ratio: '4 / 3', w: 800, h: 600 },
+            offer_discount_top_ads: { ratio: '16 / 5', w: 1600, h: 500 },
+            offer_discount_side_ads: { ratio: '5 / 7', w: 500, h: 700 },
+            explore_products_ads: { ratio: '4 / 1', w: 1200, h: 300 },
+            top_vendors_top_ads: { ratio: '4 / 1', w: 1200, h: 300 },
+            top_vendors_side_ads: { ratio: '5 / 7', w: 500, h: 700 },
+            pp_greenwood_side_ads: { ratio: '5 / 7', w: 500, h: 700 },
+            popular_props_side_ads: { ratio: '5 / 7', w: 500, h: 700 },
+            sponsored_placement_ads: { ratio: '16 / 5', w: 1600, h: 500 },
+            builders_side_ads: { ratio: '5 / 7', w: 500, h: 700 },
+            builders_sponsored_below_ads: { ratio: '16 / 5', w: 1600, h: 500 }
         };
 
         function escapeHtml(str) {

@@ -43,7 +43,9 @@
                         <select name="size_type" class="form-select @error('size_type') is-invalid @enderror" {{ $isEdit ? 'disabled' : '' }}>
                             <option value="">— Select —</option>
                             @foreach($sizes as $key => $s)
-                                <option value="{{ $key }}" {{ old('size_type', $template?->size_type) === $key ? 'selected' : '' }}>{{ $s['name'] }} ({{ $s['w'] }}×{{ $s['h'] }})</option>
+                                <option value="{{ $key }}" {{ old('size_type', $template?->size_type) === $key ? 'selected' : '' }}>
+                                    {{ $s['name'] }} ({{ $s['w'] }}×{{ $s['h'] }}){{ ($s['admin_only'] ?? false) ? ' • Admin placement' : '' }}
+                                </option>
                             @endforeach
                         </select>
                         @if($isEdit)
