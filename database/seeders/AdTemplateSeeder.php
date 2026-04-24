@@ -12,92 +12,17 @@ class AdTemplateSeeder extends Seeder
     {
         $schema = $this->schema();
 
-        $templateConfigs = [
-            [
-                'name' => 'School Admissions Open 2026',
-                'description' => 'Clean admissions layout for K-12 school enrollment campaigns.',
-                'theme' => ['bg' => '#e0f2fe', 'surface' => '#ffffff', 'accent' => '#0369a1', 'accent2' => '#0ea5e9', 'text' => '#082f49'],
-                'badge' => 'Admissions Open',
-            ],
-            [
-                'name' => 'College Admission Notice',
-                'description' => 'Professional college admission promotion with eligibility highlights.',
-                'theme' => ['bg' => '#eff6ff', 'surface' => '#ffffff', 'accent' => '#1d4ed8', 'accent2' => '#3b82f6', 'text' => '#172554'],
-                'badge' => 'Apply Now',
-            ],
-            [
-                'name' => 'University Application Drive',
-                'description' => 'Premium university campaign template for online application windows.',
-                'theme' => ['bg' => '#f5f3ff', 'surface' => '#ffffff', 'accent' => '#6d28d9', 'accent2' => '#8b5cf6', 'text' => '#2e1065'],
-                'badge' => '2026 Intake',
-            ],
-            [
-                'name' => 'Coaching Class Enrollment',
-                'description' => 'High-conversion educational coaching ad with faculty and batch details.',
-                'theme' => ['bg' => '#ecfeff', 'surface' => '#ffffff', 'accent' => '#0f766e', 'accent2' => '#14b8a6', 'text' => '#042f2e'],
-                'badge' => 'Limited Seats',
-            ],
-            [
-                'name' => 'Restaurant Grand Opening',
-                'description' => 'Vibrant restaurant launch ad for opening week footfall.',
-                'theme' => ['bg' => '#fff7ed', 'surface' => '#ffffff', 'accent' => '#c2410c', 'accent2' => '#f97316', 'text' => '#431407'],
-                'badge' => 'Opening Week',
-            ],
-            [
-                'name' => 'New Shop or Mall Launch',
-                'description' => 'Retail launch template for stores, mini marts, and shopping malls.',
-                'theme' => ['bg' => '#fefce8', 'surface' => '#ffffff', 'accent' => '#a16207', 'accent2' => '#eab308', 'text' => '#422006'],
-                'badge' => 'New Arrival',
-            ],
-            [
-                'name' => 'Opening Ceremony Invitation',
-                'description' => 'Elegant invitation style for ribbon-cutting and inauguration events.',
-                'theme' => ['bg' => '#fdf4ff', 'surface' => '#ffffff', 'accent' => '#a21caf', 'accent2' => '#d946ef', 'text' => '#4a044e'],
-                'badge' => 'You Are Invited',
-            ],
-            [
-                'name' => 'Mega Sales Offer Campaign',
-                'description' => 'Bold commercial sale template for festive and seasonal discounts.',
-                'theme' => ['bg' => '#fef2f2', 'surface' => '#ffffff', 'accent' => '#b91c1c', 'accent2' => '#ef4444', 'text' => '#450a0a'],
-                'badge' => 'Up To 70% OFF',
-            ],
-            [
-                'name' => 'Furniture Sale Festival',
-                'description' => 'Furniture showroom sale ad for sofas, beds, and office interiors.',
-                'theme' => ['bg' => '#f8fafc', 'surface' => '#ffffff', 'accent' => '#334155', 'accent2' => '#64748b', 'text' => '#0f172a'],
-                'badge' => 'Furniture Sale',
-            ],
-            [
-                'name' => 'Electronics Clearance Sale',
-                'description' => 'Modern gadget retail template for clearance and exchange offers.',
-                'theme' => ['bg' => '#ecfeff', 'surface' => '#ffffff', 'accent' => '#155e75', 'accent2' => '#06b6d4', 'text' => '#083344'],
-                'badge' => 'Clearance',
-            ],
-            [
-                'name' => 'Health Clinic Opening',
-                'description' => 'Trust-focused healthcare launch ad for clinics and diagnostic centers.',
-                'theme' => ['bg' => '#ecfdf5', 'surface' => '#ffffff', 'accent' => '#166534', 'accent2' => '#22c55e', 'text' => '#052e16'],
-                'badge' => 'Now Open',
-            ],
-            [
-                'name' => 'Real Estate Open House',
-                'description' => 'Professional property promotion for projects and open house events.',
-                'theme' => ['bg' => '#eef2ff', 'surface' => '#ffffff', 'accent' => '#3730a3', 'accent2' => '#6366f1', 'text' => '#1e1b4b'],
-                'badge' => 'Book a Visit',
-            ],
-        ];
-
         foreach (array_keys(AdSizes::all()) as $sizeType) {
-            foreach ($templateConfigs as $config) {
-                AdTemplate::query()->firstOrCreate(
+            foreach ($this->templateDefinitions() as $template) {
+                AdTemplate::query()->updateOrCreate(
                     [
                         'size_type' => $sizeType,
-                        'name' => $config['name'],
+                        'name' => $template['name'],
                     ],
                     [
-                        'description' => $config['description'],
+                        'description' => $template['description'],
                         'preview_image' => null,
-                        'layout_html' => $this->buildProfessionalLayout($config['theme'], $config['badge']),
+                        'layout_html' => $template['layout_html'],
                         'schema_json' => $schema,
                         'is_active' => true,
                         'created_by' => null,
@@ -105,6 +30,75 @@ class AdTemplateSeeder extends Seeder
                 );
             }
         }
+    }
+
+    /**
+     * @return array<int, array{name:string, description:string, layout_html:string}>
+     */
+    private function templateDefinitions(): array
+    {
+        return [
+            [
+                'name' => 'School Admissions Open 2026',
+                'description' => 'Modern ribbon layout for school admissions and K-12 enrollment campaigns.',
+                'layout_html' => $this->layoutRibbonAdmissions(),
+            ],
+            [
+                'name' => 'College Admission Notice',
+                'description' => 'Split card style for college notices with timeline and application CTA.',
+                'layout_html' => $this->layoutSplitCollege(),
+            ],
+            [
+                'name' => 'University Application Drive',
+                'description' => 'Editorial poster style for university intake campaigns.',
+                'layout_html' => $this->layoutEditorialUniversity(),
+            ],
+            [
+                'name' => 'Coaching Class Enrollment',
+                'description' => 'Classroom board-inspired design for coaching admissions.',
+                'layout_html' => $this->layoutBoardCoaching(),
+            ],
+            [
+                'name' => 'Restaurant Grand Opening',
+                'description' => 'Restaurant-style dark hero banner with food photo and launch highlights.',
+                'layout_html' => $this->layoutRestaurantLaunch(),
+            ],
+            [
+                'name' => 'New Shop or Mall Launch',
+                'description' => 'Bright retail launch template with geometric product windows.',
+                'layout_html' => $this->layoutRetailLaunch(),
+            ],
+            [
+                'name' => 'Opening Ceremony Invitation',
+                'description' => 'Elegant invitation with premium framing and ceremony detail panel.',
+                'layout_html' => $this->layoutCeremonyInvite(),
+            ],
+            [
+                'name' => 'Mega Sales Offer Campaign',
+                'description' => 'Energetic burst layout with discount-first visual hierarchy.',
+                'layout_html' => $this->layoutMegaSaleBurst(),
+            ],
+            [
+                'name' => 'Furniture Sale Festival',
+                'description' => 'Minimal architecture-inspired furniture sale design.',
+                'layout_html' => $this->layoutFurnitureMinimal(),
+            ],
+            [
+                'name' => 'Electronics Clearance Sale',
+                'description' => 'Futuristic neon-card style for electronics deals and exchange offers.',
+                'layout_html' => $this->layoutElectronicsNeon(),
+            ],
+            [
+                'name' => 'Health Clinic Opening',
+                'description' => 'Trust-centric clinical layout with service points and appointment CTA.',
+                'layout_html' => $this->layoutHealthClinic(),
+            ],
+            [
+                'name' => 'Real Estate Open House',
+                'description' => 'Property showcase layout with premium listing highlights.',
+                'layout_html' => $this->layoutRealEstate(),
+            ],
+        ];
     }
 
     private function schema(): array
@@ -130,62 +124,409 @@ class AdTemplateSeeder extends Seeder
         ];
     }
 
-    /**
-     * @param array{bg:string,surface:string,accent:string,accent2:string,text:string} $theme
-     */
-    private function buildProfessionalLayout(array $theme, string $badge): string
+    private function layoutRibbonAdmissions(): string
     {
-        $bg = $theme['bg'];
-        $surface = $theme['surface'];
-        $accent = $theme['accent'];
-        $accent2 = $theme['accent2'];
-        $text = $theme['text'];
-
         return <<<HTML
-<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden;border-radius:14px;background:{$bg};color:{$text};">
-  <div style="position:absolute;inset:0;background:radial-gradient(1200px 640px at 92% 8%,{$accent2}22,transparent 60%),radial-gradient(900px 520px at 10% 95%,{$accent}22,transparent 58%);"></div>
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Poppins,Inter,sans-serif;overflow:hidden;border-radius:14px;background:linear-gradient(120deg,#dbeafe,#e0f2fe);">
+  <div style="position:absolute;left:-10%;top:-25%;width:60%;height:90%;background:rgba(2,132,199,.18);transform:rotate(18deg);"></div>
+  <div style="position:absolute;right:-18%;bottom:-30%;width:58%;height:95%;background:rgba(30,64,175,.16);transform:rotate(-16deg);"></div>
 
-  <div style="position:absolute;left:4%;right:4%;top:6%;bottom:6%;display:grid;grid-template-columns:1.15fr .85fr;gap:14px;align-items:stretch;">
-    <div style="background:{$surface}dd;border:1px solid {$accent}26;border-radius:14px;padding:14px 14px 12px 14px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 10px 26px rgba(15,23,42,.08);">
-      <div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <span style="display:inline-flex;padding:6px 11px;border-radius:999px;background:{$accent};color:#fff;font-weight:900;font-size:11px;letter-spacing:.04em;text-transform:uppercase;">{{badge}}</span>
-          <span style="font-size:11px;font-weight:700;color:{$accent};">{{date_text}}</span>
-        </div>
-
-        <div style="margin-top:10px;font-size:34px;line-height:1.04;font-weight:950;letter-spacing:-.01em;">{{headline}}</div>
-        <div style="margin-top:8px;font-size:13px;line-height:1.45;font-weight:600;opacity:.9;">{{subheadline}}</div>
-
-        <div style="margin-top:10px;display:grid;gap:6px;">
-          <div style="font-size:12px;font-weight:800;display:flex;gap:8px;align-items:center;"><span style="width:7px;height:7px;border-radius:999px;background:{$accent};"></span>{{line1}}</div>
-          <div style="font-size:12px;font-weight:800;display:flex;gap:8px;align-items:center;"><span style="width:7px;height:7px;border-radius:999px;background:{$accent2};"></span>{{line2}}</div>
-          <div style="font-size:12px;font-weight:800;display:flex;gap:8px;align-items:center;"><span style="width:7px;height:7px;border-radius:999px;background:{$accent};"></span>{{line3}}</div>
-        </div>
+  <div style="position:absolute;left:4%;top:10%;bottom:10%;width:56%;display:flex;flex-direction:column;justify-content:space-between;">
+    <div>
+      <span style="display:inline-block;padding:6px 11px;border-radius:999px;background:#0369a1;color:#fff;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;">{{badge}}</span>
+      <div style="margin-top:10px;font-size:36px;line-height:1.03;font-weight:900;color:#0c4a6e;">{{headline}}</div>
+      <div style="margin-top:8px;font-size:13px;font-weight:600;color:#0f172a;opacity:.85;">{{subheadline}}</div>
+      <div style="margin-top:10px;display:grid;gap:5px;font-size:12px;font-weight:700;color:#082f49;">
+        <div>• {{line1}}</div><div>• {{line2}}</div><div>• {{line3}}</div>
       </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span style="padding:8px 12px;border-radius:10px;background:#075985;color:#fff;font-size:12px;font-weight:800;">{{cta}}</span>
+      <span style="font-size:11px;font-weight:800;color:#0c4a6e;">{{date_text}}</span>
+      <span style="font-size:11px;font-weight:700;color:#075985;">{{phone}}</span>
+    </div>
+  </div>
 
-      <div style="margin-top:12px;display:grid;gap:8px;">
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <span style="display:inline-flex;padding:8px 12px;border-radius:10px;background:linear-gradient(90deg,{$accent},{$accent2});color:#fff;font-weight:900;font-size:12px;">{{cta}}</span>
-          <span style="font-size:12px;font-weight:900;color:{$accent};">{{offer_text}}</span>
-        </div>
-        <div style="font-size:11px;font-weight:800;opacity:.9;">{{location_text}}</div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <span style="font-size:11px;font-weight:800;">{{phone}}</span>
-          <span style="font-size:11px;font-weight:700;opacity:.85;">{{website}}</span>
-        </div>
+  <div style="position:absolute;right:4%;top:10%;bottom:10%;width:34%;display:grid;grid-template-rows:1fr 1fr;gap:8px;">
+    <div style="border-radius:16px;overflow:hidden;border:3px solid rgba(255,255,255,.8);box-shadow:0 14px 24px rgba(2,132,199,.25);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.8);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.8);"><img data-ad-key="image_2" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutSplitCollege(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Nunito Sans,Inter,sans-serif;overflow:hidden;border-radius:14px;background:#f8fafc;">
+  <div style="position:absolute;left:0;top:0;bottom:0;width:48%;background:linear-gradient(160deg,#1d4ed8,#2563eb 60%,#60a5fa);"></div>
+  <div style="position:absolute;right:0;top:0;bottom:0;width:52%;background:linear-gradient(180deg,#eff6ff,#dbeafe);"></div>
+
+  <div style="position:absolute;left:4%;top:9%;bottom:9%;width:41%;display:flex;flex-direction:column;justify-content:space-between;color:#fff;">
+    <div>
+      <div style="font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;opacity:.9;">{{badge}}</div>
+      <div style="margin-top:10px;font-size:32px;line-height:1.04;font-weight:900;">{{headline}}</div>
+      <div style="margin-top:8px;font-size:13px;font-weight:600;opacity:.9;">{{subheadline}}</div>
+    </div>
+    <div style="display:grid;gap:6px;font-size:12px;font-weight:700;">
+      <div>{{line1}}</div><div>{{line2}}</div><div>{{line3}}</div>
+      <div style="margin-top:4px;padding-top:6px;border-top:1px solid rgba(255,255,255,.35);font-size:11px;">{{website}}</div>
+    </div>
+  </div>
+
+  <div style="position:absolute;right:4%;top:10%;bottom:10%;width:46%;display:grid;grid-template-rows:1fr auto;gap:8px;">
+    <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(29,78,216,.16);box-shadow:0 8px 22px rgba(37,99,235,.18);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+    <div style="background:#fff;border-radius:10px;border:1px solid rgba(29,78,216,.2);padding:8px;display:flex;justify-content:space-between;gap:8px;align-items:center;">
+      <div style="font-size:11px;color:#1e3a8a;font-weight:800;">{{date_text}}<br><span style="color:#334155;font-weight:700;">{{location_text}}</span></div>
+      <span style="padding:7px 10px;border-radius:8px;background:#1d4ed8;color:#fff;font-size:11px;font-weight:900;white-space:nowrap;">{{cta}}</span>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutEditorialUniversity(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:'DM Serif Display',Georgia,serif;overflow:hidden;border-radius:14px;background:linear-gradient(145deg,#ede9fe,#faf5ff);">
+  <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,rgba(109,40,217,.08) 0 1px,transparent 1px 24px);"></div>
+
+  <div style="position:absolute;left:6%;top:11%;right:6%;bottom:11%;display:grid;grid-template-columns:1.05fr .95fr;gap:14px;">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="font-family:Inter,sans-serif;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#6d28d9;">{{badge}}</div>
+        <div style="margin-top:8px;font-size:38px;line-height:1.02;color:#3b0764;font-weight:400;">{{headline}}</div>
+        <div style="margin-top:8px;font-family:Inter,sans-serif;font-size:13px;color:#4c1d95;font-weight:600;">{{subheadline}}</div>
+      </div>
+      <div style="font-family:Inter,sans-serif;font-size:12px;color:#581c87;font-weight:700;display:grid;gap:5px;">
+        <div>— {{line1}}</div><div>— {{line2}}</div><div>— {{line3}}</div>
       </div>
     </div>
 
-    <div style="display:grid;grid-template-rows:1.15fr .85fr;gap:10px;">
-      <div style="border-radius:14px;overflow:hidden;border:1px solid {$accent}2f;box-shadow:0 12px 24px rgba(15,23,42,.12);background:#fff;">
-        <img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div style="border-radius:12px;overflow:hidden;border:1px solid {$accent}26;background:#fff;">
-          <img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <div style="background:#fff;border:1px solid rgba(109,40,217,.28);border-radius:16px;padding:8px;display:grid;grid-template-rows:1fr auto;gap:8px;">
+      <div style="border-radius:12px;overflow:hidden;"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="font-family:Inter,sans-serif;background:#faf5ff;border-radius:10px;padding:8px;display:grid;gap:5px;">
+        <div style="font-size:11px;color:#6d28d9;font-weight:800;">{{offer_text}}</div>
+        <div style="font-size:10px;color:#6b21a8;font-weight:700;">{{date_text}}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <span style="font-size:10px;color:#7e22ce;font-weight:700;">{{phone}}</span>
+          <span style="padding:5px 10px;border-radius:999px;background:#6d28d9;color:#fff;font-size:10px;font-family:Inter,sans-serif;font-weight:900;">{{cta}}</span>
         </div>
-        <div style="border-radius:12px;overflow:hidden;border:1px solid {$accent}26;background:#fff;">
-          <img data-ad-key="image_2" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutBoardCoaching(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:#ccfbf1;">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,148,136,.12),rgba(20,184,166,.24));"></div>
+  <div style="position:absolute;left:5%;right:5%;top:12%;bottom:12%;background:#042f2e;border-radius:12px;border:4px solid #115e59;box-shadow:inset 0 0 0 2px rgba(255,255,255,.08),0 14px 24px rgba(6,78,59,.26);padding:12px;display:grid;grid-template-columns:1.2fr .8fr;gap:10px;color:#ecfeff;">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#99f6e4;">{{badge}}</div>
+        <div style="margin-top:8px;font-size:31px;line-height:1.02;font-weight:900;">{{headline}}</div>
+        <div style="margin-top:8px;font-size:12px;color:#a7f3d0;font-weight:600;">{{subheadline}}</div>
+      </div>
+      <div style="display:grid;gap:4px;font-size:12px;font-weight:700;color:#ccfbf1;">
+        <div>✓ {{line1}}</div><div>✓ {{line2}}</div><div>✓ {{line3}}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
+      <div style="border-radius:10px;overflow:hidden;border:2px dashed rgba(153,246,228,.7);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="background:#134e4a;border-radius:10px;padding:7px;display:grid;gap:4px;">
+        <div style="font-size:10px;color:#5eead4;font-weight:900;">{{offer_text}}</div>
+        <div style="font-size:10px;color:#99f6e4;font-weight:700;">{{date_text}}</div>
+        <span style="display:inline-flex;justify-content:center;padding:6px 9px;border-radius:8px;background:#14b8a6;color:#042f2e;font-size:10px;font-weight:900;">{{cta}}</span>
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutRestaurantLaunch(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Montserrat,Inter,sans-serif;overflow:hidden;border-radius:14px;background:#1c1917;">
+  <div style="position:absolute;inset:0;background:linear-gradient(120deg,rgba(194,65,12,.92),rgba(28,25,23,.88) 62%);"></div>
+  <div style="position:absolute;right:-10%;top:-20%;width:45%;height:60%;border-radius:50%;background:rgba(251,146,60,.18);"></div>
+
+  <div style="position:absolute;left:4%;right:4%;top:10%;bottom:10%;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch;">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;color:#ffedd5;">
+      <div>
+        <div style="font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#fdba74;">{{badge}}</div>
+        <div style="margin-top:8px;font-size:34px;line-height:1;font-weight:900;color:#fff7ed;">{{headline}}</div>
+        <div style="margin-top:8px;font-size:13px;line-height:1.4;font-weight:500;color:#fed7aa;">{{subheadline}}</div>
+      </div>
+      <div style="display:grid;gap:4px;font-size:12px;font-weight:700;">
+        <div>{{line1}}</div><div>{{line2}}</div><div>{{line3}}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span style="padding:7px 12px;border-radius:999px;background:#fb923c;color:#431407;font-size:11px;font-weight:900;">{{cta}}</span>
+        <span style="font-size:10px;font-weight:800;">{{phone}}</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
+      <div style="border-radius:14px;overflow:hidden;border:2px solid rgba(255,237,213,.4);box-shadow:0 14px 25px rgba(0,0,0,.38);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,237,213,.35);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="background:#292524;border-radius:10px;border:1px solid rgba(251,146,60,.4);padding:7px;display:grid;gap:3px;align-content:center;">
+          <div style="font-size:10px;color:#fb923c;font-weight:900;">{{offer_text}}</div>
+          <div style="font-size:10px;color:#fdba74;font-weight:700;">{{date_text}}</div>
+          <div style="font-size:10px;color:#fed7aa;">{{location_text}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutRetailLaunch(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:linear-gradient(135deg,#fefce8,#fff7ed 45%,#fef3c7);">
+  <div style="position:absolute;inset:0;opacity:.4;background-image:linear-gradient(90deg,rgba(161,98,7,.16) 1px,transparent 1px),linear-gradient(180deg,rgba(161,98,7,.16) 1px,transparent 1px);background-size:18px 18px;"></div>
+  <div style="position:absolute;left:5%;right:5%;top:10%;bottom:10%;display:grid;grid-template-columns:.95fr 1.05fr;gap:10px;">
+    <div style="background:#ffffff;border-radius:14px;border:1px solid rgba(161,98,7,.25);padding:10px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 10px 20px rgba(161,98,7,.12);">
+      <div>
+        <span style="display:inline-block;padding:5px 10px;border-radius:999px;background:#a16207;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
+        <div style="margin-top:8px;font-size:30px;line-height:1.04;font-weight:900;color:#713f12;">{{headline}}</div>
+        <div style="margin-top:7px;font-size:12px;font-weight:600;color:#854d0e;">{{subheadline}}</div>
+      </div>
+      <div style="display:grid;gap:4px;font-size:11px;font-weight:800;color:#78350f;">
+        <div>{{line1}}</div><div>{{line2}}</div><div>{{line3}}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+        <span style="padding:6px 10px;border-radius:8px;background:#fbbf24;color:#422006;font-size:10px;font-weight:900;">{{cta}}</span>
+        <span style="font-size:10px;font-weight:800;color:#92400e;">{{website}}</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;">
+      <div style="grid-column:1 / span 2;border-radius:12px;overflow:hidden;border:2px solid rgba(180,83,9,.22);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(180,83,9,.2);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:10px;background:#fffbeb;border:1px dashed rgba(180,83,9,.35);padding:7px;display:grid;align-content:center;gap:3px;">
+        <div style="font-size:10px;color:#a16207;font-weight:900;">{{offer_text}}</div>
+        <div style="font-size:10px;color:#92400e;font-weight:700;">{{date_text}}</div>
+        <div style="font-size:10px;color:#b45309;">{{location_text}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutCeremonyInvite(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:'Playfair Display',Georgia,serif;overflow:hidden;border-radius:14px;background:radial-gradient(circle at top,#fdf4ff,#fae8ff 55%,#f3e8ff);">
+  <div style="position:absolute;left:3%;right:3%;top:8%;bottom:8%;border:2px solid rgba(162,28,175,.32);border-radius:16px;padding:10px;background:rgba(255,255,255,.55);">
+    <div style="position:absolute;left:10px;right:10px;top:10px;bottom:10px;border:1px dashed rgba(162,28,175,.4);border-radius:12px;"></div>
+
+    <div style="position:relative;z-index:2;height:100%;display:grid;grid-template-columns:1.1fr .9fr;gap:10px;">
+      <div style="display:flex;flex-direction:column;justify-content:space-between;padding:4px 6px;color:#581c87;">
+        <div>
+          <div style="font-family:Inter,sans-serif;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#a21caf;">{{badge}}</div>
+          <div style="margin-top:8px;font-size:34px;line-height:1.05;font-weight:700;">{{headline}}</div>
+          <div style="margin-top:8px;font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:#6b21a8;">{{subheadline}}</div>
+        </div>
+        <div style="font-family:Inter,sans-serif;display:grid;gap:4px;font-size:11px;font-weight:700;">
+          <div>{{date_text}}</div><div>{{location_text}}</div><div>{{phone}}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-rows:1fr auto;gap:7px;">
+        <div style="border-radius:12px;overflow:hidden;border:2px solid rgba(162,28,175,.28);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="background:#faf5ff;border-radius:10px;border:1px solid rgba(162,28,175,.25);padding:7px;display:flex;justify-content:space-between;gap:8px;align-items:center;font-family:Inter,sans-serif;">
+          <span style="font-size:10px;font-weight:800;color:#86198f;">{{offer_text}}</span>
+          <span style="padding:5px 9px;border-radius:999px;background:#a21caf;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutMegaSaleBurst(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:#fef2f2;">
+  <div style="position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(239,68,68,.32),transparent 36%),radial-gradient(circle at 80% 70%,rgba(220,38,38,.28),transparent 40%),linear-gradient(135deg,#fff1f2,#fee2e2);"></div>
+  <div style="position:absolute;left:4%;right:4%;top:10%;bottom:10%;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <span style="display:inline-flex;padding:6px 10px;border-radius:6px;background:#b91c1c;color:#fff;font-size:11px;font-weight:900;text-transform:uppercase;">{{badge}}</span>
+        <div style="margin-top:9px;font-size:36px;line-height:1;font-weight:950;color:#7f1d1d;">{{headline}}</div>
+        <div style="margin-top:7px;font-size:13px;font-weight:600;color:#991b1b;">{{subheadline}}</div>
+      </div>
+      <div style="display:grid;gap:5px;font-size:12px;font-weight:800;color:#7f1d1d;">
+        <div>★ {{line1}}</div><div>★ {{line2}}</div><div>★ {{line3}}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="padding:7px 11px;border-radius:9px;background:#dc2626;color:#fff;font-size:11px;font-weight:900;">{{cta}}</span>
+        <span style="font-size:11px;color:#991b1b;font-weight:900;">{{offer_text}}</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
+      <div style="clip-path:polygon(0 0,95% 0,100% 20%,100% 100%,5% 100%,0 80%);border:2px solid rgba(185,28,28,.28);overflow:hidden;"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(185,28,28,.25);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="border-radius:10px;background:#fff;border:1px solid rgba(185,28,28,.25);padding:7px;display:grid;gap:3px;align-content:center;">
+          <div style="font-size:10px;color:#b91c1c;font-weight:900;">{{date_text}}</div>
+          <div style="font-size:10px;color:#7f1d1d;font-weight:700;">{{location_text}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutFurnitureMinimal(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:#f8fafc;">
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,#f8fafc,#e2e8f0 55%,#f8fafc);"></div>
+  <div style="position:absolute;left:0;bottom:0;width:100%;height:34%;background:linear-gradient(90deg,#334155,#475569);"></div>
+
+  <div style="position:absolute;left:5%;right:5%;top:10%;bottom:8%;display:grid;grid-template-columns:1.1fr .9fr;gap:10px;">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#334155;">{{badge}}</div>
+        <div style="margin-top:9px;font-size:33px;line-height:1.02;font-weight:900;color:#0f172a;">{{headline}}</div>
+        <div style="margin-top:7px;font-size:12px;color:#334155;font-weight:600;">{{subheadline}}</div>
+      </div>
+      <div style="display:grid;gap:5px;font-size:11px;font-weight:800;color:#1e293b;">
+        <div>{{line1}}</div><div>{{line2}}</div><div>{{line3}}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;background:#ffffff;border:1px solid rgba(51,65,85,.2);">
+        <span style="font-size:10px;font-weight:900;color:#334155;">{{offer_text}}</span>
+        <span style="padding:6px 9px;border-radius:8px;background:#0f172a;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
+      <div style="border-radius:12px;overflow:hidden;border:1px solid rgba(51,65,85,.3);box-shadow:0 12px 20px rgba(15,23,42,.18);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;filter:saturate(.9);"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(51,65,85,.2);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="font-size:10px;color:#e2e8f0;font-weight:700;background:rgba(15,23,42,.78);border-radius:10px;padding:7px;display:grid;gap:3px;align-content:center;">
+          <div>{{date_text}}</div><div>{{location_text}}</div><div>{{website}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutElectronicsNeon(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:#020617;">
+  <div style="position:absolute;inset:0;background:radial-gradient(circle at 15% 20%,rgba(6,182,212,.36),transparent 32%),radial-gradient(circle at 78% 25%,rgba(168,85,247,.3),transparent 32%),radial-gradient(circle at 70% 85%,rgba(34,211,238,.22),transparent 34%);"></div>
+  <div style="position:absolute;inset:0;opacity:.16;background-image:linear-gradient(90deg,rgba(148,163,184,.4) 1px,transparent 1px),linear-gradient(180deg,rgba(148,163,184,.4) 1px,transparent 1px);background-size:24px 24px;"></div>
+
+  <div style="position:absolute;left:4%;right:4%;top:10%;bottom:10%;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <span style="display:inline-block;padding:5px 10px;border-radius:999px;background:#06b6d4;color:#082f49;font-size:10px;font-weight:900;">{{badge}}</span>
+        <div style="margin-top:8px;font-size:34px;line-height:1;color:#e0f2fe;font-weight:950;">{{headline}}</div>
+        <div style="margin-top:7px;font-size:12px;color:#a5f3fc;font-weight:600;">{{subheadline}}</div>
+      </div>
+      <div style="display:grid;gap:4px;font-size:11px;color:#67e8f9;font-weight:700;">
+        <div>▸ {{line1}}</div><div>▸ {{line2}}</div><div>▸ {{line3}}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span style="padding:6px 10px;border-radius:8px;background:#a855f7;color:#faf5ff;font-size:10px;font-weight:900;">{{cta}}</span>
+        <span style="font-size:10px;color:#22d3ee;font-weight:900;">{{offer_text}}</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
+      <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(34,211,238,.45);box-shadow:0 0 0 2px rgba(56,189,248,.15),0 0 24px rgba(6,182,212,.26);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;mix-blend-mode:screen;opacity:.92;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(168,85,247,.45);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="border-radius:10px;background:rgba(15,23,42,.8);border:1px solid rgba(56,189,248,.4);padding:7px;display:grid;gap:3px;align-content:center;">
+          <div style="font-size:10px;color:#67e8f9;font-weight:900;">{{date_text}}</div>
+          <div style="font-size:10px;color:#a5f3fc;font-weight:700;">{{website}}</div>
+          <div style="font-size:10px;color:#22d3ee;">{{phone}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutHealthClinic(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:linear-gradient(140deg,#ecfdf5,#dcfce7);">
+  <div style="position:absolute;left:0;top:0;width:46%;height:100%;background:linear-gradient(170deg,rgba(22,101,52,.16),rgba(34,197,94,.12));clip-path:polygon(0 0,100% 0,78% 100%,0 100%);"></div>
+
+  <div style="position:absolute;left:5%;right:5%;top:10%;bottom:10%;display:grid;grid-template-columns:.95fr 1.05fr;gap:10px;">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <span style="display:inline-flex;padding:5px 10px;border-radius:999px;background:#166534;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
+        <div style="margin-top:8px;font-size:32px;line-height:1.04;font-weight:900;color:#14532d;">{{headline}}</div>
+        <div style="margin-top:7px;font-size:12px;color:#166534;font-weight:600;">{{subheadline}}</div>
+      </div>
+      <div style="display:grid;gap:4px;font-size:11px;color:#166534;font-weight:800;">
+        <div>+ {{line1}}</div><div>+ {{line2}}</div><div>+ {{line3}}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span style="padding:6px 10px;border-radius:8px;background:#22c55e;color:#052e16;font-size:10px;font-weight:900;">{{cta}}</span>
+        <span style="font-size:10px;font-weight:900;color:#15803d;">{{phone}}</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto;gap:8px;">
+      <div style="grid-column:1 / span 2;border-radius:12px;overflow:hidden;border:1px solid rgba(21,128,61,.26);box-shadow:0 10px 18px rgba(22,101,52,.16);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(21,128,61,.22);"><img data-ad-key="image_1" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="border-radius:10px;background:#f0fdf4;border:1px solid rgba(34,197,94,.3);padding:7px;display:grid;gap:3px;align-content:center;">
+        <div style="font-size:10px;color:#15803d;font-weight:900;">{{date_text}}</div>
+        <div style="font-size:10px;color:#166534;font-weight:700;">{{location_text}}</div>
+        <div style="font-size:10px;color:#22c55e;">{{website}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+HTML;
+    }
+
+    private function layoutRealEstate(): string
+    {
+        return <<<HTML
+<div class="ad-canvas" style="position:relative;width:100%;height:100%;font-family:Inter,sans-serif;overflow:hidden;border-radius:14px;background:linear-gradient(130deg,#eef2ff,#e0e7ff 40%,#f8fafc);">
+  <div style="position:absolute;left:0;right:0;bottom:0;height:36%;background:linear-gradient(90deg,#1e1b4b,#3730a3);"></div>
+
+  <div style="position:absolute;left:4%;right:4%;top:9%;bottom:9%;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div style="background:#fff;border-radius:14px;border:1px solid rgba(55,48,163,.22);padding:10px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 12px 22px rgba(30,27,75,.12);">
+      <div>
+        <span style="display:inline-block;padding:5px 10px;border-radius:999px;background:#3730a3;color:#fff;font-size:10px;font-weight:900;">{{badge}}</span>
+        <div style="margin-top:8px;font-size:32px;line-height:1.04;font-weight:900;color:#1e1b4b;">{{headline}}</div>
+        <div style="margin-top:7px;font-size:12px;color:#3730a3;font-weight:600;">{{subheadline}}</div>
+      </div>
+      <div style="display:grid;gap:5px;font-size:11px;font-weight:800;color:#312e81;">
+        <div>{{line1}}</div><div>{{line2}}</div><div>{{line3}}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+        <span style="font-size:10px;font-weight:900;color:#4338ca;">{{offer_text}}</span>
+        <span style="padding:6px 9px;border-radius:8px;background:#1e1b4b;color:#fff;font-size:10px;font-weight:900;">{{cta}}</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-rows:1fr auto;gap:8px;">
+      <div style="border-radius:14px;overflow:hidden;border:2px solid rgba(79,70,229,.26);"><img data-ad-key="image_hero" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(79,70,229,.2);"><img data-ad-key="image_2" src="" alt="" style="width:100%;height:100%;object-fit:cover;"></div>
+        <div style="border-radius:10px;background:rgba(30,27,75,.9);color:#e0e7ff;padding:7px;display:grid;gap:3px;align-content:center;">
+          <div style="font-size:10px;font-weight:800;">{{date_text}}</div>
+          <div style="font-size:10px;font-weight:700;">{{location_text}}</div>
+          <div style="font-size:10px;">{{phone}}</div>
         </div>
       </div>
     </div>
