@@ -363,10 +363,8 @@
 
         function applyLiveImages() {
             preview.querySelectorAll('img').forEach((img) => {
-                if (!img.style.objectFit) {
-                    img.style.objectFit = 'contain';
-                    img.style.objectPosition = 'center';
-                }
+                img.style.objectFit = 'cover';
+                img.style.objectPosition = 'center';
             });
 
             preview.querySelectorAll('img[data-ad-key]').forEach((img) => {
@@ -375,10 +373,8 @@
                 const existing = (img.getAttribute('src') || '').trim();
                 const desired = imageState[key] || existing || placeholderSrc;
                 img.setAttribute('src', desired);
-                if (!img.style.objectFit) {
-                    img.style.objectFit = 'contain';
-                    img.style.objectPosition = 'center';
-                }
+                img.style.objectFit = 'cover';
+                img.style.objectPosition = 'center';
             });
         }
 
