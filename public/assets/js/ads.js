@@ -286,7 +286,7 @@
             banner: { ratio: '4 / 1', w: 1200, h: 300 },
             full_page: { ratio: '3 / 4', w: 900, h: 1200 },
             top_categories_ad_1: { ratio: '879 / 118', w: 879, h: 118 },
-            top_categories_ad_2: { ratio: '296 / 132', w: 296, h: 132 },
+            top_categories_ad_2: { ratio: '296 / 292', w: 296, h: 292 },
             sponsored_listings_ad: { ratio: '296 / 624', w: 296, h: 624 },
             below_sponsored_ad: { ratio: '1232 / 145', w: 1232, h: 145 },
             ecommerce_ad: { ratio: '289 / 186', w: 289, h: 186 },
