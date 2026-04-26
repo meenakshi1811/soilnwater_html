@@ -244,10 +244,12 @@ class UserAdController extends Controller
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
             $size = AdSizes::all()[$sizeType] ?? null;
+            $targetWidth = (int) ($size['w'] ?? 0);
+            $targetHeight = (int) ($size['h'] ?? 0);
             $finalImagePath = $this->storeGeneratedAdImage(
                 $validated['generated_image_data'] ?? '',
-                (int) ($size['w'] ?? 0),
-                (int) ($size['h'] ?? 0),
+                $targetWidth,
+                $targetHeight,
             );
 
             return UserAd::create([
@@ -365,6 +367,31 @@ class UserAdController extends Controller
             ]);
         }
 
+        $srcW = 0;
+        $srcH = 0;
+        if ($targetWidth > 0 && $targetHeight > 0) {
+            $source = @imagecreatefromstring($decoded);
+            if (is_resource($source) || is_object($source)) {
+                $srcW = (int) imagesx($source);
+                $srcH = (int) imagesy($source);
+                imagedestroy($source);
+
+                if ($srcW < $targetWidth || $srcH < $targetHeight) {
+                    throw ValidationException::withMessages([
+                        'generated_image_data' => 'Generated image quality is too low. Please use the live preview export again.',
+                    ]);
+                }
+
+                $targetRatio = $targetWidth / $targetHeight;
+                $sourceRatio = $srcW / $srcH;
+                if (abs($sourceRatio - $targetRatio) > 0.02) {
+                    throw ValidationException::withMessages([
+                        'generated_image_data' => 'Generated image ratio does not match template size. Please regenerate from live preview.',
+                    ]);
+                }
+            }
+        }
+
         $relativeDirectory = 'uploads/ads/final';
         $absoluteDirectory = public_path($relativeDirectory);
         if (!is_dir($absoluteDirectory)) {
@@ -374,7 +401,10 @@ class UserAdController extends Controller
         $fileName = 'ad-'.Str::uuid().'.png';
         $absolutePath = $absoluteDirectory.'/'.$fileName;
         file_put_contents($absolutePath, $decoded);
-        $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
+
+        if ($targetWidth > 0 && $targetHeight > 0 && ($srcW === 0 || $srcH === 0)) {
+            $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
+        }
 
         return $relativeDirectory.'/'.$fileName;
     }
