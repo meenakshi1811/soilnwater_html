@@ -51,6 +51,7 @@
         <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
+            <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
             @foreach($textFieldKeys as $hiddenTextKey)
                 <input type="hidden" name="{{ $hiddenTextKey }}" value="{{ old($hiddenTextKey) }}" class="js-ad-hidden-text" data-key="{{ $hiddenTextKey }}">
             @endforeach
@@ -260,6 +261,7 @@
         const staticState = {};
         const form = preview.closest('form');
         const customHtmlInput = document.getElementById('customHtmlInput');
+        const generatedImageDataInput = document.getElementById('generatedImageDataInput');
 
         function scalePreview() {
             const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0);
@@ -444,7 +446,12 @@
         });
 
         if (form) {
-            form.addEventListener('submit', () => {
+            form.addEventListener('submit', async (event) => {
+                if (form.dataset.isSubmitting === '1') {
+                    return;
+                }
+                event.preventDefault();
+
                 preview.querySelectorAll('[data-ad-field]').forEach((node) => {
                     const key = node.getAttribute('data-ad-field');
                     if (!key) return;
@@ -455,6 +462,27 @@
                 if (customHtmlInput) {
                     customHtmlInput.value = preview.innerHTML;
                 }
+
+                if (generatedImageDataInput && window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
+                    try {
+                        const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0) || preview.scrollWidth || 0;
+                        const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0) || preview.scrollHeight || 0;
+
+                        const dataUrl = await window.htmlToImage.toPng(preview, {
+                            cacheBust: true,
+                            pixelRatio: 1,
+                            canvasWidth: sourceWidth || undefined,
+                            canvasHeight: sourceHeight || undefined,
+                        });
+
+                        generatedImageDataInput.value = dataUrl || '';
+                    } catch (e) {
+                        generatedImageDataInput.value = '';
+                    }
+                }
+
+                form.dataset.isSubmitting = '1';
+                form.submit();
             });
         }
 
@@ -462,6 +490,7 @@
         updatePreview();
     })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js"></script>
 <script>
     (function () {
         const form = document.querySelector('form[action*="/dashboard/ads/create/"]');

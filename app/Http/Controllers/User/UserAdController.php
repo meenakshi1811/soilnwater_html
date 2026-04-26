@@ -176,6 +176,7 @@ class UserAdController extends Controller
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
             'custom_html' => 'nullable|string',
+            'generated_image_data' => 'nullable|string',
             'accept_terms' => 'accepted',
             'category_id' => [
                 'required',
@@ -241,6 +242,11 @@ class UserAdController extends Controller
 
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
+            $finalImagePath = null;
+            if (!empty($validated['generated_image_data'])) {
+                $finalImagePath = $this->storeGeneratedAdImage($validated['generated_image_data']);
+            }
+
             return UserAd::create([
                 'user_id' => $user->id,
                 'ad_template_id' => $template->id,
@@ -254,6 +260,7 @@ class UserAdController extends Controller
                 'status' => 'pending',
                 'fields_json' => $fields,
                 'rendered_html' => $renderedHtml,
+                'final_image' => $finalImagePath,
                 'submitted_at' => now(),
             ]);
         });
@@ -315,6 +322,29 @@ class UserAdController extends Controller
         $html = preg_replace('/\{\{[a-zA-Z][a-zA-Z0-9_]*\}\}/', '', $html) ?? $html;
 
         return $html;
+    }
+
+    private function storeGeneratedAdImage(string $base64Png): ?string
+    {
+        if (!preg_match('/^data:image\/png;base64,/', $base64Png)) {
+            return null;
+        }
+
+        $decoded = base64_decode(substr($base64Png, strpos($base64Png, ',') + 1), true);
+        if ($decoded === false) {
+            return null;
+        }
+
+        $relativeDirectory = 'uploads/ads/final';
+        $absoluteDirectory = public_path($relativeDirectory);
+        if (!is_dir($absoluteDirectory)) {
+            mkdir($absoluteDirectory, 0755, true);
+        }
+
+        $fileName = 'ad-'.Str::uuid().'.png';
+        file_put_contents($absoluteDirectory.'/'.$fileName, $decoded);
+
+        return $relativeDirectory.'/'.$fileName;
     }
 
     private function visibleSizesForUser($user): array
