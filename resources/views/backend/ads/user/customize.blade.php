@@ -362,6 +362,13 @@
         }
 
         function applyLiveImages() {
+            preview.querySelectorAll('img').forEach((img) => {
+                if (!img.style.objectFit) {
+                    img.style.objectFit = 'contain';
+                    img.style.objectPosition = 'center';
+                }
+            });
+
             preview.querySelectorAll('img[data-ad-key]').forEach((img) => {
                 const key = img.getAttribute('data-ad-key');
                 if (!key) return;
@@ -369,7 +376,7 @@
                 const desired = imageState[key] || existing || placeholderSrc;
                 img.setAttribute('src', desired);
                 if (!img.style.objectFit) {
-                    img.style.objectFit = 'cover';
+                    img.style.objectFit = 'contain';
                     img.style.objectPosition = 'center';
                 }
             });
