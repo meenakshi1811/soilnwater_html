@@ -560,14 +560,8 @@
                     generatedImageDataInput.value = await exportPreviewAsPng();
                 }
 
-                if (!generatedImageDataInput || !generatedImageDataInput.value) {
-                    if (alertBox) {
-                        alertBox.className = 'alert alert-danger';
-                        alertBox.textContent = 'Could not generate ad image. Please re-upload images and try again.';
-                        alertBox.classList.remove('d-none');
-                    }
-                    form.dataset.isSubmitting = '0';
-                    return;
+                if (generatedImageDataInput && !generatedImageDataInput.value) {
+                    generatedImageDataInput.value = '';
                 }
 
                 form.dataset.isSubmitting = '1';

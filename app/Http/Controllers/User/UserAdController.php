@@ -7,6 +7,8 @@ use App\Models\AdTemplate;
 use App\Models\Category;
 use App\Models\UserAd;
 use App\Support\AdSizes;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -177,7 +179,7 @@ class UserAdController extends Controller
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
             'custom_html' => 'nullable|string',
-            'generated_image_data' => ['required', 'string', 'starts_with:data:image/png;base64,'],
+            'generated_image_data' => ['nullable', 'string'],
             'accept_terms' => 'accepted',
             'category_id' => [
                 'required',
@@ -246,11 +248,14 @@ class UserAdController extends Controller
             $size = AdSizes::all()[$sizeType] ?? null;
             $targetWidth = (int) ($size['w'] ?? 0);
             $targetHeight = (int) ($size['h'] ?? 0);
-            $finalImagePath = $this->storeGeneratedAdImage(
-                $validated['generated_image_data'] ?? '',
-                $targetWidth,
-                $targetHeight,
-            );
+            $finalImagePath = $this->storeGeneratedAdImageFromHtml($renderedHtml, $targetWidth, $targetHeight);
+            if ($finalImagePath === null) {
+                $finalImagePath = $this->storeGeneratedAdImage(
+                    $validated['generated_image_data'] ?? '',
+                    $targetWidth,
+                    $targetHeight,
+                );
+            }
 
             return UserAd::create([
                 'user_id' => $user->id,
@@ -406,6 +411,65 @@ class UserAdController extends Controller
         file_put_contents($absolutePath, $decoded);
 
         return $relativeDirectory.'/'.$fileName;
+    }
+
+    private function storeGeneratedAdImageFromHtml(string $renderedHtml, int $targetWidth, int $targetHeight): ?string
+    {
+        if (!class_exists(Dompdf::class)) {
+            return null;
+        }
+
+        try {
+            $options = new Options();
+            $options->setIsRemoteEnabled(true);
+            $options->setIsHtml5ParserEnabled(true);
+            $options->setDefaultFont('DejaVu Sans');
+            $options->setChroot(public_path());
+            $options->set('dpi', 300);
+            $options->set('isFontSubsettingEnabled', true);
+            $options->set('pdfBackend', 'GD');
+
+            $dompdf = new Dompdf($options);
+            $paperWidth = max(1, $targetWidth);
+            $paperHeight = max(1, $targetHeight);
+            $dompdf->setPaper([0, 0, $paperWidth, $paperHeight]);
+            $dompdf->loadHtml($this->wrapHtmlForDompdf($renderedHtml, $paperWidth, $paperHeight), 'UTF-8');
+            $dompdf->render();
+
+            $canvas = $dompdf->getCanvas();
+            if (!method_exists($canvas, 'get_image')) {
+                return null;
+            }
+
+            $image = $canvas->get_image();
+            if (!is_resource($image) && !is_object($image)) {
+                return null;
+            }
+
+            $relativeDirectory = 'uploads/ads/final';
+            $absoluteDirectory = public_path($relativeDirectory);
+            if (!is_dir($absoluteDirectory)) {
+                mkdir($absoluteDirectory, 0755, true);
+            }
+
+            $fileName = 'ad-'.Str::uuid().'.png';
+            $absolutePath = $absoluteDirectory.'/'.$fileName;
+            imagepng($image, $absolutePath, 9);
+            imagedestroy($image);
+
+            return $relativeDirectory.'/'.$fileName;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function wrapHtmlForDompdf(string $html, int $width, int $height): string
+    {
+        return '<!doctype html><html><head><meta charset="utf-8"><style>'
+            .'@page{margin:0;}'
+            .'html,body{margin:0;padding:0;width:'.$width.'px;height:'.$height.'px;overflow:hidden;}'
+            .'img{max-width:100%;}'
+            .'</style></head><body>'.$html.'</body></html>';
     }
 
     private function normalizeGeneratedAdImage(string $absolutePath, int $targetWidth, int $targetHeight): void
