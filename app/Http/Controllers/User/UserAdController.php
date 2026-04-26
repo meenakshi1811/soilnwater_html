@@ -7,8 +7,6 @@ use App\Models\AdTemplate;
 use App\Models\Category;
 use App\Models\UserAd;
 use App\Support\AdSizes;
-use Dompdf\Dompdf;
-use Dompdf\Options;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -179,8 +177,7 @@ class UserAdController extends Controller
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
             'custom_html' => 'nullable|string',
-            'custom_css' => 'nullable|string',
-            'generated_image_data' => ['nullable', 'string'],
+            'generated_image_data' => ['required', 'string', 'starts_with:data:image/png;base64,'],
             'accept_terms' => 'accepted',
             'category_id' => [
                 'required',
@@ -243,21 +240,17 @@ class UserAdController extends Controller
             $layoutHtml = trim((string) ($validated['custom_html'] ?? '')) !== ''
                 ? (string) $validated['custom_html']
                 : (string) $template->layout_html;
-            $layoutCss = (string) ($validated['custom_css'] ?? '');
 
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
             $size = AdSizes::all()[$sizeType] ?? null;
             $targetWidth = (int) ($size['w'] ?? 0);
             $targetHeight = (int) ($size['h'] ?? 0);
-            $finalImagePath = $this->storeGeneratedAdImageFromHtml($renderedHtml, $layoutCss, $targetWidth, $targetHeight);
-            if ($finalImagePath === null) {
-                $finalImagePath = $this->storeGeneratedAdImage(
-                    $validated['generated_image_data'] ?? '',
-                    $targetWidth,
-                    $targetHeight,
-                );
-            }
+            $finalImagePath = $this->storeGeneratedAdImage(
+                $validated['generated_image_data'] ?? '',
+                $targetWidth,
+                $targetHeight,
+            );
 
             return UserAd::create([
                 'user_id' => $user->id,
@@ -411,114 +404,8 @@ class UserAdController extends Controller
         $fileName = 'ad-'.Str::uuid().'.png';
         $absolutePath = $absoluteDirectory.'/'.$fileName;
         file_put_contents($absolutePath, $decoded);
-        $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
 
         return $relativeDirectory.'/'.$fileName;
-    }
-
-    private function storeGeneratedAdImageFromHtml(string $renderedHtml, string $layoutCss, int $targetWidth, int $targetHeight): ?string
-    {
-        if (!class_exists(Dompdf::class)) {
-            return null;
-        }
-
-        try {
-            $options = new Options();
-            $options->setIsRemoteEnabled(true);
-            $options->setIsHtml5ParserEnabled(true);
-            $options->setDefaultFont('DejaVu Sans');
-            $options->setChroot(public_path());
-            $options->set('dpi', 300);
-            $options->set('isFontSubsettingEnabled', true);
-            $options->set('pdfBackend', 'GD');
-
-            $dompdf = new Dompdf($options);
-            $paperWidth = max(1, $targetWidth);
-            $paperHeight = max(1, $targetHeight);
-            $dompdf->setPaper([0, 0, $paperWidth, $paperHeight]);
-            $dompdf->loadHtml($this->wrapHtmlForDompdf($renderedHtml, $layoutCss, $paperWidth, $paperHeight), 'UTF-8');
-            $dompdf->render();
-
-            $canvas = $dompdf->getCanvas();
-            if (!method_exists($canvas, 'get_image')) {
-                return null;
-            }
-
-            $image = $canvas->get_image();
-            if (!is_resource($image) && !is_object($image)) {
-                return null;
-            }
-
-            $normalizedImage = $this->normalizeDompdfCanvasImage($image, $paperWidth, $paperHeight);
-            if (is_resource($image) || is_object($image)) {
-                imagedestroy($image);
-            }
-            if (!is_resource($normalizedImage) && !is_object($normalizedImage)) {
-                return null;
-            }
-
-            $relativeDirectory = 'uploads/ads/final';
-            $absoluteDirectory = public_path($relativeDirectory);
-            if (!is_dir($absoluteDirectory)) {
-                mkdir($absoluteDirectory, 0755, true);
-            }
-
-            $fileName = 'ad-'.Str::uuid().'.png';
-            $absolutePath = $absoluteDirectory.'/'.$fileName;
-            imagepng($normalizedImage, $absolutePath, 9);
-            imagedestroy($normalizedImage);
-
-            return $relativeDirectory.'/'.$fileName;
-        } catch (\Throwable) {
-            return null;
-        }
-    }
-
-    private function wrapHtmlForDompdf(string $html, string $layoutCss, int $width, int $height): string
-    {
-        $layoutCss = trim($layoutCss);
-        $sanitizedCss = preg_replace('/<\/?style[^>]*>/i', '', $layoutCss) ?? $layoutCss;
-
-        return '<!doctype html><html><head><meta charset="utf-8"><style>'
-            .'@page{margin:0;}'
-            .'html,body{margin:0;padding:0;width:'.$width.'px;height:'.$height.'px;overflow:hidden;}'
-            .'img{max-width:100%;}'
-            .$sanitizedCss
-            .'</style></head><body>'.$html.'</body></html>';
-    }
-
-    private function normalizeDompdfCanvasImage($image, int $targetWidth, int $targetHeight)
-    {
-        $sourceWidth = (int) imagesx($image);
-        $sourceHeight = (int) imagesy($image);
-        if ($sourceWidth <= 0 || $sourceHeight <= 0 || $targetWidth <= 0 || $targetHeight <= 0) {
-            return $image;
-        }
-
-        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
-        if (!is_resource($canvas) && !is_object($canvas)) {
-            return $image;
-        }
-
-        imagealphablending($canvas, false);
-        imagesavealpha($canvas, true);
-        $white = imagecolorallocatealpha($canvas, 255, 255, 255, 0);
-        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $white);
-
-        imagecopyresampled(
-            $canvas,
-            $image,
-            0,
-            0,
-            0,
-            0,
-            $targetWidth,
-            $targetHeight,
-            $sourceWidth,
-            $sourceHeight
-        );
-
-        return $canvas;
     }
 
     private function normalizeGeneratedAdImage(string $absolutePath, int $targetWidth, int $targetHeight): void

@@ -6,7 +6,7 @@
     $schema = is_array($template->schema_json) ? $template->schema_json : [];
     $fields = is_array($schema['fields'] ?? null) ? $schema['fields'] : [];
     $sampleDefaults = \App\Support\AdTemplatePreview::sampleFieldsForSchema($fields, (string) $template->name);
-    $textFields = [];
+    $textFieldKeys = [];
 
     $layoutHtml = (string) ($template->layout_html ?? '');
     $usedKeys = [];
@@ -27,12 +27,7 @@
         if ($key === '' || $type === 'image') {
             continue;
         }
-        $textFields[] = [
-            'key' => $key,
-            'label' => (string) ($field['label'] ?? $key),
-            'required' => (bool) ($field['required'] ?? false),
-            'max' => (int) ($field['max'] ?? 0),
-        ];
+        $textFieldKeys[] = $key;
     }
 @endphp
 
@@ -56,11 +51,14 @@
         <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
-            <input type="hidden" name="custom_css" id="customCssInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
             @error('generated_image_data')
                 <div class="alert alert-danger py-2">{{ $message }}</div>
             @enderror
+            @foreach($textFieldKeys as $hiddenTextKey)
+                <input type="hidden" name="{{ $hiddenTextKey }}" value="{{ old($hiddenTextKey) }}" class="js-ad-hidden-text" data-key="{{ $hiddenTextKey }}">
+            @endforeach
+
             <div class="row g-4">
                 <div class="col-12 col-lg-5">
                     <div class="mb-3">
@@ -130,26 +128,7 @@
                     </div>
 
                     <div class="ads-fields">
-                        <p class="small text-secondary mb-2">Fill text and upload template images. Live preview below keeps the original HTML template size.</p>
-                        @foreach($textFields as $textField)
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">
-                                    {{ $textField['label'] }} @if($textField['required'])<span class="text-danger">*</span>@endif
-                                </label>
-                                <input
-                                    type="text"
-                                    name="{{ $textField['key'] }}"
-                                    class="form-control @error($textField['key']) is-invalid @enderror js-ad-text"
-                                    data-key="{{ $textField['key'] }}"
-                                    value="{{ old($textField['key'], $sampleDefaults[$textField['key']] ?? '') }}"
-                                    maxlength="{{ $textField['max'] > 0 ? $textField['max'] : 255 }}"
-                                    {{ $textField['required'] ? 'required' : '' }}
-                                >
-                                @error($textField['key'])
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        @endforeach
+                        <p class="small text-secondary mb-2">Upload template images here. Edit all text content directly in live preview.</p>
                         @foreach($fields as $field)
                             @php
                                 $key = (string) ($field['key'] ?? '');
@@ -215,19 +194,27 @@
 
                 <div class="col-12 col-lg-7">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-                        <h5 class="mb-0">Live Template Preview</h5>
+                        <h5 class="mb-0">Live Preview</h5>
                         <span class="text-secondary small">{{ $size['w'] }}×{{ $size['h'] }}</span>
                     </div>
-                    <div class="template-customizer-wrap mb-3">
-                        <div class="ads-live-preview" style="aspect-ratio: {{ $size['w'] }} / {{ $size['h'] }};">
-                            <div class="ads-live-preview-inner p-0" id="adTemplateLivePreview"></div>
+
+                    <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] }};">
+                        <div
+                            class="ads-live-preview-inner"
+                            id="adPreviewFrame"
+                            data-source-width="{{ $size['w'] }}"
+                            data-source-height="{{ $size['h'] }}"
+                        >
+                            <div class="ads-mini-preview-inner" id="adPreview">
+                                {!! $template->layout_html !!}
+                            </div>
                         </div>
                     </div>
-                    <script type="application/json" id="adTemplateHtml">@json((string) ($template->layout_html ?? ''))</script>
+                    <script type="application/json" id="adTemplateHtml">@json($template->layout_html)</script>
+                    <script type="application/json" id="adTemplateFieldKeys">@json($fields)</script>
                     <script type="application/json" id="adTemplateSampleDefaults">@json($sampleDefaults)</script>
-                    <script type="application/json" id="adTemplateFields">@json($fields)</script>
 
-                    <small class="text-secondary d-block mt-2">This preview renders your original HTML template at the selected ad size.</small>
+                    <small class="text-secondary d-block mt-2">Tip: Click any text to edit directly in the preview.</small>
                 </div>
             </div>
 
@@ -245,94 +232,355 @@
 @push('scripts')
 <script>
     (function () {
-        const preview = document.getElementById('adTemplateLivePreview');
-        const form = document.querySelector('form[action*="/dashboard/ads/create/"]');
-        if (!preview || !form) return;
+        const previewFrame = document.getElementById('adPreviewFrame');
+        const preview = document.getElementById('adPreview');
+        if (!previewFrame || !preview) return;
 
-        const templateHtmlScript = document.getElementById('adTemplateHtml');
+        const templateScript = document.getElementById('adTemplateHtml');
+        const fieldKeysScript = document.getElementById('adTemplateFieldKeys');
         const sampleDefaultsScript = document.getElementById('adTemplateSampleDefaults');
-        const fieldsScript = document.getElementById('adTemplateFields');
+        let originalHtml = '';
+        let schemaFields = [];
+        let sampleDefaults = {};
+        try {
+            originalHtml = templateScript ? JSON.parse(templateScript.textContent || '""') : '';
+        } catch (e) {
+            originalHtml = '';
+        }
+        try {
+            schemaFields = fieldKeysScript ? JSON.parse(fieldKeysScript.textContent || '[]') : [];
+        } catch (e) {
+            schemaFields = [];
+        }
+        try {
+            sampleDefaults = sampleDefaultsScript ? JSON.parse(sampleDefaultsScript.textContent || '{}') : {};
+        } catch (e) {
+            sampleDefaults = {};
+        }
 
+        const placeholderSrc = '{{ asset('assets/images/ad-sample.png') }}';
+        const imageState = {}; // key -> objectURL
+        const textState = {};
+        const staticState = {};
+        const form = preview.closest('form');
         const customHtmlInput = document.getElementById('customHtmlInput');
         const generatedImageDataInput = document.getElementById('generatedImageDataInput');
-        const templateHtml = templateHtmlScript ? JSON.parse(templateHtmlScript.textContent || '""') : '';
-        const sampleDefaults = sampleDefaultsScript ? JSON.parse(sampleDefaultsScript.textContent || '{}') : {};
-        const fields = fieldsScript ? JSON.parse(fieldsScript.textContent || '[]') : [];
+        const alertBox = document.getElementById('adCustomizeAlert');
+        const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0);
+        const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0);
+
+        function scalePreview() {
+            const targetWidth = previewFrame.clientWidth || 0;
+            const targetHeight = previewFrame.clientHeight || 0;
+
+            if (!sourceWidth || !sourceHeight || !targetWidth || !targetHeight) return;
+
+            const scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
+            preview.style.width = sourceWidth + 'px';
+            preview.style.height = sourceHeight + 'px';
+            preview.style.transform = 'scale(' + scale + ')';
+            preview.style.transformOrigin = 'top left';
+        }
+
+        function getFieldByKey(key) {
+            return schemaFields.find((field) => (field && field.key) === key) || null;
+        }
 
         function getDefaultValue(key) {
+            const field = getFieldByKey(key);
+            if (field && typeof field.default !== 'undefined' && field.default !== null && String(field.default).trim() !== '') {
+                return String(field.default);
+            }
+
             if (Object.prototype.hasOwnProperty.call(sampleDefaults, key) && String(sampleDefaults[key]).trim() !== '') {
                 return String(sampleDefaults[key]);
             }
-            return key;
+
+            const map = {
+                headline: 'Grand Opening Sale',
+                subheadline: 'Modern design for real-world promotions',
+                cta: 'Claim Offer',
+                phone: '+1 234 567 8900',
+                website: 'www.yourbrand.com',
+                badge: '50% OFF',
+                line1: 'Up to 50% discount',
+                line2: 'Limited-time launch deal',
+                line3: 'Offer valid this week',
+                offer_text: 'Flat 30% OFF',
+                date_text: 'Offer ends Sunday',
+                location_text: 'Main branch, Downtown',
+            };
+
+            if (Object.prototype.hasOwnProperty.call(map, key)) return map[key];
+            if (field && field.label) return String(field.label);
+            return '';
         }
 
-        function escapeHtml(value) {
-            return String(value || '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
+        function computeTextReplacements() {
+            const map = {};
 
-        function buildPreviewHtml() {
-            let html = String(templateHtml || '');
+            const titleInput = document.querySelector('.js-ad-title');
+            const titleVal = titleInput ? (titleInput.value || '').toString().trim() : '';
+            map.title = titleVal;
 
-            document.querySelectorAll('.js-ad-text').forEach((input) => {
-                const key = input.getAttribute('data-key');
+            document.querySelectorAll('.js-ad-hidden-text').forEach((el) => {
+                const key = el.getAttribute('data-key');
                 if (!key) return;
-                const value = escapeHtml((input.value || '').trim() || getDefaultValue(key));
-                const matcher = new RegExp('\\{\\{\\s*' + key + '\\s*\\}\\}', 'g');
-                html = html.replace(matcher, value);
+                const val = (el.value || '').toString().trim();
+                map[key] = val === '' ? getDefaultValue(key) : val;
             });
-            return html.replace(/\{\{[a-zA-Z][a-zA-Z0-9_]*\}\}/g, '');
+
+            
+            if ((!map.headline || String(map.headline).trim() === '') && titleVal) {
+                map.headline = titleVal;
+            }
+
+            return map;
         }
 
-        function renderPreview() {
-            preview.innerHTML = buildPreviewHtml();
+        function escapeRegExp(str) {
+            return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function renderPreviewHtml() {
+            let html = originalHtml;
+            const replacements = computeTextReplacements();
+            const OPEN = '{' + '{';
+            const CLOSE = '}' + '}';
+
+            Object.keys(replacements).forEach((key) => {
+                const pattern = escapeRegExp(OPEN) + '\\s*' + escapeRegExp(key) + '\\s*' + escapeRegExp(CLOSE);
+                const re = new RegExp(pattern, 'gi');
+                const value = replacements[key] || getDefaultValue(key);
+                textState[key] = value;
+                html = html.replace(re, '<span data-ad-field="' + key + '" contenteditable="true" spellcheck="false">' + escapeHtml(value) + '</span>');
+            });
+
+            preview.innerHTML = html;
+            applyStaticEditable();
+            bindInlineEditors();
+        }
+
+        function applyLiveImages() {
+            preview.querySelectorAll('img').forEach((img) => {
+                if (!img.style.objectFit) {
+                    img.style.objectFit = 'contain';
+                    img.style.objectPosition = 'center';
+                }
+            });
+
             preview.querySelectorAll('img[data-ad-key]').forEach((img) => {
-                img.style.objectFit = 'contain';
-                img.style.objectPosition = 'center';
+                const key = img.getAttribute('data-ad-key');
+                if (!key) return;
+                const existing = (img.getAttribute('src') || '').trim();
+                const desired = imageState[key] || existing || placeholderSrc;
+                img.setAttribute('src', desired);
+                if (!img.style.objectFit) {
+                    img.style.objectFit = 'contain';
+                    img.style.objectPosition = 'center';
+                }
             });
         }
 
-        document.querySelectorAll('.js-ad-text').forEach((input) => {
-            input.addEventListener('input', renderPreview);
+        function escapeHtml(str) {
+            return str
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function updatePreview() {
+            renderPreviewHtml();
+            applyLiveImages();
+            scalePreview();
+        }
+
+        function applyStaticEditable() {
+            const editableNodes = preview.querySelectorAll('div, span, p, li, h1, h2, h3, h4, h5, h6, a, button');
+            let idx = 0;
+            editableNodes.forEach((node) => {
+                if (node.closest('[data-ad-field]')) return;
+                if (node.querySelector('img')) return;
+                if (node.children.length > 0) return;
+                const raw = (node.textContent || '').trim();
+                if (!raw) return;
+                const id = 's_' + idx++;
+                node.setAttribute('data-ad-static-id', id);
+                node.setAttribute('contenteditable', 'true');
+                node.setAttribute('spellcheck', 'false');
+                if (Object.prototype.hasOwnProperty.call(staticState, id)) {
+                    node.textContent = staticState[id];
+                }
+            });
+        }
+
+        function bindInlineEditors() {
+            preview.querySelectorAll('[data-ad-field]').forEach((node) => {
+                node.addEventListener('input', () => {
+                    const key = node.getAttribute('data-ad-field');
+                    if (!key) return;
+                    const val = (node.textContent || '').trim();
+                    textState[key] = val;
+                    const input = document.querySelector('.js-ad-hidden-text[data-key="' + key + '"]');
+                    if (input) input.value = val;
+                });
+            });
+
+            preview.querySelectorAll('[data-ad-static-id]').forEach((node) => {
+                node.addEventListener('input', () => {
+                    const id = node.getAttribute('data-ad-static-id');
+                    if (!id) return;
+                    staticState[id] = node.textContent || '';
+                });
+            });
+
+        }
+
+        document.querySelectorAll('.js-ad-hidden-text').forEach((el) => {
+            el.addEventListener('input', updatePreview);
         });
 
-        fields.forEach((field) => {
-            const key = String(field.key || '');
-            const type = String(field.type || 'text');
-            if (!key || type !== 'image') return;
-            const input = document.querySelector(`.js-ad-image[data-key="${key}"]`);
-            if (!input) return;
-            input.addEventListener('change', () => {
-                const file = input.files && input.files[0];
-                if (!file || !file.type.startsWith('image/')) return;
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    preview.querySelectorAll(`img[data-ad-key="${key}"]`).forEach((img) => {
-                        img.setAttribute('src', String(event.target?.result || ''));
-                    });
-                };
-                reader.readAsDataURL(file);
+        const titleEl = document.querySelector('.js-ad-title');
+        if (titleEl) {
+            titleEl.addEventListener('input', updatePreview);
+        }
+
+        document.querySelectorAll('.js-ad-image').forEach((el) => {
+            el.addEventListener('change', async () => {
+                const key = el.getAttribute('data-key');
+                const file = el.files && el.files[0];
+                if (!key || !file) return;
+                if (imageState[key]) {
+                    try { URL.revokeObjectURL(imageState[key]); } catch (e) {}
+                }
+                imageState[key] = URL.createObjectURL(file);
+                applyLiveImages();
             });
         });
 
-        form.addEventListener('submit', (event) => {
-            if (form.dataset.isSubmitting === '1') return;
-            event.preventDefault();
+        async function exportPreviewAsPng() {
+            const exportWidth = sourceWidth || preview.scrollWidth || 0;
+            const exportHeight = sourceHeight || preview.scrollHeight || 0;
+            const pixelRatio = 4;
+            const clone = preview.cloneNode(true);
+            const sandbox = document.createElement('div');
+            sandbox.style.position = 'fixed';
+            sandbox.style.left = '-10000px';
+            sandbox.style.top = '0';
+            sandbox.style.width = exportWidth + 'px';
+            sandbox.style.height = exportHeight + 'px';
+            sandbox.style.overflow = 'hidden';
+            sandbox.style.zIndex = '-1';
 
-            renderPreview();
-            if (customHtmlInput) customHtmlInput.value = preview.innerHTML;
-            if (generatedImageDataInput) generatedImageDataInput.value = '';
-            form.dataset.isSubmitting = '1';
-            form.submit();
-        });
+            clone.style.position = 'static';
+            clone.style.inset = 'auto';
+            clone.style.left = 'auto';
+            clone.style.right = 'auto';
+            clone.style.top = 'auto';
+            clone.style.bottom = 'auto';
+            clone.style.transform = 'none';
+            clone.style.transformOrigin = 'top left';
+            clone.style.width = exportWidth + 'px';
+            clone.style.height = exportHeight + 'px';
+            clone.style.maxWidth = 'none';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'hidden';
 
-        renderPreview();
+            sandbox.appendChild(clone);
+            document.body.appendChild(sandbox);
+
+            try {
+                if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
+                    try {
+                        return await window.htmlToImage.toPng(clone, {
+                            cacheBust: true,
+                            pixelRatio,
+                            canvasWidth: exportWidth || undefined,
+                            canvasHeight: exportHeight || undefined,
+                            backgroundColor: null,
+                        });
+                    } catch (error) {
+                        // Some stylesheets (e.g. Google Fonts) block cssRules access in html-to-image.
+                        // Fall back to html2canvas instead of failing export.
+                    }
+                }
+
+                if (window.html2canvas) {
+                    const canvas = await window.html2canvas(clone, {
+                        width: exportWidth || clone.scrollWidth,
+                        height: exportHeight || clone.scrollHeight,
+                        windowWidth: exportWidth || clone.scrollWidth,
+                        windowHeight: exportHeight || clone.scrollHeight,
+                        backgroundColor: null,
+                        useCORS: true,
+                        allowTaint: false,
+                        logging: false,
+                        imageTimeout: 10000,
+                        scale: pixelRatio,
+                    });
+                    const context = canvas.getContext('2d');
+                    if (context) {
+                        context.imageSmoothingEnabled = true;
+                        context.imageSmoothingQuality = 'high';
+                    }
+                    return canvas.toDataURL('image/png');
+                }
+            } finally {
+                document.body.removeChild(sandbox);
+            }
+
+            return '';
+        }
+
+        if (form) {
+            form.addEventListener('submit', async (event) => {
+                if (form.dataset.isSubmitting === '1') {
+                    return;
+                }
+                event.preventDefault();
+
+                preview.querySelectorAll('[data-ad-field]').forEach((node) => {
+                    const key = node.getAttribute('data-ad-field');
+                    if (!key) return;
+                    const val = (node.textContent || '').trim();
+                    const input = document.querySelector('.js-ad-hidden-text[data-key="' + key + '"]');
+                    if (input) input.value = val;
+                });
+                if (customHtmlInput) {
+                    const exportWidth = sourceWidth || preview.scrollWidth || 0;
+                    const exportHeight = sourceHeight || preview.scrollHeight || 0;
+                    customHtmlInput.value = '<div class="ad-canvas" style="width:' + exportWidth + 'px;height:' + exportHeight + 'px;overflow:hidden;position:relative;">'
+                        + preview.innerHTML
+                        + '</div>';
+                }
+
+                if (generatedImageDataInput) {
+                    generatedImageDataInput.value = await exportPreviewAsPng();
+                }
+
+                if (!generatedImageDataInput || !generatedImageDataInput.value) {
+                    if (alertBox) {
+                        alertBox.className = 'alert alert-danger';
+                        alertBox.textContent = 'Could not generate ad image. Please re-upload images and try again.';
+                        alertBox.classList.remove('d-none');
+                    }
+                    form.dataset.isSubmitting = '0';
+                    return;
+                }
+
+                form.dataset.isSubmitting = '1';
+                form.submit();
+            });
+        }
+
+        window.addEventListener('resize', scalePreview);
+        updatePreview();
     })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js"></script>
 <script>
     (function () {
         const form = document.querySelector('form[action*="/dashboard/ads/create/"]');
