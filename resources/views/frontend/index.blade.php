@@ -288,7 +288,7 @@
               <img class="side-card-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&q=70" alt="Advertise your business">
               <div class="side-card-body">
                 <h3>Advertise Your Business</h3>
-                <p>Approved admin ads for size 296×132 will appear here.</p>
+                <p>Approved admin ads for size 296×292 will appear here.</p>
                 <button class="btn-learn">Start Campaign</button>
               </div>
             </div>

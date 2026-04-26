@@ -17,7 +17,7 @@ final class AdSizes
             'banner' => ['name' => 'Banner', 'ratio' => '4 / 1', 'w' => 1200, 'h' => 300, 'admin_only' => false],
             'full_page' => ['name' => 'Full page', 'ratio' => '3 / 4', 'w' => 900, 'h' => 1200, 'admin_only' => false],
             'top_categories_ad_1' => ['name' => 'Top Categories Ad 1', 'ratio' => '879 / 118', 'w' => 879, 'h' => 118, 'admin_only' => true],
-            'top_categories_ad_2' => ['name' => 'Top Categories Ad 2', 'ratio' => '296 / 132', 'w' => 296, 'h' => 132, 'admin_only' => true],
+            'top_categories_ad_2' => ['name' => 'Top Categories Ad 2', 'ratio' => '296 / 292', 'w' => 296, 'h' => 292, 'admin_only' => true],
             'sponsored_listings_ad' => ['name' => 'Sponsored Listings Ad', 'ratio' => '296 / 624', 'w' => 296, 'h' => 624, 'admin_only' => true],
             'below_sponsored_ad' => ['name' => 'Below Sponsored Listings Ad', 'ratio' => '1232 / 145', 'w' => 1232, 'h' => 145, 'admin_only' => true],
             'ecommerce_ad' => ['name' => 'E-Commerce Ad', 'ratio' => '289 / 186', 'w' => 289, 'h' => 186, 'admin_only' => true],

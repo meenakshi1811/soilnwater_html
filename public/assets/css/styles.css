@@ -1699,6 +1699,11 @@
     margin-bottom: 0;
     line-height: 1.3;
   }
+
+  .business-side-slider .side-card-img {
+    aspect-ratio: 296 / 292;
+    height: auto;
+  }
   .ecommerce-with-side-ad {
     align-items: stretch !important;
   }
