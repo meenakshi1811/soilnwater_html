@@ -51,6 +51,7 @@
         <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
+            <input type="hidden" name="custom_css" id="customCssInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
             @error('generated_image_data')
                 <div class="alert alert-danger py-2">{{ $message }}</div>
@@ -534,6 +535,50 @@
             return '';
         }
 
+        function absolutizeCssUrls(cssText, baseUrl) {
+            if (!cssText || !baseUrl) return cssText || '';
+
+            return cssText.replace(/url\((['"]?)([^'")]+)\1\)/gi, (match, quote, rawUrl) => {
+                const assetUrl = String(rawUrl || '').trim();
+                if (!assetUrl || assetUrl.startsWith('data:') || assetUrl.startsWith('blob:') || assetUrl.startsWith('http://') || assetUrl.startsWith('https://') || assetUrl.startsWith('//') || assetUrl.startsWith('#')) {
+                    return match;
+                }
+                try {
+                    const absoluteUrl = new URL(assetUrl, baseUrl).href;
+                    return `url(${quote || ''}${absoluteUrl}${quote || ''})`;
+                } catch (error) {
+                    return match;
+                }
+            });
+        }
+
+        async function collectPageCssForExport() {
+            const chunks = [];
+            const styleNodes = document.querySelectorAll('style,link[rel="stylesheet"]');
+
+            for (const node of styleNodes) {
+                if (node.tagName === 'STYLE') {
+                    chunks.push(node.textContent || '');
+                    continue;
+                }
+
+                const href = node.getAttribute('href');
+                if (!href) continue;
+
+                try {
+                    const url = new URL(href, window.location.origin);
+                    const response = await fetch(url.href, { credentials: 'same-origin' });
+                    if (!response.ok) continue;
+                    const cssText = await response.text();
+                    chunks.push(absolutizeCssUrls(cssText, url.href));
+                } catch (error) {
+                    // Skip stylesheets blocked by CORS/network.
+                }
+            }
+
+            return chunks.join('\n');
+        }
+
         if (form) {
             form.addEventListener('submit', async (event) => {
                 if (form.dataset.isSubmitting === '1') {
@@ -554,6 +599,10 @@
                     customHtmlInput.value = '<div class="ad-canvas" style="width:' + exportWidth + 'px;height:' + exportHeight + 'px;overflow:hidden;position:relative;">'
                         + preview.innerHTML
                         + '</div>';
+                }
+                const customCssInput = document.getElementById('customCssInput');
+                if (customCssInput) {
+                    customCssInput.value = await collectPageCssForExport();
                 }
 
                 if (generatedImageDataInput) {

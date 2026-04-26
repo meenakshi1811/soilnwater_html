@@ -179,6 +179,7 @@ class UserAdController extends Controller
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
             'custom_html' => 'nullable|string',
+            'custom_css' => 'nullable|string',
             'generated_image_data' => ['nullable', 'string'],
             'accept_terms' => 'accepted',
             'category_id' => [
@@ -242,13 +243,14 @@ class UserAdController extends Controller
             $layoutHtml = trim((string) ($validated['custom_html'] ?? '')) !== ''
                 ? (string) $validated['custom_html']
                 : (string) $template->layout_html;
+            $layoutCss = (string) ($validated['custom_css'] ?? '');
 
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
             $size = AdSizes::all()[$sizeType] ?? null;
             $targetWidth = (int) ($size['w'] ?? 0);
             $targetHeight = (int) ($size['h'] ?? 0);
-            $finalImagePath = $this->storeGeneratedAdImageFromHtml($renderedHtml, $targetWidth, $targetHeight);
+            $finalImagePath = $this->storeGeneratedAdImageFromHtml($renderedHtml, $layoutCss, $targetWidth, $targetHeight);
             if ($finalImagePath === null) {
                 $finalImagePath = $this->storeGeneratedAdImage(
                     $validated['generated_image_data'] ?? '',
@@ -413,7 +415,7 @@ class UserAdController extends Controller
         return $relativeDirectory.'/'.$fileName;
     }
 
-    private function storeGeneratedAdImageFromHtml(string $renderedHtml, int $targetWidth, int $targetHeight): ?string
+    private function storeGeneratedAdImageFromHtml(string $renderedHtml, string $layoutCss, int $targetWidth, int $targetHeight): ?string
     {
         if (!class_exists(Dompdf::class)) {
             return null;
@@ -433,7 +435,7 @@ class UserAdController extends Controller
             $paperWidth = max(1, $targetWidth);
             $paperHeight = max(1, $targetHeight);
             $dompdf->setPaper([0, 0, $paperWidth, $paperHeight]);
-            $dompdf->loadHtml($this->wrapHtmlForDompdf($renderedHtml, $paperWidth, $paperHeight), 'UTF-8');
+            $dompdf->loadHtml($this->wrapHtmlForDompdf($renderedHtml, $layoutCss, $paperWidth, $paperHeight), 'UTF-8');
             $dompdf->render();
 
             $canvas = $dompdf->getCanvas();
@@ -463,12 +465,16 @@ class UserAdController extends Controller
         }
     }
 
-    private function wrapHtmlForDompdf(string $html, int $width, int $height): string
+    private function wrapHtmlForDompdf(string $html, string $layoutCss, int $width, int $height): string
     {
+        $layoutCss = trim($layoutCss);
+        $sanitizedCss = preg_replace('/<\/?style[^>]*>/i', '', $layoutCss) ?? $layoutCss;
+
         return '<!doctype html><html><head><meta charset="utf-8"><style>'
             .'@page{margin:0;}'
             .'html,body{margin:0;padding:0;width:'.$width.'px;height:'.$height.'px;overflow:hidden;}'
             .'img{max-width:100%;}'
+            .$sanitizedCss
             .'</style></head><body>'.$html.'</body></html>';
     }
 
