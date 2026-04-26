@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -176,7 +177,7 @@ class UserAdController extends Controller
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
             'custom_html' => 'nullable|string',
-            'generated_image_data' => 'nullable|string',
+            'generated_image_data' => ['required', 'string', 'starts_with:data:image/png;base64,'],
             'accept_terms' => 'accepted',
             'category_id' => [
                 'required',
@@ -242,10 +243,7 @@ class UserAdController extends Controller
 
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
-            $finalImagePath = null;
-            if (!empty($validated['generated_image_data'])) {
-                $finalImagePath = $this->storeGeneratedAdImage($validated['generated_image_data']);
-            }
+            $finalImagePath = $this->storeGeneratedAdImage($validated['generated_image_data'] ?? '');
 
             return UserAd::create([
                 'user_id' => $user->id,
@@ -324,15 +322,19 @@ class UserAdController extends Controller
         return $html;
     }
 
-    private function storeGeneratedAdImage(string $base64Png): ?string
+    private function storeGeneratedAdImage(string $base64Png): string
     {
         if (!preg_match('/^data:image\/png;base64,/', $base64Png)) {
-            return null;
+            throw ValidationException::withMessages([
+                'generated_image_data' => 'Unable to generate ad image. Please refresh and try again.',
+            ]);
         }
 
         $decoded = base64_decode(substr($base64Png, strpos($base64Png, ',') + 1), true);
         if ($decoded === false) {
-            return null;
+            throw ValidationException::withMessages([
+                'generated_image_data' => 'Generated ad image data is invalid. Please try again.',
+            ]);
         }
 
         $relativeDirectory = 'uploads/ads/final';
