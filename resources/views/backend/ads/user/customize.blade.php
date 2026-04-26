@@ -453,56 +453,10 @@
             });
         });
 
-        const inlineComputedStyles = (sourceRoot, targetRoot) => {
-            const sourceNodes = [sourceRoot, ...sourceRoot.querySelectorAll('*')];
-            const targetNodes = [targetRoot, ...targetRoot.querySelectorAll('*')];
-            const ignoreOnRoot = new Set([
-                'transform',
-                'transform-origin',
-                'inset',
-                'left',
-                'right',
-                'top',
-                'bottom',
-                'max-width',
-                'max-height',
-            ]);
-
-            sourceNodes.forEach((sourceNode, index) => {
-                const targetNode = targetNodes[index];
-                if (!targetNode || targetNode.nodeType !== 1) return;
-                if (!(sourceNode instanceof Element) || !(targetNode instanceof Element)) return;
-
-                const computed = window.getComputedStyle(sourceNode);
-                let styleText = '';
-                for (let i = 0; i < computed.length; i += 1) {
-                    const prop = computed[i];
-                    if (index === 0 && ignoreOnRoot.has(prop)) continue;
-                    styleText += prop + ':' + computed.getPropertyValue(prop) + ';';
-                }
-
-                targetNode.setAttribute('style', styleText);
-            });
-        };
-
-        const waitForCloneImages = async (root) => {
-            const images = Array.from(root.querySelectorAll('img'));
-            await Promise.all(images.map((img) => {
-                if (img.complete) return Promise.resolve();
-                return new Promise((resolve) => {
-                    img.addEventListener('load', resolve, { once: true });
-                    img.addEventListener('error', resolve, { once: true });
-                });
-            }));
-        };
-
         async function exportPreviewAsPng() {
             const exportWidth = sourceWidth || preview.scrollWidth || 0;
             const exportHeight = sourceHeight || preview.scrollHeight || 0;
-            if (!exportWidth || !exportHeight) {
-                return '';
-            }
-            const pixelRatio = Math.max(3, Math.min(5, window.devicePixelRatio || 1));
+            const pixelRatio = Math.min(4, Math.max(2, window.devicePixelRatio || 1));
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -530,64 +484,14 @@
             sandbox.appendChild(clone);
             document.body.appendChild(sandbox);
 
-            const inlineComputedStyles = (sourceRoot, targetRoot) => {
-                const sourceNodes = [sourceRoot, ...sourceRoot.querySelectorAll('*')];
-                const targetNodes = [targetRoot, ...targetRoot.querySelectorAll('*')];
-                const ignoreOnRoot = new Set([
-                    'transform',
-                    'transform-origin',
-                    'inset',
-                    'left',
-                    'right',
-                    'top',
-                    'bottom',
-                    'max-width',
-                    'max-height',
-                ]);
-
-                sourceNodes.forEach((sourceNode, index) => {
-                    const targetNode = targetNodes[index];
-                    if (!targetNode || targetNode.nodeType !== 1) return;
-                    if (!(sourceNode instanceof Element) || !(targetNode instanceof Element)) return;
-
-                    const computed = window.getComputedStyle(sourceNode);
-                    let styleText = '';
-                    for (let i = 0; i < computed.length; i += 1) {
-                        const prop = computed[i];
-                        if (index === 0 && ignoreOnRoot.has(prop)) continue;
-                        styleText += prop + ':' + computed.getPropertyValue(prop) + ';';
-                    }
-
-                    targetNode.setAttribute('style', styleText);
-                });
-            };
-
-            const waitForCloneImages = async (root) => {
-                const images = Array.from(root.querySelectorAll('img'));
-                await Promise.all(images.map((img) => {
-                    if (img.complete) return Promise.resolve();
-                    return new Promise((resolve) => {
-                        img.addEventListener('load', resolve, { once: true });
-                        img.addEventListener('error', resolve, { once: true });
-                    });
-                }));
-            };
-
             try {
-                if (document.fonts && document.fonts.ready) {
-                    await document.fonts.ready;
-                }
-
-                inlineComputedStyles(preview, clone);
-                await waitForCloneImages(clone);
-
                 if (window.html2canvas) {
                     const canvas = await window.html2canvas(clone, {
-                        width: exportWidth || clone.scrollWidth,
+                        width: sourceWidth || clone.scrollWidth,
                         height: exportHeight || clone.scrollHeight,
                         windowWidth: exportWidth || clone.scrollWidth,
                         windowHeight: exportHeight || clone.scrollHeight,
-                        backgroundColor: '#ffffff',
+                        backgroundColor: null,
                         useCORS: true,
                         scale: pixelRatio,
                     });
@@ -626,10 +530,8 @@
                 if (customHtmlInput) {
                     const exportWidth = sourceWidth || preview.scrollWidth || 0;
                     const exportHeight = sourceHeight || preview.scrollHeight || 0;
-                    const htmlClone = preview.cloneNode(true);
-                    inlineComputedStyles(preview, htmlClone);
-                    customHtmlInput.value = '<div class="ad-canvas" style="width:' + exportWidth + 'px;height:' + exportHeight + 'px;overflow:hidden;position:relative;background:#fff;">'
-                        + htmlClone.innerHTML
+                    customHtmlInput.value = '<div class="ad-canvas" style="width:' + exportWidth + 'px;height:' + exportHeight + 'px;overflow:hidden;position:relative;">'
+                        + preview.innerHTML
                         + '</div>';
                 }
 
