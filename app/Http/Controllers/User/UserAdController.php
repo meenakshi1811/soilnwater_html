@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Spatie\Browsershot\Browsershot;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserAdController extends Controller
@@ -177,7 +178,7 @@ class UserAdController extends Controller
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
             'custom_html' => 'nullable|string',
-            'generated_image_data' => ['required', 'string', 'starts_with:data:image/png;base64,'],
+            'generated_image_data' => ['nullable', 'string', 'starts_with:data:image/png;base64,'],
             'accept_terms' => 'accepted',
             'category_id' => [
                 'required',
@@ -244,11 +245,16 @@ class UserAdController extends Controller
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
             $size = AdSizes::all()[$sizeType] ?? null;
-            $finalImagePath = $this->storeGeneratedAdImage(
-                $validated['generated_image_data'] ?? '',
-                (int) ($size['w'] ?? 0),
-                (int) ($size['h'] ?? 0),
-            );
+            $targetWidth = (int) ($size['w'] ?? 0);
+            $targetHeight = (int) ($size['h'] ?? 0);
+            $finalImagePath = $this->renderHtmlToImageAndStore($renderedHtml, $targetWidth, $targetHeight);
+            if ($finalImagePath === null) {
+                $finalImagePath = $this->storeGeneratedAdImage(
+                    $validated['generated_image_data'] ?? '',
+                    $targetWidth,
+                    $targetHeight,
+                );
+            }
 
             return UserAd::create([
                 'user_id' => $user->id,
@@ -374,6 +380,56 @@ class UserAdController extends Controller
         $fileName = 'ad-'.Str::uuid().'.png';
         $absolutePath = $absoluteDirectory.'/'.$fileName;
         file_put_contents($absolutePath, $decoded);
+        $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
+
+        return $relativeDirectory.'/'.$fileName;
+    }
+
+    private function renderHtmlToImageAndStore(string $renderedHtml, int $targetWidth, int $targetHeight): ?string
+    {
+        if ($targetWidth <= 0 || $targetHeight <= 0) {
+            return null;
+        }
+
+        if (!class_exists(Browsershot::class)) {
+            return null;
+        }
+
+        $relativeDirectory = 'uploads/ads/final';
+        $absoluteDirectory = public_path($relativeDirectory);
+        if (!is_dir($absoluteDirectory)) {
+            mkdir($absoluteDirectory, 0755, true);
+        }
+
+        $fileName = 'ad-'.Str::uuid().'.png';
+        $absolutePath = $absoluteDirectory.'/'.$fileName;
+
+        $htmlDocument = '<!doctype html><html><head><meta charset="utf-8"><style>'
+            .'html,body{margin:0;padding:0;background:#fff;width:'.$targetWidth.'px;height:'.$targetHeight.'px;overflow:hidden;}'
+            .'.ad-canvas{width:'.$targetWidth.'px !important;height:'.$targetHeight.'px !important;overflow:hidden;position:relative;}'
+            .'img{max-width:100%;}'
+            .'</style></head><body>'
+            .$renderedHtml
+            .'</body></html>';
+
+        try {
+            Browsershot::html($htmlDocument)
+                ->windowSize($targetWidth, $targetHeight)
+                ->deviceScaleFactor(2)
+                ->showBackground()
+                ->save($absolutePath);
+        } catch (\Throwable $e) {
+            if (is_file($absolutePath)) {
+                @unlink($absolutePath);
+            }
+
+            return null;
+        }
+
+        if (!is_file($absolutePath)) {
+            return null;
+        }
+
         $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
 
         return $relativeDirectory.'/'.$fileName;
