@@ -356,11 +356,13 @@
                 text: String(text || 'Text'),
                 x: options.x ?? 40,
                 y: options.y ?? 40,
-                fontSize: options.fontSize ?? 42,
+                width: options.width ?? Math.round(designer.width * 0.7),
+                fontSize: options.fontSize ?? 28,
                 color: options.color ?? '#111111',
                 fontFamily: options.fontFamily ?? 'Arial',
                 fontWeight: options.fontWeight ?? '700',
                 align: options.align ?? 'left',
+                lineHeight: options.lineHeight ?? 1.25,
                 sourceTag: options.sourceTag || null,
                 locked: !!options.locked,
             });
@@ -402,11 +404,43 @@
             if (layer.type === 'image') {
                 layer.width = clamp(layer.width, 40, designer.width);
                 layer.height = clamp(layer.height, 40, designer.height);
+            } else {
+                layer.width = clamp(layer.width || Math.round(designer.width * 0.7), 120, designer.width);
             }
-            const maxX = designer.width - (layer.type === 'image' ? layer.width : 20);
-            const maxY = designer.height - (layer.type === 'image' ? layer.height : 20);
+            const textHeight = layer.type === 'text' ? getTextLayerHeight(layer) : 20;
+            const maxX = designer.width - (layer.type === 'image' ? layer.width : layer.width);
+            const maxY = designer.height - (layer.type === 'image' ? layer.height : textHeight);
             layer.x = clamp(layer.x, 0, Math.max(0, maxX));
             layer.y = clamp(layer.y, 0, Math.max(0, maxY));
+        }
+
+        function wrapTextLines(text, maxCharsPerLine) {
+            const cleanText = String(text || '');
+            if (!cleanText) return [''];
+            const lines = [];
+            cleanText.split('\n').forEach((paragraph) => {
+                const words = paragraph.split(' ');
+                let current = '';
+                words.forEach((word) => {
+                    const next = current ? `${current} ${word}` : word;
+                    if (next.length <= maxCharsPerLine) {
+                        current = next;
+                    } else {
+                        if (current) lines.push(current);
+                        current = word;
+                    }
+                });
+                if (current) lines.push(current);
+                if (!words.length) lines.push('');
+            });
+            return lines.length ? lines : [''];
+        }
+
+        function getTextLayerHeight(layer) {
+            const approxChars = Math.max(8, Math.floor((layer.width || 260) / Math.max(8, (layer.fontSize || 24) * 0.55)));
+            const lineCount = wrapTextLines(layer.text, approxChars).length;
+            const lineHeightPx = (layer.fontSize || 24) * (layer.lineHeight || 1.25);
+            return Math.max(lineHeightPx, lineCount * lineHeightPx);
         }
 
         function syncControlsFromActive() {
@@ -462,12 +496,15 @@
 
                 if (layer.type === 'text') {
                     node.textContent = layer.text;
+                    node.style.width = (layer.width || Math.round(designer.width * 0.7)) + 'px';
                     node.style.fontSize = layer.fontSize + 'px';
                     node.style.color = layer.color;
                     node.style.fontWeight = layer.fontWeight;
                     node.style.fontFamily = layer.fontFamily;
                     node.style.textAlign = layer.align;
-                    node.style.whiteSpace = 'pre-line';
+                    node.style.whiteSpace = 'pre-wrap';
+                    node.style.wordBreak = 'break-word';
+                    node.style.lineHeight = String(layer.lineHeight || 1.25);
                     node.contentEditable = layer.locked ? 'false' : 'true';
                 } else {
                     node.style.width = layer.width + 'px';
@@ -562,6 +599,7 @@
                     layer.color = textColor.value || '#111111';
                     layer.fontWeight = textBold.checked ? '700' : '400';
                     layer.align = textAlign.value || 'left';
+                    ensureLayerBounds(layer);
                     render();
                 });
             });
@@ -585,7 +623,7 @@
             });
 
             addTextLayerBtn.addEventListener('click', () => {
-                addTextLayer('New Text', { x: 60, y: 60, fontSize: 40, color: '#111111', fontWeight: '700' });
+                addTextLayer('New Text', { x: 60, y: 60, width: Math.round(designer.width * 0.6), fontSize: 28, color: '#111111', fontWeight: '700' });
                 render();
             });
 
@@ -642,13 +680,25 @@
                 toBack: true,
             });
 
-            let offsetY = 60;
-            document.querySelectorAll('.js-ad-hidden-text').forEach((input) => {
+            const textInputs = Array.from(document.querySelectorAll('.js-ad-hidden-text'));
+            const textCount = Math.max(1, textInputs.length);
+            const defaultFont = clamp(Math.round(designer.height / (textCount * 3.6)), 16, 34);
+            const gap = Math.max(22, Math.round(defaultFont * 1.8));
+            const defaultWidth = Math.round(designer.width * 0.72);
+            let offsetY = 24;
+            textInputs.forEach((input) => {
                 const key = input.getAttribute('data-key');
                 if (!key) return;
                 const seed = (input.value || '').trim() || getDefaultValue(key);
-                addTextLayer(seed, { x: 60, y: offsetY, fontSize: 42, color: '#111111', sourceTag: key });
-                offsetY += 72;
+                addTextLayer(seed, {
+                    x: Math.round(designer.width * 0.08),
+                    y: offsetY,
+                    width: defaultWidth,
+                    fontSize: defaultFont,
+                    color: '#111111',
+                    sourceTag: key
+                });
+                offsetY += gap;
             });
             render();
         }
@@ -684,13 +734,15 @@
                 ctx.font = `${layer.fontWeight || '700'} ${layer.fontSize || 42}px ${layer.fontFamily || 'Arial'}`;
                 ctx.textAlign = layer.align || 'left';
                 ctx.textBaseline = 'top';
-                const lines = String(layer.text || '').split('\n');
-                const lineHeight = Math.round((layer.fontSize || 42) * 1.2);
+                const maxWidth = layer.width || Math.round(designer.width * 0.7);
+                const approxChars = Math.max(8, Math.floor(maxWidth / Math.max(8, (layer.fontSize || 24) * 0.55)));
+                const lines = wrapTextLines(layer.text, approxChars);
+                const lineHeight = Math.round((layer.fontSize || 42) * (layer.lineHeight || 1.25));
                 lines.forEach((line, idx) => {
                     let x = layer.x;
-                    if (ctx.textAlign === 'center') x += 150;
-                    if (ctx.textAlign === 'right') x += 300;
-                    ctx.fillText(line, x, layer.y + (idx * lineHeight), 320);
+                    if (ctx.textAlign === 'center') x += maxWidth / 2;
+                    if (ctx.textAlign === 'right') x += maxWidth;
+                    ctx.fillText(line, x, layer.y + (idx * lineHeight), maxWidth);
                 });
                 resolve(drawLayer(index + 1));
             });
