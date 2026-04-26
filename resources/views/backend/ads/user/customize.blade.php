@@ -195,10 +195,11 @@
 
                 <div class="col-12 col-lg-7">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-                        <h5 class="mb-0">Live Preview</h5>
+                        <h5 class="mb-0">Image Template Designer</h5>
                         <span class="text-secondary small">{{ $size['w'] }}×{{ $size['h'] }}</span>
                     </div>
-                    <div class="row g-2 mb-3">
+                    <div class="template-customizer-wrap mb-3">
+                        <div class="row g-2 mb-2">
                         <div class="col-6 col-md-3">
                             <label class="form-label mb-1 small text-secondary">Font Family</label>
                             <select class="form-select form-select-sm" id="adFontFamilyControl">
@@ -234,25 +235,46 @@
                                 <option value="right">Right</option>
                             </select>
                         </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label mb-1 small text-secondary">Image Width</label>
+                            <input type="number" class="form-control form-control-sm" id="adImageWidthControl" min="40" max="{{ $size['w'] }}" value="220" disabled>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label mb-1 small text-secondary">Image Height</label>
+                            <input type="number" class="form-control form-control-sm" id="adImageHeightControl" min="40" max="{{ $size['h'] }}" value="220" disabled>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label mb-1 small text-secondary">Template Background (optional)</label>
+                            <input type="file" class="form-control form-control-sm" id="adTemplateBgImageControl" accept="image/png,image/jpeg,image/webp">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label mb-1 small text-secondary d-block">Layers</label>
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100" id="addAdTextLayerBtn">+ Add Text</button>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label mb-1 small text-secondary d-block">Remove</label>
+                            <button type="button" class="btn btn-outline-danger btn-sm w-100" id="removeAdLayerBtn">Remove Selected</button>
+                        </div>
                     </div>
 
-                    <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] }};">
                         <div
-                            class="ads-live-preview-inner"
-                            id="adPreviewFrame"
+                            id="adDesignerStage"
+                            class="banner-designer-stage"
+                            style="aspect-ratio: {{ $size['w'] }} / {{ $size['h'] }}; background:#ffffff;"
                             data-source-width="{{ $size['w'] }}"
                             data-source-height="{{ $size['h'] }}"
                         >
-                            <div class="ads-mini-preview-inner" id="adPreview">
-                                {!! $template->layout_html !!}
-                            </div>
                         </div>
                     </div>
-                    <script type="application/json" id="adTemplateHtml">@json($template->layout_html)</script>
                     <script type="application/json" id="adTemplateFieldKeys">@json($fields)</script>
                     <script type="application/json" id="adTemplateSampleDefaults">@json($sampleDefaults)</script>
+                    <script type="application/json" id="adTemplateBackgroundUrl">@json(!empty($template->preview_image) ? asset($template->preview_image) : asset('assets/images/ad-sample.png'))</script>
 
-                    <small class="text-secondary d-block mt-2">Tip: Click text in preview to edit content, font, size, color, bold, and alignment. Final ad is exported as an image.</small>
+                    <small class="text-secondary d-block mt-2">Template is now edited as an image canvas. Drag layers, edit text/font, and submit the generated image (post-offer style flow).</small>
+                    <div class="small text-secondary mt-1">
+                        <span class="d-inline-block me-2">• Text and image layers are draggable.</span>
+                        <span class="d-inline-block">• Use mouse wheel on selected image to resize quickly.</span>
+                    </div>
                 </div>
             </div>
 
@@ -270,496 +292,430 @@
 @push('scripts')
 <script>
     (function () {
-        const previewFrame = document.getElementById('adPreviewFrame');
-        const preview = document.getElementById('adPreview');
-        if (!previewFrame || !preview) return;
+        const stage = document.getElementById('adDesignerStage');
+        const form = document.querySelector('form[action*="/dashboard/ads/create/"]');
+        if (!stage || !form) return;
 
-        const templateScript = document.getElementById('adTemplateHtml');
         const fieldKeysScript = document.getElementById('adTemplateFieldKeys');
         const sampleDefaultsScript = document.getElementById('adTemplateSampleDefaults');
-        let originalHtml = '';
-        let schemaFields = [];
-        let sampleDefaults = {};
-        try {
-            originalHtml = templateScript ? JSON.parse(templateScript.textContent || '""') : '';
-        } catch (e) {
-            originalHtml = '';
-        }
-        try {
-            schemaFields = fieldKeysScript ? JSON.parse(fieldKeysScript.textContent || '[]') : [];
-        } catch (e) {
-            schemaFields = [];
-        }
-        try {
-            sampleDefaults = sampleDefaultsScript ? JSON.parse(sampleDefaultsScript.textContent || '{}') : {};
-        } catch (e) {
-            sampleDefaults = {};
-        }
+        const templateBgScript = document.getElementById('adTemplateBackgroundUrl');
 
-        const placeholderSrc = '{{ asset('assets/images/ad-sample.png') }}';
-        const imageState = {}; // key -> objectURL
-        const textState = {};
-        const staticState = {};
-        const styleState = {};
-        let activeTextNode = null;
-        const form = preview.closest('form');
+        const sourceWidth = Number(stage.getAttribute('data-source-width') || 0);
+        const sourceHeight = Number(stage.getAttribute('data-source-height') || 0);
+
         const customHtmlInput = document.getElementById('customHtmlInput');
         const generatedImageDataInput = document.getElementById('generatedImageDataInput');
-        const alertBox = document.getElementById('adCustomizeAlert');
-        const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0);
-        const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0);
+        const schemaFields = fieldKeysScript ? JSON.parse(fieldKeysScript.textContent || '[]') : [];
+        const sampleDefaults = sampleDefaultsScript ? JSON.parse(sampleDefaultsScript.textContent || '{}') : {};
+        const templateBackgroundUrl = templateBgScript ? JSON.parse(templateBgScript.textContent || '""') : '';
 
-        function scalePreview() {
-            const targetWidth = previewFrame.clientWidth || 0;
-            const targetHeight = previewFrame.clientHeight || 0;
+        const fontFamily = document.getElementById('adFontFamilyControl');
+        const fontSize = document.getElementById('adFontSizeControl');
+        const textColor = document.getElementById('adTextColorControl');
+        const textBold = document.getElementById('adTextBoldControl');
+        const textAlign = document.getElementById('adTextAlignControl');
+        const imageWidth = document.getElementById('adImageWidthControl');
+        const imageHeight = document.getElementById('adImageHeightControl');
+        const addTextLayerBtn = document.getElementById('addAdTextLayerBtn');
+        const removeLayerBtn = document.getElementById('removeAdLayerBtn');
+        const templateBgInput = document.getElementById('adTemplateBgImageControl');
 
-            if (!sourceWidth || !sourceHeight || !targetWidth || !targetHeight) return;
+        const designer = {
+            width: sourceWidth,
+            height: sourceHeight,
+            layers: [],
+            activeId: null,
+            drag: null,
+            counter: 0,
+        };
 
-            const scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
-            preview.style.width = sourceWidth + 'px';
-            preview.style.height = sourceHeight + 'px';
-            preview.style.transform = 'scale(' + scale + ')';
-            preview.style.transformOrigin = 'top left';
+        function uid(prefix) {
+            designer.counter += 1;
+            return prefix + '_' + designer.counter;
         }
 
-        function getFieldByKey(key) {
-            return schemaFields.find((field) => (field && field.key) === key) || null;
+        function clamp(val, min, max) {
+            return Math.max(min, Math.min(max, val));
         }
 
         function getDefaultValue(key) {
-            const field = getFieldByKey(key);
-            if (field && typeof field.default !== 'undefined' && field.default !== null && String(field.default).trim() !== '') {
-                return String(field.default);
-            }
-
             if (Object.prototype.hasOwnProperty.call(sampleDefaults, key) && String(sampleDefaults[key]).trim() !== '') {
                 return String(sampleDefaults[key]);
             }
-
-            const map = {
-                headline: 'Grand Opening Sale',
-                subheadline: 'Modern design for real-world promotions',
-                cta: 'Claim Offer',
-                phone: '+1 234 567 8900',
-                website: 'www.yourbrand.com',
-                badge: '50% OFF',
-                line1: 'Up to 50% discount',
-                line2: 'Limited-time launch deal',
-                line3: 'Offer valid this week',
-                offer_text: 'Flat 30% OFF',
-                date_text: 'Offer ends Sunday',
-                location_text: 'Main branch, Downtown',
-            };
-
-            if (Object.prototype.hasOwnProperty.call(map, key)) return map[key];
-            if (field && field.label) return String(field.label);
-            return '';
+            return key;
         }
 
-        function computeTextReplacements() {
-            const map = {};
+        function addLayer(layer) {
+            designer.layers.push(layer);
+        }
 
-            const titleInput = document.querySelector('.js-ad-title');
-            const titleVal = titleInput ? (titleInput.value || '').toString().trim() : '';
-            map.title = titleVal;
-
-            document.querySelectorAll('.js-ad-hidden-text').forEach((el) => {
-                const key = el.getAttribute('data-key');
-                if (!key) return;
-                const val = (el.value || '').toString().trim();
-                map[key] = val === '' ? getDefaultValue(key) : val;
+        function addTextLayer(text, options = {}) {
+            addLayer({
+                id: uid('txt'),
+                type: 'text',
+                text: String(text || 'Text'),
+                x: options.x ?? 40,
+                y: options.y ?? 40,
+                fontSize: options.fontSize ?? 42,
+                color: options.color ?? '#111111',
+                fontFamily: options.fontFamily ?? 'Arial',
+                fontWeight: options.fontWeight ?? '700',
+                align: options.align ?? 'left',
+                sourceTag: options.sourceTag || null,
+                locked: !!options.locked,
             });
+        }
 
-            
-            if ((!map.headline || String(map.headline).trim() === '') && titleVal) {
-                map.headline = titleVal;
+        function addImageLayer(src, options = {}) {
+            const img = new Image();
+            img.onload = function () {
+                const ratio = img.width / img.height || 1;
+                const width = options.width ?? Math.round(designer.width * 0.3);
+                const height = options.height ?? Math.round(width / ratio);
+                addLayer({
+                    id: uid('img'),
+                    type: 'image',
+                    src,
+                    x: options.x ?? Math.round((designer.width - width) / 2),
+                    y: options.y ?? Math.round((designer.height - height) / 2),
+                    width: clamp(width, 40, designer.width),
+                    height: clamp(height, 40, designer.height),
+                    aspectRatio: ratio,
+                    sourceTag: options.sourceTag || null,
+                    locked: !!options.locked,
+                    toBack: !!options.toBack,
+                });
+                if (options.toBack) {
+                    const layer = designer.layers.pop();
+                    designer.layers.unshift(layer);
+                }
+                render();
+            };
+            img.src = src;
+        }
+
+        function getActiveLayer() {
+            return designer.layers.find((layer) => layer.id === designer.activeId) || null;
+        }
+
+        function ensureLayerBounds(layer) {
+            if (layer.type === 'image') {
+                layer.width = clamp(layer.width, 40, designer.width);
+                layer.height = clamp(layer.height, 40, designer.height);
+            }
+            const maxX = designer.width - (layer.type === 'image' ? layer.width : 20);
+            const maxY = designer.height - (layer.type === 'image' ? layer.height : 20);
+            layer.x = clamp(layer.x, 0, Math.max(0, maxX));
+            layer.y = clamp(layer.y, 0, Math.max(0, maxY));
+        }
+
+        function syncControlsFromActive() {
+            const layer = getActiveLayer();
+            const isText = !!layer && layer.type === 'text';
+            const isImage = !!layer && layer.type === 'image';
+
+            fontFamily.disabled = !isText;
+            fontSize.disabled = !isText;
+            textColor.disabled = !isText;
+            textBold.disabled = !isText;
+            textAlign.disabled = !isText;
+
+            imageWidth.disabled = !isImage;
+            imageHeight.disabled = !isImage;
+
+            if (isText) {
+                fontFamily.value = layer.fontFamily || 'Arial';
+                fontSize.value = layer.fontSize || 42;
+                textColor.value = layer.color || '#111111';
+                textBold.checked = String(layer.fontWeight) === '700';
+                textAlign.value = layer.align || 'left';
             }
 
-            return map;
-        }
-
-        function escapeRegExp(str) {
-            return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
-
-        function renderPreviewHtml() {
-            let html = originalHtml;
-            const replacements = computeTextReplacements();
-            const OPEN = '{' + '{';
-            const CLOSE = '}' + '}';
-
-            Object.keys(replacements).forEach((key) => {
-                const pattern = escapeRegExp(OPEN) + '\\s*' + escapeRegExp(key) + '\\s*' + escapeRegExp(CLOSE);
-                const re = new RegExp(pattern, 'gi');
-                const value = replacements[key] || getDefaultValue(key);
-                textState[key] = value;
-                html = html.replace(re, '<span data-ad-field="' + key + '" contenteditable="true" spellcheck="false">' + escapeHtml(value) + '</span>');
-            });
-
-            preview.innerHTML = html;
-            applyStaticEditable();
-            bindInlineEditors();
-        }
-
-        function applyLiveImages() {
-            preview.querySelectorAll('img').forEach((img) => {
-                if (!img.style.objectFit) {
-                    img.style.objectFit = 'contain';
-                    img.style.objectPosition = 'center';
-                }
-            });
-
-            preview.querySelectorAll('img[data-ad-key]').forEach((img) => {
-                const key = img.getAttribute('data-ad-key');
-                if (!key) return;
-                const existing = (img.getAttribute('src') || '').trim();
-                const desired = imageState[key] || existing || placeholderSrc;
-                img.setAttribute('src', desired);
-                if (!img.style.objectFit) {
-                    img.style.objectFit = 'contain';
-                    img.style.objectPosition = 'center';
-                }
-            });
-        }
-
-        function escapeHtml(str) {
-            return str
-                .replaceAll('&', '&amp;')
-                .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
-                .replaceAll('"', '&quot;')
-                .replaceAll("'", '&#039;');
-        }
-
-        function updatePreview() {
-            renderPreviewHtml();
-            applyLiveImages();
-            scalePreview();
-        }
-
-        function applyStaticEditable() {
-            const editableNodes = preview.querySelectorAll('div, span, p, li, h1, h2, h3, h4, h5, h6, a, button');
-            let idx = 0;
-            editableNodes.forEach((node) => {
-                if (node.closest('[data-ad-field]')) return;
-                if (node.querySelector('img')) return;
-                if (node.children.length > 0) return;
-                const raw = (node.textContent || '').trim();
-                if (!raw) return;
-                const id = 's_' + idx++;
-                node.setAttribute('data-ad-static-id', id);
-                node.setAttribute('contenteditable', 'true');
-                node.setAttribute('spellcheck', 'false');
-                if (Object.prototype.hasOwnProperty.call(staticState, id)) {
-                    node.textContent = staticState[id];
-                }
-                applySavedStyle(node, 'static:' + id);
-            });
-        }
-
-        function applySavedStyle(node, styleKey) {
-            const style = styleState[styleKey];
-            if (!style) return;
-
-            if (style.fontFamily) node.style.fontFamily = style.fontFamily;
-            if (style.fontSize) node.style.fontSize = style.fontSize;
-            if (style.color) node.style.color = style.color;
-            if (style.fontWeight) node.style.fontWeight = style.fontWeight;
-            if (style.textAlign) node.style.textAlign = style.textAlign;
-        }
-
-        function extractNodeStyle(node) {
-            const computed = window.getComputedStyle(node);
-            return {
-                fontFamily: node.style.fontFamily || computed.fontFamily || 'Arial',
-                fontSize: node.style.fontSize || computed.fontSize || '24px',
-                color: node.style.color || computed.color || '#111111',
-                fontWeight: node.style.fontWeight || computed.fontWeight || '400',
-                textAlign: node.style.textAlign || computed.textAlign || 'left',
-            };
-        }
-
-        function styleKeyForNode(node) {
-            if (node.hasAttribute('data-ad-field')) {
-                return 'field:' + node.getAttribute('data-ad-field');
+            if (isImage) {
+                imageWidth.value = layer.width || 220;
+                imageHeight.value = layer.height || 220;
             }
-            if (node.hasAttribute('data-ad-static-id')) {
-                return 'static:' + node.getAttribute('data-ad-static-id');
-            }
-            return '';
         }
 
-        function rgbToHex(color) {
-            const match = String(color || '').match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
-            if (!match) return '#111111';
-            const toHex = (num) => Number(num).toString(16).padStart(2, '0');
-            return '#' + toHex(match[1]) + toHex(match[2]) + toHex(match[3]);
-        }
-
-        function bindStyleControls() {
-            const fontFamily = document.getElementById('adFontFamilyControl');
-            const fontSize = document.getElementById('adFontSizeControl');
-            const textColor = document.getElementById('adTextColorControl');
-            const textBold = document.getElementById('adTextBoldControl');
-            const textAlign = document.getElementById('adTextAlignControl');
-            if (!fontFamily || !fontSize || !textColor || !textBold || !textAlign) return;
-
-            const syncFromNode = (node) => {
-                const style = extractNodeStyle(node);
-                fontFamily.value = style.fontFamily.split(',')[0].replace(/['"]/g, '').trim() || 'Arial';
-                fontSize.value = parseInt(style.fontSize, 10) || 24;
-                textColor.value = rgbToHex(style.color);
-                textBold.checked = Number(style.fontWeight) >= 600 || String(style.fontWeight).toLowerCase() === 'bold';
-                textAlign.value = ['left', 'center', 'right'].includes(style.textAlign) ? style.textAlign : 'left';
-            };
-
-            const applyToActive = () => {
-                if (!activeTextNode) return;
-                activeTextNode.style.fontFamily = fontFamily.value || 'Arial';
-                activeTextNode.style.fontSize = (parseInt(fontSize.value || '24', 10) || 24) + 'px';
-                activeTextNode.style.color = textColor.value || '#111111';
-                activeTextNode.style.fontWeight = textBold.checked ? '700' : '400';
-                activeTextNode.style.textAlign = textAlign.value || 'left';
-
-                const key = styleKeyForNode(activeTextNode);
+        function syncHiddenTextInputs() {
+            document.querySelectorAll('.js-ad-hidden-text').forEach((input) => {
+                const key = input.getAttribute('data-key');
                 if (!key) return;
-                styleState[key] = {
-                    fontFamily: activeTextNode.style.fontFamily,
-                    fontSize: activeTextNode.style.fontSize,
-                    color: activeTextNode.style.color,
-                    fontWeight: activeTextNode.style.fontWeight,
-                    textAlign: activeTextNode.style.textAlign,
+                const layer = designer.layers.find((item) => item.type === 'text' && item.sourceTag === key);
+                input.value = layer ? layer.text : getDefaultValue(key);
+            });
+        }
+
+        function render() {
+            stage.innerHTML = '';
+            designer.layers.forEach((layer) => {
+                const node = document.createElement('div');
+                node.className = 'banner-designer-layer ' + (layer.type === 'text' ? 'text-layer' : 'image-layer') + (layer.id === designer.activeId ? ' active' : '');
+                node.dataset.layerId = layer.id;
+                node.style.left = layer.x + 'px';
+                node.style.top = layer.y + 'px';
+                node.style.zIndex = String(layer.type === 'image' && layer.toBack ? 1 : 2);
+
+                if (layer.locked) {
+                    node.style.cursor = 'default';
+                }
+
+                if (layer.type === 'text') {
+                    node.textContent = layer.text;
+                    node.style.fontSize = layer.fontSize + 'px';
+                    node.style.color = layer.color;
+                    node.style.fontWeight = layer.fontWeight;
+                    node.style.fontFamily = layer.fontFamily;
+                    node.style.textAlign = layer.align;
+                    node.style.whiteSpace = 'pre-line';
+                    node.contentEditable = layer.locked ? 'false' : 'true';
+                } else {
+                    node.style.width = layer.width + 'px';
+                    node.style.height = layer.height + 'px';
+                    const img = document.createElement('img');
+                    img.src = layer.src;
+                    img.alt = 'Layer';
+                    node.appendChild(img);
+                }
+
+                stage.appendChild(node);
+            });
+            syncControlsFromActive();
+            syncHiddenTextInputs();
+        }
+
+        function setActiveLayer(layerId) {
+            designer.activeId = layerId;
+            render();
+        }
+
+        function bindControls() {
+            stage.addEventListener('click', (event) => {
+                const node = event.target.closest('.banner-designer-layer');
+                if (!node) return;
+                setActiveLayer(node.dataset.layerId);
+            });
+
+            stage.addEventListener('input', (event) => {
+                const node = event.target.closest('.banner-designer-layer.text-layer');
+                if (!node) return;
+                const layer = designer.layers.find((item) => item.id === node.dataset.layerId);
+                if (!layer || layer.locked) return;
+                layer.text = (node.textContent || '').slice(0, 200);
+                syncHiddenTextInputs();
+            });
+
+            stage.addEventListener('mousedown', (event) => {
+                const node = event.target.closest('.banner-designer-layer');
+                if (!node) return;
+                const layer = designer.layers.find((item) => item.id === node.dataset.layerId);
+                if (!layer || layer.locked) return;
+                setActiveLayer(layer.id);
+                const rect = stage.getBoundingClientRect();
+                designer.drag = {
+                    id: layer.id,
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    origX: layer.x,
+                    origY: layer.y,
+                    scaleX: designer.width / rect.width,
+                    scaleY: designer.height / rect.height,
                 };
-            };
+                event.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (event) => {
+                if (!designer.drag) return;
+                const layer = designer.layers.find((item) => item.id === designer.drag.id);
+                if (!layer) return;
+                const dx = (event.clientX - designer.drag.startX) * designer.drag.scaleX;
+                const dy = (event.clientY - designer.drag.startY) * designer.drag.scaleY;
+                layer.x = designer.drag.origX + dx;
+                layer.y = designer.drag.origY + dy;
+                ensureLayerBounds(layer);
+                render();
+            });
+
+            document.addEventListener('mouseup', () => {
+                designer.drag = null;
+            });
+
+            stage.addEventListener('wheel', (event) => {
+                const node = event.target.closest('.banner-designer-layer.image-layer');
+                if (!node) return;
+                const layer = designer.layers.find((item) => item.id === node.dataset.layerId);
+                if (!layer || layer.locked) return;
+                const delta = event.deltaY < 0 ? 20 : -20;
+                layer.width = clamp((layer.width || 220) + delta, 40, designer.width);
+                if (layer.aspectRatio > 0) layer.height = Math.round(layer.width / layer.aspectRatio);
+                ensureLayerBounds(layer);
+                render();
+                event.preventDefault();
+            }, { passive: false });
 
             [fontFamily, fontSize, textColor, textBold, textAlign].forEach((control) => {
-                control.addEventListener('input', applyToActive);
-                control.addEventListener('change', applyToActive);
-            });
-
-            preview.addEventListener('click', (event) => {
-                const target = event.target.closest('[data-ad-field], [data-ad-static-id]');
-                if (!target || !preview.contains(target)) return;
-                activeTextNode = target;
-                syncFromNode(target);
-            });
-        }
-
-        function bindInlineEditors() {
-            preview.querySelectorAll('[data-ad-field]').forEach((node) => {
-                applySavedStyle(node, 'field:' + (node.getAttribute('data-ad-field') || ''));
-                node.addEventListener('input', () => {
-                    const key = node.getAttribute('data-ad-field');
-                    if (!key) return;
-                    const val = (node.textContent || '').trim();
-                    textState[key] = val;
-                    const input = document.querySelector('.js-ad-hidden-text[data-key="' + key + '"]');
-                    if (input) input.value = val;
+                control.addEventListener('input', () => {
+                    const layer = getActiveLayer();
+                    if (!layer || layer.type !== 'text' || layer.locked) return;
+                    layer.fontFamily = fontFamily.value || 'Arial';
+                    layer.fontSize = clamp(parseInt(fontSize.value || '42', 10), 8, 200);
+                    layer.color = textColor.value || '#111111';
+                    layer.fontWeight = textBold.checked ? '700' : '400';
+                    layer.align = textAlign.value || 'left';
+                    render();
                 });
             });
 
-            preview.querySelectorAll('[data-ad-static-id]').forEach((node) => {
-                node.addEventListener('input', () => {
-                    const id = node.getAttribute('data-ad-static-id');
-                    if (!id) return;
-                    staticState[id] = node.textContent || '';
+            imageWidth.addEventListener('input', () => {
+                const layer = getActiveLayer();
+                if (!layer || layer.type !== 'image' || layer.locked) return;
+                layer.width = clamp(parseInt(imageWidth.value || '220', 10), 40, designer.width);
+                if (layer.aspectRatio > 0) layer.height = Math.round(layer.width / layer.aspectRatio);
+                ensureLayerBounds(layer);
+                render();
+            });
+
+            imageHeight.addEventListener('input', () => {
+                const layer = getActiveLayer();
+                if (!layer || layer.type !== 'image' || layer.locked) return;
+                layer.height = clamp(parseInt(imageHeight.value || '220', 10), 40, designer.height);
+                if (layer.aspectRatio > 0) layer.width = Math.round(layer.height * layer.aspectRatio);
+                ensureLayerBounds(layer);
+                render();
+            });
+
+            addTextLayerBtn.addEventListener('click', () => {
+                addTextLayer('New Text', { x: 60, y: 60, fontSize: 40, color: '#111111', fontWeight: '700' });
+                render();
+            });
+
+            removeLayerBtn.addEventListener('click', () => {
+                const layer = getActiveLayer();
+                if (!layer || layer.locked) return;
+                designer.layers = designer.layers.filter((item) => item.id !== layer.id);
+                designer.activeId = null;
+                render();
+            });
+
+            templateBgInput.addEventListener('change', () => {
+                const file = templateBgInput.files && templateBgInput.files[0];
+                if (!file || !file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const bgLayer = designer.layers.find((item) => item.type === 'image' && item.sourceTag === '__template_bg');
+                    if (bgLayer) {
+                        bgLayer.src = e.target.result;
+                        render();
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+
+            document.querySelectorAll('.js-ad-image').forEach((input) => {
+                input.addEventListener('change', () => {
+                    const key = input.getAttribute('data-key');
+                    const file = input.files && input.files[0];
+                    if (!key || !file || !file.type.startsWith('image/')) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        let layer = designer.layers.find((item) => item.type === 'image' && item.sourceTag === key);
+                        if (!layer) {
+                            addImageLayer(e.target.result, { sourceTag: key, x: 80, y: 80 });
+                            return;
+                        }
+                        layer.src = e.target.result;
+                        render();
+                    };
+                    reader.readAsDataURL(file);
                 });
             });
-
         }
 
-        document.querySelectorAll('.js-ad-hidden-text').forEach((el) => {
-            el.addEventListener('input', updatePreview);
-        });
-
-        const titleEl = document.querySelector('.js-ad-title');
-        if (titleEl) {
-            titleEl.addEventListener('input', updatePreview);
-        }
-
-        document.querySelectorAll('.js-ad-image').forEach((el) => {
-            el.addEventListener('change', async () => {
-                const key = el.getAttribute('data-key');
-                const file = el.files && el.files[0];
-                if (!key || !file) return;
-                if (imageState[key]) {
-                    try { URL.revokeObjectURL(imageState[key]); } catch (e) {}
-                }
-                imageState[key] = URL.createObjectURL(file);
-                applyLiveImages();
+        function initDefaultLayers() {
+            addImageLayer(templateBackgroundUrl, {
+                x: 0,
+                y: 0,
+                width: designer.width,
+                height: designer.height,
+                sourceTag: '__template_bg',
+                locked: true,
+                toBack: true,
             });
-        });
 
-        async function exportPreviewAsPng() {
-            const exportWidth = sourceWidth || 0;
-            const exportHeight = sourceHeight || 0;
-            if (!exportWidth || !exportHeight) {
-                return '';
-            }
-            const maxCanvasEdge = 6000;
-            const pixelRatio = Math.max(3, Math.min(6, Math.floor(maxCanvasEdge / Math.max(exportWidth, exportHeight))));
-            const clone = preview.cloneNode(true);
-            const sandbox = document.createElement('div');
-            sandbox.style.position = 'fixed';
-            sandbox.style.left = '-10000px';
-            sandbox.style.top = '0';
-            sandbox.style.width = exportWidth + 'px';
-            sandbox.style.height = exportHeight + 'px';
-            sandbox.style.overflow = 'hidden';
-            sandbox.style.zIndex = '-1';
-
-            clone.style.position = 'static';
-            clone.style.inset = 'auto';
-            clone.style.left = 'auto';
-            clone.style.right = 'auto';
-            clone.style.top = 'auto';
-            clone.style.bottom = 'auto';
-            clone.style.transform = 'none';
-            clone.style.transformOrigin = 'top left';
-            clone.style.width = exportWidth + 'px';
-            clone.style.height = exportHeight + 'px';
-            clone.style.maxWidth = 'none';
-            clone.style.maxHeight = 'none';
-            clone.style.overflow = 'hidden';
-
-            sandbox.appendChild(clone);
-            document.body.appendChild(sandbox);
-
-            try {
-                if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
-                    try {
-                        return await window.htmlToImage.toPng(clone, {
-                            cacheBust: true,
-                            pixelRatio,
-                            canvasWidth: exportWidth,
-                            canvasHeight: exportHeight,
-                            width: exportWidth,
-                            height: exportHeight,
-                            backgroundColor: null,
-                        });
-                    } catch (error) {
-                        // Some stylesheets (e.g. Google Fonts) block cssRules access in html-to-image.
-                        // Fall back to html2canvas instead of failing export.
-                    }
-                }
-
-                if (window.html2canvas) {
-                    const canvas = await window.html2canvas(clone, {
-                        width: exportWidth,
-                        height: exportHeight,
-                        windowWidth: exportWidth,
-                        windowHeight: exportHeight,
-                        backgroundColor: null,
-                        useCORS: true,
-                        allowTaint: false,
-                        logging: false,
-                        imageTimeout: 10000,
-                        scale: pixelRatio,
-                    });
-                    const context = canvas.getContext('2d');
-                    if (context) {
-                        context.imageSmoothingEnabled = true;
-                        context.imageSmoothingQuality = 'high';
-                    }
-                    return canvas.toDataURL('image/png');
-                }
-            } finally {
-                document.body.removeChild(sandbox);
-            }
-
-            return '';
-        }
-
-        function absolutizeCssUrls(cssText, baseUrl) {
-            if (!cssText || !baseUrl) return cssText || '';
-
-            return cssText.replace(/url\((['"]?)([^'")]+)\1\)/gi, (match, quote, rawUrl) => {
-                const assetUrl = String(rawUrl || '').trim();
-                if (!assetUrl || assetUrl.startsWith('data:') || assetUrl.startsWith('blob:') || assetUrl.startsWith('http://') || assetUrl.startsWith('https://') || assetUrl.startsWith('//') || assetUrl.startsWith('#')) {
-                    return match;
-                }
-                try {
-                    const absoluteUrl = new URL(assetUrl, baseUrl).href;
-                    return `url(${quote || ''}${absoluteUrl}${quote || ''})`;
-                } catch (error) {
-                    return match;
-                }
+            let offsetY = 60;
+            document.querySelectorAll('.js-ad-hidden-text').forEach((input) => {
+                const key = input.getAttribute('data-key');
+                if (!key) return;
+                const seed = (input.value || '').trim() || getDefaultValue(key);
+                addTextLayer(seed, { x: 60, y: offsetY, fontSize: 42, color: '#111111', sourceTag: key });
+                offsetY += 72;
             });
+            render();
         }
 
-        async function collectPageCssForExport() {
-            const chunks = [];
-            const styleNodes = document.querySelectorAll('style,link[rel="stylesheet"]');
+        async function exportDesignerImage() {
+            const canvas = document.createElement('canvas');
+            canvas.width = designer.width;
+            canvas.height = designer.height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return '';
 
-            for (const node of styleNodes) {
-                if (node.tagName === 'STYLE') {
-                    chunks.push(node.textContent || '');
-                    continue;
-                }
-
-                const href = node.getAttribute('href');
-                if (!href) continue;
-
-                try {
-                    const url = new URL(href, window.location.origin);
-                    const response = await fetch(url.href, { credentials: 'same-origin' });
-                    if (!response.ok) continue;
-                    const cssText = await response.text();
-                    chunks.push(absolutizeCssUrls(cssText, url.href));
-                } catch (error) {
-                    // Skip stylesheets blocked by CORS/network.
-                }
-            }
-
-            return chunks.join('\n');
-        }
-
-        if (form) {
-            form.addEventListener('submit', async (event) => {
-                if (form.dataset.isSubmitting === '1') {
+            const drawLayer = (index) => new Promise((resolve) => {
+                if (index >= designer.layers.length) {
+                    resolve();
                     return;
                 }
-                event.preventDefault();
 
-                preview.querySelectorAll('[data-ad-field]').forEach((node) => {
-                    const key = node.getAttribute('data-ad-field');
-                    if (!key) return;
-                    const val = (node.textContent || '').trim();
-                    const input = document.querySelector('.js-ad-hidden-text[data-key="' + key + '"]');
-                    if (input) input.value = val;
+                const layer = designer.layers[index];
+                if (layer.type === 'image') {
+                    const img = new Image();
+                    img.onload = function () {
+                        ctx.drawImage(img, layer.x, layer.y, layer.width, layer.height);
+                        resolve(drawLayer(index + 1));
+                    };
+                    img.onerror = function () {
+                        resolve(drawLayer(index + 1));
+                    };
+                    img.src = layer.src;
+                    return;
+                }
+
+                ctx.fillStyle = layer.color || '#111111';
+                ctx.font = `${layer.fontWeight || '700'} ${layer.fontSize || 42}px ${layer.fontFamily || 'Arial'}`;
+                ctx.textAlign = layer.align || 'left';
+                ctx.textBaseline = 'top';
+                const lines = String(layer.text || '').split('\n');
+                const lineHeight = Math.round((layer.fontSize || 42) * 1.2);
+                lines.forEach((line, idx) => {
+                    let x = layer.x;
+                    if (ctx.textAlign === 'center') x += 150;
+                    if (ctx.textAlign === 'right') x += 300;
+                    ctx.fillText(line, x, layer.y + (idx * lineHeight), 320);
                 });
-                if (customHtmlInput) {
-                    const exportWidth = sourceWidth || 0;
-                    const exportHeight = sourceHeight || 0;
-                    customHtmlInput.value = '<div class="ad-canvas" style="width:' + exportWidth + 'px;height:' + exportHeight + 'px;overflow:hidden;position:relative;">'
-                        + preview.innerHTML
-                        + '</div>';
-                }
-                const customCssInput = document.getElementById('customCssInput');
-                if (customCssInput) {
-                    customCssInput.value = await collectPageCssForExport();
-                }
-
-                if (generatedImageDataInput) {
-                    generatedImageDataInput.value = await exportPreviewAsPng();
-                }
-
-                if (generatedImageDataInput && !generatedImageDataInput.value) {
-                    generatedImageDataInput.value = '';
-                }
-
-                form.dataset.isSubmitting = '1';
-                form.submit();
+                resolve(drawLayer(index + 1));
             });
+
+            await drawLayer(0);
+            return canvas.toDataURL('image/png');
         }
 
-        window.addEventListener('resize', scalePreview);
-        bindStyleControls();
-        updatePreview();
+        form.addEventListener('submit', async (event) => {
+            if (form.dataset.isSubmitting === '1') return;
+            event.preventDefault();
+
+            syncHiddenTextInputs();
+            if (customHtmlInput) customHtmlInput.value = '';
+            if (generatedImageDataInput) {
+                generatedImageDataInput.value = await exportDesignerImage();
+            }
+            form.dataset.isSubmitting = '1';
+            form.submit();
+        });
+
+        bindControls();
+        initDefaultLayers();
     })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js"></script>
 <script>
     (function () {
         const form = document.querySelector('form[action*="/dashboard/ads/create/"]');
