@@ -441,13 +441,15 @@ class UserAdController extends Controller
         }
 
         $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
         if (function_exists('imagesetinterpolation') && defined('IMG_BICUBIC')) {
             imagesetinterpolation($canvas, IMG_BICUBIC);
         }
-        $white = imagecolorallocate($canvas, 255, 255, 255);
-        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $white);
+        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $transparent);
 
-        $scale = min($targetWidth / $srcW, $targetHeight / $srcH);
+        $scale = max($targetWidth / $srcW, $targetHeight / $srcH);
         $drawW = (int) max(1, round($srcW * $scale));
         $drawH = (int) max(1, round($srcH * $scale));
         $offsetX = (int) floor(($targetWidth - $drawW) / 2);
