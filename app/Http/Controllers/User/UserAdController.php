@@ -448,6 +448,14 @@ class UserAdController extends Controller
                 return null;
             }
 
+            $normalizedImage = $this->normalizeDompdfCanvasImage($image, $paperWidth, $paperHeight);
+            if (is_resource($image) || is_object($image)) {
+                imagedestroy($image);
+            }
+            if (!is_resource($normalizedImage) && !is_object($normalizedImage)) {
+                return null;
+            }
+
             $relativeDirectory = 'uploads/ads/final';
             $absoluteDirectory = public_path($relativeDirectory);
             if (!is_dir($absoluteDirectory)) {
@@ -456,8 +464,8 @@ class UserAdController extends Controller
 
             $fileName = 'ad-'.Str::uuid().'.png';
             $absolutePath = $absoluteDirectory.'/'.$fileName;
-            imagepng($image, $absolutePath, 9);
-            imagedestroy($image);
+            imagepng($normalizedImage, $absolutePath, 9);
+            imagedestroy($normalizedImage);
 
             return $relativeDirectory.'/'.$fileName;
         } catch (\Throwable) {
@@ -476,6 +484,80 @@ class UserAdController extends Controller
             .'img{max-width:100%;}'
             .$sanitizedCss
             .'</style></head><body>'.$html.'</body></html>';
+    }
+
+    private function normalizeDompdfCanvasImage($image, int $targetWidth, int $targetHeight)
+    {
+        $sourceWidth = (int) imagesx($image);
+        $sourceHeight = (int) imagesy($image);
+        if ($sourceWidth <= 0 || $sourceHeight <= 0 || $targetWidth <= 0 || $targetHeight <= 0) {
+            return $image;
+        }
+
+        [$cropX, $cropY, $cropWidth, $cropHeight] = $this->detectContentBoundingBox($image, $sourceWidth, $sourceHeight);
+
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+        if (!is_resource($canvas) && !is_object($canvas)) {
+            return $image;
+        }
+
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
+        $white = imagecolorallocatealpha($canvas, 255, 255, 255, 0);
+        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $white);
+
+        imagecopyresampled(
+            $canvas,
+            $image,
+            0,
+            0,
+            $cropX,
+            $cropY,
+            $targetWidth,
+            $targetHeight,
+            $cropWidth,
+            $cropHeight
+        );
+
+        return $canvas;
+    }
+
+    private function detectContentBoundingBox($image, int $width, int $height): array
+    {
+        $minX = $width;
+        $minY = $height;
+        $maxX = -1;
+        $maxY = -1;
+        $threshold = 245;
+
+        for ($y = 0; $y < $height; $y++) {
+            for ($x = 0; $x < $width; $x++) {
+                $colorIndex = imagecolorat($image, $x, $y);
+                $rgba = imagecolorsforindex($image, $colorIndex);
+                if (($rgba['red'] ?? 255) > $threshold
+                    && ($rgba['green'] ?? 255) > $threshold
+                    && ($rgba['blue'] ?? 255) > $threshold
+                    && ($rgba['alpha'] ?? 0) <= 10) {
+                    continue;
+                }
+
+                $minX = min($minX, $x);
+                $minY = min($minY, $y);
+                $maxX = max($maxX, $x);
+                $maxY = max($maxY, $y);
+            }
+        }
+
+        if ($maxX < $minX || $maxY < $minY) {
+            return [0, 0, $width, $height];
+        }
+
+        return [
+            max(0, $minX),
+            max(0, $minY),
+            max(1, $maxX - $minX + 1),
+            max(1, $maxY - $minY + 1),
+        ];
     }
 
     private function normalizeGeneratedAdImage(string $absolutePath, int $targetWidth, int $targetHeight): void
