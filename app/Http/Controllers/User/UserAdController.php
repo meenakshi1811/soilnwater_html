@@ -409,19 +409,10 @@ class UserAdController extends Controller
             return;
         }
 
-        $targetRatio = $targetWidth > 0 && $targetHeight > 0 ? ($targetWidth / $targetHeight) : 0.0;
-        $sourceRatio = $srcH > 0 ? ($srcW / $srcH) : 0.0;
-        $ratioDelta = abs($sourceRatio - $targetRatio);
-
-        // If capture is already higher-resolution with the same aspect ratio,
-        // keep original pixels to avoid blur from an extra downscale pass.
-        if ($srcW >= $targetWidth && $srcH >= $targetHeight && $ratioDelta <= 0.01) {
-            imagedestroy($source);
-
-            return;
-        }
-
         $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+        if (function_exists('imagesetinterpolation') && defined('IMG_BICUBIC')) {
+            imagesetinterpolation($canvas, IMG_BICUBIC);
+        }
         $white = imagecolorallocate($canvas, 255, 255, 255);
         imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $white);
 
@@ -432,6 +423,9 @@ class UserAdController extends Controller
         $offsetY = (int) floor(($targetHeight - $drawH) / 2);
 
         imagecopyresampled($canvas, $source, $offsetX, $offsetY, 0, 0, $drawW, $drawH, $srcW, $srcH);
+        if (function_exists('imageconvolution')) {
+            @imageconvolution($canvas, [[-1, -1, -1], [-1, 16, -1], [-1, -1, -1]], 8, 0);
+        }
         imagepng($canvas, $absolutePath, 9);
 
         imagedestroy($canvas);
