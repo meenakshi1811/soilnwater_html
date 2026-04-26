@@ -244,10 +244,12 @@ class UserAdController extends Controller
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
             $size = AdSizes::all()[$sizeType] ?? null;
+            $targetWidth = (int) ($size['w'] ?? 0);
+            $targetHeight = (int) ($size['h'] ?? 0);
             $finalImagePath = $this->storeGeneratedAdImage(
                 $validated['generated_image_data'] ?? '',
-                (int) ($size['w'] ?? 0),
-                (int) ($size['h'] ?? 0),
+                $targetWidth,
+                $targetHeight,
             );
 
             return UserAd::create([
@@ -363,6 +365,21 @@ class UserAdController extends Controller
             throw ValidationException::withMessages([
                 'generated_image_data' => 'Generated ad image data is invalid. Please try again.',
             ]);
+        }
+
+        if ($targetWidth > 0 && $targetHeight > 0) {
+            $source = @imagecreatefromstring($decoded);
+            if (is_resource($source) || is_object($source)) {
+                $srcW = imagesx($source);
+                $srcH = imagesy($source);
+                imagedestroy($source);
+
+                if ($srcW < $targetWidth || $srcH < $targetHeight) {
+                    throw ValidationException::withMessages([
+                        'generated_image_data' => 'Generated image quality is too low. Please use the live preview export again.',
+                    ]);
+                }
+            }
         }
 
         $relativeDirectory = 'uploads/ads/final';
