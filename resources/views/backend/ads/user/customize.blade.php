@@ -198,6 +198,43 @@
                         <h5 class="mb-0">Live Preview</h5>
                         <span class="text-secondary small">{{ $size['w'] }}×{{ $size['h'] }}</span>
                     </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6 col-md-3">
+                            <label class="form-label mb-1 small text-secondary">Font Family</label>
+                            <select class="form-select form-select-sm" id="adFontFamilyControl">
+                                <option value="Arial">Arial</option>
+                                <option value="Verdana">Verdana</option>
+                                <option value="Tahoma">Tahoma</option>
+                                <option value="Trebuchet MS">Trebuchet MS</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Courier New">Courier New</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label mb-1 small text-secondary">Font Size</label>
+                            <input type="number" class="form-control form-control-sm" id="adFontSizeControl" min="8" max="160" value="24">
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label mb-1 small text-secondary">Text Color</label>
+                            <input type="color" class="form-control form-control-color w-100" id="adTextColorControl" value="#111111">
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label mb-1 small text-secondary d-block">Bold</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="adTextBoldControl">
+                                <label class="form-check-label small" for="adTextBoldControl">Enable</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label mb-1 small text-secondary">Text Align</label>
+                            <select class="form-select form-select-sm" id="adTextAlignControl">
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </div>
+                    </div>
 
                     <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] }};">
                         <div
@@ -215,7 +252,7 @@
                     <script type="application/json" id="adTemplateFieldKeys">@json($fields)</script>
                     <script type="application/json" id="adTemplateSampleDefaults">@json($sampleDefaults)</script>
 
-                    <small class="text-secondary d-block mt-2">Tip: Click any text to edit directly in the preview.</small>
+                    <small class="text-secondary d-block mt-2">Tip: Click text in preview to edit content, font, size, color, bold, and alignment. Final ad is exported as an image.</small>
                 </div>
             </div>
 
@@ -263,6 +300,8 @@
         const imageState = {}; // key -> objectURL
         const textState = {};
         const staticState = {};
+        const styleState = {};
+        let activeTextNode = null;
         const form = preview.closest('form');
         const customHtmlInput = document.getElementById('customHtmlInput');
         const generatedImageDataInput = document.getElementById('generatedImageDataInput');
@@ -414,11 +453,101 @@
                 if (Object.prototype.hasOwnProperty.call(staticState, id)) {
                     node.textContent = staticState[id];
                 }
+                applySavedStyle(node, 'static:' + id);
+            });
+        }
+
+        function applySavedStyle(node, styleKey) {
+            const style = styleState[styleKey];
+            if (!style) return;
+
+            if (style.fontFamily) node.style.fontFamily = style.fontFamily;
+            if (style.fontSize) node.style.fontSize = style.fontSize;
+            if (style.color) node.style.color = style.color;
+            if (style.fontWeight) node.style.fontWeight = style.fontWeight;
+            if (style.textAlign) node.style.textAlign = style.textAlign;
+        }
+
+        function extractNodeStyle(node) {
+            const computed = window.getComputedStyle(node);
+            return {
+                fontFamily: node.style.fontFamily || computed.fontFamily || 'Arial',
+                fontSize: node.style.fontSize || computed.fontSize || '24px',
+                color: node.style.color || computed.color || '#111111',
+                fontWeight: node.style.fontWeight || computed.fontWeight || '400',
+                textAlign: node.style.textAlign || computed.textAlign || 'left',
+            };
+        }
+
+        function styleKeyForNode(node) {
+            if (node.hasAttribute('data-ad-field')) {
+                return 'field:' + node.getAttribute('data-ad-field');
+            }
+            if (node.hasAttribute('data-ad-static-id')) {
+                return 'static:' + node.getAttribute('data-ad-static-id');
+            }
+            return '';
+        }
+
+        function rgbToHex(color) {
+            const match = String(color || '').match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+            if (!match) return '#111111';
+            const toHex = (num) => Number(num).toString(16).padStart(2, '0');
+            return '#' + toHex(match[1]) + toHex(match[2]) + toHex(match[3]);
+        }
+
+        function bindStyleControls() {
+            const fontFamily = document.getElementById('adFontFamilyControl');
+            const fontSize = document.getElementById('adFontSizeControl');
+            const textColor = document.getElementById('adTextColorControl');
+            const textBold = document.getElementById('adTextBoldControl');
+            const textAlign = document.getElementById('adTextAlignControl');
+            if (!fontFamily || !fontSize || !textColor || !textBold || !textAlign) return;
+
+            const syncFromNode = (node) => {
+                const style = extractNodeStyle(node);
+                fontFamily.value = style.fontFamily.split(',')[0].replace(/['"]/g, '').trim() || 'Arial';
+                fontSize.value = parseInt(style.fontSize, 10) || 24;
+                textColor.value = rgbToHex(style.color);
+                textBold.checked = Number(style.fontWeight) >= 600 || String(style.fontWeight).toLowerCase() === 'bold';
+                textAlign.value = ['left', 'center', 'right'].includes(style.textAlign) ? style.textAlign : 'left';
+            };
+
+            const applyToActive = () => {
+                if (!activeTextNode) return;
+                activeTextNode.style.fontFamily = fontFamily.value || 'Arial';
+                activeTextNode.style.fontSize = (parseInt(fontSize.value || '24', 10) || 24) + 'px';
+                activeTextNode.style.color = textColor.value || '#111111';
+                activeTextNode.style.fontWeight = textBold.checked ? '700' : '400';
+                activeTextNode.style.textAlign = textAlign.value || 'left';
+
+                const key = styleKeyForNode(activeTextNode);
+                if (!key) return;
+                styleState[key] = {
+                    fontFamily: activeTextNode.style.fontFamily,
+                    fontSize: activeTextNode.style.fontSize,
+                    color: activeTextNode.style.color,
+                    fontWeight: activeTextNode.style.fontWeight,
+                    textAlign: activeTextNode.style.textAlign,
+                };
+            };
+
+            [fontFamily, fontSize, textColor, textBold, textAlign].forEach((control) => {
+                control.addEventListener('input', applyToActive);
+                control.addEventListener('change', applyToActive);
+            });
+
+            preview.addEventListener('click', (event) => {
+                const target = event.target.closest('[data-ad-field], [data-ad-static-id]');
+                if (!target || !preview.contains(target)) return;
+                activeTextNode = target;
+                syncFromNode(target);
             });
         }
 
         function bindInlineEditors() {
             preview.querySelectorAll('[data-ad-field]').forEach((node) => {
+                applySavedStyle(node, 'field:' + (node.getAttribute('data-ad-field') || ''));
                 node.addEventListener('input', () => {
                     const key = node.getAttribute('data-ad-field');
                     if (!key) return;
@@ -625,6 +754,7 @@
         }
 
         window.addEventListener('resize', scalePreview);
+        bindStyleControls();
         updatePreview();
     })();
 </script>
