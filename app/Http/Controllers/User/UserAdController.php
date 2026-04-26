@@ -403,6 +403,12 @@ class UserAdController extends Controller
             return;
         }
 
+        if ($srcW === $targetWidth && $srcH === $targetHeight) {
+            imagedestroy($source);
+
+            return;
+        }
+
         $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
         $white = imagecolorallocate($canvas, 255, 255, 255);
         imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $white);

@@ -456,7 +456,7 @@
         async function exportPreviewAsPng() {
             const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0) || preview.scrollWidth || 0;
             const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0) || preview.scrollHeight || 0;
-            const pixelRatio = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+            const pixelRatio = Math.min(4, Math.max(2, window.devicePixelRatio || 1));
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
