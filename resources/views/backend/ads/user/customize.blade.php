@@ -266,10 +266,10 @@
         const customHtmlInput = document.getElementById('customHtmlInput');
         const generatedImageDataInput = document.getElementById('generatedImageDataInput');
         const alertBox = document.getElementById('adCustomizeAlert');
+        const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0);
+        const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0);
 
         function scalePreview() {
-            const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0);
-            const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0);
             const targetWidth = previewFrame.clientWidth || 0;
             const targetHeight = previewFrame.clientHeight || 0;
 
@@ -454,16 +454,16 @@
         });
 
         async function exportPreviewAsPng() {
-            const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0) || preview.scrollWidth || 0;
-            const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0) || preview.scrollHeight || 0;
+            const exportWidth = sourceWidth || preview.scrollWidth || 0;
+            const exportHeight = sourceHeight || preview.scrollHeight || 0;
             const pixelRatio = Math.min(4, Math.max(2, window.devicePixelRatio || 1));
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
             sandbox.style.left = '-10000px';
             sandbox.style.top = '0';
-            sandbox.style.width = (sourceWidth || preview.scrollWidth) + 'px';
-            sandbox.style.height = (sourceHeight || preview.scrollHeight) + 'px';
+            sandbox.style.width = exportWidth + 'px';
+            sandbox.style.height = exportHeight + 'px';
             sandbox.style.overflow = 'hidden';
             sandbox.style.zIndex = '-1';
 
@@ -488,9 +488,9 @@
                 if (window.html2canvas) {
                     const canvas = await window.html2canvas(clone, {
                         width: sourceWidth || clone.scrollWidth,
-                        height: sourceHeight || clone.scrollHeight,
-                        windowWidth: sourceWidth || clone.scrollWidth,
-                        windowHeight: sourceHeight || clone.scrollHeight,
+                        height: exportHeight || clone.scrollHeight,
+                        windowWidth: exportWidth || clone.scrollWidth,
+                        windowHeight: exportHeight || clone.scrollHeight,
                         backgroundColor: null,
                         useCORS: true,
                         scale: pixelRatio,
@@ -502,8 +502,8 @@
                     return await window.htmlToImage.toPng(clone, {
                         cacheBust: true,
                         pixelRatio,
-                        canvasWidth: sourceWidth || undefined,
-                        canvasHeight: sourceHeight || undefined,
+                        canvasWidth: exportWidth || undefined,
+                        canvasHeight: exportHeight || undefined,
                     });
                 }
             } finally {
@@ -528,7 +528,11 @@
                     if (input) input.value = val;
                 });
                 if (customHtmlInput) {
-                    customHtmlInput.value = preview.innerHTML;
+                    const exportWidth = sourceWidth || preview.scrollWidth || 0;
+                    const exportHeight = sourceHeight || preview.scrollHeight || 0;
+                    customHtmlInput.value = '<div class="ad-canvas" style="width:' + exportWidth + 'px;height:' + exportHeight + 'px;overflow:hidden;position:relative;">'
+                        + preview.innerHTML
+                        + '</div>';
                 }
 
                 if (generatedImageDataInput) {
