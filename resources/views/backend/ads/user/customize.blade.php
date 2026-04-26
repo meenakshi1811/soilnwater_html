@@ -484,14 +484,52 @@
             sandbox.appendChild(clone);
             document.body.appendChild(sandbox);
 
+            const inlineComputedStyles = (sourceRoot, targetRoot) => {
+                const sourceNodes = [sourceRoot, ...sourceRoot.querySelectorAll('*')];
+                const targetNodes = [targetRoot, ...targetRoot.querySelectorAll('*')];
+
+                sourceNodes.forEach((sourceNode, index) => {
+                    const targetNode = targetNodes[index];
+                    if (!targetNode || targetNode.nodeType !== 1) return;
+                    if (!(sourceNode instanceof Element) || !(targetNode instanceof Element)) return;
+
+                    const computed = window.getComputedStyle(sourceNode);
+                    let styleText = '';
+                    for (let i = 0; i < computed.length; i += 1) {
+                        const prop = computed[i];
+                        styleText += prop + ':' + computed.getPropertyValue(prop) + ';';
+                    }
+
+                    targetNode.setAttribute('style', styleText);
+                });
+            };
+
+            const waitForCloneImages = async (root) => {
+                const images = Array.from(root.querySelectorAll('img'));
+                await Promise.all(images.map((img) => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise((resolve) => {
+                        img.addEventListener('load', resolve, { once: true });
+                        img.addEventListener('error', resolve, { once: true });
+                    });
+                }));
+            };
+
             try {
+                if (document.fonts && document.fonts.ready) {
+                    await document.fonts.ready;
+                }
+
+                inlineComputedStyles(preview, clone);
+                await waitForCloneImages(clone);
+
                 if (window.html2canvas) {
                     const canvas = await window.html2canvas(clone, {
-                        width: sourceWidth || clone.scrollWidth,
+                        width: exportWidth || clone.scrollWidth,
                         height: exportHeight || clone.scrollHeight,
                         windowWidth: exportWidth || clone.scrollWidth,
                         windowHeight: exportHeight || clone.scrollHeight,
-                        backgroundColor: null,
+                        backgroundColor: '#ffffff',
                         useCORS: true,
                         scale: pixelRatio,
                     });
@@ -530,8 +568,23 @@
                 if (customHtmlInput) {
                     const exportWidth = sourceWidth || preview.scrollWidth || 0;
                     const exportHeight = sourceHeight || preview.scrollHeight || 0;
-                    customHtmlInput.value = '<div class="ad-canvas" style="width:' + exportWidth + 'px;height:' + exportHeight + 'px;overflow:hidden;position:relative;">'
-                        + preview.innerHTML
+                    const htmlClone = preview.cloneNode(true);
+                    const sourceNodes = [preview, ...preview.querySelectorAll('*')];
+                    const cloneNodes = [htmlClone, ...htmlClone.querySelectorAll('*')];
+                    sourceNodes.forEach((sourceNode, index) => {
+                        const cloneNode = cloneNodes[index];
+                        if (!cloneNode || cloneNode.nodeType !== 1) return;
+                        if (!(sourceNode instanceof Element) || !(cloneNode instanceof Element)) return;
+                        const computed = window.getComputedStyle(sourceNode);
+                        let styleText = '';
+                        for (let i = 0; i < computed.length; i += 1) {
+                            const prop = computed[i];
+                            styleText += prop + ':' + computed.getPropertyValue(prop) + ';';
+                        }
+                        cloneNode.setAttribute('style', styleText);
+                    });
+                    customHtmlInput.value = '<div class="ad-canvas" style="width:' + exportWidth + 'px;height:' + exportHeight + 'px;overflow:hidden;position:relative;background:#fff;">'
+                        + htmlClone.innerHTML
                         + '</div>';
                 }
 
