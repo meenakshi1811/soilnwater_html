@@ -411,6 +411,7 @@ class UserAdController extends Controller
         $fileName = 'ad-'.Str::uuid().'.png';
         $absolutePath = $absoluteDirectory.'/'.$fileName;
         file_put_contents($absolutePath, $decoded);
+        $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
 
         return $relativeDirectory.'/'.$fileName;
     }

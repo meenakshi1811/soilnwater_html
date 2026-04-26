@@ -462,9 +462,13 @@
         });
 
         async function exportPreviewAsPng() {
-            const exportWidth = sourceWidth || preview.scrollWidth || 0;
-            const exportHeight = sourceHeight || preview.scrollHeight || 0;
-            const pixelRatio = 4;
+            const exportWidth = sourceWidth || 0;
+            const exportHeight = sourceHeight || 0;
+            if (!exportWidth || !exportHeight) {
+                return '';
+            }
+            const maxCanvasEdge = 6000;
+            const pixelRatio = Math.max(3, Math.min(6, Math.floor(maxCanvasEdge / Math.max(exportWidth, exportHeight))));
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -498,8 +502,10 @@
                         return await window.htmlToImage.toPng(clone, {
                             cacheBust: true,
                             pixelRatio,
-                            canvasWidth: exportWidth || undefined,
-                            canvasHeight: exportHeight || undefined,
+                            canvasWidth: exportWidth,
+                            canvasHeight: exportHeight,
+                            width: exportWidth,
+                            height: exportHeight,
                             backgroundColor: null,
                         });
                     } catch (error) {
@@ -510,10 +516,10 @@
 
                 if (window.html2canvas) {
                     const canvas = await window.html2canvas(clone, {
-                        width: exportWidth || clone.scrollWidth,
-                        height: exportHeight || clone.scrollHeight,
-                        windowWidth: exportWidth || clone.scrollWidth,
-                        windowHeight: exportHeight || clone.scrollHeight,
+                        width: exportWidth,
+                        height: exportHeight,
+                        windowWidth: exportWidth,
+                        windowHeight: exportHeight,
                         backgroundColor: null,
                         useCORS: true,
                         allowTaint: false,
@@ -594,8 +600,8 @@
                     if (input) input.value = val;
                 });
                 if (customHtmlInput) {
-                    const exportWidth = sourceWidth || preview.scrollWidth || 0;
-                    const exportHeight = sourceHeight || preview.scrollHeight || 0;
+                    const exportWidth = sourceWidth || 0;
+                    const exportHeight = sourceHeight || 0;
                     customHtmlInput.value = '<div class="ad-canvas" style="width:' + exportWidth + 'px;height:' + exportHeight + 'px;overflow:hidden;position:relative;">'
                         + preview.innerHTML
                         + '</div>';
