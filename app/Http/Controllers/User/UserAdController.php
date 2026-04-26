@@ -319,12 +319,35 @@ class UserAdController extends Controller
                     '$1 src="'.$replacement.'"$2',
                     $html
                 ) ?? $html;
+
+                $html = preg_replace_callback(
+                    '/<img[^>]*data-ad-key=(["\'])'.$quotedKey.'\1[^>]*>/i',
+                    fn (array $m) => $this->applyDefaultObjectFitToImageTag($m[0]),
+                    $html
+                ) ?? $html;
             }
         }
 
         $html = preg_replace('/\{\{[a-zA-Z][a-zA-Z0-9_]*\}\}/', '', $html) ?? $html;
 
         return $html;
+    }
+
+    private function applyDefaultObjectFitToImageTag(string $tag): string
+    {
+        if (stripos($tag, 'object-fit:') !== false) {
+            return $tag;
+        }
+
+        if (preg_match('/style=(["\'])(.*?)\1/i', $tag, $matches) === 1) {
+            $quote = $matches[1];
+            $style = rtrim($matches[2], '; ');
+            $newStyle = $style.';object-fit:cover;object-position:center;';
+
+            return str_replace($matches[0], 'style='.$quote.$newStyle.$quote, $tag);
+        }
+
+        return preg_replace('/>$/', ' style="object-fit:cover;object-position:center;">', $tag) ?? $tag;
     }
 
     private function storeGeneratedAdImage(string $base64Png, int $targetWidth, int $targetHeight): string

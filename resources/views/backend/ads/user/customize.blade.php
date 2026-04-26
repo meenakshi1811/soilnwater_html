@@ -368,6 +368,10 @@
                 const existing = (img.getAttribute('src') || '').trim();
                 const desired = imageState[key] || existing || placeholderSrc;
                 img.setAttribute('src', desired);
+                if (!img.style.objectFit) {
+                    img.style.objectFit = 'cover';
+                    img.style.objectPosition = 'center';
+                }
             });
         }
 
