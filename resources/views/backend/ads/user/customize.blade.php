@@ -167,6 +167,25 @@
                             After submission, your ad will be reviewed by admin before it goes live.
                         </div>
                     @endif
+
+                    <div class="form-check mt-3">
+                        <input
+                            class="form-check-input @error('accept_terms') is-invalid @enderror"
+                            type="checkbox"
+                            value="1"
+                            id="acceptTerms"
+                            name="accept_terms"
+                            {{ old('accept_terms') ? 'checked' : '' }}
+                            required
+                        >
+                        <label class="form-check-label" for="acceptTerms">
+                            I agree to the
+                            <a href="{{ route('frontend.terms.show', ['moduleKey' => 'ads']) }}" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>
+                        </label>
+                        @error('accept_terms')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
 
                 <div class="col-12 col-lg-7">

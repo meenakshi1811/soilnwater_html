@@ -176,6 +176,7 @@ class UserAdController extends Controller
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
             'custom_html' => 'nullable|string',
+            'accept_terms' => 'accepted',
             'category_id' => [
                 'required',
                 Rule::exists('categories', 'id')->where(fn ($query) => $query
