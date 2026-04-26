@@ -362,6 +362,13 @@
         }
 
         function applyLiveImages() {
+            preview.querySelectorAll('img').forEach((img) => {
+                if (!img.style.objectFit) {
+                    img.style.objectFit = 'contain';
+                    img.style.objectPosition = 'center';
+                }
+            });
+
             preview.querySelectorAll('img[data-ad-key]').forEach((img) => {
                 const key = img.getAttribute('data-ad-key');
                 if (!key) return;
@@ -369,7 +376,7 @@
                 const desired = imageState[key] || existing || placeholderSrc;
                 img.setAttribute('src', desired);
                 if (!img.style.objectFit) {
-                    img.style.objectFit = 'cover';
+                    img.style.objectFit = 'contain';
                     img.style.objectPosition = 'center';
                 }
             });
@@ -456,7 +463,8 @@
         async function exportPreviewAsPng() {
             const exportWidth = sourceWidth || preview.scrollWidth || 0;
             const exportHeight = sourceHeight || preview.scrollHeight || 0;
-            const pixelRatio = Math.min(4, Math.max(2, window.devicePixelRatio || 1));
+            const deviceRatio = window.devicePixelRatio || 1;
+            const pixelRatio = Math.max(2, Math.min(4, deviceRatio * 2));
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -493,8 +501,16 @@
                         windowHeight: exportHeight || clone.scrollHeight,
                         backgroundColor: null,
                         useCORS: true,
+                        allowTaint: false,
+                        logging: false,
+                        imageTimeout: 10000,
                         scale: pixelRatio,
                     });
+                    const context = canvas.getContext('2d');
+                    if (context) {
+                        context.imageSmoothingEnabled = true;
+                        context.imageSmoothingQuality = 'high';
+                    }
                     return canvas.toDataURL('image/png');
                 }
 
