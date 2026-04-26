@@ -452,15 +452,33 @@
         async function exportPreviewAsPng() {
             const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0) || preview.scrollWidth || 0;
             const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0) || preview.scrollHeight || 0;
+            const pixelRatio = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
             const clone = preview.cloneNode(true);
+            const sandbox = document.createElement('div');
+            sandbox.style.position = 'fixed';
+            sandbox.style.left = '-10000px';
+            sandbox.style.top = '0';
+            sandbox.style.width = (sourceWidth || preview.scrollWidth) + 'px';
+            sandbox.style.height = (sourceHeight || preview.scrollHeight) + 'px';
+            sandbox.style.overflow = 'hidden';
+            sandbox.style.zIndex = '-1';
+
+            clone.style.position = 'static';
+            clone.style.inset = 'auto';
+            clone.style.left = 'auto';
+            clone.style.right = 'auto';
+            clone.style.top = 'auto';
+            clone.style.bottom = 'auto';
             clone.style.transform = 'none';
-            clone.style.width = (sourceWidth || preview.scrollWidth) + 'px';
-            clone.style.height = (sourceHeight || preview.scrollHeight) + 'px';
-            clone.style.position = 'fixed';
-            clone.style.left = '-10000px';
-            clone.style.top = '0';
-            clone.style.zIndex = '-1';
-            document.body.appendChild(clone);
+            clone.style.transformOrigin = 'top left';
+            clone.style.width = '100%';
+            clone.style.height = '100%';
+            clone.style.maxWidth = 'none';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'hidden';
+
+            sandbox.appendChild(clone);
+            document.body.appendChild(sandbox);
 
             try {
                 if (window.html2canvas) {
@@ -469,7 +487,7 @@
                         height: sourceHeight || clone.scrollHeight,
                         backgroundColor: null,
                         useCORS: true,
-                        scale: 1,
+                        scale: pixelRatio,
                     });
                     return canvas.toDataURL('image/png');
                 }
@@ -477,13 +495,13 @@
                 if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
                     return await window.htmlToImage.toPng(clone, {
                         cacheBust: true,
-                        pixelRatio: 1,
+                        pixelRatio,
                         canvasWidth: sourceWidth || undefined,
                         canvasHeight: sourceHeight || undefined,
                     });
                 }
             } finally {
-                document.body.removeChild(clone);
+                document.body.removeChild(sandbox);
             }
 
             return '';
