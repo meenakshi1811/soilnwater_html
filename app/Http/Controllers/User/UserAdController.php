@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -176,6 +177,7 @@ class UserAdController extends Controller
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
             'custom_html' => 'nullable|string',
+            'generated_image_data' => ['required', 'string', 'starts_with:data:image/png;base64,'],
             'accept_terms' => 'accepted',
             'category_id' => [
                 'required',
@@ -241,6 +243,13 @@ class UserAdController extends Controller
 
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
+            $size = AdSizes::all()[$sizeType] ?? null;
+            $finalImagePath = $this->storeGeneratedAdImage(
+                $validated['generated_image_data'] ?? '',
+                (int) ($size['w'] ?? 0),
+                (int) ($size['h'] ?? 0),
+            );
+
             return UserAd::create([
                 'user_id' => $user->id,
                 'ad_template_id' => $template->id,
@@ -254,6 +263,7 @@ class UserAdController extends Controller
                 'status' => 'pending',
                 'fields_json' => $fields,
                 'rendered_html' => $renderedHtml,
+                'final_image' => $finalImagePath,
                 'submitted_at' => now(),
             ]);
         });
@@ -309,12 +319,117 @@ class UserAdController extends Controller
                     '$1 src="'.$replacement.'"$2',
                     $html
                 ) ?? $html;
+
+                $html = preg_replace_callback(
+                    '/<img[^>]*data-ad-key=(["\'])'.$quotedKey.'\1[^>]*>/i',
+                    fn (array $m) => $this->applyDefaultObjectFitToImageTag($m[0]),
+                    $html
+                ) ?? $html;
             }
         }
 
         $html = preg_replace('/\{\{[a-zA-Z][a-zA-Z0-9_]*\}\}/', '', $html) ?? $html;
 
         return $html;
+    }
+
+    private function applyDefaultObjectFitToImageTag(string $tag): string
+    {
+        if (stripos($tag, 'object-fit:') !== false) {
+            return $tag;
+        }
+
+        if (preg_match('/style=(["\'])(.*?)\1/i', $tag, $matches) === 1) {
+            $quote = $matches[1];
+            $style = rtrim($matches[2], '; ');
+            $newStyle = $style.';object-fit:cover;object-position:center;';
+
+            return str_replace($matches[0], 'style='.$quote.$newStyle.$quote, $tag);
+        }
+
+        return preg_replace('/>$/', ' style="object-fit:cover;object-position:center;">', $tag) ?? $tag;
+    }
+
+    private function storeGeneratedAdImage(string $base64Png, int $targetWidth, int $targetHeight): string
+    {
+        if (!preg_match('/^data:image\/png;base64,/', $base64Png)) {
+            throw ValidationException::withMessages([
+                'generated_image_data' => 'Unable to generate ad image. Please refresh and try again.',
+            ]);
+        }
+
+        $decoded = base64_decode(substr($base64Png, strpos($base64Png, ',') + 1), true);
+        if ($decoded === false) {
+            throw ValidationException::withMessages([
+                'generated_image_data' => 'Generated ad image data is invalid. Please try again.',
+            ]);
+        }
+
+        $relativeDirectory = 'uploads/ads/final';
+        $absoluteDirectory = public_path($relativeDirectory);
+        if (!is_dir($absoluteDirectory)) {
+            mkdir($absoluteDirectory, 0755, true);
+        }
+
+        $fileName = 'ad-'.Str::uuid().'.png';
+        $absolutePath = $absoluteDirectory.'/'.$fileName;
+        file_put_contents($absolutePath, $decoded);
+        $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
+
+        return $relativeDirectory.'/'.$fileName;
+    }
+
+    private function normalizeGeneratedAdImage(string $absolutePath, int $targetWidth, int $targetHeight): void
+    {
+        if ($targetWidth <= 0 || $targetHeight <= 0 || !is_file($absolutePath)) {
+            return;
+        }
+
+        $raw = file_get_contents($absolutePath);
+        if ($raw === false) {
+            return;
+        }
+
+        $source = @imagecreatefromstring($raw);
+        if (!is_resource($source) && !is_object($source)) {
+            return;
+        }
+
+        $srcW = imagesx($source);
+        $srcH = imagesy($source);
+        if ($srcW <= 0 || $srcH <= 0) {
+            imagedestroy($source);
+
+            return;
+        }
+
+        if ($srcW === $targetWidth && $srcH === $targetHeight) {
+            imagedestroy($source);
+
+            return;
+        }
+
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+        if (function_exists('imagesetinterpolation') && defined('IMG_BICUBIC')) {
+            imagesetinterpolation($canvas, IMG_BICUBIC);
+        }
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $white);
+
+        $scale = min($targetWidth / $srcW, $targetHeight / $srcH);
+        $drawW = (int) max(1, round($srcW * $scale));
+        $drawH = (int) max(1, round($srcH * $scale));
+        $offsetX = (int) floor(($targetWidth - $drawW) / 2);
+        $offsetY = (int) floor(($targetHeight - $drawH) / 2);
+
+        imagecopyresampled($canvas, $source, $offsetX, $offsetY, 0, 0, $drawW, $drawH, $srcW, $srcH);
+        if (function_exists('imageconvolution')) {
+            @imageconvolution($canvas, [[-1, -1, -1], [-1, 16, -1], [-1, -1, -1]], 8, 0);
+        }
+        imagepng($canvas, $absolutePath, 9);
+
+        imagedestroy($canvas);
+        imagedestroy($source);
     }
 
     private function visibleSizesForUser($user): array

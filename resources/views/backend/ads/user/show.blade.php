@@ -23,6 +23,12 @@
                     <span class="badge bg-{{ $ad->status === 'approved' ? 'success' : ($ad->status === 'rejected' ? 'danger' : 'warning') }}">{{ ucfirst($ad->status) }}</span>
                 </div>
 
+                @if($ad->final_image)
+                    <div class="mb-3">
+                        <img src="{{ asset($ad->final_image) }}" alt="Final ad image" class="img-fluid rounded border">
+                    </div>
+                @endif
+
                 <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] ?? '1 / 1' }};">
                     <div class="ads-live-preview-inner">
                         {!! $ad->rendered_html ?: '<div class="text-secondary p-3">No rendered HTML saved.</div>' !!}
