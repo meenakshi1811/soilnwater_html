@@ -338,7 +338,7 @@ class UserAdController extends Controller
     private function applyDefaultObjectFitToImageTag(string $tag): string
     {
         if (stripos($tag, 'object-fit:') !== false) {
-            $tag = preg_replace('/object-fit\s*:\s*[^;"]+/i', 'object-fit:contain', $tag) ?? $tag;
+            $tag = preg_replace('/object-fit\s*:\s*[^;"]+/i', 'object-fit:cover', $tag) ?? $tag;
             $tag = preg_replace('/object-position\s*:\s*[^;"]+/i', 'object-position:center', $tag) ?? $tag;
 
             return $tag;
@@ -347,12 +347,12 @@ class UserAdController extends Controller
         if (preg_match('/style=(["\'])(.*?)\1/i', $tag, $matches) === 1) {
             $quote = $matches[1];
             $style = rtrim($matches[2], '; ');
-            $newStyle = $style.';object-fit:contain;object-position:center;';
+            $newStyle = $style.';object-fit:cover;object-position:center;';
 
             return str_replace($matches[0], 'style='.$quote.$newStyle.$quote, $tag);
         }
 
-        return preg_replace('/>$/', ' style="object-fit:contain;object-position:center;">', $tag) ?? $tag;
+        return preg_replace('/>$/', ' style="object-fit:cover;object-position:center;">', $tag) ?? $tag;
     }
 
     private function storeGeneratedAdImage(string $base64Png, int $targetWidth, int $targetHeight): string
@@ -404,6 +404,8 @@ class UserAdController extends Controller
         $fileName = 'ad-'.Str::uuid().'.png';
         $absolutePath = $absoluteDirectory.'/'.$fileName;
         file_put_contents($absolutePath, $decoded);
+
+        $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
 
         return $relativeDirectory.'/'.$fileName;
     }
