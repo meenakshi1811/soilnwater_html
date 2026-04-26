@@ -89,6 +89,27 @@
     margin-left: auto;
   }
 
+  .user-menu-toggle::after {
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .user-menu {
+    min-width: 10rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+    padding: 6px 0;
+  }
+  .user-menu .dropdown-item {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 14px;
+  }
+  .user-menu .dropdown-item:hover,
+  .user-menu .dropdown-item:focus {
+    background: #f3f7fb;
+  }
+
   /* ── HERO BANNER ── */
   .hero {
     background: linear-gradient(160deg, #d6eaf8 0%, #dff0ea 40%, #e8f5e9 70%, #fef9e7 100%);
@@ -1678,6 +1699,11 @@
     margin-bottom: 0;
     line-height: 1.3;
   }
+
+  .business-side-slider .side-card-img {
+    aspect-ratio: 296 / 292;
+    height: auto;
+  }
   .ecommerce-with-side-ad {
     align-items: stretch !important;
   }
@@ -2260,10 +2286,59 @@
 }
 .offer-coupon-card .card-body {
   gap: 6px !important;
+  min-width: 0;
+}
+.offer-coupon-card .badge {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: top;
 }
 .offer-coupon-card {
   border-radius: 12px;
   border: 1px solid #d9e7f3 !important;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.offer-coupon-card:hover,
+.offer-coupon-card:focus-visible {
+  box-shadow: 0 10px 22px rgba(20, 83, 139, 0.14) !important;
+  transform: translateY(-2px);
+}
+.offer-coupon-image-wrap {
+  width: 100%;
+  aspect-ratio: 768 / 1080;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #f5f9ff;
+}
+.offer-coupon-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  padding: 0;
+}
+.offer-coupon-title {
+  min-height: 22px;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.offer-coupon-description {
+  min-height: 48px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .coupon-code {
   font-weight: 800;
@@ -2275,6 +2350,10 @@
   text-align: center;
   padding: 6px 9px;
   font-size: 12px;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .w-fit { width: fit-content; }
 
@@ -2474,3 +2553,46 @@
       grid-template-columns: 1fr;
     }
   }
+
+/* Register Google role modal */
+.role-picker-modal .modal-content {
+  border: 1px solid #dbe6f3;
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+}
+
+.role-picker-modal .modal-title {
+  font-family: "Manrope", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #12395f;
+}
+
+.role-picker-modal .role-picker-subtitle {
+  margin-bottom: 14px;
+  color: #546579;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.role-picker-modal .form-label {
+  font-weight: 700;
+  color: #1b3654;
+}
+
+.role-picker-modal .form-select {
+  border: 1.5px solid #cfdcec;
+  border-radius: 10px;
+  min-height: 44px;
+}
+
+.role-picker-modal .form-select:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.14);
+}
+
+.role-picker-modal .role-continue-btn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  box-shadow: none;
+}

@@ -1,6 +1,8 @@
 @extends('frontend.layouts.app')
 
 @section('content')
+<div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
+<div id="post-offer" class="visually-hidden" aria-hidden="true"></div>
 <!-- ══════════════════════════════════════════════════
      HERO BANNER
 ══════════════════════════════════════════════════ -->
@@ -188,9 +190,6 @@
   </div>
 </div>
 
-<script src="{{ asset('assets/js/main.js') }}" defer></script>
-
-
 <!-- ══════════════════════════════════════════════════
      MAIN CONTENT  (from Image 2 layout with sidebar)
 ══════════════════════════════════════════════════ -->
@@ -210,27 +209,23 @@
             <a class="view-all" href="#">Learn More ▶</a>
           </div>
           <div class="ad-slider auto-ad-slider top-ad-slider top-categories-ad-slider" data-pause-on-hover="false">
-            <div class="ad-slide" style="background:linear-gradient(90deg,#e8f5e9,#c8e6c9);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <div>
-                <div style="font-size:17px;font-weight:800;color:#1a3a5c;">Top Categories</div>
-                <div style="font-size:12px;color:#555;">Advertise your business. Reach local or nationwide customers with premium ads.</div>
+            @forelse(($topCategoriesSliderAds ?? collect()) as $ad)
+              <div class="ad-slide" style="margin-bottom:10px;">
+                <img
+                  src="{{ asset($ad->final_image) }}"
+                  alt="{{ $ad->title }}"
+                  style="width:100%;height:auto;display:block;border-radius:8px;"
+                >
               </div>
-              <button class="btn-yellow" style="white-space:nowrap;">Advertise Now</button>
-            </div>
-            <div class="ad-slide" style="background:linear-gradient(90deg,#e3f2fd,#bbdefb);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <div>
-                <div style="font-size:17px;font-weight:800;color:#1a3a5c;">Get More Enquiries</div>
-                <div style="font-size:12px;color:#555;">Promote your listing in top categories and connect with high-intent buyers fast.</div>
+            @empty
+              <div class="ad-slide" style="background:linear-gradient(90deg,#e3f2fd,#bbdefb);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div>
+                  <div style="font-size:17px;font-weight:800;color:#1a3a5c;">Get More Enquiries</div>
+                  <div style="font-size:12px;color:#555;">Approved admin ads for size 879×118 will appear here.</div>
+                </div>
+                <button class="btn-yellow" style="white-space:nowrap;">Boost Listing</button>
               </div>
-              <button class="btn-yellow" style="white-space:nowrap;">Boost Listing</button>
-            </div>
-            <div class="ad-slide" style="background:linear-gradient(90deg,#fff3e0,#ffe0b2);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <div>
-                <div style="font-size:17px;font-weight:800;color:#1a3a5c;">Premium Category Slot</div>
-                <div style="font-size:12px;color:#555;">Feature your brand in priority positions for stronger visibility across India.</div>
-              </div>
-              <button class="btn-yellow" style="white-space:nowrap;">Book Slot</button>
-            </div>
+            @endforelse
           </div>
         </div>
 
@@ -284,22 +279,20 @@
 
       <aside class="col-12 col-lg-3 top-sidebar-ads">
         <div class="ad-slider auto-ad-slider business-side-slider">
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1556742400-b5b7c512bc0d?w=500&q=70" alt="Advertise your business">
-            <div class="side-card-body">
-              <h3>Advertise Your Business</h3>
-              <p>Reach Local Customers with Premium Ads</p>
-              <button class="btn-learn">Learn More</button>
+          @forelse(($topSidebarSliderAds ?? collect()) as $ad)
+            <div class="side-card ad-slide">
+              <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
             </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&q=70" alt="Grow your brand visibility">
-            <div class="side-card-body">
-              <h3>Advertise Your Business</h3>
-              <p>Highlight your services in top city and category placements.</p>
-              <button class="btn-learn">Start Campaign</button>
+          @empty
+            <div class="side-card ad-slide">
+              <img class="side-card-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&q=70" alt="Advertise your business">
+              <div class="side-card-body">
+                <h3>Advertise Your Business</h3>
+                <p>Approved admin ads for size 296×292 will appear here.</p>
+                <button class="btn-learn">Start Campaign</button>
+              </div>
             </div>
-          </div>
+          @endforelse
         </div>
 
         <div class="ad-slider auto-ad-slider dream-home-side-slider">
@@ -496,7 +489,7 @@
     <div class="sec promo-slider-section">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-tags"></i></span> Offer &amp; Discount</div>
-        <a class="view-all" href="#">VIEW ALL ▶</a>
+        <a class="view-all" href="{{ route('frontend.offers.index') }}">VIEW ALL ▶</a>
       </div>
       <div class="promo-layout row g-3 g-lg-4 align-items-stretch">
         <div class="col-12 col-xl-9 d-flex">
@@ -518,57 +511,61 @@
                 <p>Discover curated deals and activate codes instantly at checkout.</p>
               </div>
             </div>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-1 offer-coupon-grid">
-              <div class="col">
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-success w-fit">Flat 15% OFF</span>
-                    <h4 class="h6 mb-1">Seeds &amp; Fertilizers</h4>
-                    <p class="small text-muted mb-2">Valid for orders above ₹999.</p>
-                    <div class="coupon-code mt-auto">SEED15</div>
+            <div class="ad-slider auto-ad-slider offer-coupon-grid-slider" data-show-arrows="true" data-show-dots="false" aria-label="Offer coupon cards slider">
+              @forelse ($offers->chunk(5) as $offerChunk)
+                <div class="ad-slide">
+                  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-1 offer-coupon-grid">
+                    @foreach ($offerChunk as $offer)
+                      <div class="col">
+                        <article
+                          class="card h-100 shadow-sm border-0 offer-coupon-card js-offer-modal-trigger"
+                          role="button"
+                          tabindex="0"
+                          data-bs-toggle="modal"
+                          data-bs-target="#offerDetailsModal"
+                          data-offer-title="{{ $offer->title }}"
+                          data-offer-discount="{{ $offer->discount_tag }}"
+                          data-offer-description="{{ $offer->short_description ?: 'Special marketplace offer available now.' }}"
+                          data-offer-coupon="{{ $offer->coupon_code ? strtoupper($offer->coupon_code) : '' }}"
+                          data-offer-validity="{{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}"
+                          data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
+                        >
+                          @if ($offer->banner_image)
+                            <div class="offer-coupon-image-wrap">
+                              <img
+                                src="{{ asset($offer->banner_image) }}"
+                                alt="{{ $offer->title }}"
+                                class="offer-coupon-image"
+                              >
+                            </div>
+                          @endif
+                          <div class="card-body d-flex flex-column gap-2">
+                            <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
+                            <h4 class="h6 mb-1 offer-coupon-title">{{ $offer->title }}</h4>
+                            <p class="small text-muted mb-2 offer-coupon-description">{{ $offer->short_description ?: 'Special marketplace offer available now.' }}</p>
+                            @if ($offer->coupon_code)
+                              <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
+                            @endif
+                          </div>
+                        </article>
+                      </div>
+                    @endforeach
                   </div>
-                </article>
-              </div>
-              <div class="col">
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-primary w-fit">Save ₹300</span>
-                    <h4 class="h6 mb-1">Irrigation Tools</h4>
-                    <p class="small text-muted mb-2">On pump &amp; drip kit bundles.</p>
-                    <div class="coupon-code mt-auto">WATER300</div>
+                </div>
+              @empty
+                <div class="ad-slide">
+                  <div class="row row-cols-1 g-1 offer-coupon-grid">
+                    <div class="col">
+                      <article class="card h-100 shadow-sm border-0 offer-coupon-card">
+                        <div class="card-body d-flex flex-column gap-2 justify-content-center text-center">
+                          <h4 class="h6 mb-1">No active offers available</h4>
+                          <p class="small text-muted mb-2">Please check back later for fresh deals.</p>
+                        </div>
+                      </article>
+                    </div>
                   </div>
-                </article>
-              </div>
-              <div class="col">
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-warning w-fit">20% OFF</span>
-                    <h4 class="h6 mb-1">Farm Safety Gear</h4>
-                    <p class="small text-muted mb-2">Minimum purchase ₹1,499.</p>
-                    <div class="coupon-code mt-auto">SAFE20</div>
-                  </div>
-                </article>
-              </div>
-              <div class="col">
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-info w-fit">Buy 2 Get 1</span>
-                    <h4 class="h6 mb-1">Garden Essentials</h4>
-                    <p class="small text-muted mb-2">Applies on selected tools.</p>
-                    <div class="coupon-code mt-auto">GREEN3</div>
-                  </div>
-                </article>
-              </div>
-              <div class="col">
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-danger w-fit">Extra 10% OFF</span>
-                    <h4 class="h6 mb-1">Weekend Flash Deal</h4>
-                    <p class="small text-muted mb-2">Limited-time seller campaigns.</p>
-                    <div class="coupon-code mt-auto">FLASH10</div>
-                  </div>
-                </article>
-              </div>
+                </div>
+              @endforelse
             </div>
           </div>
         </div>
@@ -600,6 +597,27 @@
             </article>
           </div>
         </aside>
+      </div>
+    </div>
+
+    <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-0 pb-2">
+            <h2 class="modal-title fs-5" id="offerDetailsModalLabel">Offer Details</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body pt-1">
+            <img id="offerDetailsModalImage" src="" alt="Offer image" class="img-fluid rounded mb-3 d-none offer-details-modal-image">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+              <span class="badge text-bg-primary" id="offerDetailsModalDiscount"></span>
+              <span class="coupon-code mb-0 d-none" id="offerDetailsModalCoupon"></span>
+            </div>
+            <h3 class="h4 mb-2" id="offerDetailsModalTitle"></h3>
+            <p class="text-muted mb-3" id="offerDetailsModalDescription"></p>
+            <p class="mb-0"><strong>Valid until:</strong> <span id="offerDetailsModalExpiry"></span></p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1244,3 +1262,86 @@
   </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+  .offer-details-modal .modal-content {
+    border: 0;
+    border-radius: 14px;
+    box-shadow: 0 18px 44px rgba(26, 58, 92, 0.2);
+  }
+  .offer-details-modal .modal-title {
+    color: #1a3a5c;
+    font-weight: 800;
+  }
+  .offer-details-modal #offerDetailsModalTitle {
+    color: #1a3a5c;
+    font-weight: 700;
+  }
+  .offer-details-modal #offerDetailsModalDescription {
+    line-height: 1.55;
+  }
+  .offer-details-modal-image {
+    width: 100%;
+    aspect-ratio: 768 / 1080;
+    height: auto;
+    object-fit: cover;
+    object-position: center;
+    background: #f5f9ff;
+    padding: 0;
+  }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const offerModal = document.getElementById('offerDetailsModal');
+    if (!offerModal) return;
+    const titleEl = document.getElementById('offerDetailsModalTitle');
+    const discountEl = document.getElementById('offerDetailsModalDiscount');
+    const descriptionEl = document.getElementById('offerDetailsModalDescription');
+    const couponEl = document.getElementById('offerDetailsModalCoupon');
+    const expiryEl = document.getElementById('offerDetailsModalExpiry');
+    const imageEl = document.getElementById('offerDetailsModalImage');
+    const offerTriggers = document.querySelectorAll('.offer-coupon-card.js-offer-modal-trigger');
+
+    offerTriggers.forEach(function (trigger) {
+      trigger.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          trigger.click();
+        }
+      });
+    });
+
+    offerModal.addEventListener('show.bs.modal', function (event) {
+      const trigger = event.relatedTarget;
+      if (!trigger || !trigger.classList.contains('js-offer-modal-trigger')) return;
+
+      titleEl.textContent = trigger.getAttribute('data-offer-title') || 'Offer Details';
+      discountEl.textContent = trigger.getAttribute('data-offer-discount') || '';
+      descriptionEl.textContent = trigger.getAttribute('data-offer-description') || '';
+      expiryEl.textContent = trigger.getAttribute('data-offer-validity') || 'No expiry';
+
+      const couponCode = trigger.getAttribute('data-offer-coupon');
+      if (couponCode) {
+        couponEl.textContent = couponCode;
+        couponEl.classList.remove('d-none');
+      } else {
+        couponEl.textContent = '';
+        couponEl.classList.add('d-none');
+      }
+
+      const bannerImage = trigger.getAttribute('data-offer-image');
+      if (bannerImage) {
+        imageEl.src = bannerImage;
+        imageEl.classList.remove('d-none');
+      } else {
+        imageEl.src = '';
+        imageEl.classList.add('d-none');
+      }
+    });
+  });
+</script>
+@endpush

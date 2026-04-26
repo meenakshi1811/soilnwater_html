@@ -12,10 +12,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
+use Laravel\Socialite\Facades\Socialite;
 
 class LoginController extends Controller
 {
@@ -52,6 +54,10 @@ class LoginController extends Controller
             }
         }
 
+        if ($user && $user->isGeneralUser()) {
+            return route('user.dashboard');
+        }
+
         return '/home';
     }
 
@@ -60,36 +66,13 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user): RedirectResponse|JsonResponse|null
     {
-        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
-            Auth::logout();
-
-            $message = 'Your email and phone number are not verified yet. Please verify your account first.';
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => $message,
-                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
-                ], 403);
-            }
-
-            return redirect()
-                ->route('login')
-                ->withInput([
-                    'login' => $request->input('login'),
-                    'remember' => $request->boolean('remember'),
-                    'verification_email' => $user->email,
-                ])
-                ->withErrors([
-                    'contact_verification' => $message,
-                ]);
-        }
-
         if (! $user->hasVerifiedEmail()) {
             Auth::logout();
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Your account is not verified yet. Please verify your email before signing in.',
+                     'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
                 ], 403);
             }
 
@@ -128,8 +111,8 @@ class LoginController extends Controller
                 'login_contact' => 'No account found with this email address or phone number.',
             ]);
         }
-
-        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+        if ($user->isGeneralUser() && ! $user->hasVerifiedEmail()) {    
+        
             $message = 'Your email and phone number are not verified yet. Please verify your account first.';
 
             if ($request->expectsJson()) {
@@ -273,23 +256,6 @@ class LoginController extends Controller
             ]);
         }
 
-        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
-            Cache::forget($this->otpCacheKey($userId));
-            $request->session()->forget('otp_login_user_id');
-            $message = 'Your email and phone number are not verified yet. Please verify your account first.';
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => $message,
-                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
-                ], 403);
-            }
-
-            return redirect()->route('login')->withErrors([
-                'contact_verification' => $message,
-            ]);
-        }
-
         if (! $user->hasVerifiedEmail()) {
             Cache::forget($this->otpCacheKey($userId));
             $request->session()->forget('otp_login_user_id');
@@ -322,11 +288,90 @@ class LoginController extends Controller
         return redirect()->intended($this->redirectPath());
     }
 
-    public function googleLogin(): RedirectResponse
+    public function googleLogin(Request $request): RedirectResponse
     {
-        return redirect()->route('login')->withErrors([
-            'google' => 'Google sign in is not configured yet. Please use password or OTP login.',
-        ]);
+        $request->session()->put('google_auth.intent', 'login');
+        $request->session()->forget('google_auth.role');
+
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function googleRegister(Request $request): RedirectResponse
+    {
+        // $data = $request->validate([
+        //     'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
+        // ]);
+
+        $request->session()->put('google_auth.intent', 'register');
+        $request->session()->forget('google_auth.role');
+
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function googleCallback(Request $request): RedirectResponse
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+        } catch (\Throwable $exception) {
+            return redirect()->route('login')->withErrors([
+                'google' => 'Google authentication failed. Please try again.',
+            ]);
+        }
+
+        $intent = (string) $request->session()->pull('google_auth.intent', 'login');
+        $roleFromRegisterFlow = $request->session()->pull('google_auth.role');
+        $email = strtolower((string) $googleUser->getEmail());
+
+        if ($email === '') {
+            return redirect()->route('login')->withErrors([
+                'google' => 'Google account email is missing. Please use another login method.',
+            ]);
+        }
+
+        $user = User::where('email', $email)->first();
+
+        if ($intent === 'register' && ! $user && ! in_array($roleFromRegisterFlow, ['user', 'vendor', 'builder', 'developer', 'consultant'], true)) {
+            return redirect()->route('register')->withErrors([
+                'role' => 'Please select a role before continuing with Google.',
+            ]);
+        }
+
+        if (! $user) {
+            $displayName = trim((string) ($googleUser->getName() ?: 'Google User'));
+            $role = $intent === 'register' ? $roleFromRegisterFlow : 'user';
+
+            $user = User::create([
+                'name' => $displayName,
+                'full_name' => $displayName,
+                'email' => $email,
+                'role' => $role,
+                'password' => Hash::make(str()->random(40)),
+                'email_verified_at' => now(),
+            ]);
+        }
+
+        if ($user->isGeneralUser() && ! $user->phone_verified_at) {
+            if ($intent === 'login') {
+                return redirect()
+                    ->route('login')
+                    ->withInput([
+                        'verification_email' => $user->email,
+                    ])
+                    ->withErrors([
+                        'contact_verification' => 'Your mobile number is not verified yet. Please verify your number to continue.',
+                    ]);
+            }
+
+            $request->session()->put('phone_verification_user_id', $user->id);
+
+            return redirect()
+                ->route('register.phone.verify.form')
+                ->with('status', 'Email is verified via Google. Please add and verify your mobile number to complete registration.');
+        }
+
+        Auth::login($user, true);
+
+        return redirect()->intended($this->redirectPath());
     }
 
     public function resendVerification(Request $request): RedirectResponse|JsonResponse
@@ -420,7 +465,7 @@ class LoginController extends Controller
             $smstype  = config('services.message.smstype');
             $peid     = config('services.message.peid');
 
-            $message = "Verification OTP Your login verification code is {$phoneOtpCode} This code is valid for 5 minutes. Do not share it with anyone. – Annuvedant Team";
+            $message = "Verification OTP Your login verification code is {$otpCode} This code is valid for 5 minutes. Do not share it with anyone. – Annuvedant Team";
 
             $url = 'http://sms.messageindia.in/v2/sendSMS?' . http_build_query([
                 'username'   => $username,

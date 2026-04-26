@@ -5,6 +5,7 @@
 
     var FormHelper = {
         alertTimers: {},
+        toastTimers: {},
 
         hideStackedAlerts: function ($alert) {
             if (!$alert || !$alert.length) {
@@ -93,6 +94,96 @@
             this.autoHideAlert($alert, type);
         },
 
+        getToastContainer: function () {
+            var containerId = 'jqueryToastContainer';
+            var $container = $('#' + containerId);
+            if ($container.length) {
+                return $container;
+            }
+
+            $container = $('<div id="' + containerId + '" class="jquery-toast-container" aria-live="polite" aria-atomic="true"></div>');
+            $('body').append($container);
+            return $container;
+        },
+
+        showToast: function (type, message) {
+            var styles = {
+                success: '#198754',
+                danger: '#dc3545',
+                warning: '#fd7e14',
+                info: '#0d6efd'
+            };
+            var bg = styles[type] || styles.info;
+            var toastId = 'toast-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+            var $container = this.getToastContainer();
+            var $toast = $(
+                '<div id="' + toastId + '" class="jquery-toast-item" role="status">' +
+                    '<button type="button" class="jquery-toast-close" aria-label="Close">&times;</button>' +
+                    '<div class="jquery-toast-message"></div>' +
+                '</div>'
+            );
+
+            $toast.css({
+                backgroundColor: bg,
+                color: '#fff',
+                padding: '12px 42px 12px 14px',
+                borderRadius: '8px',
+                boxShadow: '0 10px 24px rgba(0,0,0,0.2)',
+                fontSize: '14px',
+                lineHeight: '1.4',
+                position: 'relative',
+                marginTop: '10px',
+                minWidth: '260px',
+                maxWidth: '380px',
+                opacity: 0,
+                transform: 'translateY(-8px)',
+                transition: 'all 0.2s ease'
+            });
+
+            $toast.find('.jquery-toast-message').text(message || '');
+            $toast.find('.jquery-toast-close').css({
+                position: 'absolute',
+                top: '8px',
+                right: '10px',
+                border: 0,
+                background: 'transparent',
+                color: '#fff',
+                fontSize: '18px',
+                lineHeight: 1,
+                cursor: 'pointer'
+            });
+
+            $container.css({
+                position: 'fixed',
+                top: '16px',
+                right: '16px',
+                zIndex: 1080
+            });
+
+            $container.append($toast);
+            requestAnimationFrame(function () {
+                $toast.css({ opacity: 1, transform: 'translateY(0)' });
+            });
+
+            var self = this;
+            var removeToast = function () {
+                $toast.css({ opacity: 0, transform: 'translateY(-8px)' });
+                setTimeout(function () {
+                    $toast.remove();
+                }, 220);
+            };
+
+            if (self.toastTimers[toastId]) {
+                clearTimeout(self.toastTimers[toastId]);
+            }
+            self.toastTimers[toastId] = setTimeout(removeToast, 4500);
+
+            $toast.find('.jquery-toast-close').on('click', function () {
+                clearTimeout(self.toastTimers[toastId]);
+                removeToast();
+            });
+        },
+
         clearFormErrors: function ($form) {
             $form.find('.is-invalid').removeClass('is-invalid');
             $form.find('span.ajax-error').remove();
@@ -123,21 +214,13 @@
 
             self.ensureButtonParts($button);
 
-            $form.validate({
-                errorElement: 'span',
-                errorPlacement: function (error, element) {
-                    error.addClass('invalid-feedback d-block');
-                    error.insertAfter(element);
-                },
-                highlight: function (element) {
-                    $(element).addClass('is-invalid');
-                },
-                unhighlight: function (element) {
-                    $(element).removeClass('is-invalid');
-                },
-                rules: config.rules || {},
-                messages: config.messages || {},
-                submitHandler: function () {
+            if (config.showLoaderOnClick === true && $button.length) {
+                $button.off('click.ajaxLoader').on('click.ajaxLoader', function () {
+                    self.setButtonLoading($button, true, loadingText, defaultText);
+                });
+            }
+
+            var submitViaAjax = function () {
                     self.clearFormErrors($form);
                     if ($alert.length) {
                         $alert.addClass('d-none').text('');
@@ -149,10 +232,16 @@
 
                     self.setButtonLoading($button, true, loadingText, defaultText);
 
+                    var hasFileInputs = $form.find('input[type="file"]').length > 0;
+                    var isMultipart = (($form.attr('enctype') || '').toLowerCase() === 'multipart/form-data');
+                    var requestData = (hasFileInputs || isMultipart) ? new FormData($form.get(0)) : $form.serialize();
+
                     $.ajax({
                         url: $form.attr('action'),
                         method: config.method || $form.attr('method') || 'POST',
-                        data: $form.serialize(),
+                        data: requestData,
+                        processData: !(hasFileInputs || isMultipart),
+                        contentType: (hasFileInputs || isMultipart) ? false : 'application/x-www-form-urlencoded; charset=UTF-8',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json',
@@ -185,8 +274,34 @@
                     }).always(function () {
                         self.setButtonLoading($button, false, loadingText, defaultText);
                     });
-                }
-            });
+            };
+
+            if ($.fn && typeof $.fn.validate === 'function') {
+                $form.validate({
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback d-block');
+                        error.insertAfter(element);
+                    },
+                    highlight: function (element) {
+                        $(element).addClass('is-invalid');
+                    },
+                    unhighlight: function (element) {
+                        $(element).removeClass('is-invalid');
+                    },
+                    invalidHandler: function () {
+                        self.setButtonLoading($button, false, loadingText, defaultText);
+                    },
+                    rules: config.rules || {},
+                    messages: config.messages || {},
+                    submitHandler: submitViaAjax
+                });
+            } else {
+                $form.off('submit.ajaxForm').on('submit.ajaxForm', function (e) {
+                    e.preventDefault();
+                    submitViaAjax();
+                });
+            }
         },
 
         initOtpTimer: function (selector) {
@@ -253,7 +368,8 @@
                     phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                     role: { required: true },
                     password: { required: true, minlength: 8 },
-                    password_confirmation: { required: true, equalTo: '#password' }
+                    password_confirmation: { required: true, equalTo: '#password' },
+                    accept_terms: { required: true }
                 },
                 messages: {
                     fullname: {
@@ -280,6 +396,9 @@
                     password_confirmation: {
                         required: 'Please confirm your password.',
                         equalTo: 'Password confirmation does not match.'
+                    },
+                    accept_terms: {
+                        required: 'Please accept the terms and conditions to continue.'
                     }
                 },
                 fallbackErrorMessage: 'Unable to register right now. Please try again.',
@@ -503,10 +622,188 @@
             });
         },
 
+        initPhoneVerificationForm: function () {
+            this.attachAjaxForm({
+                formSelector: '#phoneOtpSendForm',
+                buttonSelector: '#phoneOtpSendBtn',
+                alertSelector: '#phoneVerifyAlert',
+                defaultText: 'Send OTP',
+                loadingText: 'Sending OTP...',
+                showLoaderOnClick: true,
+                rules: {
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 }
+                },
+                messages: {
+                    phone_number: {
+                        required: 'Please enter your mobile number.',
+                        digits: 'Mobile number should contain only digits.',
+                        minlength: 'Mobile number must be at least 10 digits.',
+                        maxlength: 'Mobile number cannot exceed 15 digits.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to send OTP right now. Please try again.',
+                onSuccess: function (response, ctx) {
+                    FormHelper.showAlert($('#phoneVerifyAlert'), 'success', response.message || 'OTP sent successfully.');
+
+                    if (ctx && ctx.form && ctx.form.length) {
+                        var currentPhoneNumber = $.trim(ctx.form.find('[name="phone_number"]').val() || '');
+                        $('form#phoneOtpVerifyForm').find('input[name="phone_number"]').val(currentPhoneNumber);
+                    }
+
+                    if (response.expires_at) {
+                        FormHelper.resetOtpTimer('#otp-timer', response.expires_at);
+                    }
+                }
+            });
+
+            this.attachAjaxForm({
+                formSelector: '#phoneOtpVerifyForm',
+                buttonSelector: '#phoneOtpVerifyBtn',
+                alertSelector: '#phoneVerifyAlert',
+                defaultText: 'Verify Number',
+                loadingText: 'Verifying...',
+                showLoaderOnClick: true,
+                rules: {
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    otp: { required: true, digits: true, minlength: 6, maxlength: 6 }
+                },
+                messages: {
+                    phone_number: {
+                        required: 'Please enter your mobile number.',
+                        digits: 'Mobile number should contain only digits.',
+                        minlength: 'Mobile number must be at least 10 digits.',
+                        maxlength: 'Mobile number cannot exceed 15 digits.'
+                    },
+                    otp: {
+                        required: 'Please enter the OTP sent to your mobile number.',
+                        digits: 'OTP must contain only numbers.',
+                        minlength: 'OTP must be 6 digits.',
+                        maxlength: 'OTP must be 6 digits.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to verify OTP right now. Please try again.',
+                onSuccess: function (response) {
+                    FormHelper.showAlert($('#phoneVerifyAlert'), 'success', response.message || 'Mobile number verified successfully.');
+                    window.location.href = response.redirect || '/login';
+                }
+            });
+        },
+
+        initAdminProfileForm: function () {
+            this.attachAjaxForm({
+                formSelector: '#adminProfileForm',
+                buttonSelector: '#adminProfileSubmitBtn',
+                alertSelector: '#adminProfileAlert',
+                defaultText: 'Save Changes',
+                loadingText: 'Saving...',
+                rules: {
+                    name: { required: true, minlength: 3, maxlength: 255 },
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    email: { required: true, email: true, maxlength: 255 },
+                    password: { minlength: 8 },
+                    password_confirmation: {
+                        required: function () {
+                            return $.trim($('#password').val()).length > 0;
+                        },
+                        equalTo: '#password'
+                    }
+                },
+                messages: {
+                    name: {
+                        required: 'Please enter your full name.',
+                        minlength: 'Full name must be at least 3 characters.'
+                    },
+                    phone_number: {
+                        required: 'Please enter your phone number.',
+                        digits: 'Phone number should contain only digits.',
+                        minlength: 'Phone number must be at least 10 digits.',
+                        maxlength: 'Phone number cannot exceed 15 digits.'
+                    },
+                    email: {
+                        required: 'Please enter your email address.',
+                        email: 'Please enter a valid email address.'
+                    },
+                    password: {
+                        minlength: 'Password must be at least 8 characters long.'
+                    },
+                    password_confirmation: {
+                        required: 'Please confirm your password.',
+                        equalTo: 'Password confirmation does not match.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to update profile right now. Please try again.',
+                onSuccess: function (response, ctx) {
+                    if (ctx && ctx.form && ctx.form.length) {
+                        ctx.form.find('input[name="password"], input[name="password_confirmation"]').val('');
+                    }
+
+                    FormHelper.showAlert(
+                        $('#adminProfileAlert'),
+                        'success',
+                        response.message || 'Profile updated successfully.'
+                    );
+                }
+            });
+        },
+
+        initUserProfileForm: function () {
+            this.attachAjaxForm({
+                formSelector: '#userProfileForm',
+                buttonSelector: '#userProfileSubmitBtn',
+                alertSelector: '#userProfileAlert',
+                defaultText: 'Save Changes',
+                loadingText: 'Saving...',
+                rules: {
+                    name: { required: true, minlength: 3, maxlength: 255 },
+                    phone_number: { digits: true, minlength: 10, maxlength: 15 },
+                    password: { minlength: 8 },
+                    password_confirmation: {
+                        required: function () {
+                            return $.trim($('#password').val()).length > 0;
+                        },
+                        equalTo: '#password'
+                    }
+                },
+                messages: {
+                    name: {
+                        required: 'Please enter your full name.',
+                        minlength: 'Full name must be at least 3 characters.'
+                    },
+                    phone_number: {
+                        digits: 'Phone number should contain only digits.',
+                        minlength: 'Phone number must be at least 10 digits.',
+                        maxlength: 'Phone number cannot exceed 15 digits.'
+                    },
+                    password: {
+                        minlength: 'Password must be at least 8 characters long.'
+                    },
+                    password_confirmation: {
+                        required: 'Please confirm your password.',
+                        equalTo: 'Password confirmation does not match.'
+                    }
+                },
+                fallbackErrorMessage: 'Unable to update profile right now. Please try again.',
+                onSuccess: function (response, ctx) {
+                    if (ctx && ctx.form && ctx.form.length) {
+                        ctx.form.find('input[name="password"], input[name="password_confirmation"]').val('');
+                    }
+
+                    FormHelper.showAlert(
+                        $('#userProfileAlert'),
+                        'success',
+                        response.message || 'Profile updated successfully.'
+                    );
+                }
+            });
+        },
+
         init: function () {
             this.initRegisterForm();
             this.initLoginForms();
             this.initOtpVerifyForm();
+            this.initPhoneVerificationForm();
+            this.initAdminProfileForm();
+            this.initUserProfileForm();
             this.initOtpTimer('#otp-timer');
         }
     };

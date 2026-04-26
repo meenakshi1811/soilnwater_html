@@ -14,8 +14,35 @@
   </div>
 
   <div class="header-actions">
-    <button class="btn-offer">Post Offer</button>
+    <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <button class="btn-post">Post Ad</button>
-    <a class="btn-login" href="{{ route('login') }}">Login</a>
+
+    @auth
+      @php
+        $dashboardUrl = auth()->user()->isGeneralUser() ? route('user.dashboard') : route('admin.dashboard');
+      @endphp
+      <div class="dropdown user-menu-dropdown">
+        <button
+          class="btn-login dropdown-toggle user-menu-toggle"
+          type="button"
+          id="headerUserMenu"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          My Account
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerUserMenu">
+          <li><a class="dropdown-item" href="{{ $dashboardUrl }}">Dashboard</a></li>
+          <li>
+            <form method="POST" action="{{ route('logout') }}">
+              @csrf
+              <button type="submit" class="dropdown-item">Logout</button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    @else
+      <a class="btn-login" href="{{ route('login') }}">Login</a>
+    @endauth
   </div>
 </header>
