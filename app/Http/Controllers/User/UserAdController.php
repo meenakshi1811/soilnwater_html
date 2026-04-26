@@ -367,16 +367,26 @@ class UserAdController extends Controller
             ]);
         }
 
+        $srcW = 0;
+        $srcH = 0;
         if ($targetWidth > 0 && $targetHeight > 0) {
             $source = @imagecreatefromstring($decoded);
             if (is_resource($source) || is_object($source)) {
-                $srcW = imagesx($source);
-                $srcH = imagesy($source);
+                $srcW = (int) imagesx($source);
+                $srcH = (int) imagesy($source);
                 imagedestroy($source);
 
                 if ($srcW < $targetWidth || $srcH < $targetHeight) {
                     throw ValidationException::withMessages([
                         'generated_image_data' => 'Generated image quality is too low. Please use the live preview export again.',
+                    ]);
+                }
+
+                $targetRatio = $targetWidth / $targetHeight;
+                $sourceRatio = $srcW / $srcH;
+                if (abs($sourceRatio - $targetRatio) > 0.02) {
+                    throw ValidationException::withMessages([
+                        'generated_image_data' => 'Generated image ratio does not match template size. Please regenerate from live preview.',
                     ]);
                 }
             }
@@ -391,7 +401,10 @@ class UserAdController extends Controller
         $fileName = 'ad-'.Str::uuid().'.png';
         $absolutePath = $absoluteDirectory.'/'.$fileName;
         file_put_contents($absolutePath, $decoded);
-        $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
+
+        if ($targetWidth > 0 && $targetHeight > 0 && ($srcW === 0 || $srcH === 0)) {
+            $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
+        }
 
         return $relativeDirectory.'/'.$fileName;
     }

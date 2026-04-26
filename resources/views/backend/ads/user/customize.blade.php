@@ -502,7 +502,7 @@
             if (!exportWidth || !exportHeight) {
                 return '';
             }
-            const pixelRatio = Math.min(4, Math.max(2, window.devicePixelRatio || 1));
+            const pixelRatio = Math.max(3, Math.min(5, window.devicePixelRatio || 1));
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
