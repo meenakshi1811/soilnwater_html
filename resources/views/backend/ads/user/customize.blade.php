@@ -463,8 +463,7 @@
         async function exportPreviewAsPng() {
             const exportWidth = sourceWidth || preview.scrollWidth || 0;
             const exportHeight = sourceHeight || preview.scrollHeight || 0;
-            const deviceRatio = window.devicePixelRatio || 1;
-            const pixelRatio = Math.max(2, Math.min(4, deviceRatio * 2));
+            const pixelRatio = 4;
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -493,6 +492,16 @@
             document.body.appendChild(sandbox);
 
             try {
+                if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
+                    return await window.htmlToImage.toPng(clone, {
+                        cacheBust: true,
+                        pixelRatio,
+                        canvasWidth: exportWidth || undefined,
+                        canvasHeight: exportHeight || undefined,
+                        backgroundColor: null,
+                    });
+                }
+
                 if (window.html2canvas) {
                     const canvas = await window.html2canvas(clone, {
                         width: exportWidth || clone.scrollWidth,
@@ -512,15 +521,6 @@
                         context.imageSmoothingQuality = 'high';
                     }
                     return canvas.toDataURL('image/png');
-                }
-
-                if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
-                    return await window.htmlToImage.toPng(clone, {
-                        cacheBust: true,
-                        pixelRatio,
-                        canvasWidth: exportWidth || undefined,
-                        canvasHeight: exportHeight || undefined,
-                    });
                 }
             } finally {
                 document.body.removeChild(sandbox);
