@@ -363,10 +363,8 @@
 
         function applyLiveImages() {
             preview.querySelectorAll('img').forEach((img) => {
-                if (!img.style.objectFit) {
-                    img.style.objectFit = 'contain';
-                    img.style.objectPosition = 'center';
-                }
+                img.style.objectFit = 'cover';
+                img.style.objectPosition = 'center';
             });
 
             preview.querySelectorAll('img[data-ad-key]').forEach((img) => {
@@ -375,10 +373,8 @@
                 const existing = (img.getAttribute('src') || '').trim();
                 const desired = imageState[key] || existing || placeholderSrc;
                 img.setAttribute('src', desired);
-                if (!img.style.objectFit) {
-                    img.style.objectFit = 'contain';
-                    img.style.objectPosition = 'center';
-                }
+                img.style.objectFit = 'cover';
+                img.style.objectPosition = 'center';
             });
         }
 
@@ -463,7 +459,7 @@
         async function exportPreviewAsPng() {
             const exportWidth = sourceWidth || preview.scrollWidth || 0;
             const exportHeight = sourceHeight || preview.scrollHeight || 0;
-            const pixelRatio = 4;
+            const pixelRatio = 1;
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -491,14 +487,33 @@
             sandbox.appendChild(clone);
             document.body.appendChild(sandbox);
 
+            const waitForImages = async (root, timeoutMs = 6000) => {
+                const imgs = Array.from(root.querySelectorAll('img'));
+                if (!imgs.length) return;
+
+                await Promise.race([
+                    Promise.all(imgs.map((img) => {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            const done = () => resolve();
+                            img.addEventListener('load', done, { once: true });
+                            img.addEventListener('error', done, { once: true });
+                        });
+                    })),
+                    new Promise((resolve) => setTimeout(resolve, timeoutMs))
+                ]);
+            };
+
             try {
+                await waitForImages(clone);
+
                 if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
                     try {
                         return await window.htmlToImage.toPng(clone, {
                             cacheBust: true,
                             pixelRatio,
-                            canvasWidth: exportWidth || undefined,
-                            canvasHeight: exportHeight || undefined,
+                            canvasWidth: exportWidth,
+                            canvasHeight: exportHeight,
                             backgroundColor: null,
                         });
                     } catch (error) {
