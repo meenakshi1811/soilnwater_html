@@ -530,6 +530,49 @@
             sandbox.appendChild(clone);
             document.body.appendChild(sandbox);
 
+            const inlineComputedStyles = (sourceRoot, targetRoot) => {
+                const sourceNodes = [sourceRoot, ...sourceRoot.querySelectorAll('*')];
+                const targetNodes = [targetRoot, ...targetRoot.querySelectorAll('*')];
+                const ignoreOnRoot = new Set([
+                    'transform',
+                    'transform-origin',
+                    'inset',
+                    'left',
+                    'right',
+                    'top',
+                    'bottom',
+                    'max-width',
+                    'max-height',
+                ]);
+
+                sourceNodes.forEach((sourceNode, index) => {
+                    const targetNode = targetNodes[index];
+                    if (!targetNode || targetNode.nodeType !== 1) return;
+                    if (!(sourceNode instanceof Element) || !(targetNode instanceof Element)) return;
+
+                    const computed = window.getComputedStyle(sourceNode);
+                    let styleText = '';
+                    for (let i = 0; i < computed.length; i += 1) {
+                        const prop = computed[i];
+                        if (index === 0 && ignoreOnRoot.has(prop)) continue;
+                        styleText += prop + ':' + computed.getPropertyValue(prop) + ';';
+                    }
+
+                    targetNode.setAttribute('style', styleText);
+                });
+            };
+
+            const waitForCloneImages = async (root) => {
+                const images = Array.from(root.querySelectorAll('img'));
+                await Promise.all(images.map((img) => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise((resolve) => {
+                        img.addEventListener('load', resolve, { once: true });
+                        img.addEventListener('error', resolve, { once: true });
+                    });
+                }));
+            };
+
             try {
                 if (document.fonts && document.fonts.ready) {
                     await document.fonts.ready;
