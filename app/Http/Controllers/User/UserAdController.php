@@ -402,7 +402,7 @@ class UserAdController extends Controller
         $absolutePath = $absoluteDirectory.'/'.$fileName;
         file_put_contents($absolutePath, $decoded);
 
-        if ($targetWidth > 0 && $targetHeight > 0 && ($srcW === 0 || $srcH === 0)) {
+        if ($targetWidth > 0 && $targetHeight > 0 && ($srcW !== $targetWidth || $srcH !== $targetHeight)) {
             $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
         }
 

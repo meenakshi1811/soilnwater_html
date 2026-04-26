@@ -475,8 +475,8 @@
             clone.style.bottom = 'auto';
             clone.style.transform = 'none';
             clone.style.transformOrigin = 'top left';
-            clone.style.width = '100%';
-            clone.style.height = '100%';
+            clone.style.width = exportWidth + 'px';
+            clone.style.height = exportHeight + 'px';
             clone.style.maxWidth = 'none';
             clone.style.maxHeight = 'none';
             clone.style.overflow = 'hidden';
@@ -487,7 +487,7 @@
             try {
                 if (window.html2canvas) {
                     const canvas = await window.html2canvas(clone, {
-                        width: sourceWidth || clone.scrollWidth,
+                        width: exportWidth || clone.scrollWidth,
                         height: exportHeight || clone.scrollHeight,
                         windowWidth: exportWidth || clone.scrollWidth,
                         windowHeight: exportHeight || clone.scrollHeight,
