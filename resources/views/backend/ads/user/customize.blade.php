@@ -290,6 +290,10 @@
 
         function renderPreview() {
             preview.innerHTML = buildPreviewHtml();
+            preview.querySelectorAll('img[data-ad-key]').forEach((img) => {
+                img.style.objectFit = 'contain';
+                img.style.objectPosition = 'center';
+            });
         }
 
         document.querySelectorAll('.js-ad-text').forEach((input) => {

@@ -495,8 +495,6 @@ class UserAdController extends Controller
             return $image;
         }
 
-        [$cropX, $cropY, $cropWidth, $cropHeight] = $this->detectContentBoundingBox($image, $sourceWidth, $sourceHeight);
-
         $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
         if (!is_resource($canvas) && !is_object($canvas)) {
             return $image;
@@ -512,53 +510,15 @@ class UserAdController extends Controller
             $image,
             0,
             0,
-            $cropX,
-            $cropY,
+            0,
+            0,
             $targetWidth,
             $targetHeight,
-            $cropWidth,
-            $cropHeight
+            $sourceWidth,
+            $sourceHeight
         );
 
         return $canvas;
-    }
-
-    private function detectContentBoundingBox($image, int $width, int $height): array
-    {
-        $minX = $width;
-        $minY = $height;
-        $maxX = -1;
-        $maxY = -1;
-        $threshold = 245;
-
-        for ($y = 0; $y < $height; $y++) {
-            for ($x = 0; $x < $width; $x++) {
-                $colorIndex = imagecolorat($image, $x, $y);
-                $rgba = imagecolorsforindex($image, $colorIndex);
-                if (($rgba['red'] ?? 255) > $threshold
-                    && ($rgba['green'] ?? 255) > $threshold
-                    && ($rgba['blue'] ?? 255) > $threshold
-                    && ($rgba['alpha'] ?? 0) <= 10) {
-                    continue;
-                }
-
-                $minX = min($minX, $x);
-                $minY = min($minY, $y);
-                $maxX = max($maxX, $x);
-                $maxY = max($maxY, $y);
-            }
-        }
-
-        if ($maxX < $minX || $maxY < $minY) {
-            return [0, 0, $width, $height];
-        }
-
-        return [
-            max(0, $minX),
-            max(0, $minY),
-            max(1, $maxX - $minX + 1),
-            max(1, $maxY - $minY + 1),
-        ];
     }
 
     private function normalizeGeneratedAdImage(string $absolutePath, int $targetWidth, int $targetHeight): void
