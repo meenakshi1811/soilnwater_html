@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Offer;
+use App\Models\UserAd;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -19,8 +20,18 @@ class OfferPageController extends Controller
             ->limit(10)
             ->get();
 
+        $frontPageAds = UserAd::query()
+            ->where('status', 'approved')
+            ->whereIn('size_type', ['top_categories_ad_1', 'top_categories_ad_2'])
+            ->whereNotNull('final_image')
+            ->latest('reviewed_at')
+            ->latest('id')
+            ->get(['id', 'title', 'size_type', 'final_image']);
+
         return view('frontend.index', [
             'offers' => $offers,
+            'topCategoriesSliderAds' => $frontPageAds->where('size_type', 'top_categories_ad_1')->values(),
+            'topSidebarSliderAds' => $frontPageAds->where('size_type', 'top_categories_ad_2')->values(),
         ]);
     }
 

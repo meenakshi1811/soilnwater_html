@@ -209,27 +209,23 @@
             <a class="view-all" href="#">Learn More ▶</a>
           </div>
           <div class="ad-slider auto-ad-slider top-ad-slider top-categories-ad-slider" data-pause-on-hover="false">
-            <div class="ad-slide" style="background:linear-gradient(90deg,#e8f5e9,#c8e6c9);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <div>
-                <div style="font-size:17px;font-weight:800;color:#1a3a5c;">Top Categories</div>
-                <div style="font-size:12px;color:#555;">Advertise your business. Reach local or nationwide customers with premium ads.</div>
+            @forelse(($topCategoriesSliderAds ?? collect()) as $ad)
+              <div class="ad-slide" style="margin-bottom:10px;">
+                <img
+                  src="{{ asset($ad->final_image) }}"
+                  alt="{{ $ad->title }}"
+                  style="width:100%;height:auto;display:block;border-radius:8px;"
+                >
               </div>
-              <button class="btn-yellow" style="white-space:nowrap;">Advertise Now</button>
-            </div>
-            <div class="ad-slide" style="background:linear-gradient(90deg,#e3f2fd,#bbdefb);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <div>
-                <div style="font-size:17px;font-weight:800;color:#1a3a5c;">Get More Enquiries</div>
-                <div style="font-size:12px;color:#555;">Promote your listing in top categories and connect with high-intent buyers fast.</div>
+            @empty
+              <div class="ad-slide" style="background:linear-gradient(90deg,#e3f2fd,#bbdefb);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div>
+                  <div style="font-size:17px;font-weight:800;color:#1a3a5c;">Get More Enquiries</div>
+                  <div style="font-size:12px;color:#555;">Approved admin ads for size 879×118 will appear here.</div>
+                </div>
+                <button class="btn-yellow" style="white-space:nowrap;">Boost Listing</button>
               </div>
-              <button class="btn-yellow" style="white-space:nowrap;">Boost Listing</button>
-            </div>
-            <div class="ad-slide" style="background:linear-gradient(90deg,#fff3e0,#ffe0b2);border-radius:8px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <div>
-                <div style="font-size:17px;font-weight:800;color:#1a3a5c;">Premium Category Slot</div>
-                <div style="font-size:12px;color:#555;">Feature your brand in priority positions for stronger visibility across India.</div>
-              </div>
-              <button class="btn-yellow" style="white-space:nowrap;">Book Slot</button>
-            </div>
+            @endforelse
           </div>
         </div>
 
@@ -283,22 +279,20 @@
 
       <aside class="col-12 col-lg-3 top-sidebar-ads">
         <div class="ad-slider auto-ad-slider business-side-slider">
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1556742400-b5b7c512bc0d?w=500&q=70" alt="Advertise your business">
-            <div class="side-card-body">
-              <h3>Advertise Your Business</h3>
-              <p>Reach Local Customers with Premium Ads</p>
-              <button class="btn-learn">Learn More</button>
+          @forelse(($topSidebarSliderAds ?? collect()) as $ad)
+            <div class="side-card ad-slide">
+              <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
             </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&q=70" alt="Grow your brand visibility">
-            <div class="side-card-body">
-              <h3>Advertise Your Business</h3>
-              <p>Highlight your services in top city and category placements.</p>
-              <button class="btn-learn">Start Campaign</button>
+          @empty
+            <div class="side-card ad-slide">
+              <img class="side-card-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&q=70" alt="Advertise your business">
+              <div class="side-card-body">
+                <h3>Advertise Your Business</h3>
+                <p>Approved admin ads for size 296×132 will appear here.</p>
+                <button class="btn-learn">Start Campaign</button>
+              </div>
             </div>
-          </div>
+          @endforelse
         </div>
 
         <div class="ad-slider auto-ad-slider dream-home-side-slider">
