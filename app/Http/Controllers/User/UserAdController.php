@@ -243,7 +243,12 @@ class UserAdController extends Controller
 
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
-            $finalImagePath = $this->storeGeneratedAdImage($validated['generated_image_data'] ?? '');
+            $size = AdSizes::all()[$sizeType] ?? null;
+            $finalImagePath = $this->storeGeneratedAdImage(
+                $validated['generated_image_data'] ?? '',
+                (int) ($size['w'] ?? 0),
+                (int) ($size['h'] ?? 0),
+            );
 
             return UserAd::create([
                 'user_id' => $user->id,
@@ -322,7 +327,7 @@ class UserAdController extends Controller
         return $html;
     }
 
-    private function storeGeneratedAdImage(string $base64Png): string
+    private function storeGeneratedAdImage(string $base64Png, int $targetWidth, int $targetHeight): string
     {
         if (!preg_match('/^data:image\/png;base64,/', $base64Png)) {
             throw ValidationException::withMessages([
@@ -344,9 +349,52 @@ class UserAdController extends Controller
         }
 
         $fileName = 'ad-'.Str::uuid().'.png';
-        file_put_contents($absoluteDirectory.'/'.$fileName, $decoded);
+        $absolutePath = $absoluteDirectory.'/'.$fileName;
+        file_put_contents($absolutePath, $decoded);
+        $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
 
         return $relativeDirectory.'/'.$fileName;
+    }
+
+    private function normalizeGeneratedAdImage(string $absolutePath, int $targetWidth, int $targetHeight): void
+    {
+        if ($targetWidth <= 0 || $targetHeight <= 0 || !is_file($absolutePath)) {
+            return;
+        }
+
+        $raw = file_get_contents($absolutePath);
+        if ($raw === false) {
+            return;
+        }
+
+        $source = @imagecreatefromstring($raw);
+        if (!is_resource($source) && !is_object($source)) {
+            return;
+        }
+
+        $srcW = imagesx($source);
+        $srcH = imagesy($source);
+        if ($srcW <= 0 || $srcH <= 0) {
+            imagedestroy($source);
+
+            return;
+        }
+
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $white);
+
+        $scale = min($targetWidth / $srcW, $targetHeight / $srcH);
+        $drawW = (int) max(1, round($srcW * $scale));
+        $drawH = (int) max(1, round($srcH * $scale));
+        $offsetX = (int) floor(($targetWidth - $drawW) / 2);
+        $offsetY = (int) floor(($targetHeight - $drawH) / 2);
+
+        imagecopyresampled($canvas, $source, $offsetX, $offsetY, 0, 0, $drawW, $drawH, $srcW, $srcH);
+        imagepng($canvas, $absolutePath, 9);
+
+        imagedestroy($canvas);
+        imagedestroy($source);
     }
 
     private function visibleSizesForUser($user): array

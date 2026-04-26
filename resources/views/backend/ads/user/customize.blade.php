@@ -485,6 +485,8 @@
                     const canvas = await window.html2canvas(clone, {
                         width: sourceWidth || clone.scrollWidth,
                         height: sourceHeight || clone.scrollHeight,
+                        windowWidth: sourceWidth || clone.scrollWidth,
+                        windowHeight: sourceHeight || clone.scrollHeight,
                         backgroundColor: null,
                         useCORS: true,
                         scale: pixelRatio,
