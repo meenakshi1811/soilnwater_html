@@ -493,13 +493,18 @@
 
             try {
                 if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
-                    return await window.htmlToImage.toPng(clone, {
-                        cacheBust: true,
-                        pixelRatio,
-                        canvasWidth: exportWidth || undefined,
-                        canvasHeight: exportHeight || undefined,
-                        backgroundColor: null,
-                    });
+                    try {
+                        return await window.htmlToImage.toPng(clone, {
+                            cacheBust: true,
+                            pixelRatio,
+                            canvasWidth: exportWidth || undefined,
+                            canvasHeight: exportHeight || undefined,
+                            backgroundColor: null,
+                        });
+                    } catch (error) {
+                        // Some stylesheets (e.g. Google Fonts) block cssRules access in html-to-image.
+                        // Fall back to html2canvas instead of failing export.
+                    }
                 }
 
                 if (window.html2canvas) {
