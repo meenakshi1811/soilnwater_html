@@ -487,6 +487,17 @@
             const inlineComputedStyles = (sourceRoot, targetRoot) => {
                 const sourceNodes = [sourceRoot, ...sourceRoot.querySelectorAll('*')];
                 const targetNodes = [targetRoot, ...targetRoot.querySelectorAll('*')];
+                const ignoreOnRoot = new Set([
+                    'transform',
+                    'transform-origin',
+                    'inset',
+                    'left',
+                    'right',
+                    'top',
+                    'bottom',
+                    'max-width',
+                    'max-height',
+                ]);
 
                 sourceNodes.forEach((sourceNode, index) => {
                     const targetNode = targetNodes[index];
@@ -497,6 +508,7 @@
                     let styleText = '';
                     for (let i = 0; i < computed.length; i += 1) {
                         const prop = computed[i];
+                        if (index === 0 && ignoreOnRoot.has(prop)) continue;
                         styleText += prop + ':' + computed.getPropertyValue(prop) + ';';
                     }
 
@@ -569,20 +581,7 @@
                     const exportWidth = sourceWidth || preview.scrollWidth || 0;
                     const exportHeight = sourceHeight || preview.scrollHeight || 0;
                     const htmlClone = preview.cloneNode(true);
-                    const sourceNodes = [preview, ...preview.querySelectorAll('*')];
-                    const cloneNodes = [htmlClone, ...htmlClone.querySelectorAll('*')];
-                    sourceNodes.forEach((sourceNode, index) => {
-                        const cloneNode = cloneNodes[index];
-                        if (!cloneNode || cloneNode.nodeType !== 1) return;
-                        if (!(sourceNode instanceof Element) || !(cloneNode instanceof Element)) return;
-                        const computed = window.getComputedStyle(sourceNode);
-                        let styleText = '';
-                        for (let i = 0; i < computed.length; i += 1) {
-                            const prop = computed[i];
-                            styleText += prop + ':' + computed.getPropertyValue(prop) + ';';
-                        }
-                        cloneNode.setAttribute('style', styleText);
-                    });
+                    inlineComputedStyles(preview, htmlClone);
                     customHtmlInput.value = '<div class="ad-canvas" style="width:' + exportWidth + 'px;height:' + exportHeight + 'px;overflow:hidden;position:relative;background:#fff;">'
                         + htmlClone.innerHTML
                         + '</div>';
