@@ -51,6 +51,10 @@
         <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
+            <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
+            @error('generated_image_data')
+                <div class="alert alert-danger py-2">{{ $message }}</div>
+            @enderror
             @foreach($textFieldKeys as $hiddenTextKey)
                 <input type="hidden" name="{{ $hiddenTextKey }}" value="{{ old($hiddenTextKey) }}" class="js-ad-hidden-text" data-key="{{ $hiddenTextKey }}">
             @endforeach
@@ -260,6 +264,8 @@
         const staticState = {};
         const form = preview.closest('form');
         const customHtmlInput = document.getElementById('customHtmlInput');
+        const generatedImageDataInput = document.getElementById('generatedImageDataInput');
+        const alertBox = document.getElementById('adCustomizeAlert');
 
         function scalePreview() {
             const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0);
@@ -362,6 +368,10 @@
                 const existing = (img.getAttribute('src') || '').trim();
                 const desired = imageState[key] || existing || placeholderSrc;
                 img.setAttribute('src', desired);
+                if (!img.style.objectFit) {
+                    img.style.objectFit = 'cover';
+                    img.style.objectPosition = 'center';
+                }
             });
         }
 
@@ -443,8 +453,73 @@
             });
         });
 
+        async function exportPreviewAsPng() {
+            const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0) || preview.scrollWidth || 0;
+            const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0) || preview.scrollHeight || 0;
+            const pixelRatio = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+            const clone = preview.cloneNode(true);
+            const sandbox = document.createElement('div');
+            sandbox.style.position = 'fixed';
+            sandbox.style.left = '-10000px';
+            sandbox.style.top = '0';
+            sandbox.style.width = (sourceWidth || preview.scrollWidth) + 'px';
+            sandbox.style.height = (sourceHeight || preview.scrollHeight) + 'px';
+            sandbox.style.overflow = 'hidden';
+            sandbox.style.zIndex = '-1';
+
+            clone.style.position = 'static';
+            clone.style.inset = 'auto';
+            clone.style.left = 'auto';
+            clone.style.right = 'auto';
+            clone.style.top = 'auto';
+            clone.style.bottom = 'auto';
+            clone.style.transform = 'none';
+            clone.style.transformOrigin = 'top left';
+            clone.style.width = '100%';
+            clone.style.height = '100%';
+            clone.style.maxWidth = 'none';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'hidden';
+
+            sandbox.appendChild(clone);
+            document.body.appendChild(sandbox);
+
+            try {
+                if (window.html2canvas) {
+                    const canvas = await window.html2canvas(clone, {
+                        width: sourceWidth || clone.scrollWidth,
+                        height: sourceHeight || clone.scrollHeight,
+                        windowWidth: sourceWidth || clone.scrollWidth,
+                        windowHeight: sourceHeight || clone.scrollHeight,
+                        backgroundColor: null,
+                        useCORS: true,
+                        scale: pixelRatio,
+                    });
+                    return canvas.toDataURL('image/png');
+                }
+
+                if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
+                    return await window.htmlToImage.toPng(clone, {
+                        cacheBust: true,
+                        pixelRatio,
+                        canvasWidth: sourceWidth || undefined,
+                        canvasHeight: sourceHeight || undefined,
+                    });
+                }
+            } finally {
+                document.body.removeChild(sandbox);
+            }
+
+            return '';
+        }
+
         if (form) {
-            form.addEventListener('submit', () => {
+            form.addEventListener('submit', async (event) => {
+                if (form.dataset.isSubmitting === '1') {
+                    return;
+                }
+                event.preventDefault();
+
                 preview.querySelectorAll('[data-ad-field]').forEach((node) => {
                     const key = node.getAttribute('data-ad-field');
                     if (!key) return;
@@ -455,6 +530,23 @@
                 if (customHtmlInput) {
                     customHtmlInput.value = preview.innerHTML;
                 }
+
+                if (generatedImageDataInput) {
+                    generatedImageDataInput.value = await exportPreviewAsPng();
+                }
+
+                if (!generatedImageDataInput || !generatedImageDataInput.value) {
+                    if (alertBox) {
+                        alertBox.className = 'alert alert-danger';
+                        alertBox.textContent = 'Could not generate ad image. Please re-upload images and try again.';
+                        alertBox.classList.remove('d-none');
+                    }
+                    form.dataset.isSubmitting = '0';
+                    return;
+                }
+
+                form.dataset.isSubmitting = '1';
+                form.submit();
             });
         }
 
@@ -462,6 +554,8 @@
         updatePreview();
     })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js"></script>
 <script>
     (function () {
         const form = document.querySelector('form[action*="/dashboard/ads/create/"]');
