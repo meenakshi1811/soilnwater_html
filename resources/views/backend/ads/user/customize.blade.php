@@ -515,6 +515,11 @@
                             canvasWidth: exportWidth,
                             canvasHeight: exportHeight,
                             backgroundColor: null,
+                            // Avoid reading cssRules from cross-origin stylesheets (Google Fonts, etc.).
+                            // Some html-to-image versions support one or both of these flags.
+                            // Unsupported options are safely ignored.
+                            skipFonts: true,
+                            fontEmbedCSS: '',
                         });
                     } catch (error) {
                         // Some stylesheets (e.g. Google Fonts) block cssRules access in html-to-image.
