@@ -96,13 +96,16 @@
             if (!targetWidth || !targetHeight) return;
 
             var scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
-            // Keep a tiny safety margin to avoid sub-pixel clipping of text descenders
-            // in scaled previews (seen most on short-height templates like 879x118).
-            scale = Math.max(scale - 0.003, 0);
+            // Keep a small safety margin to avoid sub-pixel clipping of text descenders.
+            // Short-height banners (e.g. 879x118) need a little more breathing room.
+            var isShortBanner = sourceHeight <= 140;
+            var safetyMargin = isShortBanner ? 0.01 : 0.003;
+            scale = Math.max(scale - safetyMargin, 0);
+            var offsetY = isShortBanner ? -1 : 0;
             $inner.css({
                 width: sourceWidth + 'px',
                 height: sourceHeight + 'px',
-                transform: 'scale(' + scale + ')'
+                transform: 'translateY(' + offsetY + 'px) scale(' + scale + ')'
             });
         });
     }
