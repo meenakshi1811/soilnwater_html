@@ -138,13 +138,12 @@
                                 $key = (string) ($field['key'] ?? '');
                                 $label = (string) ($field['label'] ?? $key);
                                 $type = (string) ($field['type'] ?? 'text');
-                                $isRequired = (bool) ($field['required'] ?? false);
                                 $isUsedInTemplate = $key !== '' && in_array(strtolower($key), $usedKeys, true);
                             @endphp
-                            @if($key !== '' && $type === 'image' && ($isRequired || $isUsedInTemplate))
+                            @if($key !== '' && $type === 'image' && (((bool) ($field['required'] ?? false)) || $isUsedInTemplate))
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">
-                                        {{ $label }} @if($isRequired)<span class="text-danger">*</span>@endif
+                                        {{ $label }} @if((bool) ($field['required'] ?? false))<span class="text-danger">*</span>@endif
                                     </label>
 
                                     @if($type === 'image')
@@ -154,7 +153,7 @@
                                             class="form-control @error($key) is-invalid @enderror js-ad-image"
                                             accept="image/png,image/jpeg,image/webp"
                                             data-key="{{ $key }}"
-                                            {{ $isRequired ? 'required' : '' }}
+                                            {{ ((bool) ($field['required'] ?? false)) ? 'required' : '' }}
                                         >
                                         @error($key)
                                             <div class="invalid-feedback">{{ $message }}</div>
