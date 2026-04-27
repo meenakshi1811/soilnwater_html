@@ -23,6 +23,10 @@
         @else
             @php
                 $previewWidth = max((int) ($size['w'] ?? 0), 1);
+                $previewRatio = ((int) ($size['h'] ?? 0) > 0)
+                    ? ((int) ($size['w'] ?? 0) / (int) ($size['h'] ?? 1))
+                    : 1;
+                $isUltraWidePreview = $previewRatio >= 5;
             @endphp
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                 <p class="mb-0 text-secondary small">
@@ -32,7 +36,7 @@
 
             <div class="row g-3 ads-template-grid">
                 @foreach($templates as $template)
-                    <div class="col-12 col-lg-6">
+                    <div class="col-12 {{ $isUltraWidePreview ? '' : 'col-lg-6' }}">
                         <a
                             href="{{ route('ads.create.customize', ['sizeType' => $sizeType, 'template' => $template->id]) }}"
                             class="ads-template-card ads-template-card-actual d-block text-decoration-none"
