@@ -96,6 +96,9 @@
             if (!targetWidth || !targetHeight) return;
 
             var scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
+            // Keep a tiny safety margin to avoid sub-pixel clipping of text descenders
+            // in scaled previews (seen most on short-height templates like 879x118).
+            scale = Math.max(scale - 0.003, 0);
             $inner.css({
                 width: sourceWidth + 'px',
                 height: sourceHeight + 'px',
