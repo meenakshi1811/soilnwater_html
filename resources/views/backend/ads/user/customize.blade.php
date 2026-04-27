@@ -138,9 +138,8 @@
                                 $key = (string) ($field['key'] ?? '');
                                 $label = (string) ($field['label'] ?? $key);
                                 $type = (string) ($field['type'] ?? 'text');
-                                $isUsedInTemplate = $key !== '' && in_array(strtolower($key), $usedKeys, true);
                             @endphp
-                            @if($key !== '' && $type === 'image' && (((bool) ($field['required'] ?? false)) || $isUsedInTemplate))
+                            @if($key !== '' && $type === 'image' && (((bool) ($field['required'] ?? false)) || ($key !== '' && in_array(strtolower($key), $usedKeys, true))))
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">
                                         {{ $label }} @if((bool) ($field['required'] ?? false))<span class="text-danger">*</span>@endif
