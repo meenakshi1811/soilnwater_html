@@ -709,6 +709,11 @@
     overflow: hidden;
 }
 
+/* 879x118 previews can clip descenders with very tight inline line-height values. */
+.js-ads-scaled-preview[data-source-height="118"] .ad-canvas * {
+    line-height: 1.1 !important;
+}
+
 .ads-template-fallback {
     height: 100%;
     width: 100%;

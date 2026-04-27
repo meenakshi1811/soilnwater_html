@@ -22,9 +22,7 @@
         <img src="{{ $previewImage }}" alt="{{ $template->name }} preview" class="w-100 h-100 object-fit-contain rounded p-1 bg-white">
     @else
         <div class="ads-mini-preview-inner">
-            <div class="ad-canvas">
-                {!! $previewHtml !!}
-            </div>
+            {!! $previewHtml !!}
         </div>
     @endif
 </div>
