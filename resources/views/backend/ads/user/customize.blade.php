@@ -52,9 +52,9 @@
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
-            @error('generated_image_data')
-                <div class="alert alert-danger py-2">{{ $message }}</div>
-            @enderror
+            @if($errors->has('generated_image_data'))
+                <div class="alert alert-danger py-2">{{ $errors->first('generated_image_data') }}</div>
+            @endif
             @foreach($textFieldKeys as $hiddenTextKey)
                 <input type="hidden" name="{{ $hiddenTextKey }}" value="{{ old($hiddenTextKey) }}" class="js-ad-hidden-text" data-key="{{ $hiddenTextKey }}">
             @endforeach
@@ -63,10 +63,10 @@
                 <div class="col-12 col-lg-5">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Ad Title <span class="text-danger">*</span></label>
-                        <input type="text" name="title" value="{{ old('title') }}" class="form-control @error('title') is-invalid @enderror js-ad-title" maxlength="140" placeholder="e.g. Beauty Clinic — 50% OFF">
-                        @error('title')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        <input type="text" name="title" value="{{ old('title') }}" class="form-control {{ $errors->has('title') ? 'is-invalid' : '' }} js-ad-title" maxlength="140" placeholder="e.g. Beauty Clinic — 50% OFF">
+                        @if($errors->has('title'))
+                            <div class="invalid-feedback">{{ $errors->first('title') }}</div>
+                        @endif
                     </div>
 
                     <div class="mb-3">
@@ -74,20 +74,20 @@
                         <select
                             name="category_id"
                             id="categorySelect"
-                            class="form-select @error('category_id') is-invalid @enderror"
+                            class="form-select {{ $errors->has('category_id') ? 'is-invalid' : '' }}"
                             data-selected-category="{{ old('category_id') }}"
                         >
                             <option value="">— Select category —</option>
                             @foreach($categories as $category)
                                 @php($categoryPrice = (float) ($category->ads_price ?? 0))
-                                <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}" @selected((string) old('category_id') === (string) $category->id)>
+                                <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}" {{ (string) old('category_id') === (string) $category->id ? 'selected' : '' }}>
                                     {{ $category->name }} {{ $categoryPrice <= 0 ? '• Free' : '• ₹'.number_format($categoryPrice, 2) }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('category_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        @if($errors->has('category_id'))
+                            <div class="invalid-feedback">{{ $errors->first('category_id') }}</div>
+                        @endif
                     </div>
 
                     <div class="mb-3">
@@ -95,15 +95,15 @@
                         <select
                             name="subcategory_id"
                             id="subcategorySelect"
-                            class="form-select @error('subcategory_id') is-invalid @enderror"
+                            class="form-select {{ $errors->has('subcategory_id') ? 'is-invalid' : '' }}"
                             data-selected-subcategory="{{ old('subcategory_id') }}"
                             disabled
                         >
                             <option value="">— Select a category first —</option>
                         </select>
-                        @error('subcategory_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        @if($errors->has('subcategory_id'))
+                            <div class="invalid-feedback">{{ $errors->first('subcategory_id') }}</div>
+                        @endif
                         <small class="text-success fw-semibold d-block mt-1" id="adsPricingStatus">Select category and sub category to check pricing.</small>
                     </div>
 
@@ -113,22 +113,22 @@
                             type="text"
                             name="location"
                             id="adLocation"
-                            class="form-control @error('location') is-invalid @enderror"
+                            class="form-control {{ $errors->has('location') ? 'is-invalid' : '' }}"
                             placeholder="Search location"
                             value="{{ old('location') }}"
                             autocomplete="off"
                         >
                         <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat') }}">
                         <input type="hidden" name="location_lng" id="adLocationLng" value="{{ old('location_lng') }}">
-                        @error('location')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
-                        @error('location_lat')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
-                        @error('location_lng')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        @if($errors->has('location'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('location') }}</div>
+                        @endif
+                        @if($errors->has('location_lat'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('location_lat') }}</div>
+                        @endif
+                        @if($errors->has('location_lng'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('location_lng') }}</div>
+                        @endif
                     </div>
 
                     <div class="ads-fields">
@@ -149,14 +149,14 @@
                                         <input
                                             type="file"
                                             name="{{ $key }}"
-                                            class="form-control @error($key) is-invalid @enderror js-ad-image"
+                                            class="form-control {{ $errors->has($key) ? 'is-invalid' : '' }} js-ad-image"
                                             accept="image/png,image/jpeg,image/webp"
                                             data-key="{{ $key }}"
                                             {{ ((bool) ($field['required'] ?? false)) ? 'required' : '' }}
                                         >
-                                        @error($key)
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        @if($errors->has($key))
+                                            <div class="invalid-feedback">{{ $errors->first($key) }}</div>
+                                        @endif
                                         <small class="text-secondary">PNG/JPG/WebP · Max 2MB</small>
                                     @endif
                                 </div>
@@ -176,7 +176,7 @@
 
                     <div class="form-check mt-3">
                         <input
-                            class="form-check-input @error('accept_terms') is-invalid @enderror"
+                            class="form-check-input {{ $errors->has('accept_terms') ? 'is-invalid' : '' }}"
                             type="checkbox"
                             value="1"
                             id="acceptTerms"
@@ -188,9 +188,9 @@
                             I agree to the
                             <a href="{{ route('frontend.terms.show', ['moduleKey' => 'ads']) }}" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>
                         </label>
-                        @error('accept_terms')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        @if($errors->has('accept_terms'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('accept_terms') }}</div>
+                        @endif
                     </div>
                 </div>
 
