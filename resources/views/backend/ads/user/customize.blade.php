@@ -79,7 +79,10 @@
                         >
                             <option value="">— Select category —</option>
                             @foreach($categories as $category)
-                                <option value="{{ $category->id }}" @selected((string) old('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                                @php($categoryPrice = (float) ($category->ads_price ?? 0))
+                                <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}" @selected((string) old('category_id') === (string) $category->id)>
+                                    {{ $category->name }} {{ $categoryPrice <= 0 ? '• Free' : '• ₹'.number_format($categoryPrice, 2) }}
+                                </option>
                             @endforeach
                         </select>
                         @error('category_id')
@@ -101,6 +104,7 @@
                         @error('subcategory_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <small class="text-success fw-semibold d-block mt-1" id="adsPricingStatus">Select category and sub category to check pricing.</small>
                     </div>
 
                     <div class="mb-3">
@@ -134,13 +138,13 @@
                                 $key = (string) ($field['key'] ?? '');
                                 $label = (string) ($field['label'] ?? $key);
                                 $type = (string) ($field['type'] ?? 'text');
-                                $required = (bool) ($field['required'] ?? false);
+                                $isRequired = (bool) ($field['required'] ?? false);
                                 $isUsedInTemplate = $key !== '' && in_array(strtolower($key), $usedKeys, true);
                             @endphp
-                            @if($key !== '' && $type === 'image' && ($required || $isUsedInTemplate))
+                            @if($key !== '' && $type === 'image' && ($isRequired || $isUsedInTemplate))
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">
-                                        {{ $label }} @if($required)<span class="text-danger">*</span>@endif
+                                        {{ $label }} @if($isRequired)<span class="text-danger">*</span>@endif
                                     </label>
 
                                     @if($type === 'image')
@@ -150,7 +154,7 @@
                                             class="form-control @error($key) is-invalid @enderror js-ad-image"
                                             accept="image/png,image/jpeg,image/webp"
                                             data-key="{{ $key }}"
-                                            {{ $required ? 'required' : '' }}
+                                            {{ $isRequired ? 'required' : '' }}
                                         >
                                         @error($key)
                                             <div class="invalid-feedback">{{ $message }}</div>
@@ -220,7 +224,10 @@
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ route('ads.create.template', ['sizeType' => $sizeType]) }}" class="btn btn-light px-4">Back</a>
-                <button type="submit" class="btn btn-primary ems-btn-primary px-5">
+                <button type="button" id="adsPayButton" class="btn btn-warning px-5 d-none">
+                    <i class="fa-solid fa-credit-card me-2"></i>Proceed to Payment
+                </button>
+                <button type="submit" id="adsSubmitButton" class="btn btn-primary ems-btn-primary px-5">
                     <i class="fa-solid fa-paper-plane me-2"></i>Submit for Approval
                 </button>
             </div>
@@ -610,9 +617,45 @@
         const subcategorySelect = document.getElementById('subcategorySelect');
         const subcategoryBaseUrl = form.dataset.subcategoryUrlBase || '';
         const selectedSubcategory = subcategorySelect ? (subcategorySelect.dataset.selectedSubcategory || '') : '';
+        const pricingStatus = document.getElementById('adsPricingStatus');
+        const submitButton = document.getElementById('adsSubmitButton');
+        const payButton = document.getElementById('adsPayButton');
         const locationInput = document.getElementById('adLocation');
         const locationLatInput = document.getElementById('adLocationLat');
         const locationLngInput = document.getElementById('adLocationLng');
+        function currentPriceFromOption(selectElement) {
+            if (!selectElement) return 0;
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            if (!selectedOption) return 0;
+            return Number(selectedOption.getAttribute('data-ads-price') || 0);
+        }
+
+        function syncPricingUi() {
+            const categoryPrice = currentPriceFromOption(categorySelect);
+            const subcategoryPrice = currentPriceFromOption(subcategorySelect);
+            const finalPrice = subcategoryPrice > 0 ? subcategoryPrice : categoryPrice;
+            const isPaid = finalPrice > 0;
+
+            if (pricingStatus) {
+                if (!categorySelect.value || !subcategorySelect.value) {
+                    pricingStatus.textContent = 'Select category and sub category to check pricing.';
+                    pricingStatus.className = 'text-success fw-semibold d-block mt-1';
+                } else if (finalPrice <= 0) {
+                    pricingStatus.textContent = 'This selection is Free. You can submit your ad now.';
+                    pricingStatus.className = 'text-success fw-semibold d-block mt-1';
+                } else {
+                    pricingStatus.textContent = `This sub category is Paid (₹${finalPrice.toFixed(2)}). Please continue to payment.`;
+                    pricingStatus.className = 'text-warning fw-semibold d-block mt-1';
+                }
+            }
+
+            if (submitButton) {
+                submitButton.classList.toggle('d-none', isPaid);
+            }
+            if (payButton) {
+                payButton.classList.toggle('d-none', !isPaid);
+            }
+        }
 
         async function loadSubcategories(categoryId, selectedId = '') {
             if (!subcategorySelect) return;
@@ -630,25 +673,41 @@
                 const options = ['<option value="">— Select subcategory —</option>'];
                 (Array.isArray(data) ? data : []).forEach((item) => {
                     const isSelected = String(item.id) === String(selectedId);
-                    options.push(`<option value="${item.id}" ${isSelected ? 'selected' : ''}>${item.name}</option>`);
+                    const price = Number(item.ads_price || 0);
+                    const label = price <= 0 ? `${item.name} • Free` : `${item.name} • ₹${price.toFixed(2)}`;
+                    options.push(`<option value="${item.id}" data-ads-price="${price.toFixed(2)}" ${isSelected ? 'selected' : ''}>${label}</option>`);
                 });
                 subcategorySelect.innerHTML = options.join('');
                 subcategorySelect.disabled = false;
+                syncPricingUi();
             } catch (error) {
                 subcategorySelect.innerHTML = '<option value="">— Unable to load subcategories —</option>';
                 subcategorySelect.disabled = true;
+                syncPricingUi();
             }
         }
 
         if (categorySelect && subcategorySelect) {
             categorySelect.addEventListener('change', function () {
                 loadSubcategories(this.value, '');
+                syncPricingUi();
+            });
+            subcategorySelect.addEventListener('change', function () {
+                syncPricingUi();
             });
 
             if (categorySelect.value) {
                 loadSubcategories(categorySelect.value, selectedSubcategory);
             }
         }
+
+        if (payButton) {
+            payButton.addEventListener('click', function () {
+                alert('Payment integration is not configured yet. Please contact admin to complete payment for this paid sub category.');
+            });
+        }
+
+        syncPricingUi();
 
         if (locationInput) {
             locationInput.addEventListener('input', function () {
