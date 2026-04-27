@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TermsAndConditionController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\OfferPageController;
@@ -130,6 +131,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{employee}', [EmployeeController::class, 'show'])->name('show');
             Route::put('/{employee}', [EmployeeController::class, 'update'])->name('update');
             Route::delete('/{employee}', [EmployeeController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::get('/data', [UserController::class, 'data'])->name('data');
+            Route::get('/{user}', [UserController::class, 'show'])->name('show');
+            Route::put('/{user}', [UserController::class, 'update'])->name('update');
+            Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('categories')->name('categories.')->group(function () {
