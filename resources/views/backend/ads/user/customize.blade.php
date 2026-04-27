@@ -80,7 +80,7 @@
                         >
                             <option value="">— Select category —</option>
                             @foreach($categories as $category)
-                                @php($categoryPrice = (float) ($category->ads_price ?? 0))
+                                @php $categoryPrice = (float) ($category->ads_price ?? 0) @endphp
                                 <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}" {{ (string) old('category_id') === (string) $category->id ? 'selected' : '' }}>
                                     {{ $category->name }} {{ $categoryPrice <= 0 ? '• Free' : '• ₹'.number_format($categoryPrice, 2) }}
                                 </option>
