@@ -91,7 +91,7 @@
                                 <span class="input-group-text">₹</span>
                                 <input type="number" name="ads_price" id="categoryAdsPrice" class="form-control" value="0" min="0" step="0.01">
                             </div>
-                            <small class="text-secondary d-block mt-1" id="adsPriceHelpText">For now, keep this 0.00 (Free). Pricing is only used for Ads module categories.</small>
+                            <small class="text-secondary d-block mt-1" id="adsPriceHelpText">Pricing is only used for Ads module categories. Set 0.00 to keep it Free.</small>
                         </div>
                     </div>
                 </div>

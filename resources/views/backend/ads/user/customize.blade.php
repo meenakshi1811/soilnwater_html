@@ -623,8 +623,6 @@
         const locationInput = document.getElementById('adLocation');
         const locationLatInput = document.getElementById('adLocationLat');
         const locationLngInput = document.getElementById('adLocationLng');
-        const enforcePaidFlow = false;
-
         function currentPriceFromOption(selectElement) {
             if (!selectElement) return 0;
             const selectedOption = selectElement.options[selectElement.selectedIndex];
@@ -636,7 +634,7 @@
             const categoryPrice = currentPriceFromOption(categorySelect);
             const subcategoryPrice = currentPriceFromOption(subcategorySelect);
             const finalPrice = subcategoryPrice > 0 ? subcategoryPrice : categoryPrice;
-            const isPaid = finalPrice > 0 && enforcePaidFlow;
+            const isPaid = finalPrice > 0;
 
             if (pricingStatus) {
                 if (!categorySelect.value || !subcategorySelect.value) {
@@ -705,7 +703,7 @@
 
         if (payButton) {
             payButton.addEventListener('click', function () {
-                alert('Payment flow will be enabled soon. For now, all Ads categories/subcategories are treated as Free.');
+                alert('Payment integration is not configured yet. Please contact admin to complete payment for this paid sub category.');
             });
         }
 

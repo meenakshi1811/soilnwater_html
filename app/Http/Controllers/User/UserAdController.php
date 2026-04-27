@@ -203,6 +203,24 @@ class UserAdController extends Controller
             ])->withInput();
         }
 
+        $selectedCategory = Category::query()
+            ->where('id', $validated['category_id'])
+            ->select(['id', 'ads_price'])
+            ->first();
+        $selectedSubcategory = Category::query()
+            ->where('id', $validated['subcategory_id'])
+            ->select(['id', 'ads_price'])
+            ->first();
+        $subcategoryAdsPrice = (float) ($selectedSubcategory?->ads_price ?? 0);
+        $categoryAdsPrice = (float) ($selectedCategory?->ads_price ?? 0);
+        $appliedAdsPrice = $subcategoryAdsPrice > 0 ? $subcategoryAdsPrice : $categoryAdsPrice;
+
+        if ($appliedAdsPrice > 0 && ! $request->user()?->isAdmin()) {
+            return back()->withErrors([
+                'subcategory_id' => 'This sub category is paid. Please complete payment to continue.',
+            ])->withInput();
+        }
+
         $fields = [];
         foreach (($schema['fields'] ?? []) as $field) {
             $key = (string) ($field['key'] ?? '');
