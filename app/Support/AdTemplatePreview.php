@@ -117,9 +117,9 @@ final class AdTemplatePreview
 
         $exact = [
             'school admissions open 2026' => [
-                'headline' => 'School Admissions 2026',
-                'subheadline' => 'Nurturing classrooms with smart learning and activity-based teaching.',
-                'badge' => 'Admissions Open',
+                'headline' => 'School Admissions',
+                'subheadline' => 'Smart K-12 enrollment with modern learning support.',
+                'badge' => 'Limited Offer',
                 'line1' => 'Early-bird fee benefits',
                 'line2' => 'Qualified faculty team',
                 'line3' => 'Safe transport facility',
@@ -131,9 +131,9 @@ final class AdTemplatePreview
                 'website' => 'www.greenvalleyschool.edu',
             ],
             'college admission notice' => [
-                'headline' => 'College Admission Notice',
-                'subheadline' => 'Industry-ready courses, internships, and modern campus infrastructure.',
-                'badge' => 'Enroll Now',
+                'headline' => 'College Admissions',
+                'subheadline' => 'Career-focused programs with internship support.',
+                'badge' => 'Limited Offer',
                 'line1' => 'Merit scholarships available',
                 'line2' => 'Career guidance support',
                 'line3' => 'Hostel & transport options',
@@ -145,7 +145,7 @@ final class AdTemplatePreview
                 'website' => 'www.citycentralcollege.edu',
             ],
             'university admissions 2026' => [
-                'headline' => 'University Intake 2026',
+                'headline' => 'University Intake',
                 'subheadline' => 'Top-ranked programs with research labs and global exchange opportunities.',
                 'badge' => '2026 Intake',
                 'line1' => 'International curriculum',
@@ -161,7 +161,7 @@ final class AdTemplatePreview
             'coaching class enrollment' => [
                 'headline' => 'Coaching Enrollment',
                 'subheadline' => 'Expert mentors, test series, and personal performance tracking.',
-                'badge' => 'Limited Seats',
+                'badge' => 'Limited Offer',
                 'line1' => 'Daily practice assignments',
                 'line2' => 'Weekly mock exams',
                 'line3' => 'Doubt-clearing sessions',
