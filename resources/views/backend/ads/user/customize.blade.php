@@ -9,6 +9,7 @@
     $textFieldKeys = [];
 
     $layoutHtml = (string) ($template->layout_html ?? '');
+    $previewHtml = \App\Support\AdTemplatePreview::render($layoutHtml, $sampleDefaults);
     $usedKeys = [];
 
     if ($layoutHtml !== '') {
@@ -208,7 +209,7 @@
                             data-source-height="{{ $size['h'] }}"
                         >
                             <div class="ads-mini-preview-inner" id="adPreview">
-                                {!! $template->layout_html !!}
+                                {!! $previewHtml !!}
                             </div>
                         </div>
                     </div>

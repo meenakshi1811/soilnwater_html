@@ -39,8 +39,9 @@ final class AdTemplatePreview
             ) ?? $html;
         }
 
-        // Remove any unresolved placeholders
-        $html = preg_replace('/\{\{[a-zA-Z][a-zA-Z0-9_]*\}\}/', '', $html) ?? $html;
+        // Remove any unresolved placeholders / accidental Blade output snippets.
+        $html = preg_replace('/\{\{\s*[^}]+\s*\}\}/', '', $html) ?? $html;
+        $html = preg_replace('/@(?:if|elseif|else|endif|foreach|endforeach|for|endfor|php|endphp|csrf|method|error|enderror)\b[^\n\r<>]*/i', '', $html) ?? $html;
 
         return $html;
     }
