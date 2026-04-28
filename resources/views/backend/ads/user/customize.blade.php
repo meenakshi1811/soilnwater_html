@@ -133,36 +133,19 @@
                     </div>
 
                     <div class="ads-fields">
-                        <p class="small text-secondary mb-2">Upload template images here. Edit all text content directly in live preview.</p>
-                        @foreach($fields as $field)
-                            @php
-                                $key = (string) ($field['key'] ?? '');
-                                $label = (string) ($field['label'] ?? $key);
-                                $type = (string) ($field['type'] ?? 'text');
-                            @endphp
-                            @if($key !== '' && $type === 'image' && (((bool) ($field['required'] ?? false)) || ($key !== '' && in_array(strtolower($key), $usedKeys, true))))
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">
-                                        {{ $label }} @if((bool) ($field['required'] ?? false))<span class="text-danger">*</span>@endif
-                                    </label>
-
-                                    @if($type === 'image')
-                                        <input
-                                            type="file"
-                                            name="{{ $key }}"
-                                            class="form-control {{ $errors->has($key) ? 'is-invalid' : '' }} js-ad-image"
-                                            accept="image/png,image/jpeg,image/webp"
-                                            data-key="{{ $key }}"
-                                            {{ ((bool) ($field['required'] ?? false)) ? 'required' : '' }}
-                                        >
-                                        @if($errors->has($key))
-                                            <div class="invalid-feedback">{{ $errors->first($key) }}</div>
-                                        @endif
-                                        <small class="text-secondary">PNG/JPG/WebP · Max 2MB</small>
-                                    @endif
-                                </div>
-                            @endif
-                        @endforeach
+                        <p class="small text-secondary mb-2">Fully customize the ad directly in live preview: add text, upload images, drag/drop, and style your content.</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addTextLayerBtn">
+                                <i class="fa-solid fa-font me-1"></i>Add Text
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="addImageLayerBtn">
+                                <i class="fa-solid fa-image me-1"></i>Add Image
+                            </button>
+                            <input type="file" id="addImageLayerInput" class="d-none" accept="image/png,image/jpeg,image/webp">
+                            <button type="button" class="btn btn-outline-danger btn-sm d-none" id="removeLayerBtn">
+                                <i class="fa-solid fa-trash me-1"></i>Remove Selected
+                            </button>
+                        </div>
                     </div>
 
                     @if(($size['admin_only'] ?? false) === true)
@@ -198,7 +181,26 @@
                 <div class="col-12 col-lg-7">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
                         <h5 class="mb-0">Live Preview</h5>
-                        <span class="text-secondary small">{{ $size['w'] }}×{{ $size['h'] }}</span>
+                        <span class="text-secondary small">Exact size: {{ $size['w'] }}px × {{ $size['h'] }}px</span>
+                    </div>
+
+                    <div class="border rounded p-2 mb-2 bg-light">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1 small">Font Size</label>
+                                <input type="number" id="layerFontSize" class="form-control form-control-sm" min="8" max="180" value="28">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1 small">Text Color</label>
+                                <input type="color" id="layerColor" class="form-control form-control-sm form-control-color p-1" value="#111111">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button type="button" class="btn btn-outline-dark btn-sm w-100" id="layerBoldBtn"><i class="fa-solid fa-bold me-1"></i>Bold</button>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button type="button" class="btn btn-outline-dark btn-sm w-100" id="layerBringFrontBtn"><i class="fa-solid fa-layer-group me-1"></i>Bring Front</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] }};">
@@ -217,7 +219,7 @@
                     <script type="application/json" id="adTemplateFieldKeys">@json($fields)</script>
                     <script type="application/json" id="adTemplateSampleDefaults">@json($sampleDefaults)</script>
 
-                    <small class="text-secondary d-block mt-2">Tip: Click any text to edit directly in the preview.</small>
+                    <small class="text-secondary d-block mt-2">Tip: Click to select, drag to move, and double-click text to edit.</small>
                 </div>
             </div>
 
@@ -274,6 +276,7 @@
         const alertBox = document.getElementById('adCustomizeAlert');
         const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0);
         const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0);
+        let selectedLayer = null;
 
         function scalePreview() {
             const targetWidth = previewFrame.clientWidth || 0;
@@ -384,6 +387,83 @@
             });
         }
 
+        function setSelectedLayer(node) {
+            preview.querySelectorAll('.ad-layer-selected').forEach((el) => el.classList.remove('ad-layer-selected'));
+            selectedLayer = node;
+            const removeBtn = document.getElementById('removeLayerBtn');
+            if (node) {
+                node.classList.add('ad-layer-selected');
+                if (removeBtn) removeBtn.classList.remove('d-none');
+                if (node.dataset.layerType === 'text') {
+                    const fontSizeInput = document.getElementById('layerFontSize');
+                    const colorInput = document.getElementById('layerColor');
+                    if (fontSizeInput) fontSizeInput.value = parseInt(node.style.fontSize || '28', 10) || 28;
+                    if (colorInput) colorInput.value = rgbToHex(node.style.color || '#111111');
+                }
+            } else if (removeBtn) {
+                removeBtn.classList.add('d-none');
+            }
+        }
+
+        function rgbToHex(value) {
+            if (!value) return '#111111';
+            if (value.startsWith('#')) return value;
+            const matches = value.match(/\d+/g);
+            if (!matches || matches.length < 3) return '#111111';
+            return '#' + matches.slice(0, 3).map((x) => Number(x).toString(16).padStart(2, '0')).join('');
+        }
+
+        function makeDraggable(node) {
+            let startX = 0;
+            let startY = 0;
+            let originX = 0;
+            let originY = 0;
+            let dragging = false;
+
+            node.addEventListener('mousedown', (event) => {
+                if (event.target && event.target.closest('[contenteditable="true"]')) return;
+                event.preventDefault();
+                setSelectedLayer(node);
+                dragging = true;
+                startX = event.clientX;
+                startY = event.clientY;
+                originX = parseFloat(node.style.left || '20');
+                originY = parseFloat(node.style.top || '20');
+            });
+
+            window.addEventListener('mousemove', (event) => {
+                if (!dragging) return;
+                const dx = event.clientX - startX;
+                const dy = event.clientY - startY;
+                const maxX = Math.max(0, sourceWidth - node.offsetWidth);
+                const maxY = Math.max(0, sourceHeight - node.offsetHeight);
+                const nextLeft = Math.min(maxX, Math.max(0, originX + dx));
+                const nextTop = Math.min(maxY, Math.max(0, originY + dy));
+                node.style.left = nextLeft + 'px';
+                node.style.top = nextTop + 'px';
+            });
+
+            window.addEventListener('mouseup', () => {
+                dragging = false;
+            });
+        }
+
+        function attachLayer(node) {
+            node.classList.add('ad-custom-layer');
+            node.style.position = 'absolute';
+            node.style.left = node.style.left || '20px';
+            node.style.top = node.style.top || '20px';
+            node.style.cursor = 'move';
+            node.style.zIndex = String(Date.now() % 100000);
+            node.addEventListener('click', (event) => {
+                event.stopPropagation();
+                setSelectedLayer(node);
+            });
+            makeDraggable(node);
+            preview.appendChild(node);
+            setSelectedLayer(node);
+        }
+
         function escapeHtml(str) {
             return str
                 .replaceAll('&', '&amp;')
@@ -396,6 +476,8 @@
         function updatePreview() {
             renderPreviewHtml();
             applyLiveImages();
+            preview.style.position = 'relative';
+            preview.style.overflow = 'hidden';
             scalePreview();
         }
 
@@ -449,18 +531,70 @@
             titleEl.addEventListener('input', updatePreview);
         }
 
-        document.querySelectorAll('.js-ad-image').forEach((el) => {
-            el.addEventListener('change', async () => {
-                const key = el.getAttribute('data-key');
-                const file = el.files && el.files[0];
-                if (!key || !file) return;
-                if (imageState[key]) {
-                    try { URL.revokeObjectURL(imageState[key]); } catch (e) {}
-                }
-                imageState[key] = URL.createObjectURL(file);
-                applyLiveImages();
-            });
+        document.getElementById('addTextLayerBtn')?.addEventListener('click', () => {
+            const node = document.createElement('div');
+            node.dataset.layerType = 'text';
+            node.style.fontSize = '28px';
+            node.style.color = '#111111';
+            node.style.fontWeight = '400';
+            node.style.minWidth = '80px';
+            node.style.maxWidth = Math.max(120, sourceWidth - 40) + 'px';
+            node.style.wordBreak = 'break-word';
+            node.style.padding = '4px 6px';
+            node.style.background = 'rgba(255,255,255,0.15)';
+            node.style.border = '1px dashed transparent';
+            node.textContent = 'Edit text';
+            node.setAttribute('contenteditable', 'true');
+            node.setAttribute('spellcheck', 'false');
+            attachLayer(node);
         });
+
+        document.getElementById('addImageLayerBtn')?.addEventListener('click', () => {
+            document.getElementById('addImageLayerInput')?.click();
+        });
+
+        document.getElementById('addImageLayerInput')?.addEventListener('change', (event) => {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const node = document.createElement('img');
+            node.dataset.layerType = 'image';
+            node.src = URL.createObjectURL(file);
+            node.style.width = Math.max(140, Math.round(sourceWidth * 0.25)) + 'px';
+            node.style.height = 'auto';
+            node.style.objectFit = 'cover';
+            node.style.border = '1px dashed transparent';
+            attachLayer(node);
+            event.target.value = '';
+        });
+
+        document.getElementById('layerFontSize')?.addEventListener('input', (event) => {
+            if (!selectedLayer || selectedLayer.dataset.layerType !== 'text') return;
+            const size = Math.min(180, Math.max(8, Number(event.target.value || 28)));
+            selectedLayer.style.fontSize = size + 'px';
+        });
+
+        document.getElementById('layerColor')?.addEventListener('input', (event) => {
+            if (!selectedLayer || selectedLayer.dataset.layerType !== 'text') return;
+            selectedLayer.style.color = event.target.value || '#111111';
+        });
+
+        document.getElementById('layerBoldBtn')?.addEventListener('click', () => {
+            if (!selectedLayer || selectedLayer.dataset.layerType !== 'text') return;
+            selectedLayer.style.fontWeight = selectedLayer.style.fontWeight === '700' ? '400' : '700';
+        });
+
+        document.getElementById('layerBringFrontBtn')?.addEventListener('click', () => {
+            if (!selectedLayer) return;
+            selectedLayer.style.zIndex = String(Date.now() % 100000);
+        });
+
+        document.getElementById('removeLayerBtn')?.addEventListener('click', () => {
+            if (!selectedLayer) return;
+            selectedLayer.remove();
+            setSelectedLayer(null);
+        });
+
+        preview.addEventListener('click', () => setSelectedLayer(null));
 
         async function exportPreviewAsPng() {
             const exportWidth = sourceWidth || preview.scrollWidth || 0;
@@ -597,8 +731,64 @@
                 }
 
                 form.dataset.isSubmitting = '1';
-                form.submit();
+
+                const formData = new FormData(form);
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const payload = await response.json();
+
+                    if (!response.ok) {
+                        throw payload;
+                    }
+
+                    showToast(payload.message || 'Ad saved successfully.', 'success');
+                    setTimeout(() => {
+                        window.location.href = payload.redirect_url || '{{ route('ads.index') }}';
+                    }, 900);
+                } catch (error) {
+                    const message = error?.message
+                        || error?.errors?.generated_image_data?.[0]
+                        || error?.errors?.title?.[0]
+                        || 'Unable to save ad. Please check the form and try again.';
+                    showToast(message, 'danger');
+                    form.dataset.isSubmitting = '0';
+                }
             });
+        }
+
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('adToastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'adToastContainer';
+                container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                container.style.zIndex = '1080';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast align-items-center text-bg-' + (type === 'danger' ? 'danger' : 'success') + ' border-0';
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.innerHTML = '<div class="d-flex"><div class="toast-body">' + escapeHtml(message) + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+            container.appendChild(toast);
+
+            if (window.bootstrap && window.bootstrap.Toast) {
+                const instance = new window.bootstrap.Toast(toast, { delay: 2500 });
+                instance.show();
+                toast.addEventListener('hidden.bs.toast', () => toast.remove());
+            } else {
+                toast.classList.add('show');
+                setTimeout(() => toast.remove(), 2200);
+            }
         }
 
         window.addEventListener('resize', scalePreview);
