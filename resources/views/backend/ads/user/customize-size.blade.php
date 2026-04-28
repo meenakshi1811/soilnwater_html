@@ -50,7 +50,7 @@
             <div class="banner-mode-switch mb-3">
                 <label class="banner-mode-option">
                     <input type="radio" name="design_mode" value="upload" class="banner-mode-radio" checked>
-                    <span class="banner-mode-card">
+                    <span class="banner-mode-card is-active">
                         <span class="banner-mode-title">Add Ad Image</span>
                         <small class="banner-mode-text">Upload one image and auto-fit to selected size.</small>
                     </span>
@@ -129,6 +129,14 @@
     function setMode(mode) {
         document.getElementById('uploadWrap').classList.toggle('d-none', mode !== 'upload');
         document.getElementById('customizeWrap').classList.toggle('d-none', mode !== 'customize');
+
+        document.querySelectorAll('.banner-mode-card').forEach((card) => card.classList.remove('is-active'));
+        const checkedRadio = document.querySelector('input[name="design_mode"]:checked');
+        const activeCard = checkedRadio?.closest('.banner-mode-option')?.querySelector('.banner-mode-card');
+        if (activeCard) {
+            activeCard.classList.add('is-active');
+        }
+
         if (mode === 'customize') {
             canvasWrap.classList.remove('d-none');
         } else if (!preview.querySelector('img')) {
