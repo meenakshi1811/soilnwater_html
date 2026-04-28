@@ -181,6 +181,9 @@
                 <input class="form-check-input" type="checkbox" id="acceptTerms" name="accept_terms" value="1" required>
                 <label class="form-check-label" for="acceptTerms">I agree to Terms and Conditions</label>
             </div>
+            <p class="text-secondary small mt-2 mb-0">
+                Note: Your ad will be sent to admin for verification. It will be published after approval.
+            </p>
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ route('ads.create.size') }}" class="btn btn-light px-4">Back</a>
@@ -231,6 +234,8 @@
         const sizeW = Number(previewFrame?.dataset.sourceWidth || 0);
         const sizeH = Number(previewFrame?.dataset.sourceHeight || 0);
         let selectedLayer = null;
+        let currentMode = 'upload';
+        let uploadedImageFile = null;
 
         function toast(type, message) {
             if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
@@ -241,6 +246,7 @@
         }
 
         function setMode(mode) {
+            currentMode = mode === 'customize' ? 'customize' : 'upload';
             document.getElementById('uploadWrap').classList.toggle('d-none', mode !== 'upload');
             document.getElementById('customizeWrap').classList.toggle('d-none', mode !== 'customize');
             document.querySelectorAll('.banner-mode-card').forEach((card) => card.classList.remove('is-active'));
@@ -477,6 +483,7 @@
         uploadInput?.addEventListener('change', (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
+            uploadedImageFile = file;
             const objectUrl = URL.createObjectURL(file);
 
             if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
@@ -524,10 +531,56 @@
             return '';
         }
 
+        async function exportUploadedFileAsPng(file) {
+            if (!file || !sizeW || !sizeH) return '';
+
+            return new Promise((resolve) => {
+                const objectUrl = URL.createObjectURL(file);
+                const image = new Image();
+                image.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = sizeW;
+                    canvas.height = sizeH;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) {
+                        URL.revokeObjectURL(objectUrl);
+                        resolve('');
+                        return;
+                    }
+
+                    ctx.fillStyle = '#f7f7f7';
+                    ctx.fillRect(0, 0, sizeW, sizeH);
+
+                    const scale = Math.max(sizeW / image.width, sizeH / image.height);
+                    const drawWidth = image.width * scale;
+                    const drawHeight = image.height * scale;
+                    const dx = (sizeW - drawWidth) / 2;
+                    const dy = (sizeH - drawHeight) / 2;
+
+                    ctx.drawImage(image, dx, dy, drawWidth, drawHeight);
+                    URL.revokeObjectURL(objectUrl);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                image.onerror = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    resolve('');
+                };
+                image.src = objectUrl;
+            });
+        }
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
-            generatedImageDataInput.value = await exportPng();
+            customHtmlInput.value = currentMode === 'customize'
+                ? '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>'
+                : '';
+
+            if (currentMode === 'upload' && uploadedImageFile) {
+                generatedImageDataInput.value = await exportUploadedFileAsPng(uploadedImageFile);
+            } else {
+                generatedImageDataInput.value = await exportPng();
+            }
+
             if (!generatedImageDataInput.value) return toast('danger', 'Could not generate ad image.');
 
             const response = await fetch(form.action, {
