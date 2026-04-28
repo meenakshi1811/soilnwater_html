@@ -298,6 +298,46 @@
             field.insertAdjacentElement('afterend', error);
         }
 
+        function clearFieldErrors() {
+            form.querySelectorAll('.is-invalid').forEach((el) => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.js-inline-error').forEach((el) => el.remove());
+            const adImageError = document.getElementById('adImageError');
+            if (adImageError) {
+                adImageError.textContent = '';
+                adImageError.style.display = 'none';
+            }
+        }
+
+        function showFieldError(fieldName, message) {
+            if (!fieldName || !message) return;
+
+            if (fieldName === 'generated_image_data' || fieldName === 'custom_html') {
+                const adImageError = document.getElementById('adImageError');
+                if (adImageError) {
+                    adImageError.textContent = message;
+                    adImageError.style.display = 'block';
+                }
+                return;
+            }
+
+            const normalizedFieldName = (fieldName === 'location_lat' || fieldName === 'location_lng') ? 'location' : fieldName;
+            const field = form.querySelector(`[name="${normalizedFieldName}"]`);
+            if (!field) {
+                const adImageError = document.getElementById('adImageError');
+                if (adImageError) {
+                    adImageError.textContent = message;
+                    adImageError.style.display = 'block';
+                }
+                return;
+            }
+
+            field.classList.add('is-invalid');
+            const error = document.createElement('div');
+            error.className = 'invalid-feedback d-block js-inline-error';
+            error.textContent = message;
+            field.insertAdjacentElement('afterend', error);
+        }
+
         function setMode(mode) {
             currentMode = mode === 'customize' ? 'customize' : 'upload';
             document.getElementById('uploadWrap').classList.toggle('d-none', mode !== 'upload');
