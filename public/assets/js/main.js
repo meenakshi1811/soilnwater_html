@@ -496,3 +496,218 @@
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 })();
+
+
+
+(function () {
+  const form = document.querySelector('#create-new-lead, form[data-form="create-new-lead"]');
+  if (!form) return;
+
+  const categorySelect = form.querySelector('[name="subscriber_category"], [name="category"], #subscriber_category, #category');
+  const subcategorySelect = form.querySelector('[name="subscriber_sub_category"], [name="sub_category"], [name="subcategory"], #subscriber_sub_category, #sub_category, #subcategory');
+  const countrySelect = form.querySelector('[name="country"], [name="countries"], [name="countries[]"], #country, #countries');
+  const preferenceSelect = form.querySelector('[name="preferences"], [name="preferences[]"], [name="preference_countries"], [name="preference_countries[]"], #preferences, #preference_countries');
+
+  if (!categorySelect || !subcategorySelect || !countrySelect) return;
+
+  const initialCountryOptions = Array.from(countrySelect.options).map((option) => ({
+    value: option.value,
+    label: option.textContent.trim(),
+    disabled: option.disabled,
+    selected: option.selected
+  }));
+  let baseCountryOptions = initialCountryOptions.slice();
+
+  const normalize = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const uniqueByValue = (items) => {
+    const seen = new Set();
+    return items.filter((item) => {
+      const key = normalize(item.value) + '|' + normalize(item.label);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const countryAliases = {
+    uk: ['uk', 'u k', 'united kingdom', 'great britain', 'britain', 'england'],
+    usa: ['us', 'u s', 'usa', 'u s a', 'united states', 'united states of america', 'america'],
+    uae: ['uae', 'u a e', 'united arab emirates']
+  };
+
+  const countryMatches = (option, countryName) => {
+    const needle = normalize(countryName);
+    const haystack = normalize(option.label + ' ' + option.value);
+
+    if (needle === 'us') {
+      return countryAliases.usa.some((alias) => haystack.includes(normalize(alias)));
+    }
+    if (needle === 'uk') {
+      return countryAliases.uk.some((alias) => haystack.includes(normalize(alias)));
+    }
+    if (needle === 'uae') {
+      return countryAliases.uae.some((alias) => haystack.includes(normalize(alias)));
+    }
+
+    return haystack.includes(needle);
+  };
+
+  const prioritizedThenRest = (prioritizedCountries) => {
+    const placeholders = baseCountryOptions.filter((option) => option.value === '' || option.disabled);
+    const normalOptions = baseCountryOptions.filter((option) => option.value !== '' && !option.disabled);
+
+    const prioritized = [];
+    prioritizedCountries.forEach((countryName) => {
+      const found = normalOptions.find((option) => countryMatches(option, countryName));
+      if (found) prioritized.push(found);
+    });
+
+    const prioritizedSet = new Set(prioritized.map((item) => normalize(item.value) + '|' + normalize(item.label)));
+    const rest = normalOptions.filter((option) => !prioritizedSet.has(normalize(option.value) + '|' + normalize(option.label)));
+
+    return uniqueByValue(placeholders.concat(prioritized, rest));
+  };
+
+  const onlyCountries = (countries) => {
+    const placeholders = baseCountryOptions.filter((option) => option.value === '' || option.disabled);
+    const normalOptions = baseCountryOptions.filter((option) => option.value !== '' && !option.disabled);
+
+    const filtered = normalOptions.filter((option) => countries.some((country) => countryMatches(option, country)));
+    return uniqueByValue(placeholders.concat(filtered));
+  };
+
+  const rebuildSelectOptions = (selectEl, options) => {
+    if (!selectEl) return;
+    const previousValues = new Set(Array.from(selectEl.selectedOptions).map((option) => option.value));
+    selectEl.innerHTML = '';
+
+    options.forEach((option) => {
+      const nextOption = document.createElement('option');
+      nextOption.value = option.value;
+      nextOption.textContent = option.label;
+      nextOption.disabled = !!option.disabled;
+      if (previousValues.has(option.value)) {
+        nextOption.selected = true;
+      }
+      selectEl.appendChild(nextOption);
+    });
+
+    const hasSelectedValue = Array.from(selectEl.selectedOptions).some((option) => option.value !== '');
+    if (!hasSelectedValue && selectEl.options.length) {
+      selectEl.selectedIndex = 0;
+    }
+
+    selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+
+  const visaRules = {
+    'general visa consultants': { type: 'all' },
+    'study abroad consultants': { type: 'all' },
+    'oisc iaa advisors': { type: 'only', countries: ['UK'] },
+    'iccrc advisors': { type: 'only', countries: ['Canada'] },
+    'mara advisors': { type: 'only', countries: ['Australia'] },
+    'work visa business visas': { type: 'all' },
+    'pr settlement visas': { type: 'prioritized', countries: ['Canada', 'Australia', 'New Zealand'] },
+    'us immigration attorney': { type: 'only', countries: ['US'] },
+    'immigration law firm': { type: 'all' },
+    'mbbs study for foreign students': { type: 'only', countries: ['China', 'Philippines', 'Dominica', 'Russia', 'Georgia'] }
+  };
+
+  const cbiCountries = ['US', 'Portugal', 'Turkey', 'Grenada', 'Dominica', 'UAE'];
+
+  const getSubcategoryLabel = () => {
+    const selectedOption = subcategorySelect.options[subcategorySelect.selectedIndex];
+    return normalize(selectedOption ? selectedOption.textContent : subcategorySelect.value);
+  };
+
+  const getCategoryLabel = () => {
+    const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+    return normalize(selectedOption ? selectedOption.textContent : categorySelect.value);
+  };
+
+  const resolveCountryOptions = () => {
+    const category = getCategoryLabel();
+    const subcategory = getSubcategoryLabel();
+
+    if (subcategory.includes('cbi')) {
+      return onlyCountries(cbiCountries);
+    }
+
+    if (!category.includes('visa') || !category.includes('consult')) {
+      return baseCountryOptions;
+    }
+
+    const mappedKey = Object.keys(visaRules).find((ruleKey) => subcategory.includes(ruleKey));
+    if (!mappedKey) {
+      return baseCountryOptions;
+    }
+
+    const rule = visaRules[mappedKey];
+    if (rule.type === 'only') {
+      return onlyCountries(rule.countries || []);
+    }
+
+    if (rule.type === 'prioritized') {
+      return prioritizedThenRest(rule.countries || []);
+    }
+
+    return baseCountryOptions;
+  };
+
+  const syncCountries = () => {
+    const nextOptions = resolveCountryOptions();
+    rebuildSelectOptions(countrySelect, nextOptions);
+    if (preferenceSelect) {
+      rebuildSelectOptions(preferenceSelect, nextOptions);
+    }
+  };
+
+  const normalizeCountryApiItem = (item) => {
+    if (!item || typeof item !== 'object') return null;
+    const label = String(item.name || item.label || '').trim();
+    const value = String(item.id || item.iso2 || item.code || label).trim();
+    if (!label || !value) return null;
+    return {
+      value: value,
+      label: label,
+      disabled: false,
+      selected: false
+    };
+  };
+
+  const hydrateCountriesFromTable = async () => {
+    const endpoint = form.dataset.countriesUrl || '/countries/options';
+    if (!endpoint) return;
+
+    try {
+      const response = await fetch(endpoint, {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      if (!response.ok) return;
+      const payload = await response.json();
+      const countries = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload.data) ? payload.data : []);
+
+      const normalizedCountries = countries
+        .map(normalizeCountryApiItem)
+        .filter(Boolean);
+
+      if (!normalizedCountries.length) return;
+
+      const placeholders = initialCountryOptions.filter((option) => option.value === '' || option.disabled);
+      baseCountryOptions = uniqueByValue(placeholders.concat(normalizedCountries));
+      syncCountries();
+    } catch (error) {
+      // Keep current in-DOM country options as fallback when countries API is unavailable.
+    }
+  };
+
+  categorySelect.addEventListener('change', syncCountries);
+  subcategorySelect.addEventListener('change', syncCountries);
+  syncCountries();
+  hydrateCountriesFromTable();
+})();

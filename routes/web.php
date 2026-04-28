@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\OfferPageController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\CountryController;
 use App\Http\Controllers\ModuleAccessController;
 use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\Admin\PostOfferController;
@@ -25,6 +26,7 @@ Route::get('/offers-market', [OfferPageController::class, 'index'])->name('front
 Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::get('/terms-and-condition/{moduleKey}', [TermsAndConditionPageController::class, 'show'])->name('frontend.terms.show');
+Route::get('/countries/options', [CountryController::class, 'options'])->name('countries.options');
 
 Auth::routes(['verify' => true]);
 
