@@ -42,6 +42,26 @@ class UserAdController extends Controller
         ]);
     }
 
+    public function customizeFromSize(string $sizeType): RedirectResponse
+    {
+        abort_unless(AdSizes::exists($sizeType), 404);
+        abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
+
+        $template = AdTemplate::query()
+            ->where('size_type', $sizeType)
+            ->where('is_active', true)
+            ->when(
+                $sizeType === 'top_categories_ad_1',
+                fn ($query) => $query->orderByRaw('id = 1606 desc')
+            )
+            ->latest()
+            ->first();
+
+        abort_if(! $template, 404, 'No active template found for this size.');
+
+        return redirect()->route('ads.create.customize', ['sizeType' => $sizeType, 'template' => $template->id]);
+    }
+
     public function data(Request $request): JsonResponse
     {
         $ads = UserAd::query()
@@ -160,7 +180,7 @@ class UserAdController extends Controller
             if ($type === 'image') {
                 $imageKeys[] = $key;
                 $fieldRules[$key] = array_filter([
-                    $required ? 'required' : 'nullable',
+                    ($required && ! $hasCustomHtml) ? 'required' : 'nullable',
                     'image',
                     'mimes:jpg,jpeg,png,webp',
                     'max:2048',
