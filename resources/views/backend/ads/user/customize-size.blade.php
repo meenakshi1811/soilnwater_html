@@ -113,6 +113,198 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js"></script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
-<script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
-<script src="{{ asset('assets/js/ads.js') }}?v={{ now()->timestamp }}"></script>
+<script>
+    (function () {
+        const page = document.getElementById('adsSizeCustomizerPage');
+        if (!page) return;
+        const form = page.querySelector('form[action*="/dashboard/ads/create/"]');
+        if (!form) return;
+
+        const previewFrame = document.getElementById('adPreviewFrame');
+        const preview = document.getElementById('adPreview');
+        const canvasWrap = document.getElementById('canvasWrap');
+        const customHtmlInput = document.getElementById('customHtmlInput');
+        const generatedImageDataInput = document.getElementById('generatedImageDataInput');
+        const uploadInput = document.getElementById('uploadImageInput');
+        const dropzone = document.getElementById('adDropzone');
+        const categorySelect = document.getElementById('categorySelect');
+        const subcategorySelect = document.getElementById('subcategorySelect');
+
+        const sizeW = Number(previewFrame?.dataset.sourceWidth || 0);
+        const sizeH = Number(previewFrame?.dataset.sourceHeight || 0);
+        let selectedLayer = null;
+
+        function toast(type, message) {
+            if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
+                window.FormHelper.showToast(type, message);
+            } else {
+                alert(message);
+            }
+        }
+
+        function setMode(mode) {
+            document.getElementById('uploadWrap').classList.toggle('d-none', mode !== 'upload');
+            document.getElementById('customizeWrap').classList.toggle('d-none', mode !== 'customize');
+            document.querySelectorAll('.banner-mode-card').forEach((card) => card.classList.remove('is-active'));
+            const activeCard = document.querySelector('input[name="design_mode"]:checked')?.closest('.banner-mode-option')?.querySelector('.banner-mode-card');
+            if (activeCard) activeCard.classList.add('is-active');
+
+            if (mode === 'customize') canvasWrap.classList.remove('d-none');
+            else if (!preview.querySelector('img')) canvasWrap.classList.add('d-none');
+        }
+
+        document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
+            radio.addEventListener('change', () => setMode(radio.value));
+        });
+
+        function makeDraggable(node) {
+            let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
+            node.addEventListener('mousedown', (e) => {
+                if (e.target.closest('[contenteditable="true"]')) return;
+                dragging = true;
+                sx = e.clientX; sy = e.clientY;
+                ox = parseFloat(node.style.left || '20');
+                oy = parseFloat(node.style.top || '20');
+                selectedLayer = node;
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!dragging) return;
+                node.style.left = Math.max(0, Math.min(sizeW - node.offsetWidth, ox + e.clientX - sx)) + 'px';
+                node.style.top = Math.max(0, Math.min(sizeH - node.offsetHeight, oy + e.clientY - sy)) + 'px';
+            });
+            window.addEventListener('mouseup', () => dragging = false);
+        }
+
+        function addLayer(node) {
+            node.style.position = 'absolute';
+            node.style.left = '20px';
+            node.style.top = '20px';
+            node.style.zIndex = String(Date.now() % 100000);
+            makeDraggable(node);
+            node.addEventListener('click', (e) => { e.stopPropagation(); selectedLayer = node; });
+            preview.appendChild(node);
+            selectedLayer = node;
+        }
+
+        document.getElementById('addTextBtn')?.addEventListener('click', () => {
+            const t = document.createElement('div');
+            t.textContent = 'Edit text';
+            t.style.fontSize = '30px';
+            t.style.fontWeight = '700';
+            t.style.color = '#111';
+            t.style.padding = '4px 6px';
+            t.setAttribute('contenteditable', 'true');
+            addLayer(t);
+        });
+
+        document.getElementById('addImageBtn')?.addEventListener('click', () => document.getElementById('customImageInput')?.click());
+        document.getElementById('customImageInput')?.addEventListener('change', (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.style.width = Math.round(sizeW * 0.25) + 'px';
+            addLayer(img);
+            e.target.value = '';
+        });
+
+        document.getElementById('removeLayerBtn')?.addEventListener('click', () => {
+            if (!selectedLayer) return;
+            selectedLayer.remove();
+            selectedLayer = null;
+        });
+
+        uploadInput?.addEventListener('change', (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            preview.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            preview.appendChild(img);
+            canvasWrap.classList.remove('d-none');
+        });
+
+        if (dropzone && uploadInput) {
+            dropzone.addEventListener('click', () => uploadInput.click());
+            dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('is-dragover'); });
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragover'));
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('is-dragover');
+                const file = e.dataTransfer?.files?.[0];
+                if (!file) return;
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                uploadInput.files = dt.files;
+                uploadInput.dispatchEvent(new Event('change'));
+            });
+        }
+
+        async function exportPng() {
+            if (window.htmlToImage?.toPng) {
+                return window.htmlToImage.toPng(preview, { pixelRatio: 1, canvasWidth: sizeW, canvasHeight: sizeH, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
+            }
+            if (window.html2canvas) {
+                const canvas = await window.html2canvas(preview, { width: sizeW, height: sizeH, windowWidth: sizeW, windowHeight: sizeH, scale: 1, useCORS: true });
+                return canvas.toDataURL('image/png');
+            }
+            return '';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
+            generatedImageDataInput.value = await exportPng();
+            if (!generatedImageDataInput.value) return toast('danger', 'Could not generate ad image.');
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            });
+            const payload = await response.json();
+            if (!response.ok) return toast('danger', payload.message || 'Unable to save ad.');
+            toast('success', payload.message || 'Saved successfully');
+            setTimeout(() => { window.location.href = payload.redirect_url || '{{ route('ads.index') }}'; }, 700);
+        });
+
+        async function loadSubcategories(categoryId) {
+            const base = form.dataset.subcategoryUrlBase || '';
+            if (!categoryId || !base || !subcategorySelect) {
+                subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
+                subcategorySelect.disabled = true;
+                return;
+            }
+            const response = await fetch(`${base}/${categoryId}/subcategories`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await response.json();
+            const options = ['<option value="">— Select subcategory —</option>'];
+            (Array.isArray(data) ? data : []).forEach((item) => options.push(`<option value=\"${item.id}\">${item.name}</option>`));
+            subcategorySelect.innerHTML = options.join('');
+            subcategorySelect.disabled = false;
+        }
+
+        categorySelect?.addEventListener('change', function () { loadSubcategories(this.value); });
+
+        window.initAdLocationAutocomplete = function () {
+            const locationInput = document.getElementById('adLocation');
+            const locationLatInput = document.getElementById('adLocationLat');
+            const locationLngInput = document.getElementById('adLocationLng');
+            if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
+            const autocomplete = new google.maps.places.Autocomplete(locationInput, { fields: ['formatted_address', 'geometry', 'name'] });
+            autocomplete.addListener('place_changed', function () {
+                const place = autocomplete.getPlace();
+                const lat = place?.geometry?.location?.lat?.();
+                const lng = place?.geometry?.location?.lng?.();
+                locationInput.value = place?.formatted_address || place?.name || locationInput.value;
+                if (locationLatInput) locationLatInput.value = typeof lat === 'number' ? String(lat) : '';
+                if (locationLngInput) locationLngInput.value = typeof lng === 'number' ? String(lng) : '';
+            });
+        };
+
+        setMode('upload');
+    })();
+</script>
 @endpush
