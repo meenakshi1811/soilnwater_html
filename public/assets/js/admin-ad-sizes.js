@@ -31,6 +31,8 @@
             $('#adSizeForm')[0].reset();
             $('#adSizeId').val('');
             $('#adSizeForm').find('input[name="_method"]').remove();
+            $('#adSizeForm').find('.is-invalid').removeClass('is-invalid');
+            $('#adSizeForm').find('span.ajax-error, span.invalid-feedback').remove();
         },
 
         bindUi: function () {
@@ -52,7 +54,14 @@
                 self.resetForm();
                 $('#adSizeId').val(id);
 
-                $.get('/admin/ads/sizes/' + id, function (response) {
+                $.ajax({
+                    url: '/admin/ads/sizes/' + id,
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).done(function (response) {
                     var size = response.size || {};
                     $('#adSizeName').val(size.name || '');
                     $('#adSizeKey').val(size.size_key || '');
@@ -61,21 +70,28 @@
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
                     $('#adSizeForm').attr('action', '/admin/ads/sizes/' + id).attr('method', 'POST');
                     self.modal.show();
+                }).fail(function () {
+                    FormHelper.showToast('danger', 'Unable to load ad size details.');
                 });
             });
 
             $(document).on('click', '.js-delete-ad-size', function () {
                 var id = $(this).data('id');
-                if (!confirm('Are you sure you want to delete this ad size?')) {
-                    return;
-                }
+                self.confirmDelete(id);
+            });
+        },
 
+        confirmDelete: function (id) {
+            var self = this;
+
+            var runDelete = function () {
                 $.ajax({
                     url: '/admin/ads/sizes/' + id,
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 }).done(function (response) {
                     FormHelper.showToast('success', response.message || 'Deleted successfully.');
@@ -88,43 +104,108 @@
                         : 'Unable to delete ad size.';
                     FormHelper.showToast('danger', msg);
                 });
-            });
+            };
+
+            if (window.Swal && typeof window.Swal.fire === 'function') {
+                window.Swal.fire({
+                    title: 'Delete ad size?',
+                    text: 'This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete it',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        runDelete();
+                    }
+                });
+                return;
+            }
+
+            if (window.confirm('Are you sure you want to delete this ad size?')) {
+                runDelete();
+            }
         },
 
         initForm: function () {
             var self = this;
-            FormHelper.attachAjaxForm({
-                formSelector: '#adSizeForm',
-                buttonSelector: '#adSizeSubmitBtn',
-                alertSelector: '#adSizeAlert',
-                defaultText: 'Save Size',
-                loadingText: 'Saving...',
-                rules: {
-                    name: { required: true, maxlength: 120 },
-                    size_key: { required: true, maxlength: 60, pattern: /^[a-z0-9_]+$/ },
-                    width: { required: true, min: 1, max: 5000 },
-                    height: { required: true, min: 1, max: 5000 }
-                },
-                messages: {
-                    size_key: { pattern: 'Use lowercase letters, numbers, and underscore only.' }
-                },
-                beforeSubmit: function () {
-                    $('#adSizeForm').find('input[name="_method"]').remove();
-                    if (self.isEdit) {
-                        $('<input type="hidden" name="_method" value="PUT">').appendTo('#adSizeForm');
+            var $form = $('#adSizeForm');
+            var $submitBtn = $('#adSizeSubmitBtn');
+
+            $form.on('submit', function (e) {
+                e.preventDefault();
+
+                if (typeof $form.valid === 'function' && !$form.valid()) {
+                    return;
+                }
+
+                $form.find('input[name="_method"]').remove();
+                if (self.isEdit) {
+                    $('<input type="hidden" name="_method" value="PUT">').appendTo($form);
+                }
+
+                FormHelper.setButtonLoading($submitBtn, true, 'Saving...', 'Save Size');
+                FormHelper.clearFormErrors($form);
+                $('#adSizeAlert').addClass('d-none').text('');
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    method: 'POST',
+                    data: $form.serialize(),
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
-                },
-                onSuccess: function (response) {
+                }).done(function (response) {
                     FormHelper.showToast('success', response.message || 'Saved successfully.');
                     if (self.table) {
                         self.table.ajax.reload(null, false);
                     }
                     self.modal.hide();
-                },
-                onError: function (xhr, message) {
-                    FormHelper.showToast('danger', message || 'Unable to save ad size.');
-                }
+                }).fail(function (xhr) {
+                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        FormHelper.renderFieldErrors($form, xhr.responseJSON.errors);
+                        return;
+                    }
+
+                    var message = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'Unable to save ad size.';
+                    FormHelper.showToast('danger', message);
+                }).always(function () {
+                    FormHelper.setButtonLoading($submitBtn, false, 'Saving...', 'Save Size');
+                });
             });
+
+            if ($.fn && typeof $.fn.validate === 'function') {
+                if ($.validator && typeof $.validator.addMethod === 'function' && !$.validator.methods.sizeKeyFormat) {
+                    $.validator.addMethod('sizeKeyFormat', function (value, element) {
+                        return this.optional(element) || /^[a-z0-9_]+$/.test(value);
+                    }, 'Use lowercase letters, numbers, and underscore only.');
+                }
+
+                $form.validate({
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback d-block');
+                        error.insertAfter(element);
+                    },
+                    highlight: function (element) {
+                        $(element).addClass('is-invalid');
+                    },
+                    unhighlight: function (element) {
+                        $(element).removeClass('is-invalid');
+                    },
+                    rules: {
+                        name: { required: true, maxlength: 120 },
+                        size_key: { required: true, maxlength: 60, sizeKeyFormat: true },
+                        width: { required: true, min: 1, max: 5000 },
+                        height: { required: true, min: 1, max: 5000 }
+                    }
+                });
+            }
         },
 
         init: function () {
