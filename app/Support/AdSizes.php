@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\AdSize;
+use App\Models\User;
 use Illuminate\Support\Facades\Schema;
 
 final class AdSizes
@@ -65,6 +66,20 @@ final class AdSizes
         }
 
         return $sizes;
+    }
+
+
+    /**
+     * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool}>
+     */
+    public static function visibleFor(?User $user): array
+    {
+        $isAdmin = (bool) ($user?->isAdmin());
+
+        return array_filter(
+            self::all(),
+            fn (array $size) => (bool) ($size['admin_only'] ?? false) === $isAdmin
+        );
     }
 
     public static function exists(string $sizeType): bool
