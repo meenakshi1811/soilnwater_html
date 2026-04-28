@@ -15,6 +15,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use Intervention\Image\ImageManager;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserAdController extends Controller
@@ -39,6 +41,31 @@ class UserAdController extends Controller
 
         return view('backend.ads.user.select-size', [
             'sizes' => AdSizes::visibleFor($user),
+        ]);
+    }
+
+    public function customizeFromSize(string $sizeType): View
+    {
+        abort_unless(AdSizes::exists($sizeType), 404);
+        abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
+
+        $template = AdTemplate::query()
+            ->where('size_type', $sizeType)
+            ->where('is_active', true)
+            ->latest()
+            ->first();
+
+        abort_if(! $template, 404, 'No active template found for this size.');
+
+        return view('backend.ads.user.customize-size', [
+            'sizeType' => $sizeType,
+            'size' => AdSizes::all()[$sizeType],
+            'template' => $template,
+            'categories' => Category::query()
+                ->whereNull('parent_id')
+                ->whereJsonContains('modules', 'ads')
+                ->orderBy('name')
+                ->get(['id', 'name', 'ads_price']),
         ]);
     }
 
@@ -160,7 +187,7 @@ class UserAdController extends Controller
             if ($type === 'image') {
                 $imageKeys[] = $key;
                 $fieldRules[$key] = array_filter([
-                    $required ? 'required' : 'nullable',
+                    ($required && ! $hasCustomHtml) ? 'required' : 'nullable',
                     'image',
                     'mimes:jpg,jpeg,png,webp',
                     'max:2048',
@@ -434,53 +461,14 @@ class UserAdController extends Controller
             return;
         }
 
-        $raw = file_get_contents($absolutePath);
-        if ($raw === false) {
-            return;
+        try {
+            $manager = new ImageManager(new GdDriver());
+            $image = $manager->read($absolutePath);
+            $image->cover($targetWidth, $targetHeight);
+            $image->toPng()->save($absolutePath);
+        } catch (\Throwable) {
+            // Keep original generated image if Intervention processing fails.
         }
-
-        $source = @imagecreatefromstring($raw);
-        if (!is_resource($source) && !is_object($source)) {
-            return;
-        }
-
-        $srcW = imagesx($source);
-        $srcH = imagesy($source);
-        if ($srcW <= 0 || $srcH <= 0) {
-            imagedestroy($source);
-
-            return;
-        }
-
-        if ($srcW === $targetWidth && $srcH === $targetHeight) {
-            imagedestroy($source);
-
-            return;
-        }
-
-        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
-        imagealphablending($canvas, false);
-        imagesavealpha($canvas, true);
-        if (function_exists('imagesetinterpolation') && defined('IMG_BICUBIC')) {
-            imagesetinterpolation($canvas, IMG_BICUBIC);
-        }
-        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
-        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $transparent);
-
-        $scale = max($targetWidth / $srcW, $targetHeight / $srcH);
-        $drawW = (int) max(1, round($srcW * $scale));
-        $drawH = (int) max(1, round($srcH * $scale));
-        $offsetX = (int) floor(($targetWidth - $drawW) / 2);
-        $offsetY = (int) floor(($targetHeight - $drawH) / 2);
-
-        imagecopyresampled($canvas, $source, $offsetX, $offsetY, 0, 0, $drawW, $drawH, $srcW, $srcH);
-        if (function_exists('imageconvolution')) {
-            @imageconvolution($canvas, [[-1, -1, -1], [-1, 16, -1], [-1, -1, -1]], 8, 0);
-        }
-        imagepng($canvas, $absolutePath, 9);
-
-        imagedestroy($canvas);
-        imagedestroy($source);
     }
 
     private function canUserAccessSize($user, string $sizeType): bool
