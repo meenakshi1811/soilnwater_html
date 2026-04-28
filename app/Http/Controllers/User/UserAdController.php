@@ -38,7 +38,7 @@ class UserAdController extends Controller
         $user = request()->user();
 
         return view('backend.ads.user.select-size', [
-            'sizes' => $this->visibleSizesForUser($user),
+            'sizes' => AdSizes::visibleFor($user),
         ]);
     }
 
@@ -483,18 +483,8 @@ class UserAdController extends Controller
         imagedestroy($source);
     }
 
-    private function visibleSizesForUser($user): array
-    {
-        $isAdmin = (bool) ($user?->isAdmin());
-
-        return array_filter(
-            AdSizes::all(),
-            fn (array $size) => ($size['admin_only'] ?? false) === $isAdmin
-        );
-    }
-
     private function canUserAccessSize($user, string $sizeType): bool
     {
-        return array_key_exists($sizeType, $this->visibleSizesForUser($user));
+        return array_key_exists($sizeType, AdSizes::visibleFor($user));
     }
 }
