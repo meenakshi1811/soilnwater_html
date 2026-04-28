@@ -66,8 +66,15 @@
 
             <div id="uploadWrap" class="mb-3">
                 <label class="form-label">Ad Image (PNG/JPG/WebP)</label>
-                <input type="file" id="uploadImageInput" class="form-control" accept="image/png,image/jpeg,image/webp">
-                <small class="text-secondary">Image will be normalized to {{ $size['w'] }}×{{ $size['h'] }} using Intervention on save.</small>
+                <input type="file" id="uploadImageInput" class="d-none" accept="image/png,image/jpeg,image/webp">
+                <div id="adDropzone" class="banner-dropzone">
+                    <div class="banner-placeholder-content">
+                        <i class="fa-solid fa-image fa-2x mb-2 text-secondary"></i>
+                        <p class="mb-1 fw-semibold">Click or drag to upload ad image</p>
+                        <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: {{ $size['w'] }}×{{ $size['h'] }}px · PNG, JPG, WebP · Max 2MB</p>
+                    </div>
+                </div>
+                <small class="text-secondary d-block mt-2">Image will be normalized to {{ $size['w'] }}×{{ $size['h'] }} using Intervention on save.</small>
             </div>
 
             <div id="customizeWrap" class="mb-3 d-none">
@@ -79,7 +86,7 @@
                 </div>
             </div>
 
-            <div class="border rounded p-2 bg-light">
+            <div class="border rounded p-2 bg-light d-none" id="canvasWrap">
                 <div class="small text-secondary mb-2">Canvas: exact {{ $size['w'] }} × {{ $size['h'] }} px</div>
                 <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] }};">
                     <div class="ads-live-preview-inner" id="adPreviewFrame" data-source-width="{{ $size['w'] }}" data-source-height="{{ $size['h'] }}">
@@ -111,14 +118,22 @@
     const sizeW = Number(document.getElementById('adPreviewFrame').dataset.sourceWidth || 0);
     const sizeH = Number(document.getElementById('adPreviewFrame').dataset.sourceHeight || 0);
     const preview = document.getElementById('adPreview');
+    const canvasWrap = document.getElementById('canvasWrap');
     const customHtmlInput = document.getElementById('customHtmlInput');
     const generatedImageDataInput = document.getElementById('generatedImageDataInput');
+    const uploadInput = document.getElementById('uploadImageInput');
+    const dropzone = document.getElementById('adDropzone');
 
     let selectedLayer = null;
 
     function setMode(mode) {
         document.getElementById('uploadWrap').classList.toggle('d-none', mode !== 'upload');
         document.getElementById('customizeWrap').classList.toggle('d-none', mode !== 'customize');
+        if (mode === 'customize') {
+            canvasWrap.classList.remove('d-none');
+        } else if (!preview.querySelector('img')) {
+            canvasWrap.classList.add('d-none');
+        }
     }
 
     document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
@@ -182,7 +197,7 @@
         selectedLayer = null;
     });
 
-    document.getElementById('uploadImageInput')?.addEventListener('change', (e) => {
+    uploadInput?.addEventListener('change', (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
         preview.innerHTML = '';
@@ -192,7 +207,29 @@
         img.style.height = '100%';
         img.style.objectFit = 'cover';
         preview.appendChild(img);
+        canvasWrap.classList.remove('d-none');
     });
+
+    if (dropzone && uploadInput) {
+        dropzone.addEventListener('click', () => uploadInput.click());
+        dropzone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropzone.classList.add('is-dragover');
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('is-dragover');
+        });
+        dropzone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropzone.classList.remove('is-dragover');
+            const file = event.dataTransfer?.files?.[0];
+            if (!file) return;
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            uploadInput.files = dt.files;
+            uploadInput.dispatchEvent(new Event('change'));
+        });
+    }
 
     async function exportPreviewAsPng() {
         if (window.htmlToImage?.toPng) {
