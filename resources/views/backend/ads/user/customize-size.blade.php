@@ -316,7 +316,7 @@
                     stage.style.position = 'absolute';
                     stage.style.inset = '0';
                     stage.style.border = 'none';
-                    stage.style.background = 'rgba(255,255,255,.6)';
+                    stage.style.background = 'transparent';
                     stage.style.pointerEvents = 'none';
                     preview.appendChild(stage);
                 }
@@ -576,6 +576,7 @@
         async function exportPng() {
             const exportWidth = sizeW || preview.scrollWidth || 0;
             const exportHeight = sizeH || preview.scrollHeight || 0;
+            const exportPixelRatio = 2;
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -595,6 +596,7 @@
             clone.style.maxWidth = 'none';
             clone.style.maxHeight = 'none';
             clone.style.overflow = 'hidden';
+            clone.querySelectorAll('[data-custom-stage="1"]').forEach((node) => node.remove());
 
             sandbox.appendChild(clone);
             document.body.appendChild(sandbox);
@@ -619,15 +621,16 @@
                 await waitForImages(clone);
                 if (window.htmlToImage?.toPng) {
                     try {
-                        return await window.htmlToImage.toPng(clone, { pixelRatio: 1, canvasWidth: exportWidth, canvasHeight: exportHeight, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
+                        const raw = await window.htmlToImage.toPng(clone, { pixelRatio: exportPixelRatio, canvasWidth: exportWidth, canvasHeight: exportHeight, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
+                        return await normalizePngToTarget(raw, exportWidth, exportHeight);
                     } catch (error) {
                         console.warn('html-to-image export failed, falling back to html2canvas.', error);
                     }
                 }
 
                 if (window.html2canvas) {
-                    const canvas = await window.html2canvas(clone, { width: exportWidth, height: exportHeight, windowWidth: exportWidth, windowHeight: exportHeight, scale: 1, useCORS: true, allowTaint: false, logging: false });
-                    return canvas.toDataURL('image/png');
+                    const canvas = await window.html2canvas(clone, { width: exportWidth, height: exportHeight, windowWidth: exportWidth, windowHeight: exportHeight, scale: exportPixelRatio, useCORS: true, allowTaint: false, logging: false });
+                    return await normalizePngToTarget(canvas.toDataURL('image/png'), exportWidth, exportHeight);
                 }
             } catch (error) {
                 console.warn('preview export failed.', error);
@@ -636,6 +639,27 @@
             }
 
             return '';
+        }
+
+        async function normalizePngToTarget(dataUrl, targetWidth, targetHeight) {
+            if (!dataUrl || !targetWidth || !targetHeight) return dataUrl || '';
+            return new Promise((resolve) => {
+                const image = new Image();
+                image.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = targetWidth;
+                    canvas.height = targetHeight;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return resolve(dataUrl);
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.clearRect(0, 0, targetWidth, targetHeight);
+                    ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                image.onerror = () => resolve(dataUrl);
+                image.src = dataUrl;
+            });
         }
 
         async function exportUploadedFileAsPng(file) {
