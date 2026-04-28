@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\PostOfferController;
 use App\Http\Controllers\User\UserAdController;
 use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
+use App\Http\Controllers\Admin\AdSizeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -111,6 +112,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/{ad}', [AdSubmissionController::class, 'show'])->name('show');
                 Route::post('/{ad}/approve', [AdSubmissionController::class, 'approve'])->name('approve');
                 Route::post('/{ad}/reject', [AdSubmissionController::class, 'reject'])->name('reject');
+            });
+
+            Route::prefix('sizes')->name('sizes.')->group(function () {
+                Route::get('/', [AdSizeController::class, 'index'])->name('index');
+                Route::get('/data', [AdSizeController::class, 'data'])->name('data');
+                Route::get('/{size}', [AdSizeController::class, 'show'])->name('show');
+                Route::post('/', [AdSizeController::class, 'store'])->name('store');
+                Route::put('/{size}', [AdSizeController::class, 'update'])->name('update');
+                Route::delete('/{size}', [AdSizeController::class, 'destroy'])->name('destroy');
             });
         });
 
