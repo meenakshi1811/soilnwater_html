@@ -577,6 +577,8 @@
             const exportWidth = sizeW || preview.scrollWidth || 0;
             const exportHeight = sizeH || preview.scrollHeight || 0;
             const exportPixelRatio = 2;
+            const exportOutputWidth = exportWidth * exportPixelRatio;
+            const exportOutputHeight = exportHeight * exportPixelRatio;
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -621,8 +623,8 @@
                 await waitForImages(clone);
                 if (window.htmlToImage?.toPng) {
                     try {
-                        const raw = await window.htmlToImage.toPng(clone, { pixelRatio: exportPixelRatio, canvasWidth: exportWidth, canvasHeight: exportHeight, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
-                        return await normalizePngToTarget(raw, exportWidth, exportHeight);
+                        const raw = await window.htmlToImage.toPng(clone, { pixelRatio: exportPixelRatio, canvasWidth: exportOutputWidth, canvasHeight: exportOutputHeight, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
+                        return raw;
                     } catch (error) {
                         console.warn('html-to-image export failed, falling back to html2canvas.', error);
                     }
@@ -630,7 +632,7 @@
 
                 if (window.html2canvas) {
                     const canvas = await window.html2canvas(clone, { width: exportWidth, height: exportHeight, windowWidth: exportWidth, windowHeight: exportHeight, scale: exportPixelRatio, useCORS: true, allowTaint: false, logging: false });
-                    return await normalizePngToTarget(canvas.toDataURL('image/png'), exportWidth, exportHeight);
+                    return canvas.toDataURL('image/png');
                 }
             } catch (error) {
                 console.warn('preview export failed.', error);
@@ -641,27 +643,6 @@
             return '';
         }
 
-        async function normalizePngToTarget(dataUrl, targetWidth, targetHeight) {
-            if (!dataUrl || !targetWidth || !targetHeight) return dataUrl || '';
-            return new Promise((resolve) => {
-                const image = new Image();
-                image.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = targetWidth;
-                    canvas.height = targetHeight;
-                    const ctx = canvas.getContext('2d');
-                    if (!ctx) return resolve(dataUrl);
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                    ctx.clearRect(0, 0, targetWidth, targetHeight);
-                    ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
-                    resolve(canvas.toDataURL('image/png'));
-                };
-                image.onerror = () => resolve(dataUrl);
-                image.src = dataUrl;
-            });
-        }
-
         async function exportUploadedFileAsPng(file) {
             if (!file || !sizeW || !sizeH) return '';
 
@@ -670,8 +651,9 @@
                 const image = new Image();
                 image.onload = () => {
                     const canvas = document.createElement('canvas');
-                    canvas.width = sizeW;
-                    canvas.height = sizeH;
+                    const exportPixelRatio = 2;
+                    canvas.width = sizeW * exportPixelRatio;
+                    canvas.height = sizeH * exportPixelRatio;
                     const ctx = canvas.getContext('2d');
                     if (!ctx) {
                         URL.revokeObjectURL(objectUrl);
@@ -680,13 +662,15 @@
                     }
 
                     ctx.fillStyle = '#f7f7f7';
-                    ctx.fillRect(0, 0, sizeW, sizeH);
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    const scale = Math.max(sizeW / image.width, sizeH / image.height);
+                    const targetW = canvas.width;
+                    const targetH = canvas.height;
+                    const scale = Math.max(targetW / image.width, targetH / image.height);
                     const drawWidth = image.width * scale;
                     const drawHeight = image.height * scale;
-                    const dx = (sizeW - drawWidth) / 2;
-                    const dy = (sizeH - drawHeight) / 2;
+                    const dx = (targetW - drawWidth) / 2;
+                    const dy = (targetH - drawHeight) / 2;
 
                     ctx.drawImage(image, dx, dy, drawWidth, drawHeight);
                     URL.revokeObjectURL(objectUrl);
