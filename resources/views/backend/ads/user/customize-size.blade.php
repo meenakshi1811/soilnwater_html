@@ -47,22 +47,30 @@
                 </div>
             </div>
 
-            <div class="banner-mode-switch mb-3">
+            <label class="form-label fw-semibold">
+                Ad Image <span class="text-danger">*</span>
+            </label>
+            <p class="text-secondary mb-3" style="font-size:0.9rem;">
+                Add your own ad image or customize the final creative with full designer controls, similar to Post Offer.
+            </p>
+
+            <div class="banner-mode-switch mb-4">
                 <label class="banner-mode-option">
                     <input type="radio" name="design_mode" value="upload" class="banner-mode-radio" checked>
                     <span class="banner-mode-card is-active">
                         <span class="banner-mode-title">Add Ad Image</span>
-                        <small class="banner-mode-text">Upload one image and auto-fit to selected size.</small>
+                        <small class="banner-mode-text">Use your ready-made creative (PNG/JPG/WebP).</small>
                     </span>
                 </label>
                 <label class="banner-mode-option">
                     <input type="radio" name="design_mode" value="customize" class="banner-mode-radio">
                     <span class="banner-mode-card">
-                        <span class="banner-mode-title">Customize</span>
-                        <small class="banner-mode-text">Design inside selected size box.</small>
+                        <span class="banner-mode-title">Customize Ad</span>
+                        <small class="banner-mode-text">Design using text, images, colors, and drag/drop controls.</small>
                     </span>
                 </label>
             </div>
+            <div id="adImageError" class="invalid-feedback d-block" style="display:none;"></div>
 
             <div id="uploadWrap" class="mb-3">
                 <label class="form-label">Ad Image (PNG/JPG/WebP)</label>
@@ -81,11 +89,83 @@
             </div>
 
             <div id="customizeWrap" class="mb-3 d-none">
-                <div class="d-flex gap-2 mb-2">
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="addTextBtn">Add Text</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="addImageBtn">Add Image</button>
-                    <input type="file" id="customImageInput" class="d-none" accept="image/png,image/jpeg,image/webp">
-                    <button type="button" class="btn btn-outline-danger btn-sm" id="removeLayerBtn">Remove Selected</button>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Background Color</label>
+                        <input type="color" id="adBgColorInput" class="form-control form-control-color w-100" value="#f7f7f7">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Background Image (optional)</label>
+                        <input type="file" id="adBgImageInput" class="form-control" accept="image/png,image/jpeg,image/webp">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Clear Background</label>
+                        <button type="button" class="btn btn-outline-secondary w-100" id="clearAdBgBtn">Remove BG Image</button>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Add Text Block</label>
+                        <button type="button" class="btn btn-outline-primary w-100" id="addTextBtn">+ Add Text</button>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Add Images</label>
+                        <input type="file" id="customImageInput" class="form-control" accept="image/png,image/jpeg,image/webp" multiple>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Remove Selected</label>
+                        <button type="button" class="btn btn-outline-danger w-100" id="removeLayerBtn">Remove Layer</button>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Layer Text</label>
+                        <textarea id="layerTextInput" class="form-control" rows="2" maxlength="120" placeholder="Edit selected text block"></textarea>
+                        <small class="text-secondary"><span id="layerTextCharCount">0</span>/120</small>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Font Size</label>
+                        <input type="number" id="layerFontSizeInput" class="form-control" min="10" max="180" value="30">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label d-block">Text Style</label>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="layerBoldInput">
+                            <label class="form-check-label" for="layerBoldInput">Bold</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Text Color</label>
+                        <input type="color" id="layerTextColorInput" class="form-control form-control-color w-100" value="#111111">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Alignment</label>
+                        <select id="layerTextAlignInput" class="form-select">
+                            <option value="left">Left</option>
+                            <option value="center">Center</option>
+                            <option value="right">Right</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Font Family</label>
+                        <select id="layerFontFamilyInput" class="form-select">
+                            <option value="Arial">Arial</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Tahoma">Tahoma</option>
+                            <option value="Trebuchet MS">Trebuchet MS</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Image Width</label>
+                        <input type="number" id="layerImageWidthInput" class="form-control" min="20" max="2000" value="220" disabled>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Image Height</label>
+                        <input type="number" id="layerImageHeightInput" class="form-control" min="20" max="2000" value="220" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Quick Scale</label>
+                        <input type="range" id="layerImageScaleInput" class="form-range" min="5" max="100" step="1" value="25" disabled>
+                    </div>
                 </div>
             </div>
 
@@ -102,6 +182,9 @@
                 <input class="form-check-input" type="checkbox" id="acceptTerms" name="accept_terms" value="1" required>
                 <label class="form-check-label" for="acceptTerms">I agree to Terms and Conditions</label>
             </div>
+            <p class="text-secondary small mt-2 mb-0">
+                Note: Your ad will be sent to admin for verification. It will be published after approval.
+            </p>
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ route('ads.create.size') }}" class="btn btn-light px-4">Back</a>
@@ -135,20 +218,88 @@
         const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
         const categorySelect = document.getElementById('categorySelect');
         const subcategorySelect = document.getElementById('subcategorySelect');
+        const adBgColorInput = document.getElementById('adBgColorInput');
+        const adBgImageInput = document.getElementById('adBgImageInput');
+        const clearAdBgBtn = document.getElementById('clearAdBgBtn');
+        const layerTextInput = document.getElementById('layerTextInput');
+        const layerTextCharCount = document.getElementById('layerTextCharCount');
+        const layerFontSizeInput = document.getElementById('layerFontSizeInput');
+        const layerBoldInput = document.getElementById('layerBoldInput');
+        const layerTextColorInput = document.getElementById('layerTextColorInput');
+        const layerTextAlignInput = document.getElementById('layerTextAlignInput');
+        const layerFontFamilyInput = document.getElementById('layerFontFamilyInput');
+        const layerImageWidthInput = document.getElementById('layerImageWidthInput');
+        const layerImageHeightInput = document.getElementById('layerImageHeightInput');
+        const layerImageScaleInput = document.getElementById('layerImageScaleInput');
 
         const sizeW = Number(previewFrame?.dataset.sourceWidth || 0);
         const sizeH = Number(previewFrame?.dataset.sourceHeight || 0);
         let selectedLayer = null;
+        let currentMode = 'upload';
+        let uploadedImageFile = null;
 
         function toast(type, message) {
             if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
                 window.FormHelper.showToast(type, message);
-            } else {
-                alert(message);
+                return;
+            }
+
+            // Avoid browser alert popups; render a dismissible inline message instead.
+            const existing = form.querySelector('.js-form-inline-alert');
+            if (existing) existing.remove();
+
+            const alert = document.createElement('div');
+            alert.className = `alert ${type === 'danger' ? 'alert-danger' : 'alert-success'} alert-dismissible fade show js-form-inline-alert mt-3`;
+            alert.setAttribute('role', 'alert');
+            alert.innerHTML = `
+                <span>${message || (type === 'danger' ? 'Something went wrong.' : 'Done')}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            form.prepend(alert);
+        }
+
+        function clearFieldErrors() {
+            form.querySelectorAll('.is-invalid').forEach((el) => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.js-inline-error').forEach((el) => el.remove());
+            const adImageError = document.getElementById('adImageError');
+            if (adImageError) {
+                adImageError.textContent = '';
+                adImageError.style.display = 'none';
             }
         }
 
+        function showFieldError(fieldName, message) {
+            if (!fieldName || !message) return;
+
+            if (fieldName === 'generated_image_data' || fieldName === 'custom_html') {
+                const adImageError = document.getElementById('adImageError');
+                if (adImageError) {
+                    adImageError.textContent = message;
+                    adImageError.style.display = 'block';
+                }
+                return;
+            }
+
+            const normalizedFieldName = (fieldName === 'location_lat' || fieldName === 'location_lng') ? 'location' : fieldName;
+            const field = form.querySelector(`[name="${normalizedFieldName}"]`);
+            if (!field) {
+                const adImageError = document.getElementById('adImageError');
+                if (adImageError) {
+                    adImageError.textContent = message;
+                    adImageError.style.display = 'block';
+                }
+                return;
+            }
+
+            field.classList.add('is-invalid');
+            const error = document.createElement('div');
+            error.className = 'invalid-feedback d-block js-inline-error';
+            error.textContent = message;
+            field.insertAdjacentElement('afterend', error);
+        }
+
         function setMode(mode) {
+            currentMode = mode === 'customize' ? 'customize' : 'upload';
             document.getElementById('uploadWrap').classList.toggle('d-none', mode !== 'upload');
             document.getElementById('customizeWrap').classList.toggle('d-none', mode !== 'customize');
             document.querySelectorAll('.banner-mode-card').forEach((card) => card.classList.remove('is-active'));
@@ -157,18 +308,74 @@
 
             if (mode === 'customize') {
                 canvasWrap.classList.remove('d-none');
-                selectedLayer = null;
-                preview.innerHTML = '';
-                const stage = document.createElement('div');
-                stage.setAttribute('data-custom-stage', '1');
-                stage.style.position = 'absolute';
-                stage.style.inset = '0';
-                stage.style.border = '2px dashed rgba(47,125,225,.35)';
-                stage.style.background = 'rgba(255,255,255,.6)';
-                stage.style.pointerEvents = 'none';
-                preview.appendChild(stage);
+                if (!preview.querySelector('[data-custom-stage="1"]')) {
+                    selectedLayer = null;
+                    preview.innerHTML = '';
+                    const stage = document.createElement('div');
+                    stage.setAttribute('data-custom-stage', '1');
+                    stage.style.position = 'absolute';
+                    stage.style.inset = '0';
+                    stage.style.border = '2px dashed rgba(47,125,225,.35)';
+                    stage.style.background = 'rgba(255,255,255,.6)';
+                    stage.style.pointerEvents = 'none';
+                    preview.appendChild(stage);
+                }
             }
             else if (!preview.querySelector('img')) canvasWrap.classList.add('d-none');
+        }
+
+        function isTextLayer(node) {
+            return !!node && node.getAttribute('data-layer-type') === 'text';
+        }
+
+        function isImageLayer(node) {
+            return !!node && node.getAttribute('data-layer-type') === 'image';
+        }
+
+        function updateControlPanelFromSelection() {
+            if (!selectedLayer) {
+                if (layerTextInput) layerTextInput.value = '';
+                if (layerTextCharCount) layerTextCharCount.textContent = '0';
+                if (layerImageWidthInput) layerImageWidthInput.disabled = true;
+                if (layerImageHeightInput) layerImageHeightInput.disabled = true;
+                if (layerImageScaleInput) layerImageScaleInput.disabled = true;
+                return;
+            }
+
+            if (isTextLayer(selectedLayer)) {
+                if (layerTextInput) layerTextInput.value = selectedLayer.textContent || '';
+                if (layerTextCharCount) layerTextCharCount.textContent = String((selectedLayer.textContent || '').length);
+                if (layerFontSizeInput) layerFontSizeInput.value = String(parseInt(selectedLayer.style.fontSize, 10) || 30);
+                if (layerBoldInput) layerBoldInput.checked = (selectedLayer.style.fontWeight || '400') === '700';
+                if (layerTextColorInput) layerTextColorInput.value = rgbToHex(selectedLayer.style.color) || '#111111';
+                if (layerTextAlignInput) layerTextAlignInput.value = selectedLayer.style.textAlign || 'left';
+                if (layerFontFamilyInput) layerFontFamilyInput.value = (selectedLayer.style.fontFamily || 'Arial').replace(/"/g, '');
+            }
+
+            if (layerImageWidthInput) layerImageWidthInput.disabled = !isImageLayer(selectedLayer);
+            if (layerImageHeightInput) layerImageHeightInput.disabled = !isImageLayer(selectedLayer);
+            if (layerImageScaleInput) layerImageScaleInput.disabled = !isImageLayer(selectedLayer);
+
+            if (isImageLayer(selectedLayer)) {
+                const w = selectedLayer.offsetWidth || 0;
+                const h = selectedLayer.offsetHeight || 0;
+                if (layerImageWidthInput) layerImageWidthInput.value = String(w);
+                if (layerImageHeightInput) layerImageHeightInput.value = String(h);
+                if (layerImageScaleInput && sizeW > 0) {
+                    const scale = Math.round((w / sizeW) * 100);
+                    layerImageScaleInput.value = String(Math.max(5, Math.min(100, scale)));
+                }
+            }
+        }
+
+        function rgbToHex(value) {
+            if (!value) return '';
+            if (value.startsWith('#')) return value;
+            const match = value.match(/(\d+),\s*(\d+),\s*(\d+)/);
+            if (!match) return '';
+            return '#' + [match[1], match[2], match[3]]
+                .map((num) => Number(num).toString(16).padStart(2, '0'))
+                .join('');
         }
 
         document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
@@ -202,6 +409,7 @@
             node.addEventListener('click', (e) => { e.stopPropagation(); selectedLayer = node; });
             preview.appendChild(node);
             selectedLayer = node;
+            updateControlPanelFromSelection();
         }
 
         document.getElementById('addTextBtn')?.addEventListener('click', () => {
@@ -212,17 +420,21 @@
             t.style.color = '#111';
             t.style.padding = '4px 6px';
             t.setAttribute('contenteditable', 'true');
+            t.setAttribute('data-layer-type', 'text');
             addLayer(t);
         });
 
-        document.getElementById('addImageBtn')?.addEventListener('click', () => document.getElementById('customImageInput')?.click());
         document.getElementById('customImageInput')?.addEventListener('change', (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
-            img.style.width = Math.round(sizeW * 0.25) + 'px';
-            addLayer(img);
+            const files = Array.from(e.target.files || []);
+            if (!files.length) return;
+            files.forEach((file) => {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.width = Math.round(sizeW * 0.25) + 'px';
+                img.style.height = 'auto';
+                img.setAttribute('data-layer-type', 'image');
+                addLayer(img);
+            });
             e.target.value = '';
         });
 
@@ -230,11 +442,101 @@
             if (!selectedLayer) return;
             selectedLayer.remove();
             selectedLayer = null;
+            updateControlPanelFromSelection();
+        });
+
+        preview?.addEventListener('click', () => {
+            selectedLayer = null;
+            updateControlPanelFromSelection();
+        });
+
+        adBgColorInput?.addEventListener('input', function () {
+            preview.style.backgroundColor = this.value || '#f7f7f7';
+        });
+
+        adBgImageInput?.addEventListener('change', function (event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const imageUrl = URL.createObjectURL(file);
+            preview.style.backgroundImage = `url(${imageUrl})`;
+            preview.style.backgroundPosition = 'center';
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundRepeat = 'no-repeat';
+        });
+
+        clearAdBgBtn?.addEventListener('click', function () {
+            preview.style.backgroundImage = 'none';
+            if (adBgImageInput) adBgImageInput.value = '';
+        });
+
+        layerTextInput?.addEventListener('input', function () {
+            if (!isTextLayer(selectedLayer)) return;
+            selectedLayer.textContent = this.value.slice(0, 120);
+            if (layerTextCharCount) layerTextCharCount.textContent = String(selectedLayer.textContent.length);
+        });
+
+        layerFontSizeInput?.addEventListener('input', function () {
+            if (!isTextLayer(selectedLayer)) return;
+            const size = Math.max(10, Math.min(180, Number(this.value) || 30));
+            selectedLayer.style.fontSize = `${size}px`;
+        });
+
+        layerBoldInput?.addEventListener('change', function () {
+            if (!isTextLayer(selectedLayer)) return;
+            selectedLayer.style.fontWeight = this.checked ? '700' : '400';
+        });
+
+        layerTextColorInput?.addEventListener('input', function () {
+            if (!isTextLayer(selectedLayer)) return;
+            selectedLayer.style.color = this.value;
+        });
+
+        layerTextAlignInput?.addEventListener('change', function () {
+            if (!isTextLayer(selectedLayer)) return;
+            selectedLayer.style.textAlign = this.value;
+        });
+
+        layerFontFamilyInput?.addEventListener('change', function () {
+            if (!isTextLayer(selectedLayer)) return;
+            selectedLayer.style.fontFamily = this.value;
+        });
+
+        layerImageWidthInput?.addEventListener('input', function () {
+            if (!isImageLayer(selectedLayer)) return;
+            const width = Math.max(20, Number(this.value) || selectedLayer.offsetWidth);
+            selectedLayer.style.width = `${width}px`;
+            selectedLayer.style.height = 'auto';
+            if (layerImageScaleInput && sizeW > 0) {
+                layerImageScaleInput.value = String(Math.max(5, Math.min(100, Math.round((width / sizeW) * 100))));
+            }
+            if (layerImageHeightInput) layerImageHeightInput.value = String(selectedLayer.offsetHeight || 0);
+        });
+
+        layerImageHeightInput?.addEventListener('input', function () {
+            if (!isImageLayer(selectedLayer)) return;
+            const height = Math.max(20, Number(this.value) || selectedLayer.offsetHeight);
+            selectedLayer.style.height = `${height}px`;
+            selectedLayer.style.width = 'auto';
+            if (layerImageWidthInput) layerImageWidthInput.value = String(selectedLayer.offsetWidth || 0);
+            if (layerImageScaleInput && sizeW > 0) {
+                layerImageScaleInput.value = String(Math.max(5, Math.min(100, Math.round(((selectedLayer.offsetWidth || 0) / sizeW) * 100))));
+            }
+        });
+
+        layerImageScaleInput?.addEventListener('input', function () {
+            if (!isImageLayer(selectedLayer)) return;
+            const scalePercent = Math.max(5, Math.min(100, Number(this.value) || 25));
+            const width = Math.round((sizeW * scalePercent) / 100);
+            selectedLayer.style.width = `${width}px`;
+            selectedLayer.style.height = 'auto';
+            if (layerImageWidthInput) layerImageWidthInput.value = String(width);
+            if (layerImageHeightInput) layerImageHeightInput.value = String(selectedLayer.offsetHeight || 0);
         });
 
         uploadInput?.addEventListener('change', (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
+            uploadedImageFile = file;
             const objectUrl = URL.createObjectURL(file);
 
             if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
@@ -244,6 +546,8 @@
             }
 
             preview.innerHTML = '';
+            preview.style.backgroundImage = 'none';
+            preview.style.backgroundColor = '#f7f7f7';
             const img = document.createElement('img');
             img.src = objectUrl;
             img.style.width = '100%';
@@ -270,31 +574,105 @@
         }
 
         async function exportPng() {
-            if (window.htmlToImage?.toPng) {
-                return window.htmlToImage.toPng(preview, { pixelRatio: 1, canvasWidth: sizeW, canvasHeight: sizeH, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
+            try {
+                if (window.htmlToImage?.toPng) {
+                    return await window.htmlToImage.toPng(preview, { pixelRatio: 1, canvasWidth: sizeW, canvasHeight: sizeH, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
+                }
+            } catch (error) {
+                console.warn('html-to-image export failed, falling back to html2canvas.', error);
             }
-            if (window.html2canvas) {
-                const canvas = await window.html2canvas(preview, { width: sizeW, height: sizeH, windowWidth: sizeW, windowHeight: sizeH, scale: 1, useCORS: true });
-                return canvas.toDataURL('image/png');
+
+            try {
+                if (window.html2canvas) {
+                    const canvas = await window.html2canvas(preview, { width: sizeW, height: sizeH, windowWidth: sizeW, windowHeight: sizeH, scale: 1, useCORS: true });
+                    return canvas.toDataURL('image/png');
+                }
+            } catch (error) {
+                console.warn('html2canvas export failed.', error);
             }
+
             return '';
+        }
+
+        async function exportUploadedFileAsPng(file) {
+            if (!file || !sizeW || !sizeH) return '';
+
+            return new Promise((resolve) => {
+                const objectUrl = URL.createObjectURL(file);
+                const image = new Image();
+                image.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = sizeW;
+                    canvas.height = sizeH;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) {
+                        URL.revokeObjectURL(objectUrl);
+                        resolve('');
+                        return;
+                    }
+
+                    ctx.fillStyle = '#f7f7f7';
+                    ctx.fillRect(0, 0, sizeW, sizeH);
+
+                    const scale = Math.max(sizeW / image.width, sizeH / image.height);
+                    const drawWidth = image.width * scale;
+                    const drawHeight = image.height * scale;
+                    const dx = (sizeW - drawWidth) / 2;
+                    const dy = (sizeH - drawHeight) / 2;
+
+                    ctx.drawImage(image, dx, dy, drawWidth, drawHeight);
+                    URL.revokeObjectURL(objectUrl);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                image.onerror = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    resolve('');
+                };
+                image.src = objectUrl;
+            });
         }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            clearFieldErrors();
             customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
-            generatedImageDataInput.value = await exportPng();
+
+            if (currentMode === 'upload' && uploadedImageFile) {
+                generatedImageDataInput.value = await exportUploadedFileAsPng(uploadedImageFile);
+            } else {
+                generatedImageDataInput.value = await exportPng();
+            }
+
             if (!generatedImageDataInput.value) return toast('danger', 'Could not generate ad image.');
 
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: new FormData(form),
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-            });
-            const payload = await response.json();
-            if (!response.ok) return toast('danger', payload.message || 'Unable to save ad.');
-            toast('success', payload.message || 'Saved successfully');
-            setTimeout(() => { window.location.href = payload.redirect_url || '{{ route('ads.index') }}'; }, 700);
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+
+                let payload = {};
+                try {
+                    payload = await response.json();
+                } catch (parseError) {
+                    payload = {};
+                }
+
+                if (!response.ok) {
+                    const errors = payload?.errors || {};
+                    Object.keys(errors).forEach((key) => {
+                        const messages = Array.isArray(errors[key]) ? errors[key] : [errors[key]];
+                        if (messages[0]) showFieldError(key, messages[0]);
+                    });
+                    return toast('danger', payload.message || 'Please fix the highlighted errors and try again.');
+                }
+
+                toast('success', payload.message || 'Saved successfully');
+                setTimeout(() => { window.location.href = payload.redirect_url || '{{ route('ads.index') }}'; }, 700);
+            } catch (networkError) {
+                toast('danger', 'Unable to save ad right now. Please try again.');
+            }
         });
 
         async function loadSubcategories(categoryId) {
@@ -331,6 +709,7 @@
         };
 
         setMode('upload');
+        preview.style.backgroundColor = '#f7f7f7';
     })();
 </script>
 @endpush
