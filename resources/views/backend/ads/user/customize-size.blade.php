@@ -70,6 +70,7 @@
                     </span>
                 </label>
             </div>
+            <div id="adImageError" class="invalid-feedback d-block" style="display:none;"></div>
 
             <div id="uploadWrap" class="mb-3">
                 <label class="form-label">Ad Image (PNG/JPG/WebP)</label>
@@ -243,6 +244,46 @@
             } else {
                 alert(message);
             }
+        }
+
+        function clearFieldErrors() {
+            form.querySelectorAll('.is-invalid').forEach((el) => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.js-inline-error').forEach((el) => el.remove());
+            const adImageError = document.getElementById('adImageError');
+            if (adImageError) {
+                adImageError.textContent = '';
+                adImageError.style.display = 'none';
+            }
+        }
+
+        function showFieldError(fieldName, message) {
+            if (!fieldName || !message) return;
+
+            if (fieldName === 'generated_image_data' || fieldName === 'custom_html') {
+                const adImageError = document.getElementById('adImageError');
+                if (adImageError) {
+                    adImageError.textContent = message;
+                    adImageError.style.display = 'block';
+                }
+                return;
+            }
+
+            const normalizedFieldName = (fieldName === 'location_lat' || fieldName === 'location_lng') ? 'location' : fieldName;
+            const field = form.querySelector(`[name="${normalizedFieldName}"]`);
+            if (!field) {
+                const adImageError = document.getElementById('adImageError');
+                if (adImageError) {
+                    adImageError.textContent = message;
+                    adImageError.style.display = 'block';
+                }
+                return;
+            }
+
+            field.classList.add('is-invalid');
+            const error = document.createElement('div');
+            error.className = 'invalid-feedback d-block js-inline-error';
+            error.textContent = message;
+            field.insertAdjacentElement('afterend', error);
         }
 
         function setMode(mode) {
@@ -521,13 +562,23 @@
         }
 
         async function exportPng() {
-            if (window.htmlToImage?.toPng) {
-                return window.htmlToImage.toPng(preview, { pixelRatio: 1, canvasWidth: sizeW, canvasHeight: sizeH, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
+            try {
+                if (window.htmlToImage?.toPng) {
+                    return await window.htmlToImage.toPng(preview, { pixelRatio: 1, canvasWidth: sizeW, canvasHeight: sizeH, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
+                }
+            } catch (error) {
+                console.warn('html-to-image export failed, falling back to html2canvas.', error);
             }
-            if (window.html2canvas) {
-                const canvas = await window.html2canvas(preview, { width: sizeW, height: sizeH, windowWidth: sizeW, windowHeight: sizeH, scale: 1, useCORS: true });
-                return canvas.toDataURL('image/png');
+
+            try {
+                if (window.html2canvas) {
+                    const canvas = await window.html2canvas(preview, { width: sizeW, height: sizeH, windowWidth: sizeW, windowHeight: sizeH, scale: 1, useCORS: true });
+                    return canvas.toDataURL('image/png');
+                }
+            } catch (error) {
+                console.warn('html2canvas export failed.', error);
             }
+
             return '';
         }
 
@@ -571,9 +622,8 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            customHtmlInput.value = currentMode === 'customize'
-                ? '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>'
-                : '';
+            clearFieldErrors();
+            customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
 
             if (currentMode === 'upload' && uploadedImageFile) {
                 generatedImageDataInput.value = await exportUploadedFileAsPng(uploadedImageFile);
@@ -583,15 +633,34 @@
 
             if (!generatedImageDataInput.value) return toast('danger', 'Could not generate ad image.');
 
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: new FormData(form),
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-            });
-            const payload = await response.json();
-            if (!response.ok) return toast('danger', payload.message || 'Unable to save ad.');
-            toast('success', payload.message || 'Saved successfully');
-            setTimeout(() => { window.location.href = payload.redirect_url || '{{ route('ads.index') }}'; }, 700);
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+
+                let payload = {};
+                try {
+                    payload = await response.json();
+                } catch (parseError) {
+                    payload = {};
+                }
+
+                if (!response.ok) {
+                    const errors = payload?.errors || {};
+                    Object.keys(errors).forEach((key) => {
+                        const messages = Array.isArray(errors[key]) ? errors[key] : [errors[key]];
+                        if (messages[0]) showFieldError(key, messages[0]);
+                    });
+                    return toast('danger', payload.message || 'Please fix the highlighted errors and try again.');
+                }
+
+                toast('success', payload.message || 'Saved successfully');
+                setTimeout(() => { window.location.href = payload.redirect_url || '{{ route('ads.index') }}'; }, 700);
+            } catch (networkError) {
+                toast('danger', 'Unable to save ad right now. Please try again.');
+            }
         });
 
         async function loadSubcategories(categoryId) {
