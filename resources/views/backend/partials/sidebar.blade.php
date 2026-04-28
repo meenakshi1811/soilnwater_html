@@ -77,6 +77,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.ads.sizes.*') ? 'active' : '' }}" href="{{ route('admin.ads.sizes.index') }}">
+                    <i class="fa-solid fa-ruler-combined"></i>
+                    <span>Ad Sizes</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('admin.ads.submissions.*') ? 'active' : '' }}" href="{{ route('admin.ads.submissions.index') }}">
                     <i class="fa-solid fa-inbox"></i>
                     <span>Ad Submissions</span>
