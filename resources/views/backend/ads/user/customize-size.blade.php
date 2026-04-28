@@ -68,7 +68,10 @@
                 <label class="form-label">Ad Image (PNG/JPG/WebP)</label>
                 <input type="file" id="uploadImageInput" class="d-none" accept="image/png,image/jpeg,image/webp">
                 <div id="adDropzone" class="banner-dropzone">
-                    <div class="banner-placeholder-content">
+                    <div id="adDropzonePreviewWrap" class="d-none position-relative">
+                        <img id="adDropzonePreview" src="#" alt="Ad image preview" class="banner-preview-img">
+                    </div>
+                    <div id="adDropzonePlaceholder" class="banner-placeholder-content">
                         <i class="fa-solid fa-image fa-2x mb-2 text-secondary"></i>
                         <p class="mb-1 fw-semibold">Click or drag to upload ad image</p>
                         <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: {{ $size['w'] }}×{{ $size['h'] }}px · PNG, JPG, WebP · Max 2MB</p>
@@ -127,6 +130,9 @@
         const generatedImageDataInput = document.getElementById('generatedImageDataInput');
         const uploadInput = document.getElementById('uploadImageInput');
         const dropzone = document.getElementById('adDropzone');
+        const dropzonePreviewWrap = document.getElementById('adDropzonePreviewWrap');
+        const dropzonePreview = document.getElementById('adDropzonePreview');
+        const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
         const categorySelect = document.getElementById('categorySelect');
         const subcategorySelect = document.getElementById('subcategorySelect');
 
@@ -217,9 +223,17 @@
         uploadInput?.addEventListener('change', (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
+            const objectUrl = URL.createObjectURL(file);
+
+            if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
+                dropzonePreview.src = objectUrl;
+                dropzonePreviewWrap.classList.remove('d-none');
+                dropzonePlaceholder.classList.add('d-none');
+            }
+
             preview.innerHTML = '';
             const img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
+            img.src = objectUrl;
             img.style.width = '100%';
             img.style.height = '100%';
             img.style.objectFit = 'cover';
