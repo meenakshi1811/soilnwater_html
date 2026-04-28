@@ -241,9 +241,61 @@
         function toast(type, message) {
             if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
                 window.FormHelper.showToast(type, message);
-            } else {
-                alert(message);
+                return;
             }
+
+            // Avoid browser alert popups; render a dismissible inline message instead.
+            const existing = form.querySelector('.js-form-inline-alert');
+            if (existing) existing.remove();
+
+            const alert = document.createElement('div');
+            alert.className = `alert ${type === 'danger' ? 'alert-danger' : 'alert-success'} alert-dismissible fade show js-form-inline-alert mt-3`;
+            alert.setAttribute('role', 'alert');
+            alert.innerHTML = `
+                <span>${message || (type === 'danger' ? 'Something went wrong.' : 'Done')}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            form.prepend(alert);
+        }
+
+        function clearFieldErrors() {
+            form.querySelectorAll('.is-invalid').forEach((el) => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.js-inline-error').forEach((el) => el.remove());
+            const adImageError = document.getElementById('adImageError');
+            if (adImageError) {
+                adImageError.textContent = '';
+                adImageError.style.display = 'none';
+            }
+        }
+
+        function showFieldError(fieldName, message) {
+            if (!fieldName || !message) return;
+
+            if (fieldName === 'generated_image_data' || fieldName === 'custom_html') {
+                const adImageError = document.getElementById('adImageError');
+                if (adImageError) {
+                    adImageError.textContent = message;
+                    adImageError.style.display = 'block';
+                }
+                return;
+            }
+
+            const normalizedFieldName = (fieldName === 'location_lat' || fieldName === 'location_lng') ? 'location' : fieldName;
+            const field = form.querySelector(`[name="${normalizedFieldName}"]`);
+            if (!field) {
+                const adImageError = document.getElementById('adImageError');
+                if (adImageError) {
+                    adImageError.textContent = message;
+                    adImageError.style.display = 'block';
+                }
+                return;
+            }
+
+            field.classList.add('is-invalid');
+            const error = document.createElement('div');
+            error.className = 'invalid-feedback d-block js-inline-error';
+            error.textContent = message;
+            field.insertAdjacentElement('afterend', error);
         }
 
         function clearFieldErrors() {
