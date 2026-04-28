@@ -777,3 +777,15 @@
     max-width: 420px;
     background: #fff;
 }
+
+/* Ads size customizer mode card active state */
+.banner-mode-card.is-active {
+    border-color: #2f7de1 !important;
+    background: rgba(47, 125, 225, 0.08) !important;
+    box-shadow: 0 8px 20px rgba(47, 125, 225, 0.15);
+}
+
+.banner-dropzone.is-dragover {
+    border-color: #2f7de1 !important;
+    background: rgba(47, 125, 225, 0.08) !important;
+}

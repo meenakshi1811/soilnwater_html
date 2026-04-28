@@ -84,6 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/data', [UserAdController::class, 'data'])->name('data');
         Route::get('/categories/{category}/subcategories', [UserAdController::class, 'subcategories'])->name('categories.subcategories');
         Route::get('/create', [UserAdController::class, 'selectSize'])->name('create.size');
+        Route::get('/create/{sizeType}/customize', [UserAdController::class, 'customizeFromSize'])->name('create.customize.default');
         Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->name('create.template');
         Route::get('/create/{sizeType}/template/{template}', [UserAdController::class, 'customize'])->name('create.customize');
         Route::post('/create/{sizeType}/template/{template}', [UserAdController::class, 'store'])->name('store');
