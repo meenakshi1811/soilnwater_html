@@ -1,6 +1,18 @@
 (function ($) {
-    if (!$ || !window.FormHelper) {
+    if (!$) {
         return;
+    }
+
+    function showToast(type, message) {
+        if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
+            window.FormHelper.showToast(type, message);
+            return;
+        }
+        if (type === 'danger') {
+            window.alert(message || 'Something went wrong.');
+            return;
+        }
+        console.log(message || 'Done');
     }
 
     function initUserAdsTable() {
@@ -167,6 +179,7 @@
     }
 
     function initAjaxAdSubmit() {
+        if (!window.FormHelper || typeof window.FormHelper.attachAjaxForm !== 'function') return;
         var $form = $('form[action*="/dashboard/ads/create/"]');
         if (!$form.length) return;
 
@@ -178,7 +191,7 @@
             defaultText: $submit.text().trim() || 'Submit',
             loadingText: 'Submitting...',
             onSuccess: function (response) {
-                FormHelper.showToast('success', response.message || 'Submitted.');
+                    showToast('success', response.message || 'Submitted.');
                 if (response.redirect_url) {
                     setTimeout(function () {
                         window.location.href = response.redirect_url;
@@ -186,12 +199,13 @@
                 }
             },
             onError: function (message) {
-                FormHelper.showToast('danger', message || 'Failed to submit.');
+                showToast('danger', message || 'Failed to submit.');
             }
         });
     }
 
     function initAjaxTemplateForm() {
+        if (!window.FormHelper || typeof window.FormHelper.attachAjaxForm !== 'function') return;
         var $form = $('form[action*="/admin/ads/templates"]');
         if (!$form.length) return;
 
@@ -203,7 +217,7 @@
             defaultText: $submit.text().trim() || 'Save',
             loadingText: 'Saving...',
             onSuccess: function (response) {
-                FormHelper.showToast('success', response.message || 'Saved.');
+                    showToast('success', response.message || 'Saved.');
                 if (response.redirect_url) {
                     setTimeout(function () {
                         window.location.href = response.redirect_url;
@@ -211,7 +225,7 @@
                 }
             },
             onError: function (message) {
-                FormHelper.showToast('danger', message || 'Failed to save.');
+                showToast('danger', message || 'Failed to save.');
             }
         });
     }
@@ -233,11 +247,11 @@
                     processData: false,
                     contentType: false
                 }).done(function (res) {
-                    FormHelper.showToast('success', (res && res.message) ? res.message : 'Approved.');
+                    showToast('success', (res && res.message) ? res.message : 'Approved.');
                     setTimeout(function () { window.location.reload(); }, 600);
                 }).fail(function (xhr) {
                     var msg = (xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error)) || 'Failed.';
-                    FormHelper.showToast('danger', msg);
+                    showToast('danger', msg);
                     $btn.prop('disabled', false);
                 });
             });
@@ -256,14 +270,14 @@
                     processData: false,
                     contentType: false
                 }).done(function (res) {
-                    FormHelper.showToast('success', (res && res.message) ? res.message : 'Rejected.');
+                    showToast('success', (res && res.message) ? res.message : 'Rejected.');
                     setTimeout(function () { window.location.reload(); }, 600);
                 }).fail(function (xhr) {
                     var errors = xhr.responseJSON && xhr.responseJSON.errors ? xhr.responseJSON.errors : null;
                     var msg = errors && errors.review_note && errors.review_note[0]
                         ? errors.review_note[0]
                         : ((xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error)) || 'Failed.');
-                    FormHelper.showToast('danger', msg);
+                    showToast('danger', msg);
                     $btn.prop('disabled', false);
                 });
             });
@@ -566,7 +580,7 @@
             customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
             generatedImageDataInput.value = await exportPreviewAsPng();
             if (!generatedImageDataInput.value) {
-                FormHelper.showToast('danger', 'Could not generate ad image.');
+                showToast('danger', 'Could not generate ad image.');
                 return;
             }
             var response = await fetch(form.action, {
@@ -576,10 +590,10 @@
             });
             var payload = await response.json();
             if (!response.ok) {
-                FormHelper.showToast('danger', payload.message || 'Unable to save ad.');
+                showToast('danger', payload.message || 'Unable to save ad.');
                 return;
             }
-            FormHelper.showToast('success', payload.message || 'Saved successfully');
+            showToast('success', payload.message || 'Saved successfully');
             var config = window.adsSizeCustomizerConfig || {};
             setTimeout(function () {
                 window.location.href = payload.redirect_url || config.adsIndexUrl || '/dashboard/ads';
