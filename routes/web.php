@@ -116,7 +116,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::prefix('sizes')->name('sizes.')->group(function () {
                 Route::get('/', [AdSizeController::class, 'index'])->name('index');
+                Route::get('/data', [AdSizeController::class, 'data'])->name('data');
+                Route::get('/{size}', [AdSizeController::class, 'show'])->name('show');
                 Route::post('/', [AdSizeController::class, 'store'])->name('store');
+                Route::put('/{size}', [AdSizeController::class, 'update'])->name('update');
+                Route::delete('/{size}', [AdSizeController::class, 'destroy'])->name('destroy');
             });
         });
 
