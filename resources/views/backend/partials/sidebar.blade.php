@@ -71,12 +71,6 @@
                 </a>
             </li>
             <li>
-                <a class="{{ request()->routeIs('admin.ads.templates.*') ? 'active' : '' }}" href="{{ route('admin.ads.templates.index') }}">
-                    <i class="fa-solid fa-palette"></i>
-                    <span>Ad Templates</span>
-                </a>
-            </li>
-            <li>
                 <a class="{{ request()->routeIs('admin.ads.sizes.*') ? 'active' : '' }}" href="{{ route('admin.ads.sizes.index') }}">
                     <i class="fa-solid fa-ruler-combined"></i>
                     <span>Ad Sizes</span>
