@@ -180,6 +180,12 @@
             });
 
             if ($.fn && typeof $.fn.validate === 'function') {
+                if ($.validator && typeof $.validator.addMethod === 'function' && !$.validator.methods.sizeKeyFormat) {
+                    $.validator.addMethod('sizeKeyFormat', function (value, element) {
+                        return this.optional(element) || /^[a-z0-9_]+$/.test(value);
+                    }, 'Use lowercase letters, numbers, and underscore only.');
+                }
+
                 $form.validate({
                     errorElement: 'span',
                     errorPlacement: function (error, element) {
@@ -194,12 +200,9 @@
                     },
                     rules: {
                         name: { required: true, maxlength: 120 },
-                        size_key: { required: true, maxlength: 60, pattern: /^[a-z0-9_]+$/ },
+                        size_key: { required: true, maxlength: 60, sizeKeyFormat: true },
                         width: { required: true, min: 1, max: 5000 },
                         height: { required: true, min: 1, max: 5000 }
-                    },
-                    messages: {
-                        size_key: { pattern: 'Use lowercase letters, numbers, and underscore only.' }
                     }
                 });
             }
