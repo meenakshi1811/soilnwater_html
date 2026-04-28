@@ -89,9 +89,9 @@
                 </div>
             </div>
 
-            <div class="border rounded p-2 bg-light d-none" id="canvasWrap">
+            <div class="border rounded p-2 bg-light d-none" id="canvasWrap" style="width:fit-content;max-width:100%;">
                 <div class="small text-secondary mb-2">Final Ads Preview (what users will see)</div>
-                <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] }};">
+                <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] }};width:min(100%, {{ $size['w'] }}px);">
                     <div class="ads-live-preview-inner" id="adPreviewFrame" data-source-width="{{ $size['w'] }}" data-source-height="{{ $size['h'] }}">
                         <div id="adPreview" class="ads-mini-preview-inner" style="position:relative;overflow:hidden;background:#f7f7f7;width:{{ $size['w'] }}px;height:{{ $size['h'] }}px;"></div>
                     </div>
@@ -157,17 +157,16 @@
 
             if (mode === 'customize') {
                 canvasWrap.classList.remove('d-none');
-                if (!preview.querySelector('[data-custom-stage="1"]')) {
-                    preview.innerHTML = '';
-                    const stage = document.createElement('div');
-                    stage.setAttribute('data-custom-stage', '1');
-                    stage.style.position = 'absolute';
-                    stage.style.inset = '0';
-                    stage.style.border = '2px dashed rgba(47,125,225,.35)';
-                    stage.style.background = 'rgba(255,255,255,.6)';
-                    stage.style.pointerEvents = 'none';
-                    preview.appendChild(stage);
-                }
+                selectedLayer = null;
+                preview.innerHTML = '';
+                const stage = document.createElement('div');
+                stage.setAttribute('data-custom-stage', '1');
+                stage.style.position = 'absolute';
+                stage.style.inset = '0';
+                stage.style.border = '2px dashed rgba(47,125,225,.35)';
+                stage.style.background = 'rgba(255,255,255,.6)';
+                stage.style.pointerEvents = 'none';
+                preview.appendChild(stage);
             }
             else if (!preview.querySelector('img')) canvasWrap.classList.add('d-none');
         }
