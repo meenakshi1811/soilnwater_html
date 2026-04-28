@@ -7,8 +7,8 @@ use App\Models\AdTemplate;
 use App\Models\Category;
 use App\Models\UserAd;
 use App\Support\AdSizes;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -161,12 +161,23 @@ class UserAdController extends Controller
         );
     }
 
-    public function store(Request $request, string $sizeType, AdTemplate $template): RedirectResponse
+    public function store(Request $request, string $sizeType, AdTemplate $template): RedirectResponse|JsonResponse
     {
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize($request->user(), $sizeType), 404);
-        abort_unless($template->size_type === $sizeType, 404);
-        abort_if(! $template->is_active, 404);
+
+        // New create flow may occasionally post with an unrelated template id.
+        // In that case, gracefully resolve to an active template for the selected size.
+        if ($template->size_type !== $sizeType || ! $template->is_active) {
+            $fallbackTemplate = AdTemplate::query()
+                ->where('size_type', $sizeType)
+                ->where('is_active', true)
+                ->latest()
+                ->first();
+
+            abort_if(! $fallbackTemplate, 404, 'No active template found for this size.');
+            $template = $fallbackTemplate;
+        }
 
         $schema = is_array($template->schema_json) ? $template->schema_json : [];
         $fieldRules = [];
