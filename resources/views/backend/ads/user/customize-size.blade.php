@@ -155,7 +155,20 @@
             const activeCard = document.querySelector('input[name="design_mode"]:checked')?.closest('.banner-mode-option')?.querySelector('.banner-mode-card');
             if (activeCard) activeCard.classList.add('is-active');
 
-            if (mode === 'customize') canvasWrap.classList.remove('d-none');
+            if (mode === 'customize') {
+                canvasWrap.classList.remove('d-none');
+                if (!preview.querySelector('[data-custom-stage="1"]')) {
+                    preview.innerHTML = '';
+                    const stage = document.createElement('div');
+                    stage.setAttribute('data-custom-stage', '1');
+                    stage.style.position = 'absolute';
+                    stage.style.inset = '0';
+                    stage.style.border = '2px dashed rgba(47,125,225,.35)';
+                    stage.style.background = 'rgba(255,255,255,.6)';
+                    stage.style.pointerEvents = 'none';
+                    preview.appendChild(stage);
+                }
+            }
             else if (!preview.querySelector('img')) canvasWrap.classList.add('d-none');
         }
 
