@@ -258,6 +258,11 @@
                 return;
             }
 
+            if (window.toastr && typeof window.toastr[type] === 'function') {
+                window.toastr[type](message);
+                return;
+            }
+
             // Avoid browser alert popups; render a dismissible inline message instead.
             const existing = form.querySelector('.js-form-inline-alert');
             if (existing) existing.remove();
@@ -790,6 +795,13 @@
                 }
 
                 toast('success', payload.message || 'Saved successfully');
+
+                const redirectUrl = payload?.redirect_url || form.dataset.redirectUrl || '';
+                if (redirectUrl) {
+                    window.location.assign(redirectUrl);
+                    return;
+                }
+
                 return;
             } catch (networkError) {
                 toast('danger', 'Unable to save ad right now. Please try again.');
