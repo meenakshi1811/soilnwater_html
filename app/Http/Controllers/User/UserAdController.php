@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\UserAd;
 use App\Support\AdSizes;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -273,24 +274,18 @@ class UserAdController extends Controller
 
         $user = $request->user();
 
-        $ad = DB::transaction(function () use ($request, $template, $sizeType, $validated, $fields, $imageKeys, $user) {
+        $size = AdSizes::all()[$sizeType] ?? null;
+        $targetWidth = (int) ($size['w'] ?? 0);
+        $targetHeight = (int) ($size['h'] ?? 0);
+
+        $ad = DB::transaction(function () use ($request, $template, $validated, $fields, $imageKeys, $user, $targetWidth, $targetHeight) {
             foreach ($imageKeys as $key) {
                 if (!$request->hasFile($key)) {
                     continue;
                 }
 
                 $file = $request->file($key);
-                $ext = $file->getClientOriginalExtension() ?: $file->extension();
-                $fileName = $key.'-'.Str::uuid().'.'.$ext;
-                $relativeDirectory = 'uploads/ads/assets';
-                $absoluteDirectory = public_path($relativeDirectory);
-
-                if (!is_dir($absoluteDirectory)) {
-                    mkdir($absoluteDirectory, 0755, true);
-                }
-
-                $file->move($absoluteDirectory, $fileName);
-                $fields[$key] = $relativeDirectory.'/'.$fileName;
+                $fields[$key] = $this->storeAndResizeUploadedAsset($file, $key, $targetWidth, $targetHeight);
             }
 
             $layoutHtml = trim((string) ($validated['custom_html'] ?? '')) !== ''
@@ -299,9 +294,6 @@ class UserAdController extends Controller
 
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
-            $size = AdSizes::all()[$sizeType] ?? null;
-            $targetWidth = (int) ($size['w'] ?? 0);
-            $targetHeight = (int) ($size['h'] ?? 0);
             $finalImagePath = $this->storeGeneratedAdImage(
                 $validated['generated_image_data'] ?? '',
                 $targetWidth,
@@ -449,22 +441,47 @@ class UserAdController extends Controller
         }
 
         try {
-            $imageInfo = @getimagesize($absolutePath);
-            if (is_array($imageInfo)) {
-                $currentWidth = (int) ($imageInfo[0] ?? 0);
-                $currentHeight = (int) ($imageInfo[1] ?? 0);
-                if ($currentWidth > $targetWidth || $currentHeight > $targetHeight) {
-                    return;
-                }
-            }
-
             $manager = new ImageManager(new GdDriver());
             $image = $manager->read($absolutePath);
+
+            if ($image->width() === $targetWidth && $image->height() === $targetHeight) {
+                return;
+            }
+
             $image->cover($targetWidth, $targetHeight);
             $image->toPng()->save($absolutePath);
         } catch (\Throwable) {
             // Keep original generated image if Intervention processing fails.
         }
+    }
+
+    private function storeAndResizeUploadedAsset(UploadedFile $file, string $key, int $targetWidth, int $targetHeight): string
+    {
+        $relativeDirectory = 'uploads/ads/assets';
+        $absoluteDirectory = public_path($relativeDirectory);
+        if (!is_dir($absoluteDirectory)) {
+            mkdir($absoluteDirectory, 0755, true);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'png');
+        $safeExtension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true) ? $extension : 'png';
+        $fileName = $key.'-'.Str::uuid().'.'.$safeExtension;
+        $absolutePath = $absoluteDirectory.'/'.$fileName;
+
+        $manager = new ImageManager(new GdDriver());
+        $image = $manager->read($file->getRealPath());
+
+        if ($targetWidth > 0 && $targetHeight > 0) {
+            $image->cover($targetWidth, $targetHeight);
+        }
+
+        match ($safeExtension) {
+            'jpg', 'jpeg' => $image->toJpeg(90)->save($absolutePath),
+            'webp' => $image->toWebp(90)->save($absolutePath),
+            default => $image->toPng()->save($absolutePath),
+        };
+
+        return $relativeDirectory.'/'.$fileName;
     }
 
     private function canUserAccessSize($user, string $sizeType): bool
