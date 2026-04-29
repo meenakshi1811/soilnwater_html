@@ -639,6 +639,10 @@
 
         form.addEventListener('submit', async function (event) {
             event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') {
+                event.stopImmediatePropagation();
+            }
             if (!preview) return;
             customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
             generatedImageDataInput.value = await exportPreviewAsPng();
@@ -651,9 +655,22 @@
                 body: new FormData(form),
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             });
-            var payload = await response.json();
+            var payload = {};
+            var responseText = '';
+            try {
+                payload = await response.json();
+            } catch (jsonError) {
+                responseText = await response.text();
+            }
             if (!response.ok) {
                 showToast('danger', payload.message || 'Unable to save ad.');
+                return;
+            }
+            if (!payload || typeof payload !== 'object' || (!payload.message && !payload.redirect_url)) {
+                showToast('info', 'Request sent successfully. Debug response received; staying on this page.');
+                if (responseText) {
+                    console.info('Ad save debug response:', responseText);
+                }
                 return;
             }
             showToast('success', payload.message || 'Saved successfully');
