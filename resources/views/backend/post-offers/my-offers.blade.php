@@ -4,36 +4,6 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-<style>
-    .offers-table-wrap {
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    #myOffersTable {
-        width: 100% !important;
-    }
-
-    #myOffersTable th {
-        white-space: nowrap;
-        vertical-align: middle;
-    }
-
-    #myOffersTable td {
-        white-space: nowrap;
-        vertical-align: middle;
-    }
-
-    #myOffersTable td.offer-col-wrap {
-        white-space: normal;
-        word-break: break-word;
-        min-width: 220px;
-    }
-
-    #myOffersTable td:last-child {
-        white-space: nowrap;
-    }
-</style>
 @endpush
 
 @section('content')
