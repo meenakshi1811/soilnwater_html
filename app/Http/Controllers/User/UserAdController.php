@@ -290,6 +290,15 @@ class UserAdController extends Controller
                 }
 
                 $file->move($absoluteDirectory, $fileName);
+                $absolutePath = $absoluteDirectory.'/'.$fileName;
+
+                $size = AdSizes::all()[$sizeType] ?? null;
+                $this->resizeUploadedFieldImage(
+                    $absolutePath,
+                    (int) ($size['w'] ?? 0),
+                    (int) ($size['h'] ?? 0),
+                );
+
                 $fields[$key] = $relativeDirectory.'/'.$fileName;
             }
 
@@ -335,6 +344,23 @@ class UserAdController extends Controller
         }
 
         return redirect()->route('ads.index')->with('success', 'Your ad was submitted for admin approval.');
+    }
+
+
+    private function resizeUploadedFieldImage(string $absolutePath, int $targetWidth, int $targetHeight): void
+    {
+        if ($targetWidth <= 0 || $targetHeight <= 0 || !is_file($absolutePath)) {
+            return;
+        }
+
+        try {
+            $manager = new ImageManager(new GdDriver());
+            $image = $manager->read($absolutePath);
+            $image->cover($targetWidth, $targetHeight);
+            $image->save($absolutePath);
+        } catch (\Throwable) {
+            // Keep original uploaded image if Intervention processing fails.
+        }
     }
 
     private function renderTemplateHtml(string $layoutHtml, array $fields): string
