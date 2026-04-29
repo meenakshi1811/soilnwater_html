@@ -578,7 +578,7 @@
             if (!sizeW || !sizeH) return '';
 
             const canvas = document.createElement('canvas');
-            const exportPixelRatio = 1;
+            const exportPixelRatio = 4;
             canvas.width = sizeW * exportPixelRatio;
             canvas.height = sizeH * exportPixelRatio;
             const ctx = canvas.getContext('2d');
@@ -669,7 +669,16 @@
                 }
             }
 
-            return canvas.toDataURL('image/png');
+            const outputCanvas = document.createElement('canvas');
+            outputCanvas.width = sizeW;
+            outputCanvas.height = sizeH;
+            const outputCtx = outputCanvas.getContext('2d');
+            if (!outputCtx) return '';
+            outputCtx.imageSmoothingEnabled = true;
+            outputCtx.imageSmoothingQuality = 'high';
+            outputCtx.drawImage(canvas, 0, 0, sizeW, sizeH);
+
+            return outputCanvas.toDataURL('image/png');
         }
 
         async function exportUploadedFileAsPng(file) {
@@ -680,7 +689,7 @@
                 const image = new Image();
                 image.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const exportPixelRatio = 1;
+                    const exportPixelRatio = 4;
                     canvas.width = sizeW * exportPixelRatio;
                     canvas.height = sizeH * exportPixelRatio;
                     const ctx = canvas.getContext('2d');
@@ -703,7 +712,20 @@
 
                     ctx.drawImage(image, dx, dy, drawWidth, drawHeight);
                     URL.revokeObjectURL(objectUrl);
-                    resolve(canvas.toDataURL('image/png'));
+                    const outputCanvas = document.createElement('canvas');
+                    outputCanvas.width = sizeW;
+                    outputCanvas.height = sizeH;
+                    const outputCtx = outputCanvas.getContext('2d');
+                    if (!outputCtx) {
+                        URL.revokeObjectURL(objectUrl);
+                        resolve('');
+                        return;
+                    }
+                    outputCtx.imageSmoothingEnabled = true;
+                    outputCtx.imageSmoothingQuality = 'high';
+                    outputCtx.drawImage(canvas, 0, 0, sizeW, sizeH);
+
+                    resolve(outputCanvas.toDataURL('image/png'));
                 };
                 image.onerror = () => {
                     URL.revokeObjectURL(objectUrl);
