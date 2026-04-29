@@ -564,18 +564,85 @@
         }
 
         async function exportPreviewAsPng() {
-            if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
-                return window.htmlToImage.toPng(preview, { pixelRatio: 1, canvasWidth: sizeW, canvasHeight: sizeH, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
-            }
-            if (window.html2canvas) {
-                var canvas = await window.html2canvas(preview, { width: sizeW, height: sizeH, windowWidth: sizeW, windowHeight: sizeH, scale: 1, useCORS: true });
-                return canvas.toDataURL('image/png');
+            var exportWidth = sizeW || preview.scrollWidth || 0;
+            var exportHeight = sizeH || preview.scrollHeight || 0;
+            var exportPixelRatio = 2;
+            var clone = preview.cloneNode(true);
+            var sandbox = document.createElement('div');
+            sandbox.style.position = 'fixed';
+            sandbox.style.left = '-10000px';
+            sandbox.style.top = '0';
+            sandbox.style.width = exportWidth + 'px';
+            sandbox.style.height = exportHeight + 'px';
+            sandbox.style.overflow = 'hidden';
+            sandbox.style.zIndex = '-1';
+
+            clone.style.position = 'static';
+            clone.style.inset = 'auto';
+            clone.style.transform = 'none';
+            clone.style.transformOrigin = 'top left';
+            clone.style.width = exportWidth + 'px';
+            clone.style.height = exportHeight + 'px';
+            clone.style.maxWidth = 'none';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'hidden';
+
+            sandbox.appendChild(clone);
+            document.body.appendChild(sandbox);
+
+            var waitForImages = async function (root, timeoutMs) {
+                var imgs = Array.from(root.querySelectorAll('img'));
+                if (!imgs.length) return;
+                await Promise.race([
+                    Promise.all(imgs.map(function (img) {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise(function (resolve) {
+                            var done = function () { resolve(); };
+                            img.addEventListener('load', done, { once: true });
+                            img.addEventListener('error', done, { once: true });
+                        });
+                    })),
+                    new Promise(function (resolve) { setTimeout(resolve, timeoutMs || 6000); })
+                ]);
+            };
+
+            try {
+                await waitForImages(clone, 6000);
+                if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
+                    return await window.htmlToImage.toPng(clone, {
+                        pixelRatio: exportPixelRatio,
+                        canvasWidth: exportWidth * exportPixelRatio,
+                        canvasHeight: exportHeight * exportPixelRatio,
+                        cacheBust: true,
+                        skipFonts: true,
+                        fontEmbedCSS: ''
+                    });
+                }
+                if (window.html2canvas) {
+                    var canvas = await window.html2canvas(clone, {
+                        width: exportWidth,
+                        height: exportHeight,
+                        windowWidth: exportWidth,
+                        windowHeight: exportHeight,
+                        scale: exportPixelRatio,
+                        useCORS: true,
+                        allowTaint: false,
+                        logging: false
+                    });
+                    return canvas.toDataURL('image/png');
+                }
+            } finally {
+                document.body.removeChild(sandbox);
             }
             return '';
         }
 
         form.addEventListener('submit', async function (event) {
             event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') {
+                event.stopImmediatePropagation();
+            }
             if (!preview) return;
             customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
             generatedImageDataInput.value = await exportPreviewAsPng();
@@ -588,9 +655,22 @@
                 body: new FormData(form),
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             });
-            var payload = await response.json();
+            var payload = {};
+            var responseText = '';
+            try {
+                payload = await response.json();
+            } catch (jsonError) {
+                responseText = await response.text();
+            }
             if (!response.ok) {
                 showToast('danger', payload.message || 'Unable to save ad.');
+                return;
+            }
+            if (!payload || typeof payload !== 'object' || (!payload.message && !payload.redirect_url)) {
+                showToast('info', 'Request sent successfully. Debug response received; staying on this page.');
+                if (responseText) {
+                    console.info('Ad save debug response:', responseText);
+                }
                 return;
             }
             showToast('success', payload.message || 'Saved successfully');
