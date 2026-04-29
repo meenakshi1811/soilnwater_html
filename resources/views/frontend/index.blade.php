@@ -998,8 +998,8 @@
         <div class="ads-section-title">Ads</div>
         <div class="ad-slider auto-ad-slider builders-side-slider builders-side-slider-1" aria-label="Builder ads slider" data-show-arrows="true" data-pause-on-hover="false">
           @forelse(($buildersDevelopersAds ?? collect()) as $ad)
-            <div class="side-card ad-slide" aria-label="{{ $ad->title }}">
-              <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+            <div class="side-card ad-slide builders-side-image-card" aria-label="{{ $ad->title }}">
+              <img class="side-card-img builders-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
             </div>
           @empty
             <div class="side-card ad-slide">

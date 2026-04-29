@@ -2507,6 +2507,17 @@
   display: block;
 }
 
+.builders-side-image-card {
+  height: 100%;
+}
+.builders-side-full-img {
+  width: 100%;
+  height: 100% !important;
+  min-height: 100% !important;
+  object-fit: cover;
+  display: block;
+}
+
   h1 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; }
   h2 { font-size: 1.5rem; font-weight: 600; }
   h3 { font-size: 1.1rem; font-weight: 600; }
