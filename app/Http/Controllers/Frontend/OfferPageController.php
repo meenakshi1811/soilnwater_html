@@ -28,6 +28,15 @@ class OfferPageController extends Controller
             ->latest('id')
             ->get(['id', 'title', 'size_type', 'final_image']);
 
+        $recentApprovedAds = UserAd::query()
+            ->with(['category:id,name'])
+            ->where('status', 'approved')
+            ->whereNotNull('final_image')
+            ->latest('created_at')
+            ->latest('id')
+            ->limit(20)
+            ->get(['id', 'title', 'category_id', 'final_image', 'created_at']);
+
         return view('frontend.index', [
             'offers' => $offers,
             'topCategoriesSliderAds' => $frontPageAds->where('size_type', 'top_categories_ad_1')->values(),
@@ -35,6 +44,7 @@ class OfferPageController extends Controller
             'sponsoredListingsAds' => $frontPageAds->where('size_type', 'sponsored_listings_ad')->values(),
             'belowSponsoredSliderAds' => $frontPageAds->where('size_type', 'below_sponsored_ad')->values(),
             'ecommerceSideSliderAds' => $frontPageAds->where('size_type', 'ecommerce_ad')->values(),
+            'recentApprovedAds' => $recentApprovedAds,
         ]);
     }
 

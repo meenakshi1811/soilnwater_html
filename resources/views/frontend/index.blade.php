@@ -449,52 +449,41 @@
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> Recent Ads</div>
         <a class="view-all" href="#">VIEW ALL ▶</a>
       </div>
-      <div class="product-grid-4 recent-ads-grid">
-        <article class="prod-card recent-ad-card">
-          <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=85" alt="Fresh produce ad">
-          <div class="prod-card-body">
-            <span class="recent-ad-badge">Featured</span>
-            <p>Organic Grocery Campaign</p>
-            <span class="recent-ad-meta"><i class="fa-solid fa-location-dot"></i> Local Reach • Seasonal Offer</span>
-            <button class="btn btn-sm">View Ad</button>
+      <div class="ad-slider auto-ad-slider recent-ads-slider" data-show-arrows="true" data-show-dots="false" aria-label="Recent approved ads slider">
+        @forelse(($recentApprovedAds ?? collect())->chunk(5) as $recentAdsChunk)
+          <div class="ad-slide">
+            <div class="product-grid-4 recent-ads-grid">
+              @foreach($recentAdsChunk as $recentAd)
+                <article class="prod-card recent-ad-card">
+                  <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}">
+                  <div class="prod-card-body">
+                    <span class="recent-ad-badge">Approved</span>
+                    <p>{{ $recentAd->title }}</p>
+                    <span class="recent-ad-meta">
+                      <i class="fa-solid fa-layer-group"></i>
+                      {{ $recentAd->category?->name ?? 'Uncategorized' }} • {{ $recentAd->created_at?->format('d M Y') ?? 'N/A' }}
+                    </span>
+                    <button class="btn btn-sm" type="button">View Ad</button>
+                  </div>
+                </article>
+              @endforeach
+            </div>
           </div>
-        </article>
-        <article class="prod-card recent-ad-card">
-          <img src="https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=900&q=85" alt="Home decor ad">
-          <div class="prod-card-body">
-            <span class="recent-ad-badge">New</span>
-            <p>Home Décor Week</p>
-            <span class="recent-ad-meta"><i class="fa-solid fa-star"></i> Premium Listing • High Enquiry</span>
-            <button class="btn btn-sm">View Ad</button>
+        @empty
+          <div class="ad-slide">
+            <div class="product-grid-4 recent-ads-grid">
+              <article class="prod-card recent-ad-card">
+                <img src="{{ asset('assets/images/ad-sample.png') }}" alt="Recent approved ad placeholder">
+                <div class="prod-card-body">
+                  <span class="recent-ad-badge">Approved</span>
+                  <p>No approved ads available yet</p>
+                  <span class="recent-ad-meta"><i class="fa-solid fa-circle-info"></i> New approved ads will appear here.</span>
+                  <button class="btn btn-sm" type="button">View Ad</button>
+                </div>
+              </article>
+            </div>
           </div>
-        </article>
-        <article class="prod-card recent-ad-card">
-          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900&q=85" alt="Restaurant ad">
-          <div class="prod-card-body">
-            <span class="recent-ad-badge">Top Pick</span>
-            <p>Restaurant Launch Offer</p>
-            <span class="recent-ad-meta"><i class="fa-solid fa-utensils"></i> Citywide Buzz • Fast Leads</span>
-            <button class="btn btn-sm">View Ad</button>
-          </div>
-        </article>
-        <article class="prod-card recent-ad-card">
-          <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=900&q=85" alt="Property listing ad">
-          <div class="prod-card-body">
-            <span class="recent-ad-badge">Hot</span>
-            <p>Premium Property Listings</p>
-            <span class="recent-ad-meta"><i class="fa-solid fa-key"></i> Prime Locations • Verified Ads</span>
-            <button class="btn btn-sm">View Ad</button>
-          </div>
-        </article>
-        <article class="prod-card recent-ad-card">
-          <img src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=900&q=85" alt="Digital marketing ad analytics">
-          <div class="prod-card-body">
-            <span class="recent-ad-badge">Trending</span>
-            <p>Digital Services Spotlight</p>
-            <span class="recent-ad-meta"><i class="fa-solid fa-chart-line"></i> Better CTR • More Visibility</span>
-            <button class="btn btn-sm">View Ad</button>
-          </div>
-        </article>
+        @endforelse
       </div>
     </div>
 
