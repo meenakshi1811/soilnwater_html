@@ -173,8 +173,8 @@
                 <div class="small text-secondary mb-1">Customization Canvas (edit directly on this area)</div>
                 <div class="small text-muted mb-2">Exact export size: {{ $size['w'] }} × {{ $size['h'] }} px</div>
                 <div class="ads-canvas-scroll" style="overflow:auto;max-width:100%;padding:6px;background:#eef1f5;border:1px dashed #c8ced8;border-radius:8px;">
-                    <div class="ads-live-preview-inner" id="adPreviewFrame" data-source-width="{{ $size['w'] }}" data-source-height="{{ $size['h'] }}" style="width:{{ $size['w'] }}px;height:{{ $size['h'] }}px;min-width:{{ $size['w'] }}px;min-height:{{ $size['h'] }}px;box-shadow:0 4px 16px rgba(15,23,42,.18);">
-                        <div id="adPreview" class="ads-mini-preview-inner" style="position:relative;overflow:hidden;background:#f7f7f7;width:{{ $size['w'] }}px;height:{{ $size['h'] }}px;"></div>
+                    <div class="ad-preview-frame" id="adPreviewFrame" data-source-width="{{ $size['w'] }}" data-source-height="{{ $size['h'] }}" style="width:{{ $size['w'] }}px;height:{{ $size['h'] }}px;min-width:{{ $size['w'] }}px;min-height:{{ $size['h'] }}px;box-shadow:0 4px 16px rgba(15,23,42,.18);position:relative;display:block;overflow:hidden;">
+                        <div id="adPreview" class="ad-preview-canvas" style="position:relative;overflow:hidden;background:#f7f7f7;width:{{ $size['w'] }}px;height:{{ $size['h'] }}px;"></div>
                     </div>
                 </div>
             </div>
