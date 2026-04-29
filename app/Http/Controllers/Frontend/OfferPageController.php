@@ -22,7 +22,7 @@ class OfferPageController extends Controller
 
         $frontPageAds = UserAd::query()
             ->where('status', 'approved')
-            ->whereIn('size_type', ['top_categories_ad_1', 'top_categories_ad_2', 'sponsored_listings_ad', 'below_sponsored_ad', 'ecommerce_ad', 'offer_discount_ad_1', 'offer_discount_ad_2', 'explore_products_ad', 'top_vendors_ad_1', 'top_vendors_ad_2', 'popular_greenwood_ad', 'below_popular_ad', 'builders_developers_ad'])
+            ->whereIn('size_type', ['top_categories_ad_1', 'top_categories_ad_2', 'sponsored_listings_ad', 'below_sponsored_ad', 'ecommerce_ad', 'offer_discount_ad_1', 'offer_discount_ad_2', 'explore_products_ad', 'top_vendors_ad_1', 'top_vendors_ad_2', 'popular_greenwood_ad', 'popular_properties_ad', 'below_popular_ad', 'builders_developers_ad'])
             ->whereNotNull('final_image')
             ->latest('reviewed_at')
             ->latest('id')
@@ -52,6 +52,7 @@ class OfferPageController extends Controller
             'topVendorsHeaderAds' => $frontPageAds->where('size_type', 'top_vendors_ad_1')->values(),
             'topVendorsSideAds' => $frontPageAds->where('size_type', 'top_vendors_ad_2')->values(),
             'popularGreenwoodAds' => $frontPageAds->where('size_type', 'popular_greenwood_ad')->values(),
+            'popularPropertiesAds' => $frontPageAds->where('size_type', 'popular_properties_ad')->values(),
             'belowPopularAds' => $frontPageAds->where('size_type', 'below_popular_ad')->values(),
             'buildersDevelopersAds' => $frontPageAds->where('size_type', 'builders_developers_ad')->values(),
         ]);

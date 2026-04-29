@@ -912,9 +912,9 @@
           </div>
         </div>
         <aside class="popular-feature-ad ad-slider auto-ad-slider popular-feature-ad-slider" data-show-arrows="true" aria-label="Popular properties featured ad slider">
-          @forelse(($popularGreenwoodAds ?? collect()) as $ad)
-            <div class="side-card ad-slide" aria-label="{{ $ad->title }}">
-              <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+          @forelse(($popularPropertiesAds ?? collect()) as $ad)
+            <div class="side-card ad-slide popular-properties-image-card" aria-label="{{ $ad->title }}">
+              <img class="side-card-img popular-properties-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
             </div>
           @empty
             <div class="side-card ad-slide">
