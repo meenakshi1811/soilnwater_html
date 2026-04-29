@@ -262,7 +262,7 @@
                   </div>
                 @empty
                   <div class="side-card ad-slide sponsored-listings-ad-card">
-                    <img class="side-card-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=70" alt="Sponsored listing ad">
+                    <img class="side-card-img" src="{{ asset('assets/images/ad-sample.png') }}" alt="Sponsored listing ad">
                     <div class="side-card-body">
                       <h3>Sponsored Listing Ad</h3>
                       <p>Approved admin ads for size 296×624 will appear here.</p>
