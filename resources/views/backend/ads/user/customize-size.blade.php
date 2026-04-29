@@ -29,7 +29,7 @@
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = (float) ($category->ads_price ?? 0) @endphp
-                            <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }} ({{ $categoryPrice > 0 ? 'Paid' : 'Free' }})</option>
                         @endforeach
                     </select>
                 </div>
@@ -202,7 +202,7 @@
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ route('ads.create.size') }}" class="btn btn-light px-4">Back</a>
-                <button type="submit" class="btn btn-primary px-5">Save Ad</button>
+                <button type="submit" id="adSubmitButton" class="btn btn-primary px-5">Save Ad</button>
             </div>
         </form>
     </div>
@@ -232,6 +232,7 @@
         const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
         const categorySelect = document.getElementById('categorySelect');
         const subcategorySelect = document.getElementById('subcategorySelect');
+        const submitButton = document.getElementById('adSubmitButton');
         const adBgColorInput = document.getElementById('adBgColorInput');
         const adBgImageInput = document.getElementById('adBgImageInput');
         const clearAdBgBtn = document.getElementById('clearAdBgBtn');
@@ -315,6 +316,19 @@
             error.className = 'invalid-feedback d-block js-inline-error';
             error.textContent = message;
             field.insertAdjacentElement('afterend', error);
+        }
+
+
+        function getSelectedPrice() {
+            const categoryPrice = Number(categorySelect?.selectedOptions?.[0]?.dataset?.adsPrice || 0);
+            const subcategoryPrice = Number(subcategorySelect?.selectedOptions?.[0]?.dataset?.adsPrice || 0);
+            return subcategoryPrice > 0 ? subcategoryPrice : categoryPrice;
+        }
+
+        function updateSubmitButtonState() {
+            if (!submitButton) return;
+            const selectedPrice = getSelectedPrice();
+            submitButton.textContent = selectedPrice > 0 ? 'Process Payment' : 'Save Ad';
         }
 
         function setMode(mode) {
@@ -798,7 +812,9 @@
 
                 const redirectUrl = payload?.redirect_url || form.dataset.redirectUrl || '';
                 if (redirectUrl) {
-                    window.location.assign(redirectUrl);
+                    setTimeout(() => {
+                        window.location.assign(redirectUrl);
+                    }, 1200);
                     return;
                 }
 
@@ -818,12 +834,22 @@
             const response = await fetch(`${base}/${categoryId}/subcategories`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             const data = await response.json();
             const options = ['<option value="">— Select subcategory —</option>'];
-            (Array.isArray(data) ? data : []).forEach((item) => options.push(`<option value=\"${item.id}\">${item.name}</option>`));
+            (Array.isArray(data) ? data : []).forEach((item) => {
+                const adsPrice = Number(item.ads_price || 0);
+                const priceLabel = adsPrice > 0 ? 'Paid' : 'Free';
+                options.push(`<option value=\"${item.id}\" data-ads-price=\"${adsPrice.toFixed(2)}\">${item.name} (${priceLabel})</option>`);
+            });
             subcategorySelect.innerHTML = options.join('');
             subcategorySelect.disabled = false;
+            updateSubmitButtonState();
         }
 
-        categorySelect?.addEventListener('change', function () { loadSubcategories(this.value); });
+        categorySelect?.addEventListener('change', function () {
+            loadSubcategories(this.value);
+            updateSubmitButtonState();
+        });
+        subcategorySelect?.addEventListener('change', updateSubmitButtonState);
+        updateSubmitButtonState();
 
         window.initAdLocationAutocomplete = function () {
             const locationInput = document.getElementById('adLocation');
