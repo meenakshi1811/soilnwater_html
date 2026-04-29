@@ -402,33 +402,39 @@
               </div>
               <div class="col-12 col-lg-3 col-12 col-lg-3 mt-4">
                 <div class="festival-ad-slider ad-slider auto-ad-slider h-100" aria-label="Festival Campaign Deals slider">
-                  <div class="card h-100 ecommerce-ad-bs-card ad-slide">
-                    <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=85" class="card-img-top" alt="Festival Campaign Deals vegetables">
-                    <div class="card-body">
-                      <p class="card-title">Festival Campaign Deals</p>
-                      <div class="prod-price">High-Intent Buyers</div>
-                      <div class="prod-badge">Sponsored</div>
-                      <button class="btn-learn">View Offer</button>
+                  @forelse(($ecommerceSideSliderAds ?? collect()) as $ad)
+                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
+                      <img src="{{ asset($ad->final_image) }}" class="card-img-top" alt="{{ $ad->title }}">
                     </div>
-                  </div>
-                  <div class="card h-100 ecommerce-ad-bs-card ad-slide">
-                    <img src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=900&q=85" class="card-img-top" alt="Festive ad showcase fruits">
-                    <div class="card-body">
-                      <p class="card-title">Festive Spotlight</p>
-                      <div class="prod-price">Run Local Promotions</div>
-                      <div class="prod-badge">Sponsored</div>
-                      <button class="btn-learn">Book Campaign</button>
+                  @empty
+                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
+                      <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=85" class="card-img-top" alt="Festival Campaign Deals vegetables">
+                      <div class="card-body">
+                        <p class="card-title">Festival Campaign Deals</p>
+                        <div class="prod-price">High-Intent Buyers</div>
+                        <div class="prod-badge">Sponsored</div>
+                        <button class="btn-learn">View Offer</button>
+                      </div>
                     </div>
-                  </div>
-                  <div class="card h-100 ecommerce-ad-bs-card ad-slide">
-                    <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&q=85" class="card-img-top" alt="Seasonal produce campaign">
-                    <div class="card-body">
-                      <p class="card-title">Seasonal Deal Ads</p>
-                      <div class="prod-price">Boost Daily Leads</div>
-                      <div class="prod-badge">Sponsored</div>
-                      <button class="btn-learn">Start Now</button>
+                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
+                      <img src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=900&q=85" class="card-img-top" alt="Festive ad showcase fruits">
+                      <div class="card-body">
+                        <p class="card-title">Festive Spotlight</p>
+                        <div class="prod-price">Run Local Promotions</div>
+                        <div class="prod-badge">Sponsored</div>
+                        <button class="btn-learn">Book Campaign</button>
+                      </div>
                     </div>
-                  </div>
+                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
+                      <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&q=85" class="card-img-top" alt="Seasonal produce campaign">
+                      <div class="card-body">
+                        <p class="card-title">Seasonal Deal Ads</p>
+                        <div class="prod-price">Boost Daily Leads</div>
+                        <div class="prod-badge">Sponsored</div>
+                        <button class="btn-learn">Start Now</button>
+                      </div>
+                    </div>
+                  @endforelse
                 </div>
               </div>
             </div>

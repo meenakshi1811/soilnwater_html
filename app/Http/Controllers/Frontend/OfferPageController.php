@@ -22,7 +22,7 @@ class OfferPageController extends Controller
 
         $frontPageAds = UserAd::query()
             ->where('status', 'approved')
-            ->whereIn('size_type', ['top_categories_ad_1', 'top_categories_ad_2', 'sponsored_listings_ad', 'below_sponsored_ad'])
+            ->whereIn('size_type', ['top_categories_ad_1', 'top_categories_ad_2', 'sponsored_listings_ad', 'below_sponsored_ad', 'ecommerce_ad'])
             ->whereNotNull('final_image')
             ->latest('reviewed_at')
             ->latest('id')
@@ -34,6 +34,7 @@ class OfferPageController extends Controller
             'topSidebarSliderAds' => $frontPageAds->where('size_type', 'top_categories_ad_2')->values(),
             'sponsoredListingsAds' => $frontPageAds->where('size_type', 'sponsored_listings_ad')->values(),
             'belowSponsoredSliderAds' => $frontPageAds->where('size_type', 'below_sponsored_ad')->values(),
+            'ecommerceSideSliderAds' => $frontPageAds->where('size_type', 'ecommerce_ad')->values(),
         ]);
     }
 
