@@ -457,7 +457,6 @@
                 <article class="prod-card recent-ad-card">
                   <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}">
                   <div class="prod-card-body">
-                    <span class="recent-ad-badge">Approved</span>
                     <p>{{ $recentAd->title }}</p>
                     <span class="recent-ad-meta">
                       <i class="fa-solid fa-layer-group"></i>
@@ -475,7 +474,6 @@
               <article class="prod-card recent-ad-card">
                 <img src="{{ asset('assets/images/ad-sample.png') }}" alt="Recent approved ad placeholder">
                 <div class="prod-card-body">
-                  <span class="recent-ad-badge">Approved</span>
                   <p>No approved ads available yet</p>
                   <span class="recent-ad-meta"><i class="fa-solid fa-circle-info"></i> New approved ads will appear here.</span>
                   <button class="btn btn-sm" type="button">View Ad</button>

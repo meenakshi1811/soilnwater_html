@@ -31,6 +31,7 @@ class OfferPageController extends Controller
         $recentApprovedAds = UserAd::query()
             ->with(['category:id,name'])
             ->where('status', 'approved')
+            ->whereHas('user', fn (Builder $query) => $query->where('role', 'user'))
             ->whereNotNull('final_image')
             ->latest('created_at')
             ->latest('id')
