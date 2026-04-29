@@ -1748,6 +1748,9 @@
   .sponsored-grid {
     grid-template-columns: 1fr;
   }
+  .sponsored-listings-ad-col {
+    grid-row: auto;
+  }
 }
 
 @media (min-width: 1200px) {
