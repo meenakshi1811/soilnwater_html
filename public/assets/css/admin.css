@@ -808,10 +808,32 @@
 }
 
 .customize-panel-grid > [class*="col-"] {
+    padding: 0;
+}
+
+.customize-panel-grid {
     background: #ffffff;
-    border: 1px solid #e7ebf2;
-    border-radius: 10px;
-    padding: 10px;
+    border: 1px solid #e6ebf3;
+    border-radius: 14px;
+    padding: 16px;
+    margin: 0;
+}
+
+.customize-panel-grid .form-label {
+    font-size: .86rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.customize-panel-grid .form-control,
+.customize-panel-grid .form-select,
+.customize-panel-grid .btn {
+    min-height: 42px;
+}
+
+.customize-panel-grid .text-secondary {
+    font-size: .78rem;
 }
 
 
