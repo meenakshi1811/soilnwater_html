@@ -20,11 +20,11 @@
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Ad Title <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold required-label">Ad Title <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <input type="text" name="title" value="{{ old('title') }}" class="form-control" maxlength="140" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="categorySelect" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                    <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <select name="category_id" id="categorySelect" class="form-select" required>
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
@@ -34,21 +34,21 @@
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label for="subcategorySelect" class="form-label fw-semibold">Sub Category <span class="text-danger">*</span></label>
+                    <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <select name="subcategory_id" id="subcategorySelect" class="form-select" disabled required>
                         <option value="">— Select a category first —</option>
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Location <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <input type="text" name="location" id="adLocation" class="form-control" value="{{ old('location') }}" required>
                     <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat') }}">
                     <input type="hidden" name="location_lng" id="adLocationLng" value="{{ old('location_lng') }}">
                 </div>
             </div>
 
-            <label class="form-label fw-semibold">
-                Ad Image <span class="text-danger">*</span>
+            <label class="form-label fw-semibold required-label">
+                Ad Image <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i>
             </label>
             <p class="text-secondary mb-3" style="font-size:0.9rem;">
                 Add your own ad image or customize the final creative with full designer controls, similar to Post Offer.

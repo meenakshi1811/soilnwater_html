@@ -815,7 +815,7 @@
     background: #ffffff;
     border: 1px solid #e6ebf3;
     border-radius: 14px;
-    padding: 16px;
+    padding: 20px;
     margin: 0;
 }
 
@@ -823,17 +823,31 @@
     font-size: .86rem;
     font-weight: 600;
     color: #334155;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .customize-panel-grid .form-control,
 .customize-panel-grid .form-select,
 .customize-panel-grid .btn {
-    min-height: 42px;
+    min-height: 44px;
 }
 
 .customize-panel-grid .text-secondary {
     font-size: .78rem;
+}
+
+.customize-panel-grid .col-md-6,
+.customize-panel-grid .col-md-4,
+.customize-panel-grid .col-md-3,
+.customize-panel-grid .col-md-2 {
+    margin-bottom: 4px;
+}
+
+.required-label .required-icon {
+    color: #dc3545;
+    font-size: .55rem;
+    vertical-align: super;
+    margin-left: 3px;
 }
 
 
