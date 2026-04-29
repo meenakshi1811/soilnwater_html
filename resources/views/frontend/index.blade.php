@@ -294,23 +294,20 @@
           @endforelse
         </div>
 
-        <div class="ad-slider auto-ad-slider dream-home-side-slider">
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=500&q=70" alt="Build your dream home">
-            <div class="side-card-body">
-              <h3>Build Your Dream Home</h3>
-              <p>Find trusted builders &amp; developers near you</p>
-              <button class="btn-learn">Learn More</button>
+        <div class="ad-slider auto-ad-slider dream-home-side-slider sponsored-listings-ad-slider" data-show-arrows="true" data-pause-on-hover="false">
+          @forelse(($sponsoredListingsAds ?? collect()) as $ad)
+            <div class="side-card ad-slide sponsored-listings-ad-card" aria-label="{{ $ad->title }}">
+              <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
             </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=500&q=70" alt="Home design and construction experts">
-            <div class="side-card-body">
-              <h3>Build Your Dream Home</h3>
-              <p>Compare home design packages and start your construction journey.</p>
-              <button class="btn-learn">Explore Builders</button>
+          @empty
+            <div class="side-card ad-slide sponsored-listings-ad-card">
+              <img class="side-card-img" src="{{ asset('assets/images/ad-sample.png') }}" alt="Sponsored listing ad">
+              <div class="side-card-body">
+                <h3>Sponsored Listing Ad</h3>
+                <p>Approved admin ads for size 296×624 will appear here.</p>
+              </div>
             </div>
-          </div>
+          @endforelse
         </div>
       </aside>
       </div>

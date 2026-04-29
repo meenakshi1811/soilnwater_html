@@ -292,7 +292,6 @@
     display: flex;
   }
   .sponsored-grid .sp-card { width: 100%; }
-  .sponsored-grid-with-ad { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .sponsored-grid {
     --bs-gutter-x: 12px;
   }
@@ -338,9 +337,6 @@
   }
   .sp-badge { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
   .sp-badge::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); }
-  .sponsored-listings-ad-col {
-    grid-row: span 2;
-  }
   .sponsored-listings-ad-slider {
     width: 100%;
     height: 100%;
