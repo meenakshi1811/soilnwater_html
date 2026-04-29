@@ -441,7 +441,7 @@ class UserAdController extends Controller
                 ->save($absolutePath);
         } catch (\Throwable) {
             file_put_contents($absolutePath, $decoded);
-            $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
+            $this->forceResizeWithGd($absolutePath, $absolutePath, $targetWidth, $targetHeight, 'png');
         }
 
         return $relativeDirectory . '/' . $fileName;
@@ -524,11 +524,74 @@ class UserAdController extends Controller
                 default => $image->toPng()->save($absolutePath),
             };
         } catch (\Throwable) {
-            $file->move($absoluteDirectory, $fileName);
+            $movedFile = $file->move($absoluteDirectory, $fileName);
+            $this->forceResizeWithGd($movedFile->getPathname(), $absolutePath, $targetWidth, $targetHeight, $safeExtension);
         }
 
         return $relativeDirectory.'/'.$fileName;
     }
+
+    private function forceResizeWithGd(string $sourcePath, string $destinationPath, int $targetWidth, int $targetHeight, string $extension): void
+    {
+        if ($targetWidth <= 0 || $targetHeight <= 0 || !is_file($sourcePath)) {
+            return;
+        }
+
+        $imageData = @file_get_contents($sourcePath);
+        if ($imageData === false) {
+            return;
+        }
+
+        $source = @imagecreatefromstring($imageData);
+        if ($source === false) {
+            return;
+        }
+
+        $srcWidth = imagesx($source);
+        $srcHeight = imagesy($source);
+
+        if ($srcWidth <= 0 || $srcHeight <= 0) {
+            imagedestroy($source);
+            return;
+        }
+
+        $scale = max($targetWidth / $srcWidth, $targetHeight / $srcHeight);
+        $resizedWidth = (int) ceil($srcWidth * $scale);
+        $resizedHeight = (int) ceil($srcHeight * $scale);
+
+        $resized = imagecreatetruecolor($resizedWidth, $resizedHeight);
+        imagealphablending($resized, false);
+        imagesavealpha($resized, true);
+        $transparent = imagecolorallocatealpha($resized, 0, 0, 0, 127);
+        imagefill($resized, 0, 0, $transparent);
+
+        imagecopyresampled($resized, $source, 0, 0, 0, 0, $resizedWidth, $resizedHeight, $srcWidth, $srcHeight);
+
+        $cropX = max(0, (int) floor(($resizedWidth - $targetWidth) / 2));
+        $cropY = max(0, (int) floor(($resizedHeight - $targetHeight) / 2));
+
+        $final = imagecreatetruecolor($targetWidth, $targetHeight);
+        imagealphablending($final, false);
+        imagesavealpha($final, true);
+        $transparentFinal = imagecolorallocatealpha($final, 0, 0, 0, 127);
+        imagefill($final, 0, 0, $transparentFinal);
+
+        imagecopy($final, $resized, 0, 0, $cropX, $cropY, $targetWidth, $targetHeight);
+
+        $extension = strtolower($extension);
+        if (in_array($extension, ['jpg', 'jpeg'], true)) {
+            imagejpeg($final, $destinationPath, 100);
+        } elseif ($extension === 'webp' && function_exists('imagewebp')) {
+            imagewebp($final, $destinationPath, 100);
+        } else {
+            imagepng($final, $destinationPath);
+        }
+
+        imagedestroy($final);
+        imagedestroy($resized);
+        imagedestroy($source);
+    }
+
 
     private function canUserAccessSize($user, string $sizeType): bool
     {
