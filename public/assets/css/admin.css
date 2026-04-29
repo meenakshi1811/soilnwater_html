@@ -808,7 +808,8 @@
 }
 
 .customize-panel-grid > [class*="col-"] {
-    padding: 0;
+    padding-left: 8px;
+    padding-right: 8px;
 }
 
 .customize-panel-grid {
@@ -817,6 +818,12 @@
     border-radius: 14px;
     padding: 20px;
     margin: 0;
+}
+
+.customize-panel-grid > [class*="col-"] .form-control,
+.customize-panel-grid > [class*="col-"] .form-select,
+.customize-panel-grid > [class*="col-"] .btn {
+    border-radius: 10px;
 }
 
 .customize-panel-grid .form-label {
