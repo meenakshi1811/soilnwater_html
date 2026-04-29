@@ -12,6 +12,7 @@
 
     #myOffersTable {
         width: 100% !important;
+        table-layout: fixed;
     }
 
     #myOffersTable th {
@@ -20,7 +21,8 @@
     }
 
     #myOffersTable td {
-        white-space: nowrap;
+        white-space: normal;
+        word-break: break-word;
         vertical-align: middle;
     }
 
@@ -32,6 +34,7 @@
 
     #myOffersTable td:last-child {
         white-space: nowrap;
+        width: 1%;
     }
 </style>
 @endpush
