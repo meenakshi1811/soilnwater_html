@@ -93,9 +93,9 @@
                     <h6 class="mb-1">Customize Ad Studio</h6>
                     <p class="mb-0">Build your ad with layered text and images. Tip: drag layers to reposition, and double-click text to edit.</p>
                 </div>
-                <div class="row g-4 g-lg-5 customize-panel-grid">
+                <div class="row g-3 customize-panel-grid">
                     <div class="col-12">
-                        <div class="small text-uppercase fw-semibold text-secondary border-bottom pb-2 mb-1">Background & Layers</div>
+                        <div class="small text-uppercase fw-semibold text-secondary border-bottom pb-1 mb-0">Background & Layers</div>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Background Color</label>
@@ -107,7 +107,7 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Clear Background</label>
-                        <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="clearAdBgBtn">Remove BG Image</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 text-nowrap" id="clearAdBgBtn">Remove BG Image</button>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Add Text Block</label>
