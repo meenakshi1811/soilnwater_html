@@ -105,7 +105,7 @@
                         <label class="form-label">Background Image (optional)</label>
                         <input type="file" id="adBgImageInput" class="form-control" accept="image/png,image/jpeg,image/webp">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Clear Background</label>
                         <button type="button" class="btn btn-outline-secondary w-100 text-nowrap px-3" id="clearAdBgBtn">Remove BG Image</button>
                     </div>
