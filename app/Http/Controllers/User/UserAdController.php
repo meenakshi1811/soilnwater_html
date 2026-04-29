@@ -16,8 +16,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Intervention\Image\Drivers\Gd\Driver;
-
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\ImageManager;
 use Yajra\DataTables\Facades\DataTables;
 use Intervention\Image\Laravel\Facades\Image;
@@ -434,11 +433,16 @@ class UserAdController extends Controller
         $fileName = 'ad-' . Str::uuid() . '.png';
         $absolutePath = $absoluteDirectory . '/' . $fileName;
 
-        $manager = new ImageManager(new Driver());
+        try {
+            $manager = new ImageManager(new GdDriver());
 
-        $manager->read($decoded)
-            ->cover($targetWidth, $targetHeight) // crop + resize (no stretch)
-            ->save($absolutePath);
+            $this->readImage($manager, $decoded)
+                ->cover($targetWidth, $targetHeight) // crop + resize (no stretch)
+                ->save($absolutePath);
+        } catch (\Throwable) {
+            file_put_contents($absolutePath, $decoded);
+            $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
+        }
 
         return $relativeDirectory . '/' . $fileName;
     }
@@ -451,7 +455,7 @@ class UserAdController extends Controller
 
         try {
             $manager = new ImageManager(new GdDriver());
-            $image = $manager->read($absolutePath);
+            $image = $this->readImage($manager, $absolutePath);
 
             if ($image->width() === $targetWidth && $image->height() === $targetHeight) {
                 return;
@@ -472,6 +476,20 @@ class UserAdController extends Controller
         }
     }
 
+    private function readImage(ImageManager $manager, mixed $source): mixed
+    {
+        if (method_exists($manager, 'read')) {
+            return $manager->read($source);
+        }
+
+        if (method_exists($manager, 'make')) {
+            return $manager->make($source);
+        }
+
+        throw new \RuntimeException('Unable to read image with current Intervention configuration.');
+    }
+
+
     private function storeAndResizeUploadedAsset(UploadedFile $file, string $key, int $targetWidth, int $targetHeight): string
     { 
         $relativeDirectory = 'uploads/ads/assets';
@@ -485,25 +503,29 @@ class UserAdController extends Controller
         $fileName = $key.'-'.Str::uuid().'.'.$safeExtension;
         $absolutePath = $absoluteDirectory.'/'.$fileName;
 
-        $manager = new ImageManager(new GdDriver());
-        $image = $manager->read($file->getRealPath());
+        try {
+            $manager = new ImageManager(new GdDriver());
+            $image = $this->readImage($manager, $file->getRealPath());
 
-        if ($targetWidth > 0 && $targetHeight > 0) {
-            if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
-                $image->cover($targetWidth, $targetHeight);
-            } else {
-                $image->scaleDown($targetWidth, $targetHeight);
-                $canvas = $manager->create($targetWidth, $targetHeight)->fill('ffffff');
-                $canvas->place($image, 'center');
-                $image = $canvas;
+            if ($targetWidth > 0 && $targetHeight > 0) {
+                if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
+                    $image->cover($targetWidth, $targetHeight);
+                } else {
+                    $image->scaleDown($targetWidth, $targetHeight);
+                    $canvas = $manager->create($targetWidth, $targetHeight)->fill('ffffff');
+                    $canvas->place($image, 'center');
+                    $image = $canvas;
+                }
             }
-        }
 
-        match ($safeExtension) {
-            'jpg', 'jpeg' => $image->toJpeg(100)->save($absolutePath),
-            'webp' => $image->toWebp(100)->save($absolutePath),
-            default => $image->toPng()->save($absolutePath),
-        };
+            match ($safeExtension) {
+                'jpg', 'jpeg' => $image->toJpeg(100)->save($absolutePath),
+                'webp' => $image->toWebp(100)->save($absolutePath),
+                default => $image->toPng()->save($absolutePath),
+            };
+        } catch (\Throwable) {
+            $file->move($absoluteDirectory, $fileName);
+        }
 
         return $relativeDirectory.'/'.$fileName;
     }
