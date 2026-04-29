@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\UserAd;
 use App\Support\AdSizes;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -161,23 +162,18 @@ class UserAdController extends Controller
         );
     }
 
-    public function store(Request $request, string $sizeType, AdTemplate $template): RedirectResponse|JsonResponse
+    public function store(Request $request, string $sizeType): RedirectResponse|JsonResponse
     {
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize($request->user(), $sizeType), 404);
 
-        // New create flow may occasionally post with an unrelated template id.
-        // In that case, gracefully resolve to an active template for the selected size.
-        if ($template->size_type !== $sizeType || ! $template->is_active) {
-            $fallbackTemplate = AdTemplate::query()
-                ->where('size_type', $sizeType)
-                ->where('is_active', true)
-                ->latest()
-                ->first();
+        $template = AdTemplate::query()
+            ->where('size_type', $sizeType)
+            ->where('is_active', true)
+            ->latest()
+            ->first();
 
-            abort_if(! $fallbackTemplate, 404, 'No active template found for this size.');
-            $template = $fallbackTemplate;
-        }
+        abort_if(! $template, 404, 'No active template found for this size.');
 
         $schema = is_array($template->schema_json) ? $template->schema_json : [];
         $fieldRules = [];
@@ -273,24 +269,25 @@ class UserAdController extends Controller
 
         $user = $request->user();
 
-        $ad = DB::transaction(function () use ($request, $template, $sizeType, $validated, $fields, $imageKeys, $user) {
+        $size = AdSizes::all()[$sizeType] ?? null;
+        $targetWidth = (int) ($size['w'] ?? 0);
+        $targetHeight = (int) ($size['h'] ?? 0);
+
+        $ad = DB::transaction(function () use ($request, $template, $sizeType, $validated, $fields, $imageKeys, $user, $targetWidth, $targetHeight) {
+            $firstUploadedImagePath = null;
+
             foreach ($imageKeys as $key) {
                 if (!$request->hasFile($key)) {
                     continue;
                 }
 
                 $file = $request->file($key);
-                $ext = $file->getClientOriginalExtension() ?: $file->extension();
-                $fileName = $key.'-'.Str::uuid().'.'.$ext;
-                $relativeDirectory = 'uploads/ads/assets';
-                $absoluteDirectory = public_path($relativeDirectory);
+                $storedPath = $this->storeAndResizeUploadedAsset($file, $key, $targetWidth, $targetHeight);
+                $fields[$key] = $storedPath;
 
-                if (!is_dir($absoluteDirectory)) {
-                    mkdir($absoluteDirectory, 0755, true);
+                if ($firstUploadedImagePath === null) {
+                    $firstUploadedImagePath = $storedPath;
                 }
-
-                $file->move($absoluteDirectory, $fileName);
-                $fields[$key] = $relativeDirectory.'/'.$fileName;
             }
 
             $layoutHtml = trim((string) ($validated['custom_html'] ?? '')) !== ''
@@ -299,14 +296,12 @@ class UserAdController extends Controller
 
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
-            $size = AdSizes::all()[$sizeType] ?? null;
-            $targetWidth = (int) ($size['w'] ?? 0);
-            $targetHeight = (int) ($size['h'] ?? 0);
-            $finalImagePath = $this->storeGeneratedAdImage(
-                $validated['generated_image_data'] ?? '',
-                $targetWidth,
-                $targetHeight,
-            ); 
+            $finalImagePath = $firstUploadedImagePath
+                ?? $this->storeGeneratedAdImage(
+                    $validated['generated_image_data'] ?? '',
+                    $targetWidth,
+                    $targetHeight,
+                );
 
             return UserAd::create([
                 'user_id' => $user->id,
@@ -449,22 +444,62 @@ class UserAdController extends Controller
         }
 
         try {
-            $imageInfo = @getimagesize($absolutePath);
-            if (is_array($imageInfo)) {
-                $currentWidth = (int) ($imageInfo[0] ?? 0);
-                $currentHeight = (int) ($imageInfo[1] ?? 0);
-                if ($currentWidth > $targetWidth || $currentHeight > $targetHeight) {
-                    return;
-                }
-            }
-
             $manager = new ImageManager(new GdDriver());
             $image = $manager->read($absolutePath);
-            $image->cover($targetWidth, $targetHeight);
+
+            if ($image->width() === $targetWidth && $image->height() === $targetHeight) {
+                return;
+            }
+
+            if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
+                $image->cover($targetWidth, $targetHeight);
+            } else {
+                $image->scaleDown($targetWidth, $targetHeight);
+                $canvas = $manager->create($targetWidth, $targetHeight)->fill('ffffff');
+                $canvas->place($image, 'center');
+                $image = $canvas;
+            }
+
             $image->toPng()->save($absolutePath);
         } catch (\Throwable) {
             // Keep original generated image if Intervention processing fails.
         }
+    }
+
+    private function storeAndResizeUploadedAsset(UploadedFile $file, string $key, int $targetWidth, int $targetHeight): string
+    {
+        $relativeDirectory = 'uploads/ads/assets';
+        $absoluteDirectory = public_path($relativeDirectory);
+        if (!is_dir($absoluteDirectory)) {
+            mkdir($absoluteDirectory, 0755, true);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'png');
+        $safeExtension = in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true) ? $extension : 'png';
+        $fileName = $key.'-'.Str::uuid().'.'.$safeExtension;
+        $absolutePath = $absoluteDirectory.'/'.$fileName;
+
+        $manager = new ImageManager(new GdDriver());
+        $image = $manager->read($file->getRealPath());
+
+        if ($targetWidth > 0 && $targetHeight > 0) {
+            if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
+                $image->cover($targetWidth, $targetHeight);
+            } else {
+                $image->scaleDown($targetWidth, $targetHeight);
+                $canvas = $manager->create($targetWidth, $targetHeight)->fill('ffffff');
+                $canvas->place($image, 'center');
+                $image = $canvas;
+            }
+        }
+
+        match ($safeExtension) {
+            'jpg', 'jpeg' => $image->toJpeg(100)->save($absolutePath),
+            'webp' => $image->toWebp(100)->save($absolutePath),
+            default => $image->toPng()->save($absolutePath),
+        };
+
+        return $relativeDirectory.'/'.$fileName;
     }
 
     private function canUserAccessSize($user, string $sizeType): bool
