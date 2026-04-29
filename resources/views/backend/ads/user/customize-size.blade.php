@@ -97,25 +97,25 @@
                     <div class="col-12">
                         <div class="small text-uppercase fw-semibold text-secondary border-bottom pb-2 mb-1">Background & Layers</div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Background Color</label>
                         <input type="color" id="adBgColorInput" class="form-control form-control-color w-100" value="#f7f7f7">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label">Background Image (optional)</label>
                         <input type="file" id="adBgImageInput" class="form-control" accept="image/png,image/jpeg,image/webp">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Clear Background</label>
-                        <button type="button" class="btn btn-outline-secondary w-100" id="clearAdBgBtn">Remove BG Image</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="clearAdBgBtn">Remove BG Image</button>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Add Text Block</label>
-                        <button type="button" class="btn btn-outline-primary w-100" id="addTextBtn">+ Add Text</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100" id="addTextBtn">+ Add Text</button>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Add Images</label>
-                        <input type="file" id="customImageInput" class="form-control" accept="image/png,image/jpeg,image/webp" multiple>
+                        <input type="file" id="customImageInput" class="form-control ps-3" accept="image/png,image/jpeg,image/webp" multiple>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Remove Selected</label>
@@ -123,7 +123,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Layer Text</label>
-                        <textarea id="layerTextInput" class="form-control" rows="2" maxlength="120" placeholder="Edit selected text block"></textarea>
+                        <textarea id="layerTextInput" class="form-control ps-3" rows="2" maxlength="120" placeholder="Edit selected text block"></textarea>
                         <small class="text-secondary d-inline-block mt-1"><span id="layerTextCharCount">0</span>/120</small>
                     </div>
                     <div class="col-12">
@@ -131,7 +131,7 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Font Size</label>
-                        <input type="number" id="layerFontSizeInput" class="form-control" min="10" max="180" value="30">
+                        <input type="number" id="layerFontSizeInput" class="form-control ps-3" min="10" max="180" value="30">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label d-block">Text Style</label>
@@ -146,7 +146,7 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Alignment</label>
-                        <select id="layerTextAlignInput" class="form-select">
+                        <select id="layerTextAlignInput" class="form-select ps-3">
                             <option value="left">Left</option>
                             <option value="center">Center</option>
                             <option value="right">Right</option>
@@ -154,7 +154,7 @@
                     </div>
                     <div class="col-md-4 col-lg-3">
                         <label class="form-label">Font Family</label>
-                        <select id="layerFontFamilyInput" class="form-select">
+                        <select id="layerFontFamilyInput" class="form-select ps-3">
                             <option value="Arial">Arial</option>
                             <option value="Verdana">Verdana</option>
                             <option value="Tahoma">Tahoma</option>
@@ -169,11 +169,11 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Image Width</label>
-                        <input type="number" id="layerImageWidthInput" class="form-control" min="20" max="2000" value="220" disabled>
+                        <input type="number" id="layerImageWidthInput" class="form-control ps-3" min="20" max="2000" value="220" disabled>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Image Height</label>
-                        <input type="number" id="layerImageHeightInput" class="form-control" min="20" max="2000" value="220" disabled>
+                        <input type="number" id="layerImageHeightInput" class="form-control ps-3" min="20" max="2000" value="220" disabled>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Quick Scale</label>
