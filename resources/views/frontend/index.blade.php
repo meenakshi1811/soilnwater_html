@@ -403,8 +403,8 @@
               <div class="col-12 col-lg-3 col-12 col-lg-3 mt-4">
                 <div class="festival-ad-slider ad-slider auto-ad-slider h-100" aria-label="Festival Campaign Deals slider">
                   @forelse(($ecommerceSideSliderAds ?? collect()) as $ad)
-                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
-                      <img src="{{ asset($ad->final_image) }}" class="card-img-top" alt="{{ $ad->title }}">
+                    <div class="card h-100 ecommerce-ad-bs-card ecommerce-ad-image-card ad-slide">
+                      <img src="{{ asset($ad->final_image) }}" class="card-img-top ecommerce-ad-full-img" alt="{{ $ad->title }}">
                     </div>
                   @empty
                     <div class="card h-100 ecommerce-ad-bs-card ad-slide">
