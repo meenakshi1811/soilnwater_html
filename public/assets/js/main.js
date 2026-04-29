@@ -236,10 +236,7 @@
 
     const resolvedSlotHeights = adSlots.map((slot, index) => {
       const matchedSectionHeight = sectionHeights[index] || sectionHeights[sectionHeights.length - 1];
-      const slotContentHeight = Array.from(slot.querySelectorAll('.ad-slide')).reduce((maxHeight, slide) => {
-        return Math.max(maxHeight, Math.ceil(slide.scrollHeight));
-      }, 0);
-      return Math.max(matchedSectionHeight, slotContentHeight);
+      return matchedSectionHeight;
     });
 
     const totalSidebarHeight = resolvedSlotHeights.reduce((sum, height) => sum + height, 0) + (gap * Math.max(0, adSlots.length - 1));
