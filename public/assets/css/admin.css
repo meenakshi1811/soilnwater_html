@@ -790,6 +790,66 @@
     background: rgba(47, 125, 225, 0.08) !important;
 }
 
+.customize-panel-header {
+    background: linear-gradient(135deg, #f8fbff 0%, #f2f6fd 100%);
+    border: 1px solid #d9e6fb;
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+
+.customize-panel-header h6 {
+    color: #0f2f63;
+    font-weight: 700;
+}
+
+.customize-panel-header p {
+    color: #557198;
+    font-size: .9rem;
+}
+
+.customize-panel-grid > [class*="col-"] {
+    padding: 0;
+}
+
+.customize-panel-grid {
+    background: #ffffff;
+    border: 1px solid #e6ebf3;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 0;
+}
+
+.customize-panel-grid .form-label {
+    font-size: .86rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+}
+
+.customize-panel-grid .form-control,
+.customize-panel-grid .form-select,
+.customize-panel-grid .btn {
+    min-height: 44px;
+}
+
+.customize-panel-grid .text-secondary {
+    font-size: .78rem;
+}
+
+.customize-panel-grid .col-md-6,
+.customize-panel-grid .col-md-4,
+.customize-panel-grid .col-md-3,
+.customize-panel-grid .col-md-2 {
+    margin-bottom: 4px;
+}
+
+.required-label .required-icon {
+    color: #dc3545;
+    font-size: .55rem;
+    vertical-align: super;
+    margin-left: 3px;
+}
+
 
 /* Offers dashboard table */
 .ems-page {
