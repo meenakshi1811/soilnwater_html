@@ -338,6 +338,32 @@
   }
   .sp-badge { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
   .sp-badge::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); }
+  .sponsored-listings-ad-col {
+    grid-row: span 2;
+  }
+  .sponsored-listings-ad-slider {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+  }
+  .sponsored-listings-ad-slider > .sponsored-listings-ad-card.ad-slide.is-active {
+    display: block;
+  }
+  .sponsored-listings-ad-card {
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--white);
+    text-decoration: none;
+    min-height: 100%;
+  }
+  .sponsored-listings-ad-card .side-card-img {
+    width: 100%;
+    aspect-ratio: 296 / 624;
+    object-fit: cover;
+    display: block;
+  }
 
   /* ── ADV STRIP ── */
   .adv-strip { background: var(--yellow-btn); color: #fff; text-align: center; padding: 8px; font-weight: 700; font-size: 13px; letter-spacing: 2px; border-radius: 6px; }
@@ -1725,6 +1751,9 @@
 @media (max-width: 575.98px) {
   .sponsored-grid {
     grid-template-columns: 1fr;
+  }
+  .sponsored-listings-ad-col {
+    grid-row: auto;
   }
 }
 
