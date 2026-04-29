@@ -599,7 +599,7 @@
         async function exportPreviewAsPng() {
             const exportWidth = sourceWidth || preview.scrollWidth || 0;
             const exportHeight = sourceHeight || preview.scrollHeight || 0;
-            const pixelRatio = 1;
+            const pixelRatio = Math.max(2, Math.min(3, window.devicePixelRatio || 1));
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -652,8 +652,8 @@
                         return await window.htmlToImage.toPng(clone, {
                             cacheBust: true,
                             pixelRatio,
-                            canvasWidth: exportWidth,
-                            canvasHeight: exportHeight,
+                            canvasWidth: exportWidth * pixelRatio,
+                            canvasHeight: exportHeight * pixelRatio,
                             backgroundColor: null,
                             // Avoid reading cssRules from cross-origin stylesheets (Google Fonts, etc.).
                             // Some html-to-image versions support one or both of these flags.

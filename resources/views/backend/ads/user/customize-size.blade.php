@@ -578,12 +578,14 @@
             if (!sizeW || !sizeH) return '';
 
             const canvas = document.createElement('canvas');
-            const exportPixelRatio = 1;
+            const exportPixelRatio = Math.max(2, Math.min(3, window.devicePixelRatio || 1));
             canvas.width = sizeW * exportPixelRatio;
             canvas.height = sizeH * exportPixelRatio;
             const ctx = canvas.getContext('2d');
             if (!ctx) return '';
             ctx.scale(exportPixelRatio, exportPixelRatio);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
 
             const backgroundColor = adBgColorInput?.value || '#f7f7f7';
             ctx.fillStyle = backgroundColor;
@@ -680,7 +682,7 @@
                 const image = new Image();
                 image.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const exportPixelRatio = 1;
+                    const exportPixelRatio = Math.max(2, Math.min(3, window.devicePixelRatio || 1));
                     canvas.width = sizeW * exportPixelRatio;
                     canvas.height = sizeH * exportPixelRatio;
                     const ctx = canvas.getContext('2d');
@@ -690,6 +692,8 @@
                         return;
                     }
 
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
                     ctx.fillStyle = '#f7f7f7';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
