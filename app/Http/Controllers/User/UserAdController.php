@@ -306,7 +306,7 @@ class UserAdController extends Controller
                 $validated['generated_image_data'] ?? '',
                 $targetWidth,
                 $targetHeight,
-            );
+            ); 
 
             return UserAd::create([
                 'user_id' => $user->id,

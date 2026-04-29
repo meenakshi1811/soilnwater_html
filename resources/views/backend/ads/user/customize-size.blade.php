@@ -10,7 +10,7 @@
             <h2 class="admin-title mb-1">Create Your Ad</h2>
             <p class="mb-0 text-secondary">Selected size: <strong>{{ $size['name'] }}</strong> ({{ $size['w'] }}×{{ $size['h'] }} px)</p>
         </div>
-    </div>
+    </div> 
 
     <div class="chart-card">
         <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
