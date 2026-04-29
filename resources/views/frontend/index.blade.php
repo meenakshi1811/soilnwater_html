@@ -314,27 +314,37 @@
       </div>
 
       <div class="ad-slider auto-ad-slider top-ad-slider premium-wide-slider" aria-label="Premium marketplace campaign slider" data-show-arrows="true" data-pause-on-hover="false">
-        <div class="adv-strip-dark ad-slide premium-marketplace-slide">
-          <div class="adv-text">
-            <h3>Grow Faster with Premium Marketplace Ads</h3>
-            <p>Reach ready-to-buy customers with top placements across the marketplace.</p>
+        @forelse(($belowSponsoredSliderAds ?? collect()) as $ad)
+          <div class="ad-slide premium-marketplace-slide">
+            <img
+              src="{{ asset($ad->final_image) }}"
+              alt="{{ $ad->title }}"
+              style="width:100%;height:auto;display:block;border-radius:18px;"
+            >
           </div>
-          <button class="ad-slot-btn">Start Campaign</button>
-        </div>
-        <div class="adv-strip-dark ad-slide premium-marketplace-slide">
-          <div class="adv-text">
-            <h3>Boost Daily Enquiries Automatically</h3>
-            <p>Keep your business visible 24/7 with rotating premium ad positions.</p>
+        @empty
+          <div class="adv-strip-dark ad-slide premium-marketplace-slide">
+            <div class="adv-text">
+              <h3>Grow Faster with Premium Marketplace Ads</h3>
+              <p>Reach ready-to-buy customers with top placements across the marketplace.</p>
+            </div>
+            <button class="ad-slot-btn">Start Campaign</button>
           </div>
-          <button class="ad-slot-btn">View Plans</button>
-        </div>
-        <div class="adv-strip-dark ad-slide premium-marketplace-slide">
-          <div class="adv-text">
-            <h3>Get Arrow Navigation + Auto Rotation</h3>
-            <p>Switch slides manually with arrows or let the banner rotate on its own.</p>
+          <div class="adv-strip-dark ad-slide premium-marketplace-slide">
+            <div class="adv-text">
+              <h3>Boost Daily Enquiries Automatically</h3>
+              <p>Keep your business visible 24/7 with rotating premium ad positions.</p>
+            </div>
+            <button class="ad-slot-btn">View Plans</button>
           </div>
-          <button class="ad-slot-btn">Book Premium Slot</button>
-        </div>
+          <div class="adv-strip-dark ad-slide premium-marketplace-slide">
+            <div class="adv-text">
+              <h3>Get Arrow Navigation + Auto Rotation</h3>
+              <p>Switch slides manually with arrows or let the banner rotate on its own.</p>
+            </div>
+            <button class="ad-slot-btn">Book Premium Slot</button>
+          </div>
+        @endforelse
       </div>
 
       <div class="row g-3 align-items-stretch ecommerce-with-side-ad">
@@ -392,33 +402,39 @@
               </div>
               <div class="col-12 col-lg-3 col-12 col-lg-3 mt-4">
                 <div class="festival-ad-slider ad-slider auto-ad-slider h-100" aria-label="Festival Campaign Deals slider">
-                  <div class="card h-100 ecommerce-ad-bs-card ad-slide">
-                    <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=85" class="card-img-top" alt="Festival Campaign Deals vegetables">
-                    <div class="card-body">
-                      <p class="card-title">Festival Campaign Deals</p>
-                      <div class="prod-price">High-Intent Buyers</div>
-                      <div class="prod-badge">Sponsored</div>
-                      <button class="btn-learn">View Offer</button>
+                  @forelse(($ecommerceSideSliderAds ?? collect()) as $ad)
+                    <div class="card h-100 ecommerce-ad-bs-card ecommerce-ad-image-card ad-slide">
+                      <img src="{{ asset($ad->final_image) }}" class="card-img-top ecommerce-ad-full-img" alt="{{ $ad->title }}">
                     </div>
-                  </div>
-                  <div class="card h-100 ecommerce-ad-bs-card ad-slide">
-                    <img src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=900&q=85" class="card-img-top" alt="Festive ad showcase fruits">
-                    <div class="card-body">
-                      <p class="card-title">Festive Spotlight</p>
-                      <div class="prod-price">Run Local Promotions</div>
-                      <div class="prod-badge">Sponsored</div>
-                      <button class="btn-learn">Book Campaign</button>
+                  @empty
+                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
+                      <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=85" class="card-img-top" alt="Festival Campaign Deals vegetables">
+                      <div class="card-body">
+                        <p class="card-title">Festival Campaign Deals</p>
+                        <div class="prod-price">High-Intent Buyers</div>
+                        <div class="prod-badge">Sponsored</div>
+                        <button class="btn-learn">View Offer</button>
+                      </div>
                     </div>
-                  </div>
-                  <div class="card h-100 ecommerce-ad-bs-card ad-slide">
-                    <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&q=85" class="card-img-top" alt="Seasonal produce campaign">
-                    <div class="card-body">
-                      <p class="card-title">Seasonal Deal Ads</p>
-                      <div class="prod-price">Boost Daily Leads</div>
-                      <div class="prod-badge">Sponsored</div>
-                      <button class="btn-learn">Start Now</button>
+                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
+                      <img src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=900&q=85" class="card-img-top" alt="Festive ad showcase fruits">
+                      <div class="card-body">
+                        <p class="card-title">Festive Spotlight</p>
+                        <div class="prod-price">Run Local Promotions</div>
+                        <div class="prod-badge">Sponsored</div>
+                        <button class="btn-learn">Book Campaign</button>
+                      </div>
                     </div>
-                  </div>
+                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
+                      <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&q=85" class="card-img-top" alt="Seasonal produce campaign">
+                      <div class="card-body">
+                        <p class="card-title">Seasonal Deal Ads</p>
+                        <div class="prod-price">Boost Daily Leads</div>
+                        <div class="prod-badge">Sponsored</div>
+                        <button class="btn-learn">Start Now</button>
+                      </div>
+                    </div>
+                  @endforelse
                 </div>
               </div>
             </div>
