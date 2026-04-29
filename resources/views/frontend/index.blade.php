@@ -614,27 +614,19 @@
         <a class="view-all" href="#">Learn More ▶</a>
       </div>
       <div class="ad-slider auto-ad-slider top-ad-slider" aria-label="Handpicked local ads slider">
-        <div class="explore-top-banner ad-slide">
-          <div>
-            <h4>Handpicked Local Deals Near Greenwood</h4>
-            <p>Discover trusted sellers with better delivery speed and verified ratings.</p>
+        @forelse(($exploreProductsAds ?? collect()) as $ad)
+          <div class="explore-top-banner ad-slide explore-ad-image-slide">
+            <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="explore-ad-full-img">
           </div>
-          <button class="ad-slot-btn">Get Featured</button>
-        </div>
-        <div class="explore-top-banner ad-slide">
-          <div>
-            <h4>Weekend Promo: Farm Essentials</h4>
-            <p>Compare seasonal offers from top agri suppliers around your area.</p>
+        @empty
+          <div class="explore-top-banner ad-slide">
+            <div>
+              <h4>Handpicked Local Deals Near Greenwood</h4>
+              <p>Discover trusted sellers with better delivery speed and verified ratings.</p>
+            </div>
+            <button class="ad-slot-btn">Get Featured</button>
           </div>
-          <button class="ad-slot-btn">View Offers</button>
-        </div>
-        <div class="explore-top-banner ad-slide">
-          <div>
-            <h4>Trusted Home &amp; Retail Sellers</h4>
-            <p>Browse verified local businesses with better ratings and quick responses.</p>
-          </div>
-          <button class="ad-slot-btn">Promote Brand</button>
-        </div>
+        @endforelse
       </div>
       <div class="explore-grid">
         <div class="exp-card">
@@ -670,27 +662,19 @@
             <a class="view-all" href="#">VIEW ALL ▶</a>
           </div>
           <div class="ad-slider auto-ad-slider top-ad-slider top-vendors-featured-slider" aria-label="Top vendor featured ads slider">
-            <div class="vendor-top-ad ad-slide">
-              <div>
-                <div class="vendor-top-ad-title">Secure Your Business</div>
-                <div class="vendor-top-ad-sub">Promote your brand to verified local and nationwide buyers.</div>
+            @forelse(($topVendorsHeaderAds ?? collect()) as $ad)
+              <div class="vendor-top-ad ad-slide top-vendor-image-slide">
+                <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img">
               </div>
-              <button class="vendor-top-ad-btn">Sponsored</button>
-            </div>
-            <div class="vendor-top-ad ad-slide">
-              <div>
-                <div class="vendor-top-ad-title">Boost Vendor Reach</div>
-                <div class="vendor-top-ad-sub">Auto-target active buyers and drive qualified leads every day.</div>
+            @empty
+              <div class="vendor-top-ad ad-slide">
+                <div>
+                  <div class="vendor-top-ad-title">Boost Vendor Reach</div>
+                  <div class="vendor-top-ad-sub">Auto-target active buyers and drive qualified leads every day.</div>
+                </div>
+                <button class="vendor-top-ad-btn">Featured</button>
               </div>
-              <button class="vendor-top-ad-btn">Featured</button>
-            </div>
-            <div class="vendor-top-ad ad-slide">
-              <div>
-                <div class="vendor-top-ad-title">Advertise with Confidence</div>
-                <div class="vendor-top-ad-sub">Run trusted placements across local and nationwide vendor results.</div>
-              </div>
-              <button class="vendor-top-ad-btn">Promoted</button>
-            </div>
+            @endforelse
           </div>
           <div class="row g-3 align-items-start">
             <div class="col-12 col-lg-9">
@@ -743,30 +727,20 @@
             </div>
           </div></div>
             <aside class="col-12 col-lg-3 section-side-ad ad-slider auto-ad-slider top-vendor-side-slider" aria-label="Top vendor side ads slider">
-              <div class="side-card ad-slide">
-                <img class="side-card-img" src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&q=70" alt="Top vendor ad">
-                <div class="side-card-body">
-                  <h3>Top Vendor Ad</h3>
-                  <p>Show your brand next to trusted vendors.</p>
-                  <button class="btn-learn">Get Placement</button>
+              @forelse(($topVendorsSideAds ?? collect()) as $ad)
+                <div class="side-card ad-slide top-vendor-side-image-card" aria-label="{{ $ad->title }}">
+                  <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
                 </div>
-              </div>
-              <div class="side-card ad-slide">
-                <img class="side-card-img" src="https://images.unsplash.com/photo-1521791055366-0d553872125f?w=500&q=70" alt="Vendor spotlight ad">
-                <div class="side-card-body">
-                  <h3>Vendor Spotlight</h3>
-                  <p>Highlight your products beside high-intent.</p>
-                  <button class="btn-learn">Reserve Slot</button>
+              @empty
+                <div class="side-card ad-slide">
+                  <img class="side-card-img" src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&q=70" alt="Top vendor ad">
+                  <div class="side-card-body">
+                    <h3>Top Vendor Ad</h3>
+                    <p>Show your brand next to trusted vendors.</p>
+                    <button class="btn-learn">Get Placement</button>
+                  </div>
                 </div>
-              </div>
-              <div class="side-card ad-slide">
-                <img class="side-card-img" src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500&q=70" alt="Brand visibility ad">
-                <div class="side-card-body">
-                  <h3>Brand Visibility</h3>
-                  <p>Get premium placement in the Top Vendors.</p>
-                  <button class="btn-learn">Advertise</button>
-                </div>
-              </div>
+              @endforelse
             </aside>
           </div>
         </div>

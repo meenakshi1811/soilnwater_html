@@ -2451,6 +2451,7 @@
 .offer-discount-image-slide {
   padding: 0;
   overflow: hidden;
+  min-height: 220px;
 }
 .offer-discount-top-image {
   width: 100%;
@@ -2467,6 +2468,21 @@
   min-height: 100% !important;
   object-fit: cover;
   display: block;
+}
+
+.explore-ad-image-slide,
+.top-vendor-image-slide,
+.top-vendor-side-image-card {
+  padding: 0;
+  overflow: hidden;
+}
+.explore-ad-full-img,
+.top-vendor-header-img,
+.top-vendor-side-full-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
   h1 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; }
