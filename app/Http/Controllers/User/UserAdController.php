@@ -475,12 +475,19 @@ class UserAdController extends Controller
         $image = $manager->read($file->getRealPath());
 
         if ($targetWidth > 0 && $targetHeight > 0) {
-            $image->cover($targetWidth, $targetHeight);
+            if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
+                $image->cover($targetWidth, $targetHeight);
+            } else {
+                $image->scaleDown($targetWidth, $targetHeight);
+                $canvas = $manager->create($targetWidth, $targetHeight)->fill('ffffff');
+                $canvas->place($image, 'center');
+                $image = $canvas;
+            }
         }
 
         match ($safeExtension) {
-            'jpg', 'jpeg' => $image->toJpeg(90)->save($absolutePath),
-            'webp' => $image->toWebp(90)->save($absolutePath),
+            'jpg', 'jpeg' => $image->toJpeg(100)->save($absolutePath),
+            'webp' => $image->toWebp(100)->save($absolutePath),
             default => $image->toPng()->save($absolutePath),
         };
 
