@@ -22,7 +22,7 @@ class OfferPageController extends Controller
 
         $frontPageAds = UserAd::query()
             ->where('status', 'approved')
-            ->whereIn('size_type', ['top_categories_ad_1', 'top_categories_ad_2', 'sponsored_listings_ad', 'below_sponsored_ad', 'ecommerce_ad', 'offer_discount_ad_1', 'offer_discount_ad_2', 'explore_products_ad', 'top_vendors_ad_1', 'top_vendors_ad_2'])
+            ->whereIn('size_type', ['top_categories_ad_1', 'top_categories_ad_2', 'sponsored_listings_ad', 'below_sponsored_ad', 'ecommerce_ad', 'offer_discount_ad_1', 'offer_discount_ad_2', 'explore_products_ad', 'top_vendors_ad_1', 'top_vendors_ad_2', 'popular_greenwood_ad'])
             ->whereNotNull('final_image')
             ->latest('reviewed_at')
             ->latest('id')
@@ -51,6 +51,7 @@ class OfferPageController extends Controller
             'exploreProductsAds' => $frontPageAds->where('size_type', 'explore_products_ad')->values(),
             'topVendorsHeaderAds' => $frontPageAds->where('size_type', 'top_vendors_ad_1')->values(),
             'topVendorsSideAds' => $frontPageAds->where('size_type', 'top_vendors_ad_2')->values(),
+            'popularGreenwoodAds' => $frontPageAds->where('size_type', 'popular_greenwood_ad')->values(),
         ]);
     }
 
