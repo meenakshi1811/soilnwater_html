@@ -495,21 +495,17 @@
         <div class="col-12 col-xl-9 d-flex">
           <div class="offer-coupon-wrap w-100">
             <div class="ad-slider auto-ad-slider combo-deals-slider" data-show-dots="true" data-show-arrows="false" aria-label="Combo deals slider">
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Combo Deals</span>
-                <h3>Buy more, save more on agri + home products</h3>
-                <p>Unlock bundled discounts from trusted sellers and apply coupon codes at checkout.</p>
-              </div>
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Limited Time</span>
-                <h3>Stack offers on tools, seeds and irrigation kits</h3>
-                <p>Apply marketplace coupons and get extra discounts from featured sellers.</p>
-              </div>
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Weekend Special</span>
-                <h3>Top savings for farm + garden essentials</h3>
-                <p>Discover curated deals and activate codes instantly at checkout.</p>
-              </div>
+              @forelse(($offerDiscountTopAds ?? collect()) as $ad)
+                <div class="offer-coupon-banner offer-discount-image-slide ad-slide">
+                  <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-discount-top-image">
+                </div>
+              @empty
+                <div class="offer-coupon-banner ad-slide">
+                  <span class="promo-tag">Combo Deals</span>
+                  <h3>Buy more, save more on agri + home products</h3>
+                  <p>Unlock bundled discounts from trusted sellers and apply coupon codes at checkout.</p>
+                </div>
+              @endforelse
             </div>
             <div class="ad-slider auto-ad-slider offer-coupon-grid-slider" data-show-arrows="true" data-show-dots="false" aria-label="Offer coupon cards slider">
               @forelse ($offers->chunk(5) as $offerChunk)
@@ -571,30 +567,20 @@
         </div>
         <aside class="col-12 col-xl-3 d-flex">
           <div class="ad-slider auto-ad-slider promo-side-slider w-100" data-show-arrows="true" aria-label="Offer section right ads slider">
-            <article class="ad-slide side-card promo-side-card">
-              <img class="side-card-img" src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=700&q=80" alt="Seeds and fertilizer promotional ad">
-              <div class="side-card-body">
-                <h3>Seasonal Seed Deals</h3>
-                <p>Target local growers with high-converting placements this week.</p>
-                <button class="btn-learn">Promote Offer</button>
-              </div>
-            </article>
-            <article class="ad-slide side-card promo-side-card">
-              <img class="side-card-img" src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=700&q=80" alt="Irrigation tools campaign ad">
-              <div class="side-card-body">
-                <h3>Irrigation Essentials</h3>
-                <p>Feature your tools near buyers ready to purchase today.</p>
-                <button class="btn-learn">Boost Campaign</button>
-              </div>
-            </article>
-            <article class="ad-slide side-card promo-side-card">
-              <img class="side-card-img" src="https://images.unsplash.com/photo-1592150621744-aca64f48394a?w=700&q=80" alt="Farm accessories ad placement">
-              <div class="side-card-body">
-                <h3>Farm Accessory Ads</h3>
-                <p>Show in-demand accessories to nearby customers and increase leads.</p>
-                <button class="btn-learn">Start Ads</button>
-              </div>
-            </article>
+            @forelse(($offerDiscountSideAds ?? collect()) as $ad)
+              <article class="ad-slide side-card promo-side-card promo-side-image-card" aria-label="{{ $ad->title }}">
+                <img class="side-card-img promo-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+              </article>
+            @empty
+              <article class="ad-slide side-card promo-side-card">
+                <img class="side-card-img" src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=700&q=80" alt="Seeds and fertilizer promotional ad">
+                <div class="side-card-body">
+                  <h3>Seasonal Seed Deals</h3>
+                  <p>Target local growers with high-converting placements this week.</p>
+                  <button class="btn-learn">Promote Offer</button>
+                </div>
+              </article>
+            @endforelse
           </div>
         </aside>
       </div>
