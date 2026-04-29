@@ -555,9 +555,9 @@ class UserAdController extends Controller
             return;
         }
 
-        $scale = max($targetWidth / $srcWidth, $targetHeight / $srcHeight);
-        $resizedWidth = (int) ceil($srcWidth * $scale);
-        $resizedHeight = (int) ceil($srcHeight * $scale);
+        $scale = min($targetWidth / $srcWidth, $targetHeight / $srcHeight, 1);
+        $resizedWidth = max(1, (int) round($srcWidth * $scale));
+        $resizedHeight = max(1, (int) round($srcHeight * $scale));
 
         $resized = imagecreatetruecolor($resizedWidth, $resizedHeight);
         imagealphablending($resized, false);
@@ -567,19 +567,19 @@ class UserAdController extends Controller
 
         imagecopyresampled($resized, $source, 0, 0, 0, 0, $resizedWidth, $resizedHeight, $srcWidth, $srcHeight);
 
-        $cropX = max(0, (int) floor(($resizedWidth - $targetWidth) / 2));
-        $cropY = max(0, (int) floor(($resizedHeight - $targetHeight) / 2));
-
         $final = imagecreatetruecolor($targetWidth, $targetHeight);
         imagealphablending($final, false);
         imagesavealpha($final, true);
         $transparentFinal = imagecolorallocatealpha($final, 0, 0, 0, 127);
         imagefill($final, 0, 0, $transparentFinal);
 
-        imagecopy($final, $resized, 0, 0, $cropX, $cropY, $targetWidth, $targetHeight);
+        $dstX = (int) floor(($targetWidth - $resizedWidth) / 2);
+        $dstY = (int) floor(($targetHeight - $resizedHeight) / 2);
+        imagecopy($final, $resized, $dstX, $dstY, 0, 0, $resizedWidth, $resizedHeight);
 
         $extension = strtolower($extension);
         if (in_array($extension, ['jpg', 'jpeg'], true)) {
+            imageinterlace($final, true);
             imagejpeg($final, $destinationPath, 100);
         } elseif ($extension === 'webp' && function_exists('imagewebp')) {
             imagewebp($final, $destinationPath, 100);
