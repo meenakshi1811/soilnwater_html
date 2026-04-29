@@ -89,7 +89,11 @@
             </div>
 
             <div id="customizeWrap" class="mb-3 d-none">
-                <div class="row g-3">
+                <div class="customize-panel-header mb-3">
+                    <h6 class="mb-1">Customize Ad Studio</h6>
+                    <p class="mb-0">Build your ad with layered text and images. Tip: drag layers to reposition, and double-click text to edit.</p>
+                </div>
+                <div class="row g-3 customize-panel-grid">
                     <div class="col-md-3">
                         <label class="form-label">Background Color</label>
                         <input type="color" id="adBgColorInput" class="form-control form-control-color w-100" value="#f7f7f7">
@@ -386,7 +390,9 @@
         function makeDraggable(node) {
             let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
             node.addEventListener('mousedown', (e) => {
-                if (e.target.closest('[contenteditable="true"]')) return;
+                if (e.button !== 0) return;
+                if (node.getAttribute('data-editing') === '1') return;
+                e.preventDefault();
                 dragging = true;
                 sx = e.clientX; sy = e.clientY;
                 ox = parseFloat(node.style.left || '20');
@@ -420,8 +426,29 @@
             t.style.fontWeight = '700';
             t.style.color = '#111';
             t.style.padding = '4px 6px';
-            t.setAttribute('contenteditable', 'true');
+            t.style.cursor = 'move';
+            t.style.minWidth = '80px';
+            t.setAttribute('contenteditable', 'false');
+            t.setAttribute('data-editing', '0');
             t.setAttribute('data-layer-type', 'text');
+            t.addEventListener('dblclick', () => {
+                t.setAttribute('contenteditable', 'true');
+                t.setAttribute('data-editing', '1');
+                t.style.cursor = 'text';
+                t.focus();
+            });
+            t.addEventListener('blur', () => {
+                t.setAttribute('contenteditable', 'false');
+                t.setAttribute('data-editing', '0');
+                t.style.cursor = 'move';
+                if (selectedLayer === t) updateControlPanelFromSelection();
+            });
+            t.addEventListener('input', () => {
+                if (selectedLayer === t && layerTextInput) {
+                    layerTextInput.value = t.textContent || '';
+                    if (layerTextCharCount) layerTextCharCount.textContent = String((t.textContent || '').length);
+                }
+            });
             addLayer(t);
         });
 
