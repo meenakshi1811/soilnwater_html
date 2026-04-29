@@ -687,6 +687,10 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            if (typeof e.stopImmediatePropagation === 'function') {
+                e.stopImmediatePropagation();
+            }
             clearFieldErrors();
             customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
 
@@ -722,7 +726,7 @@
                 }
 
                 toast('success', payload.message || 'Saved successfully');
-                setTimeout(() => { window.location.href = payload.redirect_url || '{{ route('ads.index') }}'; }, 700);
+                return;
             } catch (networkError) {
                 toast('danger', 'Unable to save ad right now. Please try again.');
             }
