@@ -792,14 +792,21 @@
 
 
 /* Offers dashboard table */
+.ems-page {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 .offers-table-wrap {
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 #myOffersTable {
     width: 100% !important;
-    table-layout: fixed;
+    min-width: 1100px;
 }
 
 #myOffersTable th {
