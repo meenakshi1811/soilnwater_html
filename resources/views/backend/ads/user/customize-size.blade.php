@@ -599,7 +599,6 @@
             clone.style.maxWidth = 'none';
             clone.style.maxHeight = 'none';
             clone.style.overflow = 'hidden';
-            clone.querySelectorAll('[data-custom-stage="1"]').forEach((node) => node.remove());
 
             sandbox.appendChild(clone);
             document.body.appendChild(sandbox);
