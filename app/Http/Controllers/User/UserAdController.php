@@ -415,40 +415,16 @@ class UserAdController extends Controller
     {
         if (!preg_match('/^data:image\/png;base64,/', $base64Png)) {
             throw ValidationException::withMessages([
-                'generated_image_data' => 'Unable to generate ad image. Please refresh and try again.',
+                'generated_image_data' => 'Only PNG ad exports are supported.',
             ]);
         }
 
         $decoded = base64_decode(substr($base64Png, strpos($base64Png, ',') + 1), true);
+
         if ($decoded === false) {
             throw ValidationException::withMessages([
-                'generated_image_data' => 'Generated ad image data is invalid. Please try again.',
+                'generated_image_data' => 'Invalid generated ad image data.',
             ]);
-        }
-
-        $srcW = 0;
-        $srcH = 0;
-        if ($targetWidth > 0 && $targetHeight > 0) {
-            $source = @imagecreatefromstring($decoded);
-            if (is_resource($source) || is_object($source)) {
-                $srcW = (int) imagesx($source);
-                $srcH = (int) imagesy($source);
-                imagedestroy($source);
-
-                if ($srcW < $targetWidth || $srcH < $targetHeight) {
-                    throw ValidationException::withMessages([
-                        'generated_image_data' => 'Generated image quality is too low. Please use the live preview export again.',
-                    ]);
-                }
-
-                $targetRatio = $targetWidth / $targetHeight;
-                $sourceRatio = $srcW / $srcH;
-                if (abs($sourceRatio - $targetRatio) > 0.02) {
-                    throw ValidationException::withMessages([
-                        'generated_image_data' => 'Generated image ratio does not match template size. Please regenerate from live preview.',
-                    ]);
-                }
-            }
         }
 
         $relativeDirectory = 'uploads/ads/final';
@@ -473,6 +449,15 @@ class UserAdController extends Controller
         }
 
         try {
+            $imageInfo = @getimagesize($absolutePath);
+            if (is_array($imageInfo)) {
+                $currentWidth = (int) ($imageInfo[0] ?? 0);
+                $currentHeight = (int) ($imageInfo[1] ?? 0);
+                if ($currentWidth > $targetWidth || $currentHeight > $targetHeight) {
+                    return;
+                }
+            }
+
             $manager = new ImageManager(new GdDriver());
             $image = $manager->read($absolutePath);
             $image->cover($targetWidth, $targetHeight);
