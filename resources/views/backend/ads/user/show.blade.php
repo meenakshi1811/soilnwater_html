@@ -29,11 +29,11 @@
                     </div>
                 @endif
 
-                <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] ?? '1 / 1' }};">
+                <!-- <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] ?? '1 / 1' }};">
                     <div class="ads-live-preview-inner">
                         {!! $ad->rendered_html ?: '<div class="text-secondary p-3">No rendered HTML saved.</div>' !!}
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
 
