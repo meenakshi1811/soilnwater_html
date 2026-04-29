@@ -254,21 +254,22 @@
               <div class="sp-card-body"><p>Property For Sale</p><div class="sp-badge">Sponsored</div></div>
               </div>
             </div>
-            <div class="col d-flex sponsored-listings-ad-col">
-              <div class="ad-slider auto-ad-slider sponsored-listings-ad-slider" data-show-arrows="true" data-pause-on-hover="false">
-                @forelse(($sponsoredListingsAds ?? collect()) as $ad)
-                  <div class="side-card ad-slide sponsored-listings-ad-card" aria-label="{{ $ad->title }}">
-                    <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
-                  </div>
-                @empty
-                  <div class="side-card ad-slide sponsored-listings-ad-card">
-                    <img class="side-card-img" src="{{ asset('assets/images/ad-sample.png') }}" alt="Sponsored listing ad">
-                    <div class="side-card-body">
-                      <h3>Sponsored Listing Ad</h3>
-                      <p>Approved admin ads for size 296×624 will appear here.</p>
-                    </div>
-                  </div>
-                @endforelse
+             <div class="col d-flex">
+              <div class="sp-card">
+              <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=900&q=80" alt="Services">
+              <div class="sp-card-body"><p>Top Home Services</p><div class="sp-badge">Sponsored</div></div>
+              </div>
+            </div>
+            <div class="col d-flex">
+              <div class="sp-card">
+              <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=900&q=80" alt="Business">
+              <div class="sp-card-body"><p>Follow the Best Sellers</p><div class="sp-badge">Sponsored</div></div>
+              </div>
+            </div>
+            <div class="col d-flex">
+              <div class="sp-card">
+              <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=900&q=80" alt="Contract">
+              <div class="sp-card-body"><p>Our Latest Contracts</p><div class="sp-badge">Sponsored</div></div>
               </div>
             </div>
           </div>

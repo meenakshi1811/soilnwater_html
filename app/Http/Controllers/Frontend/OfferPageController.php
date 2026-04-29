@@ -26,7 +26,7 @@ class OfferPageController extends Controller
             ->whereNotNull('final_image')
             ->latest('reviewed_at')
             ->latest('id')
-            ->get(['id', 'title', 'size_type', 'final_image', 'target_url']);
+            ->get(['id', 'title', 'size_type', 'final_image']);
 
         return view('frontend.index', [
             'offers' => $offers,
