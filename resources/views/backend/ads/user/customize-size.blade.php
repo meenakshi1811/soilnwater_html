@@ -107,11 +107,11 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Clear Background</label>
-                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 text-nowrap" id="clearAdBgBtn">Remove BG Image</button>
+                        <button type="button" class="btn btn-outline-secondary w-100 text-nowrap px-3" id="clearAdBgBtn">Remove BG Image</button>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Add Text Block</label>
-                        <button type="button" class="btn btn-outline-primary btn-sm w-100" id="addTextBtn">+ Add Text</button>
+                        <button type="button" class="btn btn-outline-primary w-100 px-3" id="addTextBtn">+ Add Text</button>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Add Images</label>
