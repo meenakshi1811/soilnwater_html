@@ -578,7 +578,7 @@
             if (!sizeW || !sizeH) return '';
 
             const canvas = document.createElement('canvas');
-            const exportPixelRatio = Math.max(2, Math.min(3, window.devicePixelRatio || 1));
+            const exportPixelRatio = Math.max(2, Math.min(4, window.devicePixelRatio || 1));
             canvas.width = sizeW * exportPixelRatio;
             canvas.height = sizeH * exportPixelRatio;
             const ctx = canvas.getContext('2d');
@@ -682,7 +682,7 @@
                 const image = new Image();
                 image.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const exportPixelRatio = Math.max(2, Math.min(3, window.devicePixelRatio || 1));
+                    const exportPixelRatio = Math.max(2, Math.min(4, window.devicePixelRatio || 1));
                     canvas.width = sizeW * exportPixelRatio;
                     canvas.height = sizeH * exportPixelRatio;
                     const ctx = canvas.getContext('2d');
