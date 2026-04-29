@@ -577,9 +577,9 @@
         async function exportPng() {
             const exportWidth = sizeW || preview.scrollWidth || 0;
             const exportHeight = sizeH || preview.scrollHeight || 0;
-            const exportPixelRatio = 2;
-            const exportOutputWidth = exportWidth * exportPixelRatio;
-            const exportOutputHeight = exportHeight * exportPixelRatio;
+            const exportPixelRatio = 4;
+            if (!exportWidth || !exportHeight) return '';
+
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -599,7 +599,6 @@
             clone.style.maxWidth = 'none';
             clone.style.maxHeight = 'none';
             clone.style.overflow = 'hidden';
-            clone.querySelectorAll('[data-custom-stage="1"]').forEach((node) => node.remove());
 
             sandbox.appendChild(clone);
             document.body.appendChild(sandbox);
@@ -622,26 +621,25 @@
 
             try {
                 await waitForImages(clone);
-                if (window.htmlToImage?.toPng) {
-                    try {
-                        const raw = await window.htmlToImage.toPng(clone, { pixelRatio: exportPixelRatio, canvasWidth: exportOutputWidth, canvasHeight: exportOutputHeight, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
-                        return raw;
-                    } catch (error) {
-                        console.warn('html-to-image export failed, falling back to html2canvas.', error);
-                    }
-                }
-
-                if (window.html2canvas) {
-                    const canvas = await window.html2canvas(clone, { width: exportWidth, height: exportHeight, windowWidth: exportWidth, windowHeight: exportHeight, scale: exportPixelRatio, useCORS: true, allowTaint: false, logging: false });
-                    return canvas.toDataURL('image/png');
-                }
+                if (!window.html2canvas) return '';
+                const canvas = await window.html2canvas(clone, {
+                    width: exportWidth,
+                    height: exportHeight,
+                    windowWidth: exportWidth,
+                    windowHeight: exportHeight,
+                    scale: exportPixelRatio,
+                    useCORS: true,
+                    allowTaint: false,
+                    logging: false,
+                    backgroundColor: null
+                });
+                return canvas.toDataURL('image/png');
             } catch (error) {
                 console.warn('preview export failed.', error);
+                return '';
             } finally {
                 document.body.removeChild(sandbox);
             }
-
-            return '';
         }
 
         async function exportUploadedFileAsPng(file) {
@@ -652,7 +650,7 @@
                 const image = new Image();
                 image.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const exportPixelRatio = 2;
+                    const exportPixelRatio = 4;
                     canvas.width = sizeW * exportPixelRatio;
                     canvas.height = sizeH * exportPixelRatio;
                     const ctx = canvas.getContext('2d');
