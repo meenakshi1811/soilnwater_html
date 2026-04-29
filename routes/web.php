@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TermsAndConditionController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\OfferPageController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Admin\PostOfferController;
 use App\Http\Controllers\User\UserAdController;
 use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
+use App\Http\Controllers\Admin\AdSizeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -82,6 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/data', [UserAdController::class, 'data'])->name('data');
         Route::get('/categories/{category}/subcategories', [UserAdController::class, 'subcategories'])->name('categories.subcategories');
         Route::get('/create', [UserAdController::class, 'selectSize'])->name('create.size');
+        Route::get('/create/{sizeType}/customize', [UserAdController::class, 'customizeFromSize'])->name('create.customize.default');
         Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->name('create.template');
         Route::get('/create/{sizeType}/template/{template}', [UserAdController::class, 'customize'])->name('create.customize');
         Route::post('/create/{sizeType}/template/{template}', [UserAdController::class, 'store'])->name('store');
@@ -111,6 +114,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('/{ad}/approve', [AdSubmissionController::class, 'approve'])->name('approve');
                 Route::post('/{ad}/reject', [AdSubmissionController::class, 'reject'])->name('reject');
             });
+
+            Route::prefix('sizes')->name('sizes.')->group(function () {
+                Route::get('/', [AdSizeController::class, 'index'])->name('index');
+                Route::get('/data', [AdSizeController::class, 'data'])->name('data');
+                Route::get('/{size}', [AdSizeController::class, 'show'])->name('show');
+                Route::post('/', [AdSizeController::class, 'store'])->name('store');
+                Route::put('/{size}', [AdSizeController::class, 'update'])->name('update');
+                Route::delete('/{size}', [AdSizeController::class, 'destroy'])->name('destroy');
+            });
         });
 
         Route::prefix('roles')->name('roles.')->group(function () {
@@ -130,6 +142,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{employee}', [EmployeeController::class, 'show'])->name('show');
             Route::put('/{employee}', [EmployeeController::class, 'update'])->name('update');
             Route::delete('/{employee}', [EmployeeController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::get('/data', [UserController::class, 'data'])->name('data');
+            Route::get('/{user}', [UserController::class, 'show'])->name('show');
+            Route::put('/{user}', [UserController::class, 'update'])->name('update');
+            Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('categories')->name('categories.')->group(function () {

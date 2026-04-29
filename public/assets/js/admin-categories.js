@@ -33,6 +33,22 @@
                 $('<input type="hidden" name="modules[]" data-generated="1">').val(slug).appendTo('#categoryForm');
             });
         },
+
+        syncAdsPriceState: function () {
+            var hasAdsModule = this.selectedModules().indexOf('ads') !== -1;
+            var $input = $('#categoryAdsPrice');
+            var $help = $('#adsPriceHelpText');
+            if (!$input.length) return;
+
+            if (!hasAdsModule) {
+                $input.val('0').prop('readonly', true);
+                $help.text('Ads module is not selected, so ads price is fixed to 0.00 (Free).');
+                return;
+            }
+
+            $input.prop('readonly', false);
+            $help.text('Set ad posting price for this category/subcategory. 0.00 means Free.');
+        },
         
         syncNameFields: function () {
             var subcategoryName = $.trim($('#subcategoryName').val());
@@ -103,11 +119,12 @@
                     { data: 'category_name', name: 'category_name', orderable: false, searchable: true },
                     { data: 'subcategory_name', name: 'subcategory_name', orderable: false, searchable: true },
                     { data: 'modules_list', name: 'modules_list', orderable: false, searchable: true },
+                    { data: 'ads_price_display', name: 'ads_price_display', orderable: false, searchable: false },
                     { data: 'children_count', name: 'children_count', searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[4, 'desc']]
+                order: [[5, 'desc']]
             });
         },
 
@@ -123,10 +140,12 @@
                 $('#categoryName').val('');
                 $('#subcategoryName').val('');
                 self.clearModuleChecks();
+                $('#categoryAdsPrice').val('0');
 
                 self.loadParents('', '').always(function () {
                     $('#categoryForm').attr('action', '/admin/categories').attr('method', 'POST');
                     self.syncNameFields();
+                    self.syncAdsPriceState();
                     self.modal.show();
                 });
             });
@@ -137,6 +156,11 @@
 
             $('#categoryParentId').on('change', function () {
                 self.syncModulesForParent();
+                self.syncAdsPriceState();
+            });
+
+            $('.js-module-check').on('change', function () {
+                self.syncAdsPriceState();
             });
 
             $(document).on('click', '.js-edit-category', function () {
@@ -157,8 +181,10 @@
                         $('#categoryName').val(category.name || '');
                     }
                     self.setModuleChecks(category.modules || []);
+                    $('#categoryAdsPrice').val(category.ads_price || 0);
                     self.loadParents(category.parent_id || '', id).always(function () {
                         self.syncNameFields();
+                        self.syncAdsPriceState();
                         $('#categoryForm').attr('action', '/admin/categories/' + id).attr('method', 'POST');
                         self.modal.show();
                     });

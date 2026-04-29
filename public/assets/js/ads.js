@@ -1,6 +1,18 @@
 (function ($) {
-    if (!$ || !window.FormHelper) {
+    if (!$) {
         return;
+    }
+
+    function showToast(type, message) {
+        if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
+            window.FormHelper.showToast(type, message);
+            return;
+        }
+        if (type === 'danger') {
+            window.alert(message || 'Something went wrong.');
+            return;
+        }
+        console.log(message || 'Done');
     }
 
     function initUserAdsTable() {
@@ -96,10 +108,16 @@
             if (!targetWidth || !targetHeight) return;
 
             var scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
+            // Keep a small safety margin to avoid sub-pixel clipping of text descenders.
+            // Short-height banners (e.g. 879x118) need a little more breathing room.
+            var isShortBanner = sourceHeight <= 140;
+            var safetyMargin = isShortBanner ? 0.01 : 0.003;
+            scale = Math.max(scale - safetyMargin, 0);
+            var offsetY = isShortBanner ? -1 : 0;
             $inner.css({
                 width: sourceWidth + 'px',
                 height: sourceHeight + 'px',
-                transform: 'scale(' + scale + ')'
+                transform: 'translateY(' + offsetY + 'px) scale(' + scale + ')'
             });
         });
     }
@@ -161,6 +179,7 @@
     }
 
     function initAjaxAdSubmit() {
+        if (!window.FormHelper || typeof window.FormHelper.attachAjaxForm !== 'function') return;
         var $form = $('form[action*="/dashboard/ads/create/"]');
         if (!$form.length) return;
 
@@ -172,7 +191,7 @@
             defaultText: $submit.text().trim() || 'Submit',
             loadingText: 'Submitting...',
             onSuccess: function (response) {
-                FormHelper.showToast('success', response.message || 'Submitted.');
+                    showToast('success', response.message || 'Submitted.');
                 if (response.redirect_url) {
                     setTimeout(function () {
                         window.location.href = response.redirect_url;
@@ -180,12 +199,13 @@
                 }
             },
             onError: function (message) {
-                FormHelper.showToast('danger', message || 'Failed to submit.');
+                showToast('danger', message || 'Failed to submit.');
             }
         });
     }
 
     function initAjaxTemplateForm() {
+        if (!window.FormHelper || typeof window.FormHelper.attachAjaxForm !== 'function') return;
         var $form = $('form[action*="/admin/ads/templates"]');
         if (!$form.length) return;
 
@@ -197,7 +217,7 @@
             defaultText: $submit.text().trim() || 'Save',
             loadingText: 'Saving...',
             onSuccess: function (response) {
-                FormHelper.showToast('success', response.message || 'Saved.');
+                    showToast('success', response.message || 'Saved.');
                 if (response.redirect_url) {
                     setTimeout(function () {
                         window.location.href = response.redirect_url;
@@ -205,7 +225,7 @@
                 }
             },
             onError: function (message) {
-                FormHelper.showToast('danger', message || 'Failed to save.');
+                showToast('danger', message || 'Failed to save.');
             }
         });
     }
@@ -227,11 +247,11 @@
                     processData: false,
                     contentType: false
                 }).done(function (res) {
-                    FormHelper.showToast('success', (res && res.message) ? res.message : 'Approved.');
+                    showToast('success', (res && res.message) ? res.message : 'Approved.');
                     setTimeout(function () { window.location.reload(); }, 600);
                 }).fail(function (xhr) {
                     var msg = (xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error)) || 'Failed.';
-                    FormHelper.showToast('danger', msg);
+                    showToast('danger', msg);
                     $btn.prop('disabled', false);
                 });
             });
@@ -250,14 +270,14 @@
                     processData: false,
                     contentType: false
                 }).done(function (res) {
-                    FormHelper.showToast('success', (res && res.message) ? res.message : 'Rejected.');
+                    showToast('success', (res && res.message) ? res.message : 'Rejected.');
                     setTimeout(function () { window.location.reload(); }, 600);
                 }).fail(function (xhr) {
                     var errors = xhr.responseJSON && xhr.responseJSON.errors ? xhr.responseJSON.errors : null;
                     var msg = errors && errors.review_note && errors.review_note[0]
                         ? errors.review_note[0]
                         : ((xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error)) || 'Failed.');
-                    FormHelper.showToast('danger', msg);
+                    showToast('danger', msg);
                     $btn.prop('disabled', false);
                 });
             });
@@ -405,6 +425,220 @@
         render();
     }
 
+    function initAdSizeCustomizerPage() {
+        var page = document.getElementById('adsSizeCustomizerPage');
+        if (!page) return;
+
+        var form = page.querySelector('form[action*="/dashboard/ads/create/"]');
+        if (!form) return;
+
+        var previewFrame = document.getElementById('adPreviewFrame');
+        var preview = document.getElementById('adPreview');
+        var canvasWrap = document.getElementById('canvasWrap');
+        var customHtmlInput = document.getElementById('customHtmlInput');
+        var generatedImageDataInput = document.getElementById('generatedImageDataInput');
+        var uploadInput = document.getElementById('uploadImageInput');
+        var dropzone = document.getElementById('adDropzone');
+        var categorySelect = document.getElementById('categorySelect');
+        var subcategorySelect = document.getElementById('subcategorySelect');
+        var sizeW = Number(previewFrame?.dataset.sourceWidth || 0);
+        var sizeH = Number(previewFrame?.dataset.sourceHeight || 0);
+        var selectedLayer = null;
+
+        function setMode(mode) {
+            var uploadWrap = document.getElementById('uploadWrap');
+            var customizeWrap = document.getElementById('customizeWrap');
+            if (uploadWrap) uploadWrap.classList.toggle('d-none', mode !== 'upload');
+            if (customizeWrap) customizeWrap.classList.toggle('d-none', mode !== 'customize');
+
+            document.querySelectorAll('.banner-mode-card').forEach(function (card) { card.classList.remove('is-active'); });
+            var checkedRadio = document.querySelector('input[name="design_mode"]:checked');
+            var activeCard = checkedRadio && checkedRadio.closest('.banner-mode-option')
+                ? checkedRadio.closest('.banner-mode-option').querySelector('.banner-mode-card')
+                : null;
+            if (activeCard) activeCard.classList.add('is-active');
+
+            if (mode === 'customize') {
+                canvasWrap?.classList.remove('d-none');
+            } else if (!preview?.querySelector('img')) {
+                canvasWrap?.classList.add('d-none');
+            }
+        }
+
+        document.querySelectorAll('input[name="design_mode"]').forEach(function (radio) {
+            radio.addEventListener('change', function () { setMode(radio.value); });
+        });
+
+        function makeDraggable(el) {
+            var sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
+            el.addEventListener('mousedown', function (e) {
+                if (e.target.closest('[contenteditable="true"]')) return;
+                dragging = true;
+                sx = e.clientX; sy = e.clientY;
+                ox = parseFloat(el.style.left || '20'); oy = parseFloat(el.style.top || '20');
+                selectedLayer = el;
+            });
+            window.addEventListener('mousemove', function (e) {
+                if (!dragging) return;
+                el.style.left = Math.max(0, Math.min(sizeW - el.offsetWidth, ox + e.clientX - sx)) + 'px';
+                el.style.top = Math.max(0, Math.min(sizeH - el.offsetHeight, oy + e.clientY - sy)) + 'px';
+            });
+            window.addEventListener('mouseup', function () { dragging = false; });
+        }
+
+        function addLayer(el) {
+            if (!preview) return;
+            el.style.position = 'absolute';
+            el.style.left = '20px';
+            el.style.top = '20px';
+            el.style.zIndex = String(Date.now() % 100000);
+            makeDraggable(el);
+            el.addEventListener('click', function (e) { e.stopPropagation(); selectedLayer = el; });
+            preview.appendChild(el);
+            selectedLayer = el;
+        }
+
+        document.getElementById('addTextBtn')?.addEventListener('click', function () {
+            var t = document.createElement('div');
+            t.textContent = 'Edit text';
+            t.style.fontSize = '30px';
+            t.style.fontWeight = '700';
+            t.style.color = '#111';
+            t.style.padding = '4px 6px';
+            t.setAttribute('contenteditable', 'true');
+            addLayer(t);
+        });
+
+        document.getElementById('addImageBtn')?.addEventListener('click', function () {
+            document.getElementById('customImageInput')?.click();
+        });
+        document.getElementById('customImageInput')?.addEventListener('change', function (e) {
+            var file = e.target.files && e.target.files[0];
+            if (!file) return;
+            var img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.style.width = Math.round(sizeW * 0.25) + 'px';
+            img.style.height = 'auto';
+            addLayer(img);
+            e.target.value = '';
+        });
+
+        document.getElementById('removeLayerBtn')?.addEventListener('click', function () {
+            if (!selectedLayer) return;
+            selectedLayer.remove();
+            selectedLayer = null;
+        });
+
+        uploadInput?.addEventListener('change', function (e) {
+            var file = e.target.files && e.target.files[0];
+            if (!file || !preview) return;
+            preview.innerHTML = '';
+            var img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            preview.appendChild(img);
+            canvasWrap?.classList.remove('d-none');
+        });
+
+        if (dropzone && uploadInput) {
+            dropzone.addEventListener('click', function () { uploadInput.click(); });
+            dropzone.addEventListener('dragover', function (event) {
+                event.preventDefault();
+                dropzone.classList.add('is-dragover');
+            });
+            dropzone.addEventListener('dragleave', function () {
+                dropzone.classList.remove('is-dragover');
+            });
+            dropzone.addEventListener('drop', function (event) {
+                event.preventDefault();
+                dropzone.classList.remove('is-dragover');
+                var file = event.dataTransfer && event.dataTransfer.files ? event.dataTransfer.files[0] : null;
+                if (!file) return;
+                var dt = new DataTransfer();
+                dt.items.add(file);
+                uploadInput.files = dt.files;
+                uploadInput.dispatchEvent(new Event('change'));
+            });
+        }
+
+        async function exportPreviewAsPng() {
+            if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
+                return window.htmlToImage.toPng(preview, { pixelRatio: 1, canvasWidth: sizeW, canvasHeight: sizeH, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
+            }
+            if (window.html2canvas) {
+                var canvas = await window.html2canvas(preview, { width: sizeW, height: sizeH, windowWidth: sizeW, windowHeight: sizeH, scale: 1, useCORS: true });
+                return canvas.toDataURL('image/png');
+            }
+            return '';
+        }
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            if (!preview) return;
+            customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
+            generatedImageDataInput.value = await exportPreviewAsPng();
+            if (!generatedImageDataInput.value) {
+                showToast('danger', 'Could not generate ad image.');
+                return;
+            }
+            var response = await fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            });
+            var payload = await response.json();
+            if (!response.ok) {
+                showToast('danger', payload.message || 'Unable to save ad.');
+                return;
+            }
+            showToast('success', payload.message || 'Saved successfully');
+            var config = window.adsSizeCustomizerConfig || {};
+            setTimeout(function () {
+                window.location.href = payload.redirect_url || config.adsIndexUrl || '/dashboard/ads';
+            }, 700);
+        });
+
+        async function loadSubcategories(categoryId) {
+            var base = form.dataset.subcategoryUrlBase || '';
+            if (!categoryId || !base || !subcategorySelect) {
+                if (subcategorySelect) {
+                    subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
+                    subcategorySelect.disabled = true;
+                }
+                return;
+            }
+            var response = await fetch(base + '/' + categoryId + '/subcategories', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            var data = await response.json();
+            var options = ['<option value="">— Select subcategory —</option>'];
+            (Array.isArray(data) ? data : []).forEach(function (item) {
+                options.push('<option value=\"' + item.id + '\">' + item.name + '</option>');
+            });
+            subcategorySelect.innerHTML = options.join('');
+            subcategorySelect.disabled = false;
+        }
+        categorySelect?.addEventListener('change', function () { loadSubcategories(this.value); });
+
+        window.initAdLocationAutocomplete = function () {
+            var locationInput = document.getElementById('adLocation');
+            var locationLatInput = document.getElementById('adLocationLat');
+            var locationLngInput = document.getElementById('adLocationLng');
+            if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
+            var autocomplete = new google.maps.places.Autocomplete(locationInput, { fields: ['formatted_address', 'geometry', 'name'] });
+            autocomplete.addListener('place_changed', function () {
+                var place = autocomplete.getPlace();
+                var lat = place && place.geometry && place.geometry.location && place.geometry.location.lat ? place.geometry.location.lat() : null;
+                var lng = place && place.geometry && place.geometry.location && place.geometry.location.lng ? place.geometry.location.lng() : null;
+                locationInput.value = (place && (place.formatted_address || place.name)) ? (place.formatted_address || place.name) : locationInput.value;
+                if (locationLatInput) locationLatInput.value = typeof lat === 'number' ? String(lat) : '';
+                if (locationLngInput) locationLngInput.value = typeof lng === 'number' ? String(lng) : '';
+            });
+        };
+
+        setMode('upload');
+    }
+
     $(function () {
         initUserAdsTable();
         initAdminTemplatesTable();
@@ -414,5 +648,6 @@
         initAjaxApprovalActions();
         initAdminTemplateLivePreview();
         initScaledPreviews();
+        initAdSizeCustomizerPage();
     });
 })(window.jQuery);

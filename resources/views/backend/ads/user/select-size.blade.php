@@ -16,7 +16,7 @@
         <div class="row g-3">
             @foreach($sizes as $sizeType => $size)
                 <div class="col-12 col-md-6 col-xl-4">
-                    <a href="{{ route('ads.create.template', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none">
+                    <a href="{{ route('ads.create.customize.default', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none">
                         <div class="d-flex justify-content-between align-items-center gap-2">
                             <div class="fw-semibold text-dark">{{ $size['name'] }}</div>
                             @if(($size['admin_only'] ?? false) === true)

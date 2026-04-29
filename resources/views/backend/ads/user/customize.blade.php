@@ -9,6 +9,7 @@
     $textFieldKeys = [];
 
     $layoutHtml = (string) ($template->layout_html ?? '');
+    $previewHtml = \App\Support\AdTemplatePreview::render($layoutHtml, $sampleDefaults);
     $usedKeys = [];
 
     if ($layoutHtml !== '') {
@@ -52,9 +53,9 @@
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
-            @error('generated_image_data')
-                <div class="alert alert-danger py-2">{{ $message }}</div>
-            @enderror
+            @if($errors->has('generated_image_data'))
+                <div class="alert alert-danger py-2">{{ $errors->first('generated_image_data') }}</div>
+            @endif
             @foreach($textFieldKeys as $hiddenTextKey)
                 <input type="hidden" name="{{ $hiddenTextKey }}" value="{{ old($hiddenTextKey) }}" class="js-ad-hidden-text" data-key="{{ $hiddenTextKey }}">
             @endforeach
@@ -63,10 +64,10 @@
                 <div class="col-12 col-lg-5">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Ad Title <span class="text-danger">*</span></label>
-                        <input type="text" name="title" value="{{ old('title') }}" class="form-control @error('title') is-invalid @enderror js-ad-title" maxlength="140" placeholder="e.g. Beauty Clinic — 50% OFF">
-                        @error('title')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        <input type="text" name="title" value="{{ old('title') }}" class="form-control {{ $errors->has('title') ? 'is-invalid' : '' }} js-ad-title" maxlength="140" placeholder="e.g. Beauty Clinic — 50% OFF">
+                        @if($errors->has('title'))
+                            <div class="invalid-feedback">{{ $errors->first('title') }}</div>
+                        @endif
                     </div>
 
                     <div class="mb-3">
@@ -74,17 +75,20 @@
                         <select
                             name="category_id"
                             id="categorySelect"
-                            class="form-select @error('category_id') is-invalid @enderror"
+                            class="form-select {{ $errors->has('category_id') ? 'is-invalid' : '' }}"
                             data-selected-category="{{ old('category_id') }}"
                         >
                             <option value="">— Select category —</option>
                             @foreach($categories as $category)
-                                <option value="{{ $category->id }}" @selected((string) old('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                                @php $categoryPrice = (float) ($category->ads_price ?? 0) @endphp
+                                <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}" {{ (string) old('category_id') === (string) $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }} {{ $categoryPrice <= 0 ? '• Free' : '• ₹'.number_format($categoryPrice, 2) }}
+                                </option>
                             @endforeach
                         </select>
-                        @error('category_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        @if($errors->has('category_id'))
+                            <div class="invalid-feedback">{{ $errors->first('category_id') }}</div>
+                        @endif
                     </div>
 
                     <div class="mb-3">
@@ -92,15 +96,16 @@
                         <select
                             name="subcategory_id"
                             id="subcategorySelect"
-                            class="form-select @error('subcategory_id') is-invalid @enderror"
+                            class="form-select {{ $errors->has('subcategory_id') ? 'is-invalid' : '' }}"
                             data-selected-subcategory="{{ old('subcategory_id') }}"
                             disabled
                         >
                             <option value="">— Select a category first —</option>
                         </select>
-                        @error('subcategory_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        @if($errors->has('subcategory_id'))
+                            <div class="invalid-feedback">{{ $errors->first('subcategory_id') }}</div>
+                        @endif
+                        <small class="text-success fw-semibold d-block mt-1" id="adsPricingStatus">Select category and sub category to check pricing.</small>
                     </div>
 
                     <div class="mb-3">
@@ -109,57 +114,38 @@
                             type="text"
                             name="location"
                             id="adLocation"
-                            class="form-control @error('location') is-invalid @enderror"
+                            class="form-control {{ $errors->has('location') ? 'is-invalid' : '' }}"
                             placeholder="Search location"
                             value="{{ old('location') }}"
                             autocomplete="off"
                         >
                         <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat') }}">
                         <input type="hidden" name="location_lng" id="adLocationLng" value="{{ old('location_lng') }}">
-                        @error('location')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
-                        @error('location_lat')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
-                        @error('location_lng')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        @if($errors->has('location'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('location') }}</div>
+                        @endif
+                        @if($errors->has('location_lat'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('location_lat') }}</div>
+                        @endif
+                        @if($errors->has('location_lng'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('location_lng') }}</div>
+                        @endif
                     </div>
 
                     <div class="ads-fields">
-                        <p class="small text-secondary mb-2">Upload template images here. Edit all text content directly in live preview.</p>
-                        @foreach($fields as $field)
-                            @php
-                                $key = (string) ($field['key'] ?? '');
-                                $label = (string) ($field['label'] ?? $key);
-                                $type = (string) ($field['type'] ?? 'text');
-                                $required = (bool) ($field['required'] ?? false);
-                                $isUsedInTemplate = $key !== '' && in_array(strtolower($key), $usedKeys, true);
-                            @endphp
-                            @if($key !== '' && $type === 'image' && ($required || $isUsedInTemplate))
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">
-                                        {{ $label }} @if($required)<span class="text-danger">*</span>@endif
-                                    </label>
-
-                                    @if($type === 'image')
-                                        <input
-                                            type="file"
-                                            name="{{ $key }}"
-                                            class="form-control @error($key) is-invalid @enderror js-ad-image"
-                                            accept="image/png,image/jpeg,image/webp"
-                                            data-key="{{ $key }}"
-                                            {{ $required ? 'required' : '' }}
-                                        >
-                                        @error($key)
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <small class="text-secondary">PNG/JPG/WebP · Max 2MB</small>
-                                    @endif
-                                </div>
-                            @endif
-                        @endforeach
+                        <p class="small text-secondary mb-2">Fully customize the ad directly in live preview: add text, upload images, drag/drop, and style your content.</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addTextLayerBtn">
+                                <i class="fa-solid fa-font me-1"></i>Add Text
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="addImageLayerBtn">
+                                <i class="fa-solid fa-image me-1"></i>Add Image
+                            </button>
+                            <input type="file" id="addImageLayerInput" class="d-none" accept="image/png,image/jpeg,image/webp">
+                            <button type="button" class="btn btn-outline-danger btn-sm d-none" id="removeLayerBtn">
+                                <i class="fa-solid fa-trash me-1"></i>Remove Selected
+                            </button>
+                        </div>
                     </div>
 
                     @if(($size['admin_only'] ?? false) === true)
@@ -174,7 +160,7 @@
 
                     <div class="form-check mt-3">
                         <input
-                            class="form-check-input @error('accept_terms') is-invalid @enderror"
+                            class="form-check-input {{ $errors->has('accept_terms') ? 'is-invalid' : '' }}"
                             type="checkbox"
                             value="1"
                             id="acceptTerms"
@@ -186,16 +172,35 @@
                             I agree to the
                             <a href="{{ route('frontend.terms.show', ['moduleKey' => 'ads']) }}" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>
                         </label>
-                        @error('accept_terms')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        @if($errors->has('accept_terms'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('accept_terms') }}</div>
+                        @endif
                     </div>
                 </div>
 
                 <div class="col-12 col-lg-7">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
                         <h5 class="mb-0">Live Preview</h5>
-                        <span class="text-secondary small">{{ $size['w'] }}×{{ $size['h'] }}</span>
+                        <span class="text-secondary small">Exact size: {{ $size['w'] }}px × {{ $size['h'] }}px</span>
+                    </div>
+
+                    <div class="border rounded p-2 mb-2 bg-light">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1 small">Font Size</label>
+                                <input type="number" id="layerFontSize" class="form-control form-control-sm" min="8" max="180" value="28">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1 small">Text Color</label>
+                                <input type="color" id="layerColor" class="form-control form-control-sm form-control-color p-1" value="#111111">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button type="button" class="btn btn-outline-dark btn-sm w-100" id="layerBoldBtn"><i class="fa-solid fa-bold me-1"></i>Bold</button>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <button type="button" class="btn btn-outline-dark btn-sm w-100" id="layerBringFrontBtn"><i class="fa-solid fa-layer-group me-1"></i>Bring Front</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] }};">
@@ -206,7 +211,7 @@
                             data-source-height="{{ $size['h'] }}"
                         >
                             <div class="ads-mini-preview-inner" id="adPreview">
-                                {!! $template->layout_html !!}
+                                {!! $previewHtml !!}
                             </div>
                         </div>
                     </div>
@@ -214,13 +219,16 @@
                     <script type="application/json" id="adTemplateFieldKeys">@json($fields)</script>
                     <script type="application/json" id="adTemplateSampleDefaults">@json($sampleDefaults)</script>
 
-                    <small class="text-secondary d-block mt-2">Tip: Click any text to edit directly in the preview.</small>
+                    <small class="text-secondary d-block mt-2">Tip: Click to select, drag to move, and double-click text to edit.</small>
                 </div>
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ route('ads.create.template', ['sizeType' => $sizeType]) }}" class="btn btn-light px-4">Back</a>
-                <button type="submit" class="btn btn-primary ems-btn-primary px-5">
+                <button type="button" id="adsPayButton" class="btn btn-warning px-5 d-none">
+                    <i class="fa-solid fa-credit-card me-2"></i>Proceed to Payment
+                </button>
+                <button type="submit" id="adsSubmitButton" class="btn btn-primary ems-btn-primary px-5">
                     <i class="fa-solid fa-paper-plane me-2"></i>Submit for Approval
                 </button>
             </div>
@@ -268,6 +276,7 @@
         const alertBox = document.getElementById('adCustomizeAlert');
         const sourceWidth = Number(previewFrame.getAttribute('data-source-width') || 0);
         const sourceHeight = Number(previewFrame.getAttribute('data-source-height') || 0);
+        let selectedLayer = null;
 
         function scalePreview() {
             const targetWidth = previewFrame.clientWidth || 0;
@@ -378,6 +387,83 @@
             });
         }
 
+        function setSelectedLayer(node) {
+            preview.querySelectorAll('.ad-layer-selected').forEach((el) => el.classList.remove('ad-layer-selected'));
+            selectedLayer = node;
+            const removeBtn = document.getElementById('removeLayerBtn');
+            if (node) {
+                node.classList.add('ad-layer-selected');
+                if (removeBtn) removeBtn.classList.remove('d-none');
+                if (node.dataset.layerType === 'text') {
+                    const fontSizeInput = document.getElementById('layerFontSize');
+                    const colorInput = document.getElementById('layerColor');
+                    if (fontSizeInput) fontSizeInput.value = parseInt(node.style.fontSize || '28', 10) || 28;
+                    if (colorInput) colorInput.value = rgbToHex(node.style.color || '#111111');
+                }
+            } else if (removeBtn) {
+                removeBtn.classList.add('d-none');
+            }
+        }
+
+        function rgbToHex(value) {
+            if (!value) return '#111111';
+            if (value.startsWith('#')) return value;
+            const matches = value.match(/\d+/g);
+            if (!matches || matches.length < 3) return '#111111';
+            return '#' + matches.slice(0, 3).map((x) => Number(x).toString(16).padStart(2, '0')).join('');
+        }
+
+        function makeDraggable(node) {
+            let startX = 0;
+            let startY = 0;
+            let originX = 0;
+            let originY = 0;
+            let dragging = false;
+
+            node.addEventListener('mousedown', (event) => {
+                if (event.target && event.target.closest('[contenteditable="true"]')) return;
+                event.preventDefault();
+                setSelectedLayer(node);
+                dragging = true;
+                startX = event.clientX;
+                startY = event.clientY;
+                originX = parseFloat(node.style.left || '20');
+                originY = parseFloat(node.style.top || '20');
+            });
+
+            window.addEventListener('mousemove', (event) => {
+                if (!dragging) return;
+                const dx = event.clientX - startX;
+                const dy = event.clientY - startY;
+                const maxX = Math.max(0, sourceWidth - node.offsetWidth);
+                const maxY = Math.max(0, sourceHeight - node.offsetHeight);
+                const nextLeft = Math.min(maxX, Math.max(0, originX + dx));
+                const nextTop = Math.min(maxY, Math.max(0, originY + dy));
+                node.style.left = nextLeft + 'px';
+                node.style.top = nextTop + 'px';
+            });
+
+            window.addEventListener('mouseup', () => {
+                dragging = false;
+            });
+        }
+
+        function attachLayer(node) {
+            node.classList.add('ad-custom-layer');
+            node.style.position = 'absolute';
+            node.style.left = node.style.left || '20px';
+            node.style.top = node.style.top || '20px';
+            node.style.cursor = 'move';
+            node.style.zIndex = String(Date.now() % 100000);
+            node.addEventListener('click', (event) => {
+                event.stopPropagation();
+                setSelectedLayer(node);
+            });
+            makeDraggable(node);
+            preview.appendChild(node);
+            setSelectedLayer(node);
+        }
+
         function escapeHtml(str) {
             return str
                 .replaceAll('&', '&amp;')
@@ -390,6 +476,8 @@
         function updatePreview() {
             renderPreviewHtml();
             applyLiveImages();
+            preview.style.position = 'relative';
+            preview.style.overflow = 'hidden';
             scalePreview();
         }
 
@@ -443,23 +531,75 @@
             titleEl.addEventListener('input', updatePreview);
         }
 
-        document.querySelectorAll('.js-ad-image').forEach((el) => {
-            el.addEventListener('change', async () => {
-                const key = el.getAttribute('data-key');
-                const file = el.files && el.files[0];
-                if (!key || !file) return;
-                if (imageState[key]) {
-                    try { URL.revokeObjectURL(imageState[key]); } catch (e) {}
-                }
-                imageState[key] = URL.createObjectURL(file);
-                applyLiveImages();
-            });
+        document.getElementById('addTextLayerBtn')?.addEventListener('click', () => {
+            const node = document.createElement('div');
+            node.dataset.layerType = 'text';
+            node.style.fontSize = '28px';
+            node.style.color = '#111111';
+            node.style.fontWeight = '400';
+            node.style.minWidth = '80px';
+            node.style.maxWidth = Math.max(120, sourceWidth - 40) + 'px';
+            node.style.wordBreak = 'break-word';
+            node.style.padding = '4px 6px';
+            node.style.background = 'rgba(255,255,255,0.15)';
+            node.style.border = '1px dashed transparent';
+            node.textContent = 'Edit text';
+            node.setAttribute('contenteditable', 'true');
+            node.setAttribute('spellcheck', 'false');
+            attachLayer(node);
         });
+
+        document.getElementById('addImageLayerBtn')?.addEventListener('click', () => {
+            document.getElementById('addImageLayerInput')?.click();
+        });
+
+        document.getElementById('addImageLayerInput')?.addEventListener('change', (event) => {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const node = document.createElement('img');
+            node.dataset.layerType = 'image';
+            node.src = URL.createObjectURL(file);
+            node.style.width = Math.max(140, Math.round(sourceWidth * 0.25)) + 'px';
+            node.style.height = 'auto';
+            node.style.objectFit = 'cover';
+            node.style.border = '1px dashed transparent';
+            attachLayer(node);
+            event.target.value = '';
+        });
+
+        document.getElementById('layerFontSize')?.addEventListener('input', (event) => {
+            if (!selectedLayer || selectedLayer.dataset.layerType !== 'text') return;
+            const size = Math.min(180, Math.max(8, Number(event.target.value || 28)));
+            selectedLayer.style.fontSize = size + 'px';
+        });
+
+        document.getElementById('layerColor')?.addEventListener('input', (event) => {
+            if (!selectedLayer || selectedLayer.dataset.layerType !== 'text') return;
+            selectedLayer.style.color = event.target.value || '#111111';
+        });
+
+        document.getElementById('layerBoldBtn')?.addEventListener('click', () => {
+            if (!selectedLayer || selectedLayer.dataset.layerType !== 'text') return;
+            selectedLayer.style.fontWeight = selectedLayer.style.fontWeight === '700' ? '400' : '700';
+        });
+
+        document.getElementById('layerBringFrontBtn')?.addEventListener('click', () => {
+            if (!selectedLayer) return;
+            selectedLayer.style.zIndex = String(Date.now() % 100000);
+        });
+
+        document.getElementById('removeLayerBtn')?.addEventListener('click', () => {
+            if (!selectedLayer) return;
+            selectedLayer.remove();
+            setSelectedLayer(null);
+        });
+
+        preview.addEventListener('click', () => setSelectedLayer(null));
 
         async function exportPreviewAsPng() {
             const exportWidth = sourceWidth || preview.scrollWidth || 0;
             const exportHeight = sourceHeight || preview.scrollHeight || 0;
-            const pixelRatio = 4;
+            const pixelRatio = 1;
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -487,15 +627,39 @@
             sandbox.appendChild(clone);
             document.body.appendChild(sandbox);
 
+            const waitForImages = async (root, timeoutMs = 6000) => {
+                const imgs = Array.from(root.querySelectorAll('img'));
+                if (!imgs.length) return;
+
+                await Promise.race([
+                    Promise.all(imgs.map((img) => {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            const done = () => resolve();
+                            img.addEventListener('load', done, { once: true });
+                            img.addEventListener('error', done, { once: true });
+                        });
+                    })),
+                    new Promise((resolve) => setTimeout(resolve, timeoutMs))
+                ]);
+            };
+
             try {
+                await waitForImages(clone);
+
                 if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
                     try {
                         return await window.htmlToImage.toPng(clone, {
                             cacheBust: true,
                             pixelRatio,
-                            canvasWidth: exportWidth || undefined,
-                            canvasHeight: exportHeight || undefined,
+                            canvasWidth: exportWidth,
+                            canvasHeight: exportHeight,
                             backgroundColor: null,
+                            // Avoid reading cssRules from cross-origin stylesheets (Google Fonts, etc.).
+                            // Some html-to-image versions support one or both of these flags.
+                            // Unsupported options are safely ignored.
+                            skipFonts: true,
+                            fontEmbedCSS: '',
                         });
                     } catch (error) {
                         // Some stylesheets (e.g. Google Fonts) block cssRules access in html-to-image.
@@ -567,8 +731,64 @@
                 }
 
                 form.dataset.isSubmitting = '1';
-                form.submit();
+
+                const formData = new FormData(form);
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const payload = await response.json();
+
+                    if (!response.ok) {
+                        throw payload;
+                    }
+
+                    showToast(payload.message || 'Ad saved successfully.', 'success');
+                    setTimeout(() => {
+                        window.location.href = payload.redirect_url || '{{ route('ads.index') }}';
+                    }, 900);
+                } catch (error) {
+                    const message = error?.message
+                        || error?.errors?.generated_image_data?.[0]
+                        || error?.errors?.title?.[0]
+                        || 'Unable to save ad. Please check the form and try again.';
+                    showToast(message, 'danger');
+                    form.dataset.isSubmitting = '0';
+                }
             });
+        }
+
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('adToastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'adToastContainer';
+                container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                container.style.zIndex = '1080';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast align-items-center text-bg-' + (type === 'danger' ? 'danger' : 'success') + ' border-0';
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.innerHTML = '<div class="d-flex"><div class="toast-body">' + escapeHtml(message) + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+            container.appendChild(toast);
+
+            if (window.bootstrap && window.bootstrap.Toast) {
+                const instance = new window.bootstrap.Toast(toast, { delay: 2500 });
+                instance.show();
+                toast.addEventListener('hidden.bs.toast', () => toast.remove());
+            } else {
+                toast.classList.add('show');
+                setTimeout(() => toast.remove(), 2200);
+            }
         }
 
         window.addEventListener('resize', scalePreview);
@@ -586,9 +806,45 @@
         const subcategorySelect = document.getElementById('subcategorySelect');
         const subcategoryBaseUrl = form.dataset.subcategoryUrlBase || '';
         const selectedSubcategory = subcategorySelect ? (subcategorySelect.dataset.selectedSubcategory || '') : '';
+        const pricingStatus = document.getElementById('adsPricingStatus');
+        const submitButton = document.getElementById('adsSubmitButton');
+        const payButton = document.getElementById('adsPayButton');
         const locationInput = document.getElementById('adLocation');
         const locationLatInput = document.getElementById('adLocationLat');
         const locationLngInput = document.getElementById('adLocationLng');
+        function currentPriceFromOption(selectElement) {
+            if (!selectElement) return 0;
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            if (!selectedOption) return 0;
+            return Number(selectedOption.getAttribute('data-ads-price') || 0);
+        }
+
+        function syncPricingUi() {
+            const categoryPrice = currentPriceFromOption(categorySelect);
+            const subcategoryPrice = currentPriceFromOption(subcategorySelect);
+            const finalPrice = subcategoryPrice > 0 ? subcategoryPrice : categoryPrice;
+            const isPaid = finalPrice > 0;
+
+            if (pricingStatus) {
+                if (!categorySelect.value || !subcategorySelect.value) {
+                    pricingStatus.textContent = 'Select category and sub category to check pricing.';
+                    pricingStatus.className = 'text-success fw-semibold d-block mt-1';
+                } else if (finalPrice <= 0) {
+                    pricingStatus.textContent = 'This selection is Free. You can submit your ad now.';
+                    pricingStatus.className = 'text-success fw-semibold d-block mt-1';
+                } else {
+                    pricingStatus.textContent = `This sub category is Paid (₹${finalPrice.toFixed(2)}). Please continue to payment.`;
+                    pricingStatus.className = 'text-warning fw-semibold d-block mt-1';
+                }
+            }
+
+            if (submitButton) {
+                submitButton.classList.toggle('d-none', isPaid);
+            }
+            if (payButton) {
+                payButton.classList.toggle('d-none', !isPaid);
+            }
+        }
 
         async function loadSubcategories(categoryId, selectedId = '') {
             if (!subcategorySelect) return;
@@ -606,25 +862,41 @@
                 const options = ['<option value="">— Select subcategory —</option>'];
                 (Array.isArray(data) ? data : []).forEach((item) => {
                     const isSelected = String(item.id) === String(selectedId);
-                    options.push(`<option value="${item.id}" ${isSelected ? 'selected' : ''}>${item.name}</option>`);
+                    const price = Number(item.ads_price || 0);
+                    const label = price <= 0 ? `${item.name} • Free` : `${item.name} • ₹${price.toFixed(2)}`;
+                    options.push(`<option value="${item.id}" data-ads-price="${price.toFixed(2)}" ${isSelected ? 'selected' : ''}>${label}</option>`);
                 });
                 subcategorySelect.innerHTML = options.join('');
                 subcategorySelect.disabled = false;
+                syncPricingUi();
             } catch (error) {
                 subcategorySelect.innerHTML = '<option value="">— Unable to load subcategories —</option>';
                 subcategorySelect.disabled = true;
+                syncPricingUi();
             }
         }
 
         if (categorySelect && subcategorySelect) {
             categorySelect.addEventListener('change', function () {
                 loadSubcategories(this.value, '');
+                syncPricingUi();
+            });
+            subcategorySelect.addEventListener('change', function () {
+                syncPricingUi();
             });
 
             if (categorySelect.value) {
                 loadSubcategories(categorySelect.value, selectedSubcategory);
             }
         }
+
+        if (payButton) {
+            payButton.addEventListener('click', function () {
+                alert('Payment integration is not configured yet. Please contact admin to complete payment for this paid sub category.');
+            });
+        }
+
+        syncPricingUi();
 
         if (locationInput) {
             locationInput.addEventListener('input', function () {

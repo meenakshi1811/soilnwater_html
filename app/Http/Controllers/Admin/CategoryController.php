@@ -25,7 +25,7 @@ class CategoryController extends Controller
 
         $categories = Category::query()
             ->with(['parent:id,name'])
-            ->select(['id', 'name', 'parent_id', 'modules', 'created_at'])            
+            ->select(['id', 'name', 'parent_id', 'modules', 'ads_price', 'created_at'])
             ->withCount('children');
 
         return DataTables::of($categories)
@@ -47,6 +47,19 @@ class CategoryController extends Controller
                     ->implode(' ');
 
                 return $moduleBadges !== '' ? $moduleBadges : '<span class="text-muted">—</span>';
+            })
+            ->addColumn('ads_price_display', function (Category $category): string {
+                $isAdsEnabled = in_array('ads', $category->modules ?? [], true);
+                if (! $isAdsEnabled) {
+                    return '<span class="text-muted">N/A</span>';
+                }
+
+                $price = (float) ($category->ads_price ?? 0);
+                if ($price <= 0) {
+                    return '<span class="badge text-bg-success">Free</span>';
+                }
+
+                return '₹'.number_format($price, 2);
             })
             ->editColumn('created_at', function (Category $category) {
                 return $category->created_at ? $category->created_at->format('Y-m-d') : '';
@@ -90,7 +103,7 @@ class CategoryController extends Controller
                     }
                 });
             })
-            ->rawColumns(['subcategory_name', 'modules_list', 'actions'])
+            ->rawColumns(['subcategory_name', 'modules_list', 'ads_price_display', 'actions'])
             ->make(true);
     }
 
@@ -102,6 +115,7 @@ class CategoryController extends Controller
                 'name' => $category->name,
                 'parent_id' => $category->parent_id,
                 'modules' => $category->modules ?? [],
+                'ads_price' => (float) ($category->ads_price ?? 0),
                 'is_subcategory' => (bool) $category->parent_id,
             ],
         ]);
@@ -120,6 +134,7 @@ class CategoryController extends Controller
             'name' => $validated['name'],
             'parent_id' => $validated['parent_id'] ?? null,
             'modules' => $modules,
+            'ads_price' => $this->resolveAdsPrice($validated['parent_id'] ?? null, $modules, (float) ($validated['ads_price'] ?? 0)),
         ]);
 
         return response()->json(['message' => 'Category created successfully.']);
@@ -144,10 +159,14 @@ class CategoryController extends Controller
             'name' => $validated['name'],
             'parent_id' => $parentId,
             'modules' => $modules,
+            'ads_price' => $this->resolveAdsPrice($parentId, $modules, (float) ($validated['ads_price'] ?? 0)),
         ]);
 
         if (! $parentId) {
             $category->children()->update(['modules' => $modules]);
+            if (! in_array('ads', $modules, true)) {
+                $category->children()->update(['ads_price' => 0]);
+            }
         }
 
         return response()->json(['message' => 'Category updated successfully.']);
@@ -174,7 +193,7 @@ class CategoryController extends Controller
             ->whereNull('parent_id')
             ->when($excludeId > 0, fn ($query) => $query->where('id', '!=', $excludeId))
             ->orderBy('name')
-            ->get(['id', 'name', 'modules']);
+            ->get(['id', 'name', 'modules', 'ads_price']);
 
         return response()->json(['categories' => $categories]);
     }
@@ -194,6 +213,7 @@ class CategoryController extends Controller
             'modules_present' => ['nullable', 'boolean'],
             'modules' => ['nullable', 'array'],
             'modules.*' => ['string', Rule::in(array_keys(ModulePermissions::modules()))],
+            'ads_price' => ['nullable', 'numeric', 'min:0'],
         ]);
     }
 
@@ -213,5 +233,16 @@ class CategoryController extends Controller
         $allowedSlugs = array_keys(ModulePermissions::modules());
 
         return array_values(array_unique(array_values(array_intersect($allowedSlugs, $requestedModules))));
+    }
+
+    private function resolveAdsPrice(?int $parentId, array $modules, float $requestedAdsPrice): float
+    {
+        $normalized = max(0, round($requestedAdsPrice, 2));
+
+        if ($parentId) {
+            return in_array('ads', $modules, true) ? $normalized : 0;
+        }
+
+        return in_array('ads', $modules, true) ? $normalized : 0;
     }
 }

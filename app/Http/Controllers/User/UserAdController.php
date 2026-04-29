@@ -7,14 +7,16 @@ use App\Models\AdTemplate;
 use App\Models\Category;
 use App\Models\UserAd;
 use App\Support\AdSizes;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use Intervention\Image\ImageManager;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserAdController extends Controller
@@ -38,7 +40,32 @@ class UserAdController extends Controller
         $user = request()->user();
 
         return view('backend.ads.user.select-size', [
-            'sizes' => $this->visibleSizesForUser($user),
+            'sizes' => AdSizes::visibleFor($user),
+        ]);
+    }
+
+    public function customizeFromSize(string $sizeType): View
+    {
+        abort_unless(AdSizes::exists($sizeType), 404);
+        abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
+
+        $template = AdTemplate::query()
+            ->where('size_type', $sizeType)
+            ->where('is_active', true)
+            ->latest()
+            ->first();
+
+        abort_if(! $template, 404, 'No active template found for this size.');
+
+        return view('backend.ads.user.customize-size', [
+            'sizeType' => $sizeType,
+            'size' => AdSizes::all()[$sizeType],
+            'template' => $template,
+            'categories' => Category::query()
+                ->whereNull('parent_id')
+                ->whereJsonContains('modules', 'ads')
+                ->orderBy('name')
+                ->get(['id', 'name', 'ads_price']),
         ]);
     }
 
@@ -118,7 +145,7 @@ class UserAdController extends Controller
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'ads_price']),
         ]);
     }
 
@@ -130,16 +157,27 @@ class UserAdController extends Controller
             $category->children()
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
-                ->get(['id', 'name'])
+                ->get(['id', 'name', 'ads_price'])
         );
     }
 
-    public function store(Request $request, string $sizeType, AdTemplate $template): RedirectResponse
+    public function store(Request $request, string $sizeType, AdTemplate $template): RedirectResponse|JsonResponse
     {
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize($request->user(), $sizeType), 404);
-        abort_unless($template->size_type === $sizeType, 404);
-        abort_if(! $template->is_active, 404);
+
+        // New create flow may occasionally post with an unrelated template id.
+        // In that case, gracefully resolve to an active template for the selected size.
+        if ($template->size_type !== $sizeType || ! $template->is_active) {
+            $fallbackTemplate = AdTemplate::query()
+                ->where('size_type', $sizeType)
+                ->where('is_active', true)
+                ->latest()
+                ->first();
+
+            abort_if(! $fallbackTemplate, 404, 'No active template found for this size.');
+            $template = $fallbackTemplate;
+        }
 
         $schema = is_array($template->schema_json) ? $template->schema_json : [];
         $fieldRules = [];
@@ -160,7 +198,7 @@ class UserAdController extends Controller
             if ($type === 'image') {
                 $imageKeys[] = $key;
                 $fieldRules[$key] = array_filter([
-                    $required ? 'required' : 'nullable',
+                    ($required && ! $hasCustomHtml) ? 'required' : 'nullable',
                     'image',
                     'mimes:jpg,jpeg,png,webp',
                     'max:2048',
@@ -200,6 +238,24 @@ class UserAdController extends Controller
         if (! $isValidSubcategory) {
             return back()->withErrors([
                 'subcategory_id' => 'Selected subcategory does not belong to the selected category.',
+            ])->withInput();
+        }
+
+        $selectedCategory = Category::query()
+            ->where('id', $validated['category_id'])
+            ->select(['id', 'ads_price'])
+            ->first();
+        $selectedSubcategory = Category::query()
+            ->where('id', $validated['subcategory_id'])
+            ->select(['id', 'ads_price'])
+            ->first();
+        $subcategoryAdsPrice = (float) ($selectedSubcategory?->ads_price ?? 0);
+        $categoryAdsPrice = (float) ($selectedCategory?->ads_price ?? 0);
+        $appliedAdsPrice = $subcategoryAdsPrice > 0 ? $subcategoryAdsPrice : $categoryAdsPrice;
+
+        if ($appliedAdsPrice > 0 && ! $request->user()?->isAdmin()) {
+            return back()->withErrors([
+                'subcategory_id' => 'This sub category is paid. Please complete payment to continue.',
             ])->withInput();
         }
 
@@ -416,65 +472,18 @@ class UserAdController extends Controller
             return;
         }
 
-        $raw = file_get_contents($absolutePath);
-        if ($raw === false) {
-            return;
+        try {
+            $manager = new ImageManager(new GdDriver());
+            $image = $manager->read($absolutePath);
+            $image->cover($targetWidth, $targetHeight);
+            $image->toPng()->save($absolutePath);
+        } catch (\Throwable) {
+            // Keep original generated image if Intervention processing fails.
         }
-
-        $source = @imagecreatefromstring($raw);
-        if (!is_resource($source) && !is_object($source)) {
-            return;
-        }
-
-        $srcW = imagesx($source);
-        $srcH = imagesy($source);
-        if ($srcW <= 0 || $srcH <= 0) {
-            imagedestroy($source);
-
-            return;
-        }
-
-        if ($srcW === $targetWidth && $srcH === $targetHeight) {
-            imagedestroy($source);
-
-            return;
-        }
-
-        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
-        if (function_exists('imagesetinterpolation') && defined('IMG_BICUBIC')) {
-            imagesetinterpolation($canvas, IMG_BICUBIC);
-        }
-        $white = imagecolorallocate($canvas, 255, 255, 255);
-        imagefilledrectangle($canvas, 0, 0, $targetWidth, $targetHeight, $white);
-
-        $scale = min($targetWidth / $srcW, $targetHeight / $srcH);
-        $drawW = (int) max(1, round($srcW * $scale));
-        $drawH = (int) max(1, round($srcH * $scale));
-        $offsetX = (int) floor(($targetWidth - $drawW) / 2);
-        $offsetY = (int) floor(($targetHeight - $drawH) / 2);
-
-        imagecopyresampled($canvas, $source, $offsetX, $offsetY, 0, 0, $drawW, $drawH, $srcW, $srcH);
-        if (function_exists('imageconvolution')) {
-            @imageconvolution($canvas, [[-1, -1, -1], [-1, 16, -1], [-1, -1, -1]], 8, 0);
-        }
-        imagepng($canvas, $absolutePath, 9);
-
-        imagedestroy($canvas);
-        imagedestroy($source);
-    }
-
-    private function visibleSizesForUser($user): array
-    {
-        $isAdmin = (bool) ($user?->isAdmin());
-
-        return array_filter(
-            AdSizes::all(),
-            fn (array $size) => ($size['admin_only'] ?? false) === $isAdmin
-        );
     }
 
     private function canUserAccessSize($user, string $sizeType): bool
     {
-        return array_key_exists($sizeType, $this->visibleSizesForUser($user));
+        return array_key_exists($sizeType, AdSizes::visibleFor($user));
     }
 }

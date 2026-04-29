@@ -709,6 +709,11 @@
     overflow: hidden;
 }
 
+/* 879x118 previews can clip descenders with very tight inline line-height values. */
+.js-ads-scaled-preview[data-source-height="118"] .ad-canvas * {
+    line-height: 1.1 !important;
+}
+
 .ads-template-fallback {
     height: 100%;
     width: 100%;
@@ -771,4 +776,16 @@
 .ads-admin-template-live-preview {
     max-width: 420px;
     background: #fff;
+}
+
+/* Ads size customizer mode card active state */
+.banner-mode-card.is-active {
+    border-color: #2f7de1 !important;
+    background: rgba(47, 125, 225, 0.08) !important;
+    box-shadow: 0 8px 20px rgba(47, 125, 225, 0.15);
+}
+
+.banner-dropzone.is-dragover {
+    border-color: #2f7de1 !important;
+    background: rgba(47, 125, 225, 0.08) !important;
 }

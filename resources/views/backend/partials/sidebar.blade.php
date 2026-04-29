@@ -46,6 +46,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Users</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
                     <i class="fa-solid fa-folder-tree"></i>
                     <span>Categories</span>
@@ -65,9 +71,9 @@
                 </a>
             </li>
             <li>
-                <a class="{{ request()->routeIs('admin.ads.templates.*') ? 'active' : '' }}" href="{{ route('admin.ads.templates.index') }}">
-                    <i class="fa-solid fa-palette"></i>
-                    <span>Ad Templates</span>
+                <a class="{{ request()->routeIs('admin.ads.sizes.*') ? 'active' : '' }}" href="{{ route('admin.ads.sizes.index') }}">
+                    <i class="fa-solid fa-ruler-combined"></i>
+                    <span>Ad Sizes</span>
                 </a>
             </li>
             <li>

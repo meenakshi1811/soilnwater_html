@@ -29,8 +29,8 @@
                     </select>
                 </div>
             </div>
-            <a href="{{ route('admin.ads.templates.create') }}" class="btn btn-primary ems-btn-primary">
-                <i class="fa-solid fa-plus me-2"></i>New Template
+            <a href="{{ route('admin.ads.sizes.index') }}" class="btn btn-primary ems-btn-primary">
+                <i class="fa-solid fa-ruler-combined me-2"></i>Manage Sizes
             </a>
         </div>
 
