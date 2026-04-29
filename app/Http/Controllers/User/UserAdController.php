@@ -16,8 +16,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Intervention\Image\Drivers\Gd\Driver;
-
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\ImageManager;
 use Yajra\DataTables\Facades\DataTables;
 use Intervention\Image\Laravel\Facades\Image;
@@ -434,9 +433,9 @@ class UserAdController extends Controller
         $fileName = 'ad-' . Str::uuid() . '.png';
         $absolutePath = $absoluteDirectory . '/' . $fileName;
 
-        $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new GdDriver());
 
-        $manager->read($decoded)
+        $this->readImage($manager, $decoded)
             ->cover($targetWidth, $targetHeight) // crop + resize (no stretch)
             ->save($absolutePath);
 
@@ -451,7 +450,7 @@ class UserAdController extends Controller
 
         try {
             $manager = new ImageManager(new GdDriver());
-            $image = $manager->read($absolutePath);
+            $image = $this->readImage($manager, $absolutePath);
 
             if ($image->width() === $targetWidth && $image->height() === $targetHeight) {
                 return;
@@ -472,6 +471,20 @@ class UserAdController extends Controller
         }
     }
 
+    private function readImage(ImageManager $manager, mixed $source): mixed
+    {
+        if (method_exists($manager, 'read')) {
+            return $manager->read($source);
+        }
+
+        if (method_exists($manager, 'make')) {
+            return $manager->make($source);
+        }
+
+        throw new \RuntimeException('No compatible image reader method found on ImageManager.');
+    }
+
+
     private function storeAndResizeUploadedAsset(UploadedFile $file, string $key, int $targetWidth, int $targetHeight): string
     { 
         $relativeDirectory = 'uploads/ads/assets';
@@ -486,7 +499,7 @@ class UserAdController extends Controller
         $absolutePath = $absoluteDirectory.'/'.$fileName;
 
         $manager = new ImageManager(new GdDriver());
-        $image = $manager->read($file->getRealPath());
+        $image = $this->readImage($manager, $file->getRealPath());
 
         if ($targetWidth > 0 && $targetHeight > 0) {
             if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
