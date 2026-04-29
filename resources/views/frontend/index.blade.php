@@ -1018,27 +1018,19 @@
     <div class="sec ad-wide-slot">
       <div class="ad-wide-label">Sponsored Placement</div>
       <div class="ad-slider auto-ad-slider ad-wide-slider" aria-label="Sponsored services slider" data-show-arrows="true">
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Sponsored Services Banner</h3>
-            <p>Place your ad above Popular Services for maximum visibility.</p>
+        @forelse(($belowBuildersAds ?? collect()) as $ad)
+          <div class="ad-wide-content ad-slide ad-wide-image-slide">
+            <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img">
           </div>
-          <button class="ad-slot-btn">Reserve This Spot</button>
-        </div>
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Premium Service Highlight</h3>
-            <p>Show your top service to ready-to-buy users on every scroll.</p>
+        @empty
+          <div class="ad-wide-content ad-slide">
+            <div>
+              <h3>Top Rated Partner Ad</h3>
+              <p>Promote trusted services with bold banners and high click visibility.</p>
+            </div>
+            <button class="ad-slot-btn">Book This Banner</button>
           </div>
-          <button class="ad-slot-btn">Get Premium Reach</button>
-        </div>
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Top Rated Partner Ad</h3>
-            <p>Promote trusted services with bold banners and high click visibility.</p>
-          </div>
-          <button class="ad-slot-btn">Book This Banner</button>
-        </div>
+        @endforelse
       </div>
     </div>
 
