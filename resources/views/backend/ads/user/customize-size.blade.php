@@ -29,7 +29,7 @@
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = (float) ($category->ads_price ?? 0) @endphp
-                            <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }} ({{ $categoryPrice > 0 ? 'Paid' : 'Free' }})</option>
                         @endforeach
                     </select>
                 </div>
@@ -202,7 +202,7 @@
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ route('ads.create.size') }}" class="btn btn-light px-4">Back</a>
-                <button type="submit" class="btn btn-primary px-5">Save Ad</button>
+                <button type="submit" id="adSubmitButton" class="btn btn-primary px-5">Save Ad</button>
             </div>
         </form>
     </div>
@@ -232,6 +232,7 @@
         const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
         const categorySelect = document.getElementById('categorySelect');
         const subcategorySelect = document.getElementById('subcategorySelect');
+        const submitButton = document.getElementById('adSubmitButton');
         const adBgColorInput = document.getElementById('adBgColorInput');
         const adBgImageInput = document.getElementById('adBgImageInput');
         const clearAdBgBtn = document.getElementById('clearAdBgBtn');
@@ -258,18 +259,12 @@
                 return;
             }
 
-            // Avoid browser alert popups; render a dismissible inline message instead.
-            const existing = form.querySelector('.js-form-inline-alert');
-            if (existing) existing.remove();
+            if (window.toastr && typeof window.toastr[type] === 'function') {
+                window.toastr[type](message);
+                return;
+            }
 
-            const alert = document.createElement('div');
-            alert.className = `alert ${type === 'danger' ? 'alert-danger' : 'alert-success'} alert-dismissible fade show js-form-inline-alert mt-3`;
-            alert.setAttribute('role', 'alert');
-            alert.innerHTML = `
-                <span>${message || (type === 'danger' ? 'Something went wrong.' : 'Done')}</span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            form.prepend(alert);
+            console[type === 'danger' ? 'error' : 'log'](message || (type === 'danger' ? 'Something went wrong.' : 'Done'));
         }
 
         function clearFieldErrors() {
@@ -310,6 +305,36 @@
             error.className = 'invalid-feedback d-block js-inline-error';
             error.textContent = message;
             field.insertAdjacentElement('afterend', error);
+        }
+
+
+        function getSelectedPrice() {
+            const categoryPrice = Number(categorySelect?.selectedOptions?.[0]?.dataset?.adsPrice || 0);
+            const subcategoryPrice = Number(subcategorySelect?.selectedOptions?.[0]?.dataset?.adsPrice || 0);
+            return subcategoryPrice > 0 ? subcategoryPrice : categoryPrice;
+        }
+
+        function updateSubmitButtonState() {
+            if (!submitButton) return;
+            const selectedPrice = getSelectedPrice();
+            submitButton.textContent = selectedPrice > 0 ? 'Process Payment' : 'Save Ad';
+        }
+
+
+        function setSubmitLoadingState(isLoading) {
+            if (!submitButton) return;
+
+            if (!submitButton.dataset.defaultLabel) {
+                submitButton.dataset.defaultLabel = submitButton.textContent.trim() || 'Save Ad';
+            }
+
+            submitButton.disabled = !!isLoading;
+            if (isLoading) {
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Submitting...';
+                return;
+            }
+
+            updateSubmitButtonState();
         }
 
         function setMode(mode) {
@@ -756,6 +781,7 @@
                 e.stopImmediatePropagation();
             }
             clearFieldErrors();
+            setSubmitLoadingState(true);
             customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
 
             if (currentMode === 'upload' && uploadedImageFile) {
@@ -764,7 +790,10 @@
                 generatedImageDataInput.value = await exportPng();
             }
 
-            if (!generatedImageDataInput.value) return toast('danger', 'Could not generate ad image.');
+            if (!generatedImageDataInput.value) {
+                setSubmitLoadingState(false);
+                return toast('danger', 'Could not generate ad image.');
+            }
 
             try {
                 const response = await fetch(form.action, {
@@ -786,12 +815,24 @@
                         const messages = Array.isArray(errors[key]) ? errors[key] : [errors[key]];
                         if (messages[0]) showFieldError(key, messages[0]);
                     });
+                    setSubmitLoadingState(false);
                     return toast('danger', payload.message || 'Please fix the highlighted errors and try again.');
                 }
 
                 toast('success', payload.message || 'Saved successfully');
+
+                const redirectUrl = payload?.redirect_url || form.dataset.redirectUrl || '';
+                if (redirectUrl) {
+                    setTimeout(() => {
+                        window.location.assign(redirectUrl);
+                    }, 1200);
+                    return;
+                }
+
+                setSubmitLoadingState(false);
                 return;
             } catch (networkError) {
+                setSubmitLoadingState(false);
                 toast('danger', 'Unable to save ad right now. Please try again.');
             }
         });
@@ -806,12 +847,22 @@
             const response = await fetch(`${base}/${categoryId}/subcategories`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             const data = await response.json();
             const options = ['<option value="">— Select subcategory —</option>'];
-            (Array.isArray(data) ? data : []).forEach((item) => options.push(`<option value=\"${item.id}\">${item.name}</option>`));
+            (Array.isArray(data) ? data : []).forEach((item) => {
+                const adsPrice = Number(item.ads_price || 0);
+                const priceLabel = adsPrice > 0 ? 'Paid' : 'Free';
+                options.push(`<option value=\"${item.id}\" data-ads-price=\"${adsPrice.toFixed(2)}\">${item.name} (${priceLabel})</option>`);
+            });
             subcategorySelect.innerHTML = options.join('');
             subcategorySelect.disabled = false;
+            updateSubmitButtonState();
         }
 
-        categorySelect?.addEventListener('change', function () { loadSubcategories(this.value); });
+        categorySelect?.addEventListener('change', function () {
+            loadSubcategories(this.value);
+            updateSubmitButtonState();
+        });
+        subcategorySelect?.addEventListener('change', updateSubmitButtonState);
+        updateSubmitButtonState();
 
         window.initAdLocationAutocomplete = function () {
             const locationInput = document.getElementById('adLocation');
