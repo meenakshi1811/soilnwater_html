@@ -264,18 +264,7 @@
                 return;
             }
 
-            // Avoid browser alert popups; render a dismissible inline message instead.
-            const existing = form.querySelector('.js-form-inline-alert');
-            if (existing) existing.remove();
-
-            const alert = document.createElement('div');
-            alert.className = `alert ${type === 'danger' ? 'alert-danger' : 'alert-success'} alert-dismissible fade show js-form-inline-alert mt-3`;
-            alert.setAttribute('role', 'alert');
-            alert.innerHTML = `
-                <span>${message || (type === 'danger' ? 'Something went wrong.' : 'Done')}</span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            form.prepend(alert);
+            console[type === 'danger' ? 'error' : 'log'](message || (type === 'danger' ? 'Something went wrong.' : 'Done'));
         }
 
         function clearFieldErrors() {
@@ -329,6 +318,23 @@
             if (!submitButton) return;
             const selectedPrice = getSelectedPrice();
             submitButton.textContent = selectedPrice > 0 ? 'Process Payment' : 'Save Ad';
+        }
+
+
+        function setSubmitLoadingState(isLoading) {
+            if (!submitButton) return;
+
+            if (!submitButton.dataset.defaultLabel) {
+                submitButton.dataset.defaultLabel = submitButton.textContent.trim() || 'Save Ad';
+            }
+
+            submitButton.disabled = !!isLoading;
+            if (isLoading) {
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Submitting...';
+                return;
+            }
+
+            updateSubmitButtonState();
         }
 
         function setMode(mode) {
@@ -775,6 +781,7 @@
                 e.stopImmediatePropagation();
             }
             clearFieldErrors();
+            setSubmitLoadingState(true);
             customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
 
             if (currentMode === 'upload' && uploadedImageFile) {
@@ -783,7 +790,10 @@
                 generatedImageDataInput.value = await exportPng();
             }
 
-            if (!generatedImageDataInput.value) return toast('danger', 'Could not generate ad image.');
+            if (!generatedImageDataInput.value) {
+                setSubmitLoadingState(false);
+                return toast('danger', 'Could not generate ad image.');
+            }
 
             try {
                 const response = await fetch(form.action, {
@@ -805,6 +815,7 @@
                         const messages = Array.isArray(errors[key]) ? errors[key] : [errors[key]];
                         if (messages[0]) showFieldError(key, messages[0]);
                     });
+                    setSubmitLoadingState(false);
                     return toast('danger', payload.message || 'Please fix the highlighted errors and try again.');
                 }
 
@@ -818,8 +829,10 @@
                     return;
                 }
 
+                setSubmitLoadingState(false);
                 return;
             } catch (networkError) {
+                setSubmitLoadingState(false);
                 toast('danger', 'Unable to save ad right now. Please try again.');
             }
         });
