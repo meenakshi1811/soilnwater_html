@@ -673,7 +673,20 @@
 
                     ctx.drawImage(image, dx, dy, drawWidth, drawHeight);
                     URL.revokeObjectURL(objectUrl);
-                    resolve(canvas.toDataURL('image/png'));
+                    const outputCanvas = document.createElement('canvas');
+                    outputCanvas.width = sizeW;
+                    outputCanvas.height = sizeH;
+                    const outputCtx = outputCanvas.getContext('2d');
+                    if (!outputCtx) {
+                        URL.revokeObjectURL(objectUrl);
+                        resolve('');
+                        return;
+                    }
+                    outputCtx.imageSmoothingEnabled = true;
+                    outputCtx.imageSmoothingQuality = 'high';
+                    outputCtx.drawImage(canvas, 0, 0, sizeW, sizeH);
+
+                    resolve(outputCanvas.toDataURL('image/png'));
                 };
                 image.onerror = () => {
                     URL.revokeObjectURL(objectUrl);

@@ -449,6 +449,15 @@ class UserAdController extends Controller
         }
 
         try {
+            $imageInfo = @getimagesize($absolutePath);
+            if (is_array($imageInfo)) {
+                $currentWidth = (int) ($imageInfo[0] ?? 0);
+                $currentHeight = (int) ($imageInfo[1] ?? 0);
+                if ($currentWidth > $targetWidth || $currentHeight > $targetHeight) {
+                    return;
+                }
+            }
+
             $manager = new ImageManager(new GdDriver());
             $image = $manager->read($absolutePath);
             $image->cover($targetWidth, $targetHeight);
