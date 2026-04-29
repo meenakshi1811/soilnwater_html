@@ -257,12 +257,9 @@
             <div class="col d-flex sponsored-listings-ad-col">
               <div class="ad-slider auto-ad-slider sponsored-listings-ad-slider" data-show-arrows="true" data-pause-on-hover="false">
                 @forelse(($sponsoredListingsAds ?? collect()) as $ad)
-                  <a class="side-card ad-slide sponsored-listings-ad-card"
-                    href="{{ $ad->target_url ?: '#' }}"
-                    @if($ad->target_url) target="_blank" rel="noopener noreferrer" @endif
-                    aria-label="{{ $ad->title }}">
+                  <div class="side-card ad-slide sponsored-listings-ad-card" aria-label="{{ $ad->title }}">
                     <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
-                  </a>
+                  </div>
                 @empty
                   <div class="side-card ad-slide sponsored-listings-ad-card">
                     <img class="side-card-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=70" alt="Sponsored listing ad">
