@@ -16,9 +16,11 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use Intervention\Image\Drivers\Gd\Driver;
+
 use Intervention\Image\ImageManager;
 use Yajra\DataTables\Facades\DataTables;
+use Intervention\Image\Laravel\Facades\Image;
 
 class UserAdController extends Controller
 {
@@ -406,7 +408,7 @@ class UserAdController extends Controller
         return preg_replace('/>$/', ' style="object-fit:cover;object-position:center;">', $tag) ?? $tag;
     }
 
-    private function storeGeneratedAdImage(string $base64Png, int $targetWidth, int $targetHeight): string
+   private function storeGeneratedAdImage(string $base64Png, int $targetWidth, int $targetHeight): string
     {
         if (!preg_match('/^data:image\/png;base64,/', $base64Png)) {
             throw ValidationException::withMessages([
@@ -424,17 +426,21 @@ class UserAdController extends Controller
 
         $relativeDirectory = 'uploads/ads/final';
         $absoluteDirectory = public_path($relativeDirectory);
+
         if (!is_dir($absoluteDirectory)) {
             mkdir($absoluteDirectory, 0755, true);
         }
 
-        $fileName = 'ad-'.Str::uuid().'.png';
-        $absolutePath = $absoluteDirectory.'/'.$fileName;
-        file_put_contents($absolutePath, $decoded);
+        $fileName = 'ad-' . Str::uuid() . '.png';
+        $absolutePath = $absoluteDirectory . '/' . $fileName;
 
-        $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
+        $manager = new ImageManager(new Driver());
 
-        return $relativeDirectory.'/'.$fileName;
+        $manager->read($decoded)
+            ->cover($targetWidth, $targetHeight) // crop + resize (no stretch)
+            ->save($absolutePath);
+
+        return $relativeDirectory . '/' . $fileName;
     }
 
     private function normalizeGeneratedAdImage(string $absolutePath, int $targetWidth, int $targetHeight): void
@@ -467,7 +473,7 @@ class UserAdController extends Controller
     }
 
     private function storeAndResizeUploadedAsset(UploadedFile $file, string $key, int $targetWidth, int $targetHeight): string
-    {
+    { 
         $relativeDirectory = 'uploads/ads/assets';
         $absoluteDirectory = public_path($relativeDirectory);
         if (!is_dir($absoluteDirectory)) {
