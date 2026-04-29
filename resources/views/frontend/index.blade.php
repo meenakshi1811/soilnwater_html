@@ -933,27 +933,19 @@
     <div class="sec ad-wide-slot">
       <div class="ad-wide-label">Sponsored Placement</div>
       <div class="ad-slider auto-ad-slider ad-wide-slider" data-show-arrows="true" data-pause-on-hover="false" aria-label="Sponsored placement campaign slider">
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Grow Faster with Premium Marketplace Ads</h3>
-            <p>Show your business at the top of high-converting buyer searches.</p>
+        @forelse(($belowPopularAds ?? collect()) as $ad)
+          <div class="ad-wide-content ad-slide ad-wide-image-slide">
+            <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img">
           </div>
-          <button class="ad-slot-btn">Start Advertising</button>
-        </div>
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Get More Leads with Priority Visibility</h3>
-            <p>Appear in premium slots where customers are actively looking to buy.</p>
+        @empty
+          <div class="ad-wide-content ad-slide">
+            <div>
+              <h3>Run Automatic Marketplace Promotions</h3>
+              <p>Use rotating banner ads with arrow navigation to maximize campaign reach.</p>
+            </div>
+            <button class="ad-slot-btn">Book Slot</button>
           </div>
-          <button class="ad-slot-btn">View Plans</button>
-        </div>
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Run Automatic Marketplace Promotions</h3>
-            <p>Use rotating banner ads with arrow navigation to maximize campaign reach.</p>
-          </div>
-          <button class="ad-slot-btn">Book Slot</button>
-        </div>
+        @endforelse
       </div>
     </div>
 
@@ -1005,54 +997,20 @@
       <aside class="col-12 col-lg-3 section-side-ad builders-side-ads-stack" aria-label="Builders and developers side ad panels">
         <div class="ads-section-title">Ads</div>
         <div class="ad-slider auto-ad-slider builders-side-slider builders-side-slider-1" aria-label="Builder ads slider" data-show-arrows="true" data-pause-on-hover="false">
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=500&q=70" alt="Builder spotlight promotion">
-            <div class="side-card-body">
-              <h3>Featured Builder Ad</h3>
-              <p>Put your project in front of verified buyers in your city.</p>
-              <button class="btn-learn">Promote Now</button>
+          @forelse(($buildersDevelopersAds ?? collect()) as $ad)
+            <div class="side-card ad-slide" aria-label="{{ $ad->title }}">
+              <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
             </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1484154218962-a197022b5858?w=500&q=70" alt="New project launch ad">
-            <div class="side-card-body">
-              <h3>New Project Launch</h3>
-              <p>Highlight your latest project with premium placement this week.</p>
-              <button class="btn-learn">Launch Campaign</button>
+          @empty
+            <div class="side-card ad-slide">
+              <img class="side-card-img" src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=500&q=70" alt="Builder spotlight promotion">
+              <div class="side-card-body">
+                <h3>Featured Builder Ad</h3>
+                <p>Put your project in front of verified buyers in your city.</p>
+                <button class="btn-learn">Promote Now</button>
+              </div>
             </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=500&q=70" alt="Luxury homes campaign ad">
-            <div class="side-card-body">
-              <h3>Luxury Homes Ads</h3>
-              <p>Reach serious homebuyers actively comparing trusted developers.</p>
-              <button class="btn-learn">Book Ad Slot</button>
-            </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1460317442991-0ec209397118?w=500&q=70" alt="Site visit campaign ad">
-            <div class="side-card-body">
-              <h3>Site Visit Campaign</h3>
-              <p>Drive more site visits from buyers searching in your local area.</p>
-              <button class="btn-learn">Get Visits</button>
-            </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1494526585095-c41746248156?w=500&q=70" alt="Ready to move homes ad">
-            <div class="side-card-body">
-              <h3>Ready-to-Move Homes</h3>
-              <p>Showcase completed units to high-intent homebuyers immediately.</p>
-              <button class="btn-learn">List Homes</button>
-            </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=500&q=70" alt="Builder lead generation ad">
-            <div class="side-card-body">
-              <h3>Builder Lead Boost</h3>
-              <p>Get qualified leads with premium placements across city pages.</p>
-              <button class="btn-learn">Boost Leads</button>
-            </div>
-          </div>
+          @endforelse
         </div>
       </aside>
     </div>
