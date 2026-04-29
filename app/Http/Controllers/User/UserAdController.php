@@ -162,23 +162,18 @@ class UserAdController extends Controller
         );
     }
 
-    public function store(Request $request, string $sizeType, AdTemplate $template): RedirectResponse|JsonResponse
+    public function store(Request $request, string $sizeType): RedirectResponse|JsonResponse
     {
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize($request->user(), $sizeType), 404);
 
-        // New create flow may occasionally post with an unrelated template id.
-        // In that case, gracefully resolve to an active template for the selected size.
-        if ($template->size_type !== $sizeType || ! $template->is_active) {
-            $fallbackTemplate = AdTemplate::query()
-                ->where('size_type', $sizeType)
-                ->where('is_active', true)
-                ->latest()
-                ->first();
+        $template = AdTemplate::query()
+            ->where('size_type', $sizeType)
+            ->where('is_active', true)
+            ->latest()
+            ->first();
 
-            abort_if(! $fallbackTemplate, 404, 'No active template found for this size.');
-            $template = $fallbackTemplate;
-        }
+        abort_if(! $template, 404, 'No active template found for this size.');
 
         $schema = is_array($template->schema_json) ? $template->schema_json : [];
         $fieldRules = [];
@@ -278,7 +273,7 @@ class UserAdController extends Controller
         $targetWidth = (int) ($size['w'] ?? 0);
         $targetHeight = (int) ($size['h'] ?? 0);
 
-        $ad = DB::transaction(function () use ($request, $template, $validated, $fields, $imageKeys, $user, $targetWidth, $targetHeight) {
+        $ad = DB::transaction(function () use ($request, $template, $sizeType, $validated, $fields, $imageKeys, $user, $targetWidth, $targetHeight) {
             $firstUploadedImagePath = null;
 
             foreach ($imageKeys as $key) {
