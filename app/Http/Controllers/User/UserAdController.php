@@ -19,7 +19,6 @@ use Illuminate\View\View;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\ImageManager;
 use Yajra\DataTables\Facades\DataTables;
-use Intervention\Image\Laravel\Facades\Image;
 
 class UserAdController extends Controller
 {
@@ -407,7 +406,7 @@ class UserAdController extends Controller
         return preg_replace('/>$/', ' style="object-fit:cover;object-position:center;">', $tag) ?? $tag;
     }
 
-   private function storeGeneratedAdImage(string $base64Png, int $targetWidth, int $targetHeight): string
+    private function storeGeneratedAdImage(string $base64Png, int $targetWidth, int $targetHeight): string
     {
         if (!preg_match('/^data:image\/png;base64,/', $base64Png)) {
             throw ValidationException::withMessages([
@@ -425,26 +424,17 @@ class UserAdController extends Controller
 
         $relativeDirectory = 'uploads/ads/final';
         $absoluteDirectory = public_path($relativeDirectory);
-
         if (!is_dir($absoluteDirectory)) {
             mkdir($absoluteDirectory, 0755, true);
         }
 
-        $fileName = 'ad-' . Str::uuid() . '.png';
-        $absolutePath = $absoluteDirectory . '/' . $fileName;
+        $fileName = 'ad-'.Str::uuid().'.png';
+        $absolutePath = $absoluteDirectory.'/'.$fileName;
+        file_put_contents($absolutePath, $decoded);
 
-        try {
-            $manager = new ImageManager(new GdDriver());
+        $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
 
-            $this->readImage($manager, $decoded)
-                ->cover($targetWidth, $targetHeight) // crop + resize (no stretch)
-                ->save($absolutePath);
-        } catch (\Throwable) {
-            file_put_contents($absolutePath, $decoded);
-            $this->forceResizeWithGd($absolutePath, $absolutePath, $targetWidth, $targetHeight, 'png');
-        }
-
-        return $relativeDirectory . '/' . $fileName;
+        return $relativeDirectory.'/'.$fileName;
     }
 
     private function normalizeGeneratedAdImage(string $absolutePath, int $targetWidth, int $targetHeight): void
@@ -455,7 +445,7 @@ class UserAdController extends Controller
 
         try {
             $manager = new ImageManager(new GdDriver());
-            $image = $this->readImage($manager, $absolutePath);
+            $image = $manager->read($absolutePath);
 
             if ($image->width() === $targetWidth && $image->height() === $targetHeight) {
                 return;
@@ -476,22 +466,8 @@ class UserAdController extends Controller
         }
     }
 
-    private function readImage(ImageManager $manager, mixed $source): mixed
-    {
-        if (method_exists($manager, 'read')) {
-            return $manager->read($source);
-        }
-
-        if (method_exists($manager, 'make')) {
-            return $manager->make($source);
-        }
-
-        throw new \RuntimeException('Unable to read image with current Intervention configuration.');
-    }
-
-
     private function storeAndResizeUploadedAsset(UploadedFile $file, string $key, int $targetWidth, int $targetHeight): string
-    { 
+    {
         $relativeDirectory = 'uploads/ads/assets';
         $absoluteDirectory = public_path($relativeDirectory);
         if (!is_dir($absoluteDirectory)) {
@@ -503,95 +479,28 @@ class UserAdController extends Controller
         $fileName = $key.'-'.Str::uuid().'.'.$safeExtension;
         $absolutePath = $absoluteDirectory.'/'.$fileName;
 
-        try {
-            $manager = new ImageManager(new GdDriver());
-            $image = $this->readImage($manager, $file->getRealPath());
+        $manager = new ImageManager(new GdDriver());
+        $image = $manager->read($file->getRealPath());
 
-            if ($targetWidth > 0 && $targetHeight > 0) {
-                if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
-                    $image->cover($targetWidth, $targetHeight);
-                } else {
-                    $image->scaleDown($targetWidth, $targetHeight);
-                    $canvas = $manager->create($targetWidth, $targetHeight)->fill('ffffff');
-                    $canvas->place($image, 'center');
-                    $image = $canvas;
-                }
+        if ($targetWidth > 0 && $targetHeight > 0) {
+            if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
+                $image->cover($targetWidth, $targetHeight);
+            } else {
+                $image->scaleDown($targetWidth, $targetHeight);
+                $canvas = $manager->create($targetWidth, $targetHeight)->fill('ffffff');
+                $canvas->place($image, 'center');
+                $image = $canvas;
             }
-
-            match ($safeExtension) {
-                'jpg', 'jpeg' => $image->toJpeg(100)->save($absolutePath),
-                'webp' => $image->toWebp(100)->save($absolutePath),
-                default => $image->toPng()->save($absolutePath),
-            };
-        } catch (\Throwable) {
-            $movedFile = $file->move($absoluteDirectory, $fileName);
-            $this->forceResizeWithGd($movedFile->getPathname(), $absolutePath, $targetWidth, $targetHeight, $safeExtension);
         }
+
+        match ($safeExtension) {
+            'jpg', 'jpeg' => $image->toJpeg(100)->save($absolutePath),
+            'webp' => $image->toWebp(100)->save($absolutePath),
+            default => $image->toPng()->save($absolutePath),
+        };
 
         return $relativeDirectory.'/'.$fileName;
     }
-
-    private function forceResizeWithGd(string $sourcePath, string $destinationPath, int $targetWidth, int $targetHeight, string $extension): void
-    {
-        if ($targetWidth <= 0 || $targetHeight <= 0 || !is_file($sourcePath)) {
-            return;
-        }
-
-        $imageData = @file_get_contents($sourcePath);
-        if ($imageData === false) {
-            return;
-        }
-
-        $source = @imagecreatefromstring($imageData);
-        if ($source === false) {
-            return;
-        }
-
-        $srcWidth = imagesx($source);
-        $srcHeight = imagesy($source);
-
-        if ($srcWidth <= 0 || $srcHeight <= 0) {
-            imagedestroy($source);
-            return;
-        }
-
-        $scale = min($targetWidth / $srcWidth, $targetHeight / $srcHeight, 1);
-        $resizedWidth = max(1, (int) round($srcWidth * $scale));
-        $resizedHeight = max(1, (int) round($srcHeight * $scale));
-
-        $resized = imagecreatetruecolor($resizedWidth, $resizedHeight);
-        imagealphablending($resized, false);
-        imagesavealpha($resized, true);
-        $transparent = imagecolorallocatealpha($resized, 0, 0, 0, 127);
-        imagefill($resized, 0, 0, $transparent);
-
-        imagecopyresampled($resized, $source, 0, 0, 0, 0, $resizedWidth, $resizedHeight, $srcWidth, $srcHeight);
-
-        $final = imagecreatetruecolor($targetWidth, $targetHeight);
-        imagealphablending($final, false);
-        imagesavealpha($final, true);
-        $transparentFinal = imagecolorallocatealpha($final, 0, 0, 0, 127);
-        imagefill($final, 0, 0, $transparentFinal);
-
-        $dstX = (int) floor(($targetWidth - $resizedWidth) / 2);
-        $dstY = (int) floor(($targetHeight - $resizedHeight) / 2);
-        imagecopy($final, $resized, $dstX, $dstY, 0, 0, $resizedWidth, $resizedHeight);
-
-        $extension = strtolower($extension);
-        if (in_array($extension, ['jpg', 'jpeg'], true)) {
-            imageinterlace($final, true);
-            imagejpeg($final, $destinationPath, 100);
-        } elseif ($extension === 'webp' && function_exists('imagewebp')) {
-            imagewebp($final, $destinationPath, 100);
-        } else {
-            imagepng($final, $destinationPath);
-        }
-
-        imagedestroy($final);
-        imagedestroy($resized);
-        imagedestroy($source);
-    }
-
 
     private function canUserAccessSize($user, string $sizeType): bool
     {

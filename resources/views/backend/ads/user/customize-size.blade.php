@@ -10,10 +10,10 @@
             <h2 class="admin-title mb-1">Create Your Ad</h2>
             <p class="mb-0 text-secondary">Selected size: <strong>{{ $size['name'] }}</strong> ({{ $size['w'] }}×{{ $size['h'] }} px)</p>
         </div>
-    </div> 
+    </div>
 
     <div class="chart-card">
-        <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
+        <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
@@ -578,14 +578,12 @@
             if (!sizeW || !sizeH) return '';
 
             const canvas = document.createElement('canvas');
-            const exportPixelRatio = 4;
+            const exportPixelRatio = 1;
             canvas.width = sizeW * exportPixelRatio;
             canvas.height = sizeH * exportPixelRatio;
             const ctx = canvas.getContext('2d');
             if (!ctx) return '';
             ctx.scale(exportPixelRatio, exportPixelRatio);
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
 
             const backgroundColor = adBgColorInput?.value || '#f7f7f7';
             ctx.fillStyle = backgroundColor;
@@ -682,7 +680,7 @@
                 const image = new Image();
                 image.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const exportPixelRatio = 4;
+                    const exportPixelRatio = 1;
                     canvas.width = sizeW * exportPixelRatio;
                     canvas.height = sizeH * exportPixelRatio;
                     const ctx = canvas.getContext('2d');
@@ -692,8 +690,6 @@
                         return;
                     }
 
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
                     ctx.fillStyle = '#f7f7f7';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
