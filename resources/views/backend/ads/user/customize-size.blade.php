@@ -93,7 +93,7 @@
                     <h6 class="mb-1">Customize Ad Studio</h6>
                     <p class="mb-0">Build your ad with layered text and images. Tip: drag layers to reposition, and double-click text to edit.</p>
                 </div>
-                <div class="row g-3 customize-panel-grid">
+                <div class="row g-4 customize-panel-grid">
                     <div class="col-md-3">
                         <label class="form-label">Background Color</label>
                         <input type="color" id="adBgColorInput" class="form-control form-control-color w-100" value="#f7f7f7">
@@ -134,7 +134,7 @@
                             <label class="form-check-label" for="layerBoldInput">Bold</label>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-1">
                         <label class="form-label">Text Color</label>
                         <input type="color" id="layerTextColorInput" class="form-control form-control-color w-100" value="#111111">
                     </div>
@@ -146,7 +146,7 @@
                             <option value="right">Right</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label">Font Family</label>
                         <select id="layerFontFamilyInput" class="form-select">
                             <option value="Arial">Arial</option>
