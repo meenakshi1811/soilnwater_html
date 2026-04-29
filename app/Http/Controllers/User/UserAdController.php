@@ -433,11 +433,16 @@ class UserAdController extends Controller
         $fileName = 'ad-' . Str::uuid() . '.png';
         $absolutePath = $absoluteDirectory . '/' . $fileName;
 
-        $manager = new ImageManager(new GdDriver());
+        try {
+            $manager = new ImageManager(new GdDriver());
 
-        $this->readImage($manager, $decoded)
-            ->cover($targetWidth, $targetHeight) // crop + resize (no stretch)
-            ->save($absolutePath);
+            $this->readImage($manager, $decoded)
+                ->cover($targetWidth, $targetHeight) // crop + resize (no stretch)
+                ->save($absolutePath);
+        } catch (\Throwable) {
+            file_put_contents($absolutePath, $decoded);
+            $this->normalizeGeneratedAdImage($absolutePath, $targetWidth, $targetHeight);
+        }
 
         return $relativeDirectory . '/' . $fileName;
     }
@@ -481,7 +486,7 @@ class UserAdController extends Controller
             return $manager->make($source);
         }
 
-        throw new \RuntimeException('No compatible image reader method found on ImageManager.');
+        throw new \RuntimeException('Unable to read image with current Intervention configuration.');
     }
 
 
@@ -498,25 +503,29 @@ class UserAdController extends Controller
         $fileName = $key.'-'.Str::uuid().'.'.$safeExtension;
         $absolutePath = $absoluteDirectory.'/'.$fileName;
 
-        $manager = new ImageManager(new GdDriver());
-        $image = $this->readImage($manager, $file->getRealPath());
+        try {
+            $manager = new ImageManager(new GdDriver());
+            $image = $this->readImage($manager, $file->getRealPath());
 
-        if ($targetWidth > 0 && $targetHeight > 0) {
-            if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
-                $image->cover($targetWidth, $targetHeight);
-            } else {
-                $image->scaleDown($targetWidth, $targetHeight);
-                $canvas = $manager->create($targetWidth, $targetHeight)->fill('ffffff');
-                $canvas->place($image, 'center');
-                $image = $canvas;
+            if ($targetWidth > 0 && $targetHeight > 0) {
+                if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
+                    $image->cover($targetWidth, $targetHeight);
+                } else {
+                    $image->scaleDown($targetWidth, $targetHeight);
+                    $canvas = $manager->create($targetWidth, $targetHeight)->fill('ffffff');
+                    $canvas->place($image, 'center');
+                    $image = $canvas;
+                }
             }
-        }
 
-        match ($safeExtension) {
-            'jpg', 'jpeg' => $image->toJpeg(100)->save($absolutePath),
-            'webp' => $image->toWebp(100)->save($absolutePath),
-            default => $image->toPng()->save($absolutePath),
-        };
+            match ($safeExtension) {
+                'jpg', 'jpeg' => $image->toJpeg(100)->save($absolutePath),
+                'webp' => $image->toWebp(100)->save($absolutePath),
+                default => $image->toPng()->save($absolutePath),
+            };
+        } catch (\Throwable) {
+            $file->move($absoluteDirectory, $fileName);
+        }
 
         return $relativeDirectory.'/'.$fileName;
     }
