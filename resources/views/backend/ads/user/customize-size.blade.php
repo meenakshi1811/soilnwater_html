@@ -575,110 +575,71 @@
         }
 
         async function exportPng() {
-            if (!sizeW || !sizeH) return '';
-
-            const canvas = document.createElement('canvas');
+            const exportWidth = sizeW || preview.scrollWidth || 0;
+            const exportHeight = sizeH || preview.scrollHeight || 0;
             const exportPixelRatio = 4;
-            canvas.width = sizeW * exportPixelRatio;
-            canvas.height = sizeH * exportPixelRatio;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return '';
-            ctx.scale(exportPixelRatio, exportPixelRatio);
+            if (!exportWidth || !exportHeight) return '';
 
-            const backgroundColor = adBgColorInput?.value || '#f7f7f7';
-            ctx.fillStyle = backgroundColor;
-            ctx.fillRect(0, 0, sizeW, sizeH);
+            const clone = preview.cloneNode(true);
+            const sandbox = document.createElement('div');
+            sandbox.style.position = 'fixed';
+            sandbox.style.left = '-10000px';
+            sandbox.style.top = '0';
+            sandbox.style.width = exportWidth + 'px';
+            sandbox.style.height = exportHeight + 'px';
+            sandbox.style.overflow = 'hidden';
+            sandbox.style.zIndex = '-1';
 
-            const drawImageCover = (img, x, y, w, h) => {
-                const scale = Math.max(w / img.width, h / img.height);
-                const drawWidth = img.width * scale;
-                const drawHeight = img.height * scale;
-                const dx = x + (w - drawWidth) / 2;
-                const dy = y + (h - drawHeight) / 2;
-                ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
+            clone.style.position = 'static';
+            clone.style.inset = 'auto';
+            clone.style.transform = 'none';
+            clone.style.transformOrigin = 'top left';
+            clone.style.width = exportWidth + 'px';
+            clone.style.height = exportHeight + 'px';
+            clone.style.maxWidth = 'none';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'hidden';
+
+            sandbox.appendChild(clone);
+            document.body.appendChild(sandbox);
+
+            const waitForImages = async (root, timeoutMs = 6000) => {
+                const imgs = Array.from(root.querySelectorAll('img'));
+                if (!imgs.length) return;
+                await Promise.race([
+                    Promise.all(imgs.map((img) => {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            const done = () => resolve();
+                            img.addEventListener('load', done, { once: true });
+                            img.addEventListener('error', done, { once: true });
+                        });
+                    })),
+                    new Promise((resolve) => setTimeout(resolve, timeoutMs))
+                ]);
             };
 
-            const loadImage = (src) => new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => resolve(img);
-                img.onerror = () => resolve(null);
-                img.src = src;
-            });
-
-            const bgMatch = (preview.style.backgroundImage || '').match(/url\(["']?(.*?)["']?\)/);
-            if (bgMatch?.[1]) {
-                const bgImg = await loadImage(bgMatch[1]);
-                if (bgImg) drawImageCover(bgImg, 0, 0, sizeW, sizeH);
+            try {
+                await waitForImages(clone);
+                if (!window.html2canvas) return '';
+                const canvas = await window.html2canvas(clone, {
+                    width: exportWidth,
+                    height: exportHeight,
+                    windowWidth: exportWidth,
+                    windowHeight: exportHeight,
+                    scale: exportPixelRatio,
+                    useCORS: true,
+                    allowTaint: false,
+                    logging: false,
+                    backgroundColor: null
+                });
+                return canvas.toDataURL('image/png');
+            } catch (error) {
+                console.warn('preview export failed.', error);
+                return '';
+            } finally {
+                document.body.removeChild(sandbox);
             }
-
-            const layers = Array.from(preview.children).filter((node) => node.getAttribute('data-custom-stage') !== '1');
-            for (const layer of layers) {
-                const x = parseFloat(layer.style.left || '0');
-                const y = parseFloat(layer.style.top || '0');
-                const w = layer.offsetWidth || parseFloat(layer.style.width || '0');
-                const h = layer.offsetHeight || parseFloat(layer.style.height || '0');
-
-                if (isTextLayer(layer)) {
-                    const fontSize = parseInt(layer.style.fontSize, 10) || 30;
-                    const fontWeight = layer.style.fontWeight || '700';
-                    const fontFamily = layer.style.fontFamily || 'Arial';
-                    const lineHeight = Math.round(fontSize * 1.2);
-                    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-                    ctx.fillStyle = layer.style.color || '#111111';
-                    ctx.textBaseline = 'top';
-                    ctx.textAlign = (layer.style.textAlign || 'left');
-
-                    const maxWidth = Math.max(20, w || Math.round(sizeW * 0.85));
-                    const words = (layer.textContent || '').split(/\s+/).filter(Boolean);
-                    const lines = [];
-                    let line = '';
-                    words.forEach((word) => {
-                        const test = line ? `${line} ${word}` : word;
-                        if (ctx.measureText(test).width <= maxWidth || !line) {
-                            line = test;
-                        } else {
-                            lines.push(line);
-                            line = word;
-                        }
-                    });
-                    if (line) lines.push(line);
-                    if (!lines.length) lines.push('');
-
-                    let baseX = x;
-                    if (ctx.textAlign === 'center') baseX = x + (maxWidth / 2);
-                    if (ctx.textAlign === 'right') baseX = x + maxWidth;
-
-                    lines.forEach((textLine, index) => {
-                        ctx.fillText(textLine, baseX, y + (index * lineHeight));
-                    });
-                } else if (isImageLayer(layer)) {
-                    const imgNode = layer.tagName === 'IMG' ? layer : layer.querySelector('img');
-                    const src = imgNode?.getAttribute('src');
-                    if (!src) continue;
-                    const img = await loadImage(src);
-                    if (img) {
-                        const width = w || Math.round(sizeW * 0.25);
-                        const height = h || Math.round((img.height / img.width) * width);
-                        ctx.drawImage(img, x, y, width, height);
-                    }
-                } else if (layer.tagName === 'IMG') {
-                    const src = layer.getAttribute('src');
-                    if (!src) continue;
-                    const img = await loadImage(src);
-                    if (img) drawImageCover(img, 0, 0, sizeW, sizeH);
-                }
-            }
-
-            const outputCanvas = document.createElement('canvas');
-            outputCanvas.width = sizeW;
-            outputCanvas.height = sizeH;
-            const outputCtx = outputCanvas.getContext('2d');
-            if (!outputCtx) return '';
-            outputCtx.imageSmoothingEnabled = true;
-            outputCtx.imageSmoothingQuality = 'high';
-            outputCtx.drawImage(canvas, 0, 0, sizeW, sizeH);
-
-            return outputCanvas.toDataURL('image/png');
         }
 
         async function exportUploadedFileAsPng(file) {
