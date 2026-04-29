@@ -279,13 +279,20 @@ class UserAdController extends Controller
         $targetHeight = (int) ($size['h'] ?? 0);
 
         $ad = DB::transaction(function () use ($request, $template, $validated, $fields, $imageKeys, $user, $targetWidth, $targetHeight) {
+            $firstUploadedImagePath = null;
+
             foreach ($imageKeys as $key) {
                 if (!$request->hasFile($key)) {
                     continue;
                 }
 
                 $file = $request->file($key);
-                $fields[$key] = $this->storeAndResizeUploadedAsset($file, $key, $targetWidth, $targetHeight);
+                $storedPath = $this->storeAndResizeUploadedAsset($file, $key, $targetWidth, $targetHeight);
+                $fields[$key] = $storedPath;
+
+                if ($firstUploadedImagePath === null) {
+                    $firstUploadedImagePath = $storedPath;
+                }
             }
 
             $layoutHtml = trim((string) ($validated['custom_html'] ?? '')) !== ''
@@ -294,11 +301,12 @@ class UserAdController extends Controller
 
             $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
 
-            $finalImagePath = $this->storeGeneratedAdImage(
-                $validated['generated_image_data'] ?? '',
-                $targetWidth,
-                $targetHeight,
-            ); 
+            $finalImagePath = $firstUploadedImagePath
+                ?? $this->storeGeneratedAdImage(
+                    $validated['generated_image_data'] ?? '',
+                    $targetWidth,
+                    $targetHeight,
+                );
 
             return UserAd::create([
                 'user_id' => $user->id,
