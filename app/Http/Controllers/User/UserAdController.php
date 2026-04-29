@@ -451,7 +451,15 @@ class UserAdController extends Controller
                 return;
             }
 
-            $image->cover($targetWidth, $targetHeight);
+            if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
+                $image->cover($targetWidth, $targetHeight);
+            } else {
+                $image->scaleDown($targetWidth, $targetHeight);
+                $canvas = $manager->create($targetWidth, $targetHeight)->fill('ffffff');
+                $canvas->place($image, 'center');
+                $image = $canvas;
+            }
+
             $image->toPng()->save($absolutePath);
         } catch (\Throwable) {
             // Keep original generated image if Intervention processing fails.
