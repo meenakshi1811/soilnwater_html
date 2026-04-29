@@ -652,8 +652,8 @@
                         return await window.htmlToImage.toPng(clone, {
                             cacheBust: true,
                             pixelRatio,
-                            canvasWidth: exportWidth,
-                            canvasHeight: exportHeight,
+                            canvasWidth: exportWidth * pixelRatio,
+                            canvasHeight: exportHeight * pixelRatio,
                             backgroundColor: null,
                             // Avoid reading cssRules from cross-origin stylesheets (Google Fonts, etc.).
                             // Some html-to-image versions support one or both of these flags.
