@@ -105,7 +105,7 @@
                         <label class="form-label">Background Image (optional)</label>
                         <input type="file" id="adBgImageInput" class="form-control" accept="image/png,image/jpeg,image/webp">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label">Clear Background</label>
                         <button type="button" class="btn btn-outline-secondary w-100 text-nowrap px-3" id="clearAdBgBtn">Remove BG Image</button>
                     </div>
@@ -140,7 +140,7 @@
                             <label class="form-check-label" for="layerBoldInput">Bold</label>
                         </div>
                     </div>
-                    <div class="col-md-2 col-lg-1">
+                    <div class="col-md-3">
                         <label class="form-label">Text Color</label>
                         <input type="color" id="layerTextColorInput" class="form-control form-control-color w-100" value="#111111">
                     </div>
