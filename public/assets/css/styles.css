@@ -1682,10 +1682,22 @@
     height: 100%;
     gap: 10px;
   }
+  .top-sidebar-ads > .ad-slider {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+  .top-sidebar-ads > .ad-slider > .ad-slide.is-active,
+  .top-sidebar-ads > .ad-slider > .ad-slide.is-active > .side-card {
+    height: 100%;
+  }
+  .top-sidebar-ads .side-card {
+    display: flex;
+    flex-direction: column;
+  }
   .top-sidebar-ads .side-card-img {
-    height: auto;
-    min-height: 96px;
-    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+    flex: 1 1 0;
     object-fit: cover;
   }
   .top-sidebar-ads .side-card-body {
