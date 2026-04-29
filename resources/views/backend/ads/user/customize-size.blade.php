@@ -93,7 +93,10 @@
                     <h6 class="mb-1">Customize Ad Studio</h6>
                     <p class="mb-0">Build your ad with layered text and images. Tip: drag layers to reposition, and double-click text to edit.</p>
                 </div>
-                <div class="row g-4 customize-panel-grid">
+                <div class="row g-4 g-lg-5 customize-panel-grid">
+                    <div class="col-12">
+                        <div class="small text-uppercase fw-semibold text-secondary border-bottom pb-2 mb-1">Background & Layers</div>
+                    </div>
                     <div class="col-md-3">
                         <label class="form-label">Background Color</label>
                         <input type="color" id="adBgColorInput" class="form-control form-control-color w-100" value="#f7f7f7">
@@ -121,7 +124,10 @@
                     <div class="col-md-6">
                         <label class="form-label">Layer Text</label>
                         <textarea id="layerTextInput" class="form-control" rows="2" maxlength="120" placeholder="Edit selected text block"></textarea>
-                        <small class="text-secondary"><span id="layerTextCharCount">0</span>/120</small>
+                        <small class="text-secondary d-inline-block mt-1"><span id="layerTextCharCount">0</span>/120</small>
+                    </div>
+                    <div class="col-12">
+                        <div class="small text-uppercase fw-semibold text-secondary border-bottom pb-2 mb-1 mt-2">Text Styling</div>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Font Size</label>
@@ -134,7 +140,7 @@
                             <label class="form-check-label" for="layerBoldInput">Bold</label>
                         </div>
                     </div>
-                    <div class="col-md-1">
+                    <div class="col-md-2 col-lg-1">
                         <label class="form-label">Text Color</label>
                         <input type="color" id="layerTextColorInput" class="form-control form-control-color w-100" value="#111111">
                     </div>
@@ -146,7 +152,7 @@
                             <option value="right">Right</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 col-lg-3">
                         <label class="form-label">Font Family</label>
                         <select id="layerFontFamilyInput" class="form-select">
                             <option value="Arial">Arial</option>
@@ -157,6 +163,9 @@
                             <option value="Times New Roman">Times New Roman</option>
                             <option value="Courier New">Courier New</option>
                         </select>
+                    </div>
+                    <div class="col-12">
+                        <div class="small text-uppercase fw-semibold text-secondary border-bottom pb-2 mb-1 mt-2">Image Sizing</div>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Image Width</label>
