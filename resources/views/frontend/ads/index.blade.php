@@ -8,24 +8,86 @@
     </div>
 
     <div class="row g-2 mb-3" id="adsFilterBar" data-categories='@json($categoriesForFilter)'>
-        <div class="col-12 col-md-3"><input id="adsMarketFilterSearch" class="form-control" placeholder="Search ads by title" value="{{ request('search') }}"></div>
-        <div class="col-12 col-md-3"><select id="adsMarketFilterCategory" class="form-select"><option value="">All categories</option>@foreach($categories as $category)<option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>@endforeach</select></div>
-        <div class="col-12 col-md-3"><select id="adsMarketFilterSubcategory" class="form-select" disabled><option value="">All subcategories</option></select></div>
+        <div class="col-12 col-md-3">
+            <input id="adsMarketFilterSearch" class="form-control" placeholder="Search ads by title" value="{{ request('search') }}">
+        </div>
+        <div class="col-12 col-md-3">
+            <select id="adsMarketFilterCategory" class="form-select">
+                <option value="">All categories</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>
+                        {{ $category->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-12 col-md-3">
+            <select id="adsMarketFilterSubcategory" class="form-select" disabled>
+                <option value="">All subcategories</option>
+            </select>
+        </div>
     </div>
 
     <div id="adsGrid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-3" data-next-page-url="{{ $ads->nextPageUrl() }}">
         @include('frontend.ads.partials.cards', ['ads' => $ads])
     </div>
 
-    <div class="mt-4 offer-pagination-wrap"><p class="offer-pagination-summary mb-0" id="adsSummaryText">@if ($ads->total() > 0)Showing {{ $ads->firstItem() }} to {{ $ads->lastItem() }} of {{ $ads->total() }} results@endif</p><p class="offer-pagination-loading mb-0 d-none" id="adsLoadingText">Loading more ads…</p></div>
+    <div class="mt-4 offer-pagination-wrap">
+        <p class="offer-pagination-summary mb-0" id="adsSummaryText">
+            @if ($ads->total() > 0)
+                Showing {{ $ads->firstItem() }} to {{ $ads->lastItem() }} of {{ $ads->total() }} results
+            @endif
+        </p>
+        <p class="offer-pagination-loading mb-0 d-none" id="adsLoadingText">Loading more ads…</p>
+    </div>
     <div id="adsScrollSentinel" class="offer-scroll-sentinel" aria-hidden="true"></div>
 </div>
 
-<div class="modal fade offer-details-modal" id="adDetailsModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable offer-details-dialog"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5">Ad Details</h2><button type="button" class="offer-modal-close-btn" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i></button></div><div class="modal-body p-0"><img id="adDetailsModalImage" src="" alt="Ad image" class="d-none offer-details-modal-image"><div class="offer-details-content"><h3 class="h4 mb-2" id="adDetailsModalTitle"></h3><p class="text-muted mb-2" id="adDetailsModalMeta"></p><p class="text-muted mb-3" id="adDetailsModalDescription"></p><div class="offer-share-panel mt-4"><div class="offer-share-panel-head"><h4 class="offer-share-title mb-1">Share this ad</h4></div><div class="offer-share-panel-body"><div class="offer-share-qr-wrap"><img id="adShareQr" src="" alt="Ad QR" class="offer-share-qr"></div><div class="offer-share-links-wrap"><input type="text" id="adShareLink" class="form-control form-control-sm offer-share-link-input" readonly><div class="d-flex flex-wrap gap-2 mt-2"><a id="adShareWhatsapp" href="#" target="_blank" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a><a id="adShareFacebook" href="#" target="_blank" class="btn btn-sm offer-share-btn share-facebook">Facebook</a><a id="adShareInstagram" href="#" target="_blank" class="btn btn-sm offer-share-btn share-instagram">Instagram</a></div></div></div></div></div></div></div></div></div>
+<div class="modal fade offer-details-modal" id="adDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable offer-details-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5">Ad Details</h2>
+                <button type="button" class="offer-modal-close-btn" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="adDetailsModalImage" src="" alt="Ad image" class="d-none offer-details-modal-image">
+                <div class="offer-details-content">
+                    <h3 class="h4 mb-2" id="adDetailsModalTitle"></h3>
+                    <p class="text-muted mb-2" id="adDetailsModalMeta"></p>
+                    <p class="text-muted mb-3" id="adDetailsModalDescription"></p>
+
+                    <div class="offer-share-panel mt-4">
+                        <div class="offer-share-panel-head">
+                            <h4 class="offer-share-title mb-1">Share this ad</h4>
+                        </div>
+                        <div class="offer-share-panel-body">
+                            <div class="offer-share-qr-wrap">
+                                <img id="adShareQr" src="" alt="Ad QR" class="offer-share-qr">
+                            </div>
+                            <div class="offer-share-links-wrap">
+                                <input type="text" id="adShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <a id="adShareWhatsapp" href="#" target="_blank" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a>
+                                    <a id="adShareFacebook" href="#" target="_blank" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
+                                    <a id="adShareInstagram" href="#" target="_blank" class="btn btn-sm offer-share-btn share-instagram">Instagram</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
+// unchanged behavior; formatting only for reliability
+// ...
 document.addEventListener('DOMContentLoaded', function () {
 const adModal = document.getElementById('adDetailsModal'); const adsGrid = document.getElementById('adsGrid'); if (!adsGrid) return;
 const searchFilter = document.getElementById('adsMarketFilterSearch'); const categoryFilter = document.getElementById('adsMarketFilterCategory'); const subcategoryFilter = document.getElementById('adsMarketFilterSubcategory');
