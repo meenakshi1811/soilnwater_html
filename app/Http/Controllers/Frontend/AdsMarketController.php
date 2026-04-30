@@ -31,15 +31,29 @@ class AdsMarketController extends Controller
             ];
         })->values()->all();
 
-        $ads = UserAd::query()
+        $lat = $request->filled('lat') ? (float) $request->input('lat') : null;
+        $lng = $request->filled('lng') ? (float) $request->input('lng') : null;
+
+        $adsQuery = UserAd::query()
             ->with(['category:id,name', 'subcategory:id,name'])
             ->where('status', 'approved')
             ->whereHas('user', fn (Builder $query) => $query->where('role', 'user'))
             ->whereNotNull('final_image')
             ->when($request->filled('category_id'), fn (Builder $query) => $query->where('category_id', $request->integer('category_id')))
             ->when($request->filled('subcategory_id'), fn (Builder $query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
-            ->when($request->filled('search'), fn (Builder $query) => $query->where('title', 'like', '%'.$request->string('search')->toString().'%'))
-            ->latest('reviewed_at')
+            ->when($request->filled('search'), fn (Builder $query) => $query->where('title', 'like', '%'.$request->string('search')->toString().'%'));
+
+        if ($lat !== null && $lng !== null) {
+            $adsQuery
+                ->select('user_ads.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km');
+        } else {
+            $adsQuery->latest('reviewed_at');
+        }
+
+        $ads = $adsQuery
             ->latest('id')
             ->paginate(12)
             ->appends($request->query());

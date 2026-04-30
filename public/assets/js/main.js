@@ -493,3 +493,47 @@
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 })();
+
+
+(function () {
+  const locationLabel = document.getElementById('headerCurrentLocation');
+  const eligiblePaths = ['/', '/offers-market', '/ads-market'];
+  const isEligiblePath = eligiblePaths.includes(window.location.pathname);
+
+  const updateLocationLabel = (value) => {
+    if (!locationLabel) return;
+    locationLabel.textContent = value || locationLabel.dataset.defaultLocation || 'Your Location';
+  };
+
+  const locationNameFromCoordinates = (lat, lng) => {
+    return `Lat ${lat.toFixed(3)}, Lng ${lng.toFixed(3)}`;
+  };
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const currentLat = Number(searchParams.get('lat'));
+  const currentLng = Number(searchParams.get('lng'));
+
+  if (Number.isFinite(currentLat) && Number.isFinite(currentLng)) {
+    updateLocationLabel(locationNameFromCoordinates(currentLat, currentLng));
+    return;
+  }
+
+  if (!navigator.geolocation || !isEligiblePath) {
+    updateLocationLabel('Location unavailable');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition((position) => {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+
+    updateLocationLabel(locationNameFromCoordinates(lat, lng));
+
+    const redirectUrl = new URL(window.location.href);
+    redirectUrl.searchParams.set('lat', lat.toFixed(6));
+    redirectUrl.searchParams.set('lng', lng.toFixed(6));
+    window.location.replace(redirectUrl.toString());
+  }, () => {
+    updateLocationLabel('Location unavailable');
+  }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 });
+})();
