@@ -7,8 +7,8 @@
         <a href="{{ route('frontend.index') }}" class="view-all">Back to home ▶</a>
     </div>
 
-    <div class="row g-2 mb-3" id="adsFilterBar" data-categories='@json($categoriesForFilter)'>
-        <div class="col-12 col-md-3">
+    <div class="row g-2 mb-3 align-items-end" id="adsFilterBar" data-categories='@json($categoriesForFilter)'>
+        <div class="col-12 col-md-4">
             <input id="adsMarketFilterSearch" class="form-control" placeholder="Search ads by title" value="{{ request('search') }}">
         </div>
         <div class="col-12 col-md-3">
@@ -25,6 +25,11 @@
             <select id="adsMarketFilterSubcategory" class="form-select" disabled>
                 <option value="">All subcategories</option>
             </select>
+        </div>
+        <div class="col-12 col-md-2 d-grid d-md-flex gap-2">
+            <button type="button" id="adsMarketClearFilters" class="btn btn-outline-secondary w-100">
+                <i class="fa-solid fa-filter-circle-xmark me-1"></i> Clear
+            </button>
         </div>
     </div>
 
@@ -84,6 +89,25 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    .ads-market-card {
+        border-radius: 14px;
+        overflow: hidden;
+        transition: transform .2s ease, box-shadow .2s ease;
+        box-shadow: 0 8px 24px rgba(17, 52, 100, .10);
+        background: #fff;
+    }
+    .ads-market-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(17, 52, 100, .16); }
+    .ads-market-thumb { aspect-ratio: 4/3; object-fit: cover; width: 100%; }
+    .ads-market-title { font-weight: 700; color: #1b355a; min-height: 48px; }
+    .ads-market-meta { color: #5f6f83; font-size: .88rem; }
+    .ads-pill { border-radius: 999px; font-size: .74rem; padding: .35rem .62rem; }
+    .ads-pill-primary { background: #eaf2ff; color: #1250a6; }
+    .ads-pill-soft { background: #f3f6fb; color: #44566e; }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 // unchanged behavior; formatting only for reliability
@@ -91,11 +115,21 @@
 document.addEventListener('DOMContentLoaded', function () {
 const adModal = document.getElementById('adDetailsModal'); const adsGrid = document.getElementById('adsGrid'); if (!adsGrid) return;
 const searchFilter = document.getElementById('adsMarketFilterSearch'); const categoryFilter = document.getElementById('adsMarketFilterCategory'); const subcategoryFilter = document.getElementById('adsMarketFilterSubcategory');
+const clearFiltersBtn = document.getElementById('adsMarketClearFilters');
 const loadingText = document.getElementById('adsLoadingText'); const summaryText = document.getElementById('adsSummaryText'); const scrollSentinel = document.getElementById('adsScrollSentinel');
 let nextPageUrl = adsGrid.dataset.nextPageUrl || ''; let isLoading = false; let debounce;
 const categories = JSON.parse(document.getElementById('adsFilterBar').dataset.categories || '[]');
 function populateSubcategories(){const id=categoryFilter.value;subcategoryFilter.innerHTML='<option value="">All subcategories</option>';const cat=categories.find(c=>String(c.id)===String(id));if(!cat||!cat.children.length){subcategoryFilter.disabled=true;return;}cat.children.forEach(child=>{const o=document.createElement('option');o.value=child.id;o.textContent=child.name;if(String(new URLSearchParams(location.search).get('subcategory_id')||'')===String(child.id)) o.selected=true; subcategoryFilter.appendChild(o);});subcategoryFilter.disabled=false;}
 populateSubcategories(); categoryFilter.addEventListener('change',()=>{populateSubcategories();refreshAds();}); subcategoryFilter.addEventListener('change',refreshAds); searchFilter.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(refreshAds,300);});
+if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', function () {
+        searchFilter.value = '';
+        categoryFilter.value = '';
+        subcategoryFilter.innerHTML = '<option value="">All subcategories</option>';
+        subcategoryFilter.disabled = true;
+        refreshAds();
+    });
+}
 function buildUrl(base){const u=new URL(base,window.location.origin);const p=new URLSearchParams();if(searchFilter.value.trim()) p.set('search',searchFilter.value.trim());if(categoryFilter.value) p.set('category_id',categoryFilter.value);if(subcategoryFilter.value) p.set('subcategory_id',subcategoryFilter.value);u.search=p.toString();return u.toString();}
 async function refreshAds(){if(isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const res=await fetch(buildUrl('{{ route('frontend.ads.index') }}'),{headers:{'X-Requested-With':'XMLHttpRequest'}});const payload=await res.json();adsGrid.innerHTML=payload.html||'';nextPageUrl=payload.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=payload.total?`Showing 1 to ${payload.loaded_to} of ${payload.total} results`:'';history.replaceState({},'',buildUrl('{{ route('frontend.ads.index') }}'));loadingText.classList.add('d-none');isLoading=false;}
 async function loadMore(){if(!nextPageUrl||isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const r=await fetch(nextPageUrl,{headers:{'X-Requested-With':'XMLHttpRequest'}});const p=await r.json();adsGrid.insertAdjacentHTML('beforeend',p.html||'');nextPageUrl=p.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=p.total?`Showing 1 to ${p.loaded_to} of ${p.total} results`:'';loadingText.classList.add('d-none');isLoading=false;}

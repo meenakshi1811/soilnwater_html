@@ -1,7 +1,7 @@
 @forelse ($ads as $ad)
     <div class="col">
         <article
-            class="card h-100 shadow-sm border-0 offer-coupon-card js-ad-modal-trigger"
+            class="card h-100 border-0 offer-coupon-card ads-market-card js-ad-modal-trigger"
             role="button"
             tabindex="0"
             data-ad-title="{{ $ad->title }}"
@@ -12,14 +12,25 @@
         >
             @if ($ad->final_image)
                 <div class="offer-coupon-image-wrap">
-                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image">
+                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb">
                 </div>
             @endif
 
             <div class="card-body d-flex flex-column gap-2">
-                <h2 class="offer-card-title mb-1">{{ $ad->title }}</h2>
+                <h2 class="offer-card-title ads-market-title mb-1">{{ $ad->title }}</h2>
+                <div class="ads-market-meta mb-1">
+                    <i class="fa-regular fa-calendar-days me-1"></i>
+                    {{ $ad->reviewed_at?->format('d M Y') ?? 'N/A' }}
+                </div>
                 <div class="d-flex align-items-center flex-wrap gap-2 mt-auto offer-meta-row">
-                    <span class="offer-meta-pill offer-meta-pill-discount">{{ $ad->category?->name ?? 'Uncategorized' }}</span>
+                    <span class="ads-pill ads-pill-primary">
+                        <i class="fa-solid fa-layer-group me-1"></i>{{ $ad->category?->name ?? 'Uncategorized' }}
+                    </span>
+                    @if($ad->subcategory)
+                        <span class="ads-pill ads-pill-soft">
+                            <i class="fa-solid fa-tag me-1"></i>{{ $ad->subcategory->name }}
+                        </span>
+                    @endif
                 </div>
             </div>
         </article>
