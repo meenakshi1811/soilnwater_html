@@ -217,7 +217,17 @@
                 <button type="submit" id="adSubmitButton" class="btn btn-primary px-5">Save Ad</button>
             </div>
         </form>
-          <button type="submit" id="capture" class="btn btn-primary px-5">Capture</button>
+
+        <div class="mt-4 p-3 border rounded bg-white" id="demoCaptureWrap">
+            <h6 class="mb-3">Upload and Capture Image</h6>
+            <input type="file" id="upload-image" class="form-control mb-3" accept="image/*">
+            <div id="capture-area" style="width:879px;height:118px;max-width:100%;margin:0 auto 12px;border:1px solid #ccc;overflow:hidden;background:#f5f5f5;">
+                <img id="preview-image" src="" alt="Uploaded Image" style="width:100%;height:100%;object-fit:contain;object-position:center center;display:block;">
+            </div>
+            <button type="button" id="capture-screenshot" class="btn btn-outline-primary">Capture Screenshot</button>
+        </div>
+
+          <button type="button" id="capture" class="btn btn-primary px-5">Capture</button>
     </div>
 </div>
 @endsection
@@ -226,45 +236,83 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
 <script>
 
-$('#capture').on('click', function () {
+$('#upload-image').on('change', function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    const screenshotTarget = document.getElementById('adPreviewFrame');
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        $('#preview-image').attr('src', e.target.result);
+    };
+    reader.readAsDataURL(file);
+});
 
-    // ✅ check if image exists inside preview
-    if (!$('#adPreview img').length) {
+$('#capture-screenshot').on('click', function () {
+    const screenshotTarget = document.getElementById('capture-area');
+
+    if (!$('#preview-image').attr('src')) {
         alert('Please upload an image first.');
         return;
     }
 
-    const rect = screenshotTarget.getBoundingClientRect();
-    const width = Math.round(rect.width);
-    const height = Math.round(rect.height);
-
-    console.log('Actual size:', width, height);
-
     html2canvas(screenshotTarget, {
         scale: window.devicePixelRatio * 2,
         useCORS: true,
-        backgroundColor: '#ffffff',
-        width: width,
-        height: height
+        backgroundColor: null
     }).then(canvas => {
+        const dataURL = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = 'upload-capture.png';
+        link.href = dataURL;
+        link.click();
+    }).catch(err => {
+        console.error('Demo capture failed:', err);
+    });
+});
 
-        const dataURL = canvas.toDataURL("image/png");
+$('#capture').on('click', function () {
+    const previewFrame = document.getElementById('adPreviewFrame');
+    const previewDiv = document.getElementById('adPreview');
+    const hasImage = $('#adPreview img').length > 0;
+    const hasCustomLayers = $('#adPreview [data-layer-type="text"], #adPreview [data-layer-type="image"]').length > 0;
 
-        // download
+    if (!previewFrame || !previewDiv || (!hasImage && !hasCustomLayers)) {
+        alert('Please upload or design an ad first.');
+        return;
+    }
+
+    const width = Number(previewFrame.dataset.sourceWidth || previewDiv.offsetWidth || 0);
+    const height = Number(previewFrame.dataset.sourceHeight || previewDiv.offsetHeight || 0);
+
+    html2canvas(previewDiv, {
+        scale: window.devicePixelRatio * 2,
+        useCORS: true,
+        backgroundColor: '#f7f7f7',
+        width: width,
+        height: height,
+        windowWidth: width,
+        windowHeight: height,
+        onclone: (doc) => {
+            const clonePreview = doc.getElementById('adPreview');
+            if (clonePreview) {
+                clonePreview.style.width = width + 'px';
+                clonePreview.style.height = height + 'px';
+                clonePreview.style.overflow = 'hidden';
+                clonePreview.style.background = '#f7f7f7';
+            }
+        }
+    }).then(canvas => {
+        const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.download = 'ad-capture.png';
         link.href = dataURL;
         link.click();
-
     }).catch(err => {
-        console.error(err);
+        console.error('Capture failed:', err);
     });
 });
 function pushScreenshotToServer(dataURL) {
