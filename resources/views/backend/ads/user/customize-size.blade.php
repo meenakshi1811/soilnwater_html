@@ -217,6 +217,16 @@
                 <button type="submit" id="adSubmitButton" class="btn btn-primary px-5">Save Ad</button>
             </div>
         </form>
+
+        <div class="mt-4 p-3 border rounded bg-white" id="demoCaptureWrap">
+            <h6 class="mb-3">Upload and Capture Image</h6>
+            <input type="file" id="upload-image" class="form-control mb-3" accept="image/*">
+            <div id="capture-area" style="width:800px;height:300px;max-width:100%;margin:0 auto 12px;border:1px solid #ccc;overflow:hidden;background:#f5f5f5;">
+                <img id="preview-image" src="" alt="Uploaded Image" style="width:100%;height:100%;object-fit:contain;display:block;">
+            </div>
+            <button type="button" id="capture-screenshot" class="btn btn-outline-primary">Capture Screenshot</button>
+        </div>
+
           <button type="button" id="capture" class="btn btn-primary px-5">Capture</button>
     </div>
 </div>
@@ -229,6 +239,40 @@
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
 <script>
+
+$('#upload-image').on('change', function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        $('#preview-image').attr('src', e.target.result);
+    };
+    reader.readAsDataURL(file);
+});
+
+$('#capture-screenshot').on('click', function () {
+    const screenshotTarget = document.getElementById('preview-image');
+
+    if (!$('#preview-image').attr('src')) {
+        alert('Please upload an image first.');
+        return;
+    }
+
+    html2canvas(screenshotTarget, {
+        scale: window.devicePixelRatio * 2,
+        useCORS: true,
+        backgroundColor: null
+    }).then(canvas => {
+        const dataURL = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = 'upload-capture.png';
+        link.href = dataURL;
+        link.click();
+    }).catch(err => {
+        console.error('Demo capture failed:', err);
+    });
+});
 
 $('#capture').on('click', function () {
     const previewFrame = document.getElementById('adPreviewFrame');
