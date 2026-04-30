@@ -42,11 +42,21 @@ class OfferPageController extends Controller
             ->latest('id')
             ->get(['id', 'title', 'size_type', 'final_image']);
 
-        $recentApprovedAds = UserAd::query()
+        $recentApprovedAdsQuery = UserAd::query()
             ->with(['category:id,name'])
             ->where('status', 'approved')
             ->whereHas('user', fn (Builder $query) => $query->where('role', 'user'))
-            ->whereNotNull('final_image')
+            ->whereNotNull('final_image');
+
+        if ($lat !== null && $lng !== null) {
+            $recentApprovedAdsQuery
+                ->select('user_ads.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km');
+        }
+
+        $recentApprovedAds = $recentApprovedAdsQuery
             ->latest('created_at')
             ->latest('id')
             ->limit(20)
