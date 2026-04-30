@@ -231,34 +231,20 @@
 <script>
 
 $('#capture').on('click', function () {
-    const screenshotTarget = document.getElementById('adPreview');
+    const uploadedPreviewImage = document.querySelector('#adPreview img[data-upload-image="1"]') || document.querySelector('#adPreview img');
+    const hasCustomLayers = $('#adPreview [data-layer-type="text"], #adPreview [data-layer-type="image"]').length > 0;
 
-    if (!screenshotTarget) {
-        alert('Preview area is not ready yet.');
-        return;
-    }
-
-    if (!$('#adPreview img, #adPreview [data-layer-type="text"], #adPreview [data-layer-type="image"]').length) {
+    if (!uploadedPreviewImage && !hasCustomLayers) {
         alert('Please upload or design an ad first.');
         return;
     }
 
-    const rect = screenshotTarget.getBoundingClientRect();
-    const width = Math.round(rect.width);
-    const height = Math.round(rect.height);
+    const screenshotTarget = uploadedPreviewImage || document.getElementById('adPreview');
 
     html2canvas(screenshotTarget, {
         scale: window.devicePixelRatio * 2,
         useCORS: true,
-        backgroundColor: '#ffffff',
-        width: width,
-        height: height,
-        x: rect.left + window.scrollX,
-        y: rect.top + window.scrollY,
-        windowWidth: document.documentElement.scrollWidth,
-        windowHeight: document.documentElement.scrollHeight,
-        scrollX: 0,
-        scrollY: 0
+        backgroundColor: null
     }).then(canvas => {
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
