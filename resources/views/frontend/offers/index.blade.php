@@ -60,7 +60,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title fs-5" id="offerDetailsModalLabel">Offer Details</h2>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn offer-share-toggle-btn" id="offerShareToggleBtn" aria-label="Share this offer">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
             </div>
             <div class="modal-body p-0">
                 <img id="offerDetailsModalImage" src="" alt="Offer image" class="d-none offer-details-modal-image">
@@ -72,6 +77,15 @@
                     <h3 class="h4 mb-2" id="offerDetailsModalTitle"></h3>
                     <p class="text-muted mb-3" id="offerDetailsModalDescription"></p>
                     <p class="mb-0"><strong>Valid until:</strong> <span id="offerDetailsModalExpiry"></span></p>
+                    <div class="offer-share-panel d-none mt-3" id="offerSharePanel">
+                        <p class="mb-2 fw-semibold">Share this offer</p>
+                        <img id="offerShareQr" src="" alt="Offer QR code" class="offer-share-qr mb-2">
+                        <div class="d-flex flex-wrap gap-2">
+                            <a id="offerShareWhatsapp" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-success">WhatsApp</a>
+                            <a id="offerShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-primary">Facebook</a>
+                            <a id="offerShareInstagram" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-danger">Instagram</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -100,6 +114,25 @@
         border-bottom: 1px solid #e6effa;
         background: rgba(255, 255, 255, 0.86);
         backdrop-filter: blur(4px);
+    }
+    .offer-share-toggle-btn {
+        border: 1px solid #d6e7ff;
+        color: #1f5ca8;
+        border-radius: 999px;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .offer-share-qr {
+        width: 112px;
+        height: 112px;
+        border: 1px solid #deebff;
+        border-radius: 0.6rem;
+        padding: 0.25rem;
+        background: #fff;
     }
 
     .offer-details-modal .modal-title {
@@ -307,6 +340,12 @@
         const couponEl = document.getElementById('offerDetailsModalCoupon');
         const expiryEl = document.getElementById('offerDetailsModalExpiry');
         const imageEl = document.getElementById('offerDetailsModalImage');
+        const sharePanelEl = document.getElementById('offerSharePanel');
+        const shareToggleBtn = document.getElementById('offerShareToggleBtn');
+        const shareQrEl = document.getElementById('offerShareQr');
+        const shareWhatsappEl = document.getElementById('offerShareWhatsapp');
+        const shareFacebookEl = document.getElementById('offerShareFacebook');
+        const shareInstagramEl = document.getElementById('offerShareInstagram');
         const offersGrid = document.getElementById('offersGrid');
         const loadingText = document.getElementById('offersLoadingText');
         const summaryText = document.getElementById('offersSummaryText');
@@ -547,6 +586,8 @@
             expiryEl.textContent = trigger.getAttribute('data-offer-validity') || 'No expiry';
 
             const bannerImage = trigger.getAttribute('data-offer-image');
+            const offerUrl = trigger.getAttribute('data-offer-url') || window.location.href;
+            const encodedOfferUrl = encodeURIComponent(offerUrl);
             if (bannerImage) {
                 imageEl.src = bannerImage;
                 imageEl.classList.remove('d-none');
@@ -554,7 +595,30 @@
                 imageEl.src = '';
                 imageEl.classList.add('d-none');
             }
+
+            if (shareQrEl) {
+                shareQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=224x224&data=${encodedOfferUrl}`;
+            }
+            if (shareWhatsappEl) {
+                shareWhatsappEl.href = `https://wa.me/?text=${encodeURIComponent('Check this offer: ' + offerUrl)}`;
+            }
+            if (shareFacebookEl) {
+                shareFacebookEl.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedOfferUrl}`;
+            }
+            if (shareInstagramEl) {
+                shareInstagramEl.href = `https://www.instagram.com/?url=${encodedOfferUrl}`;
+            }
+
+            if (sharePanelEl) {
+                sharePanelEl.classList.add('d-none');
+            }
         });
+
+        if (shareToggleBtn && sharePanelEl) {
+            shareToggleBtn.addEventListener('click', function () {
+                sharePanelEl.classList.toggle('d-none');
+            });
+        }
     })();
 </script>
 @endpush
