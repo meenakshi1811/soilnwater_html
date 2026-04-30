@@ -217,7 +217,7 @@
                 <button type="submit" id="adSubmitButton" class="btn btn-primary px-5">Save Ad</button>
             </div>
         </form>
-          <button type="submit" id="capture" class="btn btn-primary px-5">Capture</button>
+          <button type="button" id="capture" class="btn btn-primary px-5">Capture</button>
     </div>
 </div>
 @endsection
@@ -226,26 +226,26 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
 <script>
 
 $('#capture').on('click', function () {
+    const screenshotTarget = document.getElementById('adPreview');
 
-    const screenshotTarget = document.getElementById('adPreviewFrame');
+    if (!screenshotTarget) {
+        alert('Preview area is not ready yet.');
+        return;
+    }
 
-    // ✅ check if image exists inside preview
-    if (!$('#adPreview img').length) {
-        alert('Please upload an image first.');
+    if (!$('#adPreview img, #adPreview [data-layer-type="text"], #adPreview [data-layer-type="image"]').length) {
+        alert('Please upload or design an ad first.');
         return;
     }
 
     const rect = screenshotTarget.getBoundingClientRect();
     const width = Math.round(rect.width);
     const height = Math.round(rect.height);
-
-    console.log('Actual size:', width, height);
 
     html2canvas(screenshotTarget, {
         scale: window.devicePixelRatio * 2,
@@ -254,17 +254,13 @@ $('#capture').on('click', function () {
         width: width,
         height: height
     }).then(canvas => {
-
-        const dataURL = canvas.toDataURL("image/png");
-
-        // download
+        const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.download = 'ad-capture.png';
         link.href = dataURL;
         link.click();
-
     }).catch(err => {
-        console.error(err);
+        console.error('Capture failed:', err);
     });
 });
 function pushScreenshotToServer(dataURL) {
