@@ -148,7 +148,17 @@ class OfferPageController extends Controller
                 $this->applyValidityFilter($query, $request->string('validity')->toString(), Carbon::today());
             }, function (Builder $query): void {
                 $this->applyValidityFilter($query, 'valid', Carbon::today());
-            })
+            });
+
+        if ($lat !== null && $lng !== null) {
+            $query
+                ->select('offers.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km');
+        }
+
+        return $query
             ->orderByRaw('CASE WHEN valid_until = ? THEN 0 ELSE 1 END', [$today])
             ->orderByRaw('CASE WHEN valid_until IS NULL THEN 1 ELSE 0 END')
             ->orderBy('valid_until');
