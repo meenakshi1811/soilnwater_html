@@ -16,23 +16,47 @@ class OfferPageController extends Controller
 {
     public function home(): View
     {
-        $offers = $this->baseOfferQuery()
+        $lat = request()->filled('lat') ? (float) request()->input('lat') : session('frontend_lat');
+        $lng = request()->filled('lng') ? (float) request()->input('lng') : session('frontend_lng');
+
+        $offers = $this->baseOfferQuery(null, $lat, $lng)
             ->limit(10)
             ->get();
 
-        $frontPageAds = UserAd::query()
+        $frontPageAdsQuery = UserAd::query()
             ->where('status', 'approved')
             ->whereIn('size_type', ['top_categories_ad_1', 'top_categories_ad_2', 'sponsored_listings_ad', 'below_sponsored_ad', 'ecommerce_ad', 'offer_discount_ad_1', 'offer_discount_ad_2', 'explore_products_ad', 'top_vendors_ad_1', 'top_vendors_ad_2', 'popular_greenwood_ad', 'popular_properties_ad', 'below_popular_ad', 'builders_developers_ad', 'below_builders_ad'])
-            ->whereNotNull('final_image')
-            ->latest('reviewed_at')
+            ->whereNotNull('final_image');
+
+        if ($lat !== null && $lng !== null) {
+            $frontPageAdsQuery
+                ->select('user_ads.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km');
+        } else {
+            $frontPageAdsQuery->latest('reviewed_at');
+        }
+
+        $frontPageAds = $frontPageAdsQuery
             ->latest('id')
             ->get(['id', 'title', 'size_type', 'final_image']);
 
-        $recentApprovedAds = UserAd::query()
+        $recentApprovedAdsQuery = UserAd::query()
             ->with(['category:id,name'])
             ->where('status', 'approved')
             ->whereHas('user', fn (Builder $query) => $query->where('role', 'user'))
-            ->whereNotNull('final_image')
+            ->whereNotNull('final_image');
+
+        if ($lat !== null && $lng !== null) {
+            $recentApprovedAdsQuery
+                ->select('user_ads.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km');
+        }
+
+        $recentApprovedAds = $recentApprovedAdsQuery
             ->latest('created_at')
             ->latest('id')
             ->limit(20)
@@ -81,7 +105,10 @@ class OfferPageController extends Controller
             ];
         })->values()->all();
 
-        $offers = $this->baseOfferQuery($request)->paginate(12)->appends($request->query());
+        $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
+        $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
+
+        $offers = $this->baseOfferQuery($request, $lat, $lng)->paginate(12)->appends($request->query());
 
         if ($request->ajax()) {
             return response()->json([
@@ -108,12 +135,12 @@ class OfferPageController extends Controller
         ]);
     }
 
-    private function baseOfferQuery(?Request $request = null): Builder
+    private function baseOfferQuery(?Request $request = null, ?float $lat = null, ?float $lng = null): Builder
     {
         $today = now()->toDateString();
         $request = $request ?? request();
 
-        return Offer::query()
+        $query = Offer::query()
             ->where('status', 'active')
             ->when($request->filled('category_id'), fn (Builder $query) => $query->where('category_id', $request->integer('category_id')))
             ->when($request->filled('subcategory_id'), fn (Builder $query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
@@ -121,7 +148,17 @@ class OfferPageController extends Controller
                 $this->applyValidityFilter($query, $request->string('validity')->toString(), Carbon::today());
             }, function (Builder $query): void {
                 $this->applyValidityFilter($query, 'valid', Carbon::today());
-            })
+            });
+
+        if ($lat !== null && $lng !== null) {
+            $query
+                ->select('offers.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km');
+        }
+
+        return $query
             ->orderByRaw('CASE WHEN valid_until = ? THEN 0 ELSE 1 END', [$today])
             ->orderByRaw('CASE WHEN valid_until IS NULL THEN 1 ELSE 0 END')
             ->orderBy('valid_until')
