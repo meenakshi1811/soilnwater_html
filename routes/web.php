@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\OfferPageController;
+use App\Http\Controllers\Frontend\AdsMarketController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ModuleAccessController;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [OfferPageController::class, 'home'])->name('frontend.index');
 Route::get('/offers-market', [OfferPageController::class, 'index'])->name('frontend.offers.index');
 Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
+Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
+Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::get('/terms-and-condition/{moduleKey}', [TermsAndConditionPageController::class, 'show'])->name('frontend.terms.show');
 
