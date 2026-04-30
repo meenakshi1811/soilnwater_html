@@ -265,7 +265,7 @@ $('#capture-screenshot').on('click', function () {
     html2canvas(screenshotTarget, {
         scale: window.devicePixelRatio * 2,
         useCORS: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#f5f5f5',
         width: width,
         height: height,
     }).then(canvas => {
