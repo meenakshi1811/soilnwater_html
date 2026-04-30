@@ -262,7 +262,31 @@ $('#capture-screenshot').on('click', function () {
     html2canvas(screenshotTarget, {
         scale: window.devicePixelRatio * 2,
         useCORS: true,
-        backgroundColor: null
+        backgroundColor: null,
+        onclone: (doc) => {
+            const liveArea = document.getElementById('capture-area');
+            const liveImage = document.getElementById('preview-image');
+            const cloneArea = doc.getElementById('capture-area');
+            const cloneImage = doc.getElementById('preview-image');
+
+            if (liveArea && cloneArea) {
+                const areaStyle = window.getComputedStyle(liveArea);
+                cloneArea.style.width = areaStyle.width;
+                cloneArea.style.height = areaStyle.height;
+                cloneArea.style.overflow = areaStyle.overflow;
+                cloneArea.style.backgroundColor = areaStyle.backgroundColor;
+                cloneArea.style.border = areaStyle.border;
+            }
+
+            if (liveImage && cloneImage) {
+                const imageStyle = window.getComputedStyle(liveImage);
+                cloneImage.style.width = imageStyle.width;
+                cloneImage.style.height = imageStyle.height;
+                cloneImage.style.objectFit = imageStyle.objectFit;
+                cloneImage.style.objectPosition = imageStyle.objectPosition;
+                cloneImage.style.display = imageStyle.display;
+            }
+        }
     }).then(canvas => {
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
