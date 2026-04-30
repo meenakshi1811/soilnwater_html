@@ -2721,7 +2721,7 @@
 .offer-details-modal .modal-content{border:0;border-radius:1rem;overflow:hidden;box-shadow:0 22px 50px rgba(13,44,94,.18);background:linear-gradient(180deg,#f7fbff 0%,#fff 26%,#fff 100%)}
 .offer-details-modal .modal-header{position:relative;padding:.95rem 3.4rem .95rem 1.25rem;border-bottom:1px solid #e6effa;background:rgba(255,255,255,.86);backdrop-filter:blur(4px)}
 .offer-modal-close-btn{position:absolute;top:50%;right:1rem;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:1px solid #d5e5fa;background:linear-gradient(180deg,#fff 0%,#f3f8ff 100%);color:#234d80;display:inline-flex;align-items:center;justify-content:center}
-.offer-details-modal-image{width:100%;max-height:340px;object-fit:cover;background:#f5f9ff}
+.offer-details-modal-image{width:100%;max-height:72vh;object-fit:contain;background:#f5f9ff}
 .offer-details-content{padding:1rem 1.05rem 1.1rem}
 .offer-share-panel{border:1px solid #dbe9ff;border-radius:.9rem;background:linear-gradient(180deg,#f8fbff 0%,#f0f7ff 100%);overflow:hidden}
 .offer-share-panel-head{padding:.8rem .95rem;border-bottom:1px solid #dbe9ff}.offer-share-title{font-size:.96rem;font-weight:700;color:#173d67}
@@ -2737,4 +2737,6 @@
 .ads-market-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(17,52,100,.16)}
 .ads-market-thumb{aspect-ratio:4/3;object-fit:cover;width:100%}.ads-market-title{font-weight:700;color:#1b355a;min-height:48px}
 .ads-market-meta{color:#5f6f83;font-size:.88rem}.ads-pill{border-radius:999px;font-size:.74rem;padding:.35rem .62rem}.ads-pill-primary{background:#eaf2ff;color:#1250a6}.ads-pill-soft{background:#f3f6fb;color:#44566e}
-
+.ad-detail-image-wrap{background:#f5f9ff;border-radius:12px;overflow:hidden}
+.ad-detail-image{width:100%;max-height:70vh;object-fit:contain;display:block}
+.ad-detail-map-wrap{border:1px solid #dbe5f2;border-radius:12px;overflow:hidden;background:#fff}
