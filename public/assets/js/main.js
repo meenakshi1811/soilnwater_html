@@ -525,15 +525,26 @@
   const hasCoordinatesInUrl = rawLat !== null && rawLat !== '' && rawLng !== null && rawLng !== '';
 
   if (hasCoordinatesInUrl) {
+    sessionStorage.removeItem('frontendLocationSynced');
     const currentLat = Number(rawLat);
     const currentLng = Number(rawLng);
 
     if (Number.isFinite(currentLat) && Number.isFinite(currentLng)) {
       fetchLocationName(currentLat, currentLng).then((name) => {
-        updateLocationLabel(name || 'Current location');
+        const resolvedName = name || 'Current location';
+    updateLocationLabel(resolvedName);
+    localStorage.setItem('frontendLocationName', resolvedName);
       });
       return;
     }
+  }
+
+  const hasSessionSyncMarker = sessionStorage.getItem('frontendLocationSynced') === '1';
+  const cachedLocationName = localStorage.getItem('frontendLocationName');
+
+  if (hasSessionSyncMarker) {
+    if (cachedLocationName) updateLocationLabel(cachedLocationName);
+    return;
   }
 
   if (!navigator.geolocation || !isEligiblePath) {
@@ -546,7 +557,9 @@
     const lng = position.coords.longitude;
 
     const name = await fetchLocationName(lat, lng);
-    updateLocationLabel(name || 'Current location');
+    const resolvedName = name || 'Current location';
+    updateLocationLabel(resolvedName);
+    localStorage.setItem('frontendLocationName', resolvedName);
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     fetch('/frontend/location', {
@@ -558,6 +571,7 @@
       },
       body: JSON.stringify({ lat, lng })
     }).finally(() => {
+      sessionStorage.setItem('frontendLocationSynced', '1');
       const refreshUrl = new URL(window.location.href);
       refreshUrl.searchParams.delete('lat');
       refreshUrl.searchParams.delete('lng');
