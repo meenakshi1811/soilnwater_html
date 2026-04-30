@@ -89,24 +89,7 @@
 </div>
 @endsection
 
-@push('styles')
-<style>
-    .ads-market-card {
-        border-radius: 14px;
-        overflow: hidden;
-        transition: transform .2s ease, box-shadow .2s ease;
-        box-shadow: 0 8px 24px rgba(17, 52, 100, .10);
-        background: #fff;
-    }
-    .ads-market-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(17, 52, 100, .16); }
-    .ads-market-thumb { aspect-ratio: 4/3; object-fit: cover; width: 100%; }
-    .ads-market-title { font-weight: 700; color: #1b355a; min-height: 48px; }
-    .ads-market-meta { color: #5f6f83; font-size: .88rem; }
-    .ads-pill { border-radius: 999px; font-size: .74rem; padding: .35rem .62rem; }
-    .ads-pill-primary { background: #eaf2ff; color: #1250a6; }
-    .ads-pill-soft { background: #f3f6fb; color: #44566e; }
-</style>
-@endpush
+
 
 @push('scripts')
 <script>
