@@ -548,10 +548,21 @@
     const name = await fetchLocationName(lat, lng);
     updateLocationLabel(name || 'Current location');
 
-    const redirectUrl = new URL(window.location.href);
-    redirectUrl.searchParams.set('lat', lat.toFixed(6));
-    redirectUrl.searchParams.set('lng', lng.toFixed(6));
-    window.location.replace(redirectUrl.toString());
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    fetch('/frontend/location', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ lat, lng })
+    }).finally(() => {
+      const refreshUrl = new URL(window.location.href);
+      refreshUrl.searchParams.delete('lat');
+      refreshUrl.searchParams.delete('lng');
+      window.location.replace(refreshUrl.toString());
+    });
   }, () => {
     updateLocationLabel('Location unavailable');
   }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 });

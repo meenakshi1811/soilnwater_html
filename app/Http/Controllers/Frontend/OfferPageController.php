@@ -16,8 +16,8 @@ class OfferPageController extends Controller
 {
     public function home(): View
     {
-        $lat = request()->filled('lat') ? (float) request()->input('lat') : null;
-        $lng = request()->filled('lng') ? (float) request()->input('lng') : null;
+        $lat = request()->filled('lat') ? (float) request()->input('lat') : session('frontend_lat');
+        $lng = request()->filled('lng') ? (float) request()->input('lng') : session('frontend_lng');
 
         $offers = $this->baseOfferQuery(null, $lat, $lng)
             ->limit(10)
@@ -95,8 +95,8 @@ class OfferPageController extends Controller
             ];
         })->values()->all();
 
-        $lat = $request->filled('lat') ? (float) $request->input('lat') : null;
-        $lng = $request->filled('lng') ? (float) $request->input('lng') : null;
+        $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
+        $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
 
         $offers = $this->baseOfferQuery($request, $lat, $lng)->paginate(12)->appends($request->query());
 

@@ -31,8 +31,8 @@ class AdsMarketController extends Controller
             ];
         })->values()->all();
 
-        $lat = $request->filled('lat') ? (float) $request->input('lat') : null;
-        $lng = $request->filled('lng') ? (float) $request->input('lng') : null;
+        $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
+        $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
 
         $adsQuery = UserAd::query()
             ->with(['category:id,name', 'subcategory:id,name'])
