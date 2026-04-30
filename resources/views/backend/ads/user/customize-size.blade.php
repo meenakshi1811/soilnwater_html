@@ -252,22 +252,17 @@ $('#upload-image').on('change', function (event) {
 });
 
 $('#capture-screenshot').on('click', function () {
-    const screenshotTarget = document.getElementById('demoCaptureWrap');
+    const screenshotTarget = document.getElementById('capture-area');
 
     if (!$('#preview-image').attr('src')) {
         alert('Please upload an image first.');
         return;
     }
 
-    const width = screenshotTarget.clientWidth;
-    const height = screenshotTarget.clientHeight;
-
     html2canvas(screenshotTarget, {
         scale: window.devicePixelRatio * 2,
         useCORS: true,
-        backgroundColor: '#f5f5f5',
-        width: width,
-        height: height,
+        backgroundColor: null
     }).then(canvas => {
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
