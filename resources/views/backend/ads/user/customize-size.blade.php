@@ -217,7 +217,7 @@
                 <button type="submit" id="adSubmitButton" class="btn btn-primary px-5">Save Ad</button>
             </div>
         </form>
-          <button type="submit" id="capture" class="btn btn-primary px-5">Capture</button>
+          <button type="button" id="capture" class="btn btn-primary px-5">Capture</button>
     </div>
 </div>
 @endsection
@@ -226,45 +226,49 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
 <script>
 
 $('#capture').on('click', function () {
+    const previewFrame = document.getElementById('adPreviewFrame');
+    const previewDiv = document.getElementById('adPreview');
+    const hasImage = $('#adPreview img').length > 0;
+    const hasCustomLayers = $('#adPreview [data-layer-type="text"], #adPreview [data-layer-type="image"]').length > 0;
 
-    const screenshotTarget = document.getElementById('adPreviewFrame');
-
-    // ✅ check if image exists inside preview
-    if (!$('#adPreview img').length) {
-        alert('Please upload an image first.');
+    if (!previewFrame || !previewDiv || (!hasImage && !hasCustomLayers)) {
+        alert('Please upload or design an ad first.');
         return;
     }
 
-    const rect = screenshotTarget.getBoundingClientRect();
-    const width = Math.round(rect.width);
-    const height = Math.round(rect.height);
+    const width = Number(previewFrame.dataset.sourceWidth || previewDiv.offsetWidth || 0);
+    const height = Number(previewFrame.dataset.sourceHeight || previewDiv.offsetHeight || 0);
 
-    console.log('Actual size:', width, height);
-
-    html2canvas(screenshotTarget, {
+    html2canvas(previewDiv, {
         scale: window.devicePixelRatio * 2,
         useCORS: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#f7f7f7',
         width: width,
-        height: height
+        height: height,
+        windowWidth: width,
+        windowHeight: height,
+        onclone: (doc) => {
+            const clonePreview = doc.getElementById('adPreview');
+            if (clonePreview) {
+                clonePreview.style.width = width + 'px';
+                clonePreview.style.height = height + 'px';
+                clonePreview.style.overflow = 'hidden';
+                clonePreview.style.background = '#f7f7f7';
+            }
+        }
     }).then(canvas => {
-
-        const dataURL = canvas.toDataURL("image/png");
-
-        // download
+        const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.download = 'ad-capture.png';
         link.href = dataURL;
         link.click();
-
     }).catch(err => {
-        console.error(err);
+        console.error('Capture failed:', err);
     });
 });
 function pushScreenshotToServer(dataURL) {
