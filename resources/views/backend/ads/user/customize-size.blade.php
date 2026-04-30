@@ -231,24 +231,36 @@
 <script>
 
 $('#capture').on('click', function () {
+    const previewFrame = document.getElementById('adPreviewFrame');
     const previewDiv = document.getElementById('adPreview');
     const hasImage = $('#adPreview img').length > 0;
     const hasCustomLayers = $('#adPreview [data-layer-type="text"], #adPreview [data-layer-type="image"]').length > 0;
 
-    if (!previewDiv || (!hasImage && !hasCustomLayers)) {
+    if (!previewFrame || !previewDiv || (!hasImage && !hasCustomLayers)) {
         alert('Please upload or design an ad first.');
         return;
     }
 
-    const width = previewDiv.offsetWidth;
-    const height = previewDiv.offsetHeight;
+    const width = Number(previewFrame.dataset.sourceWidth || previewDiv.offsetWidth || 0);
+    const height = Number(previewFrame.dataset.sourceHeight || previewDiv.offsetHeight || 0);
 
     html2canvas(previewDiv, {
         scale: window.devicePixelRatio * 2,
         useCORS: true,
-        backgroundColor: null,
+        backgroundColor: '#f7f7f7',
         width: width,
-        height: height
+        height: height,
+        windowWidth: width,
+        windowHeight: height,
+        onclone: (doc) => {
+            const clonePreview = doc.getElementById('adPreview');
+            if (clonePreview) {
+                clonePreview.style.width = width + 'px';
+                clonePreview.style.height = height + 'px';
+                clonePreview.style.overflow = 'hidden';
+                clonePreview.style.background = '#f7f7f7';
+            }
+        }
     }).then(canvas => {
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
