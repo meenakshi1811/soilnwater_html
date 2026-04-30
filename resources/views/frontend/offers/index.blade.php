@@ -60,12 +60,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title fs-5" id="offerDetailsModalLabel">Offer Details</h2>
-                <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn offer-share-toggle-btn" id="offerShareToggleBtn" aria-label="Share this offer">
-                        <i class="fa-solid fa-share-nodes"></i>
-                    </button>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+                <button type="button" class="offer-modal-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <div class="modal-body p-0">
                 <img id="offerDetailsModalImage" src="" alt="Offer image" class="d-none offer-details-modal-image">
@@ -77,13 +74,24 @@
                     <h3 class="h4 mb-2" id="offerDetailsModalTitle"></h3>
                     <p class="text-muted mb-3" id="offerDetailsModalDescription"></p>
                     <p class="mb-0"><strong>Valid until:</strong> <span id="offerDetailsModalExpiry"></span></p>
-                    <div class="offer-share-panel d-none mt-3" id="offerSharePanel">
-                        <p class="mb-2 fw-semibold">Share this offer</p>
-                        <img id="offerShareQr" src="" alt="Offer QR code" class="offer-share-qr mb-2">
-                        <div class="d-flex flex-wrap gap-2">
-                            <a id="offerShareWhatsapp" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-success">WhatsApp</a>
-                            <a id="offerShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-primary">Facebook</a>
-                            <a id="offerShareInstagram" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-danger">Instagram</a>
+                    <div class="offer-share-panel mt-4" id="offerSharePanel">
+                        <div class="offer-share-panel-head">
+                            <h4 class="offer-share-title mb-1">Share this offer</h4>
+                            <p class="offer-share-subtitle mb-0">Send this deal quickly using QR or social channels.</p>
+                        </div>
+                        <div class="offer-share-panel-body">
+                            <div class="offer-share-qr-wrap">
+                                <img id="offerShareQr" src="" alt="Offer QR code" class="offer-share-qr">
+                            </div>
+                            <div class="offer-share-links-wrap">
+                                <label for="offerShareLink" class="offer-share-link-label">Offer link</label>
+                                <input type="text" id="offerShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <a id="offerShareWhatsapp" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-whatsapp"><i class="fa-brands fa-whatsapp me-1"></i>WhatsApp</a>
+                                    <a id="offerShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
+                                    <a id="offerShareInstagram" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -115,16 +123,22 @@
         background: rgba(255, 255, 255, 0.86);
         backdrop-filter: blur(4px);
     }
-    .offer-share-toggle-btn {
-        border: 1px solid #d6e7ff;
-        color: #1f5ca8;
-        border-radius: 999px;
-        width: 34px;
-        height: 34px;
-        padding: 0;
+    .offer-modal-close-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid #d5e5fa;
+        background: linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
+        color: #234d80;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        transition: all 0.18s ease;
+    }
+    .offer-modal-close-btn:hover {
+        background: #eaf3ff;
+        color: #103963;
+        transform: translateY(-1px);
     }
     .offer-share-qr {
         width: 112px;
@@ -134,6 +148,59 @@
         padding: 0.25rem;
         background: #fff;
     }
+    .offer-share-panel {
+        border: 1px solid #dbe9ff;
+        border-radius: 0.9rem;
+        background: linear-gradient(180deg, #f8fbff 0%, #f0f7ff 100%);
+        overflow: hidden;
+    }
+    .offer-share-panel-head {
+        padding: 0.8rem 0.95rem;
+        border-bottom: 1px solid #dbe9ff;
+    }
+    .offer-share-title {
+        font-size: 0.96rem;
+        font-weight: 700;
+        color: #173d67;
+    }
+    .offer-share-subtitle {
+        font-size: 0.8rem;
+        color: #4d6f92;
+    }
+    .offer-share-panel-body {
+        display: flex;
+        gap: 0.9rem;
+        align-items: center;
+        padding: 0.85rem 0.95rem 0.95rem;
+    }
+    .offer-share-qr-wrap {
+        flex: 0 0 auto;
+    }
+    .offer-share-links-wrap {
+        flex: 1;
+        min-width: 0;
+    }
+    .offer-share-link-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #2f5277;
+        margin-bottom: 0.25rem;
+    }
+    .offer-share-link-input {
+        border: 1px solid #cde0fb;
+        background: #fff;
+        color: #1a3f66;
+    }
+    .offer-share-btn {
+        border-radius: 999px;
+        color: #fff;
+        border: 0;
+        font-weight: 600;
+        padding-inline: 0.7rem;
+    }
+    .offer-share-btn.share-whatsapp { background: #19b65a; }
+    .offer-share-btn.share-facebook { background: #1877f2; }
+    .offer-share-btn.share-instagram { background: linear-gradient(135deg, #f58529, #dd2a7b 45%, #8134af); }
 
     .offer-details-modal .modal-title {
         font-weight: 700;
@@ -324,6 +391,10 @@
             height: auto;
             max-height: none;
         }
+        .offer-share-panel-body {
+            flex-direction: column;
+            align-items: flex-start;
+        }
     }
 </style>
 @endpush
@@ -340,8 +411,7 @@
         const couponEl = document.getElementById('offerDetailsModalCoupon');
         const expiryEl = document.getElementById('offerDetailsModalExpiry');
         const imageEl = document.getElementById('offerDetailsModalImage');
-        const sharePanelEl = document.getElementById('offerSharePanel');
-        const shareToggleBtn = document.getElementById('offerShareToggleBtn');
+        const shareLinkEl = document.getElementById('offerShareLink');
         const shareQrEl = document.getElementById('offerShareQr');
         const shareWhatsappEl = document.getElementById('offerShareWhatsapp');
         const shareFacebookEl = document.getElementById('offerShareFacebook');
@@ -596,6 +666,9 @@
                 imageEl.classList.add('d-none');
             }
 
+            if (shareLinkEl) {
+                shareLinkEl.value = offerUrl;
+            }
             if (shareQrEl) {
                 shareQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=224x224&data=${encodedOfferUrl}`;
             }
@@ -609,9 +682,6 @@
                 shareInstagramEl.href = `https://www.instagram.com/?url=${encodedOfferUrl}`;
             }
 
-            if (sharePanelEl) {
-                sharePanelEl.classList.add('d-none');
-            }
         });
 
         if (shareToggleBtn && sharePanelEl) {
