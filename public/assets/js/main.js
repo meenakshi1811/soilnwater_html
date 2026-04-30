@@ -493,3 +493,66 @@
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 })();
+
+
+(function () {
+  const locationLabel = document.getElementById('headerCurrentLocation');
+  const eligiblePaths = ['/', '/offers-market', '/ads-market'];
+  const isEligiblePath = eligiblePaths.includes(window.location.pathname);
+
+  const updateLocationLabel = (value) => {
+    if (!locationLabel) return;
+    const resolved = value || locationLabel.dataset.defaultLocation || 'Your Location';
+    locationLabel.textContent = resolved;
+    locationLabel.setAttribute('title', resolved);
+  };
+
+  const fetchLocationName = async (lat, lng) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}`);
+      if (!response.ok) return null;
+      const payload = await response.json();
+      const address = payload && payload.address ? payload.address : {};
+      return address.city || address.town || address.village || address.suburb || payload.display_name || null;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const rawLat = searchParams.get('lat');
+  const rawLng = searchParams.get('lng');
+  const hasCoordinatesInUrl = rawLat !== null && rawLat !== '' && rawLng !== null && rawLng !== '';
+
+  if (hasCoordinatesInUrl) {
+    const currentLat = Number(rawLat);
+    const currentLng = Number(rawLng);
+
+    if (Number.isFinite(currentLat) && Number.isFinite(currentLng)) {
+      fetchLocationName(currentLat, currentLng).then((name) => {
+        updateLocationLabel(name || 'Current location');
+      });
+      return;
+    }
+  }
+
+  if (!navigator.geolocation || !isEligiblePath) {
+    updateLocationLabel('Location unavailable');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+
+    const name = await fetchLocationName(lat, lng);
+    updateLocationLabel(name || 'Current location');
+
+    const redirectUrl = new URL(window.location.href);
+    redirectUrl.searchParams.set('lat', lat.toFixed(6));
+    redirectUrl.searchParams.set('lng', lng.toFixed(6));
+    window.location.replace(redirectUrl.toString());
+  }, () => {
+    updateLocationLabel('Location unavailable');
+  }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 });
+})();
