@@ -450,38 +450,42 @@
         <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
       </div>
       <div class="ad-slider auto-ad-slider recent-ads-slider" data-show-arrows="true" data-show-dots="false" aria-label="Recent approved ads slider">
-        @forelse(($recentApprovedAds ?? collect())->chunk(5) as $recentAdsChunk)
+        @forelse(($recentApprovedAds ?? collect())->chunk(6) as $recentAdsChunk)
           <div class="ad-slide">
-            <div class="product-grid-4 recent-ads-grid">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-6 g-2 recent-ads-grid">
               @foreach($recentAdsChunk as $recentAd)
-                <article class="card h-100 shadow-sm border-0 offer-coupon-card recent-ad-card">
-                  <div class="offer-coupon-image-wrap">
-                    <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}" class="offer-coupon-image">
-                  </div>
-                  <div class="card-body d-flex flex-column gap-2">
-                    <span class="badge text-bg-primary w-fit">{{ $recentAd->category?->name ?? 'Uncategorized' }}</span>
-                    <h4 class="h6 mb-1 offer-coupon-title">{{ $recentAd->title }}</h4>
-                    <p class="small text-muted mb-2 offer-coupon-description">Posted on {{ $recentAd->created_at?->format('d M Y') ?? 'N/A' }}</p>
-                    <a class="btn btn-sm mt-auto" href="{{ route('frontend.ads.show', $recentAd) }}">View Ad</a>
-                  </div>
-                </article>
+                <div class="col">
+                  <article class="card h-100 shadow-sm border-0 offer-coupon-card recent-ad-card">
+                    <div class="offer-coupon-image-wrap">
+                      <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}" class="offer-coupon-image">
+                    </div>
+                    <div class="card-body d-flex flex-column gap-1">
+                      <span class="badge text-bg-primary w-fit">{{ $recentAd->category?->name ?? 'Uncategorized' }}</span>
+                      <h4 class="h6 mb-1 offer-coupon-title">{{ $recentAd->title }}</h4>
+                      <p class="small text-muted mb-2 offer-coupon-description">Posted on {{ $recentAd->created_at?->format('d M Y') ?? 'N/A' }}</p>
+                      <a class="btn btn-sm mt-auto" href="{{ route('frontend.ads.show', $recentAd) }}">View Ad</a>
+                    </div>
+                  </article>
+                </div>
               @endforeach
             </div>
           </div>
         @empty
           <div class="ad-slide">
-            <div class="product-grid-4 recent-ads-grid">
-              <article class="card h-100 shadow-sm border-0 offer-coupon-card recent-ad-card">
-                <div class="offer-coupon-image-wrap">
-                  <img src="{{ asset('assets/images/ad-sample.png') }}" alt="Recent approved ad placeholder" class="offer-coupon-image">
-                </div>
-                <div class="card-body d-flex flex-column gap-2 justify-content-center">
-                  <span class="badge text-bg-secondary w-fit">Recent Ads</span>
-                  <h4 class="h6 mb-1 offer-coupon-title">No approved ads available yet</h4>
-                  <p class="small text-muted mb-2 offer-coupon-description">New approved ads will appear here.</p>
-                  <button class="btn btn-sm mt-auto" type="button">View Ad</button>
-                </div>
-              </article>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-6 g-2 recent-ads-grid">
+              <div class="col">
+                <article class="card h-100 shadow-sm border-0 offer-coupon-card recent-ad-card">
+                  <div class="offer-coupon-image-wrap">
+                    <img src="{{ asset('assets/images/ad-sample.png') }}" alt="Recent approved ad placeholder" class="offer-coupon-image">
+                  </div>
+                  <div class="card-body d-flex flex-column gap-1 justify-content-center">
+                    <span class="badge text-bg-secondary w-fit">Recent Ads</span>
+                    <h4 class="h6 mb-1 offer-coupon-title">No approved ads available yet</h4>
+                    <p class="small text-muted mb-2 offer-coupon-description">New approved ads will appear here.</p>
+                    <button class="btn btn-sm mt-auto" type="button">View Ad</button>
+                  </div>
+                </article>
+              </div>
             </div>
           </div>
         @endforelse
@@ -1246,6 +1250,25 @@
     background: #f5f9ff;
     padding: 0;
   }
+
+  .recent-ad-card .offer-coupon-image-wrap {
+    margin-bottom: 0;
+    background: transparent;
+  }
+  .recent-ad-card .offer-coupon-image {
+    display: block;
+    width: 100%;
+    height: 220px;
+    aspect-ratio: auto;
+    object-fit: cover;
+    object-position: center;
+    background: #f5f9ff;
+  }
+  .recent-ad-card .card-body {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
 </style>
 @endpush
 
