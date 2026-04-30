@@ -815,6 +815,12 @@
 
             <div class="col-12 col-xl-4">
               <aside class="section-side-ad ad-slider auto-ad-slider ppng-side-slider" data-show-arrows="true" aria-label="Popular properties ads slider">
+                
+                @forelse(($popularGreenwoodAds ?? collect()) as $ad)
+                  <div class="side-card ad-slide ppng-side-image-card" aria-label="{{ $ad->title }}">
+                    <img class="side-card-img ppng-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+                  </div>
+                @empty
                 <div class="side-card shadow-sm rounded-4 overflow-hidden border-0">
                   <img class="side-card-img" src="https://images.unsplash.com/photo-1494526585095-c41746248156?w=1400&q=85&auto=format&fit=crop" alt="Premium property slot ad image">
                   <div class="side-card-body p-4">
@@ -823,22 +829,9 @@
                     <button class="btn btn-warning fw-semibold px-4">Reserve Slot</button>
                   </div>
                 </div>
-                <div class="side-card shadow-sm rounded-4 overflow-hidden border-0">
-                  <img class="side-card-img" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1400&q=85&auto=format&fit=crop" alt="Luxury listing spotlight ad image">
-                  <div class="side-card-body p-4">
-                    <h3 class="fw-bold ppng-ad-title">Luxury Listing Spotlight</h3>
-                    <p class="mb-3 ppng-ad-copy">Feature premium homes in front of high-intent buyers.</p>
-                    <button class="btn btn-warning fw-semibold px-4">Book Now</button>
-                  </div>
-                </div>
-                <div class="side-card shadow-sm rounded-4 overflow-hidden border-0">
-                  <img class="side-card-img" src="https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=1400&q=85&auto=format&fit=crop" alt="Builder growth campaign ad image">
-                  <div class="side-card-body p-4">
-                    <h3 class="fw-bold ppng-ad-title">Builder Growth Campaign</h3>
-                    <p class="mb-3 ppng-ad-copy">Promote projects with larger visuals and stronger visibility.</p>
-                    <button class="btn btn-warning fw-semibold px-4">Start Campaign</button>
-                  </div>
-                </div>
+                @endforelse
+
+
               </aside>
             </div>
           </div>
