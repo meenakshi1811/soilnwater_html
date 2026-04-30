@@ -267,7 +267,25 @@ $('#capture-screenshot').on('click', function () {
         useCORS: true,
         backgroundColor: '#f5f5f5',
         width: width,
-        height: height
+        height: height,
+        onclone: (doc) => {
+            const cloneArea = doc.getElementById('capture-area');
+            const cloneImage = doc.getElementById('preview-image');
+            if (cloneArea) {
+                cloneArea.style.width = width + 'px';
+                cloneArea.style.height = height + 'px';
+                cloneArea.style.overflow = 'hidden';
+                cloneArea.style.background = '#f5f5f5';
+                cloneArea.style.display = 'block';
+            }
+            if (cloneImage) {
+                cloneImage.style.width = '100%';
+                cloneImage.style.height = '100%';
+                cloneImage.style.objectFit = 'contain';
+                cloneImage.style.objectPosition = 'center center';
+                cloneImage.style.display = 'block';
+            }
+        }
     }).then(canvas => {
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
