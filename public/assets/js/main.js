@@ -502,7 +502,9 @@
 
   const updateLocationLabel = (value) => {
     if (!locationLabel) return;
-    locationLabel.textContent = value || locationLabel.dataset.defaultLocation || 'Your Location';
+    const resolved = value || locationLabel.dataset.defaultLocation || 'Your Location';
+    locationLabel.textContent = resolved;
+    locationLabel.setAttribute('title', resolved);
   };
 
   const fetchLocationName = async (lat, lng) => {

@@ -5,7 +5,7 @@
 
   <div class="loc-wrap">
     <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
-    <span id="headerCurrentLocation" data-default-location="Detecting location...">Detecting location...</span>
+    <span id="headerCurrentLocation" class="loc-text" data-default-location="Detecting location..." title="Detecting location...">Detecting location...</span>
     <span class="loc-caret">▾</span>
   </div>
 
