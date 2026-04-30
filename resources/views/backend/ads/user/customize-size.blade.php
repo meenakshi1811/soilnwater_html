@@ -86,6 +86,18 @@
                     </div>
                 </div>
                 <small class="text-secondary d-block mt-2">Image will be normalized to {{ $size['w'] }}×{{ $size['h'] }} using Intervention on save.</small>
+                <div id="uploadImagePositionControls" class="mt-3 d-none">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Image Left / Right</label>
+                            <input type="range" id="uploadImagePosX" class="form-range" min="0" max="100" value="50">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Image Top / Bottom</label>
+                            <input type="range" id="uploadImagePosY" class="form-range" min="0" max="100" value="50">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="customizeWrap" class="mb-3 d-none">
@@ -230,6 +242,9 @@
         const dropzonePreviewWrap = document.getElementById('adDropzonePreviewWrap');
         const dropzonePreview = document.getElementById('adDropzonePreview');
         const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
+        const uploadImagePositionControls = document.getElementById('uploadImagePositionControls');
+        const uploadImagePosX = document.getElementById('uploadImagePosX');
+        const uploadImagePosY = document.getElementById('uploadImagePosY');
         const categorySelect = document.getElementById('categorySelect');
         const subcategorySelect = document.getElementById('subcategorySelect');
         const submitButton = document.getElementById('adSubmitButton');
@@ -252,6 +267,8 @@
         let selectedLayer = null;
         let currentMode = 'upload';
         let uploadedImageFile = null;
+        let uploadedImagePositionX = 50;
+        let uploadedImagePositionY = 50;
 
         function toast(type, message) {
             if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
@@ -361,6 +378,12 @@
                 }
             }
             else if (!preview.querySelector('img')) canvasWrap.classList.add('d-none');
+        }
+
+        function updateUploadedImagePosition() {
+            const uploadedPreviewImage = preview.querySelector('img[data-upload-image="1"]');
+            if (!uploadedPreviewImage) return;
+            uploadedPreviewImage.style.objectPosition = `${uploadedImagePositionX}% ${uploadedImagePositionY}%`;
         }
 
         function isTextLayer(node) {
@@ -615,8 +638,25 @@
             img.style.width = '100%';
             img.style.height = '100%';
             img.style.objectFit = 'cover';
+            img.setAttribute('data-upload-image', '1');
+            uploadedImagePositionX = 50;
+            uploadedImagePositionY = 50;
+            if (uploadImagePosX) uploadImagePosX.value = '50';
+            if (uploadImagePosY) uploadImagePosY.value = '50';
+            updateUploadedImagePosition();
             preview.appendChild(img);
             canvasWrap.classList.remove('d-none');
+            uploadImagePositionControls?.classList.remove('d-none');
+        });
+
+        uploadImagePosX?.addEventListener('input', function () {
+            uploadedImagePositionX = Math.max(0, Math.min(100, Number(this.value) || 50));
+            updateUploadedImagePosition();
+        });
+
+        uploadImagePosY?.addEventListener('input', function () {
+            uploadedImagePositionY = Math.max(0, Math.min(100, Number(this.value) || 50));
+            updateUploadedImagePosition();
         });
 
         if (dropzone && uploadInput) {
@@ -759,8 +799,12 @@
                     const scale = Math.max(targetW / image.width, targetH / image.height);
                     const drawWidth = image.width * scale;
                     const drawHeight = image.height * scale;
-                    const dx = (targetW - drawWidth) / 2;
-                    const dy = (targetH - drawHeight) / 2;
+                    const maxOffsetX = Math.max(0, drawWidth - targetW);
+                    const maxOffsetY = Math.max(0, drawHeight - targetH);
+                    const cropOffsetX = (maxOffsetX * uploadedImagePositionX) / 100;
+                    const cropOffsetY = (maxOffsetY * uploadedImagePositionY) / 100;
+                    const dx = -cropOffsetX;
+                    const dy = -cropOffsetY;
 
                     ctx.drawImage(image, dx, dy, drawWidth, drawHeight);
                     URL.revokeObjectURL(objectUrl);
