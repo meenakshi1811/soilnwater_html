@@ -457,12 +457,11 @@
                 <article class="prod-card recent-ad-card">
                   <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}">
                   <div class="prod-card-body">
-                    <p>{{ $recentAd->title }}</p>
+                    <h6 class="mb-1 offer-coupon-title">{{ $recentAd->title }}</h6>
                     <span class="recent-ad-meta">
                       <i class="fa-solid fa-layer-group"></i>
                       {{ $recentAd->category?->name ?? 'Uncategorized' }} • {{ $recentAd->created_at?->format('d M Y') ?? 'N/A' }}
                     </span>
-                    <a class="btn btn-sm" href="{{ route('frontend.ads.show', $recentAd) }}">View Ad</a>
                   </div>
                 </article>
               @endforeach
