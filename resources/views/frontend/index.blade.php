@@ -447,7 +447,7 @@
     <div class="sec recent-ads-section">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> Recent Ads</div>
-        <a class="view-all" href="#">VIEW ALL ▶</a>
+        <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
       </div>
       <div class="ad-slider auto-ad-slider recent-ads-slider" data-show-arrows="true" data-show-dots="false" aria-label="Recent approved ads slider">
         @forelse(($recentApprovedAds ?? collect())->chunk(5) as $recentAdsChunk)
@@ -462,7 +462,7 @@
                       <i class="fa-solid fa-layer-group"></i>
                       {{ $recentAd->category?->name ?? 'Uncategorized' }} • {{ $recentAd->created_at?->format('d M Y') ?? 'N/A' }}
                     </span>
-                    <button class="btn btn-sm" type="button">View Ad</button>
+                    <a class="btn btn-sm" href="{{ route('frontend.ads.show', $recentAd) }}">View Ad</a>
                   </div>
                 </article>
               @endforeach
