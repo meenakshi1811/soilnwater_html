@@ -221,8 +221,8 @@
         <div class="mt-4 p-3 border rounded bg-white" id="demoCaptureWrap">
             <h6 class="mb-3">Upload and Capture Image</h6>
             <input type="file" id="upload-image" class="form-control mb-3" accept="image/*">
-            <div id="capture-area" style="width:800px;height:300px;max-width:100%;margin:0 auto 12px;border:1px solid #ccc;overflow:hidden;background:#f5f5f5;">
-                <img id="preview-image" src="" alt="Uploaded Image" style="width:100%;height:100%;object-fit:contain;display:block;">
+            <div id="capture-area" style="width:879px;height:118px;max-width:100%;margin:0 auto 12px;border:1px solid #ccc;overflow:hidden;background:#f5f5f5;">
+                <img id="preview-image" src="" alt="Uploaded Image" style="width:100%;height:100%;object-fit:contain;object-position:center center;display:block;">
             </div>
             <button type="button" id="capture-screenshot" class="btn btn-outline-primary">Capture Screenshot</button>
         </div>
@@ -252,17 +252,22 @@ $('#upload-image').on('change', function (event) {
 });
 
 $('#capture-screenshot').on('click', function () {
-    const screenshotTarget = document.getElementById('preview-image');
+    const screenshotTarget = document.getElementById('capture-area');
 
     if (!$('#preview-image').attr('src')) {
         alert('Please upload an image first.');
         return;
     }
 
+    const width = screenshotTarget.clientWidth;
+    const height = screenshotTarget.clientHeight;
+
     html2canvas(screenshotTarget, {
         scale: window.devicePixelRatio * 2,
         useCORS: true,
-        backgroundColor: null
+        backgroundColor: '#f5f5f5',
+        width: width,
+        height: height
     }).then(canvas => {
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
