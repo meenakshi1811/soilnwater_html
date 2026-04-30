@@ -118,12 +118,17 @@
     }
 
     .offer-details-modal .modal-header {
-        padding: 0.95rem 1.25rem;
+        position: relative;
+        padding: 0.95rem 3.4rem 0.95rem 1.25rem;
         border-bottom: 1px solid #e6effa;
         background: rgba(255, 255, 255, 0.86);
         backdrop-filter: blur(4px);
     }
     .offer-modal-close-btn {
+        position: absolute;
+        top: 50%;
+        right: 1rem;
+        transform: translateY(-50%);
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -138,7 +143,7 @@
     .offer-modal-close-btn:hover {
         background: #eaf3ff;
         color: #103963;
-        transform: translateY(-1px);
+        transform: translateY(-50%) scale(1.03);
     }
     .offer-share-qr {
         width: 112px;
