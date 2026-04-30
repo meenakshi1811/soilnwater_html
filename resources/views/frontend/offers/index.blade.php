@@ -688,6 +688,12 @@
             }
 
         });
+
+        if (shareToggleBtn && sharePanelEl) {
+            shareToggleBtn.addEventListener('click', function () {
+                sharePanelEl.classList.toggle('d-none');
+            });
+        }
     })();
 </script>
 @endpush
