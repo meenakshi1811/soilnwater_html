@@ -586,6 +586,66 @@
       </div>
     </div>
 
+
+
+    <div class="modal fade offer-details-modal" id="adDetailsModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable offer-details-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5">Ad Details</h2>
+            <button type="button" class="offer-modal-close-btn" data-bs-dismiss="modal">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="modal-body p-0">
+            <img id="adDetailsModalImage" src="" alt="Ad image" class="d-none offer-details-modal-image">
+            <div class="offer-details-content">
+              <h3 class="h4 mb-2" id="adDetailsModalTitle"></h3>
+              <p class="text-muted mb-2" id="adDetailsModalMeta"></p>
+              <p class="text-muted mb-3" id="adDetailsModalDescription"></p>
+
+              <button type="button" class="btn btn-outline-primary btn-sm mb-3 d-none" id="adDetailsEnlargeBtn">
+                <i class="fa-solid fa-up-right-and-down-left-from-center me-1"></i> Enlarge image
+              </button>
+
+              <div class="offer-share-panel mt-2">
+                <div class="offer-share-panel-head">
+                  <h4 class="offer-share-title mb-1">Share this ad</h4>
+                </div>
+                <div class="offer-share-panel-body">
+                  <div class="offer-share-qr-wrap">
+                    <img id="adShareQr" src="" alt="Ad QR" class="offer-share-qr">
+                  </div>
+                  <div class="offer-share-links-wrap">
+                    <input type="text" id="adShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                      <a id="adShareWhatsapp" href="#" target="_blank" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a>
+                      <a id="adShareFacebook" href="#" target="_blank" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
+                      <a id="adShareInstagram" href="#" target="_blank" class="btn btn-sm offer-share-btn share-instagram">Instagram</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="adImageEnlargeModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark">
+          <div class="modal-header border-0">
+            <h2 class="modal-title fs-6 text-white">Ad Image Preview</h2>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body pt-0">
+            <img id="adImageEnlargePreview" src="" alt="Enlarged ad image" class="img-fluid w-100 rounded">
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -1189,6 +1249,56 @@
 @push('scripts')
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    const adModal = document.getElementById('adDetailsModal');
+    const adImageEl = document.getElementById('adDetailsModalImage');
+    const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
+    const adImageEnlargePreview = document.getElementById('adImageEnlargePreview');
+
+    if (adModal) {
+      document.addEventListener('click', function (event) {
+        const adImage = event.target.closest('.ad-slider img, .recent-ad-card img');
+        if (!adImage || adImage.closest('.offer-coupon-card')) return;
+
+        event.preventDefault();
+
+        const adTitle = adImage.getAttribute('alt') || 'Ad Details';
+        const adSrc = adImage.getAttribute('src') || '';
+        const adMeta = 'Home Page Advertisement';
+        const adDescription = 'You are viewing this ad from the homepage slider/recent ads section.';
+
+        document.getElementById('adDetailsModalTitle').textContent = adTitle;
+        document.getElementById('adDetailsModalMeta').textContent = adMeta;
+        document.getElementById('adDetailsModalDescription').textContent = adDescription;
+
+        if (adSrc) {
+          adImageEl.src = adSrc;
+          adImageEl.classList.remove('d-none');
+          adEnlargeBtn.classList.remove('d-none');
+        } else {
+          adImageEl.src = '';
+          adImageEl.classList.add('d-none');
+          adEnlargeBtn.classList.add('d-none');
+        }
+
+        const shareUrl = window.location.href;
+        document.getElementById('adShareLink').value = shareUrl;
+        document.getElementById('adShareQr').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`;
+        document.getElementById('adShareWhatsapp').href = `https://wa.me/?text=${encodeURIComponent('Check this ad: ' + shareUrl)}`;
+        document.getElementById('adShareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        document.getElementById('adShareInstagram').href = shareUrl;
+
+        new bootstrap.Modal(adModal).show();
+      });
+
+      if (adEnlargeBtn) {
+        adEnlargeBtn.addEventListener('click', function () {
+          if (!adImageEl || !adImageEl.src) return;
+          adImageEnlargePreview.src = adImageEl.src;
+          new bootstrap.Modal(document.getElementById('adImageEnlargeModal')).show();
+        });
+      }
+    }
+
     const offerModal = document.getElementById('offerDetailsModal');
     if (!offerModal) return;
     const titleEl = document.getElementById('offerDetailsModalTitle');
