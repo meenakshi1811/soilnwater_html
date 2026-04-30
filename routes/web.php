@@ -28,6 +28,17 @@ Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name
 Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
 Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
+Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
+    $data = $request->validate([
+        'lat' => ['required', 'numeric', 'between:-90,90'],
+        'lng' => ['required', 'numeric', 'between:-180,180'],
+    ]);
+
+    session(['frontend_lat' => (float) $data['lat'], 'frontend_lng' => (float) $data['lng']]);
+
+    return response()->json(['ok' => true]);
+})->name('frontend.location.store');
+
 Route::get('/terms-and-condition/{moduleKey}', [TermsAndConditionPageController::class, 'show'])->name('frontend.terms.show');
 
 Auth::routes(['verify' => true]);
