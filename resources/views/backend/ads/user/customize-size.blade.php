@@ -252,7 +252,13 @@ $('#capture').on('click', function () {
         useCORS: true,
         backgroundColor: '#ffffff',
         width: width,
-        height: height
+        height: height,
+        x: rect.left + window.scrollX,
+        y: rect.top + window.scrollY,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
+        scrollX: 0,
+        scrollY: 0
     }).then(canvas => {
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
