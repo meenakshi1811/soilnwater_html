@@ -505,17 +505,33 @@
     locationLabel.textContent = value || locationLabel.dataset.defaultLocation || 'Your Location';
   };
 
-  const locationNameFromCoordinates = (lat, lng) => {
-    return `Lat ${lat.toFixed(3)}, Lng ${lng.toFixed(3)}`;
+  const fetchLocationName = async (lat, lng) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}`);
+      if (!response.ok) return null;
+      const payload = await response.json();
+      const address = payload && payload.address ? payload.address : {};
+      return address.city || address.town || address.village || address.suburb || payload.display_name || null;
+    } catch (error) {
+      return null;
+    }
   };
 
   const searchParams = new URLSearchParams(window.location.search);
-  const currentLat = Number(searchParams.get('lat'));
-  const currentLng = Number(searchParams.get('lng'));
+  const rawLat = searchParams.get('lat');
+  const rawLng = searchParams.get('lng');
+  const hasCoordinatesInUrl = rawLat !== null && rawLat !== '' && rawLng !== null && rawLng !== '';
 
-  if (Number.isFinite(currentLat) && Number.isFinite(currentLng)) {
-    updateLocationLabel(locationNameFromCoordinates(currentLat, currentLng));
-    return;
+  if (hasCoordinatesInUrl) {
+    const currentLat = Number(rawLat);
+    const currentLng = Number(rawLng);
+
+    if (Number.isFinite(currentLat) && Number.isFinite(currentLng)) {
+      fetchLocationName(currentLat, currentLng).then((name) => {
+        updateLocationLabel(name || 'Current location');
+      });
+      return;
+    }
   }
 
   if (!navigator.geolocation || !isEligiblePath) {
@@ -523,11 +539,12 @@
     return;
   }
 
-  navigator.geolocation.getCurrentPosition((position) => {
+  navigator.geolocation.getCurrentPosition(async (position) => {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
 
-    updateLocationLabel(locationNameFromCoordinates(lat, lng));
+    const name = await fetchLocationName(lat, lng);
+    updateLocationLabel(name || 'Current location');
 
     const redirectUrl = new URL(window.location.href);
     redirectUrl.searchParams.set('lat', lat.toFixed(6));
