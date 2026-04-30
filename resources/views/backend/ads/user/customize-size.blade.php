@@ -231,20 +231,24 @@
 <script>
 
 $('#capture').on('click', function () {
-    const uploadedPreviewImage = document.querySelector('#adPreview img[data-upload-image="1"]') || document.querySelector('#adPreview img');
+    const previewDiv = document.getElementById('adPreview');
+    const hasImage = $('#adPreview img').length > 0;
     const hasCustomLayers = $('#adPreview [data-layer-type="text"], #adPreview [data-layer-type="image"]').length > 0;
 
-    if (!uploadedPreviewImage && !hasCustomLayers) {
+    if (!previewDiv || (!hasImage && !hasCustomLayers)) {
         alert('Please upload or design an ad first.');
         return;
     }
 
-    const screenshotTarget = uploadedPreviewImage || document.getElementById('adPreview');
+    const width = previewDiv.offsetWidth;
+    const height = previewDiv.offsetHeight;
 
-    html2canvas(screenshotTarget, {
+    html2canvas(previewDiv, {
         scale: window.devicePixelRatio * 2,
         useCORS: true,
-        backgroundColor: null
+        backgroundColor: null,
+        width: width,
+        height: height
     }).then(canvas => {
         const dataURL = canvas.toDataURL('image/png');
         const link = document.createElement('a');
