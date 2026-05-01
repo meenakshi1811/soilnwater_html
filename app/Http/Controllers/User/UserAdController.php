@@ -211,6 +211,7 @@ class UserAdController extends Controller
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
             'custom_html' => 'nullable|string',
+            'ad_image_input_type' => 'nullable|in:1,2',
             'generated_image_data' => ['required', 'string', 'starts_with:data:image/png;base64,'],
             'accept_terms' => 'accepted',
             'category_id' => [
@@ -275,6 +276,7 @@ class UserAdController extends Controller
 
         $ad = DB::transaction(function () use ($request, $template, $sizeType, $validated, $fields, $imageKeys, $user, $targetWidth, $targetHeight) {
             $firstUploadedImagePath = null;
+            $shouldResizeUploadedAsset = (string) ($validated['ad_image_input_type'] ?? '') !== '1';
 
             foreach ($imageKeys as $key) {
                 if (!$request->hasFile($key)) {
@@ -282,7 +284,13 @@ class UserAdController extends Controller
                 }
 
                 $file = $request->file($key);
-                $storedPath = $this->storeAndResizeUploadedAsset($file, $key, $targetWidth, $targetHeight);
+                $storedPath = $this->storeAndResizeUploadedAsset(
+                    $file,
+                    $key,
+                    $targetWidth,
+                    $targetHeight,
+                    $shouldResizeUploadedAsset
+                );
                 $fields[$key] = $storedPath;
 
                 if ($firstUploadedImagePath === null) {
@@ -466,7 +474,13 @@ class UserAdController extends Controller
         }
     }
 
-    private function storeAndResizeUploadedAsset(UploadedFile $file, string $key, int $targetWidth, int $targetHeight): string
+    private function storeAndResizeUploadedAsset(
+        UploadedFile $file,
+        string $key,
+        int $targetWidth,
+        int $targetHeight,
+        bool $shouldResize = true
+    ): string
     {
         $relativeDirectory = 'uploads/ads/assets';
         $absoluteDirectory = public_path($relativeDirectory);
@@ -482,7 +496,7 @@ class UserAdController extends Controller
         $manager = new ImageManager(new GdDriver());
         $image = $manager->read($file->getRealPath());
 
-        if ($targetWidth > 0 && $targetHeight > 0) {
+        if ($shouldResize && $targetWidth > 0 && $targetHeight > 0) {
             if ($image->width() >= $targetWidth && $image->height() >= $targetHeight) {
                 $image->cover($targetWidth, $targetHeight);
             } else {
