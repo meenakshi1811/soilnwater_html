@@ -4,6 +4,8 @@
         $sizeConfig = $adSizes[$ad->size_type] ?? null;
         $adWidth = $sizeConfig['w'] ?? 320;
         $adHeight = $sizeConfig['h'] ?? 220;
+        $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
+        $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
     @endphp
     <div class="col d-flex justify-content-center">
         <article
@@ -16,7 +18,7 @@
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
             data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
             data-ad-url="{{ route('frontend.ads.show', $ad) }}"
-            data-ad-size="{{ ($sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type))) . ' (' . $adWidth . '×' . $adHeight . ' px)' }}"
+            data-ad-size="{{ $sizeText }}"
         >
             @if ($ad->final_image)
                 <div class="offer-coupon-image-wrap" style="height: {{ $adHeight }}px; max-height: min({{ $adHeight }}px, 70vh); overflow: hidden;">
