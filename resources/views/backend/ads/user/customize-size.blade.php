@@ -74,7 +74,9 @@
 
             <div id="uploadWrap" class="mb-3">
                 <label class="form-label">Ad Image (PNG/JPG/WebP)</label>
-                <input type="file" id="uploadImageInput" class="d-none" accept="image/png,image/jpeg,image/webp">
+                <input type="file" id="uploadImageInput" class="d-none" accept="image/png,image/jpeg,image/webp"
+                    data-required-width="{{ $size['w'] }}"
+                    data-required-height="{{ $size['h'] }}">
                 <div id="adDropzone" class="banner-dropzone">
                     <div id="adDropzonePreviewWrap" class="d-none position-relative">
                         <img id="adDropzonePreview" src="#" alt="Ad image preview" class="banner-preview-img">
@@ -220,7 +222,7 @@
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-        <div class="mt-4 p-3 border rounded bg-white">
+        {{-- <div class="mt-4 p-3 border rounded bg-white">
             <h6 class="mb-3">Upload and Export PDF</h6>
 
             <input type="file" id="upload-image" class="form-control mb-3" accept="image/*">
@@ -236,7 +238,7 @@
             <button type="button" id="capture-screenshot" class="btn btn-danger mt-3">
                 Download PDF
             </button>
-        </div>
+        </div> --}}
 
           <button type="button" id="capture" class="btn btn-primary px-5">Capture</button>
     </div>
@@ -251,6 +253,67 @@
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
 <script>
 let uploadedImage = null;
+
+const addAdImageInput = document.getElementById('uploadImageInput');
+    const addAdImageError = document.getElementById('adImageError');
+    const dropzonePreview = document.getElementById('adDropzonePreview');
+    const dropzonePreviewWrap = document.getElementById('adDropzonePreviewWrap');
+    const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
+
+if (addAdImageInput && addAdImageError) {
+    const requiredWidth = Number(addAdImageInput.dataset.requiredWidth || 0);
+    const requiredHeight = Number(addAdImageInput.dataset.requiredHeight || 0);
+
+    const showImageSizeError = (message) => {
+        addAdImageError.textContent = message;
+        addAdImageError.style.display = 'block';
+    };
+
+    const clearImageSizeError = () => {
+        addAdImageError.textContent = '';
+        addAdImageError.style.display = 'none';
+    };
+
+    addAdImageInput.addEventListener('change', function (event) {
+        const activeMode = document.querySelector('input[name="design_mode"]:checked')?.value || 'upload';
+        if (activeMode !== 'upload') return;
+
+        clearImageSizeError();
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        img.onload = function () {
+            const isExactSize = img.naturalWidth === requiredWidth && img.naturalHeight === requiredHeight;
+            URL.revokeObjectURL(objectUrl);
+
+            if (!isExactSize) {
+                showImageSizeError(`Invalid image size. Required size is exactly ${requiredWidth}×${requiredHeight} pixels.`);
+                addAdImageInput.value = '';
+                if (dropzonePreview) {
+                    dropzonePreview.setAttribute('src', '#');
+                }
+                if (dropzonePreviewWrap) {
+                    dropzonePreviewWrap.classList.add('d-none');
+                }
+                if (dropzonePlaceholder) {
+                    dropzonePlaceholder.classList.remove('d-none');
+                }
+                alert(`Please upload a new image with exact size ${requiredWidth}×${requiredHeight}px.`);
+            }
+        };
+
+        img.onerror = function () {
+            URL.revokeObjectURL(objectUrl);
+            showImageSizeError('Unable to read this image. Please upload a valid image file.');
+            addAdImageInput.value = '';
+        };
+
+        img.src = objectUrl;
+    });
+}
 
 $('#upload-image').on('change', function (event) {
     const file = event.target.files[0];
