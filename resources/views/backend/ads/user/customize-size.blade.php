@@ -830,6 +830,14 @@ function pushScreenshotToServer(dataURL) {
                         dropzonePreviewWrap.classList.add('d-none');
                         dropzonePlaceholder.classList.remove('d-none');
                     }
+                    preview.innerHTML = '';
+                    preview.style.backgroundImage = 'none';
+                    preview.style.backgroundColor = '#f7f7f7';
+                    canvasWrap.classList.add('d-none');
+                    uploadedImagePositionX = 50;
+                    uploadedImagePositionY = 50;
+                    if (uploadImagePosX) uploadImagePosX.value = '50';
+                    if (uploadImagePosY) uploadImagePosY.value = '50';
                     uploadImagePositionControls?.classList.add('d-none');
                     console.warn('[AdUpload] Invalid image size, showing inline error and resetting selection.');
                     return;
