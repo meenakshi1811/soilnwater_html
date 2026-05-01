@@ -1,4 +1,4 @@
-@php($adSizes = \App\Support\AdSizes::all())
+@php($adSizes = \App\Support\AdSizes::all()) @endphp
 @forelse ($ads as $ad)
     @php
         $sizeConfig = $adSizes[$ad->size_type] ?? null;
