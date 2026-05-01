@@ -1,3 +1,4 @@
+@php($adSizes = \App\Support\AdSizes::all())
 @forelse ($ads as $ad)
     <div class="col">
         <article
@@ -9,6 +10,7 @@
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
             data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
             data-ad-url="{{ route('frontend.ads.show', $ad) }}"
+            data-ad-size="{{ ($adSizes[$ad->size_type]['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type))) . (isset($adSizes[$ad->size_type]) ? ' (' . $adSizes[$ad->size_type]['w'] . '×' . $adSizes[$ad->size_type]['h'] . ' px)' : '') }}"
         >
             @if ($ad->final_image)
                 <div class="offer-coupon-image-wrap">
@@ -23,6 +25,11 @@
                     {{ $ad->reviewed_at?->format('d M Y') ?? 'N/A' }}
                 </div>
                 <div class="d-flex align-items-center flex-wrap gap-2 offer-meta-row">
+                    @if(isset($adSizes[$ad->size_type]))
+                        <span class="ads-pill ads-pill-soft" title="Selected size">
+                            <i class="fa-solid fa-expand me-1"></i>{{ $adSizes[$ad->size_type]['w'] }}×{{ $adSizes[$ad->size_type]['h'] }} px
+                        </span>
+                    @endif
                     <span class="ads-pill ads-pill-primary ads-ellipsis" title="{{ $ad->category?->name ?? 'Uncategorized' }}">
                         <i class="fa-solid fa-layer-group me-1"></i>{{ $ad->category?->name ?? 'Uncategorized' }}
                     </span>
