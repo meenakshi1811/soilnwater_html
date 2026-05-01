@@ -7,12 +7,12 @@
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
     @endphp
-    <div class="col d-flex justify-content-center">
+    <div class="ads-market-grid-item">
         <article
             class="card border-0 offer-coupon-card ads-market-card js-ad-modal-trigger"
             role="button"
             tabindex="0"
-            style="width: {{ $adWidth }}px; max-width: 100%;"
+            style="--ad-w: {{ $adWidth }}; --ad-h: {{ $adHeight }};"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • {{ $ad->reviewed_at?->format('d M Y') ?? 'N/A' }}"
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
@@ -20,22 +20,24 @@
             data-ad-url="{{ route('frontend.ads.show', $ad) }}"
             data-ad-size="{{ $sizeText }}"
         >
-            @if ($ad->final_image)
-                <div class="offer-coupon-image-wrap" style="height: {{ $adHeight }}px; max-height: min({{ $adHeight }}px, 70vh); overflow: hidden;">
-                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb" style="height: 100%; width: 100%; object-fit: cover;">
-                </div>
-            @endif
+            <div class="ads-market-card-head d-flex align-items-start justify-content-between gap-2">
+                <h2 class="offer-card-title ads-market-title mb-0">{{ $ad->title }}</h2>
+                <span class="ads-pill ads-pill-admin">Admin Placement</span>
+            </div>
+
+            <div class="offer-coupon-image-wrap ads-market-image-frame">
+                @if ($ad->final_image)
+                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb" style="height: 100%; width: 100%; object-fit: contain;">
+                @endif
+                <span class="ads-size-chip">{{ $adWidth }}×{{ $adHeight }}</span>
+            </div>
 
             <div class="card-body d-flex flex-column gap-2 p-3">
-                <h2 class="offer-card-title ads-market-title mb-0">{{ $ad->title }}</h2>
                 <div class="ads-market-meta">
                     <i class="fa-regular fa-calendar-days me-1"></i>
                     {{ $ad->reviewed_at?->format('d M Y') ?? 'N/A' }}
                 </div>
                 <div class="d-flex align-items-center flex-wrap gap-2 offer-meta-row">
-                    <span class="ads-pill ads-pill-soft" title="Selected size">
-                        <i class="fa-solid fa-expand me-1"></i>{{ $adWidth }}×{{ $adHeight }} px
-                    </span>
                     <span class="ads-pill ads-pill-primary ads-ellipsis" title="{{ $ad->category?->name ?? 'Uncategorized' }}">
                         <i class="fa-solid fa-layer-group me-1"></i>{{ $ad->category?->name ?? 'Uncategorized' }}
                     </span>
