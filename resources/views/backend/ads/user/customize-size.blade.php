@@ -828,13 +828,21 @@ function pushScreenshotToServer(dataURL) {
         });
 
         uploadInput?.addEventListener('change', (e) => {
+            console.log('[AdUpload] File input changed.');
             const adImageError = document.getElementById('adImageError');
             const file = e.target.files?.[0];
-            if (!file) return;
+            if (!file) {
+                console.log('[AdUpload] No file was selected.');
+                return;
+            }
             const requiredWidth = Number(uploadInput.dataset.requiredWidth || 0);
             const requiredHeight = Number(uploadInput.dataset.requiredHeight || 0);
             const activeMode = document.querySelector('input[name="design_mode"]:checked')?.value || 'upload';
-            if (activeMode !== 'upload') return;
+            console.log('[AdUpload] Required size:', requiredWidth + 'x' + requiredHeight, '| Mode:', activeMode);
+            if (activeMode !== 'upload') {
+                console.log('[AdUpload] Skipping validation because mode is not upload.');
+                return;
+            }
 
             if (adImageError) {
                 adImageError.textContent = '';
@@ -845,6 +853,7 @@ function pushScreenshotToServer(dataURL) {
             const dimensionProbe = new Image();
             dimensionProbe.onload = () => {
                 const isExactSize = dimensionProbe.naturalWidth === requiredWidth && dimensionProbe.naturalHeight === requiredHeight;
+                console.log('[AdUpload] Selected image dimensions:', dimensionProbe.naturalWidth + 'x' + dimensionProbe.naturalHeight);
                 if (!isExactSize) {
                     if (adImageError) {
                         adImageError.textContent = `Invalid image size. Please upload exact ${requiredWidth}×${requiredHeight}px image.`;
@@ -859,10 +868,12 @@ function pushScreenshotToServer(dataURL) {
                         dropzonePlaceholder.classList.remove('d-none');
                     }
                     uploadImagePositionControls?.classList.add('d-none');
+                    console.warn('[AdUpload] Invalid image size, showing alert and resetting selection.');
                     alert(`Please add a new image with exact size ${requiredWidth}×${requiredHeight}px.`);
                     return;
                 }
 
+                console.log('[AdUpload] Valid image size. Rendering preview.');
                 uploadedImageFile = file;
                 if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
                     dropzonePreview.src = objectUrl;
@@ -887,11 +898,13 @@ function pushScreenshotToServer(dataURL) {
                 preview.appendChild(img);
                 canvasWrap.classList.remove('d-none');
                 uploadImagePositionControls?.classList.remove('d-none');
+                console.log('[AdUpload] Preview render complete.');
             };
             dimensionProbe.onerror = () => {
                 URL.revokeObjectURL(objectUrl);
                 uploadInput.value = '';
                 uploadedImageFile = null;
+                console.error('[AdUpload] Could not read selected image file.');
                 if (adImageError) {
                     adImageError.textContent = 'Unable to read this image. Please upload a valid image.';
                     adImageError.style.display = 'block';
@@ -911,12 +924,16 @@ function pushScreenshotToServer(dataURL) {
         });
 
         if (dropzone && uploadInput) {
-            dropzone.addEventListener('click', () => uploadInput.click());
+            dropzone.addEventListener('click', () => {
+                console.log('[AdUpload] Dropzone clicked, opening file browser.');
+                uploadInput.click();
+            });
             dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('is-dragover'); });
             dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragover'));
             dropzone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropzone.classList.remove('is-dragover');
+                console.log('[AdUpload] File dropped into dropzone.');
                 const file = e.dataTransfer?.files?.[0];
                 if (!file) return;
                 const dt = new DataTransfer();
