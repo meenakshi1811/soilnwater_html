@@ -496,15 +496,30 @@
 
 
 (function () {
-  const locationLabel = document.getElementById('headerCurrentLocation');
+  const locationInput = document.getElementById('headerCurrentLocation');
   const eligiblePaths = ['/', '/offers-market', '/ads-market'];
   const isEligiblePath = eligiblePaths.includes(window.location.pathname);
 
   const updateLocationLabel = (value) => {
-    if (!locationLabel) return;
-    const resolved = value || locationLabel.dataset.defaultLocation || 'Your Location';
-    locationLabel.textContent = resolved;
-    locationLabel.setAttribute('title', resolved);
+    const resolved = value || (locationInput && locationInput.dataset.defaultLocation) || 'Your Location';
+    if (!locationInput) return;
+    locationInput.value = resolved;
+    locationInput.setAttribute('title', resolved);
+  };
+
+  const syncLocationToSession = (lat, lng) => {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    return fetch('/frontend/location', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ lat, lng })
+    }).catch(() => null);
   };
 
   const fetchLocationName = async (lat, lng) => {
@@ -517,6 +532,29 @@
     } catch (error) {
       return null;
     }
+  };
+
+  window.initHeaderLocationAutocomplete = function initHeaderLocationAutocomplete() {
+    if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
+
+    const autocomplete = new google.maps.places.Autocomplete(locationInput, {
+      fields: ['formatted_address', 'geometry', 'name'],
+      componentRestrictions: { country: 'in' }
+    });
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      const lat = place && place.geometry && place.geometry.location ? place.geometry.location.lat() : null;
+      const lng = place && place.geometry && place.geometry.location ? place.geometry.location.lng() : null;
+      const selectedLocation = (place && (place.formatted_address || place.name)) ? (place.formatted_address || place.name) : '';
+
+      if (!selectedLocation || typeof lat !== 'number' || typeof lng !== 'number') return;
+
+      updateLocationLabel(selectedLocation);
+      localStorage.setItem('frontendLocationName', selectedLocation);
+      sessionStorage.setItem('frontendLocationSynced', '1');
+      syncLocationToSession(lat, lng);
+    });
   };
 
   const searchParams = new URLSearchParams(window.location.search);
@@ -532,8 +570,8 @@
     if (Number.isFinite(currentLat) && Number.isFinite(currentLng)) {
       fetchLocationName(currentLat, currentLng).then((name) => {
         const resolvedName = name || 'Current location';
-    updateLocationLabel(resolvedName);
-    localStorage.setItem('frontendLocationName', resolvedName);
+        updateLocationLabel(resolvedName);
+        localStorage.setItem('frontendLocationName', resolvedName);
       });
       return;
     }
@@ -561,16 +599,7 @@
     updateLocationLabel(resolvedName);
     localStorage.setItem('frontendLocationName', resolvedName);
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    fetch('/frontend/location', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify({ lat, lng })
-    }).finally(() => {
+    syncLocationToSession(lat, lng).finally(() => {
       sessionStorage.setItem('frontendLocationSynced', '1');
       const refreshUrl = new URL(window.location.href);
       refreshUrl.searchParams.delete('lat');
