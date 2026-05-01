@@ -522,6 +522,21 @@
     }).catch(() => null);
   };
 
+  const syncLocationToSession = (lat, lng) => {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    return fetch('/frontend/location', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ lat, lng })
+    }).catch(() => null);
+  };
+
   const fetchLocationName = async (lat, lng) => {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}`);
