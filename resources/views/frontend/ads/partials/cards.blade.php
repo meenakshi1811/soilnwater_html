@@ -12,7 +12,7 @@
             class="card border-0 offer-coupon-card ads-market-card js-ad-modal-trigger"
             role="button"
             tabindex="0"
-            style="width: {{ $adWidth }}px; max-width: 100%;"
+            style="--ad-w: {{ $adWidth }}; --ad-h: {{ $adHeight }};"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • {{ $ad->reviewed_at?->format('d M Y') ?? 'N/A' }}"
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
@@ -25,7 +25,7 @@
                 <span class="ads-pill ads-pill-admin">Admin Placement</span>
             </div>
 
-            <div class="offer-coupon-image-wrap ads-market-image-frame" style="height: {{ $adHeight }}px;">
+            <div class="offer-coupon-image-wrap ads-market-image-frame">
                 @if ($ad->final_image)
                     <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb" style="height: 100%; width: 100%; object-fit: contain;">
                 @endif
