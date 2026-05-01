@@ -33,7 +33,7 @@
         </div>
     </div>
 
-    <div id="adsGrid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 g-3" data-next-page-url="{{ $ads->nextPageUrl() }}">
+    <div id="adsGrid" class="ads-market-grid" data-next-page-url="{{ $ads->nextPageUrl() }}">
         @include('frontend.ads.partials.cards', ['ads' => $ads])
     </div>
 
