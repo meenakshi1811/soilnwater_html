@@ -218,13 +218,24 @@
             </div>
         </form>
 
-        <div class="mt-4 p-3 border rounded bg-white" id="demoCaptureWrap">
-            <h6 class="mb-3">Upload and Capture Image</h6>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+        <div class="mt-4 p-3 border rounded bg-white">
+            <h6 class="mb-3">Upload and Export PDF</h6>
+
             <input type="file" id="upload-image" class="form-control mb-3" accept="image/*">
-            <div id="capture-area" style="width:879px;height:118px;max-width:100%;margin:0 auto 12px;border:1px solid #ccc;overflow:hidden;background:#f5f5f5;">
-                <img id="preview-image" src="" alt="Uploaded Image" style="width:100%;height:100%;object-fit:contain;object-position:center center;display:block;">
+
+            <div id="capture-area"
+                style="width:879px;height:118px;margin:auto;border:1px solid #ccc;overflow:hidden;background:#f5f5f5;">
+
+                <img id="preview-image"
+                    src=""
+                    style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;">
             </div>
-            <button type="button" id="capture-screenshot" class="btn btn-outline-primary">Capture Screenshot</button>
+
+            <button type="button" id="capture-screenshot" class="btn btn-danger mt-3">
+                Download PDF
+            </button>
         </div>
 
           <button type="button" id="capture" class="btn btn-primary px-5">Capture</button>
@@ -239,64 +250,70 @@
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
 <script>
+let uploadedImage = null;
 
 $('#upload-image').on('change', function (event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        $('#preview-image').attr('src', e.target.result);
+    const imageUrl = URL.createObjectURL(file);
+
+    uploadedImage = new Image();
+
+    uploadedImage.onload = function () {
+        $('#preview-image').attr('src', imageUrl);
     };
-    reader.readAsDataURL(file);
+
+    uploadedImage.src = imageUrl;
 });
 
 $('#capture-screenshot').on('click', function () {
-    const screenshotTarget = document.getElementById('capture-area');
-
-    if (!$('#preview-image').attr('src')) {
+    if (!uploadedImage) {
         alert('Please upload an image first.');
         return;
     }
 
-    html2canvas(screenshotTarget, {
-        scale: window.devicePixelRatio * 2,
-        useCORS: true,
-        backgroundColor: null,
-        onclone: (doc) => {
-            const liveArea = document.getElementById('capture-area');
-            const liveImage = document.getElementById('preview-image');
-            const cloneArea = doc.getElementById('capture-area');
-            const cloneImage = doc.getElementById('preview-image');
+    const finalWidth = 879;
+    const finalHeight = 118;
 
-            if (liveArea && cloneArea) {
-                const areaStyle = window.getComputedStyle(liveArea);
-                cloneArea.style.width = areaStyle.width;
-                cloneArea.style.height = areaStyle.height;
-                cloneArea.style.overflow = areaStyle.overflow;
-                cloneArea.style.backgroundColor = areaStyle.backgroundColor;
-                cloneArea.style.border = areaStyle.border;
-            }
+    const canvas = document.createElement('canvas');
+    canvas.width = finalWidth;
+    canvas.height = finalHeight;
 
-            if (liveImage && cloneImage) {
-                const imageStyle = window.getComputedStyle(liveImage);
-                cloneImage.style.width = imageStyle.width;
-                cloneImage.style.height = imageStyle.height;
-                cloneImage.style.objectFit = imageStyle.objectFit;
-                cloneImage.style.objectPosition = imageStyle.objectPosition;
-                cloneImage.style.display = imageStyle.display;
-            }
-        }
-    }).then(canvas => {
-        const dataURL = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.download = 'upload-capture.png';
-        link.href = dataURL;
-        link.click();
-    }).catch(err => {
-        console.error('Demo capture failed:', err);
-    });
+    const ctx = canvas.getContext('2d');
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, finalWidth, finalHeight);
+
+    const imgRatio = uploadedImage.naturalWidth / uploadedImage.naturalHeight;
+    const boxRatio = finalWidth / finalHeight;
+
+    let drawWidth, drawHeight, drawX, drawY;
+
+    // object-fit: cover
+    if (imgRatio > boxRatio) {
+        drawHeight = finalHeight;
+        drawWidth = drawHeight * imgRatio;
+    } else {
+        drawWidth = finalWidth;
+        drawHeight = drawWidth / imgRatio;
+    }
+
+    drawX = (finalWidth - drawWidth) / 2;
+    drawY = (finalHeight - drawHeight) / 2;
+
+    ctx.drawImage(uploadedImage, drawX, drawY, drawWidth, drawHeight);
+
+    const link = document.createElement('a');
+    link.download = 'clear-image.png';
+    link.href = canvas.toDataURL('image/png', 1.0);
+    link.click();
 });
+
+
 
 $('#capture').on('click', function () {
     const previewFrame = document.getElementById('adPreviewFrame');
