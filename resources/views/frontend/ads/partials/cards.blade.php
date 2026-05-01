@@ -21,7 +21,7 @@
             data-ad-size="{{ $sizeText }}"
         >
             @if ($ad->final_image)
-                <div class="offer-coupon-image-wrap" style="height: {{ $adHeight }}px; max-height: min({{ $adHeight }}px, 70vh); overflow: hidden;">
+                <div class="offer-coupon-image-wrap" style="height: {{ $adHeight }}px; overflow: hidden;">
                     <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb" style="height: 100%; width: 100%; object-fit: cover;">
                 </div>
             @endif

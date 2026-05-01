@@ -2748,6 +2748,7 @@
 .ads-market-card{border-radius:16px;overflow:hidden;transition:transform .22s ease,box-shadow .22s ease;border:1px solid #e2eaf5;box-shadow:0 8px 24px rgba(17,52,100,.08);background:#fff;height:100%}
 .ads-market-grid{display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start}
 .ads-market-grid-item{display:flex;justify-content:center}
+.ads-market-card .offer-coupon-image-wrap{aspect-ratio:auto}
 .ads-market-card{width:fit-content;max-width:100%;height:auto}
 .ads-market-thumb{aspect-ratio:auto}
 @media (max-width:768px){.ads-market-grid{justify-content:center}}
