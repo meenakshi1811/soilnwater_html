@@ -828,34 +828,76 @@ function pushScreenshotToServer(dataURL) {
         });
 
         uploadInput?.addEventListener('change', (e) => {
+            const adImageError = document.getElementById('adImageError');
             const file = e.target.files?.[0];
             if (!file) return;
-            uploadedImageFile = file;
-            const objectUrl = URL.createObjectURL(file);
+            const requiredWidth = Number(uploadInput.dataset.requiredWidth || 0);
+            const requiredHeight = Number(uploadInput.dataset.requiredHeight || 0);
+            const activeMode = document.querySelector('input[name="design_mode"]:checked')?.value || 'upload';
+            if (activeMode !== 'upload') return;
 
-            if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
-                dropzonePreview.src = objectUrl;
-                dropzonePreviewWrap.classList.remove('d-none');
-                dropzonePlaceholder.classList.add('d-none');
+            if (adImageError) {
+                adImageError.textContent = '';
+                adImageError.style.display = 'none';
             }
 
-            preview.innerHTML = '';
-            preview.style.backgroundImage = 'none';
-            preview.style.backgroundColor = '#f7f7f7';
-            const img = document.createElement('img');
-            img.src = objectUrl;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            img.setAttribute('data-upload-image', '1');
-            uploadedImagePositionX = 50;
-            uploadedImagePositionY = 50;
-            if (uploadImagePosX) uploadImagePosX.value = '50';
-            if (uploadImagePosY) uploadImagePosY.value = '50';
-            updateUploadedImagePosition();
-            preview.appendChild(img);
-            canvasWrap.classList.remove('d-none');
-            uploadImagePositionControls?.classList.remove('d-none');
+            const objectUrl = URL.createObjectURL(file);
+            const dimensionProbe = new Image();
+            dimensionProbe.onload = () => {
+                const isExactSize = dimensionProbe.naturalWidth === requiredWidth && dimensionProbe.naturalHeight === requiredHeight;
+                if (!isExactSize) {
+                    if (adImageError) {
+                        adImageError.textContent = `Invalid image size. Please upload exact ${requiredWidth}×${requiredHeight}px image.`;
+                        adImageError.style.display = 'block';
+                    }
+                    uploadInput.value = '';
+                    uploadedImageFile = null;
+                    URL.revokeObjectURL(objectUrl);
+                    if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
+                        dropzonePreview.src = '#';
+                        dropzonePreviewWrap.classList.add('d-none');
+                        dropzonePlaceholder.classList.remove('d-none');
+                    }
+                    uploadImagePositionControls?.classList.add('d-none');
+                    alert(`Please add a new image with exact size ${requiredWidth}×${requiredHeight}px.`);
+                    return;
+                }
+
+                uploadedImageFile = file;
+                if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
+                    dropzonePreview.src = objectUrl;
+                    dropzonePreviewWrap.classList.remove('d-none');
+                    dropzonePlaceholder.classList.add('d-none');
+                }
+
+                preview.innerHTML = '';
+                preview.style.backgroundImage = 'none';
+                preview.style.backgroundColor = '#f7f7f7';
+                const img = document.createElement('img');
+                img.src = objectUrl;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.setAttribute('data-upload-image', '1');
+                uploadedImagePositionX = 50;
+                uploadedImagePositionY = 50;
+                if (uploadImagePosX) uploadImagePosX.value = '50';
+                if (uploadImagePosY) uploadImagePosY.value = '50';
+                updateUploadedImagePosition();
+                preview.appendChild(img);
+                canvasWrap.classList.remove('d-none');
+                uploadImagePositionControls?.classList.remove('d-none');
+            };
+            dimensionProbe.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                uploadInput.value = '';
+                uploadedImageFile = null;
+                if (adImageError) {
+                    adImageError.textContent = 'Unable to read this image. Please upload a valid image.';
+                    adImageError.style.display = 'block';
+                }
+            };
+            dimensionProbe.src = objectUrl;
         });
 
         uploadImagePosX?.addEventListener('input', function () {
