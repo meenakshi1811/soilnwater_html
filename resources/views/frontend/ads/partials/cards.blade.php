@@ -7,7 +7,7 @@
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
     @endphp
-    <div class="col d-flex justify-content-center">
+    <div class="ads-market-grid-item">
         <article
             class="card border-0 offer-coupon-card ads-market-card js-ad-modal-trigger"
             role="button"
