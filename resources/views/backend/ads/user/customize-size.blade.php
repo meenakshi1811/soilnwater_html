@@ -17,6 +17,7 @@
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
+            <input type="hidden" name="ad_image_input_type" id="adImageInputType" value="1">
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
@@ -331,7 +332,7 @@ $('#upload-image').on('change', function (event) {
 
 $('#capture-screenshot').on('click', function () {
     if (!uploadedImage) {
-        alert('Please upload an image first.');
+        console.warn('[PDFUpload] Please upload an image first.');
         return;
     }
 
@@ -415,6 +416,7 @@ function pushScreenshotToServer(dataURL) {
         const categorySelect = document.getElementById('categorySelect');
         const subcategorySelect = document.getElementById('subcategorySelect');
         const submitButton = document.getElementById('adSubmitButton');
+        const adImageInputType = document.getElementById('adImageInputType');
         const adBgColorInput = document.getElementById('adBgColorInput');
         const adBgImageInput = document.getElementById('adBgImageInput');
         const clearAdBgBtn = document.getElementById('clearAdBgBtn');
@@ -523,6 +525,9 @@ function pushScreenshotToServer(dataURL) {
 
         function setMode(mode) {
             currentMode = mode === 'customize' ? 'customize' : 'upload';
+            if (adImageInputType) {
+                adImageInputType.value = currentMode === 'upload' ? '1' : '2';
+            }
             document.getElementById('uploadWrap').classList.toggle('d-none', mode !== 'upload');
             document.getElementById('customizeWrap').classList.toggle('d-none', mode !== 'customize');
             document.querySelectorAll('.banner-mode-card').forEach((card) => card.classList.remove('is-active'));
