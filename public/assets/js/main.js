@@ -500,14 +500,14 @@
   const eligiblePaths = ['/', '/offers-market', '/ads-market'];
   const isEligiblePath = eligiblePaths.includes(window.location.pathname);
 
-  const updateLocationLabel = (value) => {
+  function updateLocationLabel(value) {
     const resolved = value || (locationInput && locationInput.dataset.defaultLocation) || 'Your Location';
     if (!locationInput) return;
     locationInput.value = resolved;
     locationInput.setAttribute('title', resolved);
-  };
+  }
 
-  const syncLocationToSession = (lat, lng) => {
+  function syncLocationToSession(lat, lng) {
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve();
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
@@ -520,24 +520,9 @@
       },
       body: JSON.stringify({ lat, lng })
     }).catch(() => null);
-  };
+  }
 
-  const syncLocationToSession = (lat, lng) => {
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve();
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-    return fetch('/frontend/location', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify({ lat, lng })
-    }).catch(() => null);
-  };
-
-  const fetchLocationName = async (lat, lng) => {
+  async function fetchLocationName(lat, lng) {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}`);
       if (!response.ok) return null;
@@ -547,6 +532,45 @@
     } catch (error) {
       return null;
     }
+  }
+
+
+  const locationWrap = document.querySelector('.loc-wrap');
+  const locationCaret = locationWrap ? locationWrap.querySelector('.loc-caret') : null;
+
+  if (locationWrap && locationInput) {
+    locationWrap.addEventListener('click', (event) => {
+      if (event.target === locationInput) return;
+      locationInput.focus();
+    });
+  }
+
+  if (locationCaret && locationInput) {
+    locationCaret.addEventListener('click', () => {
+      locationInput.focus();
+    });
+  }
+  window.initHeaderLocationAutocomplete = function initHeaderLocationAutocomplete() {
+    if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
+
+    const autocomplete = new google.maps.places.Autocomplete(locationInput, {
+      fields: ['formatted_address', 'geometry', 'name'],
+      componentRestrictions: { country: 'in' }
+    });
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      const lat = place && place.geometry && place.geometry.location ? place.geometry.location.lat() : null;
+      const lng = place && place.geometry && place.geometry.location ? place.geometry.location.lng() : null;
+      const selectedLocation = (place && (place.formatted_address || place.name)) ? (place.formatted_address || place.name) : '';
+
+      if (!selectedLocation || typeof lat !== 'number' || typeof lng !== 'number') return;
+
+      updateLocationLabel(selectedLocation);
+      localStorage.setItem('frontendLocationName', selectedLocation);
+      sessionStorage.setItem('frontendLocationSynced', '1');
+      syncLocationToSession(lat, lng);
+    });
   };
 
   window.initHeaderLocationAutocomplete = function initHeaderLocationAutocomplete() {
