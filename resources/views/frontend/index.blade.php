@@ -491,7 +491,7 @@
         <a class="view-all" href="{{ route('frontend.offers.index') }}">VIEW ALL ▶</a>
       </div>
       <div class="promo-layout row g-3 g-lg-4 align-items-stretch">
-        <div class="col-12 col-xl-9 d-flex">
+        <div class="col-12 d-flex">
           <div class="offer-coupon-wrap w-100">
             <div class="ad-slider auto-ad-slider combo-deals-slider" data-show-dots="true" data-show-arrows="false" aria-label="Combo deals slider">
               @forelse(($offerDiscountTopAds ?? collect()) as $ad)
@@ -564,24 +564,6 @@
             </div>
           </div>
         </div>
-        <aside class="col-12 col-xl-3 d-flex">
-          <div class="ad-slider auto-ad-slider promo-side-slider w-100" data-show-arrows="true" aria-label="Offer section right ads slider">
-            @forelse(($offerDiscountSideAds ?? collect()) as $ad)
-              <article class="ad-slide side-card promo-side-card promo-side-image-card" aria-label="{{ $ad->title }}">
-                <img class="side-card-img promo-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
-              </article>
-            @empty
-              <article class="ad-slide side-card promo-side-card">
-                <img class="side-card-img" src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=700&q=80" alt="Seeds and fertilizer promotional ad">
-                <div class="side-card-body">
-                  <h3>Seasonal Seed Deals</h3>
-                  <p>Target local growers with high-converting placements this week.</p>
-                  <button class="btn-learn">Promote Offer</button>
-                </div>
-              </article>
-            @endforelse
-          </div>
-        </aside>
       </div>
     </div>
 
