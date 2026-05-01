@@ -3,10 +3,22 @@
     <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
   </a>
 
-  <div class="loc-wrap">
+  <div class="loc-wrap" id="headerLocationToggle" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
     <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
     <span id="headerCurrentLocation" class="loc-text" data-default-location="Detecting location..." title="Detecting location...">Detecting location...</span>
     <span class="loc-caret">▾</span>
+
+    <div class="location-dropdown" id="headerLocationDropdown" hidden>
+      <label for="headerLocationSearch" class="location-dropdown-label">Search location</label>
+      <input
+        id="headerLocationSearch"
+        type="text"
+        class="location-dropdown-input"
+        placeholder="Search your address..."
+        autocomplete="off"
+      >
+      <small class="location-dropdown-note">Select an address to set your current location.</small>
+    </div>
   </div>
 
   <div class="search-wrap">
