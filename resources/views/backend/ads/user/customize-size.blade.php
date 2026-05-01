@@ -240,7 +240,6 @@
             </button>
         </div> --}}
 
-          <button type="button" id="capture" class="btn btn-primary px-5">Capture</button>
     </div>
 </div>
 @endsection
@@ -378,47 +377,6 @@ $('#capture-screenshot').on('click', function () {
 
 
 
-$('#capture').on('click', function () {
-    const previewFrame = document.getElementById('adPreviewFrame');
-    const previewDiv = document.getElementById('adPreview');
-    const hasImage = $('#adPreview img').length > 0;
-    const hasCustomLayers = $('#adPreview [data-layer-type="text"], #adPreview [data-layer-type="image"]').length > 0;
-
-    if (!previewFrame || !previewDiv || (!hasImage && !hasCustomLayers)) {
-        alert('Please upload or design an ad first.');
-        return;
-    }
-
-    const width = Number(previewFrame.dataset.sourceWidth || previewDiv.offsetWidth || 0);
-    const height = Number(previewFrame.dataset.sourceHeight || previewDiv.offsetHeight || 0);
-
-    html2canvas(previewDiv, {
-        scale: window.devicePixelRatio * 2,
-        useCORS: true,
-        backgroundColor: '#f7f7f7',
-        width: width,
-        height: height,
-        windowWidth: width,
-        windowHeight: height,
-        onclone: (doc) => {
-            const clonePreview = doc.getElementById('adPreview');
-            if (clonePreview) {
-                clonePreview.style.width = width + 'px';
-                clonePreview.style.height = height + 'px';
-                clonePreview.style.overflow = 'hidden';
-                clonePreview.style.background = '#f7f7f7';
-            }
-        }
-    }).then(canvas => {
-        const dataURL = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.download = 'ad-capture.png';
-        link.href = dataURL;
-        link.click();
-    }).catch(err => {
-        console.error('Capture failed:', err);
-    });
-});
 function pushScreenshotToServer(dataURL) {
     $.ajax({
         url: "push-screenshot.php",
@@ -868,8 +826,7 @@ function pushScreenshotToServer(dataURL) {
                         dropzonePlaceholder.classList.remove('d-none');
                     }
                     uploadImagePositionControls?.classList.add('d-none');
-                    console.warn('[AdUpload] Invalid image size, showing alert and resetting selection.');
-                    alert(`Please add a new image with exact size ${requiredWidth}×${requiredHeight}px.`);
+                    console.warn('[AdUpload] Invalid image size, showing inline error and resetting selection.');
                     return;
                 }
 
