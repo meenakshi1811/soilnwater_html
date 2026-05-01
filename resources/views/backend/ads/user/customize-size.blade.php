@@ -255,7 +255,10 @@
 let uploadedImage = null;
 
 const addAdImageInput = document.getElementById('uploadImageInput');
-const addAdImageError = document.getElementById('adImageError');
+    const addAdImageError = document.getElementById('adImageError');
+    const dropzonePreview = document.getElementById('adDropzonePreview');
+    const dropzonePreviewWrap = document.getElementById('adDropzonePreviewWrap');
+    const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
 
 if (addAdImageInput && addAdImageError) {
     const requiredWidth = Number(addAdImageInput.dataset.requiredWidth || 0);
@@ -289,6 +292,16 @@ if (addAdImageInput && addAdImageError) {
             if (!isExactSize) {
                 showImageSizeError(`Invalid image size. Required size is exactly ${requiredWidth}×${requiredHeight} pixels.`);
                 addAdImageInput.value = '';
+                if (dropzonePreview) {
+                    dropzonePreview.setAttribute('src', '#');
+                }
+                if (dropzonePreviewWrap) {
+                    dropzonePreviewWrap.classList.add('d-none');
+                }
+                if (dropzonePlaceholder) {
+                    dropzonePlaceholder.classList.remove('d-none');
+                }
+                alert(`Please upload a new image with exact size ${requiredWidth}×${requiredHeight}px.`);
             }
         };
 
