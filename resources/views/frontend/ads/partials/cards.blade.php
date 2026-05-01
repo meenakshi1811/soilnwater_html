@@ -22,14 +22,12 @@
         >
             <div class="ads-market-card-head d-flex align-items-start justify-content-between gap-2">
                 <h2 class="offer-card-title ads-market-title mb-0">{{ $ad->title }}</h2>
-                <span class="ads-pill ads-pill-admin">Admin Placement</span>
             </div>
 
             <div class="offer-coupon-image-wrap ads-market-image-frame">
                 @if ($ad->final_image)
                     <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb" style="height: 100%; width: 100%; object-fit: contain;">
                 @endif
-                <span class="ads-size-chip">{{ $adWidth }}×{{ $adHeight }}</span>
             </div>
 
             <div class="card-body d-flex flex-column gap-2 p-3">
