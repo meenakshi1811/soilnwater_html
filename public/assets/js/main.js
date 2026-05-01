@@ -497,6 +497,9 @@
 
 (function () {
   const locationLabel = document.getElementById('headerCurrentLocation');
+  const locationToggle = document.getElementById('headerLocationToggle');
+  const locationDropdown = document.getElementById('headerLocationDropdown');
+  const locationSearch = document.getElementById('headerLocationSearch');
   const eligiblePaths = ['/', '/offers-market', '/ads-market'];
   const isEligiblePath = eligiblePaths.includes(window.location.pathname);
 
@@ -505,6 +508,21 @@
     const resolved = value || locationLabel.dataset.defaultLocation || 'Your Location';
     locationLabel.textContent = resolved;
     locationLabel.setAttribute('title', resolved);
+  };
+
+  const syncLocationToSession = (lat, lng) => {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    return fetch('/frontend/location', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ lat, lng })
+    }).catch(() => null);
   };
 
   const fetchLocationName = async (lat, lng) => {
@@ -519,6 +537,80 @@
     }
   };
 
+  const openLocationDropdown = () => {
+    if (!locationDropdown || !locationToggle) return;
+    locationDropdown.hidden = false;
+    locationToggle.setAttribute('aria-expanded', 'true');
+    if (locationSearch) locationSearch.focus();
+  };
+
+  const closeLocationDropdown = () => {
+    if (!locationDropdown || !locationToggle) return;
+    locationDropdown.hidden = true;
+    locationToggle.setAttribute('aria-expanded', 'false');
+  };
+
+  const bindLocationDropdownEvents = () => {
+    if (!locationToggle || !locationDropdown) return;
+
+    locationToggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (locationDropdown.hidden) openLocationDropdown();
+      else closeLocationDropdown();
+    });
+
+    locationToggle.addEventListener('keydown', (event) => {
+      const target = event.target;
+      const isTypingTarget = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (isTypingTarget) return;
+
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (locationDropdown.hidden) openLocationDropdown();
+        else closeLocationDropdown();
+      }
+      if (event.key === 'Escape') {
+        closeLocationDropdown();
+      }
+    });
+
+    locationDropdown.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener('click', () => {
+      if (!locationDropdown.hidden) closeLocationDropdown();
+    });
+  };
+
+  window.initHeaderLocationAutocomplete = function initHeaderLocationAutocomplete() {
+    if (!locationSearch || !window.google || !google.maps || !google.maps.places) return;
+
+    const autocomplete = new google.maps.places.Autocomplete(locationSearch, {
+      fields: ['formatted_address', 'geometry', 'name'],
+      componentRestrictions: { country: 'in' }
+    });
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      const lat = place && place.geometry && place.geometry.location ? place.geometry.location.lat() : null;
+      const lng = place && place.geometry && place.geometry.location ? place.geometry.location.lng() : null;
+      const selectedLocation = (place && (place.formatted_address || place.name)) ? (place.formatted_address || place.name) : '';
+
+      if (!selectedLocation || typeof lat !== 'number' || typeof lng !== 'number') return;
+
+      updateLocationLabel(selectedLocation);
+      localStorage.setItem('frontendLocationName', selectedLocation);
+      sessionStorage.setItem('frontendLocationSynced', '1');
+
+      syncLocationToSession(lat, lng).finally(() => {
+        closeLocationDropdown();
+      });
+    });
+  };
+
+  bindLocationDropdownEvents();
+
   const searchParams = new URLSearchParams(window.location.search);
   const rawLat = searchParams.get('lat');
   const rawLng = searchParams.get('lng');
@@ -532,8 +624,8 @@
     if (Number.isFinite(currentLat) && Number.isFinite(currentLng)) {
       fetchLocationName(currentLat, currentLng).then((name) => {
         const resolvedName = name || 'Current location';
-    updateLocationLabel(resolvedName);
-    localStorage.setItem('frontendLocationName', resolvedName);
+        updateLocationLabel(resolvedName);
+        localStorage.setItem('frontendLocationName', resolvedName);
       });
       return;
     }
@@ -561,16 +653,7 @@
     updateLocationLabel(resolvedName);
     localStorage.setItem('frontendLocationName', resolvedName);
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    fetch('/frontend/location', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify({ lat, lng })
-    }).finally(() => {
+    syncLocationToSession(lat, lng).finally(() => {
       sessionStorage.setItem('frontendLocationSynced', '1');
       const refreshUrl = new URL(window.location.href);
       refreshUrl.searchParams.delete('lat');
