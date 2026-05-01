@@ -573,6 +573,29 @@
     });
   };
 
+  window.initHeaderLocationAutocomplete = function initHeaderLocationAutocomplete() {
+    if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
+
+    const autocomplete = new google.maps.places.Autocomplete(locationInput, {
+      fields: ['formatted_address', 'geometry', 'name'],
+      componentRestrictions: { country: 'in' }
+    });
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      const lat = place && place.geometry && place.geometry.location ? place.geometry.location.lat() : null;
+      const lng = place && place.geometry && place.geometry.location ? place.geometry.location.lng() : null;
+      const selectedLocation = (place && (place.formatted_address || place.name)) ? (place.formatted_address || place.name) : '';
+
+      if (!selectedLocation || typeof lat !== 'number' || typeof lng !== 'number') return;
+
+      updateLocationLabel(selectedLocation);
+      localStorage.setItem('frontendLocationName', selectedLocation);
+      sessionStorage.setItem('frontendLocationSynced', '1');
+      syncLocationToSession(lat, lng);
+    });
+  };
+
   const searchParams = new URLSearchParams(window.location.search);
   const rawLat = searchParams.get('lat');
   const rawLng = searchParams.get('lng');
