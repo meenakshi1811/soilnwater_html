@@ -440,17 +440,21 @@ function pushScreenshotToServer(dataURL) {
         let uploadedImagePositionY = 50;
 
         function toast(type, message) {
+            const normalizedType = type === 'danger' ? 'error' : type;
+
             if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
-                window.FormHelper.showToast(type, message);
+                window.FormHelper.showToast(normalizedType, message);
                 return;
             }
 
-            if (window.toastr && typeof window.toastr[type] === 'function') {
-                window.toastr[type](message);
+            if (window.toastr && typeof window.toastr[normalizedType] === 'function') {
+                window.toastr[normalizedType](message);
                 return;
             }
 
-            console[type === 'danger' ? 'error' : 'log'](message || (type === 'danger' ? 'Something went wrong.' : 'Done'));
+            console[normalizedType === 'error' ? 'error' : 'log'](
+                message || (normalizedType === 'error' ? 'Something went wrong.' : 'Done')
+            );
         }
 
         function clearFieldErrors() {
