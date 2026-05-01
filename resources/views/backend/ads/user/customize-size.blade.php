@@ -88,7 +88,7 @@
                         <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: {{ $size['w'] }}×{{ $size['h'] }}px · PNG, JPG, WebP · Max 2MB</p>
                     </div>
                 </div>
-                <small class="text-secondary d-block mt-2">Image will be normalized to {{ $size['w'] }}×{{ $size['h'] }} using Intervention on save.</small>
+                {{-- <small class="text-secondary d-block mt-2">Image will be normalized to {{ $size['w'] }}×{{ $size['h'] }} using Intervention on save.</small>
                 <div id="uploadImagePositionControls" class="mt-3 d-none">
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -100,7 +100,7 @@
                             <input type="range" id="uploadImagePosY" class="form-range" min="0" max="100" value="50">
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
 
             <div id="customizeWrap" class="mb-3 d-none">
@@ -301,7 +301,7 @@ if (addAdImageInput && addAdImageError) {
                 if (dropzonePlaceholder) {
                     dropzonePlaceholder.classList.remove('d-none');
                 }
-                alert(`Please upload a new image with exact size ${requiredWidth}×${requiredHeight}px.`);
+                // alert(`Please upload a new image with exact size ${requiredWidth}×${requiredHeight}px.`);
             }
         };
 
