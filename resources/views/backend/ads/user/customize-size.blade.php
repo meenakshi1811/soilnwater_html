@@ -17,6 +17,7 @@
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
+            <input type="hidden" name="ad_image_input_type" id="adImageInputType" value="1">
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
@@ -74,7 +75,9 @@
 
             <div id="uploadWrap" class="mb-3">
                 <label class="form-label">Ad Image (PNG/JPG/WebP)</label>
-                <input type="file" id="uploadImageInput" class="d-none" accept="image/png,image/jpeg,image/webp">
+                <input type="file" id="uploadImageInput" class="d-none" accept="image/png,image/jpeg,image/webp"
+                    data-required-width="{{ $size['w'] }}"
+                    data-required-height="{{ $size['h'] }}">
                 <div id="adDropzone" class="banner-dropzone">
                     <div id="adDropzonePreviewWrap" class="d-none position-relative">
                         <img id="adDropzonePreview" src="#" alt="Ad image preview" class="banner-preview-img">
@@ -86,18 +89,6 @@
                     </div>
                 </div>
                 <small class="text-secondary d-block mt-2">Image will be normalized to {{ $size['w'] }}×{{ $size['h'] }} using Intervention on save.</small>
-                <div id="uploadImagePositionControls" class="mt-3 d-none">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label mb-1">Image Left / Right</label>
-                            <input type="range" id="uploadImagePosX" class="form-range" min="0" max="100" value="50">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label mb-1">Image Top / Bottom</label>
-                            <input type="range" id="uploadImagePosY" class="form-range" min="0" max="100" value="50">
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div id="customizeWrap" class="mb-3 d-none">
@@ -218,27 +209,6 @@
             </div>
         </form>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-        <div class="mt-4 p-3 border rounded bg-white">
-            <h6 class="mb-3">Upload and Export PDF</h6>
-
-            <input type="file" id="upload-image" class="form-control mb-3" accept="image/*">
-
-            <div id="capture-area"
-                style="width:879px;height:118px;margin:auto;border:1px solid #ccc;overflow:hidden;background:#f5f5f5;">
-
-                <img id="preview-image"
-                    src=""
-                    style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;">
-            </div>
-
-            <button type="button" id="capture-screenshot" class="btn btn-danger mt-3">
-                Download PDF
-            </button>
-        </div>
-
-          <button type="button" id="capture" class="btn btn-primary px-5">Capture</button>
     </div>
 </div>
 @endsection
@@ -246,116 +216,8 @@
 @push('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
 <script>
-let uploadedImage = null;
-
-$('#upload-image').on('change', function (event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const imageUrl = URL.createObjectURL(file);
-
-    uploadedImage = new Image();
-
-    uploadedImage.onload = function () {
-        $('#preview-image').attr('src', imageUrl);
-    };
-
-    uploadedImage.src = imageUrl;
-});
-
-$('#capture-screenshot').on('click', function () {
-    if (!uploadedImage) {
-        alert('Please upload an image first.');
-        return;
-    }
-
-    const finalWidth = 879;
-    const finalHeight = 118;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = finalWidth;
-    canvas.height = finalHeight;
-
-    const ctx = canvas.getContext('2d');
-
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, finalWidth, finalHeight);
-
-    const imgRatio = uploadedImage.naturalWidth / uploadedImage.naturalHeight;
-    const boxRatio = finalWidth / finalHeight;
-
-    let drawWidth, drawHeight, drawX, drawY;
-
-    // object-fit: cover
-    if (imgRatio > boxRatio) {
-        drawHeight = finalHeight;
-        drawWidth = drawHeight * imgRatio;
-    } else {
-        drawWidth = finalWidth;
-        drawHeight = drawWidth / imgRatio;
-    }
-
-    drawX = (finalWidth - drawWidth) / 2;
-    drawY = (finalHeight - drawHeight) / 2;
-
-    ctx.drawImage(uploadedImage, drawX, drawY, drawWidth, drawHeight);
-
-    const link = document.createElement('a');
-    link.download = 'clear-image.png';
-    link.href = canvas.toDataURL('image/png', 1.0);
-    link.click();
-});
-
-
-
-$('#capture').on('click', function () {
-    const previewFrame = document.getElementById('adPreviewFrame');
-    const previewDiv = document.getElementById('adPreview');
-    const hasImage = $('#adPreview img').length > 0;
-    const hasCustomLayers = $('#adPreview [data-layer-type="text"], #adPreview [data-layer-type="image"]').length > 0;
-
-    if (!previewFrame || !previewDiv || (!hasImage && !hasCustomLayers)) {
-        alert('Please upload or design an ad first.');
-        return;
-    }
-
-    const width = Number(previewFrame.dataset.sourceWidth || previewDiv.offsetWidth || 0);
-    const height = Number(previewFrame.dataset.sourceHeight || previewDiv.offsetHeight || 0);
-
-    html2canvas(previewDiv, {
-        scale: window.devicePixelRatio * 2,
-        useCORS: true,
-        backgroundColor: '#f7f7f7',
-        width: width,
-        height: height,
-        windowWidth: width,
-        windowHeight: height,
-        onclone: (doc) => {
-            const clonePreview = doc.getElementById('adPreview');
-            if (clonePreview) {
-                clonePreview.style.width = width + 'px';
-                clonePreview.style.height = height + 'px';
-                clonePreview.style.overflow = 'hidden';
-                clonePreview.style.background = '#f7f7f7';
-            }
-        }
-    }).then(canvas => {
-        const dataURL = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.download = 'ad-capture.png';
-        link.href = dataURL;
-        link.click();
-    }).catch(err => {
-        console.error('Capture failed:', err);
-    });
-});
 function pushScreenshotToServer(dataURL) {
     $.ajax({
         url: "push-screenshot.php",
@@ -388,12 +250,10 @@ function pushScreenshotToServer(dataURL) {
         const dropzonePreviewWrap = document.getElementById('adDropzonePreviewWrap');
         const dropzonePreview = document.getElementById('adDropzonePreview');
         const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
-        const uploadImagePositionControls = document.getElementById('uploadImagePositionControls');
-        const uploadImagePosX = document.getElementById('uploadImagePosX');
-        const uploadImagePosY = document.getElementById('uploadImagePosY');
         const categorySelect = document.getElementById('categorySelect');
         const subcategorySelect = document.getElementById('subcategorySelect');
         const submitButton = document.getElementById('adSubmitButton');
+        const adImageInputType = document.getElementById('adImageInputType');
         const adBgColorInput = document.getElementById('adBgColorInput');
         const adBgImageInput = document.getElementById('adBgImageInput');
         const clearAdBgBtn = document.getElementById('clearAdBgBtn');
@@ -502,6 +362,9 @@ function pushScreenshotToServer(dataURL) {
 
         function setMode(mode) {
             currentMode = mode === 'customize' ? 'customize' : 'upload';
+            if (adImageInputType) {
+                adImageInputType.value = currentMode === 'upload' ? '1' : '2';
+            }
             document.getElementById('uploadWrap').classList.toggle('d-none', mode !== 'upload');
             document.getElementById('customizeWrap').classList.toggle('d-none', mode !== 'customize');
             document.querySelectorAll('.banner-mode-card').forEach((card) => card.classList.remove('is-active'));
@@ -524,12 +387,6 @@ function pushScreenshotToServer(dataURL) {
                 }
             }
             else if (!preview.querySelector('img')) canvasWrap.classList.add('d-none');
-        }
-
-        function updateUploadedImagePosition() {
-            const uploadedPreviewImage = preview.querySelector('img[data-upload-image="1"]');
-            if (!uploadedPreviewImage) return;
-            uploadedPreviewImage.style.objectPosition = `${uploadedImagePositionX}% ${uploadedImagePositionY}%`;
         }
 
         function isTextLayer(node) {
@@ -765,53 +622,98 @@ function pushScreenshotToServer(dataURL) {
         });
 
         uploadInput?.addEventListener('change', (e) => {
+            console.log('[AdUpload] File input changed.');
+            const adImageError = document.getElementById('adImageError');
             const file = e.target.files?.[0];
-            if (!file) return;
-            uploadedImageFile = file;
-            const objectUrl = URL.createObjectURL(file);
-
-            if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
-                dropzonePreview.src = objectUrl;
-                dropzonePreviewWrap.classList.remove('d-none');
-                dropzonePlaceholder.classList.add('d-none');
+            if (!file) {
+                console.log('[AdUpload] No file was selected.');
+                return;
+            }
+            const requiredWidth = Number(uploadInput.dataset.requiredWidth || 0);
+            const requiredHeight = Number(uploadInput.dataset.requiredHeight || 0);
+            const activeMode = document.querySelector('input[name="design_mode"]:checked')?.value || 'upload';
+            console.log('[AdUpload] Required size:', requiredWidth + 'x' + requiredHeight, '| Mode:', activeMode);
+            if (activeMode !== 'upload') {
+                console.log('[AdUpload] Skipping validation because mode is not upload.');
+                return;
             }
 
-            preview.innerHTML = '';
-            preview.style.backgroundImage = 'none';
-            preview.style.backgroundColor = '#f7f7f7';
-            const img = document.createElement('img');
-            img.src = objectUrl;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            img.setAttribute('data-upload-image', '1');
-            uploadedImagePositionX = 50;
-            uploadedImagePositionY = 50;
-            if (uploadImagePosX) uploadImagePosX.value = '50';
-            if (uploadImagePosY) uploadImagePosY.value = '50';
-            updateUploadedImagePosition();
-            preview.appendChild(img);
-            canvasWrap.classList.remove('d-none');
-            uploadImagePositionControls?.classList.remove('d-none');
-        });
+            if (adImageError) {
+                adImageError.textContent = '';
+                adImageError.style.display = 'none';
+            }
 
-        uploadImagePosX?.addEventListener('input', function () {
-            uploadedImagePositionX = Math.max(0, Math.min(100, Number(this.value) || 50));
-            updateUploadedImagePosition();
-        });
+            const objectUrl = URL.createObjectURL(file);
+            const dimensionProbe = new Image();
+            dimensionProbe.onload = () => {
+                const isExactSize = dimensionProbe.naturalWidth === requiredWidth && dimensionProbe.naturalHeight === requiredHeight;
+                console.log('[AdUpload] Selected image dimensions:', dimensionProbe.naturalWidth + 'x' + dimensionProbe.naturalHeight);
+                if (!isExactSize) {
+                    if (adImageError) {
+                        adImageError.textContent = `Invalid image size. Please upload exact ${requiredWidth}×${requiredHeight}px image.`;
+                        adImageError.style.display = 'block';
+                    }
+                    uploadInput.value = '';
+                    uploadedImageFile = null;
+                    URL.revokeObjectURL(objectUrl);
+                    if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
+                        dropzonePreview.src = '#';
+                        dropzonePreviewWrap.classList.add('d-none');
+                        dropzonePlaceholder.classList.remove('d-none');
+                    }
+                    preview.innerHTML = '';
+                    preview.style.backgroundImage = 'none';
+                    preview.style.backgroundColor = '#f7f7f7';
+                    canvasWrap.classList.add('d-none');
+                    console.warn('[AdUpload] Invalid image size, showing inline error and resetting selection.');
+                    return;
+                }
 
-        uploadImagePosY?.addEventListener('input', function () {
-            uploadedImagePositionY = Math.max(0, Math.min(100, Number(this.value) || 50));
-            updateUploadedImagePosition();
+                console.log('[AdUpload] Valid image size. Rendering preview.');
+                uploadedImageFile = file;
+                if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
+                    dropzonePreview.src = objectUrl;
+                    dropzonePreviewWrap.classList.remove('d-none');
+                    dropzonePlaceholder.classList.add('d-none');
+                }
+
+                preview.innerHTML = '';
+                preview.style.backgroundImage = 'none';
+                preview.style.backgroundColor = '#f7f7f7';
+                const img = document.createElement('img');
+                img.src = objectUrl;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.setAttribute('data-upload-image', '1');
+                preview.appendChild(img);
+                canvasWrap.classList.remove('d-none');
+                console.log('[AdUpload] Preview render complete.');
+            };
+            dimensionProbe.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                uploadInput.value = '';
+                uploadedImageFile = null;
+                console.error('[AdUpload] Could not read selected image file.');
+                if (adImageError) {
+                    adImageError.textContent = 'Unable to read this image. Please upload a valid image.';
+                    adImageError.style.display = 'block';
+                }
+            };
+            dimensionProbe.src = objectUrl;
         });
 
         if (dropzone && uploadInput) {
-            dropzone.addEventListener('click', () => uploadInput.click());
+            dropzone.addEventListener('click', () => {
+                console.log('[AdUpload] Dropzone clicked, opening file browser.');
+                uploadInput.click();
+            });
             dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('is-dragover'); });
             dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragover'));
             dropzone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropzone.classList.remove('is-dragover');
+                console.log('[AdUpload] File dropped into dropzone.');
                 const file = e.dataTransfer?.files?.[0];
                 if (!file) return;
                 const dt = new DataTransfer();
