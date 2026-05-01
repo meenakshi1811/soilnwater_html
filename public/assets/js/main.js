@@ -560,6 +560,10 @@
     });
 
     locationToggle.addEventListener('keydown', (event) => {
+      const target = event.target;
+      const isTypingTarget = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (isTypingTarget) return;
+
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         if (locationDropdown.hidden) openLocationDropdown();
@@ -583,7 +587,8 @@
     if (!locationSearch || !window.google || !google.maps || !google.maps.places) return;
 
     const autocomplete = new google.maps.places.Autocomplete(locationSearch, {
-      fields: ['formatted_address', 'geometry', 'name']
+      fields: ['formatted_address', 'geometry', 'name'],
+      componentRestrictions: { country: 'in' }
     });
 
     autocomplete.addListener('place_changed', () => {
