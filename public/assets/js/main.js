@@ -594,10 +594,6 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
 
       syncLocationToSession(lat, lng).finally(() => {
         sessionStorage.setItem('frontendLocationSynced', '1');
-        const refreshUrl = new URL(window.location.href);
-        refreshUrl.searchParams.delete('lat');
-        refreshUrl.searchParams.delete('lng');
-        window.location.replace(refreshUrl.toString());
       });
     });
   };
@@ -656,10 +652,6 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
 
     syncLocationToSession(lat, lng).finally(() => {
       sessionStorage.setItem('frontendLocationSynced', '1');
-      const refreshUrl = new URL(window.location.href);
-      refreshUrl.searchParams.delete('lat');
-      refreshUrl.searchParams.delete('lng');
-      window.location.replace(refreshUrl.toString());
     });
   }, () => {
     showSearchOnlyLocationField();
