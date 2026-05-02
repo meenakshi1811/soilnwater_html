@@ -21,6 +21,7 @@ class UserAd extends Model
         'fields_json',
         'rendered_html',
         'final_image',
+        'valid_until',
         'submitted_at',
         'reviewed_by',
         'reviewed_at',
@@ -33,6 +34,7 @@ class UserAd extends Model
         'location_lng' => 'float',
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
+        'valid_until' => 'date',
     ];
 
     public function user(): BelongsTo

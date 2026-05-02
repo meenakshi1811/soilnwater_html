@@ -39,6 +39,9 @@ class AdsMarketController extends Controller
             ->where('status', 'approved')
             ->whereHas('user', fn (Builder $query) => $query->where('role', 'user'))
             ->whereNotNull('final_image')
+            ->where(function (Builder $query) {
+                $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
+            })
             ->when($request->filled('category_id'), fn (Builder $query) => $query->where('category_id', $request->integer('category_id')))
             ->when($request->filled('subcategory_id'), fn (Builder $query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
             ->when($request->filled('search'), fn (Builder $query) => $query->where('title', 'like', '%'.$request->string('search')->toString().'%'));
@@ -72,7 +75,7 @@ class AdsMarketController extends Controller
 
     public function show(UserAd $ad): View
     {
-        abort_unless($ad->status === 'approved' && $ad->final_image, 404);
+        abort_unless($ad->status === 'approved' && $ad->final_image && (! $ad->valid_until || $ad->valid_until->isToday() || $ad->valid_until->isFuture()), 404);
 
         return view('frontend.ads.show', ['ad' => $ad->load(['category:id,name', 'subcategory:id,name'])]);
     }

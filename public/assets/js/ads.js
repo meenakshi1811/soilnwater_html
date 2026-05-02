@@ -36,12 +36,13 @@
                 { data: 'status_badge', name: 'status', orderable: false, searchable: false },
                 { data: 'banner_preview', name: 'banner_preview', orderable: false, searchable: false },
                 { data: 'submitted_at', name: 'submitted_at' },
+                { data: 'valid_until', name: 'valid_until', orderable: false, searchable: false },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
             createdRow: function (row, data) {
                 $(row).find('td').eq(6).html(data.status_badge);
                 $(row).find('td').eq(7).html(data.banner_preview);
-                $(row).find('td').eq(9).html(data.actions);
+                $(row).find('td').eq(10).html(data.actions);
             }
         });
     }
@@ -168,12 +169,13 @@
                 { data: 'status_badge', name: 'status', orderable: false, searchable: false },
                 { data: 'banner_preview', name: 'banner_preview', orderable: false, searchable: false },
                 { data: 'submitted_at', name: 'submitted_at' },
+                { data: 'valid_until', name: 'valid_until', orderable: false, searchable: false },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
             createdRow: function (row, data) {
                 $(row).find('td').eq(4).html(data.status_badge);
                 $(row).find('td').eq(5).html(data.banner_preview);
-                $(row).find('td').eq(7).html(data.actions);
+                $(row).find('td').eq(8).html(data.actions);
             }
         });
 

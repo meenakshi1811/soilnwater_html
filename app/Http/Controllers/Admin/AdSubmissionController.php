@@ -62,6 +62,7 @@ class AdSubmissionController extends Controller
                     .'</a>';
             })
             ->editColumn('submitted_at', fn (UserAd $ad) => $ad->submitted_at?->format('Y-m-d H:i') ?? '-')
+            ->addColumn('valid_until', fn (UserAd $ad) => $ad->valid_until?->format('Y-m-d') ?? 'No Expiry')
             ->addColumn('actions', fn (UserAd $ad) => '<div class="d-flex justify-content-end"><a href="'.route('admin.ads.submissions.show', $ad).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a></div>')
             ->rawColumns(['status_badge', 'banner_preview', 'actions'])
             ->make(true);

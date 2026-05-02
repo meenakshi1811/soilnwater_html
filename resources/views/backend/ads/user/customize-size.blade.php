@@ -46,6 +46,10 @@
                     <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat') }}">
                     <input type="hidden" name="location_lng" id="adLocationLng" value="{{ old('location_lng') }}">
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold required-label">Valid Upto <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
+                    <input type="date" name="valid_until" class="form-control" value="{{ old('valid_until') }}" min="{{ now()->toDateString() }}" required>
+                </div>
             </div>
 
             <label class="form-label fw-semibold required-label">

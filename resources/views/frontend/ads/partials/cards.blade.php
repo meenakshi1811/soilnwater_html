@@ -27,7 +27,7 @@
             tabindex="0"
             style="width:{{ $adWidth }}px; height:{{ $adHeight }}px; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }};"
             data-ad-title="{{ $ad->title }}"
-            data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • {{ $ad->reviewed_at?->format('d M Y') ?? 'N/A' }}"
+            data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • Valid upto: {{ $ad->valid_until?->format('d M Y') ?? 'No Expiry' }}"
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
             data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
             data-ad-url="{{ route('frontend.ads.show', $ad) }}"
@@ -46,7 +46,7 @@
             <div class="card-body d-flex flex-column gap-2 p-3">
                 <div class="ads-market-meta">
                     <i class="fa-regular fa-calendar-days me-1"></i>
-                    {{ $ad->reviewed_at?->format('d M Y') ?? 'N/A' }}
+                    Valid upto: {{ $ad->valid_until?->format('d M Y') ?? 'No Expiry' }}
                 </div>
                 <div class="d-flex align-items-center flex-wrap gap-2 offer-meta-row">
                     <span class="ads-pill ads-pill-primary ads-ellipsis" title="{{ $ad->category?->name ?? 'Uncategorized' }}">
