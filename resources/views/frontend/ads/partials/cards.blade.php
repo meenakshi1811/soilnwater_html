@@ -1,7 +1,16 @@
 @php($adSizes = \App\Support\AdSizes::all()) @endphp
 @forelse ($ads as $ad)
     @php
-        $sizeConfig = $adSizes[$ad->size_type] ?? null;
+        $rawSizeType = (string) ($ad->size_type ?? '');
+        $normalizedSizeType = \Illuminate\Support\Str::of($rawSizeType)->lower()->replace([' ', '-'], '_')->value();
+
+        $sizeConfig = $adSizes[$rawSizeType]
+            ?? $adSizes[$normalizedSizeType]
+            ?? collect($adSizes)->first(function (array $config, string $key) use ($normalizedSizeType) {
+                $normalizedKey = \Illuminate\Support\Str::of($key)->lower()->replace([' ', '-'], '_')->value();
+                return $normalizedKey === $normalizedSizeType;
+            });
+
         $adWidth = $sizeConfig['w'] ?? 320;
         $adHeight = $sizeConfig['h'] ?? 220;
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
