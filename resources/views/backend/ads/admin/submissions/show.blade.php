@@ -34,11 +34,6 @@
                     </div>
                 @endif
 
-                <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] ?? '1 / 1' }};">
-                    <div class="ads-live-preview-inner">
-                        {!! $ad->rendered_html ?: '<div class="text-secondary p-3">No rendered HTML saved.</div>' !!}
-                    </div>
-                </div>
 
                 @if($ad->review_note)
                     <div class="mt-3 alert alert-secondary mb-0">
@@ -53,6 +48,7 @@
             <div class="chart-card">
                 <h5 class="mb-3">Submission Details</h5>
                 <div class="mb-2"><span class="text-secondary">Template:</span> <strong>{{ $ad->template?->name ?? '-' }}</strong></div>
+                <div class="mb-2"><span class="text-secondary">Valid Upto:</span> {{ $ad->valid_until?->format('Y-m-d') ?? '-' }}</div>
                 <div class="mb-2"><span class="text-secondary">Submitted:</span> {{ $ad->submitted_at?->format('Y-m-d H:i') ?? '-' }}</div>
                 <div class="mb-2"><span class="text-secondary">Reviewed:</span> {{ $ad->reviewed_at?->format('Y-m-d H:i') ?? '-' }}</div>
                 <div class="mb-3"><span class="text-secondary">User email:</span> {{ $ad->user?->email ?? '-' }}</div>

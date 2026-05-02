@@ -49,7 +49,7 @@
 
     <div class="chart-card">
         <div id="adCustomizeAlert" class="alert d-none" role="alert"></div>
-        <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id]) }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
+        <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType]) }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
@@ -599,7 +599,7 @@
         async function exportPreviewAsPng() {
             const exportWidth = sourceWidth || preview.scrollWidth || 0;
             const exportHeight = sourceHeight || preview.scrollHeight || 0;
-            const pixelRatio = 1;
+            const pixelRatio = 4;
             const clone = preview.cloneNode(true);
             const sandbox = document.createElement('div');
             sandbox.style.position = 'fixed';
@@ -652,8 +652,8 @@
                         return await window.htmlToImage.toPng(clone, {
                             cacheBust: true,
                             pixelRatio,
-                            canvasWidth: exportWidth,
-                            canvasHeight: exportHeight,
+                            canvasWidth: exportWidth * pixelRatio,
+                            canvasHeight: exportHeight * pixelRatio,
                             backgroundColor: null,
                             // Avoid reading cssRules from cross-origin stylesheets (Google Fonts, etc.).
                             // Some html-to-image versions support one or both of these flags.

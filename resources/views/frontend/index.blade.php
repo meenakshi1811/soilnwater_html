@@ -95,98 +95,23 @@
 
 
 <!-- ══════════════════════════════════════════════════
-     CATEGORY BAR  — shows 7, auto-scrolls the rest
+     CATEGORY BAR  — fixed categories with enhanced icons
 ══════════════════════════════════════════════════ -->
 <div class="cat-bar">
   <div class="cat-scroller-wrap">
-    <button class="cat-arrow cat-arrow-left" id="catLeft" aria-label="Scroll left">‹</button>
     <div class="cat-bar-inner" id="catScroller">
-
-      <div class="cat-item active">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="4" y="8" width="24" height="18" rx="3" fill="#e65100"/><rect x="8" y="4" width="6" height="6" rx="2" fill="none" stroke="#e65100" stroke-width="2.5"/><rect x="18" y="4" width="6" height="6" rx="2" fill="none" stroke="#e65100" stroke-width="2.5"/><rect x="8" y="15" width="16" height="2" rx="1" fill="#fff" opacity=".7"/><rect x="8" y="20" width="10" height="2" rx="1" fill="#fff" opacity=".5"/></svg>
-        </div>
-        <span>E-Commerce</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="10" width="20" height="16" rx="3" fill="#e53935"/><rect x="10" y="6" width="12" height="6" rx="2" fill="none" stroke="#e53935" stroke-width="2.5"/><rect x="10" y="18" width="5" height="8" fill="#fff" rx="1"/><rect x="14" y="16" width="8" height="2" rx="1" fill="#fff" opacity=".6"/></svg>
-        </div>
-        <span>Vendors</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="#43a047"/><circle cx="16" cy="16" r="6" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M16 6 v4M16 22 v4M6 16 h4M22 16 h4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-        </div>
-        <span>Services</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="14" width="20" height="14" rx="2" fill="#1565c0"/><polygon points="16,4 4,16 28,16" fill="#1976d2"/><rect x="12" y="20" width="8" height="8" rx="1" fill="#fff" opacity=".7"/></svg>
-        </div>
-        <span>Properties</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="8" y="12" width="16" height="16" rx="2" fill="#f57c00"/><polygon points="16,4 6,14 26,14" fill="#ff9800"/><rect x="14" y="8" width="4" height="6" fill="#fff3e0" rx="1"/><rect x="10" y="20" width="5" height="8" rx="1" fill="#fff" opacity=".5"/><rect x="17" y="20" width="5" height="8" rx="1" fill="#fff" opacity=".5"/></svg>
-        </div>
-        <span>Builders</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="12" r="6" fill="#0288d1"/><path d="M6 26 C6 20 26 20 26 26" fill="#0288d1"/><circle cx="16" cy="12" r="3" fill="#fff" opacity=".6"/></svg>
-        </div>
-        <span>Consultants</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="7" y="8" width="18" height="20" rx="3" fill="#7b1fa2"/><circle cx="16" cy="16" r="5" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="21" cy="10" r="3" fill="#ce93d8"/><path d="M16 14 v-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-        <span>Enquiry</span>
-      </div>
-
-      <!-- Extra items that scroll into view -->
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="5" y="10" width="22" height="16" rx="3" fill="#2e7d32"/><rect x="9" y="6" width="5" height="5" rx="1.5" fill="#2e7d32" stroke="#fff" stroke-width="1.5"/><rect x="18" y="6" width="5" height="5" rx="1.5" fill="#2e7d32" stroke="#fff" stroke-width="1.5"/><text x="10" y="24" font-size="9" fill="#fff" font-weight="bold">₹</text></svg>
-        </div>
-        <span>Products</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="8" width="20" height="20" rx="3" fill="#00897b"/><rect x="10" y="12" width="12" height="2" rx="1" fill="#fff"/><rect x="10" y="17" width="8" height="2" rx="1" fill="#fff" opacity=".7"/><rect x="10" y="22" width="10" height="2" rx="1" fill="#fff" opacity=".5"/></svg>
-        </div>
-        <span>Top Vendors</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><polygon points="16,4 20,13 30,13 22,19 25,29 16,23 7,29 10,19 2,13 12,13" fill="#f9a825"/></svg>
-        </div>
-        <span>Featured</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><circle cx="14" cy="14" r="8" fill="none" stroke="#1565c0" stroke-width="3"/><line x1="20" y1="20" x2="28" y2="28" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/></svg>
-        </div>
-        <span>User Enquiry</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon" style="font-size:26px;">➕</div>
-        <span>More…</span>
-      </div>
-
+      <div class="cat-item active"><div class="cat-icon"><i class="fa-solid fa-bullhorn cat-icon-i cat-ads"></i></div><span>ADS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-tags cat-icon-i cat-offers"></i></div><span>OFFERS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-cart-shopping cat-icon-i cat-ecommerce"></i></div><span>E-COMMERCE</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-store cat-icon-i cat-vendors"></i></div><span>VENDORS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-user-tie cat-icon-i cat-consultants"></i></div><span>CONSULTANTS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i></div><span>SERVICE PROVIDERS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-building cat-icon-i cat-builders"></i></div><span>BUILDER &amp; DEVELOPERS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-diagram-project cat-icon-i cat-projects"></i></div><span>PROJECTS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-house-chimney cat-icon-i cat-properties"></i></div><span>PROPERTIES</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-hotel cat-icon-i cat-hotel"></i></div><span>HOTEL/HOMESTAY</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-circle-question cat-icon-i cat-enquiry"></i></div><span>ENQUIRY</span></div>
     </div><!-- /cat-bar-inner -->
-    <button class="cat-arrow cat-arrow-right" id="catRight" aria-label="Scroll right">›</button>
   </div>
 </div>
 
@@ -235,7 +160,7 @@
             <div class="sec-title"><span class="icon"><i class="fa-solid fa-bullhorn"></i></span> Sponsored Listings</div>
             <a class="view-all" href="#">VIEW ALL ▶</a>
           </div>
-          <div class="sponsored-grid">
+          <div class="sponsored-grid sponsored-grid-with-ad">
             <div class="col d-flex">
               <div class="sp-card">
               <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=900&q=80" alt="Watch">
@@ -254,7 +179,7 @@
               <div class="sp-card-body"><p>Property For Sale</p><div class="sp-badge">Sponsored</div></div>
               </div>
             </div>
-            <div class="col d-flex">
+             <div class="col d-flex">
               <div class="sp-card">
               <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=900&q=80" alt="Services">
               <div class="sp-card-body"><p>Top Home Services</p><div class="sp-badge">Sponsored</div></div>
@@ -295,49 +220,56 @@
           @endforelse
         </div>
 
-        <div class="ad-slider auto-ad-slider dream-home-side-slider">
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=500&q=70" alt="Build your dream home">
-            <div class="side-card-body">
-              <h3>Build Your Dream Home</h3>
-              <p>Find trusted builders &amp; developers near you</p>
-              <button class="btn-learn">Learn More</button>
+        <div class="ad-slider auto-ad-slider dream-home-side-slider sponsored-listings-ad-slider" data-show-arrows="true" data-pause-on-hover="false">
+          @forelse(($sponsoredListingsAds ?? collect()) as $ad)
+            <div class="side-card ad-slide sponsored-listings-ad-card" aria-label="{{ $ad->title }}">
+              <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
             </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=500&q=70" alt="Home design and construction experts">
-            <div class="side-card-body">
-              <h3>Build Your Dream Home</h3>
-              <p>Compare home design packages and start your construction journey.</p>
-              <button class="btn-learn">Explore Builders</button>
+          @empty
+            <div class="side-card ad-slide sponsored-listings-ad-card">
+              <img class="side-card-img" src="{{ asset('assets/images/ad-sample.png') }}" alt="Sponsored listing ad">
+              <div class="side-card-body">
+                <h3>Sponsored Listing Ad</h3>
+                <p>Approved admin ads for size 296×624 will appear here.</p>
+              </div>
             </div>
-          </div>
+          @endforelse
         </div>
       </aside>
       </div>
 
       <div class="ad-slider auto-ad-slider top-ad-slider premium-wide-slider" aria-label="Premium marketplace campaign slider" data-show-arrows="true" data-pause-on-hover="false">
-        <div class="adv-strip-dark ad-slide premium-marketplace-slide">
-          <div class="adv-text">
-            <h3>Grow Faster with Premium Marketplace Ads</h3>
-            <p>Reach ready-to-buy customers with top placements across the marketplace.</p>
+        @forelse(($belowSponsoredSliderAds ?? collect()) as $ad)
+          <div class="ad-slide premium-marketplace-slide">
+            <img
+              src="{{ asset($ad->final_image) }}"
+              alt="{{ $ad->title }}"
+              style="width:100%;height:auto;display:block;border-radius:18px;"
+            >
           </div>
-          <button class="ad-slot-btn">Start Campaign</button>
-        </div>
-        <div class="adv-strip-dark ad-slide premium-marketplace-slide">
-          <div class="adv-text">
-            <h3>Boost Daily Enquiries Automatically</h3>
-            <p>Keep your business visible 24/7 with rotating premium ad positions.</p>
+        @empty
+          <div class="adv-strip-dark ad-slide premium-marketplace-slide">
+            <div class="adv-text">
+              <h3>Grow Faster with Premium Marketplace Ads</h3>
+              <p>Reach ready-to-buy customers with top placements across the marketplace.</p>
+            </div>
+            <button class="ad-slot-btn">Start Campaign</button>
           </div>
-          <button class="ad-slot-btn">View Plans</button>
-        </div>
-        <div class="adv-strip-dark ad-slide premium-marketplace-slide">
-          <div class="adv-text">
-            <h3>Get Arrow Navigation + Auto Rotation</h3>
-            <p>Switch slides manually with arrows or let the banner rotate on its own.</p>
+          <div class="adv-strip-dark ad-slide premium-marketplace-slide">
+            <div class="adv-text">
+              <h3>Boost Daily Enquiries Automatically</h3>
+              <p>Keep your business visible 24/7 with rotating premium ad positions.</p>
+            </div>
+            <button class="ad-slot-btn">View Plans</button>
           </div>
-          <button class="ad-slot-btn">Book Premium Slot</button>
-        </div>
+          <div class="adv-strip-dark ad-slide premium-marketplace-slide">
+            <div class="adv-text">
+              <h3>Get Arrow Navigation + Auto Rotation</h3>
+              <p>Switch slides manually with arrows or let the banner rotate on its own.</p>
+            </div>
+            <button class="ad-slot-btn">Book Premium Slot</button>
+          </div>
+        @endforelse
       </div>
 
       <div class="row g-3 align-items-stretch ecommerce-with-side-ad">
@@ -395,33 +327,39 @@
               </div>
               <div class="col-12 col-lg-3 col-12 col-lg-3 mt-4">
                 <div class="festival-ad-slider ad-slider auto-ad-slider h-100" aria-label="Festival Campaign Deals slider">
-                  <div class="card h-100 ecommerce-ad-bs-card ad-slide">
-                    <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=85" class="card-img-top" alt="Festival Campaign Deals vegetables">
-                    <div class="card-body">
-                      <p class="card-title">Festival Campaign Deals</p>
-                      <div class="prod-price">High-Intent Buyers</div>
-                      <div class="prod-badge">Sponsored</div>
-                      <button class="btn-learn">View Offer</button>
+                  @forelse(($ecommerceSideSliderAds ?? collect()) as $ad)
+                    <div class="card h-100 ecommerce-ad-bs-card ecommerce-ad-image-card ad-slide">
+                      <img src="{{ asset($ad->final_image) }}" class="card-img-top ecommerce-ad-full-img" alt="{{ $ad->title }}">
                     </div>
-                  </div>
-                  <div class="card h-100 ecommerce-ad-bs-card ad-slide">
-                    <img src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=900&q=85" class="card-img-top" alt="Festive ad showcase fruits">
-                    <div class="card-body">
-                      <p class="card-title">Festive Spotlight</p>
-                      <div class="prod-price">Run Local Promotions</div>
-                      <div class="prod-badge">Sponsored</div>
-                      <button class="btn-learn">Book Campaign</button>
+                  @empty
+                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
+                      <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=85" class="card-img-top" alt="Festival Campaign Deals vegetables">
+                      <div class="card-body">
+                        <p class="card-title">Festival Campaign Deals</p>
+                        <div class="prod-price">High-Intent Buyers</div>
+                        <div class="prod-badge">Sponsored</div>
+                        <button class="btn-learn">View Offer</button>
+                      </div>
                     </div>
-                  </div>
-                  <div class="card h-100 ecommerce-ad-bs-card ad-slide">
-                    <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&q=85" class="card-img-top" alt="Seasonal produce campaign">
-                    <div class="card-body">
-                      <p class="card-title">Seasonal Deal Ads</p>
-                      <div class="prod-price">Boost Daily Leads</div>
-                      <div class="prod-badge">Sponsored</div>
-                      <button class="btn-learn">Start Now</button>
+                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
+                      <img src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=900&q=85" class="card-img-top" alt="Festive ad showcase fruits">
+                      <div class="card-body">
+                        <p class="card-title">Festive Spotlight</p>
+                        <div class="prod-price">Run Local Promotions</div>
+                        <div class="prod-badge">Sponsored</div>
+                        <button class="btn-learn">Book Campaign</button>
+                      </div>
                     </div>
-                  </div>
+                    <div class="card h-100 ecommerce-ad-bs-card ad-slide">
+                      <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&q=85" class="card-img-top" alt="Seasonal produce campaign">
+                      <div class="card-body">
+                        <p class="card-title">Seasonal Deal Ads</p>
+                        <div class="prod-price">Boost Daily Leads</div>
+                        <div class="prod-badge">Sponsored</div>
+                        <button class="btn-learn">Start Now</button>
+                      </div>
+                    </div>
+                  @endforelse
                 </div>
               </div>
             </div>
@@ -434,54 +372,40 @@
     <div class="sec recent-ads-section">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> Recent Ads</div>
-        <a class="view-all" href="#">VIEW ALL ▶</a>
+        <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
       </div>
-      <div class="product-grid-4 recent-ads-grid">
-        <article class="prod-card recent-ad-card">
-          <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=85" alt="Fresh produce ad">
-          <div class="prod-card-body">
-            <span class="recent-ad-badge">Featured</span>
-            <p>Organic Grocery Campaign</p>
-            <span class="recent-ad-meta"><i class="fa-solid fa-location-dot"></i> Local Reach • Seasonal Offer</span>
-            <button class="btn btn-sm">View Ad</button>
+      <div class="ad-slider auto-ad-slider recent-ads-slider" data-show-arrows="true" data-show-dots="false" aria-label="Recent approved ads slider">
+        @forelse(($recentApprovedAds ?? collect())->chunk(6) as $recentAdsChunk)
+          <div class="ad-slide">
+            <div class="product-grid-4 recent-ads-grid">
+              @foreach($recentAdsChunk as $recentAd)
+                <article class="prod-card recent-ad-card">
+                  <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}">
+                  <div class="prod-card-body">
+                    <h6 class="mb-1 offer-coupon-title">{{ $recentAd->title }}</h6>
+                    <span class="recent-ad-meta">
+                      <i class="fa-solid fa-layer-group"></i>
+                      {{ $recentAd->category?->name ?? 'Uncategorized' }} • {{ $recentAd->created_at?->format('d M Y') ?? 'N/A' }}
+                    </span>
+                  </div>
+                </article>
+              @endforeach
+            </div>
           </div>
-        </article>
-        <article class="prod-card recent-ad-card">
-          <img src="https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=900&q=85" alt="Home decor ad">
-          <div class="prod-card-body">
-            <span class="recent-ad-badge">New</span>
-            <p>Home Décor Week</p>
-            <span class="recent-ad-meta"><i class="fa-solid fa-star"></i> Premium Listing • High Enquiry</span>
-            <button class="btn btn-sm">View Ad</button>
+        @empty
+          <div class="ad-slide">
+            <div class="product-grid-4 recent-ads-grid">
+              <article class="prod-card recent-ad-card">
+                <img src="{{ asset('assets/images/ad-sample.png') }}" alt="Recent approved ad placeholder">
+                <div class="prod-card-body">
+                  <p>No approved ads available yet</p>
+                  <span class="recent-ad-meta"><i class="fa-solid fa-circle-info"></i> New approved ads will appear here.</span>
+                  <button class="btn btn-sm" type="button">View Ad</button>
+                </div>
+              </article>
+            </div>
           </div>
-        </article>
-        <article class="prod-card recent-ad-card">
-          <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900&q=85" alt="Restaurant ad">
-          <div class="prod-card-body">
-            <span class="recent-ad-badge">Top Pick</span>
-            <p>Restaurant Launch Offer</p>
-            <span class="recent-ad-meta"><i class="fa-solid fa-utensils"></i> Citywide Buzz • Fast Leads</span>
-            <button class="btn btn-sm">View Ad</button>
-          </div>
-        </article>
-        <article class="prod-card recent-ad-card">
-          <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=900&q=85" alt="Property listing ad">
-          <div class="prod-card-body">
-            <span class="recent-ad-badge">Hot</span>
-            <p>Premium Property Listings</p>
-            <span class="recent-ad-meta"><i class="fa-solid fa-key"></i> Prime Locations • Verified Ads</span>
-            <button class="btn btn-sm">View Ad</button>
-          </div>
-        </article>
-        <article class="prod-card recent-ad-card">
-          <img src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=900&q=85" alt="Digital marketing ad analytics">
-          <div class="prod-card-body">
-            <span class="recent-ad-badge">Trending</span>
-            <p>Digital Services Spotlight</p>
-            <span class="recent-ad-meta"><i class="fa-solid fa-chart-line"></i> Better CTR • More Visibility</span>
-            <button class="btn btn-sm">View Ad</button>
-          </div>
-        </article>
+        @endforelse
       </div>
     </div>
 
@@ -492,29 +416,25 @@
         <a class="view-all" href="{{ route('frontend.offers.index') }}">VIEW ALL ▶</a>
       </div>
       <div class="promo-layout row g-3 g-lg-4 align-items-stretch">
-        <div class="col-12 col-xl-9 d-flex">
+        <div class="col-12 d-flex">
           <div class="offer-coupon-wrap w-100">
             <div class="ad-slider auto-ad-slider combo-deals-slider" data-show-dots="true" data-show-arrows="false" aria-label="Combo deals slider">
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Combo Deals</span>
-                <h3>Buy more, save more on agri + home products</h3>
-                <p>Unlock bundled discounts from trusted sellers and apply coupon codes at checkout.</p>
-              </div>
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Limited Time</span>
-                <h3>Stack offers on tools, seeds and irrigation kits</h3>
-                <p>Apply marketplace coupons and get extra discounts from featured sellers.</p>
-              </div>
-              <div class="offer-coupon-banner ad-slide">
-                <span class="promo-tag">Weekend Special</span>
-                <h3>Top savings for farm + garden essentials</h3>
-                <p>Discover curated deals and activate codes instantly at checkout.</p>
-              </div>
+              @forelse(($offerDiscountTopAds ?? collect()) as $ad)
+                <div class="offer-coupon-banner offer-discount-image-slide ad-slide">
+                  <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-discount-top-image">
+                </div>
+              @empty
+                <div class="offer-coupon-banner ad-slide">
+                  <span class="promo-tag">Combo Deals</span>
+                  <h3>Buy more, save more on agri + home products</h3>
+                  <p>Unlock bundled discounts from trusted sellers and apply coupon codes at checkout.</p>
+                </div>
+              @endforelse
             </div>
             <div class="ad-slider auto-ad-slider offer-coupon-grid-slider" data-show-arrows="true" data-show-dots="false" aria-label="Offer coupon cards slider">
-              @forelse ($offers->chunk(5) as $offerChunk)
+              @forelse ($offers->chunk(6) as $offerChunk)
                 <div class="ad-slide">
-                  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-1 offer-coupon-grid">
+                  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-6 g-1 offer-coupon-grid">
                     @foreach ($offerChunk as $offer)
                       <div class="col">
                         <article
@@ -569,34 +489,66 @@
             </div>
           </div>
         </div>
-        <aside class="col-12 col-xl-3 d-flex">
-          <div class="ad-slider auto-ad-slider promo-side-slider w-100" data-show-arrows="true" aria-label="Offer section right ads slider">
-            <article class="ad-slide side-card promo-side-card">
-              <img class="side-card-img" src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=700&q=80" alt="Seeds and fertilizer promotional ad">
-              <div class="side-card-body">
-                <h3>Seasonal Seed Deals</h3>
-                <p>Target local growers with high-converting placements this week.</p>
-                <button class="btn-learn">Promote Offer</button>
-              </div>
-            </article>
-            <article class="ad-slide side-card promo-side-card">
-              <img class="side-card-img" src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=700&q=80" alt="Irrigation tools campaign ad">
-              <div class="side-card-body">
-                <h3>Irrigation Essentials</h3>
-                <p>Feature your tools near buyers ready to purchase today.</p>
-                <button class="btn-learn">Boost Campaign</button>
-              </div>
-            </article>
-            <article class="ad-slide side-card promo-side-card">
-              <img class="side-card-img" src="https://images.unsplash.com/photo-1592150621744-aca64f48394a?w=700&q=80" alt="Farm accessories ad placement">
-              <div class="side-card-body">
-                <h3>Farm Accessory Ads</h3>
-                <p>Show in-demand accessories to nearby customers and increase leads.</p>
-                <button class="btn-learn">Start Ads</button>
-              </div>
-            </article>
+      </div>
+    </div>
+
+
+
+    <div class="modal fade offer-details-modal" id="adDetailsModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable offer-details-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5">Ad Details</h2>
+            <button type="button" class="offer-modal-close-btn" data-bs-dismiss="modal">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
           </div>
-        </aside>
+          <div class="modal-body p-0">
+            <img id="adDetailsModalImage" src="" alt="Ad image" class="d-none offer-details-modal-image">
+            <div class="offer-details-content">
+              <h3 class="h4 mb-2" id="adDetailsModalTitle"></h3>
+              <p class="text-muted mb-2" id="adDetailsModalMeta"></p>
+              <p class="text-muted mb-3" id="adDetailsModalDescription"></p>
+
+              <button type="button" class="btn btn-outline-primary btn-sm mb-3 d-none" id="adDetailsEnlargeBtn">
+                <i class="fa-solid fa-up-right-and-down-left-from-center me-1"></i> Enlarge image
+              </button>
+
+              <div class="offer-share-panel mt-2">
+                <div class="offer-share-panel-head">
+                  <h4 class="offer-share-title mb-1">Share this ad</h4>
+                </div>
+                <div class="offer-share-panel-body">
+                  <div class="offer-share-qr-wrap">
+                    <img id="adShareQr" src="" alt="Ad QR" class="offer-share-qr">
+                  </div>
+                  <div class="offer-share-links-wrap">
+                    <input type="text" id="adShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                      <a id="adShareWhatsapp" href="#" target="_blank" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a>
+                      <a id="adShareFacebook" href="#" target="_blank" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
+                      <a id="adShareInstagram" href="#" target="_blank" class="btn btn-sm offer-share-btn share-instagram">Instagram</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="adImageEnlargeModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark">
+          <div class="modal-header border-0">
+            <h2 class="modal-title fs-6 text-white">Ad Image Preview</h2>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body pt-0">
+            <img id="adImageEnlargePreview" src="" alt="Enlarged ad image" class="img-fluid w-100 rounded">
+          </div>
+        </div>
       </div>
     </div>
 
@@ -628,27 +580,19 @@
         <a class="view-all" href="#">Learn More ▶</a>
       </div>
       <div class="ad-slider auto-ad-slider top-ad-slider" aria-label="Handpicked local ads slider">
-        <div class="explore-top-banner ad-slide">
-          <div>
-            <h4>Handpicked Local Deals Near Greenwood</h4>
-            <p>Discover trusted sellers with better delivery speed and verified ratings.</p>
+        @forelse(($exploreProductsAds ?? collect()) as $ad)
+          <div class="explore-top-banner ad-slide explore-ad-image-slide">
+            <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="explore-ad-full-img">
           </div>
-          <button class="ad-slot-btn">Get Featured</button>
-        </div>
-        <div class="explore-top-banner ad-slide">
-          <div>
-            <h4>Weekend Promo: Farm Essentials</h4>
-            <p>Compare seasonal offers from top agri suppliers around your area.</p>
+        @empty
+          <div class="explore-top-banner ad-slide">
+            <div>
+              <h4>Handpicked Local Deals Near Greenwood</h4>
+              <p>Discover trusted sellers with better delivery speed and verified ratings.</p>
+            </div>
+            <button class="ad-slot-btn">Get Featured</button>
           </div>
-          <button class="ad-slot-btn">View Offers</button>
-        </div>
-        <div class="explore-top-banner ad-slide">
-          <div>
-            <h4>Trusted Home &amp; Retail Sellers</h4>
-            <p>Browse verified local businesses with better ratings and quick responses.</p>
-          </div>
-          <button class="ad-slot-btn">Promote Brand</button>
-        </div>
+        @endforelse
       </div>
       <div class="explore-grid">
         <div class="exp-card">
@@ -684,27 +628,19 @@
             <a class="view-all" href="#">VIEW ALL ▶</a>
           </div>
           <div class="ad-slider auto-ad-slider top-ad-slider top-vendors-featured-slider" aria-label="Top vendor featured ads slider">
-            <div class="vendor-top-ad ad-slide">
-              <div>
-                <div class="vendor-top-ad-title">Secure Your Business</div>
-                <div class="vendor-top-ad-sub">Promote your brand to verified local and nationwide buyers.</div>
+            @forelse(($topVendorsHeaderAds ?? collect()) as $ad)
+              <div class="vendor-top-ad ad-slide top-vendor-image-slide">
+                <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img">
               </div>
-              <button class="vendor-top-ad-btn">Sponsored</button>
-            </div>
-            <div class="vendor-top-ad ad-slide">
-              <div>
-                <div class="vendor-top-ad-title">Boost Vendor Reach</div>
-                <div class="vendor-top-ad-sub">Auto-target active buyers and drive qualified leads every day.</div>
+            @empty
+              <div class="vendor-top-ad ad-slide">
+                <div>
+                  <div class="vendor-top-ad-title">Boost Vendor Reach</div>
+                  <div class="vendor-top-ad-sub">Auto-target active buyers and drive qualified leads every day.</div>
+                </div>
+                <button class="vendor-top-ad-btn">Featured</button>
               </div>
-              <button class="vendor-top-ad-btn">Featured</button>
-            </div>
-            <div class="vendor-top-ad ad-slide">
-              <div>
-                <div class="vendor-top-ad-title">Advertise with Confidence</div>
-                <div class="vendor-top-ad-sub">Run trusted placements across local and nationwide vendor results.</div>
-              </div>
-              <button class="vendor-top-ad-btn">Promoted</button>
-            </div>
+            @endforelse
           </div>
           <div class="row g-3 align-items-start">
             <div class="col-12 col-lg-9">
@@ -757,30 +693,20 @@
             </div>
           </div></div>
             <aside class="col-12 col-lg-3 section-side-ad ad-slider auto-ad-slider top-vendor-side-slider" aria-label="Top vendor side ads slider">
-              <div class="side-card ad-slide">
-                <img class="side-card-img" src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&q=70" alt="Top vendor ad">
-                <div class="side-card-body">
-                  <h3>Top Vendor Ad</h3>
-                  <p>Show your brand next to trusted vendors.</p>
-                  <button class="btn-learn">Get Placement</button>
+              @forelse(($topVendorsSideAds ?? collect()) as $ad)
+                <div class="side-card ad-slide top-vendor-side-image-card" aria-label="{{ $ad->title }}">
+                  <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
                 </div>
-              </div>
-              <div class="side-card ad-slide">
-                <img class="side-card-img" src="https://images.unsplash.com/photo-1521791055366-0d553872125f?w=500&q=70" alt="Vendor spotlight ad">
-                <div class="side-card-body">
-                  <h3>Vendor Spotlight</h3>
-                  <p>Highlight your products beside high-intent.</p>
-                  <button class="btn-learn">Reserve Slot</button>
+              @empty
+                <div class="side-card ad-slide">
+                  <img class="side-card-img" src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&q=70" alt="Top vendor ad">
+                  <div class="side-card-body">
+                    <h3>Top Vendor Ad</h3>
+                    <p>Show your brand next to trusted vendors.</p>
+                    <button class="btn-learn">Get Placement</button>
+                  </div>
                 </div>
-              </div>
-              <div class="side-card ad-slide">
-                <img class="side-card-img" src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500&q=70" alt="Brand visibility ad">
-                <div class="side-card-body">
-                  <h3>Brand Visibility</h3>
-                  <p>Get premium placement in the Top Vendors.</p>
-                  <button class="btn-learn">Advertise</button>
-                </div>
-              </div>
+              @endforelse
             </aside>
           </div>
         </div>
@@ -855,6 +781,12 @@
 
             <div class="col-12 col-xl-4">
               <aside class="section-side-ad ad-slider auto-ad-slider ppng-side-slider" data-show-arrows="true" aria-label="Popular properties ads slider">
+                
+                @forelse(($popularGreenwoodAds ?? collect()) as $ad)
+                  <div class="side-card ad-slide ppng-side-image-card" aria-label="{{ $ad->title }}">
+                    <img class="side-card-img ppng-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+                  </div>
+                @empty
                 <div class="side-card shadow-sm rounded-4 overflow-hidden border-0">
                   <img class="side-card-img" src="https://images.unsplash.com/photo-1494526585095-c41746248156?w=1400&q=85&auto=format&fit=crop" alt="Premium property slot ad image">
                   <div class="side-card-body p-4">
@@ -863,22 +795,9 @@
                     <button class="btn btn-warning fw-semibold px-4">Reserve Slot</button>
                   </div>
                 </div>
-                <div class="side-card shadow-sm rounded-4 overflow-hidden border-0">
-                  <img class="side-card-img" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1400&q=85&auto=format&fit=crop" alt="Luxury listing spotlight ad image">
-                  <div class="side-card-body p-4">
-                    <h3 class="fw-bold ppng-ad-title">Luxury Listing Spotlight</h3>
-                    <p class="mb-3 ppng-ad-copy">Feature premium homes in front of high-intent buyers.</p>
-                    <button class="btn btn-warning fw-semibold px-4">Book Now</button>
-                  </div>
-                </div>
-                <div class="side-card shadow-sm rounded-4 overflow-hidden border-0">
-                  <img class="side-card-img" src="https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=1400&q=85&auto=format&fit=crop" alt="Builder growth campaign ad image">
-                  <div class="side-card-body p-4">
-                    <h3 class="fw-bold ppng-ad-title">Builder Growth Campaign</h3>
-                    <p class="mb-3 ppng-ad-copy">Promote projects with larger visuals and stronger visibility.</p>
-                    <button class="btn btn-warning fw-semibold px-4">Start Campaign</button>
-                  </div>
-                </div>
+                @endforelse
+
+
               </aside>
             </div>
           </div>
@@ -952,30 +871,20 @@
           </div>
         </div>
         <aside class="popular-feature-ad ad-slider auto-ad-slider popular-feature-ad-slider" data-show-arrows="true" aria-label="Popular properties featured ad slider">
-          <div class="side-card">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=900&q=70" alt="Property promotion ad">
-            <div class="side-card-body">
-              <h3>Property Highlight Ad</h3>
-              <p>Showcase your listing in this high-conversion block.</p>
-              <button class="btn-learn">Book Ad</button>
+          @forelse(($popularPropertiesAds ?? collect()) as $ad)
+            <div class="side-card ad-slide popular-properties-image-card" aria-label="{{ $ad->title }}">
+              <img class="side-card-img popular-properties-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
             </div>
-          </div>
-          <div class="side-card">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=900&q=70" alt="Builder campaign ad">
-            <div class="side-card-body">
-              <h3>Builder Campaign Slot</h3>
-              <p>Get premium placement for projects and ongoing launches.</p>
-              <button class="btn-learn">Learn More</button>
+          @empty
+            <div class="side-card ad-slide">
+              <img class="side-card-img" src="https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=900&q=70" alt="Property promotion ad">
+              <div class="side-card-body">
+                <h3>Property Highlight Ad</h3>
+                <p>Showcase your listing in this high-conversion block.</p>
+                <button class="btn-learn">Book Ad</button>
+              </div>
             </div>
-          </div>
-          <div class="side-card">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=900&q=70" alt="Luxury listing boost ad">
-            <div class="side-card-body">
-              <h3>Luxury Listing Boost</h3>
-              <p>Highlight villas and premium homes in front of high-intent buyers.</p>
-              <button class="btn-learn">Book Slot</button>
-            </div>
-          </div>
+          @endforelse
         </aside>
       </div>
     </div>
@@ -983,27 +892,19 @@
     <div class="sec ad-wide-slot">
       <div class="ad-wide-label">Sponsored Placement</div>
       <div class="ad-slider auto-ad-slider ad-wide-slider" data-show-arrows="true" data-pause-on-hover="false" aria-label="Sponsored placement campaign slider">
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Grow Faster with Premium Marketplace Ads</h3>
-            <p>Show your business at the top of high-converting buyer searches.</p>
+        @forelse(($belowPopularAds ?? collect()) as $ad)
+          <div class="ad-wide-content ad-slide ad-wide-image-slide">
+            <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img">
           </div>
-          <button class="ad-slot-btn">Start Advertising</button>
-        </div>
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Get More Leads with Priority Visibility</h3>
-            <p>Appear in premium slots where customers are actively looking to buy.</p>
+        @empty
+          <div class="ad-wide-content ad-slide">
+            <div>
+              <h3>Run Automatic Marketplace Promotions</h3>
+              <p>Use rotating banner ads with arrow navigation to maximize campaign reach.</p>
+            </div>
+            <button class="ad-slot-btn">Book Slot</button>
           </div>
-          <button class="ad-slot-btn">View Plans</button>
-        </div>
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Run Automatic Marketplace Promotions</h3>
-            <p>Use rotating banner ads with arrow navigation to maximize campaign reach.</p>
-          </div>
-          <button class="ad-slot-btn">Book Slot</button>
-        </div>
+        @endforelse
       </div>
     </div>
 
@@ -1055,54 +956,20 @@
       <aside class="col-12 col-lg-3 section-side-ad builders-side-ads-stack" aria-label="Builders and developers side ad panels">
         <div class="ads-section-title">Ads</div>
         <div class="ad-slider auto-ad-slider builders-side-slider builders-side-slider-1" aria-label="Builder ads slider" data-show-arrows="true" data-pause-on-hover="false">
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=500&q=70" alt="Builder spotlight promotion">
-            <div class="side-card-body">
-              <h3>Featured Builder Ad</h3>
-              <p>Put your project in front of verified buyers in your city.</p>
-              <button class="btn-learn">Promote Now</button>
+          @forelse(($buildersDevelopersAds ?? collect()) as $ad)
+            <div class="side-card ad-slide builders-side-image-card" aria-label="{{ $ad->title }}">
+              <img class="side-card-img builders-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
             </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1484154218962-a197022b5858?w=500&q=70" alt="New project launch ad">
-            <div class="side-card-body">
-              <h3>New Project Launch</h3>
-              <p>Highlight your latest project with premium placement this week.</p>
-              <button class="btn-learn">Launch Campaign</button>
+          @empty
+            <div class="side-card ad-slide">
+              <img class="side-card-img" src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=500&q=70" alt="Builder spotlight promotion">
+              <div class="side-card-body">
+                <h3>Featured Builder Ad</h3>
+                <p>Put your project in front of verified buyers in your city.</p>
+                <button class="btn-learn">Promote Now</button>
+              </div>
             </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=500&q=70" alt="Luxury homes campaign ad">
-            <div class="side-card-body">
-              <h3>Luxury Homes Ads</h3>
-              <p>Reach serious homebuyers actively comparing trusted developers.</p>
-              <button class="btn-learn">Book Ad Slot</button>
-            </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1460317442991-0ec209397118?w=500&q=70" alt="Site visit campaign ad">
-            <div class="side-card-body">
-              <h3>Site Visit Campaign</h3>
-              <p>Drive more site visits from buyers searching in your local area.</p>
-              <button class="btn-learn">Get Visits</button>
-            </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1494526585095-c41746248156?w=500&q=70" alt="Ready to move homes ad">
-            <div class="side-card-body">
-              <h3>Ready-to-Move Homes</h3>
-              <p>Showcase completed units to high-intent homebuyers immediately.</p>
-              <button class="btn-learn">List Homes</button>
-            </div>
-          </div>
-          <div class="side-card ad-slide">
-            <img class="side-card-img" src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=500&q=70" alt="Builder lead generation ad">
-            <div class="side-card-body">
-              <h3>Builder Lead Boost</h3>
-              <p>Get qualified leads with premium placements across city pages.</p>
-              <button class="btn-learn">Boost Leads</button>
-            </div>
-          </div>
+          @endforelse
         </div>
       </aside>
     </div>
@@ -1110,27 +977,19 @@
     <div class="sec ad-wide-slot">
       <div class="ad-wide-label">Sponsored Placement</div>
       <div class="ad-slider auto-ad-slider ad-wide-slider" aria-label="Sponsored services slider" data-show-arrows="true">
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Sponsored Services Banner</h3>
-            <p>Place your ad above Popular Services for maximum visibility.</p>
+        @forelse(($belowBuildersAds ?? collect()) as $ad)
+          <div class="ad-wide-content ad-slide ad-wide-image-slide">
+            <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img">
           </div>
-          <button class="ad-slot-btn">Reserve This Spot</button>
-        </div>
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Premium Service Highlight</h3>
-            <p>Show your top service to ready-to-buy users on every scroll.</p>
+        @empty
+          <div class="ad-wide-content ad-slide">
+            <div>
+              <h3>Top Rated Partner Ad</h3>
+              <p>Promote trusted services with bold banners and high click visibility.</p>
+            </div>
+            <button class="ad-slot-btn">Book This Banner</button>
           </div>
-          <button class="ad-slot-btn">Get Premium Reach</button>
-        </div>
-        <div class="ad-wide-content ad-slide">
-          <div>
-            <h3>Top Rated Partner Ad</h3>
-            <p>Promote trusted services with bold banners and high click visibility.</p>
-          </div>
-          <button class="ad-slot-btn">Book This Banner</button>
-        </div>
+        @endforelse
       </div>
     </div>
 
@@ -1296,6 +1155,56 @@
 @push('scripts')
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    const adModal = document.getElementById('adDetailsModal');
+    const adImageEl = document.getElementById('adDetailsModalImage');
+    const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
+    const adImageEnlargePreview = document.getElementById('adImageEnlargePreview');
+
+    if (adModal) {
+      document.addEventListener('click', function (event) {
+        const adImage = event.target.closest('.ad-slider img, .recent-ad-card img');
+        if (!adImage || adImage.closest('.offer-coupon-card')) return;
+
+        event.preventDefault();
+
+        const adTitle = adImage.getAttribute('alt') || 'Ad Details';
+        const adSrc = adImage.getAttribute('src') || '';
+        const adMeta = 'Home Page Advertisement';
+        const adDescription = 'You are viewing this ad from the homepage slider/recent ads section.';
+
+        document.getElementById('adDetailsModalTitle').textContent = adTitle;
+        document.getElementById('adDetailsModalMeta').textContent = adMeta;
+        document.getElementById('adDetailsModalDescription').textContent = adDescription;
+
+        if (adSrc) {
+          adImageEl.src = adSrc;
+          adImageEl.classList.remove('d-none');
+          adEnlargeBtn.classList.remove('d-none');
+        } else {
+          adImageEl.src = '';
+          adImageEl.classList.add('d-none');
+          adEnlargeBtn.classList.add('d-none');
+        }
+
+        const shareUrl = window.location.href;
+        document.getElementById('adShareLink').value = shareUrl;
+        document.getElementById('adShareQr').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`;
+        document.getElementById('adShareWhatsapp').href = `https://wa.me/?text=${encodeURIComponent('Check this ad: ' + shareUrl)}`;
+        document.getElementById('adShareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        document.getElementById('adShareInstagram').href = shareUrl;
+
+        new bootstrap.Modal(adModal).show();
+      });
+
+      if (adEnlargeBtn) {
+        adEnlargeBtn.addEventListener('click', function () {
+          if (!adImageEl || !adImageEl.src) return;
+          adImageEnlargePreview.src = adImageEl.src;
+          new bootstrap.Modal(document.getElementById('adImageEnlargeModal')).show();
+        });
+      }
+    }
+
     const offerModal = document.getElementById('offerDetailsModal');
     if (!offerModal) return;
     const titleEl = document.getElementById('offerDetailsModalTitle');

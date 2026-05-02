@@ -17,38 +17,43 @@
             @csrf
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
+            <input type="hidden" name="ad_image_input_type" id="adImageInputType" value="1">
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Ad Title <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold required-label">Ad Title <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <input type="text" name="title" value="{{ old('title') }}" class="form-control" maxlength="140" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="categorySelect" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                    <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <select name="category_id" id="categorySelect" class="form-select" required>
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = (float) ($category->ads_price ?? 0) @endphp
-                            <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }} ({{ $categoryPrice > 0 ? 'Paid' : 'Free' }})</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label for="subcategorySelect" class="form-label fw-semibold">Sub Category <span class="text-danger">*</span></label>
+                    <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <select name="subcategory_id" id="subcategorySelect" class="form-select" disabled required>
                         <option value="">— Select a category first —</option>
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Location <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <input type="text" name="location" id="adLocation" class="form-control" value="{{ old('location') }}" required>
                     <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat') }}">
                     <input type="hidden" name="location_lng" id="adLocationLng" value="{{ old('location_lng') }}">
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold required-label">Valid Upto <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
+                    <input type="date" name="valid_until" class="form-control" value="{{ old('valid_until') }}" min="{{ now()->toDateString() }}" required>
+                </div>
             </div>
 
-            <label class="form-label fw-semibold">
-                Ad Image <span class="text-danger">*</span>
+            <label class="form-label fw-semibold required-label">
+                Ad Image <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i>
             </label>
             <p class="text-secondary mb-3" style="font-size:0.9rem;">
                 Add your own ad image or customize the final creative with full designer controls, similar to Post Offer.
@@ -74,7 +79,9 @@
 
             <div id="uploadWrap" class="mb-3">
                 <label class="form-label">Ad Image (PNG/JPG/WebP)</label>
-                <input type="file" id="uploadImageInput" class="d-none" accept="image/png,image/jpeg,image/webp">
+                <input type="file" id="uploadImageInput" class="d-none" accept="image/png,image/jpeg,image/webp"
+                    data-required-width="{{ $size['w'] }}"
+                    data-required-height="{{ $size['h'] }}">
                 <div id="adDropzone" class="banner-dropzone">
                     <div id="adDropzonePreviewWrap" class="d-none position-relative">
                         <img id="adDropzonePreview" src="#" alt="Ad image preview" class="banner-preview-img">
@@ -85,30 +92,70 @@
                         <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: {{ $size['w'] }}×{{ $size['h'] }}px · PNG, JPG, WebP · Max 2MB</p>
                     </div>
                 </div>
-                <small class="text-secondary d-block mt-2">Image will be normalized to {{ $size['w'] }}×{{ $size['h'] }} using Intervention on save.</small>
+                {{-- <small class="text-secondary d-block mt-2">Image will be normalized to {{ $size['w'] }}×{{ $size['h'] }} using Intervention on save.</small>
+                <div id="uploadImagePositionControls" class="mt-3 d-none">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Image Left / Right</label>
+                            <input type="range" id="uploadImagePosX" class="form-range" min="0" max="100" value="50">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Image Top / Bottom</label>
+                            <input type="range" id="uploadImagePosY" class="form-range" min="0" max="100" value="50">
+                        </div>
+                    </div>
+                </div> --}}
+            </div>
+
+            <div class="modal fade" id="adImageCropModal" tabindex="-1" aria-labelledby="adImageCropModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="adImageCropModalLabel">Crop Ad Image</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-secondary small mb-2">Adjust the crop area to match {{ $size['w'] }} × {{ $size['h'] }} px aspect ratio.</p>
+                            <div class="border rounded bg-light position-relative overflow-hidden d-flex align-items-center justify-content-center" style="height:60vh;max-height:60vh;min-height:320px;">
+                                <img id="adCropImage" src="#" alt="Crop preview" class="mw-100 mh-100 d-block" style="max-height:58vh;user-select:none;" draggable="false">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="adCropSaveBtn">Save Crop</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="customizeWrap" class="mb-3 d-none">
-                <div class="row g-3">
-                    <div class="col-md-3">
+                <div class="customize-panel-header mb-3">
+                    <h6 class="mb-1">Customize Ad Studio</h6>
+                    <p class="mb-0">Build your ad with layered text and images. Tip: drag layers to reposition, and double-click text to edit.</p>
+                </div>
+                <div class="row g-3 customize-panel-grid">
+                    <div class="col-12">
+                        <div class="small text-uppercase fw-semibold text-secondary border-bottom pb-1 mb-0">Background & Layers</div>
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label">Background Color</label>
                         <input type="color" id="adBgColorInput" class="form-control form-control-color w-100" value="#f7f7f7">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label">Background Image (optional)</label>
                         <input type="file" id="adBgImageInput" class="form-control" accept="image/png,image/jpeg,image/webp">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Clear Background</label>
-                        <button type="button" class="btn btn-outline-secondary w-100" id="clearAdBgBtn">Remove BG Image</button>
+                        <button type="button" class="btn btn-outline-secondary w-100 text-nowrap px-3" id="clearAdBgBtn">Remove BG Image</button>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Add Text Block</label>
-                        <button type="button" class="btn btn-outline-primary w-100" id="addTextBtn">+ Add Text</button>
+                        <button type="button" class="btn btn-outline-primary w-100 px-3" id="addTextBtn">+ Add Text</button>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Add Images</label>
-                        <input type="file" id="customImageInput" class="form-control" accept="image/png,image/jpeg,image/webp" multiple>
+                        <input type="file" id="customImageInput" class="form-control ps-3" accept="image/png,image/jpeg,image/webp" multiple>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Remove Selected</label>
@@ -116,12 +163,15 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Layer Text</label>
-                        <textarea id="layerTextInput" class="form-control" rows="2" maxlength="120" placeholder="Edit selected text block"></textarea>
-                        <small class="text-secondary"><span id="layerTextCharCount">0</span>/120</small>
+                        <textarea id="layerTextInput" class="form-control ps-3" rows="2" maxlength="120" placeholder="Edit selected text block"></textarea>
+                        <small class="text-secondary d-inline-block mt-1"><span id="layerTextCharCount">0</span>/120</small>
+                    </div>
+                    <div class="col-12">
+                        <div class="small text-uppercase fw-semibold text-secondary border-bottom pb-2 mb-1 mt-2">Text Styling</div>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Font Size</label>
-                        <input type="number" id="layerFontSizeInput" class="form-control" min="10" max="180" value="30">
+                        <input type="number" id="layerFontSizeInput" class="form-control ps-3" min="10" max="180" value="30">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label d-block">Text Style</label>
@@ -130,21 +180,21 @@
                             <label class="form-check-label" for="layerBoldInput">Bold</label>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label">Text Color</label>
                         <input type="color" id="layerTextColorInput" class="form-control form-control-color w-100" value="#111111">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Alignment</label>
-                        <select id="layerTextAlignInput" class="form-select">
+                        <select id="layerTextAlignInput" class="form-select ps-3">
                             <option value="left">Left</option>
                             <option value="center">Center</option>
                             <option value="right">Right</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4 col-lg-3">
                         <label class="form-label">Font Family</label>
-                        <select id="layerFontFamilyInput" class="form-select">
+                        <select id="layerFontFamilyInput" class="form-select ps-3">
                             <option value="Arial">Arial</option>
                             <option value="Verdana">Verdana</option>
                             <option value="Tahoma">Tahoma</option>
@@ -154,13 +204,16 @@
                             <option value="Courier New">Courier New</option>
                         </select>
                     </div>
+                    <div class="col-12">
+                        <div class="small text-uppercase fw-semibold text-secondary border-bottom pb-2 mb-1 mt-2">Image Sizing</div>
+                    </div>
                     <div class="col-md-2">
                         <label class="form-label">Image Width</label>
-                        <input type="number" id="layerImageWidthInput" class="form-control" min="20" max="2000" value="220" disabled>
+                        <input type="number" id="layerImageWidthInput" class="form-control ps-3" min="20" max="2000" value="220" disabled>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Image Height</label>
-                        <input type="number" id="layerImageHeightInput" class="form-control" min="20" max="2000" value="220" disabled>
+                        <input type="number" id="layerImageHeightInput" class="form-control ps-3" min="20" max="2000" value="220" disabled>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Quick Scale</label>
@@ -169,11 +222,12 @@
                 </div>
             </div>
 
-            <div class="border rounded p-2 bg-light d-none" id="canvasWrap" style="width:fit-content;max-width:100%;">
-                <div class="small text-secondary mb-2">Final Ads Preview (what users will see)</div>
-                <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] }};width:min(100%, {{ $size['w'] }}px);">
-                    <div class="ads-live-preview-inner" id="adPreviewFrame" data-source-width="{{ $size['w'] }}" data-source-height="{{ $size['h'] }}">
-                        <div id="adPreview" class="ads-mini-preview-inner" style="position:relative;overflow:hidden;background:#f7f7f7;width:{{ $size['w'] }}px;height:{{ $size['h'] }}px;"></div>
+            <div class="border rounded p-2 bg-light d-none" id="canvasWrap" style="max-width:100%;">
+                <div class="small text-secondary mb-1">Customization Canvas (edit directly on this area)</div>
+                <div class="small text-muted mb-2">Exact export size: {{ $size['w'] }} × {{ $size['h'] }} px</div>
+                <div class="ads-canvas-scroll" style="overflow:auto;max-width:100%;padding:6px;background:#eef1f5;border:1px dashed #c8ced8;border-radius:8px;">
+                    <div class="ad-preview-frame" id="adPreviewFrame" data-source-width="{{ $size['w'] }}" data-source-height="{{ $size['h'] }}" style="width:{{ $size['w'] }}px;height:{{ $size['h'] }}px;min-width:{{ $size['w'] }}px;min-height:{{ $size['h'] }}px;box-shadow:0 4px 16px rgba(15,23,42,.18);position:relative;display:block;overflow:hidden;">
+                        <div id="adPreview" class="ad-preview-canvas" style="position:relative;overflow:hidden;background:#f7f7f7;width:{{ $size['w'] }}px;height:{{ $size['h'] }}px;"></div>
                     </div>
                 </div>
             </div>
@@ -188,18 +242,163 @@
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ route('ads.create.size') }}" class="btn btn-light px-4">Back</a>
-                <button type="submit" class="btn btn-primary px-5">Save Ad</button>
+                <button type="submit" id="adSubmitButton" class="btn btn-primary px-5">Save Ad</button>
             </div>
         </form>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+        {{-- <div class="mt-4 p-3 border rounded bg-white">
+            <h6 class="mb-3">Upload and Export PDF</h6>
+
+            <input type="file" id="upload-image" class="form-control mb-3" accept="image/*">
+
+            <div id="capture-area"
+                style="width:879px;height:118px;margin:auto;border:1px solid #ccc;overflow:hidden;background:#f5f5f5;">
+
+                <img id="preview-image"
+                    src=""
+                    style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;">
+            </div>
+
+            <button type="button" id="capture-screenshot" class="btn btn-danger mt-3">
+                Download PDF
+            </button>
+        </div> --}}
+
     </div>
 </div>
 @endsection
 
 @push('scripts')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js"></script>
+
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
 <script>
+let uploadedImage = null;
+
+const addAdImageInput = document.getElementById('uploadImageInput');
+    const addAdImageError = document.getElementById('adImageError');
+    const dropzonePreview = document.getElementById('adDropzonePreview');
+    const dropzonePreviewWrap = document.getElementById('adDropzonePreviewWrap');
+    const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
+
+if (addAdImageInput && addAdImageError) {
+    const clearImageSizeError = () => {
+        addAdImageError.textContent = '';
+        addAdImageError.style.display = 'none';
+    };
+
+    addAdImageInput.addEventListener('change', function (event) {
+        const activeMode = document.querySelector('input[name="design_mode"]:checked')?.value || 'upload';
+        if (activeMode !== 'upload') return;
+
+        clearImageSizeError();
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        img.onload = function () {
+            URL.revokeObjectURL(objectUrl);
+        };
+
+        img.onerror = function () {
+            URL.revokeObjectURL(objectUrl);
+            addAdImageError.textContent = 'Unable to read this image. Please upload a valid image file.';
+            addAdImageError.style.display = 'block';
+            addAdImageInput.value = '';
+        };
+
+        img.src = objectUrl;
+    });
+}
+
+$('#upload-image').on('change', function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const imageUrl = URL.createObjectURL(file);
+
+    uploadedImage = new Image();
+
+    uploadedImage.onload = function () {
+        $('#preview-image').attr('src', imageUrl);
+    };
+
+    uploadedImage.src = imageUrl;
+});
+
+$('#capture-screenshot').on('click', function () {
+    if (!uploadedImage) {
+        console.warn('[PDFUpload] Please upload an image first.');
+        return;
+    }
+
+    const finalWidth = 879;
+    const finalHeight = 118;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = finalWidth;
+    canvas.height = finalHeight;
+
+    const ctx = canvas.getContext('2d');
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, finalWidth, finalHeight);
+
+    const imgRatio = uploadedImage.naturalWidth / uploadedImage.naturalHeight;
+    const boxRatio = finalWidth / finalHeight;
+
+    let drawWidth, drawHeight, drawX, drawY;
+
+    // object-fit: cover
+    if (imgRatio > boxRatio) {
+        drawHeight = finalHeight;
+        drawWidth = drawHeight * imgRatio;
+    } else {
+        drawWidth = finalWidth;
+        drawHeight = drawWidth / imgRatio;
+    }
+
+    drawX = (finalWidth - drawWidth) / 2;
+    drawY = (finalHeight - drawHeight) / 2;
+
+    ctx.drawImage(uploadedImage, drawX, drawY, drawWidth, drawHeight);
+
+    const link = document.createElement('a');
+    link.download = 'clear-image.png';
+    link.href = canvas.toDataURL('image/png', 1.0);
+    link.click();
+});
+
+
+
+function pushScreenshotToServer(dataURL) {
+    $.ajax({
+        url: "push-screenshot.php",
+        type: "POST",
+        data: {
+            image: dataURL
+        },
+        success: function () {
+            console.log('Screenshot pushed to server.');
+        },
+        error: function (xhr) {
+            console.error('Upload failed:', xhr.responseText);
+        }
+    });
+}
+
     (function () {
         const page = document.getElementById('adsSizeCustomizerPage');
         if (!page) return;
@@ -216,8 +415,13 @@
         const dropzonePreviewWrap = document.getElementById('adDropzonePreviewWrap');
         const dropzonePreview = document.getElementById('adDropzonePreview');
         const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
+        const uploadImagePositionControls = document.getElementById('uploadImagePositionControls');
+        const uploadImagePosX = document.getElementById('uploadImagePosX');
+        const uploadImagePosY = document.getElementById('uploadImagePosY');
         const categorySelect = document.getElementById('categorySelect');
         const subcategorySelect = document.getElementById('subcategorySelect');
+        const submitButton = document.getElementById('adSubmitButton');
+        const adImageInputType = document.getElementById('adImageInputType');
         const adBgColorInput = document.getElementById('adBgColorInput');
         const adBgImageInput = document.getElementById('adBgImageInput');
         const clearAdBgBtn = document.getElementById('clearAdBgBtn');
@@ -231,31 +435,37 @@
         const layerImageWidthInput = document.getElementById('layerImageWidthInput');
         const layerImageHeightInput = document.getElementById('layerImageHeightInput');
         const layerImageScaleInput = document.getElementById('layerImageScaleInput');
+        const adCropModalElement = document.getElementById('adImageCropModal');
+        const adCropImage = document.getElementById('adCropImage');
+        const adCropSaveBtn = document.getElementById('adCropSaveBtn');
 
         const sizeW = Number(previewFrame?.dataset.sourceWidth || 0);
         const sizeH = Number(previewFrame?.dataset.sourceHeight || 0);
         let selectedLayer = null;
         let currentMode = 'upload';
         let uploadedImageFile = null;
+        let uploadedImagePositionX = 50;
+        let uploadedImagePositionY = 50;
+        let uploadedImageObjectUrl = '';
+        let cropper = null;
+        const adCropModal = (window.bootstrap && adCropModalElement) ? new bootstrap.Modal(adCropModalElement) : null;
 
         function toast(type, message) {
+            const normalizedType = type === 'danger' ? 'error' : type;
+
             if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
-                window.FormHelper.showToast(type, message);
+                window.FormHelper.showToast(normalizedType, message);
                 return;
             }
 
-            // Avoid browser alert popups; render a dismissible inline message instead.
-            const existing = form.querySelector('.js-form-inline-alert');
-            if (existing) existing.remove();
+            if (window.toastr && typeof window.toastr[normalizedType] === 'function') {
+                window.toastr[normalizedType](message);
+                return;
+            }
 
-            const alert = document.createElement('div');
-            alert.className = `alert ${type === 'danger' ? 'alert-danger' : 'alert-success'} alert-dismissible fade show js-form-inline-alert mt-3`;
-            alert.setAttribute('role', 'alert');
-            alert.innerHTML = `
-                <span>${message || (type === 'danger' ? 'Something went wrong.' : 'Done')}</span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            form.prepend(alert);
+            console[normalizedType === 'error' ? 'error' : 'log'](
+                message || (normalizedType === 'error' ? 'Something went wrong.' : 'Done')
+            );
         }
 
         function clearFieldErrors() {
@@ -298,8 +508,41 @@
             field.insertAdjacentElement('afterend', error);
         }
 
+
+        function getSelectedPrice() {
+            const categoryPrice = Number(categorySelect?.selectedOptions?.[0]?.dataset?.adsPrice || 0);
+            const subcategoryPrice = Number(subcategorySelect?.selectedOptions?.[0]?.dataset?.adsPrice || 0);
+            return subcategoryPrice > 0 ? subcategoryPrice : categoryPrice;
+        }
+
+        function updateSubmitButtonState() {
+            if (!submitButton) return;
+            const selectedPrice = getSelectedPrice();
+            submitButton.textContent = selectedPrice > 0 ? 'Process Payment' : 'Save Ad';
+        }
+
+
+        function setSubmitLoadingState(isLoading) {
+            if (!submitButton) return;
+
+            if (!submitButton.dataset.defaultLabel) {
+                submitButton.dataset.defaultLabel = submitButton.textContent.trim() || 'Save Ad';
+            }
+
+            submitButton.disabled = !!isLoading;
+            if (isLoading) {
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Submitting...';
+                return;
+            }
+
+            updateSubmitButtonState();
+        }
+
         function setMode(mode) {
             currentMode = mode === 'customize' ? 'customize' : 'upload';
+            if (adImageInputType) {
+                adImageInputType.value = currentMode === 'upload' ? '1' : '2';
+            }
             document.getElementById('uploadWrap').classList.toggle('d-none', mode !== 'upload');
             document.getElementById('customizeWrap').classList.toggle('d-none', mode !== 'customize');
             document.querySelectorAll('.banner-mode-card').forEach((card) => card.classList.remove('is-active'));
@@ -322,6 +565,41 @@
                 }
             }
             else if (!preview.querySelector('img')) canvasWrap.classList.add('d-none');
+        }
+
+        function updateUploadedImagePosition() {
+            const uploadedPreviewImage = preview.querySelector('img[data-upload-image="1"]');
+            if (!uploadedPreviewImage) return;
+            uploadedPreviewImage.style.objectPosition = `${uploadedImagePositionX}% ${uploadedImagePositionY}%`;
+        }
+
+        function destroyCropper() {
+            if (cropper && typeof cropper.destroy === 'function') {
+                cropper.destroy();
+            }
+            cropper = null;
+        }
+
+        function applyUploadedImageToPreview(src) {
+            if (!src || !preview) return;
+            preview.innerHTML = '';
+            preview.style.backgroundImage = 'none';
+            preview.style.backgroundColor = '#f7f7f7';
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.setAttribute('data-upload-image', '1');
+            uploadedImagePositionX = 50;
+            uploadedImagePositionY = 50;
+            if (uploadImagePosX) uploadImagePosX.value = '50';
+            if (uploadImagePosY) uploadImagePosY.value = '50';
+            preview.appendChild(img);
+            updateUploadedImagePosition();
+            canvasWrap.classList.remove('d-none');
+            uploadImagePositionControls?.classList.remove('d-none');
         }
 
         function isTextLayer(node) {
@@ -385,7 +663,9 @@
         function makeDraggable(node) {
             let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
             node.addEventListener('mousedown', (e) => {
-                if (e.target.closest('[contenteditable="true"]')) return;
+                if (e.button !== 0) return;
+                if (node.getAttribute('data-editing') === '1') return;
+                e.preventDefault();
                 dragging = true;
                 sx = e.clientX; sy = e.clientY;
                 ox = parseFloat(node.style.left || '20');
@@ -419,8 +699,29 @@
             t.style.fontWeight = '700';
             t.style.color = '#111';
             t.style.padding = '4px 6px';
-            t.setAttribute('contenteditable', 'true');
+            t.style.cursor = 'move';
+            t.style.minWidth = '80px';
+            t.setAttribute('contenteditable', 'false');
+            t.setAttribute('data-editing', '0');
             t.setAttribute('data-layer-type', 'text');
+            t.addEventListener('dblclick', () => {
+                t.setAttribute('contenteditable', 'true');
+                t.setAttribute('data-editing', '1');
+                t.style.cursor = 'text';
+                t.focus();
+            });
+            t.addEventListener('blur', () => {
+                t.setAttribute('contenteditable', 'false');
+                t.setAttribute('data-editing', '0');
+                t.style.cursor = 'move';
+                if (selectedLayer === t) updateControlPanelFromSelection();
+            });
+            t.addEventListener('input', () => {
+                if (selectedLayer === t && layerTextInput) {
+                    layerTextInput.value = t.textContent || '';
+                    if (layerTextCharCount) layerTextCharCount.textContent = String((t.textContent || '').length);
+                }
+            });
             addLayer(t);
         });
 
@@ -534,36 +835,163 @@
         });
 
         uploadInput?.addEventListener('change', (e) => {
+            console.log('[AdUpload] File input changed.');
+            const adImageError = document.getElementById('adImageError');
             const file = e.target.files?.[0];
-            if (!file) return;
-            uploadedImageFile = file;
+            if (!file) {
+                console.log('[AdUpload] No file was selected.');
+                return;
+            }
+            const requiredWidth = Number(uploadInput.dataset.requiredWidth || 0);
+            const requiredHeight = Number(uploadInput.dataset.requiredHeight || 0);
+            const activeMode = document.querySelector('input[name="design_mode"]:checked')?.value || 'upload';
+            console.log('[AdUpload] Required size:', requiredWidth + 'x' + requiredHeight, '| Mode:', activeMode);
+            if (activeMode !== 'upload') {
+                console.log('[AdUpload] Skipping validation because mode is not upload.');
+                return;
+            }
+
+            if (adImageError) {
+                adImageError.textContent = '';
+                adImageError.style.display = 'none';
+            }
+
             const objectUrl = URL.createObjectURL(file);
+            const dimensionProbe = new Image();
+            dimensionProbe.onload = () => {
+                console.log('[AdUpload] Selected image dimensions:', dimensionProbe.naturalWidth + 'x' + dimensionProbe.naturalHeight);
+                uploadedImageFile = file;
+                if (uploadedImageObjectUrl) URL.revokeObjectURL(uploadedImageObjectUrl);
+                uploadedImageObjectUrl = objectUrl;
+
+                if (!adCropModal || !adCropImage || !window.Cropper) {
+                    console.log('[AdUpload] Crop modal unavailable; using direct preview render.');
+                    applyUploadedImageToPreview(uploadedImageObjectUrl);
+                    return;
+                }
+
+                adCropImage.removeAttribute('srcset');
+                adCropImage.src = uploadedImageObjectUrl;
+                adCropModal.show();
+            };
+            dimensionProbe.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                uploadInput.value = '';
+                uploadedImageFile = null;
+                console.error('[AdUpload] Could not read selected image file.');
+                if (adImageError) {
+                    adImageError.textContent = 'Unable to read this image. Please upload a valid image.';
+                    adImageError.style.display = 'block';
+                }
+            };
+            dimensionProbe.src = objectUrl;
+        });
+
+        adCropModalElement?.addEventListener('shown.bs.modal', function () {
+            if (!adCropImage?.src || !window.Cropper) return;
+            const initCropper = () => {
+                destroyCropper();
+                cropper = new window.Cropper(adCropImage, {
+                    aspectRatio: sizeW > 0 && sizeH > 0 ? (sizeW / sizeH) : NaN,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 1,
+                    responsive: true,
+                    background: false,
+                    cropBoxMovable: false,
+                    cropBoxResizable: false,
+                    zoomable: true,
+                    zoomOnWheel: false,
+                    toggleDragModeOnDblclick: false,
+                    ready() {
+                        if (!cropper) return;
+                        const containerData = cropper.getContainerData();
+                        const imageData = cropper.getImageData();
+                        const targetRatio = sizeW > 0 && sizeH > 0 ? (sizeW / sizeH) : (containerData.width / containerData.height);
+
+                        let cropBoxWidth = containerData.width * 0.85;
+                        let cropBoxHeight = cropBoxWidth / targetRatio;
+
+                        if (cropBoxHeight > containerData.height * 0.85) {
+                            cropBoxHeight = containerData.height * 0.85;
+                            cropBoxWidth = cropBoxHeight * targetRatio;
+                        }
+
+                        const cropBoxLeft = (containerData.width - cropBoxWidth) / 2;
+                        const cropBoxTop = (containerData.height - cropBoxHeight) / 2;
+
+                        cropper.setCropBoxData({
+                            left: cropBoxLeft,
+                            top: cropBoxTop,
+                            width: cropBoxWidth,
+                            height: cropBoxHeight
+                        });
+
+                        const targetScale = Math.max(
+                            cropBoxWidth / (imageData.naturalWidth || 1),
+                            cropBoxHeight / (imageData.naturalHeight || 1)
+                        );
+
+                        cropper.zoomTo(targetScale);
+                    }
+                });
+            };
+
+            if (adCropImage.complete && adCropImage.naturalWidth > 0) {
+                initCropper();
+                return;
+            }
+
+            adCropImage.onload = () => initCropper();
+        });
+
+        adCropModalElement?.addEventListener('hidden.bs.modal', function () {
+            destroyCropper();
+        });
+
+        adCropSaveBtn?.addEventListener('click', function () {
+            if (!cropper) return;
+            const croppedCanvas = cropper.getCroppedCanvas({
+                width: sizeW || undefined,
+                height: sizeH || undefined,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
+            if (!croppedCanvas) return;
+            const croppedDataUrl = croppedCanvas.toDataURL('image/png');
 
             if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
-                dropzonePreview.src = objectUrl;
+                dropzonePreview.src = croppedDataUrl;
                 dropzonePreviewWrap.classList.remove('d-none');
                 dropzonePlaceholder.classList.add('d-none');
             }
 
-            preview.innerHTML = '';
-            preview.style.backgroundImage = 'none';
-            preview.style.backgroundColor = '#f7f7f7';
-            const img = document.createElement('img');
-            img.src = objectUrl;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            preview.appendChild(img);
-            canvasWrap.classList.remove('d-none');
+            applyUploadedImageToPreview(croppedDataUrl);
+            adCropModal?.hide();
+            console.log('[AdUpload] Crop saved and preview updated.');
+        });
+
+        uploadImagePosX?.addEventListener('input', function () {
+            uploadedImagePositionX = Math.max(0, Math.min(100, Number(this.value) || 50));
+            updateUploadedImagePosition();
+        });
+
+        uploadImagePosY?.addEventListener('input', function () {
+            uploadedImagePositionY = Math.max(0, Math.min(100, Number(this.value) || 50));
+            updateUploadedImagePosition();
         });
 
         if (dropzone && uploadInput) {
-            dropzone.addEventListener('click', () => uploadInput.click());
+            dropzone.addEventListener('click', () => {
+                console.log('[AdUpload] Dropzone clicked, opening file browser.');
+                uploadInput.click();
+            });
             dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('is-dragover'); });
             dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragover'));
             dropzone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropzone.classList.remove('is-dragover');
+                console.log('[AdUpload] File dropped into dropzone.');
                 const file = e.dataTransfer?.files?.[0];
                 if (!file) return;
                 const dt = new DataTransfer();
@@ -574,73 +1002,101 @@
         }
 
         async function exportPng() {
-            const exportWidth = sizeW || preview.scrollWidth || 0;
-            const exportHeight = sizeH || preview.scrollHeight || 0;
-            const exportPixelRatio = 2;
-            const exportOutputWidth = exportWidth * exportPixelRatio;
-            const exportOutputHeight = exportHeight * exportPixelRatio;
-            const clone = preview.cloneNode(true);
-            const sandbox = document.createElement('div');
-            sandbox.style.position = 'fixed';
-            sandbox.style.left = '-10000px';
-            sandbox.style.top = '0';
-            sandbox.style.width = exportWidth + 'px';
-            sandbox.style.height = exportHeight + 'px';
-            sandbox.style.overflow = 'hidden';
-            sandbox.style.zIndex = '-1';
+            if (!sizeW || !sizeH) return '';
 
-            clone.style.position = 'static';
-            clone.style.inset = 'auto';
-            clone.style.transform = 'none';
-            clone.style.transformOrigin = 'top left';
-            clone.style.width = exportWidth + 'px';
-            clone.style.height = exportHeight + 'px';
-            clone.style.maxWidth = 'none';
-            clone.style.maxHeight = 'none';
-            clone.style.overflow = 'hidden';
-            clone.querySelectorAll('[data-custom-stage="1"]').forEach((node) => node.remove());
+            const canvas = document.createElement('canvas');
+            const exportPixelRatio = 1;
+            canvas.width = sizeW * exportPixelRatio;
+            canvas.height = sizeH * exportPixelRatio;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return '';
+            ctx.scale(exportPixelRatio, exportPixelRatio);
 
-            sandbox.appendChild(clone);
-            document.body.appendChild(sandbox);
+            const backgroundColor = adBgColorInput?.value || '#f7f7f7';
+            ctx.fillStyle = backgroundColor;
+            ctx.fillRect(0, 0, sizeW, sizeH);
 
-            const waitForImages = async (root, timeoutMs = 6000) => {
-                const imgs = Array.from(root.querySelectorAll('img'));
-                if (!imgs.length) return;
-                await Promise.race([
-                    Promise.all(imgs.map((img) => {
-                        if (img.complete) return Promise.resolve();
-                        return new Promise((resolve) => {
-                            const done = () => resolve();
-                            img.addEventListener('load', done, { once: true });
-                            img.addEventListener('error', done, { once: true });
-                        });
-                    })),
-                    new Promise((resolve) => setTimeout(resolve, timeoutMs))
-                ]);
+            const drawImageCover = (img, x, y, w, h) => {
+                const scale = Math.max(w / img.width, h / img.height);
+                const drawWidth = img.width * scale;
+                const drawHeight = img.height * scale;
+                const dx = x + (w - drawWidth) / 2;
+                const dy = y + (h - drawHeight) / 2;
+                ctx.drawImage(img, dx, dy, drawWidth, drawHeight);
             };
 
-            try {
-                await waitForImages(clone);
-                if (window.htmlToImage?.toPng) {
-                    try {
-                        const raw = await window.htmlToImage.toPng(clone, { pixelRatio: exportPixelRatio, canvasWidth: exportOutputWidth, canvasHeight: exportOutputHeight, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
-                        return raw;
-                    } catch (error) {
-                        console.warn('html-to-image export failed, falling back to html2canvas.', error);
-                    }
-                }
+            const loadImage = (src) => new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = src;
+            });
 
-                if (window.html2canvas) {
-                    const canvas = await window.html2canvas(clone, { width: exportWidth, height: exportHeight, windowWidth: exportWidth, windowHeight: exportHeight, scale: exportPixelRatio, useCORS: true, allowTaint: false, logging: false });
-                    return canvas.toDataURL('image/png');
-                }
-            } catch (error) {
-                console.warn('preview export failed.', error);
-            } finally {
-                document.body.removeChild(sandbox);
+            const bgMatch = (preview.style.backgroundImage || '').match(/url\(["']?(.*?)["']?\)/);
+            if (bgMatch?.[1]) {
+                const bgImg = await loadImage(bgMatch[1]);
+                if (bgImg) drawImageCover(bgImg, 0, 0, sizeW, sizeH);
             }
 
-            return '';
+            const layers = Array.from(preview.children).filter((node) => node.getAttribute('data-custom-stage') !== '1');
+            for (const layer of layers) {
+                const x = parseFloat(layer.style.left || '0');
+                const y = parseFloat(layer.style.top || '0');
+                const w = layer.offsetWidth || parseFloat(layer.style.width || '0');
+                const h = layer.offsetHeight || parseFloat(layer.style.height || '0');
+
+                if (isTextLayer(layer)) {
+                    const fontSize = parseInt(layer.style.fontSize, 10) || 30;
+                    const fontWeight = layer.style.fontWeight || '700';
+                    const fontFamily = layer.style.fontFamily || 'Arial';
+                    const lineHeight = Math.round(fontSize * 1.2);
+                    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+                    ctx.fillStyle = layer.style.color || '#111111';
+                    ctx.textBaseline = 'top';
+                    ctx.textAlign = (layer.style.textAlign || 'left');
+
+                    const maxWidth = Math.max(20, w || Math.round(sizeW * 0.85));
+                    const words = (layer.textContent || '').split(/\s+/).filter(Boolean);
+                    const lines = [];
+                    let line = '';
+                    words.forEach((word) => {
+                        const test = line ? `${line} ${word}` : word;
+                        if (ctx.measureText(test).width <= maxWidth || !line) {
+                            line = test;
+                        } else {
+                            lines.push(line);
+                            line = word;
+                        }
+                    });
+                    if (line) lines.push(line);
+                    if (!lines.length) lines.push('');
+
+                    let baseX = x;
+                    if (ctx.textAlign === 'center') baseX = x + (maxWidth / 2);
+                    if (ctx.textAlign === 'right') baseX = x + maxWidth;
+
+                    lines.forEach((textLine, index) => {
+                        ctx.fillText(textLine, baseX, y + (index * lineHeight));
+                    });
+                } else if (isImageLayer(layer)) {
+                    const imgNode = layer.tagName === 'IMG' ? layer : layer.querySelector('img');
+                    const src = imgNode?.getAttribute('src');
+                    if (!src) continue;
+                    const img = await loadImage(src);
+                    if (img) {
+                        const width = w || Math.round(sizeW * 0.25);
+                        const height = h || Math.round((img.height / img.width) * width);
+                        ctx.drawImage(img, x, y, width, height);
+                    }
+                } else if (layer.tagName === 'IMG') {
+                    const src = layer.getAttribute('src');
+                    if (!src) continue;
+                    const img = await loadImage(src);
+                    if (img) drawImageCover(img, 0, 0, sizeW, sizeH);
+                }
+            }
+
+            return canvas.toDataURL('image/png');
         }
 
         async function exportUploadedFileAsPng(file) {
@@ -651,7 +1107,7 @@
                 const image = new Image();
                 image.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const exportPixelRatio = 2;
+                    const exportPixelRatio = 1;
                     canvas.width = sizeW * exportPixelRatio;
                     canvas.height = sizeH * exportPixelRatio;
                     const ctx = canvas.getContext('2d');
@@ -669,8 +1125,12 @@
                     const scale = Math.max(targetW / image.width, targetH / image.height);
                     const drawWidth = image.width * scale;
                     const drawHeight = image.height * scale;
-                    const dx = (targetW - drawWidth) / 2;
-                    const dy = (targetH - drawHeight) / 2;
+                    const maxOffsetX = Math.max(0, drawWidth - targetW);
+                    const maxOffsetY = Math.max(0, drawHeight - targetH);
+                    const cropOffsetX = (maxOffsetX * uploadedImagePositionX) / 100;
+                    const cropOffsetY = (maxOffsetY * uploadedImagePositionY) / 100;
+                    const dx = -cropOffsetX;
+                    const dy = -cropOffsetY;
 
                     ctx.drawImage(image, dx, dy, drawWidth, drawHeight);
                     URL.revokeObjectURL(objectUrl);
@@ -686,7 +1146,12 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            if (typeof e.stopImmediatePropagation === 'function') {
+                e.stopImmediatePropagation();
+            }
             clearFieldErrors();
+            setSubmitLoadingState(true);
             customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
 
             if (currentMode === 'upload' && uploadedImageFile) {
@@ -695,7 +1160,10 @@
                 generatedImageDataInput.value = await exportPng();
             }
 
-            if (!generatedImageDataInput.value) return toast('danger', 'Could not generate ad image.');
+            if (!generatedImageDataInput.value) {
+                setSubmitLoadingState(false);
+                return toast('danger', 'Could not generate ad image.');
+            }
 
             try {
                 const response = await fetch(form.action, {
@@ -717,12 +1185,24 @@
                         const messages = Array.isArray(errors[key]) ? errors[key] : [errors[key]];
                         if (messages[0]) showFieldError(key, messages[0]);
                     });
+                    setSubmitLoadingState(false);
                     return toast('danger', payload.message || 'Please fix the highlighted errors and try again.');
                 }
 
                 toast('success', payload.message || 'Saved successfully');
-                setTimeout(() => { window.location.href = payload.redirect_url || '{{ route('ads.index') }}'; }, 700);
+
+                const redirectUrl = payload?.redirect_url || form.dataset.redirectUrl || '';
+                if (redirectUrl) {
+                    setTimeout(() => {
+                        window.location.assign(redirectUrl);
+                    }, 1200);
+                    return;
+                }
+
+                setSubmitLoadingState(false);
+                return;
             } catch (networkError) {
+                setSubmitLoadingState(false);
                 toast('danger', 'Unable to save ad right now. Please try again.');
             }
         });
@@ -737,12 +1217,22 @@
             const response = await fetch(`${base}/${categoryId}/subcategories`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             const data = await response.json();
             const options = ['<option value="">— Select subcategory —</option>'];
-            (Array.isArray(data) ? data : []).forEach((item) => options.push(`<option value=\"${item.id}\">${item.name}</option>`));
+            (Array.isArray(data) ? data : []).forEach((item) => {
+                const adsPrice = Number(item.ads_price || 0);
+                const priceLabel = adsPrice > 0 ? 'Paid' : 'Free';
+                options.push(`<option value=\"${item.id}\" data-ads-price=\"${adsPrice.toFixed(2)}\">${item.name} (${priceLabel})</option>`);
+            });
             subcategorySelect.innerHTML = options.join('');
             subcategorySelect.disabled = false;
+            updateSubmitButtonState();
         }
 
-        categorySelect?.addEventListener('change', function () { loadSubcategories(this.value); });
+        categorySelect?.addEventListener('change', function () {
+            loadSubcategories(this.value);
+            updateSubmitButtonState();
+        });
+        subcategorySelect?.addEventListener('change', updateSubmitButtonState);
+        updateSubmitButtonState();
 
         window.initAdLocationAutocomplete = function () {
             const locationInput = document.getElementById('adLocation');

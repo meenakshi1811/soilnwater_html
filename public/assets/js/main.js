@@ -1,3 +1,5 @@
+window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete || function initHeaderLocationAutocomplete() {};
+
 (function(){
   const scroller = document.getElementById('catScroller');
   const btnL = document.getElementById('catLeft');
@@ -236,10 +238,7 @@
 
     const resolvedSlotHeights = adSlots.map((slot, index) => {
       const matchedSectionHeight = sectionHeights[index] || sectionHeights[sectionHeights.length - 1];
-      const slotContentHeight = Array.from(slot.querySelectorAll('.ad-slide')).reduce((maxHeight, slide) => {
-        return Math.max(maxHeight, Math.ceil(slide.scrollHeight));
-      }, 0);
-      return Math.max(matchedSectionHeight, slotContentHeight);
+      return matchedSectionHeight;
     });
 
     const totalSidebarHeight = resolvedSlotHeights.reduce((sum, height) => sum + height, 0) + (gap * Math.max(0, adSlots.length - 1));
@@ -495,4 +494,175 @@
   window.requestAnimationFrame(() => {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+})();
+
+
+(function () {
+  const locationInput = document.getElementById('headerCurrentLocation');
+  const eligiblePaths = ['/', '/offers-market', '/ads-market'];
+  const isEligiblePath = eligiblePaths.includes(window.location.pathname);
+
+  function updateLocationLabel(value) {
+    const resolved = value || (locationInput && locationInput.dataset.defaultLocation) || 'Your Location';
+    if (!locationInput) return;
+    locationInput.value = resolved;
+    locationInput.setAttribute('title', resolved);
+  }
+
+  function showSearchOnlyLocationField() {
+    if (!locationInput) return;
+    const locationWrapElement = locationInput.closest('.loc-wrap');
+    const locationPin = locationWrapElement ? locationWrapElement.querySelector('.loc-pin') : null;
+    const locationCaretElement = locationWrapElement ? locationWrapElement.querySelector('.loc-caret') : null;
+
+    locationInput.value = '';
+    locationInput.placeholder = 'Search location';
+    locationInput.setAttribute('title', 'Search location');
+
+    if (locationPin) locationPin.style.display = 'none';
+    if (locationCaretElement) locationCaretElement.style.display = 'none';
+
+    if (locationWrapElement) {
+      locationWrapElement.removeAttribute('role');
+      locationWrapElement.removeAttribute('tabindex');
+      locationWrapElement.removeAttribute('aria-haspopup');
+      locationWrapElement.setAttribute('aria-expanded', 'false');
+    }
+  }
+function syncLocationToSession(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve();
+
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+  return fetch('/frontend/location', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({ lat, lng })
+  })
+  .then(response => {
+    if (response.ok) {
+      // reload after successful response
+      window.location.reload();
+    }
+  })
+  .catch(() => null);
+}
+
+  async function fetchLocationName(lat, lng) {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}`);
+      if (!response.ok) return null;
+      const payload = await response.json();
+      const address = payload && payload.address ? payload.address : {};
+      return address.city || address.town || address.village || address.suburb || payload.display_name || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+
+  const locationWrap = document.querySelector('.loc-wrap');
+  const locationCaret = locationWrap ? locationWrap.querySelector('.loc-caret') : null;
+
+  if (locationWrap && locationInput) {
+    locationWrap.addEventListener('click', (event) => {
+      if (event.target === locationInput) return;
+      locationInput.focus();
+    });
+  }
+
+  if (locationCaret && locationInput) {
+    locationCaret.addEventListener('click', () => {
+      locationInput.focus();
+    });
+  }
+  window.initHeaderLocationAutocomplete = function initHeaderLocationAutocomplete() {
+    if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
+
+    const autocomplete = new google.maps.places.Autocomplete(locationInput, {
+      fields: ['formatted_address', 'geometry', 'name'],
+      componentRestrictions: { country: 'in' }
+    });
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      const lat = place && place.geometry && place.geometry.location ? place.geometry.location.lat() : null;
+      const lng = place && place.geometry && place.geometry.location ? place.geometry.location.lng() : null;
+      const selectedLocation = (place && (place.formatted_address || place.name)) ? (place.formatted_address || place.name) : '';
+
+      if (!selectedLocation || typeof lat !== 'number' || typeof lng !== 'number') return;
+
+      updateLocationLabel(selectedLocation);
+      localStorage.setItem('frontendLocationName', selectedLocation);
+
+      syncLocationToSession(lat, lng).then(() => {
+        sessionStorage.setItem('frontendLocationSynced', '1');
+      });
+    });
+  };
+
+  window.initHeaderLocationAutocomplete();
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const rawLat = searchParams.get('lat');
+  const rawLng = searchParams.get('lng');
+  const hasCoordinatesInUrl = rawLat !== null && rawLat !== '' && rawLng !== null && rawLng !== '';
+
+  if (hasCoordinatesInUrl) {
+    sessionStorage.removeItem('frontendLocationSynced');
+    const currentLat = Number(rawLat);
+    const currentLng = Number(rawLng);
+
+    if (Number.isFinite(currentLat) && Number.isFinite(currentLng)) {
+      fetchLocationName(currentLat, currentLng).then((name) => {
+        const resolvedName = name || 'Current location';
+        updateLocationLabel(resolvedName);
+        localStorage.setItem('frontendLocationName', resolvedName);
+      });
+      return;
+    }
+  }
+
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+      permissionStatus.onchange = () => {
+        if (permissionStatus.state === 'granted') {
+          window.location.reload();
+        }
+      };
+    }).catch(() => null);
+  }
+
+  const hasSessionSyncMarker = sessionStorage.getItem('frontendLocationSynced') === '1';
+  const cachedLocationName = localStorage.getItem('frontendLocationName');
+
+  if (hasSessionSyncMarker) {
+    if (cachedLocationName) updateLocationLabel(cachedLocationName);
+    return;
+  }
+
+  if (!navigator.geolocation || !isEligiblePath) {
+    showSearchOnlyLocationField();
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+
+    const name = await fetchLocationName(lat, lng);
+    const resolvedName = name || 'Current location';
+    updateLocationLabel(resolvedName);
+    localStorage.setItem('frontendLocationName', resolvedName);
+
+    syncLocationToSession(lat, lng).then(() => {
+      sessionStorage.setItem('frontendLocationSynced', '1');
+    });
+  }, () => {
+    showSearchOnlyLocationField();
+  }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 });
 })();

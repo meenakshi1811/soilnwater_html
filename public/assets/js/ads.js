@@ -25,7 +25,7 @@
             ajax: {
                 url: $table.data('url')
             },
-            order: [[7, 'desc']],
+            order: [[8, 'desc']],
             columns: [
                 { data: 'title', name: 'title' },
                 { data: 'size_label', name: 'size_type', orderable: false, searchable: false },
@@ -34,12 +34,15 @@
                 { data: 'subcategory_name', name: 'subcategory.name', orderable: false, searchable: false },
                 { data: 'location_name', name: 'location', orderable: false, searchable: false },
                 { data: 'status_badge', name: 'status', orderable: false, searchable: false },
+                { data: 'banner_preview', name: 'banner_preview', orderable: false, searchable: false },
                 { data: 'submitted_at', name: 'submitted_at' },
+                { data: 'valid_until', name: 'valid_until', orderable: false, searchable: false },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
             createdRow: function (row, data) {
                 $(row).find('td').eq(6).html(data.status_badge);
-                $(row).find('td').eq(8).html(data.actions);
+                $(row).find('td').eq(7).html(data.banner_preview);
+                $(row).find('td').eq(10).html(data.actions);
             }
         });
     }
@@ -157,19 +160,22 @@
                     if (status) d.status = status;
                 }
             },
-            order: [[5, 'desc']],
+            order: [[6, 'desc']],
             columns: [
                 { data: 'title', name: 'title' },
                 { data: 'user_name', name: 'user.full_name', orderable: false, searchable: false },
                 { data: 'size_label', name: 'size_type', orderable: false, searchable: false },
                 { data: 'template_name', name: 'template.name', orderable: false, searchable: false },
                 { data: 'status_badge', name: 'status', orderable: false, searchable: false },
+                { data: 'banner_preview', name: 'banner_preview', orderable: false, searchable: false },
                 { data: 'submitted_at', name: 'submitted_at' },
+                { data: 'valid_until', name: 'valid_until', orderable: false, searchable: false },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
             createdRow: function (row, data) {
                 $(row).find('td').eq(4).html(data.status_badge);
-                $(row).find('td').eq(6).html(data.actions);
+                $(row).find('td').eq(5).html(data.banner_preview);
+                $(row).find('td').eq(8).html(data.actions);
             }
         });
 
@@ -444,6 +450,12 @@
         var sizeW = Number(previewFrame?.dataset.sourceWidth || 0);
         var sizeH = Number(previewFrame?.dataset.sourceHeight || 0);
         var selectedLayer = null;
+        var cropper = null;
+        var cropSourceObjectUrl = '';
+        var adImageCropModalEl = document.getElementById('adImageCropModal');
+        var adCropImage = document.getElementById('adCropImage');
+        var adCropSaveBtn = document.getElementById('adCropSaveBtn');
+        var adImageCropModal = (window.bootstrap && adImageCropModalEl) ? new window.bootstrap.Modal(adImageCropModalEl) : null;
 
         function setMode(mode) {
             var uploadWrap = document.getElementById('uploadWrap');
@@ -529,17 +541,73 @@
             selectedLayer = null;
         });
 
-        uploadInput?.addEventListener('change', function (e) {
-            var file = e.target.files && e.target.files[0];
-            if (!file || !preview) return;
+        function applyUploadedImage(src) {
+            if (!preview) return;
             preview.innerHTML = '';
             var img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
+            img.src = src;
             img.style.width = '100%';
             img.style.height = '100%';
             img.style.objectFit = 'cover';
             preview.appendChild(img);
             canvasWrap?.classList.remove('d-none');
+        }
+
+        function cleanupCropper() {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            if (cropSourceObjectUrl) {
+                URL.revokeObjectURL(cropSourceObjectUrl);
+                cropSourceObjectUrl = '';
+            }
+        }
+
+        uploadInput?.addEventListener('change', function (e) {
+            var file = e.target.files && e.target.files[0];
+            if (!file || !preview) return;
+            if (!window.Cropper || !adImageCropModal || !adCropImage || !adCropSaveBtn) {
+                applyUploadedImage(URL.createObjectURL(file));
+                return;
+            }
+
+            cleanupCropper();
+            cropSourceObjectUrl = URL.createObjectURL(file);
+            adCropImage.src = cropSourceObjectUrl;
+
+            adImageCropModalEl?.addEventListener('shown.bs.modal', function onShown() {
+                adImageCropModalEl.removeEventListener('shown.bs.modal', onShown);
+                cropper = new window.Cropper(adCropImage, {
+                    aspectRatio: sizeW / sizeH,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    responsive: true,
+                    movable: true,
+                    zoomable: true,
+                    rotatable: false,
+                    scalable: false
+                });
+            });
+
+            adImageCropModalEl?.addEventListener('hidden.bs.modal', function onHidden() {
+                adImageCropModalEl.removeEventListener('hidden.bs.modal', onHidden);
+                cleanupCropper();
+            });
+
+            adCropSaveBtn.onclick = function () {
+                if (!cropper) return;
+                var canvas = cropper.getCroppedCanvas({
+                    width: sizeW,
+                    height: sizeH,
+                    imageSmoothingQuality: 'high'
+                });
+                if (!canvas) return;
+                applyUploadedImage(canvas.toDataURL('image/png'));
+                adImageCropModal.hide();
+            };
+
+            adImageCropModal.show();
         });
 
         if (dropzone && uploadInput) {
@@ -564,18 +632,85 @@
         }
 
         async function exportPreviewAsPng() {
-            if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
-                return window.htmlToImage.toPng(preview, { pixelRatio: 1, canvasWidth: sizeW, canvasHeight: sizeH, cacheBust: true, skipFonts: true, fontEmbedCSS: '' });
-            }
-            if (window.html2canvas) {
-                var canvas = await window.html2canvas(preview, { width: sizeW, height: sizeH, windowWidth: sizeW, windowHeight: sizeH, scale: 1, useCORS: true });
-                return canvas.toDataURL('image/png');
+            var exportWidth = sizeW || preview.scrollWidth || 0;
+            var exportHeight = sizeH || preview.scrollHeight || 0;
+            var exportPixelRatio = 2;
+            var clone = preview.cloneNode(true);
+            var sandbox = document.createElement('div');
+            sandbox.style.position = 'fixed';
+            sandbox.style.left = '-10000px';
+            sandbox.style.top = '0';
+            sandbox.style.width = exportWidth + 'px';
+            sandbox.style.height = exportHeight + 'px';
+            sandbox.style.overflow = 'hidden';
+            sandbox.style.zIndex = '-1';
+
+            clone.style.position = 'static';
+            clone.style.inset = 'auto';
+            clone.style.transform = 'none';
+            clone.style.transformOrigin = 'top left';
+            clone.style.width = exportWidth + 'px';
+            clone.style.height = exportHeight + 'px';
+            clone.style.maxWidth = 'none';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'hidden';
+
+            sandbox.appendChild(clone);
+            document.body.appendChild(sandbox);
+
+            var waitForImages = async function (root, timeoutMs) {
+                var imgs = Array.from(root.querySelectorAll('img'));
+                if (!imgs.length) return;
+                await Promise.race([
+                    Promise.all(imgs.map(function (img) {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise(function (resolve) {
+                            var done = function () { resolve(); };
+                            img.addEventListener('load', done, { once: true });
+                            img.addEventListener('error', done, { once: true });
+                        });
+                    })),
+                    new Promise(function (resolve) { setTimeout(resolve, timeoutMs || 6000); })
+                ]);
+            };
+
+            try {
+                await waitForImages(clone, 6000);
+                if (window.htmlToImage && typeof window.htmlToImage.toPng === 'function') {
+                    return await window.htmlToImage.toPng(clone, {
+                        pixelRatio: exportPixelRatio,
+                        canvasWidth: exportWidth * exportPixelRatio,
+                        canvasHeight: exportHeight * exportPixelRatio,
+                        cacheBust: true,
+                        skipFonts: true,
+                        fontEmbedCSS: ''
+                    });
+                }
+                if (window.html2canvas) {
+                    var canvas = await window.html2canvas(clone, {
+                        width: exportWidth,
+                        height: exportHeight,
+                        windowWidth: exportWidth,
+                        windowHeight: exportHeight,
+                        scale: exportPixelRatio,
+                        useCORS: true,
+                        allowTaint: false,
+                        logging: false
+                    });
+                    return canvas.toDataURL('image/png');
+                }
+            } finally {
+                document.body.removeChild(sandbox);
             }
             return '';
         }
 
         form.addEventListener('submit', async function (event) {
             event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') {
+                event.stopImmediatePropagation();
+            }
             if (!preview) return;
             customHtmlInput.value = '<div class="ad-canvas" style="width:' + sizeW + 'px;height:' + sizeH + 'px;overflow:hidden;position:relative;">' + preview.innerHTML + '</div>';
             generatedImageDataInput.value = await exportPreviewAsPng();
@@ -588,9 +723,22 @@
                 body: new FormData(form),
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             });
-            var payload = await response.json();
+            var payload = {};
+            var responseText = '';
+            try {
+                payload = await response.json();
+            } catch (jsonError) {
+                responseText = await response.text();
+            }
             if (!response.ok) {
                 showToast('danger', payload.message || 'Unable to save ad.');
+                return;
+            }
+            if (!payload || typeof payload !== 'object' || (!payload.message && !payload.redirect_url)) {
+                showToast('info', 'Request sent successfully. Debug response received; staying on this page.');
+                if (responseText) {
+                    console.info('Ad save debug response:', responseText);
+                }
                 return;
             }
             showToast('success', payload.message || 'Saved successfully');

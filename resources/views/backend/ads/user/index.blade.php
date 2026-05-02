@@ -41,7 +41,9 @@
                     <th>Sub Category</th>
                     <th>Location</th>
                     <th>Status</th>
+                    <th>Banner</th>
                     <th>Submitted</th>
+                    <th>Valid Upto</th>
                     <th class="text-end">Action</th>
                 </tr>
                 </thead>

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\OfferPageController;
+use App\Http\Controllers\Frontend\AdsMarketController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ModuleAccessController;
@@ -24,7 +25,20 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [OfferPageController::class, 'home'])->name('frontend.index');
 Route::get('/offers-market', [OfferPageController::class, 'index'])->name('frontend.offers.index');
 Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
+Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
+Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
+Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
+    $data = $request->validate([
+        'lat' => ['required', 'numeric', 'between:-90,90'],
+        'lng' => ['required', 'numeric', 'between:-180,180'],
+    ]);
+
+    session(['frontend_lat' => (float) $data['lat'], 'frontend_lng' => (float) $data['lng']]);
+
+    return response()->json(['ok' => true]);
+})->name('frontend.location.store');
+
 Route::get('/terms-and-condition/{moduleKey}', [TermsAndConditionPageController::class, 'show'])->name('frontend.terms.show');
 
 Auth::routes(['verify' => true]);
@@ -87,7 +101,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/create/{sizeType}/customize', [UserAdController::class, 'customizeFromSize'])->name('create.customize.default');
         Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->name('create.template');
         Route::get('/create/{sizeType}/template/{template}', [UserAdController::class, 'customize'])->name('create.customize');
-        Route::post('/create/{sizeType}/template/{template}', [UserAdController::class, 'store'])->name('store');
+        Route::post('/create/{sizeType}', [UserAdController::class, 'store'])->name('store');
         Route::get('/view/{ad}', [UserAdController::class, 'show'])->name('show');
         Route::get('/{ad}', [UserAdController::class, 'show'])->name('legacy.show');
     });

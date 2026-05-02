@@ -29,11 +29,11 @@
                     </div>
                 @endif
 
-                <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] ?? '1 / 1' }};">
+                <!-- <div class="ads-live-preview" style="aspect-ratio: {{ $size['ratio'] ?? '1 / 1' }};">
                     <div class="ads-live-preview-inner">
                         {!! $ad->rendered_html ?: '<div class="text-secondary p-3">No rendered HTML saved.</div>' !!}
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -44,6 +44,7 @@
                 <div class="mb-2"><span class="text-secondary">Category:</span> <strong>{{ $ad->category?->name ?? '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Sub Category:</span> <strong>{{ $ad->subcategory?->name ?? '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Location:</span> <strong>{{ $ad->location ?? '-' }}</strong></div>
+                <div class="mb-2"><span class="text-secondary">Valid Upto:</span> {{ $ad->valid_until?->format('Y-m-d') ?? '-' }}</div>
                 <div class="mb-2"><span class="text-secondary">Submitted:</span> {{ $ad->submitted_at?->format('Y-m-d H:i') ?? '-' }}</div>
                 <div class="mb-2"><span class="text-secondary">Reviewed:</span> {{ $ad->reviewed_at?->format('Y-m-d H:i') ?? '-' }}</div>
                 <div class="mb-2"><span class="text-secondary">Status:</span> <strong>{{ ucfirst($ad->status) }}</strong></div>

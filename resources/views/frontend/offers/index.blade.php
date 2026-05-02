@@ -60,7 +60,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title fs-5" id="offerDetailsModalLabel">Offer Details</h2>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="offer-modal-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <div class="modal-body p-0">
                 <img id="offerDetailsModalImage" src="" alt="Offer image" class="d-none offer-details-modal-image">
@@ -72,6 +74,26 @@
                     <h3 class="h4 mb-2" id="offerDetailsModalTitle"></h3>
                     <p class="text-muted mb-3" id="offerDetailsModalDescription"></p>
                     <p class="mb-0"><strong>Valid until:</strong> <span id="offerDetailsModalExpiry"></span></p>
+                    <div class="offer-share-panel mt-4" id="offerSharePanel">
+                        <div class="offer-share-panel-head">
+                            <h4 class="offer-share-title mb-1">Share this offer</h4>
+                            <p class="offer-share-subtitle mb-0">Send this deal quickly using QR or social channels.</p>
+                        </div>
+                        <div class="offer-share-panel-body">
+                            <div class="offer-share-qr-wrap">
+                                <img id="offerShareQr" src="" alt="Offer QR code" class="offer-share-qr">
+                            </div>
+                            <div class="offer-share-links-wrap">
+                                <label for="offerShareLink" class="offer-share-link-label">Offer link</label>
+                                <input type="text" id="offerShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <a id="offerShareWhatsapp" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-whatsapp"><i class="fa-brands fa-whatsapp me-1"></i>WhatsApp</a>
+                                    <a id="offerShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
+                                    <a id="offerShareInstagram" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,221 +101,7 @@
 </div>
 @endsection
 
-@push('styles')
-<style>
-    .offer-details-modal .modal-dialog.offer-details-dialog {
-        width: min(100% - 1.5rem, 640px);
-        max-width: 640px;
-        margin-inline: auto;
-    }
 
-    .offer-details-modal .modal-content {
-        border: 0;
-        border-radius: 1rem;
-        overflow: hidden;
-        box-shadow: 0 22px 50px rgba(13, 44, 94, 0.18);
-        background: linear-gradient(180deg, #f7fbff 0%, #ffffff 26%, #ffffff 100%);
-    }
-
-    .offer-details-modal .modal-header {
-        padding: 0.95rem 1.25rem;
-        border-bottom: 1px solid #e6effa;
-        background: rgba(255, 255, 255, 0.86);
-        backdrop-filter: blur(4px);
-    }
-
-    .offer-details-modal .modal-title {
-        font-weight: 700;
-        color: #12355b;
-        letter-spacing: 0.2px;
-    }
-
-    .offer-details-modal .modal-body {
-        overflow-y: auto;
-    }
-
-    .offer-coupon-image-wrap {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        aspect-ratio: 768 / 1080;
-        height: auto;
-        background: #f5f9ff;
-        padding: 0;
-        overflow: hidden;
-    }
-
-    .offer-coupon-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center;
-    }
-
-    .offer-card-title {
-        font-size: 0.95rem;
-        font-weight: 600;
-        line-height: 1.35;
-        min-height: 1.35em;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .offer-coupon-card .card-body,
-    .offer-meta-row {
-        min-width: 0;
-    }
-
-    .offer-meta-pill {
-        height: 24px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 8px;
-        border-radius: 999px;
-        font-weight: 600;
-        letter-spacing: 0.15px;
-        line-height: 1;
-        font-size: 0.7rem;
-        white-space: nowrap;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .offer-meta-pill-discount {
-        background-color: #e9f2ff;
-        color: #0d6efd;
-    }
-
-    .offer-meta-pill-coupon {
-        border: 1px dashed #9cc8ff;
-        background-color: #edf5ff;
-        color: #0c4f93;
-    }
-
-    .offer-details-modal-image {
-        display: block;
-        width: 100%;
-        height: auto;
-        max-height: none;
-        object-fit: contain;
-        object-position: center;
-        margin: 0;
-        background: transparent;
-    }
-
-    .offer-details-content {
-        padding: 1.1rem 1.25rem 1.3rem;
-    }
-
-    .offer-details-content #offerDetailsModalTitle {
-        color: #0e3157;
-        font-weight: 700;
-        line-height: 1.25;
-    }
-
-    .offer-details-content #offerDetailsModalDescription {
-        font-size: 0.97rem;
-        line-height: 1.6;
-    }
-
-    .offer-details-content .badge {
-        border-radius: 999px;
-        padding: 0.45rem 0.68rem;
-        font-size: 0.74rem;
-        letter-spacing: 0.2px;
-    }
-
-    .offer-details-content .coupon-code {
-        border: 1px dashed #9dc3ef;
-        background-color: #edf5ff;
-        color: #0c4f93;
-        border-radius: 999px;
-        padding: 0.38rem 0.7rem;
-        font-size: 0.72rem;
-        font-weight: 700;
-    }
-
-
-    .offer-pagination-wrap {
-        width: fit-content;
-        max-width: 100%;
-        min-height: 1.5rem;
-    }
-
-    .offer-pagination-summary {
-        margin-top: 0.25rem;
-        font-size: 1rem;
-        color: #0f2742;
-    }
-
-    .offer-pagination-loading {
-        margin-top: 0.5rem;
-        font-size: 0.95rem;
-        color: #66788a;
-    }
-
-    .offer-scroll-sentinel {
-        width: 100%;
-        height: 1px;
-    }
-
-    .offer-empty-state-card {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.9rem;
-        width: min(100%, 640px);
-        padding: 1rem 1.1rem;
-        border-radius: 0.85rem;
-        border: 1px solid #d6e7ff;
-        background: linear-gradient(180deg, #f7fbff 0%, #f2f8ff 100%);
-        box-shadow: 0 8px 20px rgba(13, 83, 168, 0.08);
-    }
-
-    .offer-empty-state-icon {
-        width: 2.15rem;
-        height: 2.15rem;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: #e6f0ff;
-        color: #235da8;
-        flex: 0 0 2.15rem;
-    }
-
-    .offer-empty-state-title {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #12355b;
-    }
-
-    .offer-empty-state-text {
-        font-size: 0.92rem;
-        color: #335678;
-        line-height: 1.5;
-    }
-
-    @media (min-width: 768px) {
-        .offer-details-content {
-            padding: 1.35rem 1.5rem 1.55rem;
-        }
-    }
-
-    @media (max-width: 575.98px) {
-        .offer-details-modal .modal-dialog.offer-details-dialog {
-            width: calc(100% - 1rem);
-        }
-
-        .offer-details-modal-image {
-            height: auto;
-            max-height: none;
-        }
-    }
-</style>
-@endpush
 
 @push('scripts')
 <script>
@@ -307,6 +115,11 @@
         const couponEl = document.getElementById('offerDetailsModalCoupon');
         const expiryEl = document.getElementById('offerDetailsModalExpiry');
         const imageEl = document.getElementById('offerDetailsModalImage');
+        const shareLinkEl = document.getElementById('offerShareLink');
+        const shareQrEl = document.getElementById('offerShareQr');
+        const shareWhatsappEl = document.getElementById('offerShareWhatsapp');
+        const shareFacebookEl = document.getElementById('offerShareFacebook');
+        const shareInstagramEl = document.getElementById('offerShareInstagram');
         const offersGrid = document.getElementById('offersGrid');
         const loadingText = document.getElementById('offersLoadingText');
         const summaryText = document.getElementById('offersSummaryText');
@@ -547,6 +360,8 @@
             expiryEl.textContent = trigger.getAttribute('data-offer-validity') || 'No expiry';
 
             const bannerImage = trigger.getAttribute('data-offer-image');
+            const offerUrl = trigger.getAttribute('data-offer-url') || window.location.href;
+            const encodedOfferUrl = encodeURIComponent(offerUrl);
             if (bannerImage) {
                 imageEl.src = bannerImage;
                 imageEl.classList.remove('d-none');
@@ -554,7 +369,30 @@
                 imageEl.src = '';
                 imageEl.classList.add('d-none');
             }
+
+            if (shareLinkEl) {
+                shareLinkEl.value = offerUrl;
+            }
+            if (shareQrEl) {
+                shareQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=224x224&data=${encodedOfferUrl}`;
+            }
+            if (shareWhatsappEl) {
+                shareWhatsappEl.href = `https://wa.me/?text=${encodeURIComponent('Check this offer: ' + offerUrl)}`;
+            }
+            if (shareFacebookEl) {
+                shareFacebookEl.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedOfferUrl}`;
+            }
+            if (shareInstagramEl) {
+                shareInstagramEl.href = `https://www.instagram.com/?url=${encodedOfferUrl}`;
+            }
+
         });
+
+        if (shareToggleBtn && sharePanelEl) {
+            shareToggleBtn.addEventListener('click', function () {
+                sharePanelEl.classList.toggle('d-none');
+            });
+        }
     })();
 </script>
 @endpush
