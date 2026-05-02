@@ -159,7 +159,7 @@
                     if (status) d.status = status;
                 }
             },
-            order: [[5, 'desc']],
+            order: [[6, 'desc']],
             columns: [
                 { data: 'title', name: 'title' },
                 { data: 'user_name', name: 'user.full_name', orderable: false, searchable: false },
@@ -172,7 +172,8 @@
             ],
             createdRow: function (row, data) {
                 $(row).find('td').eq(4).html(data.status_badge);
-                $(row).find('td').eq(6).html(data.actions);
+                $(row).find('td').eq(5).html(data.banner_preview);
+                $(row).find('td').eq(7).html(data.actions);
             }
         });
 

@@ -50,9 +50,20 @@ class AdSubmissionController extends Controller
 
                 return '<span class="badge bg-'.$badge.'">'.ucfirst($ad->status).'</span>';
             })
+            ->addColumn('banner_preview', function (UserAd $ad) {
+                if (! $ad->final_image) {
+                    return '-';
+                }
+
+                $imageUrl = asset($ad->final_image);
+
+                return '<a href="'.$imageUrl.'" target="_blank" rel="noopener noreferrer">'
+                    .'<img src="'.$imageUrl.'" alt="'.$ad->title.' banner" style="width: 96px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb;">'
+                    .'</a>';
+            })
             ->editColumn('submitted_at', fn (UserAd $ad) => $ad->submitted_at?->format('Y-m-d H:i') ?? '-')
             ->addColumn('actions', fn (UserAd $ad) => '<div class="d-flex justify-content-end"><a href="'.route('admin.ads.submissions.show', $ad).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a></div>')
-            ->rawColumns(['status_badge', 'actions'])
+            ->rawColumns(['status_badge', 'banner_preview', 'actions'])
             ->make(true);
     }
 
