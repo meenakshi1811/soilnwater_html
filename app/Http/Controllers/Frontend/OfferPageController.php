@@ -146,6 +146,7 @@ class OfferPageController extends Controller
 
         $query = Offer::query()
             ->where('status', 'active')
+            ->when($request->filled('search'), fn (Builder $query) => $query->where('title', 'like', '%'.$request->string('search')->toString().'%'))
             ->when($request->filled('category_id'), fn (Builder $query) => $query->where('category_id', $request->integer('category_id')))
             ->when($request->filled('subcategory_id'), fn (Builder $query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
             ->when($request->filled('validity'), function (Builder $query) use ($request): void {
