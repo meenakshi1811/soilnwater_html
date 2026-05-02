@@ -618,6 +618,16 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
     }
   }
 
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+      permissionStatus.onchange = () => {
+        if (permissionStatus.state === 'granted') {
+          window.location.reload();
+        }
+      };
+    }).catch(() => null);
+  }
+
   const hasSessionSyncMarker = sessionStorage.getItem('frontendLocationSynced') === '1';
   const cachedLocationName = localStorage.getItem('frontendLocationName');
 
