@@ -529,21 +529,28 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
       locationWrapElement.setAttribute('aria-expanded', 'false');
     }
   }
+function syncLocationToSession(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve();
 
-  function syncLocationToSession(lat, lng) {
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve();
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-    return fetch('/frontend/location', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      body: JSON.stringify({ lat, lng })
-    }).catch(() => null);
-  }
+  return fetch('/frontend/location', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({ lat, lng })
+  })
+  .then(response => {
+    if (response.ok) {
+      // reload after successful response
+      window.location.reload();
+    }
+  })
+  .catch(() => null);
+}
 
   async function fetchLocationName(lat, lng) {
     try {
