@@ -116,8 +116,8 @@
                         </div>
                         <div class="modal-body">
                             <p class="text-secondary small mb-2">Adjust the crop area to match {{ $size['w'] }} × {{ $size['h'] }} px aspect ratio.</p>
-                            <div class="ratio ratio-16x9 border rounded bg-light position-relative overflow-hidden" style="max-height:60vh;">
-                                <img id="adCropImage" src="#" alt="Crop preview" class="w-100 h-100" style="object-fit:contain;user-select:none;" draggable="false">
+                            <div class="border rounded bg-light position-relative overflow-hidden d-flex align-items-center justify-content-center" style="height:60vh;max-height:60vh;min-height:320px;">
+                                <img id="adCropImage" src="#" alt="Crop preview" class="mw-100 mh-100 d-block" style="max-height:58vh;user-select:none;" draggable="false">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -435,6 +435,9 @@ function pushScreenshotToServer(dataURL) {
         const layerImageWidthInput = document.getElementById('layerImageWidthInput');
         const layerImageHeightInput = document.getElementById('layerImageHeightInput');
         const layerImageScaleInput = document.getElementById('layerImageScaleInput');
+        const adCropModalElement = document.getElementById('adImageCropModal');
+        const adCropImage = document.getElementById('adCropImage');
+        const adCropSaveBtn = document.getElementById('adCropSaveBtn');
 
         const sizeW = Number(previewFrame?.dataset.sourceWidth || 0);
         const sizeH = Number(previewFrame?.dataset.sourceHeight || 0);
@@ -443,6 +446,9 @@ function pushScreenshotToServer(dataURL) {
         let uploadedImageFile = null;
         let uploadedImagePositionX = 50;
         let uploadedImagePositionY = 50;
+        let uploadedImageObjectUrl = '';
+        let cropper = null;
+        const adCropModal = (window.bootstrap && adCropModalElement) ? new bootstrap.Modal(adCropModalElement) : null;
 
         function toast(type, message) {
             const normalizedType = type === 'danger' ? 'error' : type;
@@ -565,6 +571,35 @@ function pushScreenshotToServer(dataURL) {
             const uploadedPreviewImage = preview.querySelector('img[data-upload-image="1"]');
             if (!uploadedPreviewImage) return;
             uploadedPreviewImage.style.objectPosition = `${uploadedImagePositionX}% ${uploadedImagePositionY}%`;
+        }
+
+        function destroyCropper() {
+            if (cropper && typeof cropper.destroy === 'function') {
+                cropper.destroy();
+            }
+            cropper = null;
+        }
+
+        function applyUploadedImageToPreview(src) {
+            if (!src || !preview) return;
+            preview.innerHTML = '';
+            preview.style.backgroundImage = 'none';
+            preview.style.backgroundColor = '#f7f7f7';
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.setAttribute('data-upload-image', '1');
+            uploadedImagePositionX = 50;
+            uploadedImagePositionY = 50;
+            if (uploadImagePosX) uploadImagePosX.value = '50';
+            if (uploadImagePosY) uploadImagePosY.value = '50';
+            preview.appendChild(img);
+            updateUploadedImagePosition();
+            canvasWrap.classList.remove('d-none');
+            uploadImagePositionControls?.classList.remove('d-none');
         }
 
         function isTextLayer(node) {
@@ -825,35 +860,19 @@ function pushScreenshotToServer(dataURL) {
             const dimensionProbe = new Image();
             dimensionProbe.onload = () => {
                 console.log('[AdUpload] Selected image dimensions:', dimensionProbe.naturalWidth + 'x' + dimensionProbe.naturalHeight);
-                
-
-
-                console.log('[AdUpload] Rendering preview and crop flow for selected image.');
                 uploadedImageFile = file;
-                if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
-                    dropzonePreview.src = objectUrl;
-                    dropzonePreviewWrap.classList.remove('d-none');
-                    dropzonePlaceholder.classList.add('d-none');
+                if (uploadedImageObjectUrl) URL.revokeObjectURL(uploadedImageObjectUrl);
+                uploadedImageObjectUrl = objectUrl;
+
+                if (!adCropModal || !adCropImage || !window.Cropper) {
+                    console.log('[AdUpload] Crop modal unavailable; using direct preview render.');
+                    applyUploadedImageToPreview(uploadedImageObjectUrl);
+                    return;
                 }
 
-                preview.innerHTML = '';
-                preview.style.backgroundImage = 'none';
-                preview.style.backgroundColor = '#f7f7f7';
-                const img = document.createElement('img');
-                img.src = objectUrl;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                img.setAttribute('data-upload-image', '1');
-                uploadedImagePositionX = 50;
-                uploadedImagePositionY = 50;
-                if (uploadImagePosX) uploadImagePosX.value = '50';
-                if (uploadImagePosY) uploadImagePosY.value = '50';
-                updateUploadedImagePosition();
-                preview.appendChild(img);
-                canvasWrap.classList.remove('d-none');
-                uploadImagePositionControls?.classList.remove('d-none');
-                console.log('[AdUpload] Preview render complete.');
+                adCropImage.removeAttribute('srcset');
+                adCropImage.src = uploadedImageObjectUrl;
+                adCropModal.show();
             };
             dimensionProbe.onerror = () => {
                 URL.revokeObjectURL(objectUrl);
@@ -866,6 +885,53 @@ function pushScreenshotToServer(dataURL) {
                 }
             };
             dimensionProbe.src = objectUrl;
+        });
+
+        adCropModalElement?.addEventListener('shown.bs.modal', function () {
+            if (!adCropImage?.src || !window.Cropper) return;
+            const initCropper = () => {
+                destroyCropper();
+                cropper = new window.Cropper(adCropImage, {
+                    aspectRatio: sizeW > 0 && sizeH > 0 ? (sizeW / sizeH) : NaN,
+                    viewMode: 1,
+                    autoCropArea: 0.95,
+                    responsive: true,
+                    background: false
+                });
+            };
+
+            if (adCropImage.complete && adCropImage.naturalWidth > 0) {
+                initCropper();
+                return;
+            }
+
+            adCropImage.onload = () => initCropper();
+        });
+
+        adCropModalElement?.addEventListener('hidden.bs.modal', function () {
+            destroyCropper();
+        });
+
+        adCropSaveBtn?.addEventListener('click', function () {
+            if (!cropper) return;
+            const croppedCanvas = cropper.getCroppedCanvas({
+                width: sizeW || undefined,
+                height: sizeH || undefined,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
+            if (!croppedCanvas) return;
+            const croppedDataUrl = croppedCanvas.toDataURL('image/png');
+
+            if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
+                dropzonePreview.src = croppedDataUrl;
+                dropzonePreviewWrap.classList.remove('d-none');
+                dropzonePlaceholder.classList.add('d-none');
+            }
+
+            applyUploadedImageToPreview(croppedDataUrl);
+            adCropModal?.hide();
+            console.log('[AdUpload] Crop saved and preview updated.');
         });
 
         uploadImagePosX?.addEventListener('input', function () {
