@@ -432,7 +432,7 @@
               @endforelse
             </div>
             <div class="ad-slider auto-ad-slider offer-coupon-grid-slider" data-show-arrows="true" data-show-dots="false" aria-label="Offer coupon cards slider">
-              @forelse ($offers->chunk(5) as $offerChunk)
+              @forelse ($offers->chunk(6) as $offerChunk)
                 <div class="ad-slide">
                   <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-6 g-1 offer-coupon-grid">
                     @foreach ($offerChunk as $offer)
