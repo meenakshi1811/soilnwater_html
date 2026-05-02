@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdSize;
-use App\Support\AdSizes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Yajra\DataTables\Facades\DataTables;
 
 class AdSizeController extends Controller
@@ -85,13 +83,6 @@ class AdSizeController extends Controller
             'height' => ['required', 'integer', 'min:1', 'max:5000'],
             'admin_only' => ['nullable', 'boolean'],
         ]);
-
-        if (array_key_exists($validated['size_key'], AdSizes::all()) && (! $size || $size->size_key !== $validated['size_key'])) {
-            throw ValidationException::withMessages([
-                'size_key' => 'Size key already exists in default sizes. Choose a different key.',
-            ]);
-        }
-
         $validated['admin_only'] = $request->boolean('admin_only');
         $validated['is_active'] = true;
 
