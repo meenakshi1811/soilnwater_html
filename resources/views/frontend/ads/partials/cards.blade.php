@@ -25,7 +25,7 @@
             class="card border-0 offer-coupon-card ads-market-card js-ad-modal-trigger"
             role="button"
             tabindex="0"
-            style="width:{{ $adWidth }}px; height:{{ $adHeight }}px; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }};"
+            style="--ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }};"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • Valid upto: {{ $ad->valid_until?->format('d M Y') ?? 'No Expiry' }}"
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
