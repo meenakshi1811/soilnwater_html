@@ -1,3 +1,5 @@
+window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete || function initHeaderLocationAutocomplete() {};
+
 (function(){
   const scroller = document.getElementById('catScroller');
   const btnL = document.getElementById('catLeft');
@@ -507,6 +509,27 @@
     locationInput.setAttribute('title', resolved);
   }
 
+  function showSearchOnlyLocationField() {
+    if (!locationInput) return;
+    const locationWrapElement = locationInput.closest('.loc-wrap');
+    const locationPin = locationWrapElement ? locationWrapElement.querySelector('.loc-pin') : null;
+    const locationCaretElement = locationWrapElement ? locationWrapElement.querySelector('.loc-caret') : null;
+
+    locationInput.value = '';
+    locationInput.placeholder = 'Search location';
+    locationInput.setAttribute('title', 'Search location');
+
+    if (locationPin) locationPin.style.display = 'none';
+    if (locationCaretElement) locationCaretElement.style.display = 'none';
+
+    if (locationWrapElement) {
+      locationWrapElement.removeAttribute('role');
+      locationWrapElement.removeAttribute('tabindex');
+      locationWrapElement.removeAttribute('aria-haspopup');
+      locationWrapElement.setAttribute('aria-expanded', 'false');
+    }
+  }
+
   function syncLocationToSession(lat, lng) {
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return Promise.resolve();
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -569,7 +592,7 @@
       updateLocationLabel(selectedLocation);
       localStorage.setItem('frontendLocationName', selectedLocation);
 
-      syncLocationToSession(lat, lng).finally(() => {
+      syncLocationToSession(lat, lng).then(() => {
         sessionStorage.setItem('frontendLocationSynced', '1');
         const refreshUrl = new URL(window.location.href);
         refreshUrl.searchParams.delete('lat');
@@ -578,6 +601,8 @@
       });
     });
   };
+
+  window.initHeaderLocationAutocomplete();
 
   const searchParams = new URLSearchParams(window.location.search);
   const rawLat = searchParams.get('lat');
@@ -599,6 +624,16 @@
     }
   }
 
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+      permissionStatus.onchange = () => {
+        if (permissionStatus.state === 'granted') {
+          window.location.reload();
+        }
+      };
+    }).catch(() => null);
+  }
+
   const hasSessionSyncMarker = sessionStorage.getItem('frontendLocationSynced') === '1';
   const cachedLocationName = localStorage.getItem('frontendLocationName');
 
@@ -608,7 +643,7 @@
   }
 
   if (!navigator.geolocation || !isEligiblePath) {
-    updateLocationLabel('Location unavailable');
+    showSearchOnlyLocationField();
     return;
   }
 
@@ -621,7 +656,7 @@
     updateLocationLabel(resolvedName);
     localStorage.setItem('frontendLocationName', resolvedName);
 
-    syncLocationToSession(lat, lng).finally(() => {
+    syncLocationToSession(lat, lng).then(() => {
       sessionStorage.setItem('frontendLocationSynced', '1');
       const refreshUrl = new URL(window.location.href);
       refreshUrl.searchParams.delete('lat');
@@ -629,6 +664,6 @@
       window.location.replace(refreshUrl.toString());
     });
   }, () => {
-    updateLocationLabel('Location unavailable');
+    showSearchOnlyLocationField();
   }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 });
 })();
