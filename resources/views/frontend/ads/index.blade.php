@@ -71,11 +71,11 @@ function layoutAdsGrid(){
     if (window.matchMedia('(max-width: 768px)').matches) { adsGrid.style.height = 'auto'; return; }
     const items = Array.from(adsGrid.querySelectorAll('.ads-market-grid-item'));
     if (!items.length) { adsGrid.style.height = '0px'; return; }
-    const gap = 14;
-    const unit = 20;
+    const gap = 12;
+    const unit = 4;
     items.forEach((item)=>{ item.style.position='absolute'; item.style.left='0px'; item.style.top='0px'; });
     const containerWidth = adsGrid.clientWidth;
-    const cols = Math.max(1, Math.floor(containerWidth / unit));
+    const cols = Math.max(1, Math.floor((containerWidth + gap) / unit));
     const colHeights = Array(cols).fill(0);
     items.forEach((item)=>{
         const itemWidth = item.offsetWidth || 320;
