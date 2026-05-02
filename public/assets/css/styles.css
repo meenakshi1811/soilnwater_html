@@ -2756,12 +2756,15 @@
 .offer-empty-state-card{border:1px dashed #c7dcfa;border-radius:12px;padding:2.2rem 1rem;text-align:center;background:#f8fbff}
 
 .ads-market-card{border-radius:16px;overflow:hidden;transition:transform .22s ease,box-shadow .22s ease;border:1px solid #e2eaf5;box-shadow:0 8px 24px rgba(17,52,100,.08);background:#fff;height:100%}
-.ads-market-grid{display:flex;flex-wrap:wrap;gap:1rem;align-items:stretch}
-.ads-market-grid-item{display:flex;justify-content:center;align-items:stretch;flex:1 1 320px;max-width:440px}
+.ads-market-grid{column-count:5;column-gap:1rem}
+.ads-market-grid-item{display:inline-block;width:100%;margin:0 0 1rem;break-inside:avoid}
 .ads-market-card .offer-coupon-image-wrap{aspect-ratio:auto}
-.ads-market-card{width:min(100%,440px);height:auto}
+.ads-market-card{width:100%;height:auto;display:block}
 .ads-market-thumb{aspect-ratio:auto}
-@media (max-width:768px){.ads-market-grid{justify-content:center}}
+@media (max-width:1400px){.ads-market-grid{column-count:4}}
+@media (max-width:1100px){.ads-market-grid{column-count:3}}
+@media (max-width:768px){.ads-market-grid{column-count:2}}
+@media (max-width:480px){.ads-market-grid{column-count:1}}
 
 .ads-market-card:hover{transform:translateY(-5px);box-shadow:0 16px 34px rgba(17,52,100,.14)}
 .ads-market-thumb{aspect-ratio:auto;object-fit:contain;width:100%;background:#f6f9ff}
@@ -2781,3 +2784,7 @@
 .ad-detail-image-wrap{background:#f5f9ff;border-radius:12px;overflow:hidden}
 .ad-detail-image{width:100%;max-height:70vh;object-fit:contain;display:block}
 .ad-detail-map-wrap{border:1px solid #dbe5f2;border-radius:12px;overflow:hidden;background:#fff}
+
+.ads-market-page{max-width:1500px}
+.ads-market-filter-wrap{background:#fff;border:1px solid #e4ebf5;border-radius:14px;padding:.7rem;box-shadow:0 8px 20px rgba(16,51,102,.06)}
+.ads-market-filter-wrap .form-label{font-size:.8rem;font-weight:700;color:#4e637d}
