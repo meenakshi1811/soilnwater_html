@@ -1980,6 +1980,13 @@
   .search-submit-btn {
     min-width: 42px;
   }
+  .search-module-select {
+    width: 105px;
+    padding: 9px 10px;
+  }
+  .search-submit-btn {
+    min-width: 46px;
+  }
   .main-wrap {
     padding: 16px 10px;
   }
