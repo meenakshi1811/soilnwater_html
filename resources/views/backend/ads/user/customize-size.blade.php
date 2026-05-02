@@ -289,14 +289,6 @@ const addAdImageInput = document.getElementById('uploadImageInput');
     const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
 
 if (addAdImageInput && addAdImageError) {
-    const requiredWidth = Number(addAdImageInput.dataset.requiredWidth || 0);
-    const requiredHeight = Number(addAdImageInput.dataset.requiredHeight || 0);
-
-    const showImageSizeError = (message) => {
-        addAdImageError.textContent = message;
-        addAdImageError.style.display = 'block';
-    };
-
     const clearImageSizeError = () => {
         addAdImageError.textContent = '';
         addAdImageError.style.display = 'none';
@@ -314,18 +306,13 @@ if (addAdImageInput && addAdImageError) {
         const objectUrl = URL.createObjectURL(file);
 
         img.onload = function () {
-            const isExactSize = img.naturalWidth === requiredWidth && img.naturalHeight === requiredHeight;
             URL.revokeObjectURL(objectUrl);
-
-            if (!isExactSize) {
-                showImageSizeError(`Image size differs from ${requiredWidth}×${requiredHeight}px. Please crop in the popup and save.`);
-                setTimeout(() => clearImageSizeError(), 5000);
-            }
         };
 
         img.onerror = function () {
             URL.revokeObjectURL(objectUrl);
-            showImageSizeError('Unable to read this image. Please upload a valid image file.');
+            addAdImageError.textContent = 'Unable to read this image. Please upload a valid image file.';
+            addAdImageError.style.display = 'block';
             addAdImageInput.value = '';
         };
 
