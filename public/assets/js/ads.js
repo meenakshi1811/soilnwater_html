@@ -450,6 +450,12 @@
         var sizeW = Number(previewFrame?.dataset.sourceWidth || 0);
         var sizeH = Number(previewFrame?.dataset.sourceHeight || 0);
         var selectedLayer = null;
+        var cropper = null;
+        var cropSourceObjectUrl = '';
+        var adImageCropModalEl = document.getElementById('adImageCropModal');
+        var adCropImage = document.getElementById('adCropImage');
+        var adCropSaveBtn = document.getElementById('adCropSaveBtn');
+        var adImageCropModal = (window.bootstrap && adImageCropModalEl) ? new window.bootstrap.Modal(adImageCropModalEl) : null;
 
         function setMode(mode) {
             var uploadWrap = document.getElementById('uploadWrap');
@@ -535,17 +541,73 @@
             selectedLayer = null;
         });
 
-        uploadInput?.addEventListener('change', function (e) {
-            var file = e.target.files && e.target.files[0];
-            if (!file || !preview) return;
+        function applyUploadedImage(src) {
+            if (!preview) return;
             preview.innerHTML = '';
             var img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
+            img.src = src;
             img.style.width = '100%';
             img.style.height = '100%';
             img.style.objectFit = 'cover';
             preview.appendChild(img);
             canvasWrap?.classList.remove('d-none');
+        }
+
+        function cleanupCropper() {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            if (cropSourceObjectUrl) {
+                URL.revokeObjectURL(cropSourceObjectUrl);
+                cropSourceObjectUrl = '';
+            }
+        }
+
+        uploadInput?.addEventListener('change', function (e) {
+            var file = e.target.files && e.target.files[0];
+            if (!file || !preview) return;
+            if (!window.Cropper || !adImageCropModal || !adCropImage || !adCropSaveBtn) {
+                applyUploadedImage(URL.createObjectURL(file));
+                return;
+            }
+
+            cleanupCropper();
+            cropSourceObjectUrl = URL.createObjectURL(file);
+            adCropImage.src = cropSourceObjectUrl;
+
+            adImageCropModalEl?.addEventListener('shown.bs.modal', function onShown() {
+                adImageCropModalEl.removeEventListener('shown.bs.modal', onShown);
+                cropper = new window.Cropper(adCropImage, {
+                    aspectRatio: sizeW / sizeH,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    responsive: true,
+                    movable: true,
+                    zoomable: true,
+                    rotatable: false,
+                    scalable: false
+                });
+            });
+
+            adImageCropModalEl?.addEventListener('hidden.bs.modal', function onHidden() {
+                adImageCropModalEl.removeEventListener('hidden.bs.modal', onHidden);
+                cleanupCropper();
+            });
+
+            adCropSaveBtn.onclick = function () {
+                if (!cropper) return;
+                var canvas = cropper.getCroppedCanvas({
+                    width: sizeW,
+                    height: sizeH,
+                    imageSmoothingQuality: 'high'
+                });
+                if (!canvas) return;
+                applyUploadedImage(canvas.toDataURL('image/png'));
+                adImageCropModal.hide();
+            };
+
+            adImageCropModal.show();
         });
 
         if (dropzone && uploadInput) {
