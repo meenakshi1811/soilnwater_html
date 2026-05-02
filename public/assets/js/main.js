@@ -592,7 +592,7 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
       updateLocationLabel(selectedLocation);
       localStorage.setItem('frontendLocationName', selectedLocation);
 
-      syncLocationToSession(lat, lng).finally(() => {
+      syncLocationToSession(lat, lng).then(() => {
         sessionStorage.setItem('frontendLocationSynced', '1');
       });
     });
@@ -652,7 +652,7 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
     updateLocationLabel(resolvedName);
     localStorage.setItem('frontendLocationName', resolvedName);
 
-    syncLocationToSession(lat, lng).finally(() => {
+    syncLocationToSession(lat, lng).then(() => {
       sessionStorage.setItem('frontendLocationSynced', '1');
     });
   }, () => {
