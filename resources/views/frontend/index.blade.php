@@ -1,6 +1,13 @@
 @extends('frontend.layouts.app')
 
 @section('content')
+@php
+  $sectionToggles = data_get($homepageSetting ?? null, 'section_toggles', []);
+  $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
+  $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
+  $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
+@endphp
+
 <div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
 <div id="post-offer" class="visually-hidden" aria-hidden="true"></div>
 <!-- ══════════════════════════════════════════════════
@@ -10,10 +17,13 @@
   <div class="hero-stars">✦ ✦<br>✦</div>
   <div class="hero-content">
     <h1>Grow Your Business with a Professional Marketplace Presence</h1>
-    <button class="btn-yellow">Advertise Now</button>
+    <a href="{{ $heroButtonLink ?: "#" }}" class="btn-yellow">{{ $heroButtonText ?: "Advertise Now" }}</a>
   </div>
 
   <!-- SVG illustration: megaphone + shopping bags + coins -->
+  @if($heroBannerImage)
+    <div class="hero-illus"><img src="{{ asset($heroBannerImage) }}" alt="Hero banner" style="max-width:100%;height:auto;"></div>
+  @else
   <div class="hero-illus">
     <svg viewBox="0 0 380 160" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
       <!-- Ground grass strip -->
@@ -91,6 +101,8 @@
       <text x="356" y="72" font-size="10">🦋</text>
     </svg>
   </div>
+</div>
+  @endif
 </section>
 
 
@@ -1120,6 +1132,29 @@
     <div class="trust-item"><span class="trust-icon"><i class="fa-solid fa-lock"></i></span> Secure Payments</div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const toggles = @json($sectionToggles);
+  const map = {
+    top_categories: 'Top Categories', sponsored_listings: 'Sponsored Listings', ecommerce: 'E-Commerce', recent_ads: 'Recent Ads',
+    offer_discount: 'Offer & Discount', explore_products: 'Explore Products Near You', top_vendors: 'Top Vendors',
+    popular_properties_near_greenwood: 'Popular Properties Near Greenwood', popular_properties: 'Popular Properties',
+    builders_developers: 'Builders & Developers', popular_services: 'Popular Services', consultants_enquiry: 'Consultants & Enquiry'
+  };
+  Object.entries(map).forEach(([key, title]) => {
+    if (toggles[key] === false) {
+      document.querySelectorAll('.sec-title').forEach((el) => {
+        if (el.textContent.trim().includes(title)) {
+          const sec = el.closest('.sec');
+          if (sec) sec.style.display = 'none';
+        }
+      });
+    }
+  });
+});
+</script>
+
 @endsection
 
 @push('styles')
