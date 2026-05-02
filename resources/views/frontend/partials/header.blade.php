@@ -34,7 +34,7 @@
 
   <div class="header-actions">
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
-    <button class="btn-post">Post Ad</button>
+    <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
     @auth
       @php
