@@ -2342,7 +2342,7 @@
   opacity: .95;
 }
 .offer-coupon-grid .card-body {
-  padding: 10px 11px;
+  padding: 12px 14px 13px;
 }
 .offer-coupon-card .card-body {
   gap: 6px !important;
@@ -2357,15 +2357,20 @@
   vertical-align: top;
 }
 .offer-coupon-card {
-  border-radius: 12px;
-  border: 1px solid #d9e7f3 !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 14px;
+  border: 1px solid #d6e0ee !important;
   overflow: hidden;
   cursor: pointer;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 72%, #f4f9ff 100%);
+  box-shadow: 0 8px 20px rgba(18, 52, 86, 0.08);
   transition: box-shadow .2s ease, transform .2s ease;
 }
 .offer-coupon-card:hover,
 .offer-coupon-card:focus-visible {
-  box-shadow: 0 10px 22px rgba(20, 83, 139, 0.14) !important;
+  box-shadow: 0 12px 28px rgba(18, 52, 86, 0.14) !important;
   transform: translateY(-2px);
 }
 .offer-coupon-image-wrap {
