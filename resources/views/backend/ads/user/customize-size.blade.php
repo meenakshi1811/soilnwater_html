@@ -824,35 +824,11 @@ function pushScreenshotToServer(dataURL) {
             const objectUrl = URL.createObjectURL(file);
             const dimensionProbe = new Image();
             dimensionProbe.onload = () => {
-                const isExactSize = dimensionProbe.naturalWidth === requiredWidth && dimensionProbe.naturalHeight === requiredHeight;
                 console.log('[AdUpload] Selected image dimensions:', dimensionProbe.naturalWidth + 'x' + dimensionProbe.naturalHeight);
-                if (!isExactSize) {
-                    if (adImageError) {
-                        adImageError.textContent = `Invalid image size. Please upload exact ${requiredWidth}×${requiredHeight}px image.`;
-                        adImageError.style.display = 'block';
-                    }
-                    uploadInput.value = '';
-                    uploadedImageFile = null;
-                    URL.revokeObjectURL(objectUrl);
-                    if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
-                        dropzonePreview.src = '#';
-                        dropzonePreviewWrap.classList.add('d-none');
-                        dropzonePlaceholder.classList.remove('d-none');
-                    }
-                    preview.innerHTML = '';
-                    preview.style.backgroundImage = 'none';
-                    preview.style.backgroundColor = '#f7f7f7';
-                    canvasWrap.classList.add('d-none');
-                    uploadedImagePositionX = 50;
-                    uploadedImagePositionY = 50;
-                    if (uploadImagePosX) uploadImagePosX.value = '50';
-                    if (uploadImagePosY) uploadImagePosY.value = '50';
-                    uploadImagePositionControls?.classList.add('d-none');
-                    console.warn('[AdUpload] Invalid image size, showing inline error and resetting selection.');
-                    return;
-                }
+                
 
-                console.log('[AdUpload] Valid image size. Rendering preview.');
+
+                console.log('[AdUpload] Rendering preview and crop flow for selected image.');
                 uploadedImageFile = file;
                 if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
                     dropzonePreview.src = objectUrl;
