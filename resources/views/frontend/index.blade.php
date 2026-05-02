@@ -375,7 +375,7 @@
         <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
       </div>
       <div class="ad-slider auto-ad-slider recent-ads-slider" data-show-arrows="true" data-show-dots="false" aria-label="Recent approved ads slider">
-        @forelse(($recentApprovedAds ?? collect())->chunk(5) as $recentAdsChunk)
+        @forelse(($recentApprovedAds ?? collect())->chunk(6) as $recentAdsChunk)
           <div class="ad-slide">
             <div class="product-grid-4 recent-ads-grid">
               @foreach($recentAdsChunk as $recentAd)
