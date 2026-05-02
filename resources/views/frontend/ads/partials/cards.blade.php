@@ -17,6 +17,9 @@
         $adHeight = $sizeConfig['h'] ?? 220;
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
+        $gridCell = 20;
+        $gridColumnSpan = max(1, (int) ceil($adWidth / $gridCell));
+        $gridRowSpan = max(1, (int) ceil($adHeight / $gridCell));
         $displayWidth = max(180, (int) round($adWidth * 0.52));
         $displayHeight = max(180, (int) round($adHeight * 0.52));
     @endphp
@@ -25,7 +28,7 @@
             class="card border-0 offer-coupon-card ads-market-card js-ad-modal-trigger"
             role="button"
             tabindex="0"
-            style="width:{{ $adWidth }}px; height:{{ $adHeight }}px; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }};"
+            style="width:{{ $adWidth }}px; height:{{ $adHeight }}px; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • Valid upto: {{ $ad->valid_until?->format('d M Y') ?? 'No Expiry' }}"
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
