@@ -116,8 +116,8 @@
                         </div>
                         <div class="modal-body">
                             <p class="text-secondary small mb-2">Adjust the crop area to match {{ $size['w'] }} × {{ $size['h'] }} px aspect ratio.</p>
-                            <div class="ratio ratio-16x9 border rounded bg-light position-relative overflow-hidden" style="max-height:60vh;">
-                                <img id="adCropImage" src="#" alt="Crop preview" class="w-100 h-100" style="object-fit:contain;user-select:none;" draggable="false">
+                            <div class="border rounded bg-light position-relative overflow-hidden d-flex align-items-center justify-content-center" style="height:60vh;max-height:60vh;min-height:320px;">
+                                <img id="adCropImage" src="#" alt="Crop preview" class="mw-100 mh-100 d-block" style="max-height:58vh;user-select:none;" draggable="false">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -870,6 +870,7 @@ function pushScreenshotToServer(dataURL) {
                     return;
                 }
 
+                adCropImage.removeAttribute('srcset');
                 adCropImage.src = uploadedImageObjectUrl;
                 adCropModal.show();
             };
@@ -888,14 +889,23 @@ function pushScreenshotToServer(dataURL) {
 
         adCropModalElement?.addEventListener('shown.bs.modal', function () {
             if (!adCropImage?.src || !window.Cropper) return;
-            destroyCropper();
-            cropper = new window.Cropper(adCropImage, {
-                aspectRatio: sizeW > 0 && sizeH > 0 ? (sizeW / sizeH) : NaN,
-                viewMode: 1,
-                autoCropArea: 1,
-                responsive: true,
-                background: false
-            });
+            const initCropper = () => {
+                destroyCropper();
+                cropper = new window.Cropper(adCropImage, {
+                    aspectRatio: sizeW > 0 && sizeH > 0 ? (sizeW / sizeH) : NaN,
+                    viewMode: 1,
+                    autoCropArea: 0.95,
+                    responsive: true,
+                    background: false
+                });
+            };
+
+            if (adCropImage.complete && adCropImage.naturalWidth > 0) {
+                initCropper();
+                return;
+            }
+
+            adCropImage.onload = () => initCropper();
         });
 
         adCropModalElement?.addEventListener('hidden.bs.modal', function () {
