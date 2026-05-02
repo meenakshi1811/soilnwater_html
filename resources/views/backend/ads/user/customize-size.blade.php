@@ -893,10 +893,14 @@ function pushScreenshotToServer(dataURL) {
                 destroyCropper();
                 cropper = new window.Cropper(adCropImage, {
                     aspectRatio: sizeW > 0 && sizeH > 0 ? (sizeW / sizeH) : NaN,
-                    viewMode: 1,
-                    autoCropArea: 0.95,
+                    viewMode: 2,
+                    dragMode: 'move',
+                    autoCropArea: 1,
                     responsive: true,
-                    background: false
+                    background: false,
+                    cropBoxMovable: false,
+                    cropBoxResizable: false,
+                    toggleDragModeOnDblclick: false
                 });
             };
 
