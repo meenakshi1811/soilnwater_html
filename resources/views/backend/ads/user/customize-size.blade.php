@@ -107,6 +107,27 @@
                 </div> --}}
             </div>
 
+            <div class="modal fade" id="adImageCropModal" tabindex="-1" aria-labelledby="adImageCropModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="adImageCropModalLabel">Crop Ad Image</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-secondary small mb-2">Adjust the crop area to match {{ $size['w'] }} × {{ $size['h'] }} px aspect ratio.</p>
+                            <div class="ratio ratio-16x9 border rounded bg-light position-relative overflow-hidden" style="max-height:60vh;">
+                                <img id="adCropImage" src="#" alt="Crop preview" class="w-100 h-100" style="object-fit:contain;user-select:none;" draggable="false">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="adCropSaveBtn">Save Crop</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="customizeWrap" class="mb-3 d-none">
                 <div class="customize-panel-header mb-3">
                     <h6 class="mb-1">Customize Ad Studio</h6>
@@ -250,6 +271,9 @@
 @endsection
 
 @push('scripts')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -294,18 +318,8 @@ if (addAdImageInput && addAdImageError) {
             URL.revokeObjectURL(objectUrl);
 
             if (!isExactSize) {
-                showImageSizeError(`Invalid image size. Required size is exactly ${requiredWidth}×${requiredHeight} pixels.`);
-                addAdImageInput.value = '';
-                if (dropzonePreview) {
-                    dropzonePreview.setAttribute('src', '#');
-                }
-                if (dropzonePreviewWrap) {
-                    dropzonePreviewWrap.classList.add('d-none');
-                }
-                if (dropzonePlaceholder) {
-                    dropzonePlaceholder.classList.remove('d-none');
-                }
-                // alert(`Please upload a new image with exact size ${requiredWidth}×${requiredHeight}px.`);
+                showImageSizeError(`Image size differs from ${requiredWidth}×${requiredHeight}px. Please crop in the popup and save.`);
+                setTimeout(() => clearImageSizeError(), 5000);
             }
         };
 
