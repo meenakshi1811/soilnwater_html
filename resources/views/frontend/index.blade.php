@@ -95,98 +95,23 @@
 
 
 <!-- ══════════════════════════════════════════════════
-     CATEGORY BAR  — shows 7, auto-scrolls the rest
+     CATEGORY BAR  — fixed categories with enhanced icons
 ══════════════════════════════════════════════════ -->
 <div class="cat-bar">
   <div class="cat-scroller-wrap">
-    <button class="cat-arrow cat-arrow-left" id="catLeft" aria-label="Scroll left">‹</button>
     <div class="cat-bar-inner" id="catScroller">
-
-      <div class="cat-item active">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="4" y="8" width="24" height="18" rx="3" fill="#e65100"/><rect x="8" y="4" width="6" height="6" rx="2" fill="none" stroke="#e65100" stroke-width="2.5"/><rect x="18" y="4" width="6" height="6" rx="2" fill="none" stroke="#e65100" stroke-width="2.5"/><rect x="8" y="15" width="16" height="2" rx="1" fill="#fff" opacity=".7"/><rect x="8" y="20" width="10" height="2" rx="1" fill="#fff" opacity=".5"/></svg>
-        </div>
-        <span>E-Commerce</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="10" width="20" height="16" rx="3" fill="#e53935"/><rect x="10" y="6" width="12" height="6" rx="2" fill="none" stroke="#e53935" stroke-width="2.5"/><rect x="10" y="18" width="5" height="8" fill="#fff" rx="1"/><rect x="14" y="16" width="8" height="2" rx="1" fill="#fff" opacity=".6"/></svg>
-        </div>
-        <span>Vendors</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="#43a047"/><circle cx="16" cy="16" r="6" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M16 6 v4M16 22 v4M6 16 h4M22 16 h4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-        </div>
-        <span>Services</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="14" width="20" height="14" rx="2" fill="#1565c0"/><polygon points="16,4 4,16 28,16" fill="#1976d2"/><rect x="12" y="20" width="8" height="8" rx="1" fill="#fff" opacity=".7"/></svg>
-        </div>
-        <span>Properties</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="8" y="12" width="16" height="16" rx="2" fill="#f57c00"/><polygon points="16,4 6,14 26,14" fill="#ff9800"/><rect x="14" y="8" width="4" height="6" fill="#fff3e0" rx="1"/><rect x="10" y="20" width="5" height="8" rx="1" fill="#fff" opacity=".5"/><rect x="17" y="20" width="5" height="8" rx="1" fill="#fff" opacity=".5"/></svg>
-        </div>
-        <span>Builders</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="12" r="6" fill="#0288d1"/><path d="M6 26 C6 20 26 20 26 26" fill="#0288d1"/><circle cx="16" cy="12" r="3" fill="#fff" opacity=".6"/></svg>
-        </div>
-        <span>Consultants</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="7" y="8" width="18" height="20" rx="3" fill="#7b1fa2"/><circle cx="16" cy="16" r="5" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="21" cy="10" r="3" fill="#ce93d8"/><path d="M16 14 v-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-        <span>Enquiry</span>
-      </div>
-
-      <!-- Extra items that scroll into view -->
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="5" y="10" width="22" height="16" rx="3" fill="#2e7d32"/><rect x="9" y="6" width="5" height="5" rx="1.5" fill="#2e7d32" stroke="#fff" stroke-width="1.5"/><rect x="18" y="6" width="5" height="5" rx="1.5" fill="#2e7d32" stroke="#fff" stroke-width="1.5"/><text x="10" y="24" font-size="9" fill="#fff" font-weight="bold">₹</text></svg>
-        </div>
-        <span>Products</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="8" width="20" height="20" rx="3" fill="#00897b"/><rect x="10" y="12" width="12" height="2" rx="1" fill="#fff"/><rect x="10" y="17" width="8" height="2" rx="1" fill="#fff" opacity=".7"/><rect x="10" y="22" width="10" height="2" rx="1" fill="#fff" opacity=".5"/></svg>
-        </div>
-        <span>Top Vendors</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><polygon points="16,4 20,13 30,13 22,19 25,29 16,23 7,29 10,19 2,13 12,13" fill="#f9a825"/></svg>
-        </div>
-        <span>Featured</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32"><circle cx="14" cy="14" r="8" fill="none" stroke="#1565c0" stroke-width="3"/><line x1="20" y1="20" x2="28" y2="28" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/></svg>
-        </div>
-        <span>User Enquiry</span>
-      </div>
-
-      <div class="cat-item">
-        <div class="cat-icon" style="font-size:26px;">➕</div>
-        <span>More…</span>
-      </div>
-
+      <div class="cat-item active"><div class="cat-icon"><i class="fa-solid fa-bullhorn cat-icon-i cat-ads"></i></div><span>ADS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-tags cat-icon-i cat-offers"></i></div><span>OFFERS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-cart-shopping cat-icon-i cat-ecommerce"></i></div><span>E-COMMERCE</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-store cat-icon-i cat-vendors"></i></div><span>VENDORS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-user-tie cat-icon-i cat-consultants"></i></div><span>CONSULTANTS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i></div><span>SERVICE PROVIDERS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-building cat-icon-i cat-builders"></i></div><span>BUILDER &amp; DEVELOPERS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-diagram-project cat-icon-i cat-projects"></i></div><span>PROJECTS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-house-chimney cat-icon-i cat-properties"></i></div><span>PROPERTIES</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-hotel cat-icon-i cat-hotel"></i></div><span>HOTEL/HOMESTAY</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-circle-question cat-icon-i cat-enquiry"></i></div><span>ENQUIRY</span></div>
     </div><!-- /cat-bar-inner -->
-    <button class="cat-arrow cat-arrow-right" id="catRight" aria-label="Scroll right">›</button>
   </div>
 </div>
 
