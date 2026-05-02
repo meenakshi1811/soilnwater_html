@@ -893,14 +893,47 @@ function pushScreenshotToServer(dataURL) {
                 destroyCropper();
                 cropper = new window.Cropper(adCropImage, {
                     aspectRatio: sizeW > 0 && sizeH > 0 ? (sizeW / sizeH) : NaN,
-                    viewMode: 2,
+                    viewMode: 1,
                     dragMode: 'move',
                     autoCropArea: 1,
                     responsive: true,
                     background: false,
                     cropBoxMovable: false,
                     cropBoxResizable: false,
-                    toggleDragModeOnDblclick: false
+                    zoomable: true,
+                    zoomOnWheel: false,
+                    toggleDragModeOnDblclick: false,
+                    ready() {
+                        if (!cropper) return;
+                        const containerData = cropper.getContainerData();
+                        const imageData = cropper.getImageData();
+                        const targetRatio = sizeW > 0 && sizeH > 0 ? (sizeW / sizeH) : (containerData.width / containerData.height);
+
+                        let cropBoxWidth = containerData.width * 0.85;
+                        let cropBoxHeight = cropBoxWidth / targetRatio;
+
+                        if (cropBoxHeight > containerData.height * 0.85) {
+                            cropBoxHeight = containerData.height * 0.85;
+                            cropBoxWidth = cropBoxHeight * targetRatio;
+                        }
+
+                        const cropBoxLeft = (containerData.width - cropBoxWidth) / 2;
+                        const cropBoxTop = (containerData.height - cropBoxHeight) / 2;
+
+                        cropper.setCropBoxData({
+                            left: cropBoxLeft,
+                            top: cropBoxTop,
+                            width: cropBoxWidth,
+                            height: cropBoxHeight
+                        });
+
+                        const targetScale = Math.max(
+                            cropBoxWidth / (imageData.naturalWidth || 1),
+                            cropBoxHeight / (imageData.naturalHeight || 1)
+                        );
+
+                        cropper.zoomTo(targetScale);
+                    }
                 });
             };
 
