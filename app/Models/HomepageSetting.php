@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class HomepageSetting extends Model
+{
+    protected $fillable = [
+        'hero_banner_image',
+        'hero_button_text',
+        'hero_button_link',
+        'section_toggles',
+    ];
+
+    protected $casts = [
+        'section_toggles' => 'array',
+    ];
+}

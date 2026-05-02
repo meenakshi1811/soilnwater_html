@@ -58,6 +58,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.homepage-settings.*') ? 'active' : '' }}" href="{{ route('admin.homepage-settings.edit') }}">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Homepage Settings</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('admin.terms-and-conditions.*') ? 'active' : '' }}" href="{{ route('admin.terms-and-conditions.index') }}">
                     <i class="fa-solid fa-file-contract"></i>
                     <span>Terms &amp; Conditions</span>

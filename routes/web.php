@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\HomepageSettingController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TermsAndConditionController;
@@ -175,6 +176,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{category}', [CategoryController::class, 'update'])->name('update');
             Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
         });
+
+        Route::get('/homepage-settings', [HomepageSettingController::class, 'edit'])->name('homepage-settings.edit');
+        Route::put('/homepage-settings', [HomepageSettingController::class, 'update'])->name('homepage-settings.update');
 
         Route::prefix('terms-and-conditions')->name('terms-and-conditions.')->group(function () {
             Route::get('/', [TermsAndConditionController::class, 'index'])->name('index');
