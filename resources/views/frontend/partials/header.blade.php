@@ -28,9 +28,26 @@
     </div>
   </div>
 
-  <div class="search-wrap">
-    <input type="text" placeholder="Search for products, services, properties...">
-  </div>
+  <form class="search-wrap" method="GET" action="{{ route('frontend.search') }}">
+    @php
+      $activeSearchModule = request('module')
+        ?? (request()->routeIs('frontend.ads.*') ? 'ads' : 'offers');
+    @endphp
+    <select name="module" class="search-module-select" aria-label="Search module">
+      <option value="offers" @selected($activeSearchModule === 'offers')>Offers</option>
+      <option value="ads" @selected($activeSearchModule === 'ads')>Ads</option>
+    </select>
+    <input
+      type="text"
+      name="q"
+      placeholder="Search offers or ads..."
+      value="{{ request('q', request('search')) }}"
+      aria-label="Search query"
+    >
+    <button type="submit" class="search-submit-btn" aria-label="Search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
+  </form>
 
   <div class="header-actions">
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
