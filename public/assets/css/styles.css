@@ -29,6 +29,7 @@
     display: flex;
     align-items: center;
     gap: 18px;
+    flex-wrap: nowrap;
     box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
     position: sticky; top: 0; z-index: 100;
   }
@@ -1867,10 +1868,7 @@
   .loc-wrap {
     display: none;
   }
-  .search-wrap {
-    flex: 1 1 100%;
-    order: 10;
-  }
+  .search-wrap { flex: 1 1 auto; min-width: 180px; order: 0; }
   .header-actions {
     margin-left: auto !important;
   }
@@ -1966,10 +1964,7 @@
     padding: 8px 9px;
     font-size: 11.5px;
   }
-  .search-wrap { order: 8; }
-  .search-wrap {
-    min-width: 100%;
-  }
+  .search-wrap { order: 0; min-width: 150px; }
   .search-query-input {
     padding: 8px 10px;
   }
@@ -1979,13 +1974,6 @@
   }
   .search-submit-btn {
     min-width: 42px;
-  }
-  .search-module-select {
-    width: 105px;
-    padding: 9px 10px;
-  }
-  .search-submit-btn {
-    min-width: 46px;
   }
   .main-wrap {
     padding: 16px 10px;

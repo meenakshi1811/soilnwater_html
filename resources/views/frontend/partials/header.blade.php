@@ -1,4 +1,4 @@
-<header class="header container-fluid d-flex flex-wrap align-items-center">
+<header class="header container-fluid d-flex align-items-center">
   <a href="/" class="logo">
     <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
   </a>
