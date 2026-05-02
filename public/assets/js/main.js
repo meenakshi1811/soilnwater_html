@@ -1,3 +1,5 @@
+window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete || function initHeaderLocationAutocomplete() {};
+
 (function(){
   const scroller = document.getElementById('catScroller');
   const btnL = document.getElementById('catLeft');
@@ -592,10 +594,6 @@
 
       syncLocationToSession(lat, lng).finally(() => {
         sessionStorage.setItem('frontendLocationSynced', '1');
-        const refreshUrl = new URL(window.location.href);
-        refreshUrl.searchParams.delete('lat');
-        refreshUrl.searchParams.delete('lng');
-        window.location.replace(refreshUrl.toString());
       });
     });
   };
@@ -644,10 +642,6 @@
 
     syncLocationToSession(lat, lng).finally(() => {
       sessionStorage.setItem('frontendLocationSynced', '1');
-      const refreshUrl = new URL(window.location.href);
-      refreshUrl.searchParams.delete('lat');
-      refreshUrl.searchParams.delete('lng');
-      window.location.replace(refreshUrl.toString());
     });
   }, () => {
     showSearchOnlyLocationField();
