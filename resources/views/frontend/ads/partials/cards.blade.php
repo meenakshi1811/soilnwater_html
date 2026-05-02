@@ -1,4 +1,6 @@
-@php($adSizes = \App\Support\AdSizes::all()) @endphp
+@php
+    $adSizes = \App\Support\AdSizes::all();
+@endphp
 @forelse ($ads as $ad)
     @php
         $rawSizeType = (string) ($ad->size_type ?? '');
