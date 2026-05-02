@@ -598,6 +598,8 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
     });
   };
 
+  window.initHeaderLocationAutocomplete();
+
   const searchParams = new URLSearchParams(window.location.search);
   const rawLat = searchParams.get('lat');
   const rawLng = searchParams.get('lng');
