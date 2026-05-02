@@ -2,14 +2,10 @@
 
 @section('content')
 <div class="container-fluid py-4 py-lg-5 px-3 px-lg-4 ads-market-page">
-    <section class="ads-market-hero mb-4 mb-lg-5">
-        <div class="ads-market-hero__content">
-            <p class="ads-market-hero__eyebrow mb-2">Promotions Marketplace</p>
-            <h1 class="ads-market-hero__title mb-2">Ads Market</h1>
-            <p class="ads-market-hero__subtitle mb-0">Browse approved ads by category, subcategory, and location. Open any card to view full details and share instantly.</p>
-        </div>
-        <a href="{{ route('frontend.index') }}" class="view-all ads-market-hero__back">Back to home ▶</a>
-    </section>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <h1 class="h3 mb-0">Ads Market</h1>
+        <a href="{{ route('frontend.index') }}" class="view-all">Back to home ▶</a>
+    </div>
 
     <div class="row g-2 mb-3 align-items-end ads-market-filter-wrap" id="adsFilterBar" data-categories='@json($categoriesForFilter)'>
         <div class="col-12 col-md-4">
