@@ -1,18 +1,29 @@
 @php($adSizes = \App\Support\AdSizes::all()) @endphp
 @forelse ($ads as $ad)
     @php
-        $sizeConfig = $adSizes[$ad->size_type] ?? null;
+        $rawSizeType = (string) ($ad->size_type ?? '');
+        $normalizedSizeType = \Illuminate\Support\Str::of($rawSizeType)->lower()->replace([' ', '-'], '_')->value();
+
+        $sizeConfig = $adSizes[$rawSizeType]
+            ?? $adSizes[$normalizedSizeType]
+            ?? collect($adSizes)->first(function (array $config, string $key) use ($normalizedSizeType) {
+                $normalizedKey = \Illuminate\Support\Str::of($key)->lower()->replace([' ', '-'], '_')->value();
+                return $normalizedKey === $normalizedSizeType;
+            });
+
         $adWidth = $sizeConfig['w'] ?? 320;
         $adHeight = $sizeConfig['h'] ?? 220;
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
+        $displayWidth = max(180, (int) round($adWidth * 0.52));
+        $displayHeight = max(180, (int) round($adHeight * 0.52));
     @endphp
     <div class="ads-market-grid-item">
         <article
             class="card border-0 offer-coupon-card ads-market-card js-ad-modal-trigger"
             role="button"
             tabindex="0"
-            style="--ad-w: {{ $adWidth }}; --ad-h: {{ $adHeight }};"
+            style="--ad-w: {{ $adWidth }}; --ad-h: {{ $adHeight }}; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }};"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • {{ $ad->reviewed_at?->format('d M Y') ?? 'N/A' }}"
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
