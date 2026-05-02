@@ -24,6 +24,7 @@
                 <p class="mb-2"><strong>Subcategory:</strong> {{ $ad->subcategory->name }}</p>
             @endif
 
+            <p class="mb-2"><strong>Valid Upto:</strong> {{ $ad->valid_until?->format('d M Y') ?? 'N/A' }}</p>
             <p class="mb-0"><strong>Approved on:</strong> {{ $ad->reviewed_at?->format('d M Y') ?? 'N/A' }}</p>
         </div>
     </article>
