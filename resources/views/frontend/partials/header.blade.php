@@ -38,6 +38,7 @@
       <option value="ads" @selected($activeSearchModule === 'ads')>Ads</option>
     </select>
     <input
+      class="search-query-input"
       type="text"
       name="q"
       placeholder="Search offers or ads..."
