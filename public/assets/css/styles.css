@@ -2347,6 +2347,7 @@
 .offer-coupon-card .card-body {
   gap: 6px !important;
   min-width: 0;
+  height: 100%;
 }
 .offer-coupon-card .badge {
   display: inline-block;
@@ -2399,11 +2400,13 @@
   overflow: hidden;
 }
 .offer-coupon-description {
-  min-height: 48px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  min-height: 20px;
+  line-height: 1.35;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   overflow: hidden;
+  margin-bottom: 0 !important;
 }
 .coupon-code {
   font-weight: 800;
