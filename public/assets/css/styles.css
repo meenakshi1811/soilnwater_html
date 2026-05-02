@@ -179,13 +179,13 @@
   /* ── CATEGORY NAV ── */
   .cat-bar { background: var(--white); padding: 18px 32px; border-bottom: 1px solid var(--border); position: relative; }
   .cat-scroller-wrap { position: relative; width: 100%; }
-    .cat-bar-inner {
-    display: flex; gap: 8px; overflow: visible; flex-wrap: nowrap; justify-content: space-between;
+  .cat-bar-inner {
+    display: flex; gap: 10px; overflow: visible; flex-wrap: nowrap; justify-content: space-between;
     padding: 8px 0 10px;
   }
-    .cat-item {
-    display: flex; flex-direction: column; align-items: center; gap: 9px;
-    cursor: pointer; transition: transform .2s; flex: 1 1 calc((100% - 88px) / 12); min-width: 0;
+  .cat-item {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    cursor: pointer; transition: transform .2s; flex: 1 1 calc((100% - 100px) / 11); min-width: 0;
   }
   .cat-item:hover { transform: translateY(-3px); }
   .cat-icon {
@@ -197,6 +197,19 @@
   .cat-item:hover .cat-icon { border-color: var(--green-light); background: var(--green-pale); box-shadow: 0 8px 16px rgba(67,160,71,.2); }
   .cat-item.active .cat-icon { border-color: var(--secondary); background: var(--green-pale); }
   .cat-item span { font-size: 13px; font-weight: 600; color: #1f2937; text-align: center; line-height: 1.2; }
+
+  .cat-icon-i { font-size: 24px; }
+  .cat-ads { color: #ef6c00; }
+  .cat-offers { color: #2e7d32; }
+  .cat-ecommerce { color: #e53935; }
+  .cat-vendors { color: #1565c0; }
+  .cat-consultants { color: #0288d1; }
+  .cat-service { color: #43a047; }
+  .cat-builders { color: #f57c00; }
+  .cat-projects { color: #f9a825; }
+  .cat-properties { color: #1976d2; }
+  .cat-hotel { color: #7b1fa2; }
+  .cat-enquiry { color: #1565c0; }
 
   /* ── SECTION WRAPPER ── */
   .main-wrap { display: flex; gap: 20px; padding: 24px 28px; width: 100%; max-width: none; margin: 0; }

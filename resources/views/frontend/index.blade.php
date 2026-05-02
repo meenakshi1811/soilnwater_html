@@ -95,23 +95,22 @@
 
 
 <!-- ══════════════════════════════════════════════════
-     CATEGORY BAR  — fixed 12 categories in one line
+     CATEGORY BAR  — fixed categories with enhanced icons
 ══════════════════════════════════════════════════ -->
 <div class="cat-bar">
   <div class="cat-scroller-wrap">
     <div class="cat-bar-inner" id="catScroller">
-      <div class="cat-item active"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><rect x="4" y="8" width="24" height="18" rx="3" fill="#e65100"/></svg></div><span>ADS</span></div>
-      <div class="cat-item"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="8" width="20" height="20" rx="3" fill="#2e7d32"/></svg></div><span>OFFERS</span></div>
-      <div class="cat-item"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="10" width="20" height="16" rx="3" fill="#e53935"/></svg></div><span>E-COMMERCE</span></div>
-      <div class="cat-item"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="14" width="20" height="14" rx="2" fill="#1565c0"/></svg></div><span>VENDORS</span></div>
-      <div class="cat-item"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="12" r="6" fill="#0288d1"/></svg></div><span>CONSULTANTS</span></div>
-      <div class="cat-item"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="#43a047"/></svg></div><span>SERVICE PROVIDERS</span></div>
-      <div class="cat-item"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><rect x="8" y="12" width="16" height="16" rx="2" fill="#f57c00"/></svg></div><span>BUILDER &amp; DEVELOPERS</span></div>
-      <div class="cat-item"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><polygon points="16,4 20,13 30,13 22,19 25,29 16,23 7,29 10,19 2,13 12,13" fill="#f9a825"/></svg></div><span>PROJECTS</span></div>
-      <div class="cat-item"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="14" width="20" height="14" rx="2" fill="#1976d2"/></svg></div><span>PROPERTIES</span></div>
-      <div class="cat-item"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><rect x="7" y="8" width="18" height="20" rx="3" fill="#7b1fa2"/></svg></div><span>HOTEL/HOMESTAY</span></div>
-      <div class="cat-item"><div class="cat-icon"><svg width="32" height="32" viewBox="0 0 32 32"><circle cx="14" cy="14" r="8" fill="none" stroke="#1565c0" stroke-width="3"/></svg></div><span>ENQUIRY</span></div>
-      <div class="cat-item"><div class="cat-icon" style="font-size:26px;">➕</div><span>MORE</span></div>
+      <div class="cat-item active"><div class="cat-icon"><i class="fa-solid fa-bullhorn cat-icon-i cat-ads"></i></div><span>ADS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-tags cat-icon-i cat-offers"></i></div><span>OFFERS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-cart-shopping cat-icon-i cat-ecommerce"></i></div><span>E-COMMERCE</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-store cat-icon-i cat-vendors"></i></div><span>VENDORS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-user-tie cat-icon-i cat-consultants"></i></div><span>CONSULTANTS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i></div><span>SERVICE PROVIDERS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-building cat-icon-i cat-builders"></i></div><span>BUILDER &amp; DEVELOPERS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-diagram-project cat-icon-i cat-projects"></i></div><span>PROJECTS</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-house-chimney cat-icon-i cat-properties"></i></div><span>PROPERTIES</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-hotel cat-icon-i cat-hotel"></i></div><span>HOTEL/HOMESTAY</span></div>
+      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-circle-question cat-icon-i cat-enquiry"></i></div><span>ENQUIRY</span></div>
     </div><!-- /cat-bar-inner -->
   </div>
 </div>
