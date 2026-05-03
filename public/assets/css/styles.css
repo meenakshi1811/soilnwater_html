@@ -2833,6 +2833,9 @@
 
 .ads-market-card-head{padding:1rem 1rem .6rem}
 .ads-market-image-frame{position:relative;margin:0 1rem;border:1px dashed #c5d3df;border-radius:16px;background:#eef3f6;display:flex;align-items:center;justify-content:center;overflow:hidden;aspect-ratio:var(--ad-w)/var(--ad-h);min-height:0}
+.ads-market-image-frame.is-square{margin:0 1rem}
+.ads-market-image-frame.is-rect{margin:0 1.15rem;padding:.35rem}
+.ads-market-image-frame.is-rect .ads-market-thumb{width:96%;height:96%}
 .ads-market-card .card-body{padding:.8rem .85rem}
 .ads-ellipsis{display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
 .ads-location-ellipsis{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
