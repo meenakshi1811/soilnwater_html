@@ -18,21 +18,23 @@
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
         $isSquareAd = abs($adWidth - $adHeight) <= 2;
-        $cardScale = $isSquareAd ? 0.42 : 0.36;
-        $maxRenderWidth = $isSquareAd ? 420 : 620;
-        $maxRenderHeight = $isSquareAd ? 420 : 320;
-        $minRenderWidth = $isSquareAd ? 220 : 260;
-        $minRenderHeight = $isSquareAd ? 220 : 170;
 
-        $renderWidth = max($minRenderWidth, min($maxRenderWidth, (int) round($adWidth * $cardScale)));
-        $renderHeight = max($minRenderHeight, min($maxRenderHeight, (int) round($adHeight * $cardScale)));
+        if ($isSquareAd) {
+            $renderWidth = $adWidth;
+            $renderHeight = $adHeight;
+        } else {
+            $renderWidth = 300;
+            $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
+            $renderHeight = (int) round($renderWidth * $ratio);
+            $renderHeight = max(180, min(460, $renderHeight));
+        }
 
         $gridCell = 20;
         $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
         $gridRowSpan = max(1, (int) ceil($renderHeight / $gridCell));
         $displayWidth = max(180, (int) round($renderWidth * 0.52));
         $displayHeight = max(180, (int) round($renderHeight * 0.52));
-        $imageScale = $isSquareAd ? 0.94 : 0.78;
+        $imageScale = $isSquareAd ? 1 : 0.92;
     @endphp
     <div class="ads-market-grid-item">
         <article

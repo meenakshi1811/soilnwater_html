@@ -2434,7 +2434,6 @@
   transform: translateY(-2px);
 }
 .offer-coupon-image-wrap {
-  width: 100%;
   aspect-ratio: 768 / 1080;
   height: auto;
   display: flex;
