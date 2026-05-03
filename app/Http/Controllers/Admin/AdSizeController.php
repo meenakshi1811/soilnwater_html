@@ -21,7 +21,7 @@ class AdSizeController extends Controller
         abort_unless($request->ajax(), 404);
 
         $sizes = AdSize::query()->select(['id', 'size_key', 'name', 'width', 'height', 'admin_only', 'created_at']);
-
+        // echo'<pre>'
         return DataTables::of($sizes)
             ->addColumn('dimensions', fn (AdSize $size) => $size->width.'×'.$size->height)
             ->addColumn('placement', fn (AdSize $size) => $size->admin_only

@@ -112,17 +112,94 @@
 <div class="cat-bar">
   <div class="cat-scroller-wrap">
     <div class="cat-bar-inner" id="catScroller">
-      <div class="cat-item active"><div class="cat-icon"><i class="fa-solid fa-bullhorn cat-icon-i cat-ads"></i></div><span>ADS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-tags cat-icon-i cat-offers"></i></div><span>OFFERS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-cart-shopping cat-icon-i cat-ecommerce"></i></div><span>E-COMMERCE</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-store cat-icon-i cat-vendors"></i></div><span>VENDORS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-user-tie cat-icon-i cat-consultants"></i></div><span>CONSULTANTS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i></div><span>SERVICE PROVIDERS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-building cat-icon-i cat-builders"></i></div><span>BUILDER &amp; DEVELOPERS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-diagram-project cat-icon-i cat-projects"></i></div><span>PROJECTS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-house-chimney cat-icon-i cat-properties"></i></div><span>PROPERTIES</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-hotel cat-icon-i cat-hotel"></i></div><span>HOTEL/HOMESTAY</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-circle-question cat-icon-i cat-enquiry"></i></div><span>ENQUIRY</span></div>
+      <a href="/ads-market">
+        <div class="cat-item active">
+          <div class="cat-icon">
+            <i class="fa-solid fa-bullhorn cat-icon-i cat-ads"></i>
+          </div>
+          <span>ADS</span>
+        </div>
+      </a>
+      <a href="/offers-market">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-tags cat-icon-i cat-offers"></i>
+          </div>
+          <span>OFFERS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-cart-shopping cat-icon-i cat-ecommerce"></i>
+          </div>
+          <span>E-COMMERCE</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-store cat-icon-i cat-vendors"></i>
+          </div>
+          <span>VENDORS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-user-tie cat-icon-i cat-consultants"></i>
+          </div>
+          <span>CONSULTANTS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i>
+          </div>
+          <span>SERVICE PROVIDERS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-building cat-icon-i cat-builders"></i>
+          </div>
+          <span>BUILDER &amp; DEVELOPERS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-diagram-project cat-icon-i cat-projects"></i>
+          </div>
+          <span>PROJECTS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-house-chimney cat-icon-i cat-properties"></i>
+          </div>
+          <span>PROPERTIES</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-hotel cat-icon-i cat-hotel"></i>
+          </div>
+          <span>HOTEL/HOMESTAY</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-circle-question cat-icon-i cat-enquiry"></i>
+          </div>
+          <span>ENQUIRY</span>
+        </div>
+      </a>
     </div><!-- /cat-bar-inner -->
   </div>
 </div>
@@ -475,9 +552,7 @@
                             <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
                             <h4 class="h6 mb-1 offer-coupon-title">{{ $offer->title }}</h4>
                             <p class="small text-muted mb-2 offer-coupon-description">{{ $offer->short_description ?: 'Special marketplace offer available now.' }}</p>
-                            @if ($offer->coupon_code)
-                              <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
-                            @endif
+                          
                           </div>
                         </article>
                       </div>
