@@ -60,27 +60,8 @@
                 @endif
             </div>
 
-            <div class="card-body d-flex flex-column gap-2 p-3">
-                <div class="ads-market-meta">
-                    <i class="fa-regular fa-calendar-days me-1"></i>
-                    Valid upto: {{ $ad->valid_until?->format('d M Y') ?? 'No Expiry' }}
-                </div>
-                <div class="d-flex align-items-center flex-wrap gap-2 offer-meta-row">
-                    <span class="ads-pill ads-pill-primary ads-ellipsis" title="{{ $ad->category?->name ?? 'Uncategorized' }}">
-                        <i class="fa-solid fa-layer-group me-1"></i>{{ $ad->category?->name ?? 'Uncategorized' }}
-                    </span>
-                    @if($ad->subcategory)
-                        <span class="ads-pill ads-pill-soft ads-ellipsis" title="{{ $ad->subcategory->name }}">
-                            <i class="fa-solid fa-tag me-1"></i>{{ $ad->subcategory->name }}
-                        </span>
-                    @endif
-                </div>
-                @if($ad->location)
-                    <div class="ads-market-meta ads-location-ellipsis" title="{{ $ad->location }}"><i class="fa-solid fa-location-dot me-1 text-danger"></i>{{ $ad->location }}</div>
-                @endif
-                <div class="mt-1">
-                    <button type="button" class="btn btn-sm ads-view-btn">View Details <i class="fa-solid fa-arrow-right ms-1"></i></button>
-                </div>
+            <div class="card-body d-flex justify-content-center p-3">
+                <button type="button" class="btn btn-sm ads-view-btn">View Details <i class="fa-solid fa-arrow-right ms-1"></i></button>
             </div>
         </article>
     </div>
