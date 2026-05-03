@@ -38,15 +38,27 @@
                     
 
                     <div class="mt-3 border-top pt-3">
-                        <button
-                            type="button"
-                            class="btn btn-outline-danger btn-sm"
-                            id="openAdReportModalBtn"
-                            data-bs-target="#adReportModal"
-                            data-bs-toggle="modal"
-                        >
+                        <button type="button" class="btn btn-outline-danger btn-sm" id="openAdReportPopupBtn">
                             <i class="fa-regular fa-flag me-1"></i> Report this ad
                         </button>
+                    </div>
+
+                    <div class="mt-3 d-none" id="adReportPopupWrap">
+                        <div class="border rounded-3 p-3 bg-light">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h5 class="h6 mb-0"><i class="fa-regular fa-flag me-1 text-danger"></i>Report this ad</h5>
+                                <button type="button" class="btn btn-sm btn-link text-muted p-0" id="closeAdReportPopupBtn">Close</button>
+                            </div>
+                            @auth
+                                <form id="adReportForm" method="POST" action="#">
+                                    @csrf
+                                    <textarea name="reason" class="form-control form-control-sm mb-2" rows="3" placeholder="Enter reason for reporting this ad" required></textarea>
+                                    <button type="submit" class="btn btn-sm btn-danger">Submit Report</button>
+                                </form>
+                            @else
+                                <p class="mb-0 small text-muted">Please <a href="{{ route('login') }}">login</a> to report this ad.</p>
+                            @endauth
+                        </div>
                     </div>
 
                 </div>

@@ -62,11 +62,11 @@ document.addEventListener('DOMContentLoaded', function () {
 const adModal = document.getElementById('adDetailsModal'); const adsGrid = document.getElementById('adsGrid'); if (!adsGrid) return;
 const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
 const adReportForm = document.getElementById('adReportForm');
-const adReportModalEl = document.getElementById('adReportModal');
-const openAdReportModalBtn = document.getElementById('openAdReportModalBtn');
+const openAdReportPopupBtn = document.getElementById('openAdReportPopupBtn');
+const closeAdReportPopupBtn = document.getElementById('closeAdReportPopupBtn');
+const adReportPopupWrap = document.getElementById('adReportPopupWrap');
 const adImageEnlargePreview = document.getElementById('adImageEnlargePreview');
 const adDetailsModalInstance = adModal ? new bootstrap.Modal(adModal) : null;
-const adReportModalInstance = adReportModalEl ? new bootstrap.Modal(adReportModalEl) : null;
 const searchFilter = document.getElementById('adsMarketFilterSearch'); const categoryFilter = document.getElementById('adsMarketFilterCategory'); const subcategoryFilter = document.getElementById('adsMarketFilterSubcategory');
 const clearFiltersBtn = document.getElementById('adsMarketClearFilters');
 const loadingText = document.getElementById('adsLoadingText'); const summaryText = document.getElementById('adsSummaryText'); const scrollSentinel = document.getElementById('adsScrollSentinel');
@@ -118,16 +118,18 @@ async function loadMore(){if(!nextPageUrl||isLoading) return;isLoading=true;load
 if(scrollSentinel && 'IntersectionObserver' in window){new IntersectionObserver(e=>{if(e[0].isIntersecting) loadMore();},{rootMargin:'250px'}).observe(scrollSentinel);}
 adsGrid.addEventListener('click',function(e){const trigger=e.target.closest('.js-ad-modal-trigger');if(!trigger) return;document.getElementById('adDetailsModalTitle').textContent=trigger.dataset.adTitle||'Ad Details';document.getElementById('adDetailsModalMeta').textContent=trigger.dataset.adMeta||'';document.getElementById('adDetailsModalDescription').textContent=trigger.dataset.adDescription||'';document.getElementById('adDetailsModalSize').textContent=trigger.dataset.adSize?`Selected size: ${trigger.dataset.adSize}`:'';const img=trigger.dataset.adImage||'';const imgEl=document.getElementById('adDetailsModalImage');if(img){imgEl.src=img;imgEl.classList.remove('d-none');adEnlargeBtn.classList.remove('d-none');}else{imgEl.src='';imgEl.classList.add('d-none');adEnlargeBtn.classList.add('d-none');}const url=trigger.dataset.adUrl||location.href;document.getElementById('adShareLink').value=url;document.getElementById('adShareQr').src=`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;document.getElementById('adShareWhatsapp').href=`https://wa.me/?text=${encodeURIComponent('Check this ad: '+url)}`;document.getElementById('adShareFacebook').href=`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;document.getElementById('adShareInstagram').href=url;
 if (adReportForm && trigger.dataset.adId) { adReportForm.action = `{{ url('/ads-market') }}/${trigger.dataset.adId}/report`; }
+if (adReportPopupWrap) { adReportPopupWrap.classList.add('d-none'); }
 if (adDetailsModalInstance) { adDetailsModalInstance.show(); }});
 
-if (openAdReportModalBtn && adDetailsModalInstance && adReportModalInstance) {
-    openAdReportModalBtn.addEventListener('click', function (event) {
-        event.preventDefault();
-        adDetailsModalInstance.hide();
-        adModal.addEventListener('hidden.bs.modal', function handleHidden() {
-            adReportModalInstance.show();
-            adModal.removeEventListener('hidden.bs.modal', handleHidden);
-        });
+if (openAdReportPopupBtn && adReportPopupWrap) {
+    openAdReportPopupBtn.addEventListener('click', function () {
+        adReportPopupWrap.classList.remove('d-none');
+    });
+}
+
+if (closeAdReportPopupBtn && adReportPopupWrap) {
+    closeAdReportPopupBtn.addEventListener('click', function () {
+        adReportPopupWrap.classList.add('d-none');
     });
 }
 
