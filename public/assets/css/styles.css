@@ -2843,3 +2843,7 @@
 .ads-market-page{max-width:1500px}
 .ads-market-filter-wrap{background:#fff;border:1px solid #e4ebf5;border-radius:14px;padding:.7rem;box-shadow:0 8px 20px rgba(16,51,102,.06)}
 .ads-market-filter-wrap .form-label{font-size:.8rem;font-weight:700;color:#4e637d}
+
+.ad-report-popup{background:#f8fafc!important;border-color:#dbe5f1!important}
+.ad-report-popup .ad-report-textarea{resize:vertical;min-height:92px;border-radius:.5rem;overflow:auto}
+.ad-report-popup .btn-danger{border-radius:.5rem;font-weight:600}
