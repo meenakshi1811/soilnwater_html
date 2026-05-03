@@ -1,7 +1,7 @@
 @forelse ($offers as $offer)
     <div class="col">
         <article
-            class="card h-100 shadow-sm border-0 offer-coupon-card js-offer-modal-trigger"
+            class="card shadow-sm border-0 offer-coupon-card js-offer-modal-trigger"
             role="button"
             tabindex="0"
             data-bs-toggle="modal"
@@ -25,7 +25,7 @@
             @endif
             <div class="card-body d-flex flex-column gap-2">
                 <h2 class="offer-card-title mb-1">{{ $offer->title }}</h2>
-                <div class="d-flex align-items-center flex-wrap gap-2 mt-auto offer-meta-row">
+                <div class="d-flex align-items-center flex-wrap gap-2 offer-meta-row">
                     @if ($offer->discount_tag)
                         <span class="offer-meta-pill offer-meta-pill-discount">{{ $offer->discount_tag }}</span>
                     @endif
