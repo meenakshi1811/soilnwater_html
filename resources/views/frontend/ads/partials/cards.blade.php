@@ -22,6 +22,8 @@
         $gridRowSpan = max(1, (int) ceil($adHeight / $gridCell));
         $displayWidth = max(180, (int) round($adWidth * 0.52));
         $displayHeight = max(180, (int) round($adHeight * 0.52));
+        $isSquareAd = abs($adWidth - $adHeight) <= 2;
+        $imageScale = $isSquareAd ? 1 : 0.88;
     @endphp
     <div class="ads-market-grid-item">
         <article
@@ -41,7 +43,7 @@
                 <h2 class="offer-card-title ads-market-title mb-0">{{ $ad->title }}</h2>
             </div>
 
-            <div class="offer-coupon-image-wrap ads-market-image-frame">
+            <div class="offer-coupon-image-wrap ads-market-image-frame {{ $isSquareAd ? 'is-square' : 'is-rect' }}" style="--ad-image-scale: {{ $imageScale }};">
                 @if ($ad->final_image)
                     <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb" style="height: 100%; width: 100%; object-fit: contain;">
                 @endif
