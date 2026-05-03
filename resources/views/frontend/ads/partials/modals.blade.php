@@ -12,7 +12,6 @@
                 <div class="offer-details-content">
                     <h3 class="h4 mb-2" id="adDetailsModalTitle"></h3>
                     <p class="text-muted mb-2" id="adDetailsModalMeta"></p>
-                    <p class="text-muted mb-2" id="adDetailsModalSize"></p>
                     <p class="text-muted mb-3" id="adDetailsModalDescription"></p>
                     <button type="button" class="btn btn-outline-primary btn-sm mb-3 d-none" id="adDetailsEnlargeBtn">
                         <i class="fa-solid fa-up-right-and-down-left-from-center me-1"></i> Enlarge image
@@ -35,7 +34,7 @@
                                 </div>
                             </div>
                         </div>
-                    
+                    </div>
 
                     <div class="mt-3 border-top pt-3">
                         <button type="button" class="btn btn-outline-danger btn-sm" id="openAdReportPopupBtn">
@@ -44,7 +43,7 @@
                     </div>
 
                     <div class="mt-3 d-none" id="adReportPopupWrap">
-                        <div class="border rounded-3 p-3 bg-light">
+                        <div class="ad-report-popup border rounded-3 p-3 bg-light">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <h5 class="h6 mb-0"><i class="fa-regular fa-flag me-1 text-danger"></i>Report this ad</h5>
                                 <button type="button" class="btn btn-sm btn-link text-muted p-0" id="closeAdReportPopupBtn">Close</button>
@@ -52,7 +51,7 @@
                             @auth
                                 <form id="adReportForm" method="POST" action="#">
                                     @csrf
-                                    <textarea name="reason" class="form-control form-control-sm mb-2" rows="3" placeholder="Enter reason for reporting this ad" required></textarea>
+                                    <textarea name="reason" class="form-control form-control-sm mb-2 ad-report-textarea" rows="3" placeholder="Enter reason for reporting this ad" required></textarea>
                                     <button type="submit" class="btn btn-sm btn-danger">Submit Report</button>
                                 </form>
                             @else
@@ -78,7 +77,7 @@
                 @auth
                     <form id="adReportForm" method="POST" action="#">
                         @csrf
-                        <textarea name="reason" class="form-control form-control-sm mb-2" rows="3" placeholder="Enter reason for reporting this ad" required></textarea>
+                        <textarea name="reason" class="form-control form-control-sm mb-2 ad-report-textarea" rows="3" placeholder="Enter reason for reporting this ad" required></textarea>
                         <button type="submit" class="btn btn-sm btn-danger">Submit Report</button>
                     </form>
                 @else
