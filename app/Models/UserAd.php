@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UserAd extends Model
 {
@@ -60,5 +61,10 @@ class UserAd extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(AdReport::class, 'user_ad_id');
     }
 }

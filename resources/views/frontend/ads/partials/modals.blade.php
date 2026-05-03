@@ -35,7 +35,21 @@
                                 </div>
                             </div>
                         </div>
+                    
+
+                    <div class="mt-3 border-top pt-3">
+                        <h4 class="h6 mb-2"><i class="fa-regular fa-flag me-1 text-danger"></i>Report this ad</h4>
+                        @auth
+                            <form id="adReportForm" method="POST" action="#">
+                                @csrf
+                                <textarea name="reason" class="form-control form-control-sm mb-2" rows="3" placeholder="Enter reason for reporting this ad" required></textarea>
+                                <button type="submit" class="btn btn-sm btn-danger">Submit Report</button>
+                            </form>
+                        @else
+                            <p class="mb-0 small text-muted">Please <a href="{{ route('login') }}">login</a> to report this ad.</p>
+                        @endauth
                     </div>
+
                 </div>
             </div>
         </div>

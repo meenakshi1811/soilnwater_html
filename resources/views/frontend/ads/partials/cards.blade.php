@@ -35,6 +35,7 @@
             data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
             data-ad-url="{{ route('frontend.ads.show', $ad) }}"
             data-ad-size="{{ $sizeText }}"
+            data-ad-id="{{ $ad->id }}"
         >
             <div class="ads-market-card-head d-flex align-items-start justify-content-between gap-2">
                 <h2 class="offer-card-title ads-market-title mb-0">{{ $ad->title }}</h2>

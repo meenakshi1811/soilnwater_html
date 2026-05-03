@@ -89,6 +89,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.ads.reports.*') ? 'active' : '' }}" href="{{ route('admin.ads.reports.index') }}">
+                    <i class="fa-regular fa-flag"></i>
+                    <span>Report Ads</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
                     <i class="fa-solid fa-rectangle-ad"></i>
                     <span>My Ads</span>
