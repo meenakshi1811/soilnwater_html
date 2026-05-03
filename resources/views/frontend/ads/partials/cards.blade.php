@@ -17,20 +17,24 @@
         $adHeight = $sizeConfig['h'] ?? 220;
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
-        $gridCell = 20;
-        $gridColumnSpan = max(1, (int) ceil($adWidth / $gridCell));
-        $gridRowSpan = max(1, (int) ceil($adHeight / $gridCell));
-        $displayWidth = max(180, (int) round($adWidth * 0.52));
-        $displayHeight = max(180, (int) round($adHeight * 0.52));
         $isSquareAd = abs($adWidth - $adHeight) <= 2;
-        $imageScale = $isSquareAd ? 1 : 0.88;
+        $cardScale = $isSquareAd ? 1 : 0.78;
+        $renderWidth = max(220, (int) round($adWidth * $cardScale));
+        $renderHeight = max(220, (int) round($adHeight * $cardScale));
+
+        $gridCell = 20;
+        $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
+        $gridRowSpan = max(1, (int) ceil($renderHeight / $gridCell));
+        $displayWidth = max(180, (int) round($renderWidth * 0.52));
+        $displayHeight = max(180, (int) round($renderHeight * 0.52));
+        $imageScale = $isSquareAd ? 1 : 0.86;
     @endphp
     <div class="ads-market-grid-item">
         <article
             class="card border-0 offer-coupon-card ads-market-card js-ad-modal-trigger"
             role="button"
             tabindex="0"
-            style="width:{{ $adWidth }}px; height:{{ $adHeight }}px; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"
+            style="width:{{ $renderWidth }}px; height:{{ $renderHeight }}px; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • Valid upto: {{ $ad->valid_until?->format('d M Y') ?? 'No Expiry' }}"
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
