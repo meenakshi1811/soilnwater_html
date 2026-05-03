@@ -17,18 +17,29 @@
         $adHeight = $sizeConfig['h'] ?? 220;
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
+        $isSquareAd = abs($adWidth - $adHeight) <= 2;
+        $cardScale = $isSquareAd ? 0.42 : 0.36;
+        $maxRenderWidth = $isSquareAd ? 420 : 620;
+        $maxRenderHeight = $isSquareAd ? 420 : 320;
+        $minRenderWidth = $isSquareAd ? 220 : 260;
+        $minRenderHeight = $isSquareAd ? 220 : 170;
+
+        $renderWidth = max($minRenderWidth, min($maxRenderWidth, (int) round($adWidth * $cardScale)));
+        $renderHeight = max($minRenderHeight, min($maxRenderHeight, (int) round($adHeight * $cardScale)));
+
         $gridCell = 20;
-        $gridColumnSpan = max(1, (int) ceil($adWidth / $gridCell));
-        $gridRowSpan = max(1, (int) ceil($adHeight / $gridCell));
-        $displayWidth = max(180, (int) round($adWidth * 0.52));
-        $displayHeight = max(180, (int) round($adHeight * 0.52));
+        $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
+        $gridRowSpan = max(1, (int) ceil($renderHeight / $gridCell));
+        $displayWidth = max(180, (int) round($renderWidth * 0.52));
+        $displayHeight = max(180, (int) round($renderHeight * 0.52));
+        $imageScale = $isSquareAd ? 0.94 : 0.78;
     @endphp
     <div class="ads-market-grid-item">
         <article
-            class="card border-0 offer-coupon-card ads-market-card js-ad-modal-trigger"
+            class="card border-0 offer-coupon-card ads-market-card {{ $isSquareAd ? 'ads-market-card--square' : 'ads-market-card--rect' }} js-ad-modal-trigger"
             role="button"
             tabindex="0"
-            style="width:{{ $adWidth }}px; height:{{ $adHeight }}px; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"
+            style="width:{{ $renderWidth }}px; height:{{ $renderHeight }}px; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • Valid upto: {{ $ad->valid_until?->format('d M Y') ?? 'No Expiry' }}"
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
@@ -41,9 +52,9 @@
                 <h2 class="offer-card-title ads-market-title mb-0">{{ $ad->title }}</h2>
             </div>
 
-            <div class="offer-coupon-image-wrap ads-market-image-frame">
+            <div class="offer-coupon-image-wrap ads-market-image-frame {{ $isSquareAd ? 'is-square' : 'is-rect' }}" style="--ad-image-scale: {{ $imageScale }};">
                 @if ($ad->final_image)
-                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb" style="height: 100%; width: 100%; object-fit: contain;">
+                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb">
                 @endif
             </div>
 
