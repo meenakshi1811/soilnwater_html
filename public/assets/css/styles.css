@@ -2407,7 +2407,6 @@
 .offer-coupon-card .card-body {
   gap: 6px !important;
   min-width: 0;
-  height: 100%;
 }
 .offer-coupon-card .badge {
   display: inline-block;
