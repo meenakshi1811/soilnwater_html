@@ -18,20 +18,24 @@
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
         $isSquareAd = abs($adWidth - $adHeight) <= 2;
-        $cardScale = $isSquareAd ? 1 : 0.78;
-        $renderWidth = max(220, (int) round($adWidth * $cardScale));
-        $renderHeight = max(220, (int) round($adHeight * $cardScale));
+        $cardScale = $isSquareAd ? 1 : 0.64;
+        $renderWidth = $isSquareAd
+            ? $adWidth
+            : max(200, min(460, (int) round($adWidth * $cardScale)));
+        $renderHeight = $isSquareAd
+            ? $adHeight
+            : max(180, min(360, (int) round($adHeight * $cardScale)));
 
         $gridCell = 20;
         $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
         $gridRowSpan = max(1, (int) ceil($renderHeight / $gridCell));
         $displayWidth = max(180, (int) round($renderWidth * 0.52));
         $displayHeight = max(180, (int) round($renderHeight * 0.52));
-        $imageScale = $isSquareAd ? 1 : 0.86;
+        $imageScale = $isSquareAd ? 1 : 0.82;
     @endphp
     <div class="ads-market-grid-item">
         <article
-            class="card border-0 offer-coupon-card ads-market-card js-ad-modal-trigger"
+            class="card border-0 offer-coupon-card ads-market-card {{ $isSquareAd ? 'ads-market-card--square' : 'ads-market-card--rect' }} js-ad-modal-trigger"
             role="button"
             tabindex="0"
             style="width:{{ $renderWidth }}px; height:{{ $renderHeight }}px; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"

@@ -2832,6 +2832,11 @@
 .ads-view-btn:hover{background:#0b53a8;color:#fff}
 
 .ads-market-card-head{padding:1rem 1rem .6rem}
+.ads-market-card--rect .ads-market-card-head{padding:.75rem .85rem .45rem}
+.ads-market-card--rect .ads-market-title{font-size:.88rem}
+.ads-market-card--rect .card-body{padding:.65rem .7rem!important;gap:.45rem!important}
+.ads-market-card--rect .ads-pill{font-size:.68rem;padding:.28rem .5rem}
+.ads-market-card--rect .ads-market-meta{font-size:.78rem}
 .ads-market-image-frame{position:relative;margin:0 1rem;border:1px dashed #c5d3df;border-radius:16px;background:#eef3f6;display:flex;align-items:center;justify-content:center;overflow:hidden;aspect-ratio:var(--ad-w)/var(--ad-h);min-height:0}
 .ads-market-image-frame.is-square{margin:0 1rem}
 .ads-market-image-frame.is-rect{margin:0 1.25rem;padding:.55rem}
