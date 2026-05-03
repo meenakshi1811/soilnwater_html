@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\OfferPageController;
 use App\Http\Controllers\Frontend\AdsMarketController;
+use App\Http\Controllers\Frontend\AdReportController;
 use App\Http\Controllers\Frontend\FrontendSearchController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\User\UserAdController;
 use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\AdSizeController;
+use App\Http\Controllers\Admin\AdReportController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +31,7 @@ Route::get('/offers-market', [OfferPageController::class, 'index'])->name('front
 Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
 Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
 Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');
+Route::post('/ads-market/{ad}/report', [AdReportController::class, 'store'])->middleware(['auth', 'verified'])->name('frontend.ads.report');
 Route::get('/search', [FrontendSearchController::class, 'index'])->name('frontend.search');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
@@ -130,6 +133,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/{ad}', [AdSubmissionController::class, 'show'])->name('show');
                 Route::post('/{ad}/approve', [AdSubmissionController::class, 'approve'])->name('approve');
                 Route::post('/{ad}/reject', [AdSubmissionController::class, 'reject'])->name('reject');
+            });
+
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::get('/', [AdReportController::class, 'index'])->name('index');
+                Route::delete('/ad/{ad}', [AdReportController::class, 'deleteAd'])->name('delete-ad');
             });
 
             Route::prefix('sizes')->name('sizes.')->group(function () {
