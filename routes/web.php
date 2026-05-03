@@ -22,7 +22,7 @@ use App\Http\Controllers\User\UserAdController;
 use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\AdSizeController;
-use App\Http\Controllers\Admin\AdReportController;
+use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -136,8 +136,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
 
             Route::prefix('reports')->name('reports.')->group(function () {
-                Route::get('/', [AdReportController::class, 'index'])->name('index');
-                Route::delete('/ad/{ad}', [AdReportController::class, 'deleteAd'])->name('delete-ad');
+                Route::get('/', [AdminAdReportController::class, 'index'])->name('index');
+                Route::delete('/ad/{ad}', [AdminAdReportController::class, 'deleteAd'])->name('delete-ad');
             });
 
             Route::prefix('sizes')->name('sizes.')->group(function () {
