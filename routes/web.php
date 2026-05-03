@@ -137,6 +137,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::prefix('reports')->name('reports.')->group(function () {
                 Route::get('/', [AdminAdReportController::class, 'index'])->name('index');
+                Route::get('/data', [AdminAdReportController::class, 'data'])->name('data');
                 Route::delete('/ad/{ad}', [AdminAdReportController::class, 'deleteAd'])->name('delete-ad');
             });
 
