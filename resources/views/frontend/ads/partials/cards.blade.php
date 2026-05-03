@@ -54,7 +54,7 @@
 
             <div class="offer-coupon-image-wrap ads-market-image-frame {{ $isSquareAd ? 'is-square' : 'is-rect' }}" style="--ad-image-scale: {{ $imageScale }};">
                 @if ($ad->final_image)
-                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb" style="height: 100%; width: 100%; object-fit: contain;">
+                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb">
                 @endif
             </div>
 
