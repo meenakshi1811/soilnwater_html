@@ -2847,7 +2847,7 @@
 .ad-detail-image{width:100%;max-height:70vh;object-fit:contain;display:block}
 .ad-detail-map-wrap{border:1px solid #dbe5f2;border-radius:12px;overflow:hidden;background:#fff}
 
-.ads-market-page{max-width:1500px}
+.ads-market-page{max-width:none;width:100%}
 .ads-market-filter-wrap{background:#fff;border:1px solid #e4ebf5;border-radius:14px;padding:.7rem;box-shadow:0 8px 20px rgba(16,51,102,.06)}
 .ads-market-filter-wrap .form-label{font-size:.8rem;font-weight:700;color:#4e637d}
 
