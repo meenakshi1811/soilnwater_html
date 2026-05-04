@@ -2848,8 +2848,8 @@
 .ads-market-card--rect .ads-market-meta{font-size:.78rem}
 .ads-market-image-frame{position:relative;margin:0 1rem;border:1px dashed #c5d3df;border-radius:16px;background:#eef3f6;display:flex;align-items:center;justify-content:center;overflow:hidden;aspect-ratio:var(--ad-w)/var(--ad-h);min-height:0}
 .ads-market-image-frame.is-square{margin:0 1rem}
-.ads-market-image-frame.is-rect{margin:0 .75rem;padding:.35rem}
-.ads-market-image-frame.is-rect .ads-market-thumb{width:100%!important;height:100%!important;max-width:100%;max-height:100%;object-fit:contain;border-radius:12px}
+.ads-market-image-frame.is-rect{margin:0 .75rem;padding:.2rem}
+.ads-market-image-frame.is-rect .ads-market-thumb{width:100%!important;height:100%!important;max-width:100%;max-height:100%;object-fit:cover;border-radius:12px}
 .ads-market-card .card-body{padding:.8rem .85rem}
 .ads-ellipsis{display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
 .ads-location-ellipsis{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
