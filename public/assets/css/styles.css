@@ -2827,7 +2827,7 @@
 .ads-market-grid{position:relative;min-height:120px}
 .ads-market-grid-item{position:absolute;margin:0}
 .ads-market-card .offer-coupon-image-wrap{aspect-ratio:auto}
-.ads-market-card{width:auto;height:auto;display:block}
+.ads-market-card{width:auto;height:auto;display:block;padding-bottom:.55rem}
 .ads-market-thumb{aspect-ratio:auto}
 @media (max-width:768px){.ads-market-grid{position:static;display:flex;flex-wrap:wrap;justify-content:center}.ads-market-grid-item{position:static}}
 .ads-market-card:hover{transform:translateY(-5px);box-shadow:0 16px 34px rgba(17,52,100,.14)}
