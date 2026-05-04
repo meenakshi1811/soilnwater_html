@@ -14,8 +14,6 @@
 
     @php
         $maxWidth = max(array_column($sizes, 'w'));
-        $previewMaxWidth = 220;
-        $previewMinWidth = 80;
     @endphp
 
     <div class="chart-card">
@@ -30,9 +28,9 @@
                             @endif
                         </div>
                         @php
-                            $previewWidth = max($previewMinWidth, round(($size['w'] / $maxWidth) * $previewMaxWidth));
+                            $previewScale = 0.7 + (0.3 * ($size['w'] / $maxWidth));
                         @endphp
-                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: min(100%, {{ $previewWidth }}px); margin-inline: auto;">
+                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: min(100%, {{ round($previewScale * 100, 2) }}%); margin-inline: auto;">
                             <div class="ads-size-shape-inner">
                                 <span class="ads-size-dim">{{ $size['w'] }}×{{ $size['h'] }}</span>
                             </div>
