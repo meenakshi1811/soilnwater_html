@@ -21,7 +21,7 @@
         $isBannerAd = $normalizedSizeType === 'banner';
         $isFullPageAd = in_array($normalizedSizeType, ['fullpage', 'full_page'], true);
 
-        $maxRenderWidth = $isSquareAd ? 320 : ($isBannerAd ? 520 : ($isFullPageAd ? 420 : 300));
+        $maxRenderWidth = $isSquareAd ? 320 : ($isFullPageAd ? 620 : ($isBannerAd ? 520 : 300));
         $renderWidth = min($adWidth, $maxRenderWidth);
 
         $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
@@ -31,7 +31,7 @@
             $renderWidth = $adWidth;
             $renderHeight = $adHeight;
         } else {
-            $maxRenderWidth = $isBannerAd ? 520 : ($isFullPageAd ? 420 : 360);
+            $maxRenderWidth = $isFullPageAd ? 620 : ($isBannerAd ? 520 : 360);
             $renderWidth = min($adWidth, $maxRenderWidth);
 
             $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
@@ -40,14 +40,14 @@
             if ($isBannerAd) {
                 $renderHeight = max(170, min(260, $renderHeight));
             } elseif ($isFullPageAd) {
-                $renderHeight = max(360, min(640, $renderHeight));
+                $renderHeight = max(520, min(920, $renderHeight));
             } else {
                 $renderHeight = max(220, min(440, $renderHeight));
             }
         }
 
         if ($isFullPageAd) {
-            $renderHeight = max(360, min(640, $renderHeight));
+            $renderHeight = max(520, min(920, $renderHeight));
         } elseif ($isBannerAd) {
             $renderHeight = max(170, min(260, $renderHeight));
         } else {
