@@ -2442,6 +2442,16 @@
   overflow: hidden;
   background: #f5f9ff;
 }
+.promo-slider-section .offer-coupon-image {
+  display: block;
+  width: 92%;
+  height: 92%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 10px;
+  margin: 4% auto;
+  padding: 0;
+}
 .offer-coupon-image {
   display: block;
   width: 100%;
