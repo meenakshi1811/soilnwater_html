@@ -30,15 +30,21 @@
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = (float) ($category->ads_price ?? 0) @endphp
-                            <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }} ({{ $categoryPrice > 0 ? 'Paid' : 'Free' }})</option>
+                            <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }}</option>
                         @endforeach
                     </select>
+                    <div id="categoryPricingChip" class="ads-pricing-chip ads-pricing-chip--free">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Included in plan
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <select name="subcategory_id" id="subcategorySelect" class="form-select" disabled required>
                         <option value="">— Select a category first —</option>
                     </select>
+                    <div id="subcategoryPricingChip" class="ads-pricing-chip ads-pricing-chip--free">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Included in plan
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -252,6 +258,36 @@
 </div>
 @endsection
 
+
+@push('styles')
+<style>
+    .ads-pricing-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        margin-top: .55rem;
+        padding: .38rem .72rem;
+        border-radius: 999px;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .01em;
+        border: 1px solid transparent;
+        transition: all .2s ease;
+    }
+    .ads-pricing-chip i { font-size: .8rem; }
+    .ads-pricing-chip--free {
+        background: #ecfdf3;
+        border-color: #a7f3d0;
+        color: #047857;
+    }
+    .ads-pricing-chip--paid {
+        background: #fff7ed;
+        border-color: #fed7aa;
+        color: #b45309;
+    }
+</style>
+@endpush
+
 @push('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
@@ -423,6 +459,8 @@ function pushScreenshotToServer(dataURL) {
         const categorySelect = document.getElementById('categorySelect');
         const subcategorySelect = document.getElementById('subcategorySelect');
         const submitButton = document.getElementById('adSubmitButton');
+        const categoryPricingChip = document.getElementById('categoryPricingChip');
+        const subcategoryPricingChip = document.getElementById('subcategoryPricingChip');
         const adImageInputType = document.getElementById('adImageInputType');
         const adBgColorInput = document.getElementById('adBgColorInput');
         const adBgImageInput = document.getElementById('adBgImageInput');
@@ -505,6 +543,35 @@ function pushScreenshotToServer(dataURL) {
         }
 
 
+        
+        function updatePricingChip(element, price, hasSelection = true) {
+            if (!element) return;
+            const isPaid = Number(price || 0) > 0;
+            element.classList.toggle('ads-pricing-chip--paid', isPaid);
+            element.classList.toggle('ads-pricing-chip--free', !isPaid);
+
+            if (!hasSelection) {
+                element.innerHTML = '<i class="fa-solid fa-circle-info" aria-hidden="true"></i> Select to view pricing';
+                return;
+            }
+
+            if (isPaid) {
+                element.innerHTML = `<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹${Number(price).toFixed(2)}`;
+                return;
+            }
+
+            element.innerHTML = '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Included in plan';
+        }
+
+        function refreshPricingChips() {
+            const categoryOption = categorySelect?.selectedOptions?.[0];
+            const subcategoryOption = subcategorySelect?.selectedOptions?.[0];
+            const categoryPrice = Number(categoryOption?.dataset?.adsPrice || 0);
+            const subcategoryPrice = Number(subcategoryOption?.dataset?.adsPrice || 0);
+            updatePricingChip(categoryPricingChip, categoryPrice, Boolean(categoryOption?.value));
+            updatePricingChip(subcategoryPricingChip, subcategoryPrice, Boolean(subcategoryOption?.value));
+        }
+
         function getSelectedPrice() {
             const categoryPrice = Number(categorySelect?.selectedOptions?.[0]?.dataset?.adsPrice || 0);
             const subcategoryPrice = Number(subcategorySelect?.selectedOptions?.[0]?.dataset?.adsPrice || 0);
@@ -515,6 +582,7 @@ function pushScreenshotToServer(dataURL) {
             if (!submitButton) return;
             const selectedPrice = getSelectedPrice();
             submitButton.textContent = selectedPrice > 0 ? 'Process Payment' : 'Save Ad';
+            refreshPricingChips();
         }
 
 
@@ -532,6 +600,7 @@ function pushScreenshotToServer(dataURL) {
             }
 
             updateSubmitButtonState();
+            refreshPricingChips();
         }
 
         function setMode(mode) {
@@ -1142,17 +1211,18 @@ function pushScreenshotToServer(dataURL) {
             const options = ['<option value="">— Select subcategory —</option>'];
             (Array.isArray(data) ? data : []).forEach((item) => {
                 const adsPrice = Number(item.ads_price || 0);
-                const priceLabel = adsPrice > 0 ? 'Paid' : 'Free';
-                options.push(`<option value=\"${item.id}\" data-ads-price=\"${adsPrice.toFixed(2)}\">${item.name} (${priceLabel})</option>`);
+                options.push(`<option value=\"${item.id}\" data-ads-price=\"${adsPrice.toFixed(2)}\">${item.name}</option>`);
             });
             subcategorySelect.innerHTML = options.join('');
             subcategorySelect.disabled = false;
             updateSubmitButtonState();
+            refreshPricingChips();
         }
 
         categorySelect?.addEventListener('change', function () {
             loadSubcategories(this.value);
             updateSubmitButtonState();
+            refreshPricingChips();
         });
         subcategorySelect?.addEventListener('change', updateSubmitButtonState);
         updateSubmitButtonState();
