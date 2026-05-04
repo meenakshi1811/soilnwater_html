@@ -18,8 +18,9 @@
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
         $isSquareAd = abs($adWidth - $adHeight) <= 2;
+        $isBannerAd = $normalizedSizeType === 'banner';
 
-        $maxRenderWidth = $isSquareAd ? 320 : 300;
+        $maxRenderWidth = $isSquareAd ? 320 : ($isBannerAd ? 520 : 300);
         $renderWidth = min($adWidth, $maxRenderWidth);
 
         $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
@@ -29,7 +30,7 @@
             $renderWidth = $adWidth;
             $renderHeight = $adHeight;
         } else {
-            $maxRenderWidth = 360;
+            $maxRenderWidth = $isBannerAd ? 520 : 360;
             $renderWidth = min($adWidth, $maxRenderWidth);
 
             $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
