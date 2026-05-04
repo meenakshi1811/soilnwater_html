@@ -338,6 +338,7 @@ class UserAdController extends Controller
                 'fields_json' => $fields,
                 'rendered_html' => $renderedHtml,
                 'final_image' => $finalImagePath,
+                'valid_until' => $validated['valid_until'],
                 'submitted_at' => now(),
             ]);
         });
