@@ -23,17 +23,19 @@
             $renderWidth = $adWidth;
             $renderHeight = $adHeight;
         } else {
-            $renderWidth = 300;
+            $maxRenderWidth = 360;
+            $renderWidth = min($adWidth, $maxRenderWidth);
+
             $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
             $renderHeight = (int) round($renderWidth * $ratio);
-            $renderHeight = max(180, min(460, $renderHeight));
+            $renderHeight = max(220, min(440, $renderHeight));
         }
 
         $gridCell = 20;
         $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
         $gridRowSpan = max(1, (int) ceil($renderHeight / $gridCell));
-        $displayWidth = max(180, (int) round($renderWidth * 0.52));
-        $displayHeight = max(180, (int) round($renderHeight * 0.52));
+        $displayWidth = $renderWidth;
+        $displayHeight = $renderHeight;
         $imageScale = $isSquareAd ? 1 : 0.92;
     @endphp
     <div class="ads-market-grid-item">
@@ -60,9 +62,6 @@
                 @endif
             </div>
 
-            <div class="card-body d-flex justify-content-center p-3">
-                <button type="button" class="btn btn-sm ads-view-btn">View Details <i class="fa-solid fa-arrow-right ms-1"></i></button>
-            </div>
         </article>
     </div>
 @empty
