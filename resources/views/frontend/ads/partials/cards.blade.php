@@ -19,15 +19,17 @@
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
         $isSquareAd = abs($adWidth - $adHeight) <= 2;
 
+        $maxRenderWidth = $isSquareAd ? 320 : 300;
+        $renderWidth = min($adWidth, $maxRenderWidth);
+
+        $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
+        $renderHeight = (int) round($renderWidth * $ratio);
+
         if ($isSquareAd) {
-            $renderWidth = $adWidth;
-            $renderHeight = $adHeight;
-        } else {
-            $renderWidth = 300;
-            $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
-            $renderHeight = (int) round($renderWidth * $ratio);
-            $renderHeight = max(180, min(460, $renderHeight));
+            $renderHeight = $renderWidth;
         }
+
+        $renderHeight = max(180, min(380, $renderHeight));
 
         $gridCell = 20;
         $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
@@ -60,9 +62,6 @@
                 @endif
             </div>
 
-            <div class="card-body d-flex justify-content-center p-3">
-                <button type="button" class="btn btn-sm ads-view-btn">View Details <i class="fa-solid fa-arrow-right ms-1"></i></button>
-            </div>
         </article>
     </div>
 @empty
