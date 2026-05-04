@@ -33,18 +33,14 @@
                             <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }}</option>
                         @endforeach
                     </select>
-                    <div id="categoryPricingChip" class="ads-pricing-chip ads-pricing-chip--free">
-                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Included in plan
-                    </div>
+                    <div id="categoryPricingChip" class="ads-pricing-chip ads-pricing-chip--paid d-none" aria-live="polite"></div>
                 </div>
                 <div class="col-md-6">
                     <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <select name="subcategory_id" id="subcategorySelect" class="form-select" disabled required>
                         <option value="">— Select a category first —</option>
                     </select>
-                    <div id="subcategoryPricingChip" class="ads-pricing-chip ads-pricing-chip--free">
-                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Included in plan
-                    </div>
+                    <div id="subcategoryPricingChip" class="ads-pricing-chip ads-pricing-chip--paid d-none" aria-live="polite"></div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -546,21 +542,17 @@ function pushScreenshotToServer(dataURL) {
         
         function updatePricingChip(element, price, hasSelection = true) {
             if (!element) return;
-            const isPaid = Number(price || 0) > 0;
-            element.classList.toggle('ads-pricing-chip--paid', isPaid);
-            element.classList.toggle('ads-pricing-chip--free', !isPaid);
+            const isPaid = hasSelection && Number(price || 0) > 0;
+            element.classList.toggle('d-none', !isPaid);
 
-            if (!hasSelection) {
-                element.innerHTML = '<i class="fa-solid fa-circle-info" aria-hidden="true"></i> Select to view pricing';
+            if (!isPaid) {
+                element.innerHTML = '';
                 return;
             }
 
-            if (isPaid) {
-                element.innerHTML = `<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹${Number(price).toFixed(2)}`;
-                return;
-            }
-
-            element.innerHTML = '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Included in plan';
+            element.classList.add('ads-pricing-chip--paid');
+            element.classList.remove('ads-pricing-chip--free');
+            element.innerHTML = `<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹${Number(price).toFixed(2)}`;
         }
 
         function refreshPricingChips() {
