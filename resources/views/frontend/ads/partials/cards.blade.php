@@ -19,6 +19,12 @@
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
         $isSquareAd = abs($adWidth - $adHeight) <= 2;
 
+        $maxRenderWidth = $isSquareAd ? 320 : 300;
+        $renderWidth = min($adWidth, $maxRenderWidth);
+
+        $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
+        $renderHeight = (int) round($renderWidth * $ratio);
+
         if ($isSquareAd) {
             $renderWidth = $adWidth;
             $renderHeight = $adHeight;
@@ -30,6 +36,8 @@
             $renderHeight = (int) round($renderWidth * $ratio);
             $renderHeight = max(220, min(440, $renderHeight));
         }
+
+        $renderHeight = max(180, min(380, $renderHeight));
 
         $gridCell = 20;
         $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
