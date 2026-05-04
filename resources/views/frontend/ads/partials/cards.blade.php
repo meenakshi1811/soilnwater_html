@@ -18,8 +18,10 @@
         $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
         $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
         $isSquareAd = abs($adWidth - $adHeight) <= 2;
+        $isBannerAd = $normalizedSizeType === 'banner';
+        $isFullPageAd = in_array($normalizedSizeType, ['fullpage', 'full_page'], true);
 
-        $maxRenderWidth = $isSquareAd ? 320 : 300;
+        $maxRenderWidth = $isSquareAd ? 320 : ($isFullPageAd ? 620 : ($isBannerAd ? 520 : 300));
         $renderWidth = min($adWidth, $maxRenderWidth);
 
         $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
@@ -29,22 +31,35 @@
             $renderWidth = $adWidth;
             $renderHeight = $adHeight;
         } else {
-            $maxRenderWidth = 360;
+            $maxRenderWidth = $isFullPageAd ? 620 : ($isBannerAd ? 520 : 360);
             $renderWidth = min($adWidth, $maxRenderWidth);
 
             $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
             $renderHeight = (int) round($renderWidth * $ratio);
-            $renderHeight = max(220, min(440, $renderHeight));
+
+            if ($isBannerAd) {
+                $renderHeight = max(170, min(260, $renderHeight));
+            } elseif ($isFullPageAd) {
+                $renderHeight = max(520, min(920, $renderHeight));
+            } else {
+                $renderHeight = max(220, min(440, $renderHeight));
+            }
         }
 
-        $renderHeight = max(180, min(380, $renderHeight));
+        if ($isFullPageAd) {
+            $renderHeight = max(520, min(920, $renderHeight));
+        } elseif ($isBannerAd) {
+            $renderHeight = max(170, min(260, $renderHeight));
+        } else {
+            $renderHeight = max(180, min(380, $renderHeight));
+        }
 
         $gridCell = 20;
         $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
         $gridRowSpan = max(1, (int) ceil($renderHeight / $gridCell));
         $displayWidth = $renderWidth;
         $displayHeight = $renderHeight;
-        $imageScale = $isSquareAd ? 1 : 0.92;
+        $imageScale = $isSquareAd ? 1 : ($isBannerAd || $isFullPageAd ? 0.96 : 0.92);
     @endphp
     <div class="ads-market-grid-item">
         <article
