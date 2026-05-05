@@ -1,0 +1,36 @@
+/*!
+CSS Document
+Project Name: - Irevive -
+Project Description:
+Written By: iMark Infotech - Tarandeep Singh -
+Created On: 
+Last Modified:
+*/
+
+// Vendors and external stylesheets
+@import "vendors/bootstrap";
+@import "vendors/line-awesome";
+@import "vendors/font-awesome";
+@import "vendors/swiper-slider";
+// Sass utilities
+@import "helpers/variables";
+@import "helpers/functions";
+@import "helpers/mixins";
+// Base stuff
+@import "base/reset";
+@import "base/typography";
+// Layout related stylesheets
+@import "layout/header";
+@import "layout/footer";
+@import "layout/sidebar";
+@import "layout/forms";
+@import "layout/style";
+// Components and modules
+@import "components/buttons";
+// Page-specific stylesheets
+@import "pages/index";
+@import "pages/add-new-region";
+@import "pages/login";
+// Themes
+@import "themes/theme";
+@import "themes/admin";

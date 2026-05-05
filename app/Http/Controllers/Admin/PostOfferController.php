@@ -1,0 +1,672 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\Offer;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
+
+class PostOfferController extends Controller
+{
+    private const BANNER_TARGET_WIDTH = 768;
+    private const BANNER_TARGET_HEIGHT = 1080;
+
+    public function index()
+    {
+        abort_unless($this->canCreate(request()->user()), 403);
+
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'offers')
+            ->orderBy('name')
+            ->get();
+
+        return view('backend.post-offers.index', [
+            'categories' => $categories,
+            'isEditMode' => false,
+            'offer' => null,
+            'existingBannerUrl' => null,
+        ]);
+    }
+
+    public function edit(Offer $offer)
+    {
+        $user = request()->user();
+        $isOwner = (int) $offer->user_id === (int) $user->id;
+        $canWrite = $this->canWrite($user) && ($this->isStaff($user) || $isOwner);
+
+        abort_unless($canWrite, 403);
+
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'offers')
+            ->orderBy('name')
+            ->get();
+
+        return view('backend.post-offers.index', [
+            'categories' => $categories,
+            'isEditMode' => true,
+            'offer' => $offer,
+            'existingBannerUrl' => $offer->banner_image ? $this->bannerPublicUrl($offer->banner_image) : null,
+        ]);
+    }
+
+    public function subcategories(Category $category)
+    {
+        abort_if(! in_array('offers', $category->modules ?? [], true), 404);
+
+        return response()->json(
+            $category->children()->orderBy('name')->get(['id', 'name'])
+        );
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        abort_unless($this->canCreate($request->user()), 403);
+
+        $validated = $request->validate([
+            'title'             => 'required|string|max:120',
+            'discount_tag'      => 'required|string|max:100',
+            'coupon_code'       => 'nullable|string|max:50',
+            'valid_until'       => 'nullable|date|after_or_equal:today',
+            'category_id'       => [
+                'nullable',
+                Rule::exists('categories', 'id')->where(fn ($query) => $query
+                    ->whereNull('parent_id')
+                    ->whereJsonContains('modules', 'offers')),
+            ],
+            'subcategory_id'    => ['nullable', Rule::exists('categories', 'id')],
+            'banner_image'      => 'nullable|required_without:generated_banner_data|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'generated_banner_data' => 'nullable|required_without:banner_image|string',
+            'short_description' => 'nullable|string|max:300',
+            'location'          => 'nullable|string|max:255|required_with:location_lat,location_lng',
+            'location_lat'      => 'nullable|numeric|between:-90,90|required_with:location,location_lng',
+            'location_lng'      => 'nullable|numeric|between:-180,180|required_with:location,location_lat',
+            'accept_terms'      => 'accepted',
+        ]);
+
+        // Handle banner image upload
+        if ($request->hasFile('banner_image')) {
+            $validated['banner_image'] = $this->storeUploadedBanner($request);
+        } elseif (!empty($validated['generated_banner_data'])) {
+            $validated['banner_image'] = $this->storeGeneratedBanner($validated['generated_banner_data']);
+        }
+
+        // Attach the authenticated user
+        $validated['user_id'] = auth()->id();
+        unset($validated['accept_terms'], $validated['generated_banner_data']);
+
+        if (! empty($validated['subcategory_id'])) {
+            if (empty($validated['category_id'])) {
+                return response()->json(['message' => 'Please select a category before choosing a subcategory.'], 422);
+            }
+
+            $isValidSubcategory = Category::query()
+                ->where('id', $validated['subcategory_id'])
+                ->where('parent_id', $validated['category_id'])
+                ->exists();
+
+            if (! $isValidSubcategory) {
+                return response()->json(['message' => 'Selected subcategory does not belong to the selected category.'], 422);
+            }
+        }
+
+        Offer::create($validated);
+
+        return response()->json(['message' => 'Offer posted successfully!']);
+    }
+
+    public function offersIndex()
+    {
+        abort_unless($this->canRead(request()->user()), 403);
+
+        $user = request()->user();
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'offers')
+            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        $categoriesForFilter = $categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'children' => $category->children->map(function ($child) {
+                    return [
+                        'id' => $child->id,
+                        'name' => $child->name,
+                        'parent_id' => $child->parent_id,
+                    ];
+                })->values()->all(),
+            ];
+        })->values()->all();
+
+        return view('backend.post-offers.my-offers', [
+            'canCreateOffer' => $this->canCreate($user),
+            'canEditOffer' => $this->canWrite($user),
+            'canDeleteOffer' => $this->canDelete($user),
+            'canApproveOffer' => $this->canApprove($user),
+            'isAdminView' => $user->isAdmin(),
+            'categories' => $categories,
+            'categoriesForFilter' => $categoriesForFilter,
+        ]);
+    }
+
+    public function offersData(Request $request): JsonResponse
+    {
+        abort_unless($this->canRead($request->user()), 403);
+
+        $user = $request->user();
+        $isStaff = $user->isAdmin() || $user->isEmployee();
+
+        $offers = Offer::query()
+            ->with(['user:id,name,full_name', 'category:id,name', 'subcategory:id,name'])
+            ->when(! $isStaff, fn ($query) => $query->where('user_id', $user->id))
+            ->when($request->filled('category_id'), fn ($query) => $query->where('category_id', $request->integer('category_id')))
+            ->when($request->filled('subcategory_id'), fn ($query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
+            ->when($request->filled('validity'), function ($query) use ($request) {
+                $today = Carbon::today();
+
+                return match ($request->string('validity')->toString()) {
+                    'valid' => $query->where(function ($validityQuery) use ($today) {
+                        $validityQuery->whereNull('valid_until')->orWhereDate('valid_until', '>=', $today);
+                    }),
+                    'expired' => $query->whereDate('valid_until', '<', $today),
+                    'expires_today' => $query->whereDate('valid_until', '=', $today),
+                    'no_expiry' => $query->whereNull('valid_until'),
+                    default => $query,
+                };
+            })
+            ->latest();
+
+        $canEdit = $this->canWrite($user);
+        $canDelete = $this->canDelete($user);
+        $canApprove = $this->canApprove($user);
+
+        return DataTables::of($offers)
+            ->addColumn('banner_preview', function (Offer $offer) {
+                if (!$offer->banner_image) {
+                    return '-';
+                }
+
+                $url = $this->bannerPublicUrl($offer->banner_image);
+
+                return '<a href="'.$url.'" target="_blank" rel="noopener noreferrer">'
+                    . '<img src="'.$url.'" alt="Offer banner" style="width:70px;height:44px;object-fit:cover;border-radius:6px;">'
+                    . '</a>';
+            })
+            ->addColumn('created_by_name', fn (Offer $offer) => $offer->user?->full_name ?: ($offer->user?->name ?? '-'))
+            ->addColumn('category_name', fn (Offer $offer) => $offer->category?->name ?? '-')
+            ->addColumn('subcategory_name', fn (Offer $offer) => $offer->subcategory?->name ?? '-')
+            ->addColumn('status_badge', function (Offer $offer) use ($canApprove) {
+                $isExpired = $offer->valid_until && $offer->valid_until->lt(Carbon::today());
+
+                if ($isExpired) {
+                    return '<span class="badge bg-danger">Expired</span>';
+                }
+
+                if (! $canApprove) {
+                    $class = $offer->status === 'active' ? 'success' : 'secondary';
+                    $label = ucfirst($offer->status);
+
+                    return '<span class="badge bg-'.$class.'">'.$label.'</span>';
+                }
+
+                $activeSelected = $offer->status === 'active' ? 'selected' : '';
+                $inactiveSelected = $offer->status === 'inactive' ? 'selected' : '';
+
+                return '<select class="form-select form-select-sm js-offer-status" data-id="'.$offer->id.'" style="min-width:110px;">'
+                    . '<option value="active" '.$activeSelected.'>Active</option>'
+                    . '<option value="inactive" '.$inactiveSelected.'>Inactive</option>'
+                    . '</select>';
+            })
+            ->editColumn('valid_until', fn (Offer $offer) => $offer->valid_until?->format('Y-m-d') ?? '-')
+            ->editColumn('created_at', fn (Offer $offer) => $offer->created_at?->format('Y-m-d H:i'))
+            ->addColumn('actions', function (Offer $offer) use ($canEdit, $canDelete) {
+                $actions = [];
+
+                if ($canEdit) {
+                    $actions[] = '<a href="'.route('offers.edit', $offer).'" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fa-solid fa-pen"></i></a>';
+                }
+
+                if ($canDelete) {
+                    $actions[] = '<button type="button" class="btn btn-sm btn-outline-danger js-delete-offer" data-id="'.$offer->id.'"><i class="fa-solid fa-trash"></i></button>';
+                }
+
+                if ($actions === []) {
+                    return '<span class="text-muted">—</span>';
+                }
+
+                return '<div class="d-flex justify-content-end gap-2">'.implode('', $actions).'</div>';
+            })
+            ->rawColumns(['banner_preview', 'status_badge', 'actions'])
+            ->make(true);
+    }
+
+    public function show(Offer $offer): JsonResponse
+    {
+        $user = request()->user();
+        $isOwner = (int) $offer->user_id === (int) $user->id;
+        $canAccess = $this->canRead($user) && ($this->isStaff($user) || $isOwner);
+
+        abort_unless($canAccess, 403);
+
+        return response()->json([
+            'offer' => $offer,
+            'banner_url' => $offer->banner_image ? $this->bannerPublicUrl($offer->banner_image) : null,
+        ]);
+    }
+
+    public function update(Request $request, Offer $offer): JsonResponse
+    {
+        $user = $request->user();
+        $isOwner = (int) $offer->user_id === (int) $user->id;
+        $canWrite = $this->canWrite($user) && ($this->isStaff($user) || $isOwner);
+        $canApprove = $this->canApprove($user) && ($this->isStaff($user) || $isOwner);
+
+        abort_unless($canWrite || $canApprove, 403);
+
+        $rules = [
+            'status' => ['sometimes', 'required', Rule::in(['active', 'inactive'])],
+        ];
+
+        if ($canWrite) {
+            $rules = array_merge($rules, [
+                'title' => 'required|string|max:120',
+                'discount_tag' => 'required|string|max:100',
+                'coupon_code' => 'nullable|string|max:50',
+                'valid_until' => 'nullable|date|after_or_equal:today',
+                'category_id' => [
+                    'nullable',
+                    Rule::exists('categories', 'id')->where(fn ($query) => $query
+                        ->whereNull('parent_id')
+                        ->whereJsonContains('modules', 'offers')),
+                ],
+                'subcategory_id' => ['nullable', Rule::exists('categories', 'id')],
+                'short_description' => 'nullable|string|max:300',
+                'location' => 'nullable|string|max:255|required_with:location_lat,location_lng',
+                'location_lat' => 'nullable|numeric|between:-90,90|required_with:location,location_lng',
+                'location_lng' => 'nullable|numeric|between:-180,180|required_with:location,location_lat',
+                'banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            ]);
+        }
+
+        $validated = $request->validate($rules);
+
+        if (! $canApprove) {
+            unset($validated['status']);
+        }
+
+        if (! $canWrite) {
+            $offer->update([
+                'status' => $validated['status'] ?? $offer->status,
+            ]);
+
+            return response()->json(['message' => 'Offer status updated successfully.']);
+        }
+
+        if ($request->hasFile('banner_image')) {
+            if ($offer->banner_image) {
+                $this->deleteBannerFile($offer->banner_image);
+            }
+
+            $validated['banner_image'] = $this->storeUploadedBanner($request);
+        }
+
+        if (! empty($validated['subcategory_id'])) {
+            if (empty($validated['category_id'])) {
+                return response()->json(['message' => 'Please select a category before choosing a subcategory.'], 422);
+            }
+
+            $isValidSubcategory = Category::query()
+                ->where('id', $validated['subcategory_id'])
+                ->where('parent_id', $validated['category_id'])
+                ->exists();
+
+            if (! $isValidSubcategory) {
+                return response()->json(['message' => 'Selected subcategory does not belong to the selected category.'], 422);
+            }
+        }
+
+        $offer->update($validated);
+
+        return response()->json(['message' => 'Offer updated successfully.']);
+    }
+
+    public function updateOfferStatus(Request $request, Offer $offer): JsonResponse
+    {
+        $user = $request->user();
+        $isOwner = (int) $offer->user_id === (int) $user->id;
+        $canApprove = $this->canApprove($user) && ($this->isStaff($user) || $isOwner);
+
+        abort_unless($canApprove, 403);
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['active', 'inactive'])],
+        ]);
+
+        $offer->update([
+            'status' => $validated['status'],
+        ]);
+
+        return response()->json(['message' => 'Offer status updated successfully.']);
+    }
+
+    public function destroy(Request $request, Offer $offer): JsonResponse
+    {
+        $user = $request->user();
+        $isOwner = (int) $offer->user_id === (int) $user->id;
+
+        abort_unless($this->canDelete($user) && ($this->isStaff($user) || $isOwner), 403);
+
+        if ($offer->banner_image) {
+            $this->deleteBannerFile($offer->banner_image);
+        }
+
+        $offer->delete();
+
+        return response()->json(['message' => 'Offer deleted successfully.']);
+    }
+
+    private function canRead($user): bool
+    {
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'read');
+    }
+
+    private function canCreate($user): bool
+    {
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'add');
+    }
+
+    private function canWrite($user): bool
+    {
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'write');
+    }
+
+    private function canDelete($user): bool
+    {
+        return $user->isAdmin() || $user->isGeneralUser() || $user->canModule('vendors', 'delete');
+    }
+
+    private function canApprove($user): bool
+    {
+        return $user->isAdmin() || $user->canModule('vendors', 'approve');
+    }
+
+    private function isStaff($user): bool
+    {
+        return $user->isAdmin() || $user->isEmployee();
+    }
+
+    private function storeGeneratedBanner(string $base64Png): string
+    {
+        if (!preg_match('/^data:image\/png;base64,/', $base64Png)) {
+            abort(422, 'Only PNG template exports are supported.');
+        }
+
+        $decoded = base64_decode(substr($base64Png, strpos($base64Png, ',') + 1), true);
+
+        if ($decoded === false) {
+            abort(422, 'Invalid generated banner data.');
+        }
+
+        $relativePath = 'uploads/offers/banners/custom-'.Str::uuid().'.png';
+        $absoluteDirectory = public_path('uploads/offers/banners');
+
+        if (!is_dir($absoluteDirectory)) {
+            mkdir($absoluteDirectory, 0755, true);
+        }
+
+        $absolutePath = public_path($relativePath);
+        file_put_contents($absolutePath, $decoded);
+        $this->resizeBannerToTargetSize($absolutePath);
+        $this->applyCopyrightLogoToBanner($absolutePath);
+
+        return $relativePath;
+    }
+
+    private function storeUploadedBanner(Request $request): string
+    {
+        $file = $request->file('banner_image');
+        $extension = $file->getClientOriginalExtension() ?: $file->extension();
+        $fileName = 'banner-'.Str::uuid().'.'.$extension;
+        $relativeDirectory = 'uploads/offers/banners';
+        $absoluteDirectory = public_path($relativeDirectory);
+
+        if (!is_dir($absoluteDirectory)) {
+            mkdir($absoluteDirectory, 0755, true);
+        }
+
+        $file->move($absoluteDirectory, $fileName);
+        $absolutePath = $absoluteDirectory.'/'.$fileName;
+        $this->resizeBannerToTargetSize($absolutePath);
+        $this->applyCopyrightLogoToBanner($absolutePath);
+
+        return $relativeDirectory.'/'.$fileName;
+    }
+
+    private function applyCopyrightLogoToBanner(string $bannerPath): void
+    {
+        if (!is_file($bannerPath)) {
+            return;
+        }
+
+        $imageInfo = @getimagesize($bannerPath);
+        if (!is_array($imageInfo) || empty($imageInfo[2])) {
+            return;
+        }
+
+        $createImageByType = match ($imageInfo[2]) {
+            IMAGETYPE_JPEG => function (string $path) {
+                return @imagecreatefromjpeg($path);
+            },
+            IMAGETYPE_PNG => function (string $path) {
+                return @imagecreatefrompng($path);
+            },
+            IMAGETYPE_WEBP => function (string $path) {
+                if (!function_exists('imagecreatefromwebp')) {
+                    return false;
+                }
+
+                return @imagecreatefromwebp($path);
+            },
+            default => null,
+        };
+
+        if ($createImageByType === null) {
+            return;
+        }
+
+        $bannerImage = $createImageByType($bannerPath);
+        if (!is_resource($bannerImage) && !is_object($bannerImage)) {
+            return;
+        }
+
+        $logoPath = public_path('assets/images/logo_soilnwater.webp');
+        if (!is_file($logoPath)) {
+            imagedestroy($bannerImage);
+
+            return;
+        }
+
+        $logoContent = file_get_contents($logoPath);
+        $logoImage = $logoContent !== false ? @imagecreatefromstring($logoContent) : false;
+
+        if (!is_resource($logoImage) && !is_object($logoImage)) {
+            imagedestroy($bannerImage);
+
+            return;
+        }
+
+        imagealphablending($bannerImage, true);
+        imagesavealpha($bannerImage, true);
+
+        $bannerWidth = imagesx($bannerImage);
+        $bannerHeight = imagesy($bannerImage);
+        $logoWidth = imagesx($logoImage);
+        $logoHeight = imagesy($logoImage);
+
+        if ($bannerWidth <= 0 || $bannerHeight <= 0 || $logoWidth <= 0 || $logoHeight <= 0) {
+            imagedestroy($logoImage);
+            imagedestroy($bannerImage);
+
+            return;
+        }
+
+        $targetLogoWidth = max(80, (int) round($bannerWidth * 0.18));
+        $targetLogoWidth = min($targetLogoWidth, $bannerWidth - 24);
+        if ($targetLogoWidth <= 0) {
+            $targetLogoWidth = max(1, $bannerWidth);
+        }
+
+        $targetLogoHeight = (int) round(($logoHeight / $logoWidth) * $targetLogoWidth);
+        if ($targetLogoHeight <= 0) {
+            $targetLogoHeight = 1;
+        }
+
+        if ($targetLogoHeight > ($bannerHeight - 24)) {
+            $targetLogoHeight = max(1, $bannerHeight - 24);
+            $targetLogoWidth = (int) round(($logoWidth / $logoHeight) * $targetLogoHeight);
+        }
+
+        $padding = max(8, (int) round(min($bannerWidth, $bannerHeight) * 0.02));
+        $destX = max(0, $bannerWidth - $targetLogoWidth - $padding);
+        $destY = max(0, $bannerHeight - $targetLogoHeight - $padding);
+
+        imagecopyresampled(
+            $bannerImage,
+            $logoImage,
+            $destX,
+            $destY,
+            0,
+            0,
+            $targetLogoWidth,
+            $targetLogoHeight,
+            $logoWidth,
+            $logoHeight
+        );
+
+        match ($imageInfo[2]) {
+            IMAGETYPE_JPEG => imagejpeg($bannerImage, $bannerPath, 90),
+            IMAGETYPE_PNG => imagepng($bannerImage, $bannerPath, 6),
+            IMAGETYPE_WEBP => function_exists('imagewebp') ? imagewebp($bannerImage, $bannerPath, 90) : null,
+            default => null,
+        };
+
+        imagedestroy($logoImage);
+        imagedestroy($bannerImage);
+    }
+
+    private function resizeBannerToTargetSize(string $bannerPath): void
+    {
+        if (!is_file($bannerPath)) {
+            return;
+        }
+
+        $imageInfo = @getimagesize($bannerPath);
+        if (!is_array($imageInfo) || empty($imageInfo[2])) {
+            return;
+        }
+
+        $createImageByType = match ($imageInfo[2]) {
+            IMAGETYPE_JPEG => function (string $path) {
+                return @imagecreatefromjpeg($path);
+            },
+            IMAGETYPE_PNG => function (string $path) {
+                return @imagecreatefrompng($path);
+            },
+            IMAGETYPE_WEBP => function (string $path) {
+                if (!function_exists('imagecreatefromwebp')) {
+                    return false;
+                }
+
+                return @imagecreatefromwebp($path);
+            },
+            default => null,
+        };
+
+        if ($createImageByType === null) {
+            return;
+        }
+
+        $sourceImage = $createImageByType($bannerPath);
+        if (!is_resource($sourceImage) && !is_object($sourceImage)) {
+            return;
+        }
+
+        $sourceWidth = imagesx($sourceImage);
+        $sourceHeight = imagesy($sourceImage);
+        if ($sourceWidth <= 0 || $sourceHeight <= 0) {
+            imagedestroy($sourceImage);
+
+            return;
+        }
+
+        $targetWidth = self::BANNER_TARGET_WIDTH;
+        $targetHeight = self::BANNER_TARGET_HEIGHT;
+        $targetImage = imagecreatetruecolor($targetWidth, $targetHeight);
+        if (!is_resource($targetImage) && !is_object($targetImage)) {
+            imagedestroy($sourceImage);
+
+            return;
+        }
+
+        imagealphablending($targetImage, false);
+        imagesavealpha($targetImage, true);
+        $transparent = imagecolorallocatealpha($targetImage, 0, 0, 0, 127);
+        imagefilledrectangle($targetImage, 0, 0, $targetWidth, $targetHeight, $transparent);
+        if ($imageInfo[2] === IMAGETYPE_JPEG) {
+            $white = imagecolorallocate($targetImage, 255, 255, 255);
+            imagefilledrectangle($targetImage, 0, 0, $targetWidth, $targetHeight, $white);
+        }
+
+        $scale = min($targetWidth / $sourceWidth, $targetHeight / $sourceHeight);
+        $drawWidth = max(1, (int) round($sourceWidth * $scale));
+        $drawHeight = max(1, (int) round($sourceHeight * $scale));
+        $destX = (int) round(($targetWidth - $drawWidth) / 2);
+        $destY = (int) round(($targetHeight - $drawHeight) / 2);
+
+        imagecopyresampled(
+            $targetImage,
+            $sourceImage,
+            $destX,
+            $destY,
+            0,
+            0,
+            $drawWidth,
+            $drawHeight,
+            $sourceWidth,
+            $sourceHeight
+        );
+
+        match ($imageInfo[2]) {
+            IMAGETYPE_JPEG => imagejpeg($targetImage, $bannerPath, 90),
+            IMAGETYPE_PNG => imagepng($targetImage, $bannerPath, 6),
+            IMAGETYPE_WEBP => function_exists('imagewebp') ? imagewebp($targetImage, $bannerPath, 90) : null,
+            default => null,
+        };
+
+        imagedestroy($sourceImage);
+        imagedestroy($targetImage);
+    }
+
+    private function deleteBannerFile(string $relativePath): void
+    {
+        $filePath = public_path($relativePath);
+
+        if (is_file($filePath)) {
+            unlink($filePath);
+        }
+    }
+
+    private function bannerPublicUrl(string $relativePath): string
+    {
+        return asset(ltrim($relativePath, '/'));
+    }
+}
