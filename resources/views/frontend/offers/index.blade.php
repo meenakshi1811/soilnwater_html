@@ -119,6 +119,12 @@
         margin: 0;
     }
 
+    @media (min-width: 1200px) {
+        .offers-market-page #offersGrid .offer-coupon-image-wrap {
+            min-height: 280px;
+        }
+    }
+
     .offers-market-page #offersGrid .offer-coupon-image {
         display: block;
         width: 100%;
