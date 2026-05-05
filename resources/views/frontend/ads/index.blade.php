@@ -73,7 +73,6 @@ const loadingText = document.getElementById('adsLoadingText'); const summaryText
 let nextPageUrl = adsGrid.dataset.nextPageUrl || ''; let isLoading = false; let debounce;
 
 function layoutAdsGrid(){
-    if (window.matchMedia('(max-width: 768px)').matches) { adsGrid.style.height = 'auto'; return; }
     const items = Array.from(adsGrid.querySelectorAll('.ads-market-grid-item'));
     if (!items.length) { adsGrid.style.height = '0px'; return; }
     const gap = 16;
@@ -97,7 +96,7 @@ function layoutAdsGrid(){
         const nextHeight = bestTop + itemHeight + gap;
         for (let i=bestCol; i<bestCol+span; i++) colHeights[i] = nextHeight;
     });
-    adsGrid.style.height = `${Math.max(...colHeights)}px`;
+    adsGrid.style.height = 'auto';
 }
 window.addEventListener('resize', ()=>{ clearTimeout(debounce); debounce=setTimeout(layoutAdsGrid,120); });
 const categories = JSON.parse(document.getElementById('adsFilterBar').dataset.categories || '[]');
