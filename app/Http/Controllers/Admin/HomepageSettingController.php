@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\HomepageSetting;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -20,7 +21,7 @@ class HomepageSettingController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request): RedirectResponse|JsonResponse
     {
         $setting = HomepageSetting::query()->firstOrCreate([]);
 
@@ -51,6 +52,12 @@ class HomepageSettingController extends Controller
         unset($validated['sections']);
 
         $setting->fill($validated)->save();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => 'Homepage settings updated successfully.',
+            ]);
+        }
 
         return back()->with('success', 'Homepage settings updated successfully.');
     }
