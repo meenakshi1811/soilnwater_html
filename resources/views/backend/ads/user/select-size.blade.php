@@ -14,27 +14,23 @@
 
     @php
         $maxWidth = max(array_column($sizes, 'w'));
-        $maxHeight = max(array_column($sizes, 'h'));
-        $previewMaxWidth = 300;
-        $previewMaxHeight = 180;
     @endphp
 
     <div class="chart-card">
-        <div class="d-flex flex-wrap gap-4 align-items-end">
+        <div class="d-flex flex-column gap-4">
             @foreach($sizes as $sizeType => $size)
                 @php
-                    $shapeWidth = max(90, (int) round(($size['w'] / $maxWidth) * $previewMaxWidth));
-                    $shapeHeight = max(60, (int) round(($size['h'] / $maxHeight) * $previewMaxHeight));
+                    $shapeWidthPercent = max(20, (int) round(($size['w'] / $maxWidth) * 100));
                 @endphp
-                <div>
-                    <a href="{{ route('ads.create.customize.default', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none" style="width: {{ max(220, $shapeWidth + 40) }}px;">
+                <div class="w-100">
+                    <a href="{{ route('ads.create.customize.default', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none w-100">
                         <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
                             <div class="fw-semibold text-dark">{{ $size['name'] }}</div>
                             @if(($size['admin_only'] ?? false) === true)
                                 <span class="badge text-bg-warning">Admin Placement</span>
                             @endif
                         </div>
-                        <div class="ads-size-shape" style="width: {{ $shapeWidth }}px; height: {{ $shapeHeight }}px; margin-inline: auto;">
+                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: {{ $shapeWidthPercent }}%; margin-inline: auto;">
                             <div class="ads-size-shape-inner">
                                 <span class="ads-size-dim">{{ $size['w'] }}×{{ $size['h'] }}</span>
                             </div>
