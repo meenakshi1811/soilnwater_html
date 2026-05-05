@@ -27,7 +27,7 @@
         $gridCell = 20;
         $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
         $gridRowSpan = max(1, (int) ceil($renderHeight / $gridCell));
-        $cardWidth = $renderWidth;
+        $cardWidth = $renderWidth + 30;
         $displayWidth = $renderWidth;
         $displayHeight = $renderHeight;
         $imageScale = 1;
