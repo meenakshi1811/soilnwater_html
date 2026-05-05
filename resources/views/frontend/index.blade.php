@@ -1262,10 +1262,17 @@ document.addEventListener('DOMContentLoaded', function () {
   .offer-coupon-wrap .offer-coupon-image-wrap {
     border: 0;
     background: transparent;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
   }
   .offer-coupon-wrap .offer-coupon-image {
-    object-fit: contain;
-    background: #fff;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    background: transparent;
   }
   .offer-coupon-wrap .offer-coupon-card {
     padding: 0;
