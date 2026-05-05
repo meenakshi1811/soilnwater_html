@@ -12,19 +12,25 @@
         </div>
     </div>
 
+    @php
+        $maxWidth = max(array_column($sizes, 'w'));
+    @endphp
 
     <div class="chart-card">
-        <div class="row g-4">
+        <div class="d-flex flex-column gap-4">
             @foreach($sizes as $sizeType => $size)
-                <div class="col-12 col-xl-6">
-                    <a href="{{ route('ads.create.customize.default', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none">
-                        <div class="d-flex justify-content-between align-items-center gap-2">
+                @php
+                    $shapeWidthPercent = max(20, (int) round(($size['w'] / $maxWidth) * 100));
+                @endphp
+                <div class="w-100">
+                    <a href="{{ route('ads.create.customize.default', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none w-100">
+                        <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
                             <div class="fw-semibold text-dark">{{ $size['name'] }}</div>
                             @if(($size['admin_only'] ?? false) === true)
                                 <span class="badge text-bg-warning">Admin Placement</span>
                             @endif
                         </div>
-                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: 100%; margin-inline: auto;">
+                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: {{ $shapeWidthPercent }}%; margin-inline: auto;">
                             <div class="ads-size-shape-inner">
                                 <span class="ads-size-dim">{{ $size['w'] }}×{{ $size['h'] }}</span>
                             </div>
