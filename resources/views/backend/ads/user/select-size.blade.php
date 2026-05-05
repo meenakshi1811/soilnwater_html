@@ -12,10 +12,6 @@
         </div>
     </div>
 
-    @php
-        $maxWidth = max(array_column($sizes, 'w'));
-    @endphp
-
     <div class="chart-card">
         <div class="row g-3">
             @foreach($sizes as $sizeType => $size)
