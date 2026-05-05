@@ -1,4 +1,4 @@
-@php
+@php    
     $adSizes = \App\Support\AdSizes::all();
 @endphp
 @forelse ($ads as $ad)
@@ -21,52 +21,23 @@
         $isBannerAd = $normalizedSizeType === 'banner';
         $isFullPageAd = in_array($normalizedSizeType, ['fullpage', 'full_page'], true);
 
-        $maxRenderWidth = $isSquareAd ? 320 : ($isFullPageAd ? 620 : ($isBannerAd ? 520 : 300));
-        $renderWidth = min($adWidth, $maxRenderWidth);
-
-        $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
-        $renderHeight = (int) round($renderWidth * $ratio);
-
-        if ($isSquareAd) {
-            $renderWidth = $adWidth;
-            $renderHeight = $adHeight;
-        } else {
-            $maxRenderWidth = $isFullPageAd ? 620 : ($isBannerAd ? 520 : 360);
-            $renderWidth = min($adWidth, $maxRenderWidth);
-
-            $ratio = $adWidth > 0 ? ($adHeight / $adWidth) : 0.75;
-            $renderHeight = (int) round($renderWidth * $ratio);
-
-            if ($isBannerAd) {
-                $renderHeight = max(170, min(260, $renderHeight));
-            } elseif ($isFullPageAd) {
-                $renderHeight = max(520, min(920, $renderHeight));
-            } else {
-                $renderHeight = max(220, min(440, $renderHeight));
-            }
-        }
-
-        if ($isFullPageAd) {
-            $renderHeight = max(520, min(920, $renderHeight));
-        } elseif ($isBannerAd) {
-            $renderHeight = max(170, min(260, $renderHeight));
-        } else {
-            $renderHeight = max(180, min(380, $renderHeight));
-        }
+        $renderWidth = max(1, (int) $adWidth);
+        $renderHeight = max(1, (int) $adHeight);
 
         $gridCell = 20;
         $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
         $gridRowSpan = max(1, (int) ceil($renderHeight / $gridCell));
+        $cardWidth = $renderWidth;
         $displayWidth = $renderWidth;
         $displayHeight = $renderHeight;
-        $imageScale = $isSquareAd ? 1 : ($isBannerAd || $isFullPageAd ? 0.96 : 0.92);
+        $imageScale = 1;
     @endphp
     <div class="ads-market-grid-item">
         <article
             class="card border-0 offer-coupon-card ads-market-card {{ $isSquareAd ? 'ads-market-card--square' : 'ads-market-card--rect' }} js-ad-modal-trigger"
             role="button"
             tabindex="0"
-            style="width:{{ $renderWidth }}px; --ad-w: {{ $renderWidth }}; --ad-h: {{ $renderHeight }}; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"
+            style="width:{{ $cardWidth }}px; min-width:{{ $cardWidth }}px; max-width:{{ $cardWidth }}px; --ad-w: {{ $renderWidth }}; --ad-h: {{ $renderHeight }}; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • Valid upto: {{ $ad->valid_until?->format('d M Y') ?? 'No Expiry' }}"
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
@@ -79,7 +50,7 @@
                 <h2 class="offer-card-title ads-market-title mb-0">{{ $ad->title }}</h2>
             </div>
 
-            <div class="offer-coupon-image-wrap ads-market-image-frame {{ $isSquareAd ? 'is-square' : 'is-rect' }}" style="--ad-image-scale: {{ $imageScale }};">
+            <div class="offer-coupon-image-wrap ads-market-image-frame {{ $isSquareAd ? 'is-square' : 'is-rect' }}" style="--ad-image-scale: {{ $imageScale }}; width: {{ $renderWidth }}px; height: {{ $renderHeight }}px;">
                 @if ($ad->final_image)
                     <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb">
                 @endif

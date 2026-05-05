@@ -1390,7 +1390,7 @@
       discountEl.textContent = trigger.getAttribute('data-offer-discount') || '';
       descriptionEl.textContent = trigger.getAttribute('data-offer-description') || '';
       expiryEl.textContent = trigger.getAttribute('data-offer-validity') || 'No expiry';
-
+ 
       const couponCode = trigger.getAttribute('data-offer-coupon');
       if (couponCode) {
         couponEl.textContent = couponCode;
