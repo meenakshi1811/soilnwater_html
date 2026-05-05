@@ -1263,6 +1263,10 @@ document.addEventListener('DOMContentLoaded', function () {
     border: 0;
     background: transparent;
   }
+  .offer-coupon-wrap .offer-coupon-image {
+    object-fit: contain;
+    background: #fff;
+  }
 </style>
 @endpush
 
