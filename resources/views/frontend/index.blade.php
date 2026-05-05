@@ -1259,6 +1259,20 @@ document.addEventListener('DOMContentLoaded', function () {
     background: #f5f9ff;
     padding: 0;
   }
+  .offer-coupon-wrap .offer-coupon-image-wrap {
+    border: 0;
+    background: transparent;
+  }
+  .offer-coupon-wrap .offer-coupon-image {
+    object-fit: contain;
+    background: #fff;
+  }
+  .offer-coupon-wrap .offer-coupon-card {
+    padding: 0;
+  }
+  .offer-coupon-wrap .offer-coupon-card .card-body {
+    padding: .7rem .9rem .85rem;
+  }
 </style>
 @endpush
 
