@@ -1,70 +1,136 @@
+<style>
+.adx-wrapper {
+    width: 100%;
+    padding: 20px 30px;
+    box-sizing: border-box;
+}
+
+.adx-grid {
+    width: 100%;
+}
+
+.adx-item {
+    margin-bottom: 12px;
+}
+
+.adx-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+
+.adx-title {
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 14px;
+    color: #052b60;
+}
+
+.adx-image-box {
+    padding: 0 14px 14px;
+}
+
+.adx-image-inner {
+    background: #f5f5f5;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.adx-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+@media (max-width: 575px) {
+    .adx-wrapper {
+        padding: 16px;
+    }
+
+    .adx-item,
+    .adx-card,
+    .adx-image-inner {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+</style>
+
 @php    
     $adSizes = \App\Support\AdSizes::all();
 @endphp
-@forelse ($ads as $ad)
-    @php
-        $rawSizeType = (string) ($ad->size_type ?? '');
-        $normalizedSizeType = \Illuminate\Support\Str::of($rawSizeType)->lower()->replace([' ', '-'], '_')->value();
 
-        $sizeConfig = $adSizes[$rawSizeType]
-            ?? $adSizes[$normalizedSizeType]
-            ?? collect($adSizes)->first(function (array $config, string $key) use ($normalizedSizeType) {
-                $normalizedKey = \Illuminate\Support\Str::of($key)->lower()->replace([' ', '-'], '_')->value();
-                return $normalizedKey === $normalizedSizeType;
-            });
+<div class="adx-wrapper">
+    <div class="adx-grid">
 
-        $adWidth = $sizeConfig['w'] ?? 320;
-        $adHeight = $sizeConfig['h'] ?? 220;
-        $sizeLabel = $sizeConfig['name'] ?? ucfirst(str_replace('_', ' ', (string) $ad->size_type));
-        $sizeText = $sizeLabel.' ('.$adWidth.'×'.$adHeight.' px)';
-        $isSquareAd = abs($adWidth - $adHeight) <= 2;
-        $isBannerAd = $normalizedSizeType === 'banner';
-        $isFullPageAd = in_array($normalizedSizeType, ['fullpage', 'full_page'], true);
+        @forelse ($ads as $ad)
+            @php
+                $rawSizeType = (string) ($ad->size_type ?? '');
+                $normalizedSizeType = \Illuminate\Support\Str::of($rawSizeType)->lower()->replace([' ', '-'], '_')->value();
 
-        $renderWidth = max(1, (int) $adWidth);
-        $renderHeight = max(1, (int) $adHeight);
+                $sizeConfig = $adSizes[$rawSizeType]
+                    ?? $adSizes[$normalizedSizeType]
+                    ?? collect($adSizes)->first(function ($config, $key) use ($normalizedSizeType) {
+                        return \Illuminate\Support\Str::of($key)->lower()->replace([' ', '-'], '_')->value() === $normalizedSizeType;
+                    });
 
-        $gridCell = 20;
-        $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
-        $gridRowSpan = max(1, (int) ceil($renderHeight / $gridCell));
-        $cardWidth = $renderWidth;
-        $displayWidth = $renderWidth;
-        $displayHeight = $renderHeight;
-        $imageScale = 1;
-    @endphp
-    <div class="ads-market-grid-item">
-        <article
-            class="card border-0 offer-coupon-card ads-market-card {{ $isSquareAd ? 'ads-market-card--square' : 'ads-market-card--rect' }} js-ad-modal-trigger"
-            role="button"
-            tabindex="0"
-            style="width:{{ $cardWidth }}px; min-width:{{ $cardWidth }}px; max-width:{{ $cardWidth }}px; --ad-w: {{ $renderWidth }}; --ad-h: {{ $renderHeight }}; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"
-            data-ad-title="{{ $ad->title }}"
-            data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • Valid upto: {{ $ad->valid_until?->format('d M Y') ?? 'No Expiry' }}"
-            data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
-            data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
-            data-ad-url="{{ route('frontend.ads.show', $ad) }}"
-            data-ad-size="{{ $sizeText }}"
-            data-ad-id="{{ $ad->id }}"
-        >
-            <div class="ads-market-card-head d-flex align-items-start justify-content-between gap-2">
-                <h2 class="offer-card-title ads-market-title mb-0">{{ $ad->title }}</h2>
+                $adWidth = (int) ($sizeConfig['w'] ?? 320);
+                $adHeight = (int) ($sizeConfig['h'] ?? 220);
+
+                $cardWidth = $adWidth + 28;
+            @endphp
+
+            <div class="adx-item" style="width: {{ $cardWidth }}px;">
+                <article
+                    class="adx-card js-ad-modal-trigger"
+                    role="button"
+                    tabindex="0"
+                    data-ad-title="{{ $ad->title }}"
+                    data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}"
+                    data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
+                    data-ad-url="{{ route('frontend.ads.show', $ad) }}"
+                    data-ad-id="{{ $ad->id }}"
+                >
+                    <div class="adx-title">
+                        {{ $ad->title }}
+                    </div>
+
+                    <div class="adx-image-box">
+                        <div class="adx-image-inner" style="width: {{ $adWidth }}px; height: {{ $adHeight }}px;">
+                            @if ($ad->final_image)
+                                <img src="{{ asset($ad->final_image) }}" class="adx-img" alt="{{ $ad->title }}">
+                            @endif
+                        </div>
+                    </div>
+                </article>
             </div>
 
-            <div class="offer-coupon-image-wrap ads-market-image-frame {{ $isSquareAd ? 'is-square' : 'is-rect' }}" style="--ad-image-scale: {{ $imageScale }}; width: {{ $renderWidth }}px; height: {{ $renderHeight }}px;">
-                @if ($ad->final_image)
-                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-coupon-image ads-market-thumb">
-                @endif
+        @empty
+            <div class="adx-item text-center">
+                <h4>No ads found</h4>
             </div>
+        @endforelse
 
-        </article>
     </div>
-@empty
-    <div class="col-12 offer-empty-state">
-        <div class="offer-empty-state-card">
-            <div class="offer-empty-state-content">
-                <h3 class="offer-empty-state-title mb-1">No ads found</h3>
-                <p class="offer-empty-state-text mb-0">Try changing filters.</p>
-            </div>
-        </div>
-    </div>
-@endforelse
+</div>
+
+<script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
+<script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const grid = document.querySelector('.adx-grid');
+    if (!grid) return;
+
+    imagesLoaded(grid, function () {
+        new Masonry(grid, {
+            itemSelector: '.adx-item',
+            gutter: 12,
+            fitWidth: false,
+            horizontalOrder: false
+        });
+    });
+});
+</script>
