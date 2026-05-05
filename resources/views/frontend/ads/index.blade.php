@@ -102,7 +102,7 @@ function layoutAdsGrid(){
         const nextHeight = bestTop + itemHeight + gap;
         for (let i=bestCol; i<bestCol+span; i++) colHeights[i] = nextHeight;
     });
-    adsGrid.style.height = 'auto';
+    adsGrid.style.height = `${Math.max(...colHeights, 0)}px`;
 }
 window.addEventListener('resize', ()=>{ clearTimeout(debounce); debounce=setTimeout(layoutAdsGrid,120); });
 window.addEventListener('load', layoutAdsGrid);
