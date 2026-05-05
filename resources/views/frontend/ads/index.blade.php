@@ -72,37 +72,53 @@ const clearFiltersBtn = document.getElementById('adsMarketClearFilters');
 const loadingText = document.getElementById('adsLoadingText'); const summaryText = document.getElementById('adsSummaryText'); const scrollSentinel = document.getElementById('adsScrollSentinel');
 let nextPageUrl = adsGrid.dataset.nextPageUrl || ''; let isLoading = false; let debounce;
 
+
+function removeFillerCards(){
+    adsGrid.querySelectorAll('[data-filler-ad="1"]').forEach((node)=>node.remove());
+}
+
+function addRandomFillerCard(){
+    const sourceItems = Array.from(adsGrid.querySelectorAll('.ads-market-grid-item:not([data-filler-ad="1"])'));
+    if (!sourceItems.length) return false;
+    const pick = sourceItems[Math.floor(Math.random() * sourceItems.length)];
+    const clone = pick.cloneNode(true);
+    clone.dataset.fillerAd = '1';
+    clone.classList.add('ads-market-grid-item--filler');
+    const card = clone.querySelector('.ads-market-card');
+    if (card) {
+        card.classList.add('border-success-subtle');
+        const body = card.querySelector('.card-body');
+        if (body && !body.querySelector('.ads-filler-label')) {
+            const tag = document.createElement('span');
+            tag.className = 'badge text-bg-light border ads-filler-label';
+            tag.textContent = 'Suggested';
+            body.prepend(tag);
+        }
+    }
+    adsGrid.appendChild(clone);
+    return true;
+}
+
 function layoutAdsGrid(){
     const items = Array.from(adsGrid.querySelectorAll('.ads-market-grid-item'));
-    if (window.matchMedia('(max-width: 768px)').matches) {
-        items.forEach((item)=>{ item.style.position='static'; item.style.left=''; item.style.top=''; });
-        adsGrid.style.height = 'auto';
-        return;
-    }
-    if (!items.length) { adsGrid.style.height = '0px'; return; }
-    const gap = 16;
-    const unit = 4;
-    items.forEach((item)=>{ item.style.position='absolute'; item.style.left='0px'; item.style.top='0px'; });
-    const containerWidth = adsGrid.clientWidth;
-    if (containerWidth <= 0) { requestAnimationFrame(layoutAdsGrid); return; }
-    const cols = Math.max(1, Math.floor(containerWidth / unit));
-    const colHeights = Array(cols).fill(0);
-    items.forEach((item)=>{
-        const itemWidth = item.offsetWidth || 320;
-        const itemHeight = item.offsetHeight || 220;
-        const span = Math.min(cols, Math.max(1, Math.ceil(itemWidth / unit)));
-        let bestCol = 0, bestTop = Number.POSITIVE_INFINITY;
-        for (let start=0; start<=cols-span; start++) {
-            const top = Math.max(...colHeights.slice(start, start + span));
-            if (top < bestTop) { bestTop = top; bestCol = start; }
-        }
-        const left = bestCol * unit;
-        item.style.left = `${left}px`;
-        item.style.top = `${bestTop}px`;
-        const nextHeight = bestTop + itemHeight + gap;
-        for (let i=bestCol; i<bestCol+span; i++) colHeights[i] = nextHeight;
-    });
+    items.forEach((item)=>{ item.style.position='static'; item.style.left=''; item.style.top=''; });
     adsGrid.style.height = 'auto';
+
+    if (window.matchMedia('(max-width: 768px)').matches) return;
+
+    const containerWidth = adsGrid.clientWidth || 0;
+    const estimatedCols = Math.max(1, Math.floor(containerWidth / 340));
+    const baseItems = adsGrid.querySelectorAll('.ads-market-grid-item:not([data-filler-ad="1"])').length;
+    const existingFillers = adsGrid.querySelectorAll('[data-filler-ad="1"]').length;
+    const targetItems = estimatedCols * 3;
+    const missing = Math.max(0, targetItems - (baseItems + existingFillers));
+
+    if (missing > 0) {
+        const toAdd = Math.min(3, missing);
+        for (let i=0; i<toAdd; i++) {
+            if (!addRandomFillerCard()) break;
+        }
+    }
 }
 window.addEventListener('resize', ()=>{ clearTimeout(debounce); debounce=setTimeout(layoutAdsGrid,120); });
 window.addEventListener('load', layoutAdsGrid);
@@ -119,7 +135,7 @@ function bindImageLayoutRefresh(scope){
 
 const categories = JSON.parse(document.getElementById('adsFilterBar').dataset.categories || '[]');
 function populateSubcategories(){const id=categoryFilter.value;subcategoryFilter.innerHTML='<option value="">All subcategories</option>';const cat=categories.find(c=>String(c.id)===String(id));if(!cat||!cat.children.length){subcategoryFilter.disabled=true;return;}cat.children.forEach(child=>{const o=document.createElement('option');o.value=child.id;o.textContent=child.name;if(String(new URLSearchParams(location.search).get('subcategory_id')||'')===String(child.id)) o.selected=true; subcategoryFilter.appendChild(o);});subcategoryFilter.disabled=false;}
-populateSubcategories(); layoutAdsGrid(); setTimeout(layoutAdsGrid, 120); bindImageLayoutRefresh(); categoryFilter.addEventListener('change',()=>{populateSubcategories();refreshAds();}); subcategoryFilter.addEventListener('change',refreshAds); searchFilter.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(refreshAds,300);});
+populateSubcategories(); removeFillerCards(); layoutAdsGrid(); setTimeout(layoutAdsGrid, 120); bindImageLayoutRefresh(); categoryFilter.addEventListener('change',()=>{populateSubcategories();refreshAds();}); subcategoryFilter.addEventListener('change',refreshAds); searchFilter.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(refreshAds,300);});
 if (clearFiltersBtn) {
     clearFiltersBtn.addEventListener('click', function () {
         searchFilter.value = '';
@@ -130,8 +146,8 @@ if (clearFiltersBtn) {
     });
 }
 function buildUrl(base){const u=new URL(base,window.location.origin);const p=new URLSearchParams();if(searchFilter.value.trim()) p.set('search',searchFilter.value.trim());if(categoryFilter.value) p.set('category_id',categoryFilter.value);if(subcategoryFilter.value) p.set('subcategory_id',subcategoryFilter.value);u.search=p.toString();return u.toString();}
-async function refreshAds(){if(isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const res=await fetch(buildUrl('{{ route('frontend.ads.index') }}'),{headers:{'X-Requested-With':'XMLHttpRequest'}});const payload=await res.json();adsGrid.innerHTML=payload.html||'';nextPageUrl=payload.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=payload.total?`Showing 1 to ${payload.loaded_to} of ${payload.total} results`:'';layoutAdsGrid();setTimeout(layoutAdsGrid, 120);bindImageLayoutRefresh();loadingText.classList.add('d-none');isLoading=false;}
-async function loadMore(){if(!nextPageUrl||isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const r=await fetch(nextPageUrl,{headers:{'X-Requested-With':'XMLHttpRequest'}});const p=await r.json();adsGrid.insertAdjacentHTML('beforeend',p.html||'');nextPageUrl=p.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=p.total?`Showing 1 to ${p.loaded_to} of ${p.total} results`:'';layoutAdsGrid();setTimeout(layoutAdsGrid, 120);bindImageLayoutRefresh();loadingText.classList.add('d-none');isLoading=false;}
+async function refreshAds(){if(isLoading) return;isLoading=true;loadingText.classList.remove('d-none');removeFillerCards();const res=await fetch(buildUrl('{{ route('frontend.ads.index') }}'),{headers:{'X-Requested-With':'XMLHttpRequest'}});const payload=await res.json();adsGrid.innerHTML=payload.html||'';nextPageUrl=payload.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=payload.total?`Showing 1 to ${payload.loaded_to} of ${payload.total} results`:'';layoutAdsGrid();setTimeout(layoutAdsGrid, 120);bindImageLayoutRefresh();loadingText.classList.add('d-none');isLoading=false;}
+async function loadMore(){if(!nextPageUrl||isLoading) return;isLoading=true;loadingText.classList.remove('d-none');removeFillerCards();const r=await fetch(nextPageUrl,{headers:{'X-Requested-With':'XMLHttpRequest'}});const p=await r.json();adsGrid.insertAdjacentHTML('beforeend',p.html||'');nextPageUrl=p.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=p.total?`Showing 1 to ${p.loaded_to} of ${p.total} results`:'';layoutAdsGrid();setTimeout(layoutAdsGrid, 120);bindImageLayoutRefresh();loadingText.classList.add('d-none');isLoading=false;}
 if(scrollSentinel && 'IntersectionObserver' in window){new IntersectionObserver(e=>{if(e[0].isIntersecting) loadMore();},{rootMargin:'250px'}).observe(scrollSentinel);}
 adsGrid.addEventListener('click',function(e){const trigger=e.target.closest('.js-ad-modal-trigger');if(!trigger) return;document.getElementById('adDetailsModalTitle').textContent=trigger.dataset.adTitle||'Ad Details';document.getElementById('adDetailsModalMeta').textContent=trigger.dataset.adMeta||'';document.getElementById('adDetailsModalDescription').textContent=trigger.dataset.adDescription||'';const img=trigger.dataset.adImage||'';const imgEl=document.getElementById('adDetailsModalImage');if(img){imgEl.src=img;imgEl.classList.remove('d-none');adEnlargeBtn.classList.remove('d-none');}else{imgEl.src='';imgEl.classList.add('d-none');adEnlargeBtn.classList.add('d-none');}const url=trigger.dataset.adUrl||location.href;document.getElementById('adShareLink').value=url;document.getElementById('adShareQr').src=`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;document.getElementById('adShareWhatsapp').href=`https://wa.me/?text=${encodeURIComponent('Check this ad: '+url)}`;document.getElementById('adShareFacebook').href=`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;document.getElementById('adShareInstagram').href=url;
 if (adReportForm && trigger.dataset.adId) { adReportForm.action = `{{ url('/ads-market') }}/${trigger.dataset.adId}/report`; }
