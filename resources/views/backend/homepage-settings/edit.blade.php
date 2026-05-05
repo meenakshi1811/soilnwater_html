@@ -58,12 +58,12 @@
 @endsection
 
 @push('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" integrity="sha512-vKMf4fC3f0W0fkuXXAup7jYO0M8m2Q1YBOk2L5cl6xE6t4N7m2ijV+QY4xjcM+f8D2jvA9G8I9Jj5Qd2fY5n9A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 @endpush
 
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" integrity="sha512-5VSJf7R4j3obQ+6M7M5G8fMdQ4NQv17E6XU8g4kq5z8W71v9l1I5QzW1f8W54lUEYG2e4Q4+GQJ5VqfQ7xP8Og==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
         $(function () {
             const $form = $('#homepage-settings-form');
