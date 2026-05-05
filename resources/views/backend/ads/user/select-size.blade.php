@@ -12,6 +12,11 @@
         </div>
     </div>
 
+    @php
+        $widths = array_filter(array_column($sizes, 'w'), fn($width) => (int) $width > 0);
+        $maxWidth = !empty($widths) ? max($widths) : 1;
+    @endphp
+
     <div class="chart-card">
         <div class="row g-3">
             @foreach($sizes as $sizeType => $size)
