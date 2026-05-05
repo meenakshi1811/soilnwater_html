@@ -3,6 +3,12 @@
 @section('content')
 @php
   $sectionToggles = data_get($homepageSetting ?? null, 'section_toggles', []);
+  $isEnabled = static fn (string $key): bool => data_get($sectionToggles, $key, true) !== false;
+  $showTopCategories = $isEnabled('top_categories');
+  $showSponsoredListings = $isEnabled('sponsored_listings');
+  $showTopFold = $showTopCategories || $showSponsoredListings;
+  $showRecentAds = $isEnabled('recent_ads');
+  $showOfferDiscount = $isEnabled('offer_discount');
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
@@ -213,9 +219,11 @@
   <div class="main-col">
 
     <!-- Top fold layout: categories + listings with right sidebar ads -->
+    @if($showTopFold)
     <div class="top-fold-layout">
       <div class="row g-3 align-items-start top-fold-upper">
       <div class="col-12 col-lg-9 top-fold-main">
+        @if($showTopCategories)
         <!-- Top Categories + Boost Ad -->
         <div class="sec">
           <div class="sec-head">
@@ -242,7 +250,9 @@
             @endforelse
           </div>
         </div>
+        @endif
 
+        @if($showSponsoredListings)
         <!-- Sponsored Listings -->
         <div class="sec">
           <div class="sec-head">
@@ -288,6 +298,7 @@
             </div>
           </div>
         </div>
+        @endif
 
       </div>
 
@@ -326,7 +337,9 @@
         </div>
       </aside>
       </div>
+    @endif
 
+      @if($showSponsoredListings)
       <div class="ad-slider auto-ad-slider top-ad-slider premium-wide-slider" aria-label="Premium marketplace campaign slider" data-show-arrows="true" data-pause-on-hover="false">
         @forelse(($belowSponsoredSliderAds ?? collect()) as $ad)
           <div class="ad-slide premium-marketplace-slide">
@@ -360,6 +373,7 @@
           </div>
         @endforelse
       </div>
+      @endif
 
       <div class="row g-3 align-items-stretch ecommerce-with-side-ad">
         <div class="col-12">
@@ -458,6 +472,7 @@
     </div>
 
     <!-- Recent Ads Section -->
+    @if($showRecentAds)
     <div class="sec recent-ads-section">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> Recent Ads</div>
@@ -497,8 +512,10 @@
         @endforelse
       </div>
     </div>
+    @endif
 
     <!-- Offer & Discount Section -->
+    @if($showOfferDiscount)
     <div class="sec promo-slider-section">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-tags"></i></span> Offer &amp; Discount</div>
@@ -578,6 +595,7 @@
         </div>
       </div>
     </div>
+    @endif
 
 
 
@@ -1207,28 +1225,6 @@
     <div class="trust-item"><span class="trust-icon"><i class="fa-solid fa-lock"></i></span> Secure Payments</div>
   </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const toggles = @json($sectionToggles);
-  const map = {
-    top_categories: 'Top Categories', sponsored_listings: 'Sponsored Listings', ecommerce: 'E-Commerce', recent_ads: 'Recent Ads',
-    offer_discount: 'Offer & Discount', explore_products: 'Explore Products Near You', top_vendors: 'Top Vendors',
-    popular_properties_near_greenwood: 'Popular Properties Near Greenwood', popular_properties: 'Popular Properties',
-    builders_developers: 'Builders & Developers', popular_services: 'Popular Services', consultants_enquiry: 'Consultants & Enquiry'
-  };
-  Object.entries(map).forEach(([key, title]) => {
-    if (toggles[key] === false) {
-      document.querySelectorAll('.sec-title').forEach((el) => {
-        if (el.textContent.trim().includes(title)) {
-          const sec = el.closest('.sec');
-          if (sec) sec.style.display = 'none';
-        }
-      });
-    }
-  });
-});
-</script>
 
 @endsection
 
