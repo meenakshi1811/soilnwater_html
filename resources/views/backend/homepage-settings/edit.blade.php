@@ -13,7 +13,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <form method="POST" action="{{ route('admin.homepage-settings.update') }}" enctype="multipart/form-data" class="row g-3">
+    <form id="homepage-settings-form" method="POST" action="{{ route('admin.homepage-settings.update') }}" enctype="multipart/form-data" class="row g-3">
         @csrf
         @method('PUT')
 
@@ -51,8 +51,57 @@
         </div>
 
         <div class="col-12 d-flex justify-content-end">
-            <button class="btn btn-primary" type="submit">Save Settings</button>
+            <button id="homepage-settings-submit" class="btn btn-primary" type="submit">Save Settings</button>
         </div>
     </form>
 </div>
 @endsection
+
+@push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" integrity="sha512-vKMf4fC3f0W0fkuXXAup7jYO0M8m2Q1YBOk2L5cl6xE6t4N7m2ijV+QY4xjcM+f8D2jvA9G8I9Jj5Qd2fY5n9A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+@endpush
+
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" integrity="sha512-5VSJf7R4j3obQ+6M7M5G8fMdQ4NQv17E6XU8g4kq5z8W71v9l1I5QzW1f8W54lUEYG2e4Q4+GQJ5VqfQ7xP8Og==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        $(function () {
+            const $form = $('#homepage-settings-form');
+            const $submitButton = $('#homepage-settings-submit');
+
+            $form.on('submit', function (event) {
+                event.preventDefault();
+
+                const formData = new FormData(this);
+                const originalButtonText = $submitButton.text();
+
+                $submitButton.prop('disabled', true).text('Saving...');
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                }).done(function (response) {
+                    toastr.success(response.message || 'Homepage settings updated successfully.');
+                }).fail(function (xhr) {
+                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        $.each(xhr.responseJSON.errors, function (_, messages) {
+                            toastr.error(messages[0]);
+                        });
+                        return;
+                    }
+
+                    toastr.error('Something went wrong. Please try again.');
+                }).always(function () {
+                    $submitButton.prop('disabled', false).text(originalButtonText);
+                });
+            });
+        });
+    </script>
+@endpush
