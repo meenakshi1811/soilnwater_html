@@ -23,7 +23,10 @@
                                 <span class="badge text-bg-warning">Admin Placement</span>
                             @endif
                         </div>
-                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: min(100%, {{ $size['w'] }}px); margin-inline: auto;">
+                        @php
+                            $previewWidthPercent = ($size['w'] / $maxWidth) * 100;
+                        @endphp
+                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: min(100%, {{ round($previewWidthPercent, 2) }}%); margin-inline: auto;">
                             <div class="ads-size-shape-inner">
                                 <span class="ads-size-dim">{{ $size['w'] }}×{{ $size['h'] }}</span>
                             </div>
