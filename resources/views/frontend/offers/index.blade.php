@@ -1,7 +1,7 @@
 @extends('frontend.layouts.app')
 
 @section('content')
-<div class="container-fluid py-4 py-lg-5 px-3 px-lg-4">
+<div class="container-fluid py-4 py-lg-5 px-3 px-lg-4 offers-market-page">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
         <h1 class="h3 mb-0">All Offers</h1>
         <a href="{{ route('frontend.index') }}" class="view-all">Back to home ▶</a>
@@ -102,6 +102,35 @@
 @endsection
 
 
+
+@push('styles')
+<style>
+    .offers-market-page #offersGrid .offer-coupon-card {
+        max-width: none;
+        margin-inline: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .offers-market-page #offersGrid .offer-coupon-image-wrap {
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        margin: 0;
+    }
+
+    .offers-market-page #offersGrid .offer-coupon-image {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .offers-market-page #offersGrid .offer-coupon-card .card-body {
+        padding: .75rem .9rem .85rem;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
