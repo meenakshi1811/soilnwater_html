@@ -548,7 +548,7 @@
                       @foreach ($offerChunk as $offer)
                         <div class="col">
                           <article
-                            class="card h-100 shadow-sm border-0 offer-coupon-card js-offer-modal-trigger"
+                            class="prod-card recent-ad-card js-offer-modal-trigger"
                             role="button"
                             tabindex="0"
                             data-bs-toggle="modal"
@@ -560,20 +560,10 @@
                             data-offer-validity="{{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}"
                             data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
                           >
-                            @if ($offer->banner_image)
-                              <div class="offer-coupon-image-wrap">
-                                <img
-                                  src="{{ asset($offer->banner_image) }}"
-                                  alt="{{ $offer->title }}"
-                                  class="offer-coupon-image"
-                                >
-                              </div>
-                            @endif
-                            <div class="card-body d-flex flex-column gap-2">
-                              <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
-                              <h4 class="h6 mb-1 offer-coupon-title">{{ $offer->title }}</h4>
-                              <p class="small text-muted mb-2 offer-coupon-description">{{ $offer->short_description ?: 'Special marketplace offer available now.' }}</p>
-                            
+                            <img src="{{ $offer->banner_image ? asset($offer->banner_image) : asset('assets/images/ad-sample.png') }}" alt="{{ $offer->title }}">
+                            <div class="prod-card-body">
+                              <h6 class="mb-1 offer-coupon-title">{{ $offer->title }}</h6>
+                              <span class="recent-ad-meta"><i class="fa-solid fa-tag"></i> {{ $offer->discount_tag }}</span>
                             </div>
                           </article>
                         </div>
@@ -584,8 +574,8 @@
                   <div class="ad-slide">
                     <div class="row row-cols-1 g-1 offer-coupon-grid">
                       <div class="col">
-                        <article class="card h-100 shadow-sm border-0 offer-coupon-card">
-                          <div class="card-body d-flex flex-column gap-2 justify-content-center text-center">
+                        <article class="prod-card recent-ad-card">
+                          <div class="prod-card-body d-flex flex-column gap-2 justify-content-center text-center">
                             <h4 class="h6 mb-1">No active offers available</h4>
                             <p class="small text-muted mb-2">Please check back later for fresh deals.</p>
                           </div>
