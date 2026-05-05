@@ -3,6 +3,12 @@
 @section('content')
 @php
   $sectionToggles = data_get($homepageSetting ?? null, 'section_toggles', []);
+  $isEnabled = static fn (string $key): bool => data_get($sectionToggles, $key, true) !== false;
+  $showTopCategories = $isEnabled('top_categories');
+  $showSponsoredListings = $isEnabled('sponsored_listings');
+  $showTopFold = $showTopCategories || $showSponsoredListings;
+  $showRecentAds = $isEnabled('recent_ads');
+  $showOfferDiscount = $isEnabled('offer_discount');
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
@@ -216,6 +222,7 @@
     <div class="top-fold-layout" data-home-section-group="top-fold">
       <div class="row g-3 align-items-start top-fold-upper">
       <div class="col-12 col-lg-9 top-fold-main">
+        @if($showTopCategories)
         <!-- Top Categories + Boost Ad -->
         <div class="sec" data-home-section="top_categories">
           <div class="sec-head">
@@ -242,7 +249,9 @@
             @endforelse
           </div>
         </div>
+        @endif
 
+        @if($showSponsoredListings)
         <!-- Sponsored Listings -->
         <div class="sec" data-home-section="sponsored_listings">
           <div class="sec-head">
@@ -288,6 +297,7 @@
             </div>
           </div>
         </div>
+        @endif
 
       </div>
 
@@ -326,6 +336,7 @@
         </div>
       </aside>
       </div>
+    @endif
 
       <div class="ad-slider auto-ad-slider top-ad-slider premium-wide-slider" data-home-section="sponsored_listings" aria-label="Premium marketplace campaign slider" data-show-arrows="true" data-pause-on-hover="false">
         @forelse(($belowSponsoredSliderAds ?? collect()) as $ad)
@@ -360,6 +371,7 @@
           </div>
         @endforelse
       </div>
+      @endif
 
       <div class="row g-3 align-items-stretch ecommerce-with-side-ad">
         <div class="col-12">
@@ -497,6 +509,7 @@
         @endforelse
       </div>
     </div>
+    @endif
 
     <!-- Offer & Discount Section -->
     <div class="sec promo-slider-section" data-home-section="offer_discount">
@@ -578,6 +591,7 @@
         </div>
       </div>
     </div>
+    @endif
 
 
 
