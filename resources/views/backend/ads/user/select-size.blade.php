@@ -12,10 +12,6 @@
         </div>
     </div>
 
-    @php
-        $maxWidth = max(array_column($sizes, 'w'));
-    @endphp
-
     <div class="chart-card">
         <div class="row g-3">
             @foreach($sizes as $sizeType => $size)
@@ -27,10 +23,7 @@
                                 <span class="badge text-bg-warning">Admin Placement</span>
                             @endif
                         </div>
-                        @php
-                            $previewScale = 0.7 + (0.3 * ($size['w'] / $maxWidth));
-                        @endphp
-                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: min(100%, {{ round($previewScale * 100, 2) }}%); margin-inline: auto;">
+                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: min(100%, {{ $size['w'] }}px); margin-inline: auto;">
                             <div class="ads-size-shape-inner">
                                 <span class="ads-size-dim">{{ $size['w'] }}×{{ $size['h'] }}</span>
                             </div>
