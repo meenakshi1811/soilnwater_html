@@ -213,11 +213,11 @@
   <div class="main-col">
 
     <!-- Top fold layout: categories + listings with right sidebar ads -->
-    <div class="top-fold-layout">
+    <div class="top-fold-layout" data-home-section-group="top-fold">
       <div class="row g-3 align-items-start top-fold-upper">
       <div class="col-12 col-lg-9 top-fold-main">
         <!-- Top Categories + Boost Ad -->
-        <div class="sec">
+        <div class="sec" data-home-section="top_categories">
           <div class="sec-head">
             <div class="sec-title"><i class="fa-solid fa-layer-group"></i> Top Categories</div>
             <a class="view-all" href="#">Learn More ▶</a>
@@ -244,7 +244,7 @@
         </div>
 
         <!-- Sponsored Listings -->
-        <div class="sec">
+        <div class="sec" data-home-section="sponsored_listings">
           <div class="sec-head">
             <div class="sec-title"><span class="icon"><i class="fa-solid fa-bullhorn"></i></span> Sponsored Listings</div>
             <a class="view-all" href="#">VIEW ALL ▶</a>
@@ -291,7 +291,7 @@
 
       </div>
 
-      <aside class="col-12 col-lg-3 top-sidebar-ads">
+      <aside class="col-12 col-lg-3 top-sidebar-ads" data-home-section="sponsored_listings">
         <div class="ad-slider auto-ad-slider business-side-slider">
           @forelse(($topSidebarSliderAds ?? collect()) as $ad)
             <div class="side-card ad-slide">
@@ -327,7 +327,7 @@
       </aside>
       </div>
 
-      <div class="ad-slider auto-ad-slider top-ad-slider premium-wide-slider" aria-label="Premium marketplace campaign slider" data-show-arrows="true" data-pause-on-hover="false">
+      <div class="ad-slider auto-ad-slider top-ad-slider premium-wide-slider" data-home-section="sponsored_listings" aria-label="Premium marketplace campaign slider" data-show-arrows="true" data-pause-on-hover="false">
         @forelse(($belowSponsoredSliderAds ?? collect()) as $ad)
           <div class="ad-slide premium-marketplace-slide">
             <img
@@ -364,7 +364,7 @@
       <div class="row g-3 align-items-stretch ecommerce-with-side-ad">
         <div class="col-12">
           <!-- E-Commerce Section -->
-          <div class="sec ecommerce-sec">
+          <div class="sec ecommerce-sec" data-home-section="ecommerce">
             <div class="sec-head">
               <div class="sec-title"><span class="icon"><i class="fa-solid fa-cart-shopping"></i></span> E-Commerce</div>
               <a class="view-all" href="#">VIEW ALL ▶</a>
@@ -458,7 +458,7 @@
     </div>
 
     <!-- Recent Ads Section -->
-    <div class="sec recent-ads-section">
+    <div class="sec recent-ads-section" data-home-section="recent_ads">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> Recent Ads</div>
         <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
@@ -499,7 +499,7 @@
     </div>
 
     <!-- Offer & Discount Section -->
-    <div class="sec promo-slider-section">
+    <div class="sec promo-slider-section" data-home-section="offer_discount">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-tags"></i></span> Offer &amp; Discount</div>
         <a class="view-all" href="{{ route('frontend.offers.index') }}">VIEW ALL ▶</a>
@@ -661,7 +661,7 @@
     </div>
 
     <!-- Explore Products Near You (SSNY style) -->
-    <div class="sec explore-redesign">
+    <div class="sec explore-redesign" data-home-section="explore_products">
       <div class="sec-head">
         <div class="sec-title">Explore Products Near You</div>
         <a class="view-all" href="#">Learn More ▶</a>
@@ -706,7 +706,7 @@
     </div>
 
     <!-- Top Vendors + Properties with Right Ad Rail -->
-    <div class="content-with-ad-rail">
+    <div class="content-with-ad-rail" data-home-section="top_vendors">
       <div class="content-main-stack">
         <!-- Top Vendors -->
         <div class="sec">
@@ -799,7 +799,7 @@
         </div>
 
         <!-- Popular Properties Near Greenwood (Bootstrap redesign with large imagery + ads slider) -->
-        <section class="sec ppng-bootstrap-section">
+        <section class="sec ppng-bootstrap-section" data-home-section="popular_properties_near_greenwood">
           <div class="sec-head">
             <div class="sec-title"><span class="icon"><i class="fa-solid fa-map-location-dot"></i></span> Popular Properties Near Greenwood</div>
             <a class="view-all" href="#">Learn More ▶</a>
@@ -997,7 +997,7 @@
 
 
     <!-- Builders & Developers + Side Ad -->
-    <div class="section-with-side-ad builders-section-with-side-ad row g-3 align-items-start">
+    <div class="section-with-side-ad builders-section-with-side-ad row g-3 align-items-start" data-home-section="builders_developers">
       <div class="col-12 col-lg-9">
         <div class="sec builders-developers-sec">
           <div class="sec-head">
@@ -1081,7 +1081,7 @@
     </div>
 
     <!-- Popular Services / Properties -->
-    <div class="sec">
+    <div class="sec" data-home-section="popular_services">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-house"></i></span> Popular Services</div>
         <a class="view-all" href="#">VIEW ALL ▶</a>
@@ -1126,7 +1126,7 @@
     </div>
 
     <!-- Consultants & Enquiry -->
-    <div class="sec">
+    <div class="sec" data-home-section="consultants_enquiry">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Consultants &amp; Enquiry</div>
         <a class="view-all" href="#">POST YOUR QUERY ▶</a>
@@ -1211,22 +1211,20 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const toggles = @json($sectionToggles);
-  const map = {
-    top_categories: 'Top Categories', sponsored_listings: 'Sponsored Listings', ecommerce: 'E-Commerce', recent_ads: 'Recent Ads',
-    offer_discount: 'Offer & Discount', explore_products: 'Explore Products Near You', top_vendors: 'Top Vendors',
-    popular_properties_near_greenwood: 'Popular Properties Near Greenwood', popular_properties: 'Popular Properties',
-    builders_developers: 'Builders & Developers', popular_services: 'Popular Services', consultants_enquiry: 'Consultants & Enquiry'
-  };
-  Object.entries(map).forEach(([key, title]) => {
-    if (toggles[key] === false) {
-      document.querySelectorAll('.sec-title').forEach((el) => {
-        if (el.textContent.trim().includes(title)) {
-          const sec = el.closest('.sec');
-          if (sec) sec.style.display = 'none';
-        }
+
+  Object.entries(toggles || {}).forEach(([key, enabled]) => {
+    if (enabled === false) {
+      document.querySelectorAll(`[data-home-section="${key}"]`).forEach((el) => {
+        el.style.display = 'none';
       });
     }
   });
+
+  if (toggles?.top_categories === false && toggles?.sponsored_listings === false) {
+    document.querySelectorAll('[data-home-section-group="top-fold"]').forEach((el) => {
+      el.style.display = 'none';
+    });
+  }
 });
 </script>
 
