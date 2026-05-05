@@ -76,16 +76,16 @@ function layoutAdsGrid(){
     if (window.matchMedia('(max-width: 768px)').matches) { adsGrid.style.height = 'auto'; return; }
     const items = Array.from(adsGrid.querySelectorAll('.ads-market-grid-item'));
     if (!items.length) { adsGrid.style.height = '0px'; return; }
-    const gap = 12;
+    const gap = 24;
     const unit = 4;
     items.forEach((item)=>{ item.style.position='absolute'; item.style.left='0px'; item.style.top='0px'; });
     const containerWidth = adsGrid.clientWidth;
-    const cols = Math.max(1, Math.floor((containerWidth + gap) / unit));
+    const cols = Math.max(1, Math.floor(containerWidth / unit));
     const colHeights = Array(cols).fill(0);
     items.forEach((item)=>{
         const itemWidth = item.offsetWidth || 320;
         const itemHeight = item.offsetHeight || 220;
-        const span = Math.min(cols, Math.max(1, Math.ceil((itemWidth + gap) / unit)));
+        const span = Math.min(cols, Math.max(1, Math.ceil(itemWidth / unit)));
         let bestCol = 0, bestTop = Number.POSITIVE_INFINITY;
         for (let start=0; start<=cols-span; start++) {
             const top = Math.max(...colHeights.slice(start, start + span));
