@@ -27,6 +27,7 @@
         $gridCell = 20;
         $gridColumnSpan = max(1, (int) ceil($renderWidth / $gridCell));
         $gridRowSpan = max(1, (int) ceil($renderHeight / $gridCell));
+        $cardWidth = $renderWidth;
         $displayWidth = $renderWidth;
         $displayHeight = $renderHeight;
         $imageScale = 1;
@@ -36,7 +37,7 @@
             class="card border-0 offer-coupon-card ads-market-card {{ $isSquareAd ? 'ads-market-card--square' : 'ads-market-card--rect' }} js-ad-modal-trigger"
             role="button"
             tabindex="0"
-            style="width:{{ $renderWidth }}px; min-width:{{ $renderWidth }}px; max-width:{{ $renderWidth }}px; --ad-w: {{ $renderWidth }}; --ad-h: {{ $renderHeight }}; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"
+            style="width:{{ $cardWidth }}px; min-width:{{ $cardWidth }}px; max-width:{{ $cardWidth }}px; --ad-w: {{ $renderWidth }}; --ad-h: {{ $renderHeight }}; --ad-display-w: {{ $displayWidth }}; --ad-display-h: {{ $displayHeight }}; --ad-grid-col-span: {{ $gridColumnSpan }}; --ad-grid-row-span: {{ $gridRowSpan }};"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}{{ $ad->subcategory ? ' • '.$ad->subcategory->name : '' }} • Valid upto: {{ $ad->valid_until?->format('d M Y') ?? 'No Expiry' }}"
             data-ad-description="{{ $ad->location ? 'Location: '.$ad->location : 'Approved user ad from marketplace.' }}"
