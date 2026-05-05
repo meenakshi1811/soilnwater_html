@@ -76,7 +76,7 @@ function layoutAdsGrid(){
     if (window.matchMedia('(max-width: 768px)').matches) { adsGrid.style.height = 'auto'; return; }
     const items = Array.from(adsGrid.querySelectorAll('.ads-market-grid-item'));
     if (!items.length) { adsGrid.style.height = '0px'; return; }
-    const gap = 12;
+    const gap = 24;
     const unit = 4;
     items.forEach((item)=>{ item.style.position='absolute'; item.style.left='0px'; item.style.top='0px'; });
     const containerWidth = adsGrid.clientWidth;
