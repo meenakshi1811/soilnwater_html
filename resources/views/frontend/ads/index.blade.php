@@ -57,7 +57,7 @@
 
 @push('styles')
 <style>
-.ads-market-grid{display:flex;flex-wrap:wrap;gap:0!important;padding:0!important;align-items:flex-start}
+.ads-market-grid{display:flex;flex-wrap:wrap;gap:0!important;padding:0!important;align-items:flex-start;justify-content:center}
 .ads-market-grid-item{margin:0!important;padding:0!important;line-height:0}
 .ads-market-card{margin:0!important;border-radius:0!important;box-shadow:none!important;border:0!important;padding:0!important;background:transparent!important}
 .ads-market-card-head{display:none!important}
