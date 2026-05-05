@@ -101,44 +101,22 @@ function addRandomFillerCard(){
 
 function layoutAdsGrid(){
     const items = Array.from(adsGrid.querySelectorAll('.ads-market-grid-item'));
-    if (window.matchMedia('(max-width: 768px)').matches) {
-        items.forEach((item)=>{ item.style.position='static'; item.style.left=''; item.style.top=''; });
-        adsGrid.style.height = 'auto';
-        return;
-    }
-    if (!items.length) { adsGrid.style.height = '0px'; return; }
-    const gap = 16;
-    const unit = 4;
-    items.forEach((item)=>{ item.style.position='absolute'; item.style.left='0px'; item.style.top='0px'; });
-    const containerWidth = adsGrid.clientWidth;
-    if (containerWidth <= 0) { requestAnimationFrame(layoutAdsGrid); return; }
-    const cols = Math.max(1, Math.floor(containerWidth / unit));
-    const colHeights = Array(cols).fill(0);
-    items.forEach((item)=>{
-        const itemWidth = item.offsetWidth || 320;
-        const itemHeight = item.offsetHeight || 220;
-        const span = Math.min(cols, Math.max(1, Math.ceil(itemWidth / unit)));
-        let bestCol = 0, bestTop = Number.POSITIVE_INFINITY;
-        for (let start=0; start<=cols-span; start++) {
-            const top = Math.max(...colHeights.slice(start, start + span));
-            if (top < bestTop) { bestTop = top; bestCol = start; }
-        }
-        const left = bestCol * unit;
-        item.style.left = `${left}px`;
-        item.style.top = `${bestTop}px`;
-        const nextHeight = bestTop + itemHeight + gap;
-        for (let i=bestCol; i<bestCol+span; i++) colHeights[i] = nextHeight;
-    });
-    adsGrid.style.height = `${Math.max(...colHeights, 0)}px`;
+    items.forEach((item)=>{ item.style.position='static'; item.style.left=''; item.style.top=''; });
+    adsGrid.style.height = 'auto';
 
-    const usedWidth = Math.max(0, ...items.map((item)=> (item.offsetLeft || 0) + (item.offsetWidth || 0)));
-    const remainingWidth = containerWidth - usedWidth;
-    const medianWidth = items.length ? (items.reduce((sum, item)=> sum + (item.offsetWidth || 0), 0) / items.length) : 0;
+    if (window.matchMedia('(max-width: 768px)').matches) return;
 
-    if (remainingWidth > Math.max(220, medianWidth * 0.6) && adsGrid.querySelectorAll('[data-filler-ad="1"]').length < 2) {
-        if (addRandomFillerCard()) {
-            layoutAdsGrid();
-            return;
+    const containerWidth = adsGrid.clientWidth || 0;
+    const estimatedCols = Math.max(1, Math.floor(containerWidth / 340));
+    const baseItems = adsGrid.querySelectorAll('.ads-market-grid-item:not([data-filler-ad="1"])').length;
+    const existingFillers = adsGrid.querySelectorAll('[data-filler-ad="1"]').length;
+    const targetItems = estimatedCols * 3;
+    const missing = Math.max(0, targetItems - (baseItems + existingFillers));
+
+    if (missing > 0) {
+        const toAdd = Math.min(3, missing);
+        for (let i=0; i<toAdd; i++) {
+            if (!addRandomFillerCard()) break;
         }
     }
 }
@@ -157,7 +135,7 @@ function bindImageLayoutRefresh(scope){
 
 const categories = JSON.parse(document.getElementById('adsFilterBar').dataset.categories || '[]');
 function populateSubcategories(){const id=categoryFilter.value;subcategoryFilter.innerHTML='<option value="">All subcategories</option>';const cat=categories.find(c=>String(c.id)===String(id));if(!cat||!cat.children.length){subcategoryFilter.disabled=true;return;}cat.children.forEach(child=>{const o=document.createElement('option');o.value=child.id;o.textContent=child.name;if(String(new URLSearchParams(location.search).get('subcategory_id')||'')===String(child.id)) o.selected=true; subcategoryFilter.appendChild(o);});subcategoryFilter.disabled=false;}
-populateSubcategories(); layoutAdsGrid(); setTimeout(layoutAdsGrid, 120); bindImageLayoutRefresh(); categoryFilter.addEventListener('change',()=>{populateSubcategories();refreshAds();}); subcategoryFilter.addEventListener('change',refreshAds); searchFilter.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(refreshAds,300);});
+populateSubcategories(); removeFillerCards(); layoutAdsGrid(); setTimeout(layoutAdsGrid, 120); bindImageLayoutRefresh(); categoryFilter.addEventListener('change',()=>{populateSubcategories();refreshAds();}); subcategoryFilter.addEventListener('change',refreshAds); searchFilter.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(refreshAds,300);});
 if (clearFiltersBtn) {
     clearFiltersBtn.addEventListener('click', function () {
         searchFilter.value = '';
