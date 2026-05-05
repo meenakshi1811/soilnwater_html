@@ -1226,28 +1226,6 @@
   </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const toggles = @json($sectionToggles);
-  const map = {
-    top_categories: 'Top Categories', sponsored_listings: 'Sponsored Listings', ecommerce: 'E-Commerce', recent_ads: 'Recent Ads',
-    offer_discount: 'Offer & Discount', explore_products: 'Explore Products Near You', top_vendors: 'Top Vendors',
-    popular_properties_near_greenwood: 'Popular Properties Near Greenwood', popular_properties: 'Popular Properties',
-    builders_developers: 'Builders & Developers', popular_services: 'Popular Services', consultants_enquiry: 'Consultants & Enquiry'
-  };
-  Object.entries(map).forEach(([key, title]) => {
-    if (toggles[key] === false) {
-      document.querySelectorAll('.sec-title').forEach((el) => {
-        if (el.textContent.trim().includes(title)) {
-          const sec = el.closest('.sec');
-          if (sec) sec.style.display = 'none';
-        }
-      });
-    }
-  });
-});
-</script>
-
 @endsection
 
 @push('styles')
