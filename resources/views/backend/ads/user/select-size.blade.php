@@ -28,9 +28,9 @@
                             @endif
                         </div>
                         @php
-                            $previewScale = 0.7 + (0.3 * ($size['w'] / $maxWidth));
+                            $previewWidthPercent = ($size['w'] / $maxWidth) * 100;
                         @endphp
-                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: min(100%, {{ round($previewScale * 100, 2) }}%); margin-inline: auto;">
+                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: min(100%, {{ round($previewWidthPercent, 2) }}%); margin-inline: auto;">
                             <div class="ads-size-shape-inner">
                                 <span class="ads-size-dim">{{ $size['w'] }}×{{ $size['h'] }}</span>
                             </div>
