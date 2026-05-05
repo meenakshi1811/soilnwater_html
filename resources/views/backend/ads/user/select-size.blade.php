@@ -12,14 +12,11 @@
         </div>
     </div>
 
-    @php
-        $maxWidth = max(array_column($sizes, 'w'));
-    @endphp
 
     <div class="chart-card">
-        <div class="row g-3">
+        <div class="row g-4">
             @foreach($sizes as $sizeType => $size)
-                <div class="col-12 col-md-6 col-xl-4">
+                <div class="col-12 col-xl-6">
                     <a href="{{ route('ads.create.customize.default', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none">
                         <div class="d-flex justify-content-between align-items-center gap-2">
                             <div class="fw-semibold text-dark">{{ $size['name'] }}</div>
@@ -27,10 +24,7 @@
                                 <span class="badge text-bg-warning">Admin Placement</span>
                             @endif
                         </div>
-                        @php
-                            $previewScale = 0.7 + (0.3 * ($size['w'] / $maxWidth));
-                        @endphp
-                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: min(100%, {{ round($previewScale * 100, 2) }}%); margin-inline: auto;">
+                        <div class="ads-size-shape" style="aspect-ratio: {{ $size['ratio'] }}; width: 100%; margin-inline: auto;">
                             <div class="ads-size-shape-inner">
                                 <span class="ads-size-dim">{{ $size['w'] }}×{{ $size['h'] }}</span>
                             </div>
