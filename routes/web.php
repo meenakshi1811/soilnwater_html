@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\HomepageSettingController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TermsAndConditionController;
@@ -10,6 +11,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\OfferPageController;
 use App\Http\Controllers\Frontend\AdsMarketController;
+use App\Http\Controllers\Frontend\AdReportController;
+use App\Http\Controllers\Frontend\FrontendSearchController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ModuleAccessController;
@@ -19,6 +22,7 @@ use App\Http\Controllers\User\UserAdController;
 use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\AdSizeController;
+use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +31,8 @@ Route::get('/offers-market', [OfferPageController::class, 'index'])->name('front
 Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
 Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
 Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');
+Route::post('/ads-market/{ad}/report', [AdReportController::class, 'store'])->middleware(['auth', 'verified'])->name('frontend.ads.report');
+Route::get('/search', [FrontendSearchController::class, 'index'])->name('frontend.search');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
     $data = $request->validate([
@@ -129,6 +135,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('/{ad}/reject', [AdSubmissionController::class, 'reject'])->name('reject');
             });
 
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::get('/', [AdminAdReportController::class, 'index'])->name('index');
+                Route::get('/data', [AdminAdReportController::class, 'data'])->name('data');
+                Route::delete('/ad/{ad}', [AdminAdReportController::class, 'deleteAd'])->name('delete-ad');
+            });
+
             Route::prefix('sizes')->name('sizes.')->group(function () {
                 Route::get('/', [AdSizeController::class, 'index'])->name('index');
                 Route::get('/data', [AdSizeController::class, 'data'])->name('data');
@@ -175,6 +187,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{category}', [CategoryController::class, 'update'])->name('update');
             Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
         });
+
+        Route::get('/homepage-settings', [HomepageSettingController::class, 'edit'])->name('homepage-settings.edit');
+        Route::put('/homepage-settings', [HomepageSettingController::class, 'update'])->name('homepage-settings.update');
 
         Route::prefix('terms-and-conditions')->name('terms-and-conditions.')->group(function () {
             Route::get('/', [TermsAndConditionController::class, 'index'])->name('index');

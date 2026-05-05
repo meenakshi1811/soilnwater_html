@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\HomepageSetting;
 use App\Models\Offer;
 use App\Models\UserAd;
 use Illuminate\Contracts\View\View;
@@ -62,6 +63,8 @@ class OfferPageController extends Controller
             ->limit(20)
             ->get(['id', 'title', 'category_id', 'final_image', 'created_at']);
 
+        $homepageSetting = HomepageSetting::query()->first();
+
         return view('frontend.index', [
             'offers' => $offers,
             'topCategoriesSliderAds' => $frontPageAds->where('size_type', 'top_categories_ad_1')->values(),
@@ -80,6 +83,7 @@ class OfferPageController extends Controller
             'belowPopularAds' => $frontPageAds->where('size_type', 'below_popular_ad')->values(),
             'buildersDevelopersAds' => $frontPageAds->where('size_type', 'builders_developers_ad')->values(),
             'belowBuildersAds' => $frontPageAds->where('size_type', 'below_builders_ad')->values(),
+            'homepageSetting' => $homepageSetting,
         ]);
     }
 
@@ -142,6 +146,7 @@ class OfferPageController extends Controller
 
         $query = Offer::query()
             ->where('status', 'active')
+            ->when($request->filled('search'), fn (Builder $query) => $query->where('title', 'like', '%'.$request->string('search')->toString().'%'))
             ->when($request->filled('category_id'), fn (Builder $query) => $query->where('category_id', $request->integer('category_id')))
             ->when($request->filled('subcategory_id'), fn (Builder $query) => $query->where('subcategory_id', $request->integer('subcategory_id')))
             ->when($request->filled('validity'), function (Builder $query) use ($request): void {

@@ -26,6 +26,18 @@
 
             <p class="mb-2"><strong>Valid Upto:</strong> {{ $ad->valid_until?->format('d M Y') ?? 'N/A' }}</p>
             <p class="mb-0"><strong>Approved on:</strong> {{ $ad->reviewed_at?->format('d M Y') ?? 'N/A' }}</p>
+
+            <div class="mt-4 pt-3 border-top">
+                <button
+                    type="button"
+                    class="btn btn-outline-danger btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#adDetailReportModal"
+                >
+                    <i class="fa-regular fa-flag me-1"></i> Report this ad
+                </button>
+            </div>
+
         </div>
     </article>
 
@@ -46,5 +58,27 @@
             </div>
         </div>
     @endif
+</div>
+
+<div class="modal fade" id="adDetailReportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title h5 mb-0"><i class="fa-regular fa-flag me-1 text-danger"></i>Report this ad</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @auth
+                    <form method="POST" action="{{ route('frontend.ads.report', $ad) }}">
+                        @csrf
+                        <textarea name="reason" class="form-control mb-2" rows="3" placeholder="Enter reason" required></textarea>
+                        <button type="submit" class="btn btn-danger btn-sm">Submit Report</button>
+                    </form>
+                @else
+                    <p class="small text-muted mb-0">Please <a href="{{ route('login') }}">login</a> to report this ad.</p>
+                @endauth
+            </div>
+        </div>
+    </div>
 </div>
 @endsection

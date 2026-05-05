@@ -1,6 +1,19 @@
 @extends('frontend.layouts.app')
 
 @section('content')
+@php
+  $sectionToggles = data_get($homepageSetting ?? null, 'section_toggles', []);
+  $isEnabled = static fn (string $key): bool => data_get($sectionToggles, $key, true) !== false;
+  $showTopCategories = $isEnabled('top_categories');
+  $showSponsoredListings = $isEnabled('sponsored_listings');
+  $showTopFold = $showTopCategories || $showSponsoredListings;
+  $showRecentAds = $isEnabled('recent_ads');
+  $showOfferDiscount = $isEnabled('offer_discount');
+  $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
+  $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
+  $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
+@endphp
+
 <div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
 <div id="post-offer" class="visually-hidden" aria-hidden="true"></div>
 <!-- ══════════════════════════════════════════════════
@@ -10,10 +23,13 @@
   <div class="hero-stars">✦ ✦<br>✦</div>
   <div class="hero-content">
     <h1>Grow Your Business with a Professional Marketplace Presence</h1>
-    <button class="btn-yellow">Advertise Now</button>
+    <a href="{{ $heroButtonLink ?: "#" }}" class="btn-yellow">{{ $heroButtonText ?: "Advertise Now" }}</a>
   </div>
 
   <!-- SVG illustration: megaphone + shopping bags + coins -->
+  @if($heroBannerImage)
+    <div class="hero-illus"><img src="{{ asset($heroBannerImage) }}" alt="Hero banner" style="max-width:100%;height:auto;"></div>
+  @else
   <div class="hero-illus">
     <svg viewBox="0 0 380 160" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
       <!-- Ground grass strip -->
@@ -91,6 +107,8 @@
       <text x="356" y="72" font-size="10">🦋</text>
     </svg>
   </div>
+</div>
+  @endif
 </section>
 
 
@@ -100,17 +118,94 @@
 <div class="cat-bar">
   <div class="cat-scroller-wrap">
     <div class="cat-bar-inner" id="catScroller">
-      <div class="cat-item active"><div class="cat-icon"><i class="fa-solid fa-bullhorn cat-icon-i cat-ads"></i></div><span>ADS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-tags cat-icon-i cat-offers"></i></div><span>OFFERS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-cart-shopping cat-icon-i cat-ecommerce"></i></div><span>E-COMMERCE</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-store cat-icon-i cat-vendors"></i></div><span>VENDORS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-user-tie cat-icon-i cat-consultants"></i></div><span>CONSULTANTS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i></div><span>SERVICE PROVIDERS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-building cat-icon-i cat-builders"></i></div><span>BUILDER &amp; DEVELOPERS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-diagram-project cat-icon-i cat-projects"></i></div><span>PROJECTS</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-house-chimney cat-icon-i cat-properties"></i></div><span>PROPERTIES</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-hotel cat-icon-i cat-hotel"></i></div><span>HOTEL/HOMESTAY</span></div>
-      <div class="cat-item"><div class="cat-icon"><i class="fa-solid fa-circle-question cat-icon-i cat-enquiry"></i></div><span>ENQUIRY</span></div>
+      <a href="/ads-market">
+        <div class="cat-item active">
+          <div class="cat-icon">
+            <i class="fa-solid fa-bullhorn cat-icon-i cat-ads"></i>
+          </div>
+          <span>ADS</span>
+        </div>
+      </a>
+      <a href="/offers-market">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-tags cat-icon-i cat-offers"></i>
+          </div>
+          <span>OFFERS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-cart-shopping cat-icon-i cat-ecommerce"></i>
+          </div>
+          <span>E-COMMERCE</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-store cat-icon-i cat-vendors"></i>
+          </div>
+          <span>VENDORS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-user-tie cat-icon-i cat-consultants"></i>
+          </div>
+          <span>CONSULTANTS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i>
+          </div>
+          <span>SERVICE PROVIDERS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-building cat-icon-i cat-builders"></i>
+          </div>
+          <span>BUILDER &amp; DEVELOPERS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-diagram-project cat-icon-i cat-projects"></i>
+          </div>
+          <span>PROJECTS</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-house-chimney cat-icon-i cat-properties"></i>
+          </div>
+          <span>PROPERTIES</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-hotel cat-icon-i cat-hotel"></i>
+          </div>
+          <span>HOTEL/HOMESTAY</span>
+        </div>
+      </a>
+      <a href="">
+        <div class="cat-item">
+          <div class="cat-icon">
+            <i class="fa-solid fa-circle-question cat-icon-i cat-enquiry"></i>
+          </div>
+          <span>ENQUIRY</span>
+        </div>
+      </a>
     </div><!-- /cat-bar-inner -->
   </div>
 </div>
@@ -124,11 +219,12 @@
   <div class="main-col">
 
     <!-- Top fold layout: categories + listings with right sidebar ads -->
-    <div class="top-fold-layout">
+    <div class="top-fold-layout" data-home-section-group="top-fold">
       <div class="row g-3 align-items-start top-fold-upper">
       <div class="col-12 col-lg-9 top-fold-main">
+        @if($showTopCategories)
         <!-- Top Categories + Boost Ad -->
-        <div class="sec">
+        <div class="sec" data-home-section="top_categories">
           <div class="sec-head">
             <div class="sec-title"><i class="fa-solid fa-layer-group"></i> Top Categories</div>
             <a class="view-all" href="#">Learn More ▶</a>
@@ -153,9 +249,11 @@
             @endforelse
           </div>
         </div>
+        @endif
 
+        @if($showSponsoredListings)
         <!-- Sponsored Listings -->
-        <div class="sec">
+        <div class="sec" data-home-section="sponsored_listings">
           <div class="sec-head">
             <div class="sec-title"><span class="icon"><i class="fa-solid fa-bullhorn"></i></span> Sponsored Listings</div>
             <a class="view-all" href="#">VIEW ALL ▶</a>
@@ -199,10 +297,11 @@
             </div>
           </div>
         </div>
+        @endif
 
       </div>
 
-      <aside class="col-12 col-lg-3 top-sidebar-ads">
+      <aside class="col-12 col-lg-3 top-sidebar-ads" data-home-section="sponsored_listings">
         <div class="ad-slider auto-ad-slider business-side-slider">
           @forelse(($topSidebarSliderAds ?? collect()) as $ad)
             <div class="side-card ad-slide">
@@ -237,8 +336,9 @@
         </div>
       </aside>
       </div>
+    @endif
 
-      <div class="ad-slider auto-ad-slider top-ad-slider premium-wide-slider" aria-label="Premium marketplace campaign slider" data-show-arrows="true" data-pause-on-hover="false">
+      <div class="ad-slider auto-ad-slider top-ad-slider premium-wide-slider" data-home-section="sponsored_listings" aria-label="Premium marketplace campaign slider" data-show-arrows="true" data-pause-on-hover="false">
         @forelse(($belowSponsoredSliderAds ?? collect()) as $ad)
           <div class="ad-slide premium-marketplace-slide">
             <img
@@ -271,11 +371,12 @@
           </div>
         @endforelse
       </div>
+      @endif
 
       <div class="row g-3 align-items-stretch ecommerce-with-side-ad">
         <div class="col-12">
           <!-- E-Commerce Section -->
-          <div class="sec ecommerce-sec">
+          <div class="sec ecommerce-sec" data-home-section="ecommerce">
             <div class="sec-head">
               <div class="sec-title"><span class="icon"><i class="fa-solid fa-cart-shopping"></i></span> E-Commerce</div>
               <a class="view-all" href="#">VIEW ALL ▶</a>
@@ -369,7 +470,7 @@
     </div>
 
     <!-- Recent Ads Section -->
-    <div class="sec recent-ads-section">
+    <div class="sec recent-ads-section" data-home-section="recent_ads">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> Recent Ads</div>
         <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
@@ -408,9 +509,10 @@
         @endforelse
       </div>
     </div>
+    @endif
 
     <!-- Offer & Discount Section -->
-    <div class="sec promo-slider-section">
+    <div class="sec promo-slider-section" data-home-section="offer_discount">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-tags"></i></span> Offer &amp; Discount</div>
         <a class="view-all" href="{{ route('frontend.offers.index') }}">VIEW ALL ▶</a>
@@ -463,9 +565,7 @@
                             <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
                             <h4 class="h6 mb-1 offer-coupon-title">{{ $offer->title }}</h4>
                             <p class="small text-muted mb-2 offer-coupon-description">{{ $offer->short_description ?: 'Special marketplace offer available now.' }}</p>
-                            @if ($offer->coupon_code)
-                              <div class="coupon-code">{{ strtoupper($offer->coupon_code) }}</div>
-                            @endif
+                          
                           </div>
                         </article>
                       </div>
@@ -491,6 +591,7 @@
         </div>
       </div>
     </div>
+    @endif
 
 
 
@@ -574,7 +675,7 @@
     </div>
 
     <!-- Explore Products Near You (SSNY style) -->
-    <div class="sec explore-redesign">
+    <div class="sec explore-redesign" data-home-section="explore_products">
       <div class="sec-head">
         <div class="sec-title">Explore Products Near You</div>
         <a class="view-all" href="#">Learn More ▶</a>
@@ -619,7 +720,7 @@
     </div>
 
     <!-- Top Vendors + Properties with Right Ad Rail -->
-    <div class="content-with-ad-rail">
+    <div class="content-with-ad-rail" data-home-section="top_vendors">
       <div class="content-main-stack">
         <!-- Top Vendors -->
         <div class="sec">
@@ -712,7 +813,7 @@
         </div>
 
         <!-- Popular Properties Near Greenwood (Bootstrap redesign with large imagery + ads slider) -->
-        <section class="sec ppng-bootstrap-section">
+        <section class="sec ppng-bootstrap-section" data-home-section="popular_properties_near_greenwood">
           <div class="sec-head">
             <div class="sec-title"><span class="icon"><i class="fa-solid fa-map-location-dot"></i></span> Popular Properties Near Greenwood</div>
             <a class="view-all" href="#">Learn More ▶</a>
@@ -910,7 +1011,7 @@
 
 
     <!-- Builders & Developers + Side Ad -->
-    <div class="section-with-side-ad builders-section-with-side-ad row g-3 align-items-start">
+    <div class="section-with-side-ad builders-section-with-side-ad row g-3 align-items-start" data-home-section="builders_developers">
       <div class="col-12 col-lg-9">
         <div class="sec builders-developers-sec">
           <div class="sec-head">
@@ -994,7 +1095,7 @@
     </div>
 
     <!-- Popular Services / Properties -->
-    <div class="sec">
+    <div class="sec" data-home-section="popular_services">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-house"></i></span> Popular Services</div>
         <a class="view-all" href="#">VIEW ALL ▶</a>
@@ -1039,7 +1140,7 @@
     </div>
 
     <!-- Consultants & Enquiry -->
-    <div class="sec">
+    <div class="sec" data-home-section="consultants_enquiry">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Consultants &amp; Enquiry</div>
         <a class="view-all" href="#">POST YOUR QUERY ▶</a>
@@ -1120,6 +1221,27 @@
     <div class="trust-item"><span class="trust-icon"><i class="fa-solid fa-lock"></i></span> Secure Payments</div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const toggles = @json($sectionToggles);
+
+  Object.entries(toggles || {}).forEach(([key, enabled]) => {
+    if (enabled === false) {
+      document.querySelectorAll(`[data-home-section="${key}"]`).forEach((el) => {
+        el.style.display = 'none';
+      });
+    }
+  });
+
+  if (toggles?.top_categories === false && toggles?.sponsored_listings === false) {
+    document.querySelectorAll('[data-home-section-group="top-fold"]').forEach((el) => {
+      el.style.display = 'none';
+    });
+  }
+});
+</script>
+
 @endsection
 
 @push('styles')
@@ -1148,6 +1270,27 @@
     object-position: center;
     background: #f5f9ff;
     padding: 0;
+  }
+  .offer-coupon-wrap .offer-coupon-image-wrap {
+    border: 0;
+    background: transparent;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+  }
+  .offer-coupon-wrap .offer-coupon-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    background: transparent;
+  }
+  .offer-coupon-wrap .offer-coupon-card {
+    padding: 0;
+  }
+  .offer-coupon-wrap .offer-coupon-card .card-body {
+    padding: .7rem .9rem .85rem;
   }
 </style>
 @endpush

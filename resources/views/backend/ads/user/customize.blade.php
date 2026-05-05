@@ -132,6 +132,20 @@
                         @endif
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Valid Upto <span class="text-danger">*</span></label>
+                        <input
+                            type="date"
+                            name="valid_until"
+                            class="form-control {{ $errors->has('valid_until') ? 'is-invalid' : '' }}"
+                            value="{{ old('valid_until') }}"
+                            min="{{ now()->toDateString() }}"
+                        >
+                        @if($errors->has('valid_until'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('valid_until') }}</div>
+                        @endif
+                    </div>
+
                     <div class="ads-fields">
                         <p class="small text-secondary mb-2">Fully customize the ad directly in live preview: add text, upload images, drag/drop, and style your content.</p>
                         <div class="d-flex flex-wrap gap-2">

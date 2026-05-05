@@ -30,15 +30,17 @@
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = (float) ($category->ads_price ?? 0) @endphp
-                            <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }} ({{ $categoryPrice > 0 ? 'Paid' : 'Free' }})</option>
+                            <option value="{{ $category->id }}" data-ads-price="{{ number_format($categoryPrice, 2, '.', '') }}">{{ $category->name }}</option>
                         @endforeach
                     </select>
+                    <div id="categoryPricingChip" class="ads-pricing-chip ads-pricing-chip--paid d-none" aria-live="polite"></div>
                 </div>
                 <div class="col-md-6">
                     <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <select name="subcategory_id" id="subcategorySelect" class="form-select" disabled required>
                         <option value="">— Select a category first —</option>
                     </select>
+                    <div id="subcategoryPricingChip" class="ads-pricing-chip ads-pricing-chip--paid d-none" aria-live="polite"></div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -48,7 +50,10 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Valid Upto <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <input type="date" name="valid_until" class="form-control" value="{{ old('valid_until') }}" min="{{ now()->toDateString() }}" required>
+                    <input type="date" name="valid_until" class="form-control @error('valid_until') is-invalid @enderror" value="{{ old('valid_until') }}" min="{{ now()->toDateString() }}" required>
+                    @error('valid_until')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
@@ -107,27 +112,6 @@
                 </div> --}}
             </div>
 
-            <div class="modal fade" id="adImageCropModal" tabindex="-1" aria-labelledby="adImageCropModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="adImageCropModalLabel">Crop Ad Image</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p class="text-secondary small mb-2">Adjust the crop area to match {{ $size['w'] }} × {{ $size['h'] }} px aspect ratio.</p>
-                            <div class="border rounded bg-light position-relative overflow-hidden d-flex align-items-center justify-content-center" style="height:60vh;max-height:60vh;min-height:320px;">
-                                <img id="adCropImage" src="#" alt="Crop preview" class="mw-100 mh-100 d-block" style="max-height:58vh;user-select:none;" draggable="false">
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" id="adCropSaveBtn">Save Crop</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div id="customizeWrap" class="mb-3 d-none">
                 <div class="customize-panel-header mb-3">
                     <h6 class="mb-1">Customize Ad Studio</h6>
@@ -165,7 +149,7 @@
                         <label class="form-label">Layer Text</label>
                         <textarea id="layerTextInput" class="form-control ps-3" rows="2" maxlength="120" placeholder="Edit selected text block"></textarea>
                         <small class="text-secondary d-inline-block mt-1"><span id="layerTextCharCount">0</span>/120</small>
-                    </div>
+                    </div> 
                     <div class="col-12">
                         <div class="small text-uppercase fw-semibold text-secondary border-bottom pb-2 mb-1 mt-2">Text Styling</div>
                     </div>
@@ -270,10 +254,37 @@
 </div>
 @endsection
 
-@push('scripts')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
+@push('styles')
+<style>
+    .ads-pricing-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        margin-top: .55rem;
+        padding: .38rem .72rem;
+        border-radius: 999px;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .01em;
+        border: 1px solid transparent;
+        transition: all .2s ease;
+    }
+    .ads-pricing-chip i { font-size: .8rem; }
+    .ads-pricing-chip--free {
+        background: #ecfdf3;
+        border-color: #a7f3d0;
+        color: #047857;
+    }
+    .ads-pricing-chip--paid {
+        background: #fff7ed;
+        border-color: #fed7aa;
+        color: #b45309;
+    }
+</style>
+@endpush
+
+@push('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -289,6 +300,14 @@ const addAdImageInput = document.getElementById('uploadImageInput');
     const dropzonePlaceholder = document.getElementById('adDropzonePlaceholder');
 
 if (addAdImageInput && addAdImageError) {
+    const requiredWidth = Number(addAdImageInput.dataset.requiredWidth || 0);
+    const requiredHeight = Number(addAdImageInput.dataset.requiredHeight || 0);
+
+    const showImageSizeError = (message) => {
+        addAdImageError.textContent = message;
+        addAdImageError.style.display = 'block';
+    };
+
     const clearImageSizeError = () => {
         addAdImageError.textContent = '';
         addAdImageError.style.display = 'none';
@@ -306,13 +325,28 @@ if (addAdImageInput && addAdImageError) {
         const objectUrl = URL.createObjectURL(file);
 
         img.onload = function () {
+            const isExactSize = img.naturalWidth === requiredWidth && img.naturalHeight === requiredHeight;
             URL.revokeObjectURL(objectUrl);
+
+            if (!isExactSize) {
+                showImageSizeError(`Invalid image size. Required size is exactly ${requiredWidth}×${requiredHeight} pixels.`);
+                addAdImageInput.value = '';
+                if (dropzonePreview) {
+                    dropzonePreview.setAttribute('src', '#');
+                }
+                if (dropzonePreviewWrap) {
+                    dropzonePreviewWrap.classList.add('d-none');
+                }
+                if (dropzonePlaceholder) {
+                    dropzonePlaceholder.classList.remove('d-none');
+                }
+                // alert(`Please upload a new image with exact size ${requiredWidth}×${requiredHeight}px.`);
+            }
         };
 
         img.onerror = function () {
             URL.revokeObjectURL(objectUrl);
-            addAdImageError.textContent = 'Unable to read this image. Please upload a valid image file.';
-            addAdImageError.style.display = 'block';
+            showImageSizeError('Unable to read this image. Please upload a valid image file.');
             addAdImageInput.value = '';
         };
 
@@ -421,6 +455,8 @@ function pushScreenshotToServer(dataURL) {
         const categorySelect = document.getElementById('categorySelect');
         const subcategorySelect = document.getElementById('subcategorySelect');
         const submitButton = document.getElementById('adSubmitButton');
+        const categoryPricingChip = document.getElementById('categoryPricingChip');
+        const subcategoryPricingChip = document.getElementById('subcategoryPricingChip');
         const adImageInputType = document.getElementById('adImageInputType');
         const adBgColorInput = document.getElementById('adBgColorInput');
         const adBgImageInput = document.getElementById('adBgImageInput');
@@ -435,9 +471,6 @@ function pushScreenshotToServer(dataURL) {
         const layerImageWidthInput = document.getElementById('layerImageWidthInput');
         const layerImageHeightInput = document.getElementById('layerImageHeightInput');
         const layerImageScaleInput = document.getElementById('layerImageScaleInput');
-        const adCropModalElement = document.getElementById('adImageCropModal');
-        const adCropImage = document.getElementById('adCropImage');
-        const adCropSaveBtn = document.getElementById('adCropSaveBtn');
 
         const sizeW = Number(previewFrame?.dataset.sourceWidth || 0);
         const sizeH = Number(previewFrame?.dataset.sourceHeight || 0);
@@ -446,9 +479,6 @@ function pushScreenshotToServer(dataURL) {
         let uploadedImageFile = null;
         let uploadedImagePositionX = 50;
         let uploadedImagePositionY = 50;
-        let uploadedImageObjectUrl = '';
-        let cropper = null;
-        const adCropModal = (window.bootstrap && adCropModalElement) ? new bootstrap.Modal(adCropModalElement) : null;
 
         function toast(type, message) {
             const normalizedType = type === 'danger' ? 'error' : type;
@@ -509,6 +539,31 @@ function pushScreenshotToServer(dataURL) {
         }
 
 
+        
+        function updatePricingChip(element, price, hasSelection = true) {
+            if (!element) return;
+            const isPaid = hasSelection && Number(price || 0) > 0;
+            element.classList.toggle('d-none', !isPaid);
+
+            if (!isPaid) {
+                element.innerHTML = '';
+                return;
+            }
+
+            element.classList.add('ads-pricing-chip--paid');
+            element.classList.remove('ads-pricing-chip--free');
+            element.innerHTML = `<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹${Number(price).toFixed(2)}`;
+        }
+
+        function refreshPricingChips() {
+            const categoryOption = categorySelect?.selectedOptions?.[0];
+            const subcategoryOption = subcategorySelect?.selectedOptions?.[0];
+            const categoryPrice = Number(categoryOption?.dataset?.adsPrice || 0);
+            const subcategoryPrice = Number(subcategoryOption?.dataset?.adsPrice || 0);
+            updatePricingChip(categoryPricingChip, categoryPrice, Boolean(categoryOption?.value));
+            updatePricingChip(subcategoryPricingChip, subcategoryPrice, Boolean(subcategoryOption?.value));
+        }
+
         function getSelectedPrice() {
             const categoryPrice = Number(categorySelect?.selectedOptions?.[0]?.dataset?.adsPrice || 0);
             const subcategoryPrice = Number(subcategorySelect?.selectedOptions?.[0]?.dataset?.adsPrice || 0);
@@ -519,6 +574,7 @@ function pushScreenshotToServer(dataURL) {
             if (!submitButton) return;
             const selectedPrice = getSelectedPrice();
             submitButton.textContent = selectedPrice > 0 ? 'Process Payment' : 'Save Ad';
+            refreshPricingChips();
         }
 
 
@@ -536,6 +592,7 @@ function pushScreenshotToServer(dataURL) {
             }
 
             updateSubmitButtonState();
+            refreshPricingChips();
         }
 
         function setMode(mode) {
@@ -571,35 +628,6 @@ function pushScreenshotToServer(dataURL) {
             const uploadedPreviewImage = preview.querySelector('img[data-upload-image="1"]');
             if (!uploadedPreviewImage) return;
             uploadedPreviewImage.style.objectPosition = `${uploadedImagePositionX}% ${uploadedImagePositionY}%`;
-        }
-
-        function destroyCropper() {
-            if (cropper && typeof cropper.destroy === 'function') {
-                cropper.destroy();
-            }
-            cropper = null;
-        }
-
-        function applyUploadedImageToPreview(src) {
-            if (!src || !preview) return;
-            preview.innerHTML = '';
-            preview.style.backgroundImage = 'none';
-            preview.style.backgroundColor = '#f7f7f7';
-
-            const img = document.createElement('img');
-            img.src = src;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            img.setAttribute('data-upload-image', '1');
-            uploadedImagePositionX = 50;
-            uploadedImagePositionY = 50;
-            if (uploadImagePosX) uploadImagePosX.value = '50';
-            if (uploadImagePosY) uploadImagePosY.value = '50';
-            preview.appendChild(img);
-            updateUploadedImagePosition();
-            canvasWrap.classList.remove('d-none');
-            uploadImagePositionControls?.classList.remove('d-none');
         }
 
         function isTextLayer(node) {
@@ -859,20 +887,60 @@ function pushScreenshotToServer(dataURL) {
             const objectUrl = URL.createObjectURL(file);
             const dimensionProbe = new Image();
             dimensionProbe.onload = () => {
+                const isExactSize = dimensionProbe.naturalWidth === requiredWidth && dimensionProbe.naturalHeight === requiredHeight;
                 console.log('[AdUpload] Selected image dimensions:', dimensionProbe.naturalWidth + 'x' + dimensionProbe.naturalHeight);
-                uploadedImageFile = file;
-                if (uploadedImageObjectUrl) URL.revokeObjectURL(uploadedImageObjectUrl);
-                uploadedImageObjectUrl = objectUrl;
-
-                if (!adCropModal || !adCropImage || !window.Cropper) {
-                    console.log('[AdUpload] Crop modal unavailable; using direct preview render.');
-                    applyUploadedImageToPreview(uploadedImageObjectUrl);
+                if (!isExactSize) {
+                    if (adImageError) {
+                        adImageError.textContent = `Invalid image size. Please upload exact ${requiredWidth}×${requiredHeight}px image.`;
+                        adImageError.style.display = 'block';
+                    }
+                    uploadInput.value = '';
+                    uploadedImageFile = null;
+                    URL.revokeObjectURL(objectUrl);
+                    if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
+                        dropzonePreview.src = '#';
+                        dropzonePreviewWrap.classList.add('d-none');
+                        dropzonePlaceholder.classList.remove('d-none');
+                    }
+                    preview.innerHTML = '';
+                    preview.style.backgroundImage = 'none';
+                    preview.style.backgroundColor = '#f7f7f7';
+                    canvasWrap.classList.add('d-none');
+                    uploadedImagePositionX = 50;
+                    uploadedImagePositionY = 50;
+                    if (uploadImagePosX) uploadImagePosX.value = '50';
+                    if (uploadImagePosY) uploadImagePosY.value = '50';
+                    uploadImagePositionControls?.classList.add('d-none');
+                    console.warn('[AdUpload] Invalid image size, showing inline error and resetting selection.');
                     return;
                 }
 
-                adCropImage.removeAttribute('srcset');
-                adCropImage.src = uploadedImageObjectUrl;
-                adCropModal.show();
+                console.log('[AdUpload] Valid image size. Rendering preview.');
+                uploadedImageFile = file;
+                if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
+                    dropzonePreview.src = objectUrl;
+                    dropzonePreviewWrap.classList.remove('d-none');
+                    dropzonePlaceholder.classList.add('d-none');
+                }
+
+                preview.innerHTML = '';
+                preview.style.backgroundImage = 'none';
+                preview.style.backgroundColor = '#f7f7f7';
+                const img = document.createElement('img');
+                img.src = objectUrl;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.setAttribute('data-upload-image', '1');
+                uploadedImagePositionX = 50;
+                uploadedImagePositionY = 50;
+                if (uploadImagePosX) uploadImagePosX.value = '50';
+                if (uploadImagePosY) uploadImagePosY.value = '50';
+                updateUploadedImagePosition();
+                preview.appendChild(img);
+                canvasWrap.classList.remove('d-none');
+                uploadImagePositionControls?.classList.remove('d-none');
+                console.log('[AdUpload] Preview render complete.');
             };
             dimensionProbe.onerror = () => {
                 URL.revokeObjectURL(objectUrl);
@@ -885,90 +953,6 @@ function pushScreenshotToServer(dataURL) {
                 }
             };
             dimensionProbe.src = objectUrl;
-        });
-
-        adCropModalElement?.addEventListener('shown.bs.modal', function () {
-            if (!adCropImage?.src || !window.Cropper) return;
-            const initCropper = () => {
-                destroyCropper();
-                cropper = new window.Cropper(adCropImage, {
-                    aspectRatio: sizeW > 0 && sizeH > 0 ? (sizeW / sizeH) : NaN,
-                    viewMode: 1,
-                    dragMode: 'move',
-                    autoCropArea: 1,
-                    responsive: true,
-                    background: false,
-                    cropBoxMovable: false,
-                    cropBoxResizable: false,
-                    zoomable: true,
-                    zoomOnWheel: false,
-                    toggleDragModeOnDblclick: false,
-                    ready() {
-                        if (!cropper) return;
-                        const containerData = cropper.getContainerData();
-                        const imageData = cropper.getImageData();
-                        const targetRatio = sizeW > 0 && sizeH > 0 ? (sizeW / sizeH) : (containerData.width / containerData.height);
-
-                        let cropBoxWidth = containerData.width * 0.85;
-                        let cropBoxHeight = cropBoxWidth / targetRatio;
-
-                        if (cropBoxHeight > containerData.height * 0.85) {
-                            cropBoxHeight = containerData.height * 0.85;
-                            cropBoxWidth = cropBoxHeight * targetRatio;
-                        }
-
-                        const cropBoxLeft = (containerData.width - cropBoxWidth) / 2;
-                        const cropBoxTop = (containerData.height - cropBoxHeight) / 2;
-
-                        cropper.setCropBoxData({
-                            left: cropBoxLeft,
-                            top: cropBoxTop,
-                            width: cropBoxWidth,
-                            height: cropBoxHeight
-                        });
-
-                        const targetScale = Math.max(
-                            cropBoxWidth / (imageData.naturalWidth || 1),
-                            cropBoxHeight / (imageData.naturalHeight || 1)
-                        );
-
-                        cropper.zoomTo(targetScale);
-                    }
-                });
-            };
-
-            if (adCropImage.complete && adCropImage.naturalWidth > 0) {
-                initCropper();
-                return;
-            }
-
-            adCropImage.onload = () => initCropper();
-        });
-
-        adCropModalElement?.addEventListener('hidden.bs.modal', function () {
-            destroyCropper();
-        });
-
-        adCropSaveBtn?.addEventListener('click', function () {
-            if (!cropper) return;
-            const croppedCanvas = cropper.getCroppedCanvas({
-                width: sizeW || undefined,
-                height: sizeH || undefined,
-                imageSmoothingEnabled: true,
-                imageSmoothingQuality: 'high'
-            });
-            if (!croppedCanvas) return;
-            const croppedDataUrl = croppedCanvas.toDataURL('image/png');
-
-            if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
-                dropzonePreview.src = croppedDataUrl;
-                dropzonePreviewWrap.classList.remove('d-none');
-                dropzonePlaceholder.classList.add('d-none');
-            }
-
-            applyUploadedImageToPreview(croppedDataUrl);
-            adCropModal?.hide();
-            console.log('[AdUpload] Crop saved and preview updated.');
         });
 
         uploadImagePosX?.addEventListener('input', function () {
@@ -1219,17 +1203,18 @@ function pushScreenshotToServer(dataURL) {
             const options = ['<option value="">— Select subcategory —</option>'];
             (Array.isArray(data) ? data : []).forEach((item) => {
                 const adsPrice = Number(item.ads_price || 0);
-                const priceLabel = adsPrice > 0 ? 'Paid' : 'Free';
-                options.push(`<option value=\"${item.id}\" data-ads-price=\"${adsPrice.toFixed(2)}\">${item.name} (${priceLabel})</option>`);
+                options.push(`<option value=\"${item.id}\" data-ads-price=\"${adsPrice.toFixed(2)}\">${item.name}</option>`);
             });
             subcategorySelect.innerHTML = options.join('');
             subcategorySelect.disabled = false;
             updateSubmitButtonState();
+            refreshPricingChips();
         }
 
         categorySelect?.addEventListener('change', function () {
             loadSubcategories(this.value);
             updateSubmitButtonState();
+            refreshPricingChips();
         });
         subcategorySelect?.addEventListener('change', updateSubmitButtonState);
         updateSubmitButtonState();
