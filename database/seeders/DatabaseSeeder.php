@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(ModulePermissionSeeder::class);
         $this->call(AdSizeSeeder::class);
+        $this->call(AdminOnlyAdSizeSeeder::class);
         $this->call(AdTemplateSeeder::class);
 
         // User::factory(10)->create();
