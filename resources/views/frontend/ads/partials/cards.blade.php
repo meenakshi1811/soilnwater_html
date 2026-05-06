@@ -51,6 +51,7 @@
             data-ad-url="{{ route('frontend.ads.show', $ad) }}"
             data-ad-id="{{ $ad->id }}"
         >
+            <h3 class="ad-title">{{ $ad->title }}</h3>
             <div class="ad-image">
                 @if ($ad->final_image)
                     <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" loading="lazy">
@@ -182,7 +183,7 @@
 
             if (imgBox) {
                 imgBox.style.width = '100%';
-                imgBox.style.height = '100%';
+                imgBox.style.height = 'calc(100% - 50px)';
             }
 
             placed.push({
