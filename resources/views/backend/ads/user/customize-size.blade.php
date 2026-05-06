@@ -55,6 +55,15 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+                @if(auth()->user()?->isStaff())
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Is Sponsored</label>
+                    <select name="is_sponsored" class="form-select">
+                        <option value="0" {{ old('is_sponsored', '0') === '0' ? 'selected' : '' }}>No</option>
+                        <option value="1" {{ old('is_sponsored') === '1' ? 'selected' : '' }}>Yes</option>
+                    </select>
+                </div>
+                @endif
             </div>
 
             <label class="form-label fw-semibold required-label">
