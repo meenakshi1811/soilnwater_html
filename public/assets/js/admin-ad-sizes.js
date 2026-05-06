@@ -20,10 +20,12 @@
                     { data: 'size_key', name: 'size_key' },
                     { data: 'dimensions', name: 'dimensions', orderable: false, searchable: false },
                     { data: 'placement', name: 'placement', orderable: false, searchable: false },
+                    { data: 'paid_status', name: 'paid_status', orderable: false, searchable: false },
+                    { data: 'amount_display', name: 'amount_display', orderable: false, searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[4, 'desc']]
+                order: [[6, 'desc']]
             });
         },
 
@@ -33,6 +35,18 @@
             $('#adSizeForm').find('input[name="_method"]').remove();
             $('#adSizeForm').find('.is-invalid').removeClass('is-invalid');
             $('#adSizeForm').find('span.ajax-error, span.invalid-feedback').remove();
+            $('#adSizeAmountWrap').hide();
+            $('#adSizeAmount').prop('required', false);
+        },
+
+
+        toggleAmountField: function () {
+            var isPaid = $('#adSizeIsPaid').is(':checked');
+            $('#adSizeAmountWrap').toggle(isPaid);
+            $('#adSizeAmount').prop('required', isPaid);
+            if (!isPaid) {
+                $('#adSizeAmount').val('');
+            }
         },
 
         bindUi: function () {
@@ -44,6 +58,7 @@
                 $('#adSizeModalTitle').text('Add Ad Size');
                 self.resetForm();
                 $('#adSizeForm').attr('action', '/admin/ads/sizes').attr('method', 'POST');
+                self.toggleAmountField();
                 self.modal.show();
             });
 
@@ -68,11 +83,18 @@
                     $('#adSizeWidth').val(size.width || '');
                     $('#adSizeHeight').val(size.height || '');
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
+                    $('#adSizeIsPaid').prop('checked', !!size.is_paid);
+                    $('#adSizeAmount').val(size.amount || '');
+                    self.toggleAmountField();
                     $('#adSizeForm').attr('action', '/admin/ads/sizes/' + id).attr('method', 'POST');
                     self.modal.show();
                 }).fail(function () {
                     FormHelper.showToast('danger', 'Unable to load ad size details.');
                 });
+            });
+
+            $('#adSizeIsPaid').on('change', function () {
+                self.toggleAmountField();
             });
 
             $(document).on('click', '.js-delete-ad-size', function () {
@@ -202,7 +224,16 @@
                         name: { required: true, maxlength: 120 },
                         size_key: { required: true, maxlength: 60, sizeKeyFormat: true },
                         width: { required: true, min: 1, max: 5000 },
-                        height: { required: true, min: 1, max: 5000 }
+                        height: { required: true, min: 1, max: 5000 },
+                        amount: {
+                            required: {
+                                depends: function () {
+                                    return $('#adSizeIsPaid').is(':checked');
+                                }
+                            },
+                            number: true,
+                            min: 0
+                        }
                     }
                 });
             }
