@@ -515,7 +515,7 @@ class UserAdController extends Controller
         }
 
         if ((bool) ($size['is_paid'] ?? false) === true && ! (bool) ($user?->isAdmin())) {
-            return $this->userHasPaidForSize($sizeType);
+            return false;
         }
 
         return true;
@@ -528,12 +528,10 @@ class UserAdController extends Controller
 
     private function paidSizeAccessMap($user): array
     {
-        $paidSizes = Session::get('ads_paid_sizes', []);
-
         return collect(AdSizes::visibleFor($user))
-            ->mapWithKeys(function (array $size, string $type) use ($user, $paidSizes) {
+            ->mapWithKeys(function (array $size, string $type) use ($user) {
                 $isPaid = (bool) ($size['is_paid'] ?? false);
-                $hasAccess = ! $isPaid || (bool) ($user?->isAdmin()) || in_array($type, $paidSizes, true);
+                $hasAccess = ! $isPaid || (bool) ($user?->isAdmin());
 
                 return [$type => $hasAccess];
             })->all();
