@@ -47,10 +47,19 @@
 .ad-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
 }
 
+
+.ad-card.db-sized {
+    box-sizing: content-box;
+}
+
+.ad-card.db-sized .ad-image {
+    width: 100%;
+    height: 100%;
+}
 /* Full-width banners */
 .ads-full-width .banner .ad-image {
     aspect-ratio: 1191 / 229;
