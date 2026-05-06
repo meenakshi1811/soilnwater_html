@@ -20,19 +20,19 @@
     border: 1px solid #e2eaf5;
 }
 
-.ad-card h3 {
-    font-size: 16px;
-    color: #002f6c;
-    margin-bottom: 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+ .ad-card h3 {
+    display: none;
 }
 
-.ad-card.filler h3 {
+ .ad-card.filler h3 {
+    display: block;
     font-size: 13px;
     color: #7f8da0;
     margin-bottom: 8px;
+}
+
+.ad-card:not(.filler) {
+    padding: 0;
 }
 
 .ad-image {
