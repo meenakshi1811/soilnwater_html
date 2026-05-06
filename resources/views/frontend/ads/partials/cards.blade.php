@@ -68,7 +68,7 @@
 <div id="adsLayout" class="ads-layout"></div>
 
 <script>
-(function () {
+window.renderAdsMarketCards = function () {
     const GAP = 26;
 
     const FILLER_POOL = @json($sponsoredFillers);
@@ -312,7 +312,7 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', buildLayout);
+    buildLayout();
 
     let resizeTimer = null;
 
@@ -320,5 +320,5 @@
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(buildLayout, 250);
     });
-})();
+};
 </script>
