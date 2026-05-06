@@ -2903,6 +2903,8 @@
 }
 
 .ad-card {
+    display: flex;
+    flex-direction: column;
     background: #fff;
     border-radius: 18px;
     overflow: hidden;
@@ -2926,6 +2928,8 @@
 
 .ad-title {
     margin: 0;
+    display: block;
+    width: 100%;
     padding: 12px 14px 10px;
     font-size: 15px;
     font-weight: 700;
