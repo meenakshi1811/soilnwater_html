@@ -156,6 +156,7 @@ class AdsMarketController extends Controller
                 'w' => $size['w'],
                 'h' => $size['h'],
                 'label' => 'Sponsored',
+                'title' => $picked?->title,
                 'image' => $picked?->final_image ? asset($picked->final_image) : null,
                 'url' => $picked ? route('frontend.ads.show', $picked) : null,
             ];

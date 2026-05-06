@@ -97,12 +97,17 @@
             ? `<img src="${item.image}" alt="${item.label}" loading="lazy" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;filler-placeholder&quot;></div>';">`
             : `<div class="filler-placeholder"></div>`;
 
+        const adTitleHtml = item.title
+            ? `<span class="filler-title">${item.title}</span>`
+            : '';
+
         const imageBlock = item.url
             ? `<a href="${item.url}" class="d-block w-100 h-100">${imageHtml}</a>`
             : imageHtml;
 
         card.innerHTML = `
             <span class="filler-label">${item.label}</span>
+            ${adTitleHtml}
             <div class="ad-image">${imageBlock}</div>
         `;
 
