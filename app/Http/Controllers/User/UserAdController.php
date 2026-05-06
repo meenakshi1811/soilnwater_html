@@ -183,13 +183,9 @@ class UserAdController extends Controller
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize($request->user(), $sizeType), 404);
 
-        $templateId = AdTemplate::query()
-            ->where('size_type', $sizeType)
-            ->where('is_active', true)
-            ->latest('id')
-            ->value('id');
+       
 
-        abort_if(! $templateId, 404, 'No active template found for this size.');
+        // abort_if(! $templateId, 404, 'No active template found for this size.');
 
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
@@ -263,7 +259,7 @@ class UserAdController extends Controller
 
             return UserAd::create([
                 'user_id' => $user->id,
-                'ad_template_id' => $templateId,
+                'ad_template_id' => null,
                 'size_type' => $sizeType,
                 'title' => $validated['title'],
                 'category_id' => $validated['category_id'],
