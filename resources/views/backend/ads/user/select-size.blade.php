@@ -24,7 +24,7 @@
                     $hasPaidAccess = (bool) ($paidSizeAccess[$sizeType] ?? false);
                 @endphp
                 <div class="col-12 col-md-6 col-xl-4">
-                    <a href="{{ route('ads.create.customize.default', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none {{ $isPaid && ! $hasPaidAccess ? 'js-paid-size-card' : '' }}" data-size-type="{{ $sizeType }}" data-size-name="{{ $size['name'] }}" data-size-amount="{{ (float) ($size['amount'] ?? 0) }}" data-size-paid="{{ $isPaid ? '1' : '0' }}" data-size-unlocked="{{ $hasPaidAccess ? '1' : '0' }}">
+                    <a href="{{ route('ads.create.customize.default', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none {{ $isPaid ? 'js-paid-size-card' : '' }}" data-size-type="{{ $sizeType }}" data-size-name="{{ $size['name'] }}" data-size-amount="{{ (float) ($size['amount'] ?? 0) }}" data-size-paid="{{ $isPaid ? '1' : '0' }}" data-size-unlocked="{{ $hasPaidAccess ? '1' : '0' }}">
                         <div class="d-flex justify-content-between align-items-center gap-2">
                             <div class="fw-semibold text-dark">{{ $size['name'] }}</div>
                             <div class="d-flex gap-2">
@@ -58,18 +58,30 @@
 
 <div class="modal fade" id="sizePaymentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Unlock paid ad size</h5>
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <span class="badge rounded-pill text-bg-warning px-3 py-2"><i class="fa-solid fa-crown me-1"></i>Premium Size</span>
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <p class="mb-2">Size: <strong id="paymentSizeName">-</strong></p>
-                <p class="mb-0">Amount: <strong id="paymentSizeAmount">₹0.00</strong></p>
+            <div class="modal-body pt-2">
+                <h4 class="fw-semibold mb-3">Unlock paid ad size</h4>
+                <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid #e2e8f0;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary">Selected Size</span>
+                        <strong id="paymentSizeName">-</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary">Unlock Fee</span>
+                        <strong class="text-dark" id="paymentSizeAmount">₹0.00</strong>
+                    </div>
+                </div>
+                <p class="small text-secondary mt-3 mb-0">Payment is temporarily disabled. You can review the amount now and continue once payment is enabled.</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmSizePaymentBtn" disabled aria-disabled="true" title="Payment is temporarily disabled">Pay now (Disabled)</button>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary px-4" id="confirmSizePaymentBtn" disabled aria-disabled="true" title="Payment is temporarily disabled">Pay now</button>
             </div>
         </div>
     </div>
@@ -91,11 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     paidCards.forEach((card) => {
         card.addEventListener('click', function (event) {
-            if (card.dataset.sizeUnlocked === '1') {
-                return;
-            }
-
-            event.preventDefault();
+event.preventDefault();
             selectedSizeType = card.dataset.sizeType || '';
             sizeNameEl.textContent = card.dataset.sizeName || '-';
             const amount = Number(card.dataset.sizeAmount || 0);
@@ -104,9 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    confirmBtn.addEventListener('click', function () {
-        alert('Payment is temporarily disabled. Please try again later.');
-    });
+
 });
 </script>
 @endpush
