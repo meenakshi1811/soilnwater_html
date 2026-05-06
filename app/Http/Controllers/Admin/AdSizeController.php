@@ -31,7 +31,7 @@ class AdSizeController extends Controller
                 ? '<span class="badge text-bg-primary">Paid</span>'
                 : '<span class="badge text-bg-secondary">Free</span>')
             ->addColumn('amount_display', fn (AdSize $size) => $size->is_paid
-                ? '$'.number_format((float) ($size->amount ?? 0), 2)
+                ? '₹'.number_format((float) ($size->amount ?? 0), 2)
                 : '-')
             ->editColumn('created_at', fn (AdSize $size) => $size->created_at?->format('Y-m-d') ?? '-')
             ->addColumn('actions', function (AdSize $size): string {
