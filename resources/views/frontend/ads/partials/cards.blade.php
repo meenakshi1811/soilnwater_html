@@ -1,136 +1,213 @@
 <style>
-.adx-wrapper {
-    width: 100%;
-    padding: 20px 30px;
-    box-sizing: border-box;
-}
-
-.adx-grid {
+.ads-layout {
     width: 100%;
 }
 
-.adx-item {
-    margin-bottom: 12px;
+.normal-ads-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 18px;
 }
 
-.adx-card {
+.ad-card {
     background: #fff;
-    border-radius: 16px;
+    border-radius: 18px;
+    padding: 14px;
     overflow: hidden;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2eaf5;
 }
 
-.adx-title {
-    font-size: 15px;
-    font-weight: 600;
-    padding: 12px 14px;
-    color: #052b60;
-}
-
-.adx-image-box {
-    padding: 0 14px 14px;
-}
-
-.adx-image-inner {
-    background: #f5f5f5;
-    border-radius: 12px;
+.ad-card h3 {
+    font-size: 16px;
+    color: #002f6c;
+    margin-bottom: 10px;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.adx-img {
+.ad-card.filler h3 {
+    font-size: 13px;
+    color: #7f8da0;
+    margin-bottom: 8px;
+}
+
+.ad-image {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #f3f6fb;
+}
+
+.ad-image img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     display: block;
 }
 
-@media (max-width: 575px) {
-    .adx-wrapper {
-        padding: 16px;
-    }
+.portrait { width: 265px; }
+.portrait .ad-image { aspect-ratio: 229 / 458; }
+.landscape { width: 520px; }
+.landscape .ad-image { aspect-ratio: 458 / 229; }
+.square { width: 520px; }
+.square .ad-image { aspect-ratio: 458 / 458; }
+.banner, .hero { width: 100%; margin-bottom: 18px; }
+.banner .ad-image { aspect-ratio: 1191 / 229; }
+.hero .ad-image { aspect-ratio: 1191 / 458; }
 
-    .adx-item,
-    .adx-card,
-    .adx-image-inner {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
+@media (max-width: 992px) {
+    .portrait, .landscape, .square { width: calc(50% - 9px); }
+}
+
+@media (max-width: 576px) {
+    .portrait, .landscape, .square, .banner, .hero { width: 100%; }
+    .ad-card { padding: 12px; }
 }
 </style>
 
-@php    
+@php
     $adSizes = \App\Support\AdSizes::all();
 @endphp
 
-<div class="adx-wrapper">
-    <div class="adx-grid">
+<div id="adsSource" class="d-none">
+    @forelse ($ads as $ad)
+        @php
+            $rawSizeType = (string) ($ad->size_type ?? '');
+            $normalizedSizeType = \Illuminate\Support\Str::of($rawSizeType)->lower()->replace([' ', '-'], '_')->value();
 
-        @forelse ($ads as $ad)
-            @php
-                $rawSizeType = (string) ($ad->size_type ?? '');
-                $normalizedSizeType = \Illuminate\Support\Str::of($rawSizeType)->lower()->replace([' ', '-'], '_')->value();
+            $sizeConfig = $adSizes[$rawSizeType]
+                ?? $adSizes[$normalizedSizeType]
+                ?? collect($adSizes)->first(function ($config, $key) use ($normalizedSizeType) {
+                    return \Illuminate\Support\Str::of($key)->lower()->replace([' ', '-'], '_')->value() === $normalizedSizeType;
+                });
 
-                $sizeConfig = $adSizes[$rawSizeType]
-                    ?? $adSizes[$normalizedSizeType]
-                    ?? collect($adSizes)->first(function ($config, $key) use ($normalizedSizeType) {
-                        return \Illuminate\Support\Str::of($key)->lower()->replace([' ', '-'], '_')->value() === $normalizedSizeType;
-                    });
+            $adWidth = (int) ($sizeConfig['w'] ?? 458);
+            $adHeight = (int) ($sizeConfig['h'] ?? 229);
 
-                $adWidth = (int) ($sizeConfig['w'] ?? 320);
-                $adHeight = (int) ($sizeConfig['h'] ?? 220);
+            $shapeClass = 'landscape';
+            if ($adWidth >= 1100 && $adHeight >= 420) {
+                $shapeClass = 'hero';
+            } elseif ($adWidth >= 1100) {
+                $shapeClass = 'banner';
+            } elseif ($adWidth <= 280 && $adHeight >= 400) {
+                $shapeClass = 'portrait';
+            } elseif (abs($adWidth - $adHeight) <= 40) {
+                $shapeClass = 'square';
+            }
+        @endphp
 
-                $cardWidth = $adWidth + 28;
-            @endphp
-
-            <div class="adx-item" style="width: {{ $cardWidth }}px;">
-                <article
-                    class="adx-card js-ad-modal-trigger"
-                    role="button"
-                    tabindex="0"
-                    data-ad-title="{{ $ad->title }}"
-                    data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}"
-                    data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
-                    data-ad-url="{{ route('frontend.ads.show', $ad) }}"
-                    data-ad-id="{{ $ad->id }}"
-                >
-                    <div class="adx-title">
-                        {{ $ad->title }}
-                    </div>
-
-                    <div class="adx-image-box">
-                        <div class="adx-image-inner" style="width: {{ $adWidth }}px; height: {{ $adHeight }}px;">
-                            @if ($ad->final_image)
-                                <img src="{{ asset($ad->final_image) }}" class="adx-img" alt="{{ $ad->title }}">
-                            @endif
-                        </div>
-                    </div>
-                </article>
+        <article
+            class="ad-card {{ $shapeClass }} js-ad-modal-trigger"
+            role="button"
+            tabindex="0"
+            data-ad-title="{{ $ad->title }}"
+            data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}"
+            data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
+            data-ad-url="{{ route('frontend.ads.show', $ad) }}"
+            data-ad-id="{{ $ad->id }}"
+        >
+            <h3>{{ $ad->title }}</h3>
+            <div class="ad-image">
+                @if ($ad->final_image)
+                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" loading="lazy">
+                @endif
             </div>
-
-        @empty
-            <div class="adx-item text-center">
-                <h4>No ads found</h4>
-            </div>
-        @endforelse
-
-    </div>
+        </article>
+    @empty
+        <div class="text-center py-4 w-100">
+            <h4>No ads found</h4>
+        </div>
+    @endforelse
 </div>
 
-<script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
-<script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+<div id="adsLayout" class="ads-layout"></div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const grid = document.querySelector('.adx-grid');
-    if (!grid) return;
+(function () {
+    const GAP = 18;
+    const FILLER_POOL = [
+        { type: 'portrait', width: 265, label: 'Sponsored', image: 'https://picsum.photos/229/458?random=81' },
+        { type: 'landscape', width: 520, label: 'Sponsored', image: 'https://picsum.photos/458/229?random=82' },
+        { type: 'square', width: 520, label: 'Sponsored', image: 'https://picsum.photos/458/458?random=83' }
+    ];
+    let fillerIdx = 0;
 
-    imagesLoaded(grid, function () {
-        new Masonry(grid, {
-            itemSelector: '.adx-item',
-            gutter: 12,
-            fitWidth: false,
-            horizontalOrder: false
+    function makeFillerCard() {
+        const selected = FILLER_POOL[fillerIdx % FILLER_POOL.length];
+        fillerIdx += 1;
+        const wrap = document.createElement('article');
+        wrap.className = `ad-card filler ${selected.type}`;
+        wrap.innerHTML = `<h3>${selected.label}</h3><div class="ad-image"><img src="${selected.image}" alt="Sponsored" loading="lazy"></div>`;
+        return { el: wrap, width: selected.width };
+    }
+
+    function fillGridGaps(grid) {
+        const containerW = grid.clientWidth;
+        if (!containerW) return;
+        const baseCards = Array.from(grid.children).filter((c) => !c.classList.contains('filler'));
+        if (!baseCards.length) return;
+
+        let used = 0;
+        baseCards.forEach((card, index) => {
+            const w = card.getBoundingClientRect().width;
+            used += (index ? GAP : 0) + w;
+        });
+
+        let free = containerW - used;
+        while (free > 180) {
+            const next = makeFillerCard();
+            if (next.width > free) break;
+            grid.appendChild(next.el);
+            free -= next.width + GAP;
+        }
+    }
+
+    function buildAdsLayout() {
+        const source = document.getElementById('adsSource');
+        const layout = document.getElementById('adsLayout');
+        if (!source || !layout) return;
+
+        layout.innerHTML = '';
+        let normalGrid = null;
+
+        const createGrid = () => {
+            normalGrid = document.createElement('div');
+            normalGrid.className = 'normal-ads-grid';
+            layout.appendChild(normalGrid);
+        };
+
+        Array.from(source.querySelectorAll('.ad-card')).forEach((card) => {
+            const ad = card.cloneNode(true);
+            if (ad.classList.contains('banner') || ad.classList.contains('hero')) {
+                if (normalGrid) {
+                    fillGridGaps(normalGrid);
+                    normalGrid = null;
+                }
+                layout.appendChild(ad);
+                return;
+            }
+            if (!normalGrid) createGrid();
+            normalGrid.appendChild(ad);
+        });
+
+        if (normalGrid) fillGridGaps(normalGrid);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        requestAnimationFrame(function () {
+            buildAdsLayout();
+            requestAnimationFrame(buildAdsLayout);
+        });
+
+        let timer;
+        window.addEventListener('resize', function () {
+            clearTimeout(timer);
+            timer = setTimeout(buildAdsLayout, 200);
         });
     });
-});
+})();
 </script>
