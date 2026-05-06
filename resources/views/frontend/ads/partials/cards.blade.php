@@ -178,7 +178,13 @@
         if (!containerW) return;
 
         const $grid = window.jQuery ? window.jQuery(grid) : null;
-        const baseCards = Array.from(grid.children).filter((c) => !c.classList.contains('filler'));
+        const baseCards = Array.from(grid.children)
+            .filter((c) => !c.classList.contains('filler'))
+            .map((c) => ({
+                node: c,
+                width: Math.ceil(c.getBoundingClientRect().width),
+                height: Math.ceil(c.getBoundingClientRect().height)
+            }));
         if (!baseCards.length) return;
 
         // Rebuild row-by-row so fillers are inserted exactly where blank space appears.
@@ -199,12 +205,12 @@
         let used = 0;
 
         baseCards.forEach((card) => {
-            const width = Math.ceil(card.getBoundingClientRect().width);
+            const width = card.width;
             const nextUsed = row.length ? used + GAP + width : width;
 
             if (row.length && nextUsed > containerW) {
-                row.forEach((r) => grid.appendChild(r));
-                appendFillers(containerW - used, Math.max(...row.map((r) => r.getBoundingClientRect().height)));
+                row.forEach((r) => grid.appendChild(r.node));
+                appendFillers(containerW - used, Math.max(...row.map((r) => r.height)));
                 row = [card];
                 used = width;
             } else {
@@ -214,8 +220,8 @@
         });
 
         if (row.length) {
-            row.forEach((r) => grid.appendChild(r));
-            appendFillers(containerW - used, Math.max(...row.map((r) => r.getBoundingClientRect().height)));
+            row.forEach((r) => grid.appendChild(r.node));
+            appendFillers(containerW - used, Math.max(...row.map((r) => r.height)));
         }
     }
 
