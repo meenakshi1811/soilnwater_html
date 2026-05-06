@@ -183,46 +183,13 @@ class UserAdController extends Controller
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize($request->user(), $sizeType), 404);
 
-        $template = AdTemplate::query()
+        $templateId = AdTemplate::query()
             ->where('size_type', $sizeType)
             ->where('is_active', true)
-            ->latest()
-            ->first();
+            ->latest('id')
+            ->value('id');
 
-        abort_if(! $template, 404, 'No active template found for this size.');
-
-        $schema = is_array($template->schema_json) ? $template->schema_json : [];
-        $fieldRules = [];
-        $imageKeys = [];
-
-        $hasCustomHtml = trim((string) $request->input('custom_html', '')) !== '';
-
-        foreach (($schema['fields'] ?? []) as $field) {
-            $key = (string) ($field['key'] ?? '');
-            $type = (string) ($field['type'] ?? 'text');
-            $required = (bool) ($field['required'] ?? false);
-            $max = (int) ($field['max'] ?? 0);
-
-            if ($key === '' || !preg_match('/^[a-zA-Z][a-zA-Z0-9_]*$/', $key)) {
-                continue;
-            }
-
-            if ($type === 'image') {
-                $imageKeys[] = $key;
-                $fieldRules[$key] = array_filter([
-                    ($required && ! $hasCustomHtml) ? 'required' : 'nullable',
-                    'image',
-                    'mimes:jpg,jpeg,png,webp',
-                    'max:2048',
-                ]);
-            } else {
-                $rule = ($required && !$hasCustomHtml) ? 'required|string' : 'nullable|string';
-                if ($max > 0) {
-                    $rule .= '|max:'.$max;
-                }
-                $fieldRules[$key] = $rule;
-            }
-        }
+        abort_if(! $templateId, 404, 'No active template found for this size.');
 
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
@@ -242,7 +209,7 @@ class UserAdController extends Controller
             'location_lng' => 'required|numeric|between:-180,180',
             'valid_until' => 'required|date|after_or_equal:today',
             'is_sponsored' => 'nullable|in:0,1',
-        ], $fieldRules));
+        ]));
 
         $isValidSubcategory = Category::query()
             ->where('id', $validated['subcategory_id'])
@@ -275,16 +242,6 @@ class UserAdController extends Controller
         }
 
         $fields = [];
-        foreach (($schema['fields'] ?? []) as $field) {
-            $key = (string) ($field['key'] ?? '');
-            if ($key === '' || !array_key_exists($key, $validated)) {
-                continue;
-            }
-            if (in_array($key, $imageKeys, true)) {
-                continue;
-            }
-            $fields[$key] = $validated[$key];
-        }
 
         $user = $request->user();
 
@@ -292,48 +249,21 @@ class UserAdController extends Controller
         $targetWidth = (int) ($size['w'] ?? 0);
         $targetHeight = (int) ($size['h'] ?? 0);
 
-        $ad = DB::transaction(function () use ($request, $template, $sizeType, $validated, $fields, $imageKeys, $user, $targetWidth, $targetHeight) {
-            $firstUploadedImagePath = null;
-            $shouldResizeUploadedAsset = (string) ($validated['ad_image_input_type'] ?? '') !== '1';
+        $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $templateId) {
+            $layoutHtml = (string) ($validated['custom_html'] ?? '');
+            $renderedHtml = $layoutHtml;
 
-            foreach ($imageKeys as $key) {
-                if (!$request->hasFile($key)) {
-                    continue;
-                }
-
-                $file = $request->file($key);
-                $storedPath = $this->storeAndResizeUploadedAsset(
-                    $file,
-                    $key,
-                    $targetWidth,
-                    $targetHeight,
-                    $shouldResizeUploadedAsset
-                );
-                $fields[$key] = $storedPath;
-
-                if ($firstUploadedImagePath === null) {
-                    $firstUploadedImagePath = $storedPath;
-                }
-            }
-
-            $layoutHtml = trim((string) ($validated['custom_html'] ?? '')) !== ''
-                ? (string) $validated['custom_html']
-                : (string) $template->layout_html;
-
-            $renderedHtml = $this->renderTemplateHtml($layoutHtml, $fields);
-
-            $finalImagePath = $firstUploadedImagePath
-                ?? $this->storeGeneratedAdImage(
-                    $validated['generated_image_data'] ?? '',
-                    $targetWidth,
-                    $targetHeight,
-                );
+            $finalImagePath = $this->storeGeneratedAdImage(
+                $validated['generated_image_data'] ?? '',
+                $targetWidth,
+                $targetHeight,
+            );
 
             $isSponsored = $user->isStaff() ? (bool) ($validated['is_sponsored'] ?? false) : false;
 
             return UserAd::create([
                 'user_id' => $user->id,
-                'ad_template_id' => $template->id,
+                'ad_template_id' => $templateId,
                 'size_type' => $sizeType,
                 'title' => $validated['title'],
                 'category_id' => $validated['category_id'],
