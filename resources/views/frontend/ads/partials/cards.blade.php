@@ -162,6 +162,17 @@
         return { el: wrap, width: selected.width };
     }
 
+
+    function makeFillerBlock(width, height) {
+        const selected = FILLER_POOL[fillerIdx % FILLER_POOL.length];
+        fillerIdx += 1;
+        const wrap = document.createElement('article');
+        wrap.className = 'ad-card filler';
+        wrap.style.width = `${Math.max(120, Math.floor(width))}px`;
+        wrap.innerHTML = `<h3>Sponsored</h3><div class="ad-image" style="aspect-ratio:auto;height:${Math.max(120, Math.floor(height - 22))}px;"><img src="${selected.image}" alt="Sponsored" loading="lazy"></div>`;
+        return wrap;
+    }
+
     function fillGridGaps(grid) {
         const containerW = grid.clientWidth;
         if (!containerW) return;
@@ -173,22 +184,14 @@
         // Rebuild row-by-row so fillers are inserted exactly where blank space appears.
         grid.innerHTML = '';
 
-        const appendFillers = (freeSpace) => {
-            let free = freeSpace;
-            while (free >= 265) {
-                const candidates = FILLER_POOL.filter((f) => f.width <= free);
-                if (!candidates.length) break;
-                const best = candidates.sort((a, b) => b.width - a.width)[0];
-                const card = makeFillerCard();
-                // force selected type chosen by width
-                card.el.className = `ad-card filler ${best.type}`;
-                card.el.querySelector('img').src = best.image;
-                if ($grid) {
-                    $grid.append(card.el);
-                } else {
-                    grid.appendChild(card.el);
-                }
-                free -= best.width + GAP;
+        const appendFillers = (freeSpace, rowHeight) => {
+            const blockWidth = freeSpace - GAP;
+            if (blockWidth < 160) return;
+            const block = makeFillerBlock(blockWidth, rowHeight);
+            if ($grid) {
+                $grid.append(block);
+            } else {
+                grid.appendChild(block);
             }
         };
 
@@ -201,7 +204,7 @@
 
             if (row.length && nextUsed > containerW) {
                 row.forEach((r) => grid.appendChild(r));
-                appendFillers(containerW - used);
+                appendFillers(containerW - used, Math.max(...row.map((r) => r.getBoundingClientRect().height)));
                 row = [card];
                 used = width;
             } else {
@@ -212,7 +215,7 @@
 
         if (row.length) {
             row.forEach((r) => grid.appendChild(r));
-            appendFillers(containerW - used);
+            appendFillers(containerW - used, Math.max(...row.map((r) => r.getBoundingClientRect().height)));
         }
     }
 
