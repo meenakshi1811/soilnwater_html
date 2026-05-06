@@ -69,7 +69,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmSizePaymentBtn">Pay now</button>
+                <button type="button" class="btn btn-primary" id="confirmSizePaymentBtn" disabled aria-disabled="true" title="Payment is temporarily disabled">Pay now (Disabled)</button>
             </div>
         </div>
     </div>
@@ -104,29 +104,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    confirmBtn.addEventListener('click', async function () {
-        if (!selectedSizeType) return;
-
-        confirmBtn.disabled = true;
-        try {
-            const response = await fetch(`{{ url('dashboard/ads/create') }}/${encodeURIComponent(selectedSizeType)}/pay`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                },
-            });
-
-            if (!response.ok) throw new Error('Payment failed');
-            const data = await response.json();
-            if (!data.redirect_url) throw new Error('Invalid payment response');
-
-            window.location.href = data.redirect_url;
-        } catch (error) {
-            alert('Payment could not be completed. Please try again.');
-        } finally {
-            confirmBtn.disabled = false;
-        }
+    confirmBtn.addEventListener('click', function () {
+        alert('Payment is temporarily disabled. Please try again later.');
     });
 });
 </script>
