@@ -47,22 +47,22 @@ class UserAdController extends Controller
 
     public function customizeFromSize(string $sizeType): View
     {
+       
         $sizeType = $this->resolveSizeType($sizeType);
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
 
-        $template = AdTemplate::query()
-            ->where('size_type', $sizeType)
-            ->where('is_active', true)
-            ->latest()
-            ->first();
+        // $template = AdTemplate::query()
+        //     ->where('size_type', $sizeType)
+        //     ->where('is_active', true)
+        //     ->latest()
+        //     ->first();
 
-        abort_if(! $template, 404, 'No active template found for this size.');
+        // abort_if(! $template, 404, 'No active template found for this size.');
 
         return view('backend.ads.user.customize-size', [
             'sizeType' => $sizeType,
             'size' => AdSizes::all()[$sizeType],
-            'template' => $template,
             'categories' => Category::query()
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'ads')
