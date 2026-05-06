@@ -29,6 +29,8 @@
                         <th>Key</th>
                         <th>Dimensions</th>
                         <th>Placement</th>
+                        <th>Paid</th>
+                        <th>Amount</th>
                         <th>Created</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -72,6 +74,16 @@
                                 <input class="form-check-input" type="checkbox" name="admin_only" id="adSizeAdminOnly" value="1">
                                 <label class="form-check-label" for="adSizeAdminOnly">Admin only</label>
                             </div>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="is_paid" id="adSizeIsPaid" value="1">
+                                <label class="form-check-label" for="adSizeIsPaid">Paid</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4" id="adSizeAmountWrap" style="display: none;">
+                            <label class="form-label">Amount</label>
+                            <input type="number" step="0.01" min="0" max="99999999.99" name="amount" id="adSizeAmount" class="form-control" placeholder="0.00">
                         </div>
                     </div>
                 </div>
