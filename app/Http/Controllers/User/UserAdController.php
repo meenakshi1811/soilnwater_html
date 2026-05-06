@@ -47,6 +47,7 @@ class UserAdController extends Controller
 
     public function customizeFromSize(string $sizeType): View
     {
+        $sizeType = $this->normalizeSizeType($sizeType);
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
 
@@ -127,6 +128,7 @@ class UserAdController extends Controller
 
     public function selectTemplate(string $sizeType): View
     {
+        $sizeType = $this->normalizeSizeType($sizeType);
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
 
@@ -145,6 +147,7 @@ class UserAdController extends Controller
 
     public function customize(string $sizeType, AdTemplate $template): View
     {
+        $sizeType = $this->normalizeSizeType($sizeType);
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
         abort_unless($template->size_type === $sizeType, 404);
@@ -176,6 +179,7 @@ class UserAdController extends Controller
 
     public function store(Request $request, string $sizeType): RedirectResponse|JsonResponse
     {
+        $sizeType = $this->normalizeSizeType($sizeType);
         abort_unless(AdSizes::exists($sizeType), 404);
         abort_unless($this->canUserAccessSize($request->user(), $sizeType), 404);
 
@@ -533,5 +537,21 @@ class UserAdController extends Controller
     private function canUserAccessSize($user, string $sizeType): bool
     {
         return array_key_exists($sizeType, AdSizes::visibleFor($user));
+    }
+
+    private function normalizeSizeType(string $sizeType): string
+    {
+        if (AdSizes::exists($sizeType)) {
+            return $sizeType;
+        }
+
+        if (str_starts_with($sizeType, 'admin_')) {
+            $legacySizeType = substr($sizeType, strlen('admin_'));
+            if (is_string($legacySizeType) && AdSizes::exists($legacySizeType)) {
+                return $legacySizeType;
+            }
+        }
+
+        return $sizeType;
     }
 }
