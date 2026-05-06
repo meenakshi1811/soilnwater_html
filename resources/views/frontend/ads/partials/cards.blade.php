@@ -1,111 +1,3 @@
-<style>
-.ads-layout {
-    width: 100%;
-    padding: 28px 36px;
-    box-sizing: border-box;
-}
-
-.ads-section {
-    width: 100%;
-    margin-bottom: 28px;
-}
-
-.masonry-grid {
-    position: relative;
-    width: 100%;
-}
-
-.ad-card {
-    background: #fff;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    border: 1px solid #e2eaf5;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-.masonry-grid .ad-card {
-    position: absolute;
-}
-
-.ad-image {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #f3f6fb;
-}
-
-.ad-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-}
-
-
-.ad-card.db-sized {
-    box-sizing: content-box;
-}
-
-.ad-card.db-sized .ad-image {
-    width: 100%;
-    height: 100%;
-}
-/* Sponsored/static ads */
-.ad-card.filler {
-    padding: 14px;
-}
-
-.filler-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: #9aa7b2;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-}
-
-.ad-card.filler .ad-image {
-    height: calc(100% - 34px);
-    border-radius: 12px;
-}
-
-.filler-placeholder {
-    width: 100%;
-    height: 100%;
-    background: #eef2f7;
-    border-radius: 12px;
-}
-
-@media (max-width: 767px) {
-    .ads-layout {
-        padding: 16px;
-    }
-
-    .masonry-grid {
-        height: auto !important;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .masonry-grid .ad-card {
-        position: relative !important;
-        left: auto !important;
-        top: auto !important;
-        width: 100% !important;
-        height: auto !important;
-    }
-
-    .masonry-grid .ad-image {
-        height: auto !important;
-        aspect-ratio: var(--ad-w) / var(--ad-h);
-    }
-}
-</style>
-
 @php
     $adSizes = \App\Support\AdSizes::all();
 @endphp
@@ -405,11 +297,30 @@
 
         layout.innerHTML = '';
 
-        const grid = createMasonrySection(layout);
+        let currentGrid = null;
 
         Array.from(source.querySelectorAll('.ad-card')).forEach(original => {
             const card = original.cloneNode(true);
-            grid.appendChild(card);
+
+            const isFullWidth =
+                card.classList.contains('banner') ||
+                card.classList.contains('hero');
+
+            if (isFullWidth) {
+                currentGrid = null;
+
+                const section = document.createElement('div');
+                section.className = 'ads-section ads-full-width';
+
+                section.appendChild(card);
+                layout.appendChild(section);
+            } else {
+                if (!currentGrid) {
+                    currentGrid = createMasonrySection(layout);
+                }
+
+                currentGrid.appendChild(card);
+            }
         });
 
         requestAnimationFrame(() => {
