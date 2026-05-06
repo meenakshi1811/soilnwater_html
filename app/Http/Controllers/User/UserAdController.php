@@ -536,7 +536,32 @@ class UserAdController extends Controller
 
     private function canUserAccessSize($user, string $sizeType): bool
     {
-        return array_key_exists($sizeType, AdSizes::visibleFor($user));
+        $size = AdSizes::all()[$sizeType] ?? null;
+        if (! is_array($size)) {
+            return false;
+        }
+
+        if ((bool) ($size['admin_only'] ?? false) === false) {
+            return true;
+        }
+
+        return (bool) ($user?->isAdmin());
+    }
+
+    private function normalizeSizeType(string $sizeType): string
+    {
+        if (AdSizes::exists($sizeType)) {
+            return $sizeType;
+        }
+
+        if (str_starts_with($sizeType, 'admin_')) {
+            $legacySizeType = substr($sizeType, strlen('admin_'));
+            if (is_string($legacySizeType) && AdSizes::exists($legacySizeType)) {
+                return $legacySizeType;
+            }
+        }
+
+        return $sizeType;
     }
 
     private function normalizeSizeType(string $sizeType): string
