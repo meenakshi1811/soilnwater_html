@@ -29,14 +29,6 @@
     position: absolute;
 }
 
-.ads-full-width .ad-card {
-    position: relative !important;
-    left: auto !important;
-    top: auto !important;
-    width: 100% !important;
-    height: auto !important;
-}
-
 .ad-image {
     width: 100%;
     height: 100%;
@@ -60,17 +52,6 @@
     width: 100%;
     height: 100%;
 }
-/* Full-width banners */
-.ads-full-width .banner .ad-image {
-    aspect-ratio: 1191 / 229;
-    height: auto !important;
-}
-
-.ads-full-width .hero .ad-image {
-    aspect-ratio: 1191 / 458;
-    height: auto !important;
-}
-
 /* Sponsored/static ads */
 .ad-card.filler {
     padding: 14px;
@@ -424,30 +405,11 @@
 
         layout.innerHTML = '';
 
-        let currentGrid = null;
+        const grid = createMasonrySection(layout);
 
         Array.from(source.querySelectorAll('.ad-card')).forEach(original => {
             const card = original.cloneNode(true);
-
-            const isFullWidth =
-                card.classList.contains('banner') ||
-                card.classList.contains('hero');
-
-            if (isFullWidth) {
-                currentGrid = null;
-
-                const section = document.createElement('div');
-                section.className = 'ads-section ads-full-width';
-
-                section.appendChild(card);
-                layout.appendChild(section);
-            } else {
-                if (!currentGrid) {
-                    currentGrid = createMasonrySection(layout);
-                }
-
-                currentGrid.appendChild(card);
-            }
+            grid.appendChild(card);
         });
 
         requestAnimationFrame(() => {
