@@ -8,7 +8,7 @@ use App\Models\User;
 final class AdSizes
 {
     /**
-     * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool}>
+     * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool, is_paid:bool, amount:float}>
      */
     public static function all(): array
     {
@@ -30,6 +30,8 @@ final class AdSizes
                 'w' => (int) $adSize->width,
                 'h' => (int) $adSize->height,
                 'admin_only' => (bool) $adSize->admin_only,
+                'is_paid' => (bool) $adSize->is_paid,
+                'amount' => (float) ($adSize->amount ?? 0),
             ];
         }
 
@@ -38,7 +40,7 @@ final class AdSizes
 
 
     /**
-     * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool}>
+     * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool, is_paid:bool, amount:float}>
      */
     public static function visibleFor(?User $user): array
     {

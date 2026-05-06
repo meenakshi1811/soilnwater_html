@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -42,15 +43,20 @@ class UserAdController extends Controller
 
         return view('backend.ads.user.select-size', [
             'sizes' => AdSizes::visibleFor($user),
+            'paidSizeAccess' => $this->paidSizeAccessMap($user),
         ]);
     }
 
-    public function customizeFromSize(string $sizeType): View
+    public function customizeFromSize(string $sizeType): RedirectResponse|View
     {
        
         $sizeType = $this->resolveSizeType($sizeType);
         abort_unless(AdSizes::exists($sizeType), 404);
-        abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
+        if (! $this->canUserAccessSize(request()->user(), $sizeType)) {
+            return redirect()->route('ads.create.size')->withErrors([
+                'size_type' => 'Please select and pay for this ad size before continuing.',
+            ]);
+        }
 
         // $template = AdTemplate::query()
         //     ->where('size_type', $sizeType)
@@ -126,11 +132,15 @@ class UserAdController extends Controller
         ]);
     }
 
-    public function selectTemplate(string $sizeType): View
+    public function selectTemplate(string $sizeType): RedirectResponse|View
     {
         $sizeType = $this->resolveSizeType($sizeType);
         abort_unless(AdSizes::exists($sizeType), 404);
-        abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
+        if (! $this->canUserAccessSize(request()->user(), $sizeType)) {
+            return redirect()->route('ads.create.size')->withErrors([
+                'size_type' => 'Please select and pay for this ad size before continuing.',
+            ]);
+        }
 
         $templates = AdTemplate::query()
             ->where('size_type', $sizeType)
@@ -145,11 +155,15 @@ class UserAdController extends Controller
         ]);
     }
 
-    public function customize(string $sizeType, AdTemplate $template): View
+    public function customize(string $sizeType, AdTemplate $template): RedirectResponse|View
     {
         $sizeType = $this->resolveSizeType($sizeType);
         abort_unless(AdSizes::exists($sizeType), 404);
-        abort_unless($this->canUserAccessSize(request()->user(), $sizeType), 404);
+        if (! $this->canUserAccessSize(request()->user(), $sizeType)) {
+            return redirect()->route('ads.create.size')->withErrors([
+                'size_type' => 'Please select and pay for this ad size before continuing.',
+            ]);
+        }
         abort_unless($template->size_type === $sizeType, 404);
         abort_if(! $template->is_active, 404);
 
@@ -162,6 +176,27 @@ class UserAdController extends Controller
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
                 ->get(['id', 'name', 'ads_price']),
+        ]);
+    }
+
+
+    public function markSizeAsPaid(Request $request, string $sizeType): JsonResponse
+    {
+        $sizeType = $this->resolveSizeType($sizeType);
+        abort_unless(AdSizes::exists($sizeType), 404);
+
+        $size = AdSizes::all()[$sizeType];
+        abort_unless((bool) ($size['is_paid'] ?? false), 422);
+
+        $paidSizes = Session::get('ads_paid_sizes', []);
+        if (! in_array($sizeType, $paidSizes, true)) {
+            $paidSizes[] = $sizeType;
+            Session::put('ads_paid_sizes', $paidSizes);
+        }
+
+        return response()->json([
+            'success' => true,
+            'redirect_url' => route('ads.create.customize.default', ['sizeType' => $sizeType]),
         ]);
     }
 
@@ -181,7 +216,11 @@ class UserAdController extends Controller
     {
         $sizeType = $this->resolveSizeType($sizeType);
         abort_unless(AdSizes::exists($sizeType), 404);
-        abort_unless($this->canUserAccessSize($request->user(), $sizeType), 404);
+        if (! $this->canUserAccessSize($request->user(), $sizeType)) {
+            return redirect()->route('ads.create.size')->withErrors([
+                'size_type' => 'Please select and pay for this ad size before continuing.',
+            ]);
+        }
 
        
 
@@ -471,11 +510,31 @@ class UserAdController extends Controller
             return false;
         }
 
-        if ((bool) ($size['admin_only'] ?? false) === false) {
-            return true;
+        if ((bool) ($size['admin_only'] ?? false) === true && ! (bool) ($user?->isAdmin())) {
+            return false;
         }
 
-        return (bool) ($user?->isAdmin());
+        if ((bool) ($size['is_paid'] ?? false) === true && ! (bool) ($user?->isAdmin())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function userHasPaidForSize(string $sizeType): bool
+    {
+        return in_array($sizeType, Session::get('ads_paid_sizes', []), true);
+    }
+
+    private function paidSizeAccessMap($user): array
+    {
+        return collect(AdSizes::visibleFor($user))
+            ->mapWithKeys(function (array $size, string $type) use ($user) {
+                $isPaid = (bool) ($size['is_paid'] ?? false);
+                $hasAccess = ! $isPaid || (bool) ($user?->isAdmin());
+
+                return [$type => $hasAccess];
+            })->all();
     }
 
     private function resolveSizeType(string $sizeType): string
