@@ -21,7 +21,7 @@
 }
 
 .ad-card.db-sized {
-    width: calc((var(--ad-w) * 1px) + 28px);
+    width: calc(var(--ad-w) * 1px);
 }
 
 .ad-card.db-sized .ad-image {
@@ -71,7 +71,7 @@
 
 .ad-card.db-sized.banner,
 .ad-card.db-sized.hero {
-    width: calc((var(--ad-w) * 1px) + 28px);
+    width: calc(var(--ad-w) * 1px);
 }
 
 @media (max-width: 992px) {
@@ -165,22 +165,35 @@
     function fillGridGaps(grid) {
         const containerW = grid.clientWidth;
         if (!containerW) return;
+
         const baseCards = Array.from(grid.children).filter((c) => !c.classList.contains('filler'));
         if (!baseCards.length) return;
 
-        let used = 0;
-        baseCards.forEach((card, index) => {
-            const w = card.getBoundingClientRect().width;
-            used += (index ? GAP : 0) + w;
+        const rows = [];
+        baseCards.forEach((card) => {
+            const top = Math.round(card.offsetTop);
+            const row = rows.find((r) => Math.abs(r.top - top) <= 2);
+            if (row) {
+                row.cards.push(card);
+            } else {
+                rows.push({ top, cards: [card] });
+            }
         });
 
-        let free = containerW - used;
-        while (free > 180) {
-            const next = makeFillerCard();
-            if (next.width > free) break;
-            grid.appendChild(next.el);
-            free -= next.width + GAP;
-        }
+        rows.forEach((row) => {
+            let used = 0;
+            row.cards.forEach((card, index) => {
+                used += card.getBoundingClientRect().width + (index ? GAP : 0);
+            });
+
+            let free = containerW - used;
+            while (free >= 265) {
+                const next = makeFillerCard();
+                if (next.width > free) break;
+                grid.appendChild(next.el);
+                free -= next.width + GAP;
+            }
+        });
     }
 
     function buildAdsLayout() {
