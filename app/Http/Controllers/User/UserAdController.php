@@ -245,7 +245,7 @@ class UserAdController extends Controller
         $targetWidth = (int) ($size['w'] ?? 0);
         $targetHeight = (int) ($size['h'] ?? 0);
 
-        $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $templateId) {
+        $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight) {
             $layoutHtml = (string) ($validated['custom_html'] ?? '');
             $renderedHtml = $layoutHtml;
 
