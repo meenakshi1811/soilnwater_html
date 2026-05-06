@@ -27,6 +27,7 @@ class UserAd extends Model
         'reviewed_by',
         'reviewed_at',
         'review_note',
+        'is_sponsored',
     ];
 
     protected $casts = [
@@ -36,6 +37,7 @@ class UserAd extends Model
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
         'valid_until' => 'date',
+        'is_sponsored' => 'boolean',
     ];
 
     public function user(): BelongsTo

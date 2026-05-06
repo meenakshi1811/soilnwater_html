@@ -241,6 +241,7 @@ class UserAdController extends Controller
             'location_lat' => 'required|numeric|between:-90,90',
             'location_lng' => 'required|numeric|between:-180,180',
             'valid_until' => 'required|date|after_or_equal:today',
+            'is_sponsored' => 'nullable|in:0,1',
         ], $fieldRules));
 
         $isValidSubcategory = Category::query()
@@ -328,6 +329,8 @@ class UserAdController extends Controller
                     $targetHeight,
                 );
 
+            $isSponsored = $user->isStaff() ? (bool) ($validated['is_sponsored'] ?? false) : false;
+
             return UserAd::create([
                 'user_id' => $user->id,
                 'ad_template_id' => $template->id,
@@ -344,6 +347,7 @@ class UserAdController extends Controller
                 'final_image' => $finalImagePath,
                 'valid_until' => $validated['valid_until'],
                 'submitted_at' => now(),
+                'is_sponsored' => $isSponsored,
             ]);
         });
 
