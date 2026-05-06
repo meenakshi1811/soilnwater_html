@@ -20,6 +20,16 @@
     border: 1px solid #e2eaf5;
 }
 
+.ad-card.db-sized {
+    width: calc((var(--ad-w) * 1px) + 28px);
+}
+
+.ad-card.db-sized .ad-image {
+    width: calc(var(--ad-w) * 1px);
+    height: calc(var(--ad-h) * 1px);
+    aspect-ratio: auto;
+}
+
  .ad-card h3 {
     display: none;
 }
@@ -59,13 +69,19 @@
 .banner .ad-image { aspect-ratio: 1191 / 229; }
 .hero .ad-image { aspect-ratio: 1191 / 458; }
 
+.ad-card.db-sized.banner,
+.ad-card.db-sized.hero {
+    width: calc((var(--ad-w) * 1px) + 28px);
+}
+
 @media (max-width: 992px) {
     .portrait, .landscape, .square { width: calc(50% - 9px); }
 }
 
 @media (max-width: 576px) {
-    .portrait, .landscape, .square, .banner, .hero { width: 100%; }
+    .portrait, .landscape, .square, .banner, .hero, .ad-card.db-sized { width: 100%; }
     .ad-card { padding: 12px; }
+    .ad-card.db-sized .ad-image { width: 100%; height: auto; aspect-ratio: var(--ad-w) / var(--ad-h); }
 }
 </style>
 
@@ -101,7 +117,8 @@
         @endphp
 
         <article
-            class="ad-card {{ $shapeClass }} js-ad-modal-trigger"
+            class="ad-card db-sized {{ $shapeClass }} js-ad-modal-trigger"
+            style="--ad-w: {{ $adWidth }}; --ad-h: {{ $adHeight }};"
             role="button"
             tabindex="0"
             data-ad-title="{{ $ad->title }}"
