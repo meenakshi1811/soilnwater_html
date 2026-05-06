@@ -166,34 +166,54 @@
         const containerW = grid.clientWidth;
         if (!containerW) return;
 
+        const $grid = window.jQuery ? window.jQuery(grid) : null;
         const baseCards = Array.from(grid.children).filter((c) => !c.classList.contains('filler'));
         if (!baseCards.length) return;
 
-        const rows = [];
-        baseCards.forEach((card) => {
-            const top = Math.round(card.offsetTop);
-            const row = rows.find((r) => Math.abs(r.top - top) <= 2);
-            if (row) {
-                row.cards.push(card);
-            } else {
-                rows.push({ top, cards: [card] });
-            }
-        });
+        // Rebuild row-by-row so fillers are inserted exactly where blank space appears.
+        grid.innerHTML = '';
 
-        rows.forEach((row) => {
-            let used = 0;
-            row.cards.forEach((card, index) => {
-                used += card.getBoundingClientRect().width + (index ? GAP : 0);
-            });
-
-            let free = containerW - used;
+        const appendFillers = (freeSpace) => {
+            let free = freeSpace;
             while (free >= 265) {
-                const next = makeFillerCard();
-                if (next.width > free) break;
-                grid.appendChild(next.el);
-                free -= next.width + GAP;
+                const candidates = FILLER_POOL.filter((f) => f.width <= free);
+                if (!candidates.length) break;
+                const best = candidates.sort((a, b) => b.width - a.width)[0];
+                const card = makeFillerCard();
+                // force selected type chosen by width
+                card.el.className = `ad-card filler ${best.type}`;
+                card.el.querySelector('img').src = best.image;
+                if ($grid) {
+                    $grid.append(card.el);
+                } else {
+                    grid.appendChild(card.el);
+                }
+                free -= best.width + GAP;
+            }
+        };
+
+        let row = [];
+        let used = 0;
+
+        baseCards.forEach((card) => {
+            const width = Math.ceil(card.getBoundingClientRect().width);
+            const nextUsed = row.length ? used + GAP + width : width;
+
+            if (row.length && nextUsed > containerW) {
+                row.forEach((r) => grid.appendChild(r));
+                appendFillers(containerW - used);
+                row = [card];
+                used = width;
+            } else {
+                row.push(card);
+                used = nextUsed;
             }
         });
+
+        if (row.length) {
+            row.forEach((r) => grid.appendChild(r));
+            appendFillers(containerW - used);
+        }
     }
 
     function buildAdsLayout() {
