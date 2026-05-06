@@ -1,5 +1,6 @@
 @php
     $adSizes = \App\Support\AdSizes::all();
+    $sponsoredFillers = collect($sponsoredFillers ?? [])->values()->all();
 @endphp
 
 <div id="adsSource" class="d-none">
@@ -69,36 +70,7 @@
 (function () {
     const GAP = 26;
 
-    const FILLER_POOL = [
-        {
-            w: 458,
-            h: 458,
-            label: 'Sponsored',
-            image: '/images/sponsored/square-ad.jpg',
-            url: null
-        },
-        {
-            w: 458,
-            h: 229,
-            label: 'Sponsored',
-            image: '/images/sponsored/landscape-ad.jpg',
-            url: null
-        },
-        {
-            w: 229,
-            h: 458,
-            label: 'Sponsored',
-            image: '/images/sponsored/portrait-ad.jpg',
-            url: null
-        },
-        {
-            w: 229,
-            h: 229,
-            label: 'Sponsored',
-            image: '/images/sponsored/square-small-ad.jpg',
-            url: null
-        }
-    ];
+    const FILLER_POOL = @json($sponsoredFillers);
 
     let fillerIndex = 0;
 
@@ -110,7 +82,9 @@
     }
 
     function createFiller(width, height) {
-        const item = FILLER_POOL[fillerIndex % FILLER_POOL.length];
+        const matchingItems = FILLER_POOL.filter((item) => Number(item.w) === Number(width) && Number(item.h) === Number(height));
+        const pool = matchingItems.length ? matchingItems : FILLER_POOL;
+        const item = pool[fillerIndex % pool.length] || { label: 'Sponsored', image: null, url: null };
         fillerIndex++;
 
         const card = document.createElement('article');
@@ -123,9 +97,18 @@
             ? `<img src="${item.image}" alt="${item.label}" loading="lazy" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;filler-placeholder&quot;></div>';">`
             : `<div class="filler-placeholder"></div>`;
 
+        const adTitleHtml = item.title
+            ? `<span class="filler-title">${item.title}</span>`
+            : '';
+
+        const imageBlock = item.url
+            ? `<a href="${item.url}" class="d-block w-100 h-100">${imageHtml}</a>`
+            : imageHtml;
+
         card.innerHTML = `
             <span class="filler-label">${item.label}</span>
-            <div class="ad-image">${imageHtml}</div>
+            ${adTitleHtml}
+            <div class="ad-image">${imageBlock}</div>
         `;
 
         return card;
