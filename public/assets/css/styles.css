@@ -2924,9 +2924,18 @@
     height: auto !important;
 }
 
+.ad-title {
+    margin: 0;
+    padding: 12px 14px 10px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #1f3350;
+}
+
 .ad-image {
     width: 100%;
-    height: 100%;
+    height: calc(100% - 50px);
     overflow: hidden;
     background: #f3f6fb;
 }
@@ -2952,6 +2961,14 @@
 /* Sponsored/static ads */
 .ad-card.filler {
     padding: 14px;
+}
+
+.filler-title {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f3350;
 }
 
 .filler-label {
