@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Offer;
 use App\Models\User;
+use App\Models\UserAd;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -31,10 +33,33 @@ class AdminController extends Controller
         $activeBuilders = (int) ($roleCounts['builder'] ?? 0);
         $activeDevelopers = (int) ($roleCounts['developer'] ?? 0);
 
-        // Derived activity metrics until dedicated product/property/ad tables are added.
+        // Derived activity metrics until dedicated product/property tables are added.
         $totalProducts = max(0, ($activeVendors * 7) + ($activeBuilders * 4) + ($activeDevelopers * 5));
         $totalProperties = max(0, ($activeVendors * 3) + ($activeBuilders * 5) + ($activeDevelopers * 6));
-        $activeAds = max(0, (int) round(($activeVendors * 1.6) + ($activeDevelopers * 1.2) + ($activeBuilders * 0.8)));
+
+        $activeAds = (int) UserAd::query()
+            ->where('status', 'approved')
+            ->where(function ($query) use ($today) {
+                $query->whereNull('valid_until')
+                    ->orWhereDate('valid_until', '>=', $today);
+            })
+            ->count();
+
+        $pendingAds = (int) UserAd::query()->where('status', 'pending')->count();
+        $completedAds = (int) UserAd::query()
+            ->where(function ($query) use ($today) {
+                $query->where('status', 'rejected')
+                    ->orWhereDate('valid_until', '<', $today);
+            })
+            ->count();
+
+        $activeOffers = (int) Offer::query()
+            ->where('status', 'active')
+            ->where(function ($query) use ($today) {
+                $query->whereNull('valid_until')
+                    ->orWhereDate('valid_until', '>=', $today);
+            })
+            ->count();
 
         $newVendorRegistrations = (int) User::query()
             ->where('role', 'vendor')
@@ -50,8 +75,8 @@ class AdminController extends Controller
             ->whereDate('created_at', $today)
             ->count();
 
-        $revenueToday = ($activeAds * 120) + ($newLeads * 35);
-        $revenueMonth = (($activeAds * 3400) + ($totalProperties * 45) + ($totalProducts * 25));
+        $revenueToday = ($activeAds * 120) + ($activeOffers * 80) + ($newLeads * 35);
+        $revenueMonth = (($activeAds * 3400) + ($activeOffers * 2100) + ($totalProperties * 45) + ($totalProducts * 25));
 
         $days = collect(range(6, 0))->map(fn (int $offset) => Carbon::today()->subDays($offset));
         $userGrowthLabels = $days->map(fn (Carbon $day) => $day->format('M d'))->all();
@@ -67,11 +92,12 @@ class AdminController extends Controller
             (int) round($revenueMonth * 0.31),
         ];
 
-        $adPerformanceLabels = ['Active Ads', 'Pending Ads', 'Completed Ads'];
+        $adPerformanceLabels = ['Active Ads', 'Pending Ads', 'Completed Ads', 'Active Offers'];
         $adPerformanceSeries = [
             $activeAds,
-            max(0, (int) round($activeAds * 0.35)),
-            max(0, (int) round($activeAds * 0.55)),
+            $pendingAds,
+            $completedAds,
+            $activeOffers,
         ];
 
         $activeUsers = (int) User::query()
@@ -84,6 +110,7 @@ class AdminController extends Controller
             'totalProducts',
             'totalProperties',
             'activeAds',
+            'activeOffers',
             'revenueToday',
             'revenueMonth',
             'newVendorRegistrations',
