@@ -164,7 +164,7 @@
                 </div>
 
                 {{-- Location --}}
-                <div class="col-md-6">
+                <div class="col-md-6 offset-md-6">
                     <label class="form-label fw-semibold">Location <span class="text-muted fw-normal">(Optional)</span></label>
                     <input
                         type="text"
