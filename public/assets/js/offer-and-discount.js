@@ -128,6 +128,7 @@
             var $categoryChip = $('#categoryPricingChip');
             var $chip = $('#offerPricingChip');
             var $btn = $('#offerSubmitBtn');
+            var $paymentDisabledNote = $('#offerPaymentDisabledNote');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
             var paymentDisabledLabel = 'Currently payment method is not enabled by admin';
 
@@ -141,11 +142,13 @@
 
             if (!isStaff && applied > 0) {
                 $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
-                $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + paymentDisabledLabel);
+                $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + paymentLabel);
+                $paymentDisabledNote.removeClass('d-none');
                 return;
             }
 
             $chip.addClass('d-none').empty();
+            $paymentDisabledNote.addClass('d-none');
             $btn.find('.btn-text').html('<i class="fa-solid fa-paper-plane me-2"></i>' + defaultLabel);
         },
 
