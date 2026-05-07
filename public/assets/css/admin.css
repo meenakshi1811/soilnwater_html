@@ -110,8 +110,12 @@
     text-align: left;
 }
 
-.admin-main {
+.admin-main,
+.admin-main.container,
+.admin-main.container-fluid {
     flex: 1;
+    width: 100%;
+    max-width: none !important;
 }
 
 .admin-panel {
