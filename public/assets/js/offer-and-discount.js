@@ -130,7 +130,6 @@
             var $btn = $('#offerSubmitBtn');
             var $paymentDisabledNote = $('#offerPaymentDisabledNote');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
-            var paymentDisabledLabel = 'Currently payment method is not enabled by admin';
 
             this.currentAppliedOfferPrice = applied;
 
@@ -146,7 +145,7 @@
                 } else {
                     $chip.addClass('d-none').empty();
                 }
-                $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + paymentLabel);
+                $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + ($btn.data('payment-label') || 'Proceed to Payment'));
                 $paymentDisabledNote.removeClass('d-none');
                 return;
             }
