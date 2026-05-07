@@ -25,13 +25,14 @@ class PostOfferController extends Controller
             ->whereNull('parent_id')
             ->whereJsonContains('modules', 'offers')
             ->orderBy('name')
-            ->get();
+            ->get(['id', 'name', 'offer_price']);
 
         return view('backend.post-offers.index', [
             'categories' => $categories,
             'isEditMode' => false,
             'offer' => null,
             'existingBannerUrl' => null,
+            'isStaffUser' => $this->isStaff(request()->user()),
         ]);
     }
 
@@ -47,13 +48,14 @@ class PostOfferController extends Controller
             ->whereNull('parent_id')
             ->whereJsonContains('modules', 'offers')
             ->orderBy('name')
-            ->get();
+            ->get(['id', 'name', 'offer_price']);
 
         return view('backend.post-offers.index', [
             'categories' => $categories,
             'isEditMode' => true,
             'offer' => $offer,
             'existingBannerUrl' => $offer->banner_image ? $this->bannerPublicUrl($offer->banner_image) : null,
+            'isStaffUser' => $this->isStaff($user),
         ]);
     }
 
@@ -62,7 +64,7 @@ class PostOfferController extends Controller
         abort_if(! in_array('offers', $category->modules ?? [], true), 404);
 
         return response()->json(
-            $category->children()->orderBy('name')->get(['id', 'name'])
+            $category->children()->orderBy('name')->get(['id', 'name', 'offer_price'])
         );
     }
 
@@ -115,6 +117,17 @@ class PostOfferController extends Controller
             if (! $isValidSubcategory) {
                 return response()->json(['message' => 'Selected subcategory does not belong to the selected category.'], 422);
             }
+        }
+
+        $appliedOfferPrice = $this->resolveAppliedOfferPrice(
+            (int) ($validated['category_id'] ?? 0),
+            (int) ($validated['subcategory_id'] ?? 0)
+        );
+
+        if ($appliedOfferPrice > 0 && ! $this->isStaff($request->user())) {
+            return response()->json([
+                'message' => 'This offer category is paid. Please proceed to payment to continue.',
+            ], 422);
         }
 
         Offer::create($validated);
@@ -402,6 +415,19 @@ class PostOfferController extends Controller
     private function isStaff($user): bool
     {
         return $user->isAdmin() || $user->isEmployee();
+    }
+
+    private function resolveAppliedOfferPrice(int $categoryId, int $subcategoryId): float
+    {
+        $categoryPrice = (float) (Category::query()->where('id', $categoryId)->value('offer_price') ?? 0);
+
+        if ($subcategoryId <= 0) {
+            return $categoryPrice;
+        }
+
+        $subcategoryPrice = (float) (Category::query()->where('id', $subcategoryId)->where('parent_id', $categoryId)->value('offer_price') ?? 0);
+
+        return $subcategoryPrice > 0 ? $subcategoryPrice : $categoryPrice;
     }
 
     private function storeGeneratedBanner(string $base64Png): string
