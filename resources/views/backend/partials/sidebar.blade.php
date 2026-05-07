@@ -19,6 +19,11 @@
         $dashboardActive = request()->routeIs('modules.show');
     }
 @endphp
+<style>
+    .admin-sidebar-group summary { list-style: none; cursor: pointer; }
+    .admin-sidebar-group summary::-webkit-details-marker { display: none; }
+    .admin-sidebar-group details[open] summary .fa-chevron-down { transform: rotate(180deg); }
+</style>
 <aside class="admin-sidebar">
     <div class="admin-sidebar-logo d-none d-lg-flex">
         <a href="{{ route('frontend.index') }}" title="Go to Index Page">
@@ -72,47 +77,61 @@
                 </a>
             </li>
             <hr>
-            <li>
-                <a class="{{ $offersMenuActive ? 'active' : '' }}" href="{{ route('offers.index') }}">
-                    <i class="fa-solid fa-tags"></i>
-                    <span>Offers</span>
-                </a>
+            <li class="admin-sidebar-group">
+                <details {{ $offersMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $offersMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-tags"></i>
+                            <span>Offers</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                                <i class="fa-solid fa-list"></i>
+                                <span>All Offers</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
             </li>
-            <li>
-                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
-                    <i class="fa-solid fa-list"></i>
-                    <span>All Offers</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ $adsMenuActive ? 'active' : '' }}" href="{{ route('ads.index') }}">
-                    <i class="fa-solid fa-rectangle-ad"></i>
-                    <span>Ads</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
-                    <i class="fa-solid fa-rectangle-list"></i>
-                    <span>All Ads</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('admin.ads.sizes.*') ? 'active' : '' }}" href="{{ route('admin.ads.sizes.index') }}">
-                    <i class="fa-solid fa-ruler-combined"></i>
-                    <span>Ad Sizes</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('admin.ads.submissions.*') ? 'active' : '' }}" href="{{ route('admin.ads.submissions.index') }}">
-                    <i class="fa-solid fa-inbox"></i>
-                    <span>Ad Submissions</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('admin.ads.reports.*') ? 'active' : '' }}" href="{{ route('admin.ads.reports.index') }}">
-                    <i class="fa-regular fa-flag"></i>
-                    <span>Report Ads</span>
-                </a>
+            <li class="admin-sidebar-group">
+                <details {{ $adsMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $adsMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-rectangle-ad"></i>
+                            <span>Ads</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                                <i class="fa-solid fa-rectangle-list"></i>
+                                <span>All Ads</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.ads.sizes.*') ? 'active' : '' }}" href="{{ route('admin.ads.sizes.index') }}">
+                                <i class="fa-solid fa-ruler-combined"></i>
+                                <span>Ad Sizes</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.ads.submissions.*') ? 'active' : '' }}" href="{{ route('admin.ads.submissions.index') }}">
+                                <i class="fa-solid fa-inbox"></i>
+                                <span>Ad Submissions</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.ads.reports.*') ? 'active' : '' }}" href="{{ route('admin.ads.reports.index') }}">
+                                <i class="fa-regular fa-flag"></i>
+                                <span>Report Ads</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
             </li>
         @endif
 
