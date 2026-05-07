@@ -1292,6 +1292,7 @@
     width: 100%;
     aspect-ratio: 3 / 4;
     overflow: hidden;
+    border-radius: 10px 10px 0 0;
   }
   .offer-coupon-wrap .offer-coupon-image {
     width: 100%;
