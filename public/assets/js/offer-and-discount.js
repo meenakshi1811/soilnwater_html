@@ -129,7 +129,7 @@
             var $chip = $('#offerPricingChip');
             var $btn = $('#offerSubmitBtn');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
-            var paymentLabel = $btn.data('payment-label') || 'Proceed to Payment';
+            var paymentDisabledLabel = 'Currently payment method is not enabled by admin';
 
             this.currentAppliedOfferPrice = applied;
 
@@ -141,7 +141,7 @@
 
             if (!isStaff && applied > 0) {
                 $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
-                $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + paymentLabel);
+                $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + paymentDisabledLabel);
                 return;
             }
 
@@ -1023,6 +1023,12 @@
                     error.insertAfter(element);
                 },
                 submitHandler: function (form) {
+                    if (!isEditMode && Number(self.currentAppliedOfferPrice || 0) > 0) {
+                        setButtonLoading(false, false);
+                        FormHelper.showToast('warning', 'Currently payment method is not enabled by admin.');
+                        return false;
+                    }
+
                     setButtonLoading(true, true);
 
                     if (self.currentBannerMode === 'customize') {
