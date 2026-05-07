@@ -130,7 +130,7 @@
             var $btn = $('#offerSubmitBtn');
             var $paymentDisabledNote = $('#offerPaymentDisabledNote');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
-            var paymentLabel = $btn.data('payment-label') || 'Proceed to Payment';
+            var paymentDisabledLabel = 'Currently payment method is not enabled by admin';
 
             this.currentAppliedOfferPrice = applied;
 
