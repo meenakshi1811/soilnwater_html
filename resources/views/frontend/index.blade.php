@@ -1300,6 +1300,7 @@
     object-position: center;
     display: block;
     background: transparent;
+    border-radius: 10px 10px 0 0;
   }
   .offer-coupon-wrap .offer-coupon-card {
     padding: 0;
