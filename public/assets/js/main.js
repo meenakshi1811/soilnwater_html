@@ -170,17 +170,20 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
       if (autoTimer) clearTimeout(autoTimer);
     };
 
-    const autoIntervalMs = Number(slider.dataset.intervalMs) > 0 ? Number(slider.dataset.intervalMs) : 3500;
+    const baseIntervalMs = Number(slider.dataset.intervalMs) > 0 ? Number(slider.dataset.intervalMs) : 3500;
+    const autoIntervalMs = Number(slider.dataset.intervalMs) > 0
+      ? Number(slider.dataset.intervalMs)
+      : (baseIntervalMs + ((sliderIndex % 5) * 250));
     const initialDelayMs = Number(slider.dataset.initialDelayMs) >= 0
       ? Number(slider.dataset.initialDelayMs)
-      : (sliderIndex * 450) % autoIntervalMs;
+      : (600 + ((sliderIndex % 7) * 300));
 
     const startAuto = () => {
       stopAuto();
       autoTimer = setTimeout(function tick() {
         goTo(activeIndex + 1);
         autoTimer = setTimeout(tick, autoIntervalMs);
-      }, initialDelayMs || autoIntervalMs);
+      }, initialDelayMs);
     };
 
     const restartAuto = () => {
