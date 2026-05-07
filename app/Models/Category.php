@@ -16,11 +16,13 @@ class Category extends Model
         'parent_id',
         'modules',
         'ads_price',
+        'offer_price',
     ];
 
     protected $casts = [
         'modules' => 'array',
         'ads_price' => 'decimal:2',
+        'offer_price' => 'decimal:2',
     ];
 
     public function parent(): BelongsTo
