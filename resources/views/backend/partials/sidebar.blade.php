@@ -20,9 +20,32 @@
     }
 @endphp
 <style>
-    .admin-sidebar-group summary { list-style: none; cursor: pointer; }
-    .admin-sidebar-group summary::-webkit-details-marker { display: none; }
-    .admin-sidebar-group details[open] summary .fa-chevron-down { transform: rotate(180deg); }
+    .admin-sidebar-group {
+        margin: 0;
+    }
+
+    .admin-sidebar-group summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 12px 16px;
+        color: inherit;
+    }
+
+    .admin-sidebar-group summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .admin-sidebar-group ul {
+        margin: 0;
+    }
+
+    .admin-sidebar-group details[open] summary .fa-chevron-down {
+        transform: rotate(180deg);
+    }
 </style>
 <aside class="admin-sidebar">
     <div class="admin-sidebar-logo d-none d-lg-flex">
