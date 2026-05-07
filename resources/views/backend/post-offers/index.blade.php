@@ -402,6 +402,9 @@
                     <span class="btn-loader d-none" aria-hidden="true"></span>
                 </button>
             </div>
+            <div id="offerPaymentDisabledNote" class="text-danger small mt-2 d-none text-end">
+                Currently payment method is not enabled by admin.
+            </div>
 
         </form>
     </div>
