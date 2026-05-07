@@ -125,7 +125,7 @@
             var categoryPrice = Number($categoryOption.data('offer-price') || 0);
             var subcategoryPrice = Number($subcategoryOption.data('offer-price') || 0);
             var applied = subcategoryPrice > 0 ? subcategoryPrice : categoryPrice;
-            var $notice = $('#offerPricingNotice');
+            var $chip = $('#offerPricingChip');
             var $btn = $('#offerSubmitBtn');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
             var paymentLabel = $btn.data('payment-label') || 'Proceed to Payment';
@@ -133,12 +133,12 @@
             this.currentAppliedOfferPrice = applied;
 
             if (!isStaff && applied > 0) {
-                $notice.removeClass('d-none').html('Premium category selected. Offer posting fee: <strong>₹' + applied.toFixed(2) + '</strong>. Click <strong>' + paymentLabel + '</strong> to continue.');
+                $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
                 $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + paymentLabel);
                 return;
             }
 
-            $notice.addClass('d-none').empty();
+            $chip.addClass('d-none').empty();
             $btn.find('.btn-text').html('<i class="fa-solid fa-paper-plane me-2"></i>' + defaultLabel);
         },
 
