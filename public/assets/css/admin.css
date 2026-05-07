@@ -858,6 +858,12 @@
 }
 
 
+
+.ems-page .chart-card {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 /* Offers dashboard table */
 .ems-page {
     max-width: 100%;
@@ -883,6 +889,17 @@
 #myOffersTable {
     width: 100% !important;
     min-width: 1100px;
+}
+
+
+.offers-table-wrap .dataTables_wrapper .dataTables_length,
+.offers-table-wrap .dataTables_wrapper .dataTables_filter {
+    max-width: 100%;
+}
+
+.offers-table-wrap .dataTables_wrapper .dataTables_filter input {
+    max-width: 100%;
+    width: min(220px, 100%);
 }
 
 #myOffersTable th {
