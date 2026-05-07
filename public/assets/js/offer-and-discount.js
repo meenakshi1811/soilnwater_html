@@ -125,12 +125,19 @@
             var categoryPrice = Number($categoryOption.data('offer-price') || 0);
             var subcategoryPrice = Number($subcategoryOption.data('offer-price') || 0);
             var applied = subcategoryPrice > 0 ? subcategoryPrice : categoryPrice;
+            var $categoryChip = $('#categoryPricingChip');
             var $chip = $('#offerPricingChip');
             var $btn = $('#offerSubmitBtn');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
             var paymentLabel = $btn.data('payment-label') || 'Proceed to Payment';
 
             this.currentAppliedOfferPrice = applied;
+
+            if (!isStaff && categoryPrice > 0 && $categoryOption.val()) {
+                $categoryChip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + categoryPrice.toFixed(2));
+            } else {
+                $categoryChip.addClass('d-none').empty();
+            }
 
             if (!isStaff && applied > 0) {
                 $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
