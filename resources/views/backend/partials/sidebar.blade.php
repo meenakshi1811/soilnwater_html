@@ -73,54 +73,46 @@
             </li>
             <hr>
             <li>
-                <details {{ $offersMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $offersMenuActive ? 'active' : '' }}"> 
-                        <i class="fa-solid fa-tags"></i>
-                        <span>Offers</span>
-                    </summary>
-                    <ul class="list-unstyled ps-4">
-                        <li>
-                            <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
-                                <i class="fa-solid fa-list"></i>
-                                <span>All Offers</span>
-                            </a>
-                        </li>
-                    </ul>
-                </details>
+                <a class="{{ $offersMenuActive ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>Offers</span>
+                </a>
             </li>
             <li>
-                <details {{ $adsMenuActive ? 'open' : '' }}>
-                    <summary class="{{ $adsMenuActive ? 'active' : '' }}"> 
-                        <i class="fa-solid fa-rectangle-ad"></i>
-                        <span>Ads</span>
-                    </summary>
-                    <ul class="list-unstyled ps-4">
-                        <li>
-                            <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
-                                <i class="fa-solid fa-rectangle-list"></i>
-                                <span>All Ads</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.ads.sizes.*') ? 'active' : '' }}" href="{{ route('admin.ads.sizes.index') }}">
-                                <i class="fa-solid fa-ruler-combined"></i>
-                                <span>Ad Sizes</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.ads.submissions.*') ? 'active' : '' }}" href="{{ route('admin.ads.submissions.index') }}">
-                                <i class="fa-solid fa-inbox"></i>
-                                <span>Ad Submissions</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="{{ request()->routeIs('admin.ads.reports.*') ? 'active' : '' }}" href="{{ route('admin.ads.reports.index') }}">
-                                <i class="fa-regular fa-flag"></i>
-                                <span>Report Ads</span>
-                            </a>
-                        </li>
-                    </ul>
-                </details>
+                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                    <i class="fa-solid fa-list"></i>
+                    <span>All Offers</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $adsMenuActive ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-ad"></i>
+                    <span>Ads</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-list"></i>
+                    <span>All Ads</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('admin.ads.sizes.*') ? 'active' : '' }}" href="{{ route('admin.ads.sizes.index') }}">
+                    <i class="fa-solid fa-ruler-combined"></i>
+                    <span>Ad Sizes</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('admin.ads.submissions.*') ? 'active' : '' }}" href="{{ route('admin.ads.submissions.index') }}">
+                    <i class="fa-solid fa-inbox"></i>
+                    <span>Ad Submissions</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('admin.ads.reports.*') ? 'active' : '' }}" href="{{ route('admin.ads.reports.index') }}">
+                    <i class="fa-regular fa-flag"></i>
+                    <span>Report Ads</span>
+                </a>
             </li>
         @endif
 
