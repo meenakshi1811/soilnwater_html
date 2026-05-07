@@ -79,7 +79,7 @@
 
 .admin-sidebar-menu a,
 .admin-sidebar-logout {
-    width: 100%;
+    width: 80%;
     border: 0;
     border-radius: 10px;
     color: #fff;
@@ -110,8 +110,12 @@
     text-align: left;
 }
 
-.admin-main {
+.admin-main,
+.admin-main.container,
+.admin-main.container-fluid {
     flex: 1;
+    width: 80%;
+    max-width: none !important;
 }
 
 .admin-panel {
@@ -858,6 +862,12 @@
 }
 
 
+
+.ems-page .chart-card {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 /* Offers dashboard table */
 .ems-page {
     max-width: 100%;
@@ -868,12 +878,32 @@
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
 }
 
+.offers-table-wrap .dataTables_wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.offers-table-wrap table.dataTable,
 #myOffersTable {
     width: 100% !important;
     min-width: 1100px;
+}
+
+
+.offers-table-wrap .dataTables_wrapper .dataTables_length,
+.offers-table-wrap .dataTables_wrapper .dataTables_filter {
+    max-width: 100%;
+}
+
+.offers-table-wrap .dataTables_wrapper .dataTables_filter input {
+    max-width: 100%;
+    width: min(220px, 100%);
 }
 
 #myOffersTable th {
