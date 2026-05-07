@@ -25,7 +25,7 @@ class CategoryController extends Controller
 
         $categories = Category::query()
             ->with(['parent:id,name'])
-            ->select(['id', 'name', 'parent_id', 'modules', 'ads_price', 'created_at'])
+            ->select(['id', 'name', 'parent_id', 'modules', 'ads_price', 'offer_price', 'created_at'])
             ->withCount('children');
 
         return DataTables::of($categories)
@@ -55,6 +55,19 @@ class CategoryController extends Controller
                 }
 
                 $price = (float) ($category->ads_price ?? 0);
+                if ($price <= 0) {
+                    return '<span class="badge text-bg-success">Free</span>';
+                }
+
+                return '₹'.number_format($price, 2);
+            })
+            ->addColumn('offer_price_display', function (Category $category): string {
+                $isOfferEnabled = in_array('offers', $category->modules ?? [], true);
+                if (! $isOfferEnabled) {
+                    return '<span class="text-muted">N/A</span>';
+                }
+
+                $price = (float) ($category->offer_price ?? 0);
                 if ($price <= 0) {
                     return '<span class="badge text-bg-success">Free</span>';
                 }
@@ -103,7 +116,7 @@ class CategoryController extends Controller
                     }
                 });
             })
-            ->rawColumns(['subcategory_name', 'modules_list', 'ads_price_display', 'actions'])
+            ->rawColumns(['subcategory_name', 'modules_list', 'ads_price_display', 'offer_price_display', 'actions'])
             ->make(true);
     }
 
@@ -116,6 +129,7 @@ class CategoryController extends Controller
                 'parent_id' => $category->parent_id,
                 'modules' => $category->modules ?? [],
                 'ads_price' => (float) ($category->ads_price ?? 0),
+                'offer_price' => (float) ($category->offer_price ?? 0),
                 'is_subcategory' => (bool) $category->parent_id,
             ],
         ]);
@@ -135,6 +149,7 @@ class CategoryController extends Controller
             'parent_id' => $validated['parent_id'] ?? null,
             'modules' => $modules,
             'ads_price' => $this->resolveAdsPrice($validated['parent_id'] ?? null, $modules, (float) ($validated['ads_price'] ?? 0)),
+            'offer_price' => $this->resolveOfferPrice($validated['parent_id'] ?? null, $modules, (float) ($validated['offer_price'] ?? 0)),
         ]);
 
         return response()->json(['message' => 'Category created successfully.']);
@@ -160,12 +175,16 @@ class CategoryController extends Controller
             'parent_id' => $parentId,
             'modules' => $modules,
             'ads_price' => $this->resolveAdsPrice($parentId, $modules, (float) ($validated['ads_price'] ?? 0)),
+            'offer_price' => $this->resolveOfferPrice($parentId, $modules, (float) ($validated['offer_price'] ?? 0)),
         ]);
 
         if (! $parentId) {
             $category->children()->update(['modules' => $modules]);
             if (! in_array('ads', $modules, true)) {
                 $category->children()->update(['ads_price' => 0]);
+            }
+            if (! in_array('offers', $modules, true)) {
+                $category->children()->update(['offer_price' => 0]);
             }
         }
 
@@ -193,7 +212,7 @@ class CategoryController extends Controller
             ->whereNull('parent_id')
             ->when($excludeId > 0, fn ($query) => $query->where('id', '!=', $excludeId))
             ->orderBy('name')
-            ->get(['id', 'name', 'modules', 'ads_price']);
+            ->get(['id', 'name', 'modules', 'ads_price', 'offer_price']);
 
         return response()->json(['categories' => $categories]);
     }
@@ -214,6 +233,7 @@ class CategoryController extends Controller
             'modules' => ['nullable', 'array'],
             'modules.*' => ['string', Rule::in(array_keys(ModulePermissions::modules()))],
             'ads_price' => ['nullable', 'numeric', 'min:0'],
+            'offer_price' => ['nullable', 'numeric', 'min:0'],
         ]);
     }
 
@@ -244,5 +264,16 @@ class CategoryController extends Controller
         }
 
         return in_array('ads', $modules, true) ? $normalized : 0;
+    }
+
+    private function resolveOfferPrice(?int $parentId, array $modules, float $requestedOfferPrice): float
+    {
+        $normalized = max(0, round($requestedOfferPrice, 2));
+
+        if ($parentId) {
+            return in_array('offers', $modules, true) ? $normalized : 0;
+        }
+
+        return in_array('offers', $modules, true) ? $normalized : 0;
     }
 }
