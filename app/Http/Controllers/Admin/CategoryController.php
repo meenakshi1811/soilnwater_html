@@ -62,7 +62,7 @@ class CategoryController extends Controller
                 return '₹'.number_format($price, 2);
             })
             ->addColumn('offer_price_display', function (Category $category): string {
-                $isOfferEnabled = in_array('offer', $category->modules ?? [], true);
+                $isOfferEnabled = in_array('offers', $category->modules ?? [], true);
                 if (! $isOfferEnabled) {
                     return '<span class="text-muted">N/A</span>';
                 }
@@ -183,7 +183,7 @@ class CategoryController extends Controller
             if (! in_array('ads', $modules, true)) {
                 $category->children()->update(['ads_price' => 0]);
             }
-            if (! in_array('offer', $modules, true)) {
+            if (! in_array('offers', $modules, true)) {
                 $category->children()->update(['offer_price' => 0]);
             }
         }
@@ -271,9 +271,9 @@ class CategoryController extends Controller
         $normalized = max(0, round($requestedOfferPrice, 2));
 
         if ($parentId) {
-            return in_array('offer', $modules, true) ? $normalized : 0;
+            return in_array('offers', $modules, true) ? $normalized : 0;
         }
 
-        return in_array('offer', $modules, true) ? $normalized : 0;
+        return in_array('offers', $modules, true) ? $normalized : 0;
     }
 }

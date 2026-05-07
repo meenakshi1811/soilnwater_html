@@ -51,7 +51,7 @@
         },
 
         syncOfferPriceState: function () {
-            var hasOfferModule = this.selectedModules().indexOf('offer') !== -1;
+            var hasOfferModule = this.selectedModules().indexOf('offers') !== -1;
             var $input = $('#categoryOfferPrice');
             var $help = $('#offerPriceHelpText');
             if (!$input.length) return;
