@@ -4,6 +4,8 @@
     $isAdmin = auth()->user()->isAdmin();
     $isEmployee = auth()->user()->isEmployee();
     $canAccessOffers = $isAdmin || $isGeneralUser || auth()->user()->canModule('vendors', 'read');
+    $offersMenuActive = request()->routeIs('offers.*');
+    $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -71,9 +73,27 @@
             </li>
             <hr>
             <li>
-                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                <a class="{{ $offersMenuActive ? 'active' : '' }}" href="{{ route('offers.index') }}">
                     <i class="fa-solid fa-tags"></i>
-                    <span>Offers &amp; Discounts</span>
+                    <span>Offers</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                    <i class="fa-solid fa-list"></i>
+                    <span>All Offers</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $adsMenuActive ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-ad"></i>
+                    <span>Ads</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-list"></i>
+                    <span>All Ads</span>
                 </a>
             </li>
             <li>
@@ -94,16 +114,10 @@
                     <span>Report Ads</span>
                 </a>
             </li>
-            <li>
-                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
-                    <i class="fa-solid fa-rectangle-ad"></i>
-                    <span>My Ads</span>
-                </a>
-            </li>
         @endif
 
          @foreach($emsModules as $slug => $label)
-            @if($isAdmin || auth()->user()->can($slug.'.read'))
+            @if(($isAdmin || auth()->user()->can($slug.'.read')) && !in_array($slug, ['offers', 'ads'], true))
                 <li>
                     <a class="{{ request()->routeIs('modules.show') && request()->route('module') === $slug ? 'active' : '' }}" href="{{ route('modules.show', $slug) }}">
                         <i class="fa-solid fa-cube"></i><span>{{ $label }}</span>
