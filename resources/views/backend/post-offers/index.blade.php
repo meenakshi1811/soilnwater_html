@@ -24,7 +24,7 @@
             <p class="text-secondary mb-0 mt-1" style="font-size:0.875rem;">{{ $isEditMode ? 'Update the details below and save changes.' : 'Fill in the details below to publish a new offer.' }}</p>
         </div>
 
-        <form id="offerForm" method="POST" action="{{ $isEditMode && $offer ? route('offers.update', $offer) : route('offers.store') }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/offers/categories') }}" data-is-edit="{{ $isEditMode ? '1' : '0' }}" data-google-maps-api-key="{{ config('services.google.maps_api_key') }}">
+        <form id="offerForm" method="POST" action="{{ $isEditMode && $offer ? route('offers.update', $offer) : route('offers.store') }}" enctype="multipart/form-data" novalidate data-subcategory-url-base="{{ url('/dashboard/offers/categories') }}" data-is-edit="{{ $isEditMode ? '1' : '0' }}" data-is-staff-user="{{ !empty($isStaffUser) ? '1' : '0' }}" data-google-maps-api-key="{{ config('services.google.maps_api_key') }}">
             @csrf
             @if($isEditMode)
                 @method('PUT')
@@ -131,7 +131,7 @@
                     >
                         <option value="">— Select a category —</option>
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ (string) old('category_id', $offer?->category_id) === (string) $category->id ? 'selected' : '' }}>
+                            <option value="{{ $category->id }}" data-offer-price="{{ (float) ($category->offer_price ?? 0) }}" {{ (string) old('category_id', $offer?->category_id) === (string) $category->id ? 'selected' : '' }}>
                                 {{ $category->name }}
                             </option>
                         @endforeach
@@ -139,6 +139,10 @@
                     @error('category_id')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+                </div>
+
+                <div class="col-12">
+                    <div id="offerPricingNotice" class="alert alert-warning d-none mb-0"></div>
                 </div>
 
                 {{-- Sub Category --}}
@@ -393,7 +397,7 @@
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ $isEditMode ? route('offers.index') : route('post-offer') }}" class="btn btn-light px-4">Cancel</a>
-                <button type="submit" id="offerSubmitBtn" class="btn btn-primary ems-btn-primary px-5">
+                <button type="submit" id="offerSubmitBtn" class="btn btn-primary ems-btn-primary px-5" data-default-label="{{ $isEditMode ? 'Update Offer' : 'Post Offer' }}" data-payment-label="Proceed to Payment">
                     <span class="btn-text">
                         <i class="fa-solid {{ $isEditMode ? 'fa-floppy-disk' : 'fa-paper-plane' }} me-2"></i>{{ $isEditMode ? 'Update Offer' : 'Post Offer' }}
                     </span>
