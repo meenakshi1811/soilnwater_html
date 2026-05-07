@@ -19,7 +19,7 @@
         var $table = $('#userAdsTable');
         if (!$table.length || !$.fn.DataTable) return;
 
-        $table.DataTable({
+        var dt = $table.DataTable({
             processing: true,
             serverSide: true,
             ajax: {
@@ -43,6 +43,52 @@
                 $(row).find('td').eq(6).html(data.status_badge);
                 $(row).find('td').eq(7).html(data.banner_preview);
                 $(row).find('td').eq(10).html(data.actions);
+            }
+        });
+
+        $(document).on('click', '.js-delete-user-ad', function () {
+            var id = $(this).data('id');
+
+            var runDelete = function () {
+                $.ajax({
+                    url: '/dashboard/ads/' + id,
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).done(function (response) {
+                    showToast('success', (response && response.message) ? response.message : 'Ad deleted successfully.');
+                    dt.ajax.reload(null, false);
+                }).fail(function (xhr) {
+                    var message = (xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error))
+                        ? (xhr.responseJSON.message || xhr.responseJSON.error)
+                        : 'Unable to delete ad.';
+                    showToast('danger', message);
+                });
+            };
+
+            if (window.Swal && typeof window.Swal.fire === 'function') {
+                window.Swal.fire({
+                    title: 'Delete this ad?',
+                    text: 'This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete it',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        runDelete();
+                    }
+                });
+
+                return;
+            }
+
+            if (window.confirm('Are you sure you want to delete this ad?')) {
+                runDelete();
             }
         });
     }
@@ -181,6 +227,52 @@
 
         $('#adminAdsApplyFilters').on('click', function () {
             dt.ajax.reload();
+        });
+
+        $(document).on('click', '.js-delete-submission', function () {
+            var id = $(this).data('id');
+
+            var runDelete = function () {
+                $.ajax({
+                    url: '/admin/ads/submissions/' + id,
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).done(function (response) {
+                    showToast('success', (response && response.message) ? response.message : 'Ad deleted successfully.');
+                    dt.ajax.reload(null, false);
+                }).fail(function (xhr) {
+                    var message = (xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error))
+                        ? (xhr.responseJSON.message || xhr.responseJSON.error)
+                        : 'Unable to delete ad.';
+                    showToast('danger', message);
+                });
+            };
+
+            if (window.Swal && typeof window.Swal.fire === 'function') {
+                window.Swal.fire({
+                    title: 'Delete this ad submission?',
+                    text: 'This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete it',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        runDelete();
+                    }
+                });
+
+                return;
+            }
+
+            if (window.confirm('Are you sure you want to delete this ad submission?')) {
+                runDelete();
+            }
         });
     }
 
