@@ -50,6 +50,13 @@
             </div>
         </div>
         <div class="col-sm-6 col-xl-4">
+            <div class="modern-stat-card ads">
+                <span>Active Offers</span>
+                <h3>{{ number_format($activeOffers) }}</h3>
+                <small>Published offers</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-4">
             <div class="modern-stat-card revenue">
                 <span>Revenue Today / Month</span>
                 <h3>${{ number_format($revenueToday) }}</h3>
