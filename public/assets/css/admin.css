@@ -868,9 +868,18 @@
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
 }
 
+.offers-table-wrap .dataTables_wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.offers-table-wrap table.dataTable,
 #myOffersTable {
     width: 100% !important;
     min-width: 1100px;
