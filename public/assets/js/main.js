@@ -51,7 +51,7 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
 
   if (!sliders.length) return;
 
-  sliders.forEach((slider) => {
+  sliders.forEach((slider, sliderIndex) => {
     if (slider.dataset.sliderReady === 'true') return;
 
     const slides = Array.from(slider.children).filter((child) =>
@@ -167,14 +167,20 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
     }
 
     const stopAuto = () => {
-      if (autoTimer) clearInterval(autoTimer);
+      if (autoTimer) clearTimeout(autoTimer);
     };
+
+    const autoIntervalMs = Number(slider.dataset.intervalMs) > 0 ? Number(slider.dataset.intervalMs) : 3500;
+    const initialDelayMs = Number(slider.dataset.initialDelayMs) >= 0
+      ? Number(slider.dataset.initialDelayMs)
+      : (sliderIndex * 450) % autoIntervalMs;
 
     const startAuto = () => {
       stopAuto();
-      autoTimer = setInterval(() => {
+      autoTimer = setTimeout(function tick() {
         goTo(activeIndex + 1);
-      }, 3500);
+        autoTimer = setTimeout(tick, autoIntervalMs);
+      }, initialDelayMs || autoIntervalMs);
     };
 
     const restartAuto = () => {
