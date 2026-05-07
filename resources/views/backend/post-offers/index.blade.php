@@ -140,11 +140,7 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                     <div id="categoryPricingChip" class="ads-pricing-chip ads-pricing-chip--paid d-none mt-3" aria-live="polite"></div>
-                </div>
-
-                <div class="col-12">
-                    <div id="offerPricingNotice" class="alert alert-warning d-none mb-0"></div>
-                </div>
+                </div>               
 
                 {{-- Sub Category --}}
                 <div class="col-md-6">
