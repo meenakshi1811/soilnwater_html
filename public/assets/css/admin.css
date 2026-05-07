@@ -858,6 +858,12 @@
 }
 
 
+
+.ems-page .chart-card {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 /* Offers dashboard table */
 .ems-page {
     max-width: 100%;
@@ -868,12 +874,32 @@
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
 }
 
+.offers-table-wrap .dataTables_wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.offers-table-wrap table.dataTable,
 #myOffersTable {
     width: 100% !important;
     min-width: 1100px;
+}
+
+
+.offers-table-wrap .dataTables_wrapper .dataTables_length,
+.offers-table-wrap .dataTables_wrapper .dataTables_filter {
+    max-width: 100%;
+}
+
+.offers-table-wrap .dataTables_wrapper .dataTables_filter input {
+    max-width: 100%;
+    width: min(220px, 100%);
 }
 
 #myOffersTable th {
