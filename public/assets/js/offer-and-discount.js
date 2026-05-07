@@ -140,8 +140,12 @@
                 $categoryChip.addClass('d-none').empty();
             }
 
-            if (!isStaff && applied > 0) {
-                $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
+            if (applied > 0) {
+                if (!isStaff) {
+                    $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
+                } else {
+                    $chip.addClass('d-none').empty();
+                }
                 $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + paymentLabel);
                 $paymentDisabledNote.removeClass('d-none');
                 return;
