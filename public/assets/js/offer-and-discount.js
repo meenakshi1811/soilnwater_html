@@ -21,6 +21,7 @@
             height: 1080
         },
         currentBannerMode: 'upload',
+        currentAppliedOfferPrice: 0,
 
         updateFinalBannerPreview: function (src) {
             var hasSrc = !!src;
@@ -101,7 +102,7 @@
                     $sub.html('<option value="">— Select a subcategory —</option>');
                     $.each(data, function (_, sub) {
                         $sub.append(
-                            $('<option>', { value: sub.id, text: sub.name })
+                            $('<option>', { value: sub.id, text: sub.name }).attr('data-offer-price', Number(sub.offer_price || 0))
                         );
                     });
                     $sub.prop('disabled', false);
@@ -112,7 +113,33 @@
                 }
             }).fail(function () {
                 $sub.html('<option value="">Failed to load subcategories</option>');
+            }).always(function () {
+                OffersAdmin.syncOfferPricingState();
             });
+        },
+
+        syncOfferPricingState: function () {
+            var isStaff = String($('#offerForm').data('is-staff-user')) === '1';
+            var $categoryOption = $('#categorySelect option:selected');
+            var $subcategoryOption = $('#subcategorySelect option:selected');
+            var categoryPrice = Number($categoryOption.data('offer-price') || 0);
+            var subcategoryPrice = Number($subcategoryOption.data('offer-price') || 0);
+            var applied = subcategoryPrice > 0 ? subcategoryPrice : categoryPrice;
+            var $chip = $('#offerPricingChip');
+            var $btn = $('#offerSubmitBtn');
+            var defaultLabel = $btn.data('default-label') || 'Post Offer';
+            var paymentLabel = $btn.data('payment-label') || 'Proceed to Payment';
+
+            this.currentAppliedOfferPrice = applied;
+
+            if (!isStaff && applied > 0) {
+                $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
+                $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + paymentLabel);
+                return;
+            }
+
+            $chip.addClass('d-none').empty();
+            $btn.find('.btn-text').html('<i class="fa-solid fa-paper-plane me-2"></i>' + defaultLabel);
         },
 
         initLocationAutocomplete: function () {
@@ -630,12 +657,17 @@
             // Category → load subcategories
             $('#categorySelect').on('change', function () {
                 self.loadSubcategories($(this).val(), '');
+                self.syncOfferPricingState();
+            });
+            $('#subcategorySelect').on('change', function () {
+                self.syncOfferPricingState();
             });
             var initialCategoryId = $('#categorySelect').val();
             var initialSubcategoryId = $('#subcategorySelect').data('selected-subcategory');
             if (initialCategoryId) {
                 self.loadSubcategories(initialCategoryId, initialSubcategoryId || '');
             }
+            self.syncOfferPricingState();
 
             // Coupon code → auto uppercase
             $('#couponCode').on('input', function () {
