@@ -134,6 +134,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/{ad}', [AdSubmissionController::class, 'show'])->name('show');
                 Route::post('/{ad}/approve', [AdSubmissionController::class, 'approve'])->name('approve');
                 Route::post('/{ad}/reject', [AdSubmissionController::class, 'reject'])->name('reject');
+                Route::delete('/{ad}', [AdSubmissionController::class, 'destroy'])->name('destroy');
             });
 
             Route::prefix('reports')->name('reports.')->group(function () {

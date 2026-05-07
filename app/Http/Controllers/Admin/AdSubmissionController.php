@@ -8,6 +8,7 @@ use App\Support\AdSizes;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -63,7 +64,7 @@ class AdSubmissionController extends Controller
             })
             ->editColumn('submitted_at', fn (UserAd $ad) => $ad->submitted_at?->format('Y-m-d H:i') ?? '-')
             ->addColumn('valid_until', fn (UserAd $ad) => $ad->valid_until?->format('Y-m-d') ?? 'No Expiry')
-            ->addColumn('actions', fn (UserAd $ad) => '<div class="d-flex justify-content-end"><a href="'.route('admin.ads.submissions.show', $ad).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a></div>')
+            ->addColumn('actions', fn (UserAd $ad) => '<div class="d-flex justify-content-end gap-2"><a href="'.route('admin.ads.submissions.show', $ad).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a><button type="button" class="btn btn-sm btn-outline-danger js-delete-submission" data-id="'.$ad->id.'" title="Delete"><i class="fa-solid fa-trash"></i></button></div>')
             ->rawColumns(['status_badge', 'banner_preview', 'actions'])
             ->make(true);
     }
@@ -112,5 +113,20 @@ class AdSubmissionController extends Controller
         }
 
         return back()->with('success', 'Ad rejected.');
+    }
+
+    public function destroy(Request $request, UserAd $ad): RedirectResponse|JsonResponse
+    {
+        if ($ad->final_image) {
+            File::delete(public_path($ad->final_image));
+        }
+
+        $ad->delete();
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json(['message' => 'Ad deleted successfully.']);
+        }
+
+        return back()->with('success', 'Ad deleted successfully.');
     }
 }
