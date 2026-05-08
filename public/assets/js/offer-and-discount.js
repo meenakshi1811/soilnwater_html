@@ -149,25 +149,20 @@
 
             this.currentAppliedOfferPrice = applied;
 
-            if (!isStaff && categoryPrice > 0 && $categoryOption.val()) {
+            if (categoryPrice > 0 && $categoryOption.val()) {
                 $categoryChip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + categoryPrice.toFixed(2));
             } else {
                 $categoryChip.addClass('d-none').empty();
             }
 
             if (applied > 0) {
-                if (!isStaff) {
-                    $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
-                    $breakdown.removeClass('d-none');
-                    $('#priceBasePerDay').text('₹' + applied.toFixed(2));
-                    $('#priceTotalDays').text(totalDays);
-                    $('#priceSubtotal').text('₹' + subtotal.toFixed(2));
-                    $('#priceGst').text('₹' + gst.toFixed(2));
-                    $('#priceGrandTotal').text('₹' + grandTotal.toFixed(2));
-                } else {
-                    $chip.addClass('d-none').empty();
-                    $breakdown.addClass('d-none');
-                }
+                $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
+                $breakdown.removeClass('d-none');
+                $('#priceBasePerDay').text('₹' + applied.toFixed(2));
+                $('#priceTotalDays').text(totalDays);
+                $('#priceSubtotal').text('₹' + subtotal.toFixed(2));
+                $('#priceGst').text('₹' + gst.toFixed(2));
+                $('#priceGrandTotal').text('₹' + grandTotal.toFixed(2));
                 $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + ($btn.data('payment-label') || 'Proceed to Payment'));
                 $paymentDisabledNote.removeClass('d-none');
                 return;
