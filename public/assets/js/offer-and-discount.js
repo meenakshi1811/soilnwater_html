@@ -133,8 +133,9 @@
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
 
             var validUntilValue = $('#validUntil').val();
+            var hasValidUntil = !!validUntilValue;
             var totalDays = 1;
-            if (validUntilValue) {
+            if (hasValidUntil) {
                 var today = new Date();
                 today.setHours(0, 0, 0, 0);
                 var validDate = new Date(validUntilValue + 'T00:00:00');
@@ -163,6 +164,7 @@
                 $('#priceSubtotal').text('₹' + subtotal.toFixed(2));
                 $('#priceGst').text('₹' + gst.toFixed(2));
                 $('#priceGrandTotal').text('₹' + grandTotal.toFixed(2));
+                $('#priceDefaultDaysNote').toggleClass('d-none', hasValidUntil);
                 $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + ($btn.data('payment-label') || 'Proceed to Payment'));
                 $paymentDisabledNote.removeClass('d-none');
                 return;
@@ -170,6 +172,7 @@
 
             $chip.addClass('d-none').empty();
             $breakdown.addClass('d-none');
+            $('#priceDefaultDaysNote').addClass('d-none');
             $paymentDisabledNote.addClass('d-none');
             $btn.find('.btn-text').html('<i class="fa-solid fa-paper-plane me-2"></i>' + defaultLabel);
         },

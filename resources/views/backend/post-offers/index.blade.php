@@ -158,14 +158,6 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                     <div id="offerPricingChip" class="ads-pricing-chip ads-pricing-chip--paid d-none mt-3" aria-live="polite"></div>
-                    <div id="offerPricingBreakdown" class="offer-pricing-breakdown d-none mt-3" aria-live="polite">
-                        <h6 class="mb-2">Pricing Details</h6>
-                        <div class="offer-pricing-breakdown__row"><span>Base price / day</span><strong id="priceBasePerDay">₹0.00</strong></div>
-                        <div class="offer-pricing-breakdown__row"><span>Total days</span><strong id="priceTotalDays">0</strong></div>
-                        <div class="offer-pricing-breakdown__row"><span>Subtotal (Base × Days)</span><strong id="priceSubtotal">₹0.00</strong></div>
-                        <div class="offer-pricing-breakdown__row"><span>GST (5%)</span><strong id="priceGst">₹0.00</strong></div>
-                        <div class="offer-pricing-breakdown__row offer-pricing-breakdown__row--grand"><span>Grand Total</span><strong id="priceGrandTotal">₹0.00</strong></div>
-                    </div>
                 </div>
 
                 {{-- Location --}}
@@ -400,6 +392,16 @@
                 @error('accept_terms')
                     <div class="invalid-feedback d-block">{{ $message }}</div>
                 @enderror
+            </div>
+
+            <div id="offerPricingBreakdown" class="offer-pricing-breakdown d-none mt-4" aria-live="polite">
+                <h5 class="mb-3">Pricing Details</h5>
+                <div class="offer-pricing-breakdown__row"><span>Base price / day</span><strong id="priceBasePerDay">₹0.00</strong></div>
+                <div class="offer-pricing-breakdown__row"><span>Total days</span><strong id="priceTotalDays">0</strong></div>
+                <div class="offer-pricing-breakdown__row"><span>Subtotal (Base × Days)</span><strong id="priceSubtotal">₹0.00</strong></div>
+                <div class="offer-pricing-breakdown__row"><span>GST (5%)</span><strong id="priceGst">₹0.00</strong></div>
+                <div class="offer-pricing-breakdown__row offer-pricing-breakdown__row--grand"><span>Grand Total</span><strong id="priceGrandTotal">₹0.00</strong></div>
+                <div id="priceDefaultDaysNote" class="offer-pricing-breakdown__note small text-secondary mt-2 d-none">Valid until is not selected, so GST is calculated on the standard 1-day base price.</div>
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
