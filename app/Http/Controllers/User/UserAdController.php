@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
@@ -293,7 +294,9 @@ class UserAdController extends Controller
         $targetWidth = (int) ($size['w'] ?? 0);
         $targetHeight = (int) ($size['h'] ?? 0);
 
-        $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight) {
+        $pricing = $this->buildPricingDetails($categoryPrice, $validated['valid_until']);
+
+        $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $pricing) {
             $layoutHtml = (string) ($validated['custom_html'] ?? '');
             $renderedHtml = $layoutHtml;
 
@@ -322,6 +325,12 @@ class UserAdController extends Controller
                 'valid_until' => $validated['valid_until'],
                 'submitted_at' => now(),
                 'is_sponsored' => $isSponsored,
+                'base_price_per_day' => $pricing['base_price_per_day'],
+                'total_days' => $pricing['total_days'],
+                'subtotal' => $pricing['subtotal'],
+                'gst_rate' => $pricing['gst_rate'],
+                'gst_amount' => $pricing['gst_amount'],
+                'grand_total' => $pricing['grand_total'],
             ]);
         });
 
@@ -334,6 +343,39 @@ class UserAdController extends Controller
         }
 
         return redirect()->route('ads.index')->with('success', 'Your ad was submitted for admin approval.');
+    }
+
+
+    private function buildPricingDetails(?float $categoryPrice, string $validUntil): array
+    {
+        if ($categoryPrice === null || $categoryPrice <= 0) {
+            return [
+                'base_price_per_day' => null,
+                'total_days' => null,
+                'subtotal' => null,
+                'gst_rate' => null,
+                'gst_amount' => null,
+                'grand_total' => null,
+            ];
+        }
+
+        $startDate = Carbon::today();
+        $endDate = Carbon::parse($validUntil)->startOfDay();
+        $days = max(1, $startDate->diffInDays($endDate) + 1);
+
+        $subtotal = round($categoryPrice * $days, 2);
+        $gstRate = 5.00;
+        $gstAmount = round($subtotal * ($gstRate / 100), 2);
+        $grandTotal = round($subtotal + $gstAmount, 2);
+
+        return [
+            'base_price_per_day' => round($categoryPrice, 2),
+            'total_days' => $days,
+            'subtotal' => $subtotal,
+            'gst_rate' => $gstRate,
+            'gst_amount' => $gstAmount,
+            'grand_total' => $grandTotal,
+        ];
     }
 
     private function renderTemplateHtml(string $layoutHtml, array $fields): string

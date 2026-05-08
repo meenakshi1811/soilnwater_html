@@ -49,6 +49,16 @@
                 <div class="mb-2"><span class="text-secondary">Reviewed:</span> {{ $ad->reviewed_at?->format('Y-m-d H:i') ?? '-' }}</div>
                 <div class="mb-2"><span class="text-secondary">Status:</span> <strong>{{ ucfirst($ad->status) }}</strong></div>
 
+                @if($ad->grand_total !== null)
+                    <hr>
+                    <h6 class="mb-3">Pricing Details</h6>
+                    <div class="mb-2"><span class="text-secondary">Base price / day:</span> <strong>₹{{ number_format((float) $ad->base_price_per_day, 2) }}</strong></div>
+                    <div class="mb-2"><span class="text-secondary">Total days:</span> <strong>{{ $ad->total_days }}</strong></div>
+                    <div class="mb-2"><span class="text-secondary">Subtotal (Base × Days):</span> <strong>₹{{ number_format((float) $ad->subtotal, 2) }}</strong></div>
+                    <div class="mb-2"><span class="text-secondary">GST ({{ rtrim(rtrim(number_format((float) $ad->gst_rate, 2), '0'), '.') }}%):</span> <strong>₹{{ number_format((float) $ad->gst_amount, 2) }}</strong></div>
+                    <div class="mb-2"><span class="text-secondary">Grand Total:</span> <strong class="fs-5">₹{{ number_format((float) $ad->grand_total, 2) }}</strong></div>
+                @endif
+
                 <hr>
 
                 <div class="alert {{ $ad->review_note ? 'alert-secondary' : 'alert-light' }} mb-0">
