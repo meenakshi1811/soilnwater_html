@@ -133,7 +133,7 @@
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
 
             var validUntilValue = $('#validUntil').val();
-            var totalDays = 0;
+            var totalDays = 1;
             if (validUntilValue) {
                 var today = new Date();
                 today.setHours(0, 0, 0, 0);
