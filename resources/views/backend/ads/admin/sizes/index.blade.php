@@ -30,7 +30,7 @@
                         <th>Dimensions</th>
                         <th>Placement</th>
                         <th>Paid</th>
-                        <th>Amount</th>
+                        <th>Category Pricing</th>
                         <th>Created</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -81,9 +81,27 @@
                                 <label class="form-check-label" for="adSizeIsPaid">Paid</label>
                             </div>
                         </div>
-                        <div class="col-md-4" id="adSizeAmountWrap" style="display: none;">
-                            <label class="form-label">Amount</label>
-                            <input type="number" step="0.01" min="0" max="99999999.99" name="amount" id="adSizeAmount" class="form-control" placeholder="0.00">
+                        <div class="col-12" id="adSizeCategoryPricesWrap" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">Category Pricing</label>
+                                <small class="text-secondary">Leave a category blank when this size is not priced for it.</small>
+                            </div>
+                            <div class="row g-3">
+                                @forelse($adCategories as $category)
+                                    <div class="col-md-6">
+                                        <label class="form-label small text-secondary" for="adSizeCategoryPrice{{ $category->id }}">{{ $category->name }}</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₹</span>
+                                            <input type="number" step="0.01" min="0" max="99999999.99" name="category_prices[{{ $category->id }}]" id="adSizeCategoryPrice{{ $category->id }}" class="form-control js-category-price-input" data-category-id="{{ $category->id }}" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="col-12">
+                                        <div class="alert alert-warning mb-0">No ads categories are available yet.</div>
+                                    </div>
+                                @endforelse
+                            </div>
+                            <div id="adSizeCategoryPricesError" class="invalid-feedback d-block"></div>
                         </div>
                     </div>
                 </div>

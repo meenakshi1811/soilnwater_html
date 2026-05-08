@@ -8,13 +8,14 @@ use App\Models\User;
 final class AdSizes
 {
     /**
-     * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool, is_paid:bool, amount:float}>
+     * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool, is_paid:bool, amount:float, category_prices:array<int,float>}>
      */
     public static function all(): array
     {
         $sizes = [];
 
         $adSizes = AdSize::query()
+            ->with('categoryPrices:id,ad_size_id,category_id,amount')
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -24,6 +25,10 @@ final class AdSizes
                 continue;
             }
 
+            $categoryPrices = $adSize->categoryPrices
+                ->mapWithKeys(fn ($price) => [(int) $price->category_id => (float) $price->amount])
+                ->all();
+
             $sizes[$adSize->size_key] = [
                 'name' => $adSize->name,
                 'ratio' => $adSize->width.' / '.$adSize->height,
@@ -31,7 +36,8 @@ final class AdSizes
                 'h' => (int) $adSize->height,
                 'admin_only' => (bool) $adSize->admin_only,
                 'is_paid' => (bool) $adSize->is_paid,
-                'amount' => (float) ($adSize->amount ?? 0),
+                'amount' => $categoryPrices !== [] ? min($categoryPrices) : (float) ($adSize->amount ?? 0),
+                'category_prices' => $categoryPrices,
             ];
         }
 
@@ -40,7 +46,7 @@ final class AdSizes
 
 
     /**
-     * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool, is_paid:bool, amount:float}>
+     * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool, is_paid:bool, amount:float, category_prices:array<int,float>}>
      */
     public static function visibleFor(?User $user): array
     {

@@ -35,17 +35,19 @@
             $('#adSizeForm').find('input[name="_method"]').remove();
             $('#adSizeForm').find('.is-invalid').removeClass('is-invalid');
             $('#adSizeForm').find('span.ajax-error, span.invalid-feedback').remove();
-            $('#adSizeAmountWrap').hide();
-            $('#adSizeAmount').prop('required', false);
+            $('#adSizeCategoryPricesWrap').hide();
+            $('.js-category-price-input').val('').prop('required', false);
+            $('#adSizeCategoryPricesError').text('');
         },
 
 
         toggleAmountField: function () {
             var isPaid = $('#adSizeIsPaid').is(':checked');
-            $('#adSizeAmountWrap').toggle(isPaid);
-            $('#adSizeAmount').prop('required', isPaid);
+            $('#adSizeCategoryPricesWrap').toggle(isPaid);
+            $('.js-category-price-input').prop('required', false);
+            $('#adSizeCategoryPricesError').text('');
             if (!isPaid) {
-                $('#adSizeAmount').val('');
+                $('.js-category-price-input').val('');
             }
         },
 
@@ -84,7 +86,11 @@
                     $('#adSizeHeight').val(size.height || '');
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
                     $('#adSizeIsPaid').prop('checked', !!size.is_paid);
-                    $('#adSizeAmount').val(size.amount || '');
+                    var categoryPrices = response.category_prices || {};
+                    $('.js-category-price-input').each(function () {
+                        var categoryId = String($(this).data('category-id'));
+                        $(this).val(categoryPrices[categoryId] !== undefined ? categoryPrices[categoryId] : '');
+                    });
                     self.toggleAmountField();
                     $('#adSizeForm').attr('action', '/admin/ads/sizes/' + id).attr('method', 'POST');
                     self.modal.show();
@@ -162,6 +168,20 @@
                     return;
                 }
 
+                if ($('#adSizeIsPaid').is(':checked')) {
+                    var hasCategoryPrice = false;
+                    $('.js-category-price-input').each(function () {
+                        if ($(this).val() !== '') {
+                            hasCategoryPrice = true;
+                        }
+                    });
+
+                    if (!hasCategoryPrice) {
+                        $('#adSizeCategoryPricesError').text('Add at least one category price when paid is enabled.');
+                        return;
+                    }
+                }
+
                 $form.find('input[name="_method"]').remove();
                 if (self.isEdit) {
                     $('<input type="hidden" name="_method" value="PUT">').appendTo($form);
@@ -225,15 +245,7 @@
                         size_key: { required: true, maxlength: 60, sizeKeyFormat: true },
                         width: { required: true, min: 1, max: 5000 },
                         height: { required: true, min: 1, max: 5000 },
-                        amount: {
-                            required: {
-                                depends: function () {
-                                    return $('#adSizeIsPaid').is(':checked');
-                                }
-                            },
-                            number: true,
-                            min: 0
-                        }
+
                     }
                 });
             }

@@ -283,6 +283,13 @@ class UserAdController extends Controller
         $user = $request->user();
 
         $size = AdSizes::all()[$sizeType] ?? null;
+        $categoryPrice = $size['category_prices'][(int) $validated['category_id']] ?? null;
+        if ((bool) ($size['is_paid'] ?? false) && $categoryPrice === null && ! (bool) ($user?->isAdmin())) {
+            return back()->withErrors([
+                'category_id' => 'No price is configured for this category and ad size.',
+            ])->withInput();
+        }
+
         $targetWidth = (int) ($size['w'] ?? 0);
         $targetHeight = (int) ($size['h'] ?? 0);
 
@@ -517,7 +524,7 @@ class UserAdController extends Controller
         }
 
         if ((bool) ($size['is_paid'] ?? false) === true && ! (bool) ($user?->isAdmin())) {
-            return false;
+            return ! empty($size['category_prices'] ?? []);
         }
 
         return true;

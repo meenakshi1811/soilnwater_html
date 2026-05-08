@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AdSize extends Model
 {
@@ -26,4 +27,9 @@ class AdSize extends Model
         'amount' => 'decimal:2',
         'is_active' => 'bool',
     ];
+
+    public function categoryPrices(): HasMany
+    {
+        return $this->hasMany(AdSizeCategoryPrice::class);
+    }
 }
