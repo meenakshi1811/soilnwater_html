@@ -28,6 +28,12 @@ class UserAd extends Model
         'reviewed_at',
         'review_note',
         'is_sponsored',
+        'base_price_per_day',
+        'total_days',
+        'subtotal',
+        'gst_rate',
+        'gst_amount',
+        'grand_total',
     ];
 
     protected $casts = [
@@ -38,6 +44,12 @@ class UserAd extends Model
         'reviewed_at' => 'datetime',
         'valid_until' => 'date',
         'is_sponsored' => 'boolean',
+        'base_price_per_day' => 'decimal:2',
+        'total_days' => 'integer',
+        'subtotal' => 'decimal:2',
+        'gst_rate' => 'decimal:2',
+        'gst_amount' => 'decimal:2',
+        'grand_total' => 'decimal:2',
     ];
 
     public function user(): BelongsTo
