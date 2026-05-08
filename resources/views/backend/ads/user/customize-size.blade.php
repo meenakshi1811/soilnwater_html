@@ -29,9 +29,13 @@
                     <select name="category_id" id="categorySelect" class="form-select" required>
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
+                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}">{{ $category->name }}</option>
                         @endforeach
                     </select>
+                    @if((bool) ($size['is_paid'] ?? false))
+                        <div id="adCategoryPriceNote" class="form-text text-primary fw-semibold">Select a category to see this size price.</div>
+                    @endif
                 </div>
                 <div class="col-md-6">
                     <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -1151,8 +1155,23 @@ function pushScreenshotToServer(dataURL) {
             updateSubmitButtonState();
         }
 
+        const categoryPriceNote = document.getElementById('adCategoryPriceNote');
+
+        function updateCategoryPriceNote() {
+            if (!categoryPriceNote || !categorySelect) return;
+            const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+            const price = selectedOption ? selectedOption.dataset.adPrice : '';
+            if (price === undefined || price === '') {
+                categoryPriceNote.textContent = categorySelect.value ? 'No price is configured for this category and size.' : 'Select a category to see this size price.';
+                return;
+            }
+
+            categoryPriceNote.textContent = `Price for this category and size: ₹${Number(price).toFixed(2)}`;
+        }
+
         categorySelect?.addEventListener('change', function () {
             loadSubcategories(this.value);
+            updateCategoryPriceNote();
             updateSubmitButtonState();
         });
         subcategorySelect?.addEventListener('change', updateSubmitButtonState);

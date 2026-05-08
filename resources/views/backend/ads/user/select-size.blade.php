@@ -22,14 +22,15 @@
                 @php
                     $isPaid = (bool) ($size['is_paid'] ?? false);
                     $hasPaidAccess = (bool) ($paidSizeAccess[$sizeType] ?? false);
+                    $hasCategoryPricing = ! empty($size['category_prices'] ?? []);
                 @endphp
                 <div class="col-12 col-md-6 col-xl-4">
-                    <a href="{{ route('ads.create.customize.default', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none {{ $isPaid ? 'js-paid-size-card' : '' }}" data-size-type="{{ $sizeType }}" data-size-name="{{ $size['name'] }}" data-size-amount="{{ (float) ($size['amount'] ?? 0) }}" data-size-paid="{{ $isPaid ? '1' : '0' }}" data-size-unlocked="{{ $hasPaidAccess ? '1' : '0' }}">
+                    <a href="{{ route('ads.create.customize.default', ['sizeType' => $sizeType]) }}" class="ads-size-card d-block text-decoration-none {{ $isPaid ? 'js-paid-size-card' : '' }}" data-size-type="{{ $sizeType }}" data-size-name="{{ $size['name'] }}" data-size-amount="{{ (float) ($size['amount'] ?? 0) }}" data-size-paid="{{ $isPaid ? '1' : '0' }}" data-category-pricing="{{ $hasCategoryPricing ? '1' : '0' }}" data-size-unlocked="{{ $hasPaidAccess ? '1' : '0' }}">
                         <div class="d-flex justify-content-between align-items-center gap-2">
                             <div class="fw-semibold text-dark">{{ $size['name'] }}</div>
                             <div class="d-flex gap-2">
                                 @if($isPaid)
-                                    <span class="badge text-bg-danger">Paid ₹{{ number_format((float) ($size['amount'] ?? 0), 2) }}</span>
+                                    <span class="badge text-bg-danger">{{ $hasCategoryPricing ? 'Category Pricing' : 'Paid ₹'.number_format((float) ($size['amount'] ?? 0), 2) }}</span>
                                 @endif
                                 @if(($size['admin_only'] ?? false) === true)
                                     <span class="badge text-bg-warning">Admin Placement</span>
@@ -103,7 +104,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     paidCards.forEach((card) => {
         card.addEventListener('click', function (event) {
-event.preventDefault();
+            if (card.dataset.categoryPricing === '1') {
+                return;
+            }
+            event.preventDefault();
             selectedSizeType = card.dataset.sizeType || '';
             sizeNameEl.textContent = card.dataset.sizeName || '-';
             const amount = Number(card.dataset.sizeAmount || 0);
