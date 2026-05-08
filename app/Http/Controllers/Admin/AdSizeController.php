@@ -24,7 +24,6 @@ class AdSizeController extends Controller
         abort_unless($request->ajax(), 404);
 
         $sizes = AdSize::query()
-            ->with(['categoryPrices.category:id,name'])
             ->select(['id', 'size_key', 'name', 'width', 'height', 'admin_only', 'is_paid', 'amount', 'created_at']);
 
         return DataTables::of($sizes)
@@ -35,10 +34,10 @@ class AdSizeController extends Controller
             ->addColumn('paid_status', fn (AdSize $size) => $size->is_paid
                 ? '<span class="badge text-bg-primary">Paid</span>'
                 : '<span class="badge text-bg-secondary">Free</span>')
-            ->addColumn('amount_display', fn (AdSize $size) => $this->categoryPricingSummary($size))
             ->editColumn('created_at', fn (AdSize $size) => $size->created_at?->format('Y-m-d') ?? '-')
             ->addColumn('actions', function (AdSize $size): string {
                 return '<div class="d-flex gap-2 justify-content-end">'
+                    . '<a class="btn btn-sm btn-outline-secondary" href="'.route('admin.ads.sizes.show', $size).'" title="View details"><i class="fa-solid fa-eye"></i></a>'
                     . '<button type="button" class="btn btn-sm btn-outline-primary js-edit-ad-size" data-id="'.$size->id.'"><i class="fa-solid fa-pen"></i></button>'
                     . '<button type="button" class="btn btn-sm btn-outline-danger js-delete-ad-size" data-id="'.$size->id.'"><i class="fa-solid fa-trash"></i></button>'
                     . '</div>';
@@ -47,15 +46,21 @@ class AdSizeController extends Controller
             ->make(true);
     }
 
-    public function show(AdSize $size): JsonResponse
+    public function show(Request $request, AdSize $size): JsonResponse|\Illuminate\View\View
     {
-        $size->load('categoryPrices:id,ad_size_id,category_id,amount');
+        $size->load('categoryPrices.category:id,name');
 
-        return response()->json([
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'size' => $size,
+                'category_prices' => $size->categoryPrices
+                    ->mapWithKeys(fn ($price) => [(string) $price->category_id => $this->formatAmount($price->amount)])
+                    ->all(),
+            ]);
+        }
+
+        return view('backend.ads.admin.sizes.show', [
             'size' => $size,
-            'category_prices' => $size->categoryPrices
-                ->mapWithKeys(fn ($price) => [(string) $price->category_id => (float) $price->amount])
-                ->all(),
         ]);
     }
 
@@ -138,7 +143,7 @@ class AdSizeController extends Controller
                 continue;
             }
 
-            $normalized[(int) $categoryId] = round((float) $amount, 2);
+            $normalized[(int) $categoryId] = $this->formatAmount($amount);
         }
 
         return $normalized;
@@ -155,31 +160,14 @@ class AdSizeController extends Controller
         foreach ($categoryPrices as $categoryId => $amount) {
             $size->categoryPrices()->create([
                 'category_id' => (int) $categoryId,
-                'amount' => $amount,
+                'amount' => $this->formatAmount($amount),
             ]);
         }
     }
 
-    private function categoryPricingSummary(AdSize $size): string
+    private function formatAmount(mixed $amount): string
     {
-        if (! $size->is_paid) {
-            return '-';
-        }
-
-        $prices = $size->categoryPrices;
-        if ($prices->isEmpty()) {
-            return '₹'.number_format((float) ($size->amount ?? 0), 2);
-        }
-
-        $amounts = $prices->pluck('amount')->map(fn ($amount) => (float) $amount);
-
-        return sprintf(
-            '%d category%s · ₹%s - ₹%s',
-            $prices->count(),
-            $prices->count() === 1 ? '' : 'ies',
-            number_format($amounts->min(), 2),
-            number_format($amounts->max(), 2),
-        );
+        return number_format((float) $amount, 2, '.', '');
     }
 
     private function adCategories()

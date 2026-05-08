@@ -30,7 +30,6 @@
                         <th>Dimensions</th>
                         <th>Placement</th>
                         <th>Paid</th>
-                        <th>Category Pricing</th>
                         <th>Created</th>
                         <th class="text-end">Actions</th>
                     </tr>

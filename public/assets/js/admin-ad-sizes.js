@@ -21,11 +21,10 @@
                     { data: 'dimensions', name: 'dimensions', orderable: false, searchable: false },
                     { data: 'placement', name: 'placement', orderable: false, searchable: false },
                     { data: 'paid_status', name: 'paid_status', orderable: false, searchable: false },
-                    { data: 'amount_display', name: 'amount_display', orderable: false, searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[6, 'desc']]
+                order: [[5, 'desc']]
             });
         },
 
@@ -89,7 +88,7 @@
                     var categoryPrices = response.category_prices || {};
                     $('.js-category-price-input').each(function () {
                         var categoryId = String($(this).data('category-id'));
-                        $(this).val(categoryPrices[categoryId] !== undefined ? categoryPrices[categoryId] : '');
+                        $(this).val(categoryPrices[categoryId] !== undefined ? self.formatPriceForInput(categoryPrices[categoryId]) : '');
                     });
                     self.toggleAmountField();
                     $('#adSizeForm').attr('action', '/admin/ads/sizes/' + id).attr('method', 'POST');
@@ -107,6 +106,19 @@
                 var id = $(this).data('id');
                 self.confirmDelete(id);
             });
+        },
+
+        formatPriceForInput: function (value) {
+            if (value === null || value === undefined || value === '') {
+                return '';
+            }
+
+            var numberValue = Number(value);
+            if (!Number.isFinite(numberValue)) {
+                return value;
+            }
+
+            return numberValue.toFixed(2).replace(/\.00$/, '');
         },
 
         confirmDelete: function (id) {
