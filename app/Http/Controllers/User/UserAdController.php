@@ -74,7 +74,7 @@ class UserAdController extends Controller
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
-                ->get(['id', 'name', 'ads_price']),
+                ->get(['id', 'name']),
         ]);
     }
 
@@ -195,7 +195,7 @@ class UserAdController extends Controller
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
-                ->get(['id', 'name', 'ads_price']),
+                ->get(['id', 'name']),
         ]);
     }
 
@@ -228,7 +228,7 @@ class UserAdController extends Controller
             $category->children()
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
-                ->get(['id', 'name', 'ads_price'])
+                ->get(['id', 'name'])
         );
     }
 
@@ -275,24 +275,6 @@ class UserAdController extends Controller
         if (! $isValidSubcategory) {
             return back()->withErrors([
                 'subcategory_id' => 'Selected subcategory does not belong to the selected category.',
-            ])->withInput();
-        }
-
-        $selectedCategory = Category::query()
-            ->where('id', $validated['category_id'])
-            ->select(['id', 'ads_price'])
-            ->first();
-        $selectedSubcategory = Category::query()
-            ->where('id', $validated['subcategory_id'])
-            ->select(['id', 'ads_price'])
-            ->first();
-        $subcategoryAdsPrice = (float) ($selectedSubcategory?->ads_price ?? 0);
-        $categoryAdsPrice = (float) ($selectedCategory?->ads_price ?? 0);
-        $appliedAdsPrice = $subcategoryAdsPrice > 0 ? $subcategoryAdsPrice : $categoryAdsPrice;
-
-        if ($appliedAdsPrice > 0 && ! $request->user()?->isAdmin()) {
-            return back()->withErrors([
-                'subcategory_id' => 'This sub category is paid. Please complete payment to continue.',
             ])->withInput();
         }
 
