@@ -396,6 +396,7 @@
                     <a href="{{ route('frontend.terms.show', ['moduleKey' => 'offer']) }}" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>
                     for offers.
                 </label>
+                <div class="small text-secondary mt-1">Standard note: attached terms and conditions are shown at the bottom.</div>
                 @error('accept_terms')
                     <div class="invalid-feedback d-block">{{ $message }}</div>
                 @enderror
