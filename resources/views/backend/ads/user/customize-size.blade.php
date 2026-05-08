@@ -34,7 +34,13 @@
                         @endforeach
                     </select>
                     @if((bool) ($size['is_paid'] ?? false))
-                        <div id="adCategoryPriceNote" class="form-text text-primary fw-semibold">Select a category to see this size price.</div>
+                        <div id="adCategoryPriceNote" class="form-text text-muted">Select a category to see this size price.</div>
+                        <div id="adCategoryPremiumChip" class="d-none mt-2">
+                            <span class="badge rounded-pill px-3 py-2 fw-semibold text-warning-emphasis bg-warning-subtle border border-warning-subtle">
+                                <i class="fa-solid fa-crown me-1" aria-hidden="true"></i>
+                                Premium • ₹0.00
+                            </span>
+                        </div>
                     @endif
                 </div>
                 <div class="col-md-6">
@@ -1156,6 +1162,7 @@ function pushScreenshotToServer(dataURL) {
         }
 
         const categoryPriceNote = document.getElementById('adCategoryPriceNote');
+        const adCategoryPremiumChip = document.getElementById('adCategoryPremiumChip');
 
         function updateCategoryPriceNote() {
             if (!categoryPriceNote || !categorySelect) return;
@@ -1163,10 +1170,16 @@ function pushScreenshotToServer(dataURL) {
             const price = selectedOption ? selectedOption.dataset.adPrice : '';
             if (price === undefined || price === '') {
                 categoryPriceNote.textContent = categorySelect.value ? 'No price is configured for this category and size.' : 'Select a category to see this size price.';
+                adCategoryPremiumChip?.classList.add('d-none');
                 return;
             }
 
-            categoryPriceNote.textContent = `Price for this category and size: ₹${Number(price).toFixed(2)}`;
+            const formattedPrice = Number(price).toFixed(2);
+            categoryPriceNote.textContent = `Price for this category and size: ₹${formattedPrice}`;
+            if (adCategoryPremiumChip) {
+                adCategoryPremiumChip.classList.remove('d-none');
+                adCategoryPremiumChip.innerHTML = `<span class="badge rounded-pill px-3 py-2 fw-semibold text-warning-emphasis bg-warning-subtle border border-warning-subtle"><i class="fa-solid fa-crown me-1" aria-hidden="true"></i> Premium • ₹${formattedPrice}</span>`;
+            }
         }
 
         categorySelect?.addEventListener('change', function () {
