@@ -34,7 +34,13 @@
                         @endforeach
                     </select>
                     @if((bool) ($size['is_paid'] ?? false))
-                        <div id="adCategoryPriceNote" class="form-text text-primary fw-semibold">Select a category to see this size price.</div>
+                        <div id="adCategoryPriceNote" class="form-text text-muted">Select a category to see this size price.</div>
+                        <div id="adCategoryPremiumChip" class="d-none mt-2">
+                            <span class="badge rounded-pill px-3 py-2 fw-semibold text-warning-emphasis bg-warning-subtle border border-warning-subtle">
+                                <i class="fa-solid fa-crown me-1" aria-hidden="true"></i>
+                                Premium • ₹0.00
+                            </span>
+                        </div>
                     @endif
                 </div>
                 <div class="col-md-6">
@@ -233,6 +239,33 @@
             <p class="text-secondary small mt-2 mb-0">
                 Note: Your ad will be sent to admin for verification. It will be published after approval.
             </p>
+
+            @if((bool) ($size['is_paid'] ?? false))
+                <div id="pricingDetailsCard" class="mt-4 rounded-4 border p-4" style="background:#f5f2ec;border-color:#f1bb86 !important;">
+                    <h4 class="mb-3">Pricing Details</h4>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Base price / day</span>
+                        <strong id="pricingBasePrice">₹0.00</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Total days</span>
+                        <strong id="pricingTotalDays">1</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Subtotal (Base × Days)</span>
+                        <strong id="pricingSubtotal">₹0.00</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>GST (5%)</span>
+                        <strong id="pricingGst">₹0.00</strong>
+                    </div>
+                    <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+                        <strong class="fs-4">Grand Total</strong>
+                        <strong class="fs-3" id="pricingGrandTotal">₹0.00</strong>
+                    </div>
+                    <p id="pricingHint" class="text-secondary mb-0 mt-3">Valid until is not selected, so GST is calculated on the standard 1-day base price.</p>
+                </div>
+            @endif
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ route('ads.create.size') }}" class="btn btn-light px-4">Back</a>
@@ -1156,6 +1189,49 @@ function pushScreenshotToServer(dataURL) {
         }
 
         const categoryPriceNote = document.getElementById('adCategoryPriceNote');
+        const adCategoryPremiumChip = document.getElementById('adCategoryPremiumChip');
+        const validUntilInput = document.querySelector('input[name="valid_until"]');
+        const pricingBasePrice = document.getElementById('pricingBasePrice');
+        const pricingTotalDays = document.getElementById('pricingTotalDays');
+        const pricingSubtotal = document.getElementById('pricingSubtotal');
+        const pricingGst = document.getElementById('pricingGst');
+        const pricingGrandTotal = document.getElementById('pricingGrandTotal');
+        const pricingHint = document.getElementById('pricingHint');
+
+        function calculateValidDays() {
+            if (!validUntilInput || !validUntilInput.value) return { days: 1, usedFallback: true };
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const selectedDate = new Date(`${validUntilInput.value}T00:00:00`);
+            if (Number.isNaN(selectedDate.getTime()) || selectedDate < today) {
+                return { days: 1, usedFallback: true };
+            }
+            const diffMs = selectedDate.getTime() - today.getTime();
+            const diffDays = Math.floor(diffMs / 86400000) + 1;
+            return { days: Math.max(1, diffDays), usedFallback: false };
+        }
+
+        function updatePricingDetails(price) {
+            if (!pricingBasePrice || !pricingTotalDays || !pricingSubtotal || !pricingGst || !pricingGrandTotal) return;
+            const basePrice = Number(price);
+            const normalizedBasePrice = Number.isFinite(basePrice) && basePrice > 0 ? basePrice : 0;
+            const { days, usedFallback } = calculateValidDays();
+            const subtotal = normalizedBasePrice * days;
+            const gst = subtotal * 0.05;
+            const grandTotal = subtotal + gst;
+
+            pricingBasePrice.textContent = `₹${normalizedBasePrice.toFixed(2)}`;
+            pricingTotalDays.textContent = String(days);
+            pricingSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
+            pricingGst.textContent = `₹${gst.toFixed(2)}`;
+            pricingGrandTotal.textContent = `₹${grandTotal.toFixed(2)}`;
+
+            if (pricingHint) {
+                pricingHint.textContent = usedFallback
+                    ? 'Valid until is not selected, so GST is calculated on the standard 1-day base price.'
+                    : `Valid upto is ${days} day${days > 1 ? 's' : ''}.`;
+            }
+        }
 
         function updateCategoryPriceNote() {
             if (!categoryPriceNote || !categorySelect) return;
@@ -1163,10 +1239,18 @@ function pushScreenshotToServer(dataURL) {
             const price = selectedOption ? selectedOption.dataset.adPrice : '';
             if (price === undefined || price === '') {
                 categoryPriceNote.textContent = categorySelect.value ? 'No price is configured for this category and size.' : 'Select a category to see this size price.';
+                adCategoryPremiumChip?.classList.add('d-none');
+                updatePricingDetails(0);
                 return;
             }
 
-            categoryPriceNote.textContent = `Price for this category and size: ₹${Number(price).toFixed(2)}`;
+            const formattedPrice = Number(price).toFixed(2);
+            categoryPriceNote.textContent = `Price for this category and size: ₹${formattedPrice}`;
+            if (adCategoryPremiumChip) {
+                adCategoryPremiumChip.classList.remove('d-none');
+                adCategoryPremiumChip.innerHTML = `<span class="badge rounded-pill px-3 py-2 fw-semibold text-warning-emphasis bg-warning-subtle border border-warning-subtle"><i class="fa-solid fa-crown me-1" aria-hidden="true"></i> Premium • ₹${formattedPrice}</span>`;
+            }
+            updatePricingDetails(price);
         }
 
         categorySelect?.addEventListener('change', function () {
@@ -1175,6 +1259,8 @@ function pushScreenshotToServer(dataURL) {
             updateSubmitButtonState();
         });
         subcategorySelect?.addEventListener('change', updateSubmitButtonState);
+        validUntilInput?.addEventListener('change', updateCategoryPriceNote);
+        updateCategoryPriceNote();
         updateSubmitButtonState();
 
         window.initAdLocationAutocomplete = function () {
