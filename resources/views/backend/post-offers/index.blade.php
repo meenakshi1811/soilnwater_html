@@ -158,6 +158,14 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                     <div id="offerPricingChip" class="ads-pricing-chip ads-pricing-chip--paid d-none mt-3" aria-live="polite"></div>
+                    <div id="offerPricingBreakdown" class="offer-pricing-breakdown d-none mt-3" aria-live="polite">
+                        <h6 class="mb-2">Pricing Details</h6>
+                        <div class="offer-pricing-breakdown__row"><span>Base price / day</span><strong id="priceBasePerDay">₹0.00</strong></div>
+                        <div class="offer-pricing-breakdown__row"><span>Total days</span><strong id="priceTotalDays">0</strong></div>
+                        <div class="offer-pricing-breakdown__row"><span>Subtotal (Base × Days)</span><strong id="priceSubtotal">₹0.00</strong></div>
+                        <div class="offer-pricing-breakdown__row"><span>GST (5%)</span><strong id="priceGst">₹0.00</strong></div>
+                        <div class="offer-pricing-breakdown__row offer-pricing-breakdown__row--grand"><span>Grand Total</span><strong id="priceGrandTotal">₹0.00</strong></div>
+                    </div>
                 </div>
 
                 {{-- Location --}}
@@ -416,6 +424,9 @@
     .ads-pricing-chip { display:inline-flex; align-items:center; gap:.45rem; border-radius:999px; padding:.45rem .9rem; font-weight:700; font-size:1.05rem; line-height:1.2; border:1px solid transparent; }
     .ads-pricing-chip i { font-size:.8rem; }
     .ads-pricing-chip--paid { color:#b45309; background:#fff7ed; border-color:#f7c793; }
+    .offer-pricing-breakdown { border:1px solid #f7c793; background:#fffaf2; border-radius:.6rem; padding:.85rem 1rem; }
+    .offer-pricing-breakdown__row { display:flex; justify-content:space-between; gap:1rem; padding:.2rem 0; font-size:.92rem; }
+    .offer-pricing-breakdown__row--grand { margin-top:.25rem; padding-top:.45rem; border-top:1px dashed #f0c995; font-size:1rem; font-weight:700; }
 </style>
 @endpush
 
