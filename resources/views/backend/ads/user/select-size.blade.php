@@ -30,7 +30,9 @@
                             <div class="fw-semibold text-dark">{{ $size['name'] }}</div>
                             <div class="d-flex gap-2">
                                 @if($isPaid)
-                                    <span class="badge text-bg-danger">{{ $hasCategoryPricing ? 'Category Pricing' : 'Paid ₹'.number_format((float) ($size['amount'] ?? 0), 2) }}</span>
+                                    @if(! $hasCategoryPricing)
+                                        <span class="badge text-bg-danger">{{ 'Paid ₹'.number_format((float) ($size['amount'] ?? 0), 2) }}</span>
+                                @endif
                                 @endif
                                 @if(($size['admin_only'] ?? false) === true)
                                     <span class="badge text-bg-warning">Admin Placement</span>
