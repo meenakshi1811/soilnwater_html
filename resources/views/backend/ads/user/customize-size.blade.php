@@ -241,7 +241,7 @@
             </p>
 
             @if((bool) ($size['is_paid'] ?? false))
-                <div id="pricingDetailsCard" class="mt-4 rounded-4 border p-4" style="background:#f5f2ec;border-color:#f1bb86 !important;">
+                <div id="pricingDetailsCard" class="mt-4 rounded-4 border p-4 d-none" style="background:#f5f2ec;border-color:#f1bb86 !important;">
                     <h4 class="mb-3">Pricing Details</h4>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span>Base price / day</span>
@@ -1197,6 +1197,7 @@ function pushScreenshotToServer(dataURL) {
         const pricingGst = document.getElementById('pricingGst');
         const pricingGrandTotal = document.getElementById('pricingGrandTotal');
         const pricingHint = document.getElementById('pricingHint');
+        const pricingDetailsCard = document.getElementById('pricingDetailsCard');
 
         function calculateValidDays() {
             if (!validUntilInput || !validUntilInput.value) return { days: 1, usedFallback: true };
@@ -1215,6 +1216,10 @@ function pushScreenshotToServer(dataURL) {
             if (!pricingBasePrice || !pricingTotalDays || !pricingSubtotal || !pricingGst || !pricingGrandTotal) return;
             const basePrice = Number(price);
             const normalizedBasePrice = Number.isFinite(basePrice) && basePrice > 0 ? basePrice : 0;
+
+            if (pricingDetailsCard) {
+                pricingDetailsCard.classList.toggle('d-none', normalizedBasePrice <= 0);
+            }
             const { days, usedFallback } = calculateValidDays();
             const subtotal = normalizedBasePrice * days;
             const gst = subtotal * 0.05;
