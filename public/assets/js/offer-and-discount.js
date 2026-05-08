@@ -129,7 +129,23 @@
             var $chip = $('#offerPricingChip');
             var $btn = $('#offerSubmitBtn');
             var $paymentDisabledNote = $('#offerPaymentDisabledNote');
+            var $breakdown = $('#offerPricingBreakdown');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
+
+            var validUntilValue = $('#validUntil').val();
+            var totalDays = 0;
+            if (validUntilValue) {
+                var today = new Date();
+                today.setHours(0, 0, 0, 0);
+                var validDate = new Date(validUntilValue + 'T00:00:00');
+                if (!isNaN(validDate.getTime())) {
+                    var diff = Math.ceil((validDate.getTime() - today.getTime()) / 86400000);
+                    totalDays = Math.max(1, diff + 1);
+                }
+            }
+            var subtotal = applied * totalDays;
+            var gst = subtotal * 0.05;
+            var grandTotal = subtotal + gst;
 
             this.currentAppliedOfferPrice = applied;
 
@@ -142,8 +158,15 @@
             if (applied > 0) {
                 if (!isStaff) {
                     $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
+                    $breakdown.removeClass('d-none');
+                    $('#priceBasePerDay').text('₹' + applied.toFixed(2));
+                    $('#priceTotalDays').text(totalDays);
+                    $('#priceSubtotal').text('₹' + subtotal.toFixed(2));
+                    $('#priceGst').text('₹' + gst.toFixed(2));
+                    $('#priceGrandTotal').text('₹' + grandTotal.toFixed(2));
                 } else {
                     $chip.addClass('d-none').empty();
+                    $breakdown.addClass('d-none');
                 }
                 $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + ($btn.data('payment-label') || 'Proceed to Payment'));
                 $paymentDisabledNote.removeClass('d-none');
@@ -151,6 +174,7 @@
             }
 
             $chip.addClass('d-none').empty();
+            $breakdown.addClass('d-none');
             $paymentDisabledNote.addClass('d-none');
             $btn.find('.btn-text').html('<i class="fa-solid fa-paper-plane me-2"></i>' + defaultLabel);
         },
@@ -673,6 +697,9 @@
                 self.syncOfferPricingState();
             });
             $('#subcategorySelect').on('change', function () {
+                self.syncOfferPricingState();
+            });
+            $('#validUntil').on('change input', function () {
                 self.syncOfferPricingState();
             });
             var initialCategoryId = $('#categorySelect').val();
