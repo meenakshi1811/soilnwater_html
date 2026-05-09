@@ -11,6 +11,10 @@
         <a href="{{ route('frontend.index') }}" class="view-all">Back to home ▶</a>
     </div>
 
+    <div class="offers-market-banner mb-4">
+        <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1600&q=80" alt="Latest offers banner" class="img-fluid w-100 rounded-3 offers-market-banner-image">
+    </div>
+
     <div class="row g-2 mb-3" id="offersFilterBar" data-categories='@json($categoriesForFilter)'>
         <div class="col-12 col-md-4">
             <label for="offersMarketFilterCategory" class="form-label mb-1">Category</label>
@@ -109,6 +113,18 @@
 
 @push('styles')
 <style>
+    .offers-market-page .offers-market-banner {
+        overflow: hidden;
+        border-radius: 1rem;
+    }
+
+    .offers-market-page .offers-market-banner-image {
+        max-height: 300px;
+        width: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
     .offers-market-page #offersGrid .offer-coupon-card {
         max-width: none;
         margin-inline: 0;
