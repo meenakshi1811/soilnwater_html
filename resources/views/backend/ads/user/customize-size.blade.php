@@ -909,7 +909,7 @@ function pushScreenshotToServer(dataURL) {
                 img.src = objectUrl;
                 img.style.width = '100%';
                 img.style.height = '100%';
-                img.style.objectFit = 'cover';
+                img.style.objectFit = 'contain';
                 img.setAttribute('data-upload-image', '1');
                 uploadedImagePositionX = 50;
                 uploadedImagePositionY = 50;

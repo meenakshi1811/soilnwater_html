@@ -20,11 +20,10 @@
                     { data: 'size_key', name: 'size_key' },
                     { data: 'dimensions', name: 'dimensions', orderable: false, searchable: false },
                     { data: 'placement', name: 'placement', orderable: false, searchable: false },
-                    { data: 'paid_status', name: 'paid_status', orderable: false, searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[5, 'desc']]
+                order: [[4, 'desc']]
             });
         },
 
@@ -34,20 +33,10 @@
             $('#adSizeForm').find('input[name="_method"]').remove();
             $('#adSizeForm').find('.is-invalid').removeClass('is-invalid');
             $('#adSizeForm').find('span.ajax-error, span.invalid-feedback').remove();
-            $('#adSizeCategoryPricesWrap').hide();
-            $('.js-category-price-input').val('').prop('required', false);
-            $('#adSizeCategoryPricesError').text('');
-        },
-
-
-        toggleAmountField: function () {
-            var isPaid = $('#adSizeIsPaid').is(':checked');
-            $('#adSizeCategoryPricesWrap').toggle(isPaid);
-            $('.js-category-price-input').prop('required', false);
-            $('#adSizeCategoryPricesError').text('');
-            if (!isPaid) {
-                $('.js-category-price-input').val('');
-            }
+            $('#categoryPriceModeAll').prop('checked', false);
+            $('#applyAllCategoriesPriceWrap').addClass('d-none');
+            $('#categoryPricingFieldsSection').removeClass('d-none');
+            $('#applyAllCategoriesPriceInput').val('');
         },
 
         bindUi: function () {
@@ -59,8 +48,31 @@
                 $('#adSizeModalTitle').text('Add Ad Size');
                 self.resetForm();
                 $('#adSizeForm').attr('action', '/admin/ads/sizes').attr('method', 'POST');
-                self.toggleAmountField();
                 self.modal.show();
+            });
+
+
+            var syncAllCategoriesPrice = function () {
+                var useAll = $('#categoryPriceModeAll').is(':checked');
+                var value = $('#applyAllCategoriesPriceInput').val();
+                if (!useAll) {
+                    return;
+                }
+
+                $('input[name^="category_prices["]').val(value);
+            };
+
+            $('#categoryPriceModeAll').on('change', function () {
+                var isAllMode = this.checked;
+                $('#applyAllCategoriesPriceWrap').toggleClass('d-none', !isAllMode);
+                $('#categoryPricingFieldsSection').toggleClass('d-none', isAllMode);
+                if (isAllMode) {
+                    syncAllCategoriesPrice();
+                }
+            });
+
+            $('#applyAllCategoriesPriceInput').on('input', function () {
+                syncAllCategoriesPrice();
             });
 
             $(document).on('click', '.js-edit-ad-size', function () {
@@ -84,13 +96,6 @@
                     $('#adSizeWidth').val(size.width || '');
                     $('#adSizeHeight').val(size.height || '');
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
-                    $('#adSizeIsPaid').prop('checked', !!size.is_paid);
-                    var categoryPrices = response.category_prices || {};
-                    $('.js-category-price-input').each(function () {
-                        var categoryId = String($(this).data('category-id'));
-                        $(this).val(categoryPrices[categoryId] !== undefined ? self.formatPriceForInput(categoryPrices[categoryId]) : '');
-                    });
-                    self.toggleAmountField();
                     $('#adSizeForm').attr('action', '/admin/ads/sizes/' + id).attr('method', 'POST');
                     self.modal.show();
                 }).fail(function () {
@@ -98,27 +103,10 @@
                 });
             });
 
-            $('#adSizeIsPaid').on('change', function () {
-                self.toggleAmountField();
-            });
-
             $(document).on('click', '.js-delete-ad-size', function () {
                 var id = $(this).data('id');
                 self.confirmDelete(id);
             });
-        },
-
-        formatPriceForInput: function (value) {
-            if (value === null || value === undefined || value === '') {
-                return '';
-            }
-
-            var numberValue = Number(value);
-            if (!Number.isFinite(numberValue)) {
-                return value;
-            }
-
-            return numberValue.toFixed(2).replace(/\.00$/, '');
         },
 
         confirmDelete: function (id) {
@@ -180,21 +168,12 @@
                     return;
                 }
 
-                if ($('#adSizeIsPaid').is(':checked')) {
-                    var hasCategoryPrice = false;
-                    $('.js-category-price-input').each(function () {
-                        if ($(this).val() !== '') {
-                            hasCategoryPrice = true;
-                        }
-                    });
-
-                    if (!hasCategoryPrice) {
-                        $('#adSizeCategoryPricesError').text('Add at least one category price when paid is enabled.');
-                        return;
-                    }
-                }
-
                 $form.find('input[name="_method"]').remove();
+
+                if ($('#categoryPriceModeAll').is(':checked')) {
+                    var allCategoryPrice = $('#applyAllCategoriesPriceInput').val();
+                    $form.find('input[name^="category_prices["]').val(allCategoryPrice);
+                }
                 if (self.isEdit) {
                     $('<input type="hidden" name="_method" value="PUT">').appendTo($form);
                 }
@@ -256,8 +235,7 @@
                         name: { required: true, maxlength: 120 },
                         size_key: { required: true, maxlength: 60, sizeKeyFormat: true },
                         width: { required: true, min: 1, max: 5000 },
-                        height: { required: true, min: 1, max: 5000 },
-
+                        height: { required: true, min: 1, max: 5000 }
                     }
                 });
             }
