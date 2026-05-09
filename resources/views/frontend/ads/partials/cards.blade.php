@@ -69,7 +69,8 @@
 
 <script>
 window.renderAdsMarketCards = function () {
-    const GAP = 26;
+    const GAP = 12;
+    const SEARCH_STEP = 1;
 
     const FILLER_POOL = @json($sponsoredFillers);
 
@@ -142,8 +143,8 @@ window.renderAdsMarketCards = function () {
         }
 
         function findPlace(width, height) {
-            for (let top = 0; top <= 5000; top += 10) {
-                for (let left = 0; left <= containerWidth - width; left += 10) {
+            for (let top = 0; top <= 5000; top += SEARCH_STEP) {
+                for (let left = 0; left <= containerWidth - width; left += SEARCH_STEP) {
                     if (isFree(left, top, width, height)) {
                         return { left, top };
                     }
@@ -187,6 +188,7 @@ window.renderAdsMarketCards = function () {
             }
 
             placed.push({
+                el: card,
                 left: pos.left,
                 right: pos.left + cardW,
                 top: pos.top,
@@ -247,6 +249,7 @@ window.renderAdsMarketCards = function () {
                             grid.appendChild(filler);
 
                             placed.push({
+                                el: filler,
                                 left: left,
                                 right: left + size.w,
                                 top: top,
@@ -259,6 +262,35 @@ window.renderAdsMarketCards = function () {
                 }
             }
         }
+
+        if (window.innerWidth > 767) {
+            const rows = new Map();
+
+            placed.forEach((item) => {
+                if (!item.el) return;
+                const key = item.top;
+                if (!rows.has(key)) rows.set(key, []);
+                rows.get(key).push(item);
+            });
+
+            rows.forEach((items) => {
+                if (items.length < 2) return;
+
+                items.sort((a, b) => a.left - b.left);
+                const totalWidth = items.reduce((sum, item) => sum + (item.right - item.left), 0);
+                const targetGap = Math.max(GAP, (containerWidth - totalWidth) / (items.length - 1));
+
+                let cursor = 0;
+                items.forEach((item, index) => {
+                    const width = item.right - item.left;
+                    item.left = Math.round(cursor);
+                    item.right = item.left + width;
+                    item.el.style.left = item.left + 'px';
+                    cursor += width + (index < items.length - 1 ? targetGap : 0);
+                });
+            });
+        }
+
         const finalHeight = placed.length
             ? Math.max(...placed.map(item => item.bottom))
             : 0;
