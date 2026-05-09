@@ -73,6 +73,20 @@
                                 <label class="form-check-label" for="adSizeAdminOnly">Admin only</label>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="applyAllCategoriesPriceToggle">
+                                <label class="form-check-label" for="applyAllCategoriesPriceToggle">Apply one price for all categories</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-none" id="applyAllCategoriesPriceWrap">
+                            <label class="form-label">Price for all categories</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" min="0" step="0.01" id="applyAllCategoriesPriceInput" class="form-control" placeholder="0.00">
+                            </div>
+                            <small class="text-secondary">When enabled, this value is copied to every category price.</small>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
