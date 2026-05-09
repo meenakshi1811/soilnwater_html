@@ -15,19 +15,21 @@ class HomepageSettingController extends Controller
     public function edit(): View
     {
         return view('backend.homepage-settings.edit', [
-            'setting' => HomepageSetting::query()->firstOrCreate([]),
+            'setting' => HomepageSetting::query()->firstOrCreate(['id' => 1]),
             'sections' => $this->sections(),
         ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
-        $setting = HomepageSetting::query()->firstOrCreate([]);
+        $setting = HomepageSetting::query()->firstOrCreate(['id' => 1]);
 
         $validated = $request->validate([
             'hero_banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'hero_button_text' => 'nullable|string|max:120',
             'hero_button_link' => 'nullable|string|max:255',
+            'offers_market_banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'ads_market_banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'sections' => 'nullable|array',
         ]);
 
@@ -42,6 +44,29 @@ class HomepageSettingController extends Controller
             $validated['hero_banner_image'] = $path;
         }
 
+
+        if ($request->hasFile('offers_market_banner_image')) {
+            if ($setting->offers_market_banner_image && File::exists(public_path($setting->offers_market_banner_image))) {
+                File::delete(public_path($setting->offers_market_banner_image));
+            }
+
+            $file = $request->file('offers_market_banner_image');
+            $path = 'uploads/homepage/offers-market-'.Str::uuid().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/homepage'), basename($path));
+            $validated['offers_market_banner_image'] = $path;
+        }
+
+        if ($request->hasFile('ads_market_banner_image')) {
+            if ($setting->ads_market_banner_image && File::exists(public_path($setting->ads_market_banner_image))) {
+                File::delete(public_path($setting->ads_market_banner_image));
+            }
+
+            $file = $request->file('ads_market_banner_image');
+            $path = 'uploads/homepage/ads-market-'.Str::uuid().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/homepage'), basename($path));
+            $validated['ads_market_banner_image'] = $path;
+        }
+
         $sections = [];
         foreach (array_keys($this->sections()) as $key) {
             $sections[$key] = in_array($key, $request->input('sections', []), true);
@@ -52,7 +77,14 @@ class HomepageSettingController extends Controller
 
         $setting->fill($validated)->save();
 
-        return back()->with('success', 'Homepage settings updated successfully.');
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Page settings updated successfully.',
+            ]);
+        }
+
+        return back()->with('success', 'Page settings updated successfully.');
     }
 
     private function sections(): array
