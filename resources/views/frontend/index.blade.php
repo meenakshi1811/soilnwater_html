@@ -486,7 +486,7 @@
             <div class="ad-slide">
               <div class="product-grid-4 recent-ads-grid">
                 @foreach($recentAdsChunk as $recentAd)
-                  <article class="prod-card recent-ad-card">
+                  <article class="prod-card recent-ad-card" data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}">
                     <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}">
                     <div class="prod-card-body">
                       <h6 class="mb-1 offer-coupon-title">{{ $recentAd->title }}</h6>
@@ -1330,7 +1330,8 @@
         const adTitle = adImage.getAttribute('alt') || 'Ad Details';
         const adSrc = adImage.getAttribute('src') || '';
         const adMeta = 'Home Page Advertisement';
-        const adDescription = 'You are viewing this ad from the homepage slider/recent ads section.';
+        const adCard = adImage.closest('.recent-ad-card');
+        const adDescription = adCard?.dataset.adDescription || 'You are viewing this ad from the homepage slider/recent ads section.';
 
         document.getElementById('adDetailsModalTitle').textContent = adTitle;
         document.getElementById('adDetailsModalMeta').textContent = adMeta;
