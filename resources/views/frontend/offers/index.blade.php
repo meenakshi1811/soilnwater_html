@@ -104,6 +104,18 @@
 
 @push('styles')
 <style>
+    .offers-market-page .offers-market-banner {
+        overflow: hidden;
+        border-radius: 1rem;
+    }
+
+    .offers-market-page .offers-market-banner-image {
+        max-height: 300px;
+        width: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
     .offers-market-page #offersGrid .offer-coupon-card {
         max-width: none;
         margin-inline: 0;
