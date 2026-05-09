@@ -74,9 +74,16 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="applyAllCategoriesPriceToggle">
-                                <label class="form-check-label" for="applyAllCategoriesPriceToggle">Apply one price for all categories</label>
+                            <label class="form-label mb-1">Category pricing mode</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="category_price_mode" id="categoryPriceModeSeparate" value="separate" checked>
+                                    <label class="form-check-label" for="categoryPriceModeSeparate">Set prices separately</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="category_price_mode" id="categoryPriceModeAll" value="all">
+                                    <label class="form-check-label" for="categoryPriceModeAll">Apply one price for all categories</label>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4 d-none" id="applyAllCategoriesPriceWrap">

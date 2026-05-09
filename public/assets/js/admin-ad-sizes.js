@@ -33,7 +33,7 @@
             $('#adSizeForm').find('input[name="_method"]').remove();
             $('#adSizeForm').find('.is-invalid').removeClass('is-invalid');
             $('#adSizeForm').find('span.ajax-error, span.invalid-feedback').remove();
-            $('#applyAllCategoriesPriceToggle').prop('checked', false);
+            $('#categoryPriceModeSeparate').prop('checked', true);
             $('#applyAllCategoriesPriceWrap').addClass('d-none');
             $('#applyAllCategoriesPriceInput').val('');
         },
@@ -52,7 +52,7 @@
 
 
             var syncAllCategoriesPrice = function () {
-                var useAll = $('#applyAllCategoriesPriceToggle').is(':checked');
+                var useAll = $('#categoryPriceModeAll').is(':checked');
                 var value = $('#applyAllCategoriesPriceInput').val();
                 if (!useAll) {
                     return;
@@ -61,9 +61,10 @@
                 $('input[name^="category_prices["]').val(value);
             };
 
-            $('#applyAllCategoriesPriceToggle').on('change', function () {
-                $('#applyAllCategoriesPriceWrap').toggleClass('d-none', !this.checked);
-                if (this.checked) {
+            $('input[name="category_price_mode"]').on('change', function () {
+                var isAllMode = $('#categoryPriceModeAll').is(':checked');
+                $('#applyAllCategoriesPriceWrap').toggleClass('d-none', !isAllMode);
+                if (isAllMode) {
                     syncAllCategoriesPrice();
                 }
             });
@@ -167,7 +168,7 @@
 
                 $form.find('input[name="_method"]').remove();
 
-                if ($('#applyAllCategoriesPriceToggle').is(':checked')) {
+                if ($('#categoryPriceModeAll').is(':checked')) {
                     var allCategoryPrice = $('#applyAllCategoriesPriceInput').val();
                     $form.find('input[name^="category_prices["]').val(allCategoryPrice);
                 }
