@@ -181,10 +181,12 @@ window.renderAdsMarketCards = function () {
             card.style.top = pos.top + 'px';
 
             const imgBox = card.querySelector('.ad-image');
+            const titleBox = card.querySelector('.ad-title');
 
             if (imgBox) {
+                const titleHeight = titleBox ? Math.ceil(titleBox.getBoundingClientRect().height) : 50;
                 imgBox.style.width = '100%';
-                imgBox.style.height = 'calc(100% - 50px)';
+                imgBox.style.height = `calc(100% - ${titleHeight}px)`;
             }
 
             placed.push({
