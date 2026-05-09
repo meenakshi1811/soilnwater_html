@@ -25,16 +25,16 @@
             $adWidth  = (int) ($sizeConfig['w'] ?? 458);
             $adHeight = (int) ($sizeConfig['h'] ?? 229);
 
-            $shapeClass = 'landscape';
+            $shapeClass = 'ad-landscape';
 
             if ($adWidth >= 1100 && $adHeight >= 420) {
-                $shapeClass = 'hero';
+                $shapeClass = 'ad-hero';
             } elseif ($adWidth >= 1100) {
-                $shapeClass = 'banner';
+                $shapeClass = 'ad-banner';
             } elseif ($adWidth <= 280 && $adHeight >= 400) {
-                $shapeClass = 'portrait';
+                $shapeClass = 'ad-portrait';
             } elseif (abs($adWidth - $adHeight) <= 40) {
-                $shapeClass = 'square';
+                $shapeClass = 'ad-square';
             }
         @endphp
 
