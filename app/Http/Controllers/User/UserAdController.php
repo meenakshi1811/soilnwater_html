@@ -249,6 +249,7 @@ class UserAdController extends Controller
 
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
+            'short_description' => 'nullable|string|max:300',
             'custom_html' => 'nullable|string',
             'ad_image_input_type' => 'nullable|in:1,2',
             'generated_image_data' => ['required', 'string', 'starts_with:data:image/png;base64,'],
@@ -313,6 +314,7 @@ class UserAdController extends Controller
                 'ad_template_id' => null,
                 'size_type' => $sizeType,
                 'title' => $validated['title'],
+                'short_description' => $validated['short_description'] ?? null,
                 'category_id' => $validated['category_id'],
                 'subcategory_id' => $validated['subcategory_id'],
                 'location' => $validated['location'],

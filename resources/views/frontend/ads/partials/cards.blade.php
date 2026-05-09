@@ -47,6 +47,7 @@
             data-ad-h="{{ $adHeight }}"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}"
+            data-ad-description="{{ $ad->short_description ?: 'Special marketplace ad available now.' }}"
             data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
             data-ad-url="{{ route('frontend.ads.show', $ad) }}"
             data-ad-id="{{ $ad->id }}"

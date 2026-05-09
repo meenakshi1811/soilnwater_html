@@ -17,6 +17,9 @@
 
         <div class="card-body p-4 p-lg-5">
             <h1 class="h3 mt-1">{{ $ad->title }}</h1>
+            @if ($ad->short_description)
+                <p class="text-muted mb-2">{{ $ad->short_description }}</p>
+            @endif
             <p class="text-muted mb-3">{{ $ad->location ?: 'Premium approved advertisement in our marketplace.' }}</p>
             <p class="mb-2"><strong>Category:</strong> {{ $ad->category?->name ?? 'Uncategorized' }}</p>
 

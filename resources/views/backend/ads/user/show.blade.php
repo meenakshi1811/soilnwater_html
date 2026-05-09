@@ -41,6 +41,7 @@
             <div class="chart-card">
                 <h5 class="mb-3">Submission Details</h5>
                 <div class="mb-2"><span class="text-secondary">Template:</span> <strong>{{ $ad->template?->name ?? '-' }}</strong></div>
+                <div class="mb-2"><span class="text-secondary">Short Description:</span> <strong>{{ $ad->short_description ?: '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Category:</span> <strong>{{ $ad->category?->name ?? '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Sub Category:</span> <strong>{{ $ad->subcategory?->name ?? '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Location:</span> <strong>{{ $ad->location ?? '-' }}</strong></div>
