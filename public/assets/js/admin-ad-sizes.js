@@ -33,6 +33,9 @@
             $('#adSizeForm').find('input[name="_method"]').remove();
             $('#adSizeForm').find('.is-invalid').removeClass('is-invalid');
             $('#adSizeForm').find('span.ajax-error, span.invalid-feedback').remove();
+            $('#applyAllCategoriesPriceToggle').prop('checked', false);
+            $('#applyAllCategoriesPriceWrap').addClass('d-none');
+            $('#applyAllCategoriesPriceInput').val('');
         },
 
         bindUi: function () {
@@ -45,6 +48,28 @@
                 self.resetForm();
                 $('#adSizeForm').attr('action', '/admin/ads/sizes').attr('method', 'POST');
                 self.modal.show();
+            });
+
+
+            var syncAllCategoriesPrice = function () {
+                var useAll = $('#applyAllCategoriesPriceToggle').is(':checked');
+                var value = $('#applyAllCategoriesPriceInput').val();
+                if (!useAll) {
+                    return;
+                }
+
+                $('input[name^="category_prices["]').val(value);
+            };
+
+            $('#applyAllCategoriesPriceToggle').on('change', function () {
+                $('#applyAllCategoriesPriceWrap').toggleClass('d-none', !this.checked);
+                if (this.checked) {
+                    syncAllCategoriesPrice();
+                }
+            });
+
+            $('#applyAllCategoriesPriceInput').on('input', function () {
+                syncAllCategoriesPrice();
             });
 
             $(document).on('click', '.js-edit-ad-size', function () {
@@ -141,6 +166,11 @@
                 }
 
                 $form.find('input[name="_method"]').remove();
+
+                if ($('#applyAllCategoriesPriceToggle').is(':checked')) {
+                    var allCategoryPrice = $('#applyAllCategoriesPriceInput').val();
+                    $form.find('input[name^="category_prices["]').val(allCategoryPrice);
+                }
                 if (self.isEdit) {
                     $('<input type="hidden" name="_method" value="PUT">').appendTo($form);
                 }
