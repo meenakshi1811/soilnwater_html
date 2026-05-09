@@ -1,13 +1,8 @@
 @extends('frontend.layouts.app')
 
 @section('content')
-<section class="hero mb-4">
-  <div class="hero-stars">✦ ✦<br>✦</div>
-  <div class="hero-content">
-    <h1>Discover the Best Deals in Offers Market</h1>
-    <a href="#offersFilterBar" class="btn-yellow">Browse Offers</a>
-  </div>
-  <div class="hero-illus"><img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1600&q=80" alt="Offers market banner" style="max-width:100%;height:auto;"></div>
+<section class="mb-4">
+  <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=2200&q=80" alt="Offers market banner" class="w-100" style="display:block;max-height:420px;object-fit:cover;">
 </section>
 
 <div class="container-fluid py-4 py-lg-5 px-3 px-lg-4 offers-market-page">
