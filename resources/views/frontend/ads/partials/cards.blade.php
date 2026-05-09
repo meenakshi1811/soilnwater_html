@@ -69,7 +69,7 @@
 
 <script>
 window.renderAdsMarketCards = function () {
-    const GAP = 26;
+    const GAP = 12;
 
     const FILLER_POOL = @json($sponsoredFillers);
 
