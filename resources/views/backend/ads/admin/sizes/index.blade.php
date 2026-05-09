@@ -77,10 +77,6 @@
                             <label class="form-label mb-1">Category pricing mode</label>
                             <div class="d-flex flex-wrap gap-3">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="categoryPriceModeSeparate" checked disabled>
-                                    <label class="form-check-label" for="categoryPriceModeSeparate">Set prices separately</label>
-                                </div>
-                                <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="categoryPriceModeAll">
                                     <label class="form-check-label" for="categoryPriceModeAll">Apply one price for all categories</label>
                                 </div>

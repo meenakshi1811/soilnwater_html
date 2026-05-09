@@ -33,7 +33,6 @@
             $('#adSizeForm').find('input[name="_method"]').remove();
             $('#adSizeForm').find('.is-invalid').removeClass('is-invalid');
             $('#adSizeForm').find('span.ajax-error, span.invalid-feedback').remove();
-            $('#categoryPriceModeSeparate').prop('checked', true);
             $('#categoryPriceModeAll').prop('checked', false);
             $('#applyAllCategoriesPriceWrap').addClass('d-none');
             $('#categoryPricingFieldsSection').removeClass('d-none');
