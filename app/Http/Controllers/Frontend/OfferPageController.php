@@ -63,7 +63,7 @@ class OfferPageController extends Controller
             ->limit(20)
             ->get(['id', 'title', 'category_id', 'final_image', 'created_at']);
 
-        $homepageSetting = HomepageSetting::query()->first();
+        $homepageSetting = HomepageSetting::query()->find(1);
 
         return view('frontend.index', [
             'offers' => $offers,
@@ -123,7 +123,7 @@ class OfferPageController extends Controller
             ]);
         }
 
-        $homepageSetting = HomepageSetting::query()->first();
+        $homepageSetting = HomepageSetting::query()->find(1);
 
         return view('frontend.offers.index', [
             'offers' => $offers,

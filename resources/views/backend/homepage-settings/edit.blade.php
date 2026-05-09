@@ -13,7 +13,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <form method="POST" action="{{ route('admin.homepage-settings.update') }}" enctype="multipart/form-data" class="row g-3">
+    <form id="pageSettingsForm" method="POST" action="{{ route('admin.homepage-settings.update') }}" enctype="multipart/form-data" class="row g-3">
         @csrf
         @method('PUT')
 
@@ -100,3 +100,58 @@
     </form>
 </div>
 @endsection
+
+
+@push('scripts')
+<script>
+$(function () {
+    $('#pageSettingsForm').on('submit', function (e) {
+        e.preventDefault();
+        const form = this;
+        const $btn = $(form).find('button[type="submit"]');
+        const originalText = $btn.text();
+        const formData = new FormData(form);
+
+        $btn.prop('disabled', true).text('Saving...');
+
+        $.ajax({
+            url: $(form).attr('action'),
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function (response) {
+                const message = response && response.message ? response.message : 'Page settings updated successfully.';
+                if (window.toastr && typeof window.toastr.success === 'function') {
+                    window.toastr.success(message);
+                } else if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
+                    window.FormHelper.showToast('success', message);
+                } else {
+                    alert(message);
+                }
+                window.location.reload();
+            },
+            error: function (xhr) {
+                let message = 'Unable to update page settings.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                if (window.toastr && typeof window.toastr.error === 'function') {
+                    window.toastr.error(message);
+                } else if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
+                    window.FormHelper.showToast('danger', message);
+                } else {
+                    alert(message);
+                }
+            },
+            complete: function () {
+                $btn.prop('disabled', false).text(originalText);
+            }
+        });
+    });
+});
+</script>
+@endpush

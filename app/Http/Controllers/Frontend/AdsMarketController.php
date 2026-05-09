@@ -73,7 +73,7 @@ class AdsMarketController extends Controller
             ]);
         }
 
-        $homepageSetting = HomepageSetting::query()->first();
+        $homepageSetting = HomepageSetting::query()->find(1);
 
         return view('frontend.ads.index', compact('ads', 'categories', 'categoriesForFilter', 'sponsoredFillers', 'homepageSetting'));
     }
