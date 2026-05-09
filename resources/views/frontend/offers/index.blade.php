@@ -2,19 +2,10 @@
 
 @section('content')
 <section class="mb-4">
-  <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=2200&q=80" alt="Offers market banner" class="w-100" style="display:block;max-height:420px;object-fit:cover;">
+  <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=2200&q=80" alt="Offers market banner" class="w-100" style="display:block;max-height:220px;object-fit:cover;">
 </section>
 
 <div class="container-fluid py-4 py-lg-5 px-3 px-lg-4 offers-market-page">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <h1 class="h3 mb-0">All Offers</h1>
-        <a href="{{ route('frontend.index') }}" class="view-all">Back to home ▶</a>
-    </div>
-
-    <div class="offers-market-banner mb-4">
-        <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1600&q=80" alt="Latest offers banner" class="img-fluid w-100 rounded-3 offers-market-banner-image">
-    </div>
-
     <div class="row g-2 mb-3" id="offersFilterBar" data-categories='@json($categoriesForFilter)'>
         <div class="col-12 col-md-4">
             <label for="offersMarketFilterCategory" class="form-label mb-1">Category</label>
