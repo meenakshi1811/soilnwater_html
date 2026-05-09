@@ -8,6 +8,8 @@ class HomepageSetting extends Model
 {
     protected $fillable = [
         'hero_banner_image',
+        'offers_market_banner_image',
+        'ads_market_banner_image',
         'hero_button_text',
         'hero_button_link',
         'section_toggles',
