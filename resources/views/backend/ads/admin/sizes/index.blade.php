@@ -73,6 +73,41 @@
                                 <label class="form-check-label" for="adSizeAdminOnly">Admin only</label>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <label class="form-label mb-1">Category pricing mode</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="categoryPriceModeAll">
+                                    <label class="form-check-label" for="categoryPriceModeAll">Apply one price for all categories</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-none" id="applyAllCategoriesPriceWrap">
+                            <label class="form-label">Price for all categories</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" min="0" step="0.01" id="applyAllCategoriesPriceInput" class="form-control" placeholder="0.00">
+                            </div>
+                            <small class="text-secondary">When enabled, this value is copied to every category price.</small>
+                        </div>
+                        <div class="col-12" id="categoryPricingFieldsSection">
+                            <hr class="my-1">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                <label class="form-label mb-0">Category Pricing</label>
+                                <small class="text-secondary">Leave a category blank when this size is not priced for it.</small>
+                            </div>
+                            <div class="row g-3" id="categoryPricingFieldsWrap">
+                                @foreach($categories as $categoryId => $categoryName)
+                                    <div class="col-md-6">
+                                        <label class="form-label text-uppercase small mb-1">{{ $categoryName }}</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₹</span>
+                                            <input type="number" min="0" step="0.01" class="form-control js-category-price-input" name="category_prices[{{ $categoryId }}]" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
