@@ -25,6 +25,10 @@
                     <input type="text" name="title" value="{{ old('title') }}" class="form-control" maxlength="140" required>
                 </div>
                 <div class="col-md-6">
+                    <label class="form-label fw-semibold">Short Description</label>
+                    <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description') }}</textarea>
+                </div>
+                <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <select name="category_id" id="categorySelect" class="form-select" required>
                         <option value="">— Select category —</option>

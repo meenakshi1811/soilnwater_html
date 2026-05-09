@@ -13,6 +13,7 @@ class UserAd extends Model
         'ad_template_id',
         'size_type',
         'title',
+        'short_description',
         'category_id',
         'subcategory_id',
         'location',
