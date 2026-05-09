@@ -2924,6 +2924,8 @@
     top: auto !important;
     width: 100% !important;
     height: auto !important;
+    box-shadow: none !important;
+    border: 0 !important;
 }
 
 .ad-title {
