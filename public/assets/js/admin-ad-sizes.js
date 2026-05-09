@@ -36,6 +36,7 @@
             $('#categoryPriceModeSeparate').prop('checked', true);
             $('#categoryPriceModeAll').prop('checked', false);
             $('#applyAllCategoriesPriceWrap').addClass('d-none');
+            $('#categoryPricingFieldsSection').removeClass('d-none');
             $('#applyAllCategoriesPriceInput').val('');
         },
 
@@ -65,6 +66,7 @@
             $('#categoryPriceModeAll').on('change', function () {
                 var isAllMode = this.checked;
                 $('#applyAllCategoriesPriceWrap').toggleClass('d-none', !isAllMode);
+                $('#categoryPricingFieldsSection').toggleClass('d-none', isAllMode);
                 if (isAllMode) {
                     syncAllCategoriesPrice();
                 }

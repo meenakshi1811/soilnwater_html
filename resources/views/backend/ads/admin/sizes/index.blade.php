@@ -86,7 +86,15 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12">
+                        <div class="col-md-4 d-none" id="applyAllCategoriesPriceWrap">
+                            <label class="form-label">Price for all categories</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" min="0" step="0.01" id="applyAllCategoriesPriceInput" class="form-control" placeholder="0.00">
+                            </div>
+                            <small class="text-secondary">When enabled, this value is copied to every category price.</small>
+                        </div>
+                        <div class="col-12" id="categoryPricingFieldsSection">
                             <hr class="my-1">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
                                 <label class="form-label mb-0">Category Pricing</label>
@@ -103,14 +111,6 @@
                                     </div>
                                 @endforeach
                             </div>
-                        </div>
-                        <div class="col-md-4 d-none" id="applyAllCategoriesPriceWrap">
-                            <label class="form-label">Price for all categories</label>
-                            <div class="input-group">
-                                <span class="input-group-text">₹</span>
-                                <input type="number" min="0" step="0.01" id="applyAllCategoriesPriceInput" class="form-control" placeholder="0.00">
-                            </div>
-                            <small class="text-secondary">When enabled, this value is copied to every category price.</small>
                         </div>
                     </div>
                 </div>
