@@ -1,8 +1,12 @@
 @extends('frontend.layouts.app')
    
 @section('content')
+@php
+  $marketBannerImage = data_get($homepageSetting ?? null, 'ads_market_banner_image');
+@endphp
+
 <section class="mb-4">
-  <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=2200&q=80" alt="Ads market banner" class="w-100" style="display:block;max-height:220px;object-fit:cover;">
+  <img src="{{ $marketBannerImage ? asset($marketBannerImage) : "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=2200&q=80" }}" alt="Ads market banner" class="w-100" style="display:block;max-height:220px;object-fit:cover;">
 </section>
 
 <div class="container-fluid py-4 py-lg-5 px-3 px-lg-4 ads-market-page">

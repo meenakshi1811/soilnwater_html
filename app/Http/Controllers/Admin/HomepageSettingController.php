@@ -28,6 +28,8 @@ class HomepageSettingController extends Controller
             'hero_banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'hero_button_text' => 'nullable|string|max:120',
             'hero_button_link' => 'nullable|string|max:255',
+            'offers_market_banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'ads_market_banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'sections' => 'nullable|array',
         ]);
 
@@ -40,6 +42,29 @@ class HomepageSettingController extends Controller
             $path = 'uploads/homepage/hero-'.Str::uuid().'.'.$file->getClientOriginalExtension();
             $file->move(public_path('uploads/homepage'), basename($path));
             $validated['hero_banner_image'] = $path;
+        }
+
+
+        if ($request->hasFile('offers_market_banner_image')) {
+            if ($setting->offers_market_banner_image && File::exists(public_path($setting->offers_market_banner_image))) {
+                File::delete(public_path($setting->offers_market_banner_image));
+            }
+
+            $file = $request->file('offers_market_banner_image');
+            $path = 'uploads/homepage/offers-market-'.Str::uuid().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/homepage'), basename($path));
+            $validated['offers_market_banner_image'] = $path;
+        }
+
+        if ($request->hasFile('ads_market_banner_image')) {
+            if ($setting->ads_market_banner_image && File::exists(public_path($setting->ads_market_banner_image))) {
+                File::delete(public_path($setting->ads_market_banner_image));
+            }
+
+            $file = $request->file('ads_market_banner_image');
+            $path = 'uploads/homepage/ads-market-'.Str::uuid().'.'.$file->getClientOriginalExtension();
+            $file->move(public_path('uploads/homepage'), basename($path));
+            $validated['ads_market_banner_image'] = $path;
         }
 
         $sections = [];

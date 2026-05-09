@@ -123,10 +123,13 @@ class OfferPageController extends Controller
             ]);
         }
 
+        $homepageSetting = HomepageSetting::query()->first();
+
         return view('frontend.offers.index', [
             'offers' => $offers,
             'categories' => $categories,
             'categoriesForFilter' => $categoriesForFilter,
+            'homepageSetting' => $homepageSetting,
         ]);
     }
 
