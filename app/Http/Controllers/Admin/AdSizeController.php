@@ -14,7 +14,7 @@ class AdSizeController extends Controller
 {
     public function index()
     {
-        $categories = Category::query()->orderBy('name')->pluck('name', 'id');
+        $categories = Category::query()->whereNull('parent_id')->orderBy('name')->pluck('name', 'id');
 
         return view('backend.ads.admin.sizes.index', compact('categories'));
     }
