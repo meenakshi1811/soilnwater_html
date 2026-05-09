@@ -69,7 +69,8 @@
 
 <script>
 window.renderAdsMarketCards = function () {
-    const GAP = 26;
+    const GAP = 12;
+    const SEARCH_STEP = 1;
 
     const FILLER_POOL = @json($sponsoredFillers);
 
@@ -142,8 +143,8 @@ window.renderAdsMarketCards = function () {
         }
 
         function findPlace(width, height) {
-            for (let top = 0; top <= 5000; top += 10) {
-                for (let left = 0; left <= containerWidth - width; left += 10) {
+            for (let top = 0; top <= 5000; top += SEARCH_STEP) {
+                for (let left = 0; left <= containerWidth - width; left += SEARCH_STEP) {
                     if (isFree(left, top, width, height)) {
                         return { left, top };
                     }
