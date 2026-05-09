@@ -968,12 +968,15 @@ function pushScreenshotToServer(dataURL) {
             if (!sizeW || !sizeH) return '';
 
             const canvas = document.createElement('canvas');
-            const exportPixelRatio = 1;
+            const exportPixelRatio = 3;
             canvas.width = sizeW * exportPixelRatio;
             canvas.height = sizeH * exportPixelRatio;
             const ctx = canvas.getContext('2d');
-            if (!ctx) return '';
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
             ctx.scale(exportPixelRatio, exportPixelRatio);
+            // if (!ctx) return '';
+            // ctx.scale(exportPixelRatio, exportPixelRatio);
 
             const backgroundColor = adBgColorInput?.value || '#f7f7f7';
             ctx.fillStyle = backgroundColor;
@@ -1063,47 +1066,20 @@ function pushScreenshotToServer(dataURL) {
         }
 
         async function exportUploadedFileAsPng(file) {
-            if (!file || !sizeW || !sizeH) return '';
+            if (!file) return '';
 
             return new Promise((resolve) => {
-                const objectUrl = URL.createObjectURL(file);
-                const image = new Image();
-                image.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const exportPixelRatio = 1;
-                    canvas.width = sizeW * exportPixelRatio;
-                    canvas.height = sizeH * exportPixelRatio;
-                    const ctx = canvas.getContext('2d');
-                    if (!ctx) {
-                        URL.revokeObjectURL(objectUrl);
-                        resolve('');
-                        return;
-                    }
+                const reader = new FileReader();
 
-                    ctx.fillStyle = '#f7f7f7';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    const targetW = canvas.width;
-                    const targetH = canvas.height;
-                    const scale = Math.max(targetW / image.width, targetH / image.height);
-                    const drawWidth = image.width * scale;
-                    const drawHeight = image.height * scale;
-                    const maxOffsetX = Math.max(0, drawWidth - targetW);
-                    const maxOffsetY = Math.max(0, drawHeight - targetH);
-                    const cropOffsetX = (maxOffsetX * uploadedImagePositionX) / 100;
-                    const cropOffsetY = (maxOffsetY * uploadedImagePositionY) / 100;
-                    const dx = -cropOffsetX;
-                    const dy = -cropOffsetY;
-
-                    ctx.drawImage(image, dx, dy, drawWidth, drawHeight);
-                    URL.revokeObjectURL(objectUrl);
-                    resolve(canvas.toDataURL('image/png'));
+                reader.onload = function (e) {
+                    resolve(e.target.result);
                 };
-                image.onerror = () => {
-                    URL.revokeObjectURL(objectUrl);
+
+                reader.onerror = function () {
                     resolve('');
                 };
-                image.src = objectUrl;
+
+                reader.readAsDataURL(file);
             });
         }
 
