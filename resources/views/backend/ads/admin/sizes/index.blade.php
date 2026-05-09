@@ -73,6 +73,27 @@
                                 <label class="form-check-label" for="adSizeAdminOnly">Admin only</label>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <label class="form-label mb-1">Category pricing mode</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="category_price_mode" id="categoryPriceModeSeparate" value="separate" checked>
+                                    <label class="form-check-label" for="categoryPriceModeSeparate">Set prices separately</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="category_price_mode" id="categoryPriceModeAll" value="all">
+                                    <label class="form-check-label" for="categoryPriceModeAll">Apply one price for all categories</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-none" id="applyAllCategoriesPriceWrap">
+                            <label class="form-label">Price for all categories</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" min="0" step="0.01" id="applyAllCategoriesPriceInput" class="form-control" placeholder="0.00">
+                            </div>
+                            <small class="text-secondary">When enabled, this value is copied to every category price.</small>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

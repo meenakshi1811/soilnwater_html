@@ -33,6 +33,9 @@
             $('#adSizeForm').find('input[name="_method"]').remove();
             $('#adSizeForm').find('.is-invalid').removeClass('is-invalid');
             $('#adSizeForm').find('span.ajax-error, span.invalid-feedback').remove();
+            $('#categoryPriceModeSeparate').prop('checked', true);
+            $('#applyAllCategoriesPriceWrap').addClass('d-none');
+            $('#applyAllCategoriesPriceInput').val('');
         },
 
         bindUi: function () {
@@ -45,6 +48,29 @@
                 self.resetForm();
                 $('#adSizeForm').attr('action', '/admin/ads/sizes').attr('method', 'POST');
                 self.modal.show();
+            });
+
+
+            var syncAllCategoriesPrice = function () {
+                var useAll = $('#categoryPriceModeAll').is(':checked');
+                var value = $('#applyAllCategoriesPriceInput').val();
+                if (!useAll) {
+                    return;
+                }
+
+                $('input[name^="category_prices["]').val(value);
+            };
+
+            $('input[name="category_price_mode"]').on('change', function () {
+                var isAllMode = $('#categoryPriceModeAll').is(':checked');
+                $('#applyAllCategoriesPriceWrap').toggleClass('d-none', !isAllMode);
+                if (isAllMode) {
+                    syncAllCategoriesPrice();
+                }
+            });
+
+            $('#applyAllCategoriesPriceInput').on('input', function () {
+                syncAllCategoriesPrice();
             });
 
             $(document).on('click', '.js-edit-ad-size', function () {
@@ -141,6 +167,11 @@
                 }
 
                 $form.find('input[name="_method"]').remove();
+
+                if ($('#categoryPriceModeAll').is(':checked')) {
+                    var allCategoryPrice = $('#applyAllCategoriesPriceInput').val();
+                    $form.find('input[name^="category_prices["]').val(allCategoryPrice);
+                }
                 if (self.isEdit) {
                     $('<input type="hidden" name="_method" value="PUT">').appendTo($form);
                 }
