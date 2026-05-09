@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\HomepageSetting;
 use App\Models\UserAd;
 use App\Support\AdSizes;
 use Illuminate\Contracts\View\View;
@@ -72,7 +73,9 @@ class AdsMarketController extends Controller
             ]);
         }
 
-        return view('frontend.ads.index', compact('ads', 'categories', 'categoriesForFilter', 'sponsoredFillers'));
+        $homepageSetting = HomepageSetting::query()->first();
+
+        return view('frontend.ads.index', compact('ads', 'categories', 'categoriesForFilter', 'sponsoredFillers', 'homepageSetting'));
     }
 
     public function show(UserAd $ad): View
