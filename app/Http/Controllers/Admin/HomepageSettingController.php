@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\HomepageSetting;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -20,18 +21,25 @@ class HomepageSettingController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request): JsonResponse|RedirectResponse
     {
         $setting = HomepageSetting::query()->firstOrCreate(['id' => 1]);
+        $settingType = $request->string('setting_type')->toString() ?: 'homepage';
 
-        $validated = $request->validate([
-            'hero_banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'hero_button_text' => 'nullable|string|max:120',
-            'hero_button_link' => 'nullable|string|max:255',
-            'offers_market_banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'ads_market_banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'sections' => 'nullable|array',
-        ]);
+        $validated = match ($settingType) {
+            'offers' => $request->validate([
+                'offers_market_banner_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+            ]),
+            'ads' => $request->validate([
+                'ads_market_banner_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+            ]),
+            default => $request->validate([
+                'hero_banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+                'hero_button_text' => 'required|string|max:120',
+                'hero_button_link' => 'required|string|max:255',
+                'sections' => 'nullable|array',
+            ]),
+        };
 
         if ($request->hasFile('hero_banner_image')) {
             if ($setting->hero_banner_image && File::exists(public_path($setting->hero_banner_image))) {
@@ -43,7 +51,6 @@ class HomepageSettingController extends Controller
             $file->move(public_path('uploads/homepage'), basename($path));
             $validated['hero_banner_image'] = $path;
         }
-
 
         if ($request->hasFile('offers_market_banner_image')) {
             if ($setting->offers_market_banner_image && File::exists(public_path($setting->offers_market_banner_image))) {
@@ -67,13 +74,15 @@ class HomepageSettingController extends Controller
             $validated['ads_market_banner_image'] = $path;
         }
 
-        $sections = [];
-        foreach (array_keys($this->sections()) as $key) {
-            $sections[$key] = in_array($key, $request->input('sections', []), true);
-        }
+        if ($settingType === 'homepage') {
+            $sections = [];
+            foreach (array_keys($this->sections()) as $key) {
+                $sections[$key] = in_array($key, $request->input('sections', []), true);
+            }
 
-        $validated['section_toggles'] = $sections;
-        unset($validated['sections']);
+            $validated['section_toggles'] = $sections;
+            unset($validated['sections']);
+        }
 
         $setting->fill($validated)->save();
 
