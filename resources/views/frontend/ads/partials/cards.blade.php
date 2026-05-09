@@ -25,16 +25,16 @@
             $adWidth  = (int) ($sizeConfig['w'] ?? 458);
             $adHeight = (int) ($sizeConfig['h'] ?? 229);
 
-            $shapeClass = 'landscape';
+            $shapeClass = 'ad-landscape';
 
             if ($adWidth >= 1100 && $adHeight >= 420) {
-                $shapeClass = 'hero';
+                $shapeClass = 'ad-hero';
             } elseif ($adWidth >= 1100) {
-                $shapeClass = 'banner';
+                $shapeClass = 'ad-banner';
             } elseif ($adWidth <= 280 && $adHeight >= 400) {
-                $shapeClass = 'portrait';
+                $shapeClass = 'ad-portrait';
             } elseif (abs($adWidth - $adHeight) <= 40) {
-                $shapeClass = 'square';
+                $shapeClass = 'ad-square';
             }
         @endphp
 
@@ -69,7 +69,8 @@
 
 <script>
 window.renderAdsMarketCards = function () {
-    const GAP = 26;
+    const GAP = 8;
+    const SEARCH_STEP = 1;
 
     const FILLER_POOL = @json($sponsoredFillers);
 
@@ -142,8 +143,8 @@ window.renderAdsMarketCards = function () {
         }
 
         function findPlace(width, height) {
-            for (let top = 0; top <= 5000; top += 10) {
-                for (let left = 0; left <= containerWidth - width; left += 10) {
+            for (let top = 0; top <= 5000; top += SEARCH_STEP) {
+                for (let left = 0; left <= containerWidth - width; left += SEARCH_STEP) {
                     if (isFree(left, top, width, height)) {
                         return { left, top };
                     }
@@ -187,6 +188,7 @@ window.renderAdsMarketCards = function () {
             }
 
             placed.push({
+                el: card,
                 left: pos.left,
                 right: pos.left + cardW,
                 top: pos.top,
@@ -247,6 +249,7 @@ window.renderAdsMarketCards = function () {
                             grid.appendChild(filler);
 
                             placed.push({
+                                el: filler,
                                 left: left,
                                 right: left + size.w,
                                 top: top,
@@ -259,6 +262,7 @@ window.renderAdsMarketCards = function () {
                 }
             }
         }
+
         const finalHeight = placed.length
             ? Math.max(...placed.map(item => item.bottom))
             : 0;

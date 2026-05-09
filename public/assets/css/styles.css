@@ -2924,6 +2924,8 @@
     top: auto !important;
     width: 100% !important;
     height: auto !important;
+    box-shadow: none !important;
+    border: 0 !important;
 }
 
 .ad-title {
@@ -2955,12 +2957,12 @@
 }
 
 /* Full-width banners */
-.ads-full-width .banner .ad-image {
+.ads-full-width .ad-banner .ad-image {
     aspect-ratio: 1191 / 229;
     height: auto !important;
 }
 
-.ads-full-width .hero .ad-image {
+.ads-full-width .ad-hero .ad-image {
     aspect-ratio: 1191 / 458;
     height: auto !important;
 }
