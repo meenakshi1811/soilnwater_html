@@ -34,6 +34,7 @@
             $('#adSizeForm').find('.is-invalid').removeClass('is-invalid');
             $('#adSizeForm').find('span.ajax-error, span.invalid-feedback').remove();
             $('#categoryPriceModeSeparate').prop('checked', true);
+            $('#categoryPriceModeAll').prop('checked', false);
             $('#applyAllCategoriesPriceWrap').addClass('d-none');
             $('#applyAllCategoriesPriceInput').val('');
         },
@@ -61,8 +62,8 @@
                 $('input[name^="category_prices["]').val(value);
             };
 
-            $('input[name="category_price_mode"]').on('change', function () {
-                var isAllMode = $('#categoryPriceModeAll').is(':checked');
+            $('#categoryPriceModeAll').on('change', function () {
+                var isAllMode = this.checked;
                 $('#applyAllCategoriesPriceWrap').toggleClass('d-none', !isAllMode);
                 if (isAllMode) {
                     syncAllCategoriesPrice();
