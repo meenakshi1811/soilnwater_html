@@ -104,51 +104,69 @@
 
 @push('scripts')
 <script>
-$(function () {
-    $('.ajax-page-settings-form').on('submit', function (e) {
-        e.preventDefault();
+document.addEventListener('DOMContentLoaded', function () {
+    const forms = document.querySelectorAll('.ajax-page-settings-form');
 
-        const form = this;
-        const $form = $(form);
-        const $btn = $form.find('button[type="submit"]');
-        const originalText = $btn.text();
-        const formData = new FormData(form);
+    forms.forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
 
-        $btn.prop('disabled', true).text('Saving...');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn ? submitBtn.textContent : 'Save';
+            const formData = new FormData(form);
 
-        $.ajax({
-            url: $form.attr('action'),
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            success: function (response) {
-                const message = response?.message || 'Page settings updated successfully.';
-                if (window.toastr?.success) {
-                    window.toastr.success(message);
-                } else if (window.FormHelper?.showToast) {
-                    window.FormHelper.showToast('success', message);
-                }
-                setTimeout(function () { window.location.reload(); }, 600);
-            },
-            error: function (xhr) {
-                let message = xhr?.responseJSON?.message || 'Unable to update page settings.';
-                if (xhr?.responseJSON?.errors) {
-                    const firstKey = Object.keys(xhr.responseJSON.errors)[0];
-                    if (firstKey && xhr.responseJSON.errors[firstKey]?.length) {
-                        message = xhr.responseJSON.errors[firstKey][0];
-                    }
-                }
-                if (window.toastr?.error) {
-                    window.toastr.error(message);
-                } else if (window.FormHelper?.showToast) {
-                    window.FormHelper.showToast('danger', message);
-                }
-            },
-            complete: function () {
-                $btn.prop('disabled', false).text(originalText);
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
             }
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: formData,
+            })
+                .then(async function (response) {
+                    const payload = await response.json().catch(function () { return {}; });
+
+                    if (!response.ok) {
+                        let message = payload.message || 'Unable to update page settings.';
+                        if (payload.errors) {
+                            const firstKey = Object.keys(payload.errors)[0];
+                            if (firstKey && Array.isArray(payload.errors[firstKey]) && payload.errors[firstKey].length) {
+                                message = payload.errors[firstKey][0];
+                            }
+                        }
+                        throw new Error(message);
+                    }
+
+                    const message = payload.message || 'Page settings updated successfully.';
+                    if (window.toastr && typeof window.toastr.success === 'function') {
+                        window.toastr.success(message);
+                    } else if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
+                        window.FormHelper.showToast('success', message);
+                    }
+
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 600);
+                })
+                .catch(function (error) {
+                    const message = error && error.message ? error.message : 'Unable to update page settings.';
+                    if (window.toastr && typeof window.toastr.error === 'function') {
+                        window.toastr.error(message);
+                    } else if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
+                        window.FormHelper.showToast('danger', message);
+                    }
+                })
+                .finally(function () {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }
+                });
         });
     });
 });
