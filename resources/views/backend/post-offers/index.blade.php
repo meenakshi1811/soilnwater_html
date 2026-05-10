@@ -384,7 +384,7 @@
                     {{ old('accept_terms') ? 'checked' : '' }}
                 >
                 <label class="form-check-label" for="acceptTerms">
-                    I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'offer']) }}" target="_blank" rel="noopener noreferrer">Terms and Conditions</a> for offers.
+                    I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'offer']) }}" target="_blank" rel="noopener noreferrer" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms and Conditions</a> for offers.
                 </label>
                 <div class="small text-secondary mt-1">Standard note: attached terms and conditions are shown at the bottom.</div>
                 @error('accept_terms')

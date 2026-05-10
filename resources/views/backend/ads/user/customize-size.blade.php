@@ -327,10 +327,7 @@ if (addAdImageInput && addAdImageError) {
     const requiredWidth = Number(addAdImageInput.dataset.requiredWidth || 0);
     const requiredHeight = Number(addAdImageInput.dataset.requiredHeight || 0);
 
-    const showImageSizeError = (message) => {
-        addAdImageError.textContent = message;
-        addAdImageError.style.display = 'block';
-    };
+   
 
     const clearImageSizeError = () => {
         addAdImageError.textContent = '';
@@ -352,25 +349,11 @@ if (addAdImageInput && addAdImageError) {
             const isExactSize = img.naturalWidth === requiredWidth && img.naturalHeight === requiredHeight;
             URL.revokeObjectURL(objectUrl);
 
-            if (!isExactSize) {
-                showImageSizeError(`Invalid image size. Required size is exactly ${requiredWidth}×${requiredHeight} pixels.`);
-                addAdImageInput.value = '';
-                if (dropzonePreview) {
-                    dropzonePreview.setAttribute('src', '#');
-                }
-                if (dropzonePreviewWrap) {
-                    dropzonePreviewWrap.classList.add('d-none');
-                }
-                if (dropzonePlaceholder) {
-                    dropzonePlaceholder.classList.remove('d-none');
-                }
-                // alert(`Please upload a new image with exact size ${requiredWidth}×${requiredHeight}px.`);
-            }
+            
         };
 
         img.onerror = function () {
             URL.revokeObjectURL(objectUrl);
-            showImageSizeError('Unable to read this image. Please upload a valid image file.');
             addAdImageInput.value = '';
         };
 
@@ -886,31 +869,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             dimensionProbe.onload = () => {
                 const isExactSize = dimensionProbe.naturalWidth === requiredWidth && dimensionProbe.naturalHeight === requiredHeight;
                 console.log('[AdUpload] Selected image dimensions:', dimensionProbe.naturalWidth + 'x' + dimensionProbe.naturalHeight);
-                if (!isExactSize) {
-                    if (adImageError) {
-                        adImageError.textContent = `Invalid image size. Please upload exact ${requiredWidth}×${requiredHeight}px image.`;
-                        adImageError.style.display = 'block';
-                    }
-                    uploadInput.value = '';
-                    uploadedImageFile = null;
-                    URL.revokeObjectURL(objectUrl);
-                    if (dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
-                        dropzonePreview.src = '#';
-                        dropzonePreviewWrap.classList.add('d-none');
-                        dropzonePlaceholder.classList.remove('d-none');
-                    }
-                    preview.innerHTML = '';
-                    preview.style.backgroundImage = 'none';
-                    preview.style.backgroundColor = '#f7f7f7';
-                    canvasWrap.classList.add('d-none');
-                    uploadedImagePositionX = 50;
-                    uploadedImagePositionY = 50;
-                    if (uploadImagePosX) uploadImagePosX.value = '50';
-                    if (uploadImagePosY) uploadImagePosY.value = '50';
-                    uploadImagePositionControls?.classList.add('d-none');
-                    console.warn('[AdUpload] Invalid image size, showing inline error and resetting selection.');
-                    return;
-                }
+               
 
                 console.log('[AdUpload] Valid image size. Rendering preview.');
                 uploadedImageFile = file;
