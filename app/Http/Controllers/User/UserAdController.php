@@ -142,7 +142,14 @@ class UserAdController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return view('backend.ads.user.edit', compact('ad', 'categories', 'subcategories'));
+        return view('backend.ads.user.customize-size', [
+            'ad' => $ad,
+            'isEdit' => true,
+            'sizeType' => $ad->size_type,
+            'size' => AdSizes::all()[$ad->size_type] ?? null,
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+        ]);
     }
 
     public function update(Request $request, UserAd $ad): RedirectResponse

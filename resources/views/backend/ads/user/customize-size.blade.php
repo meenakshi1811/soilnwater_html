@@ -7,14 +7,15 @@
     <div class="ems-hero mb-4">
         <div>
             <p class="ems-kicker mb-1">Ads</p>
-            <h2 class="admin-title mb-1">Create Your Ad</h2>
+            <h2 class="admin-title mb-1">{{ !empty($isEdit) ? 'Edit Your Ad' : 'Create Your Ad' }}</h2>
             <p class="mb-0 text-secondary">Selected size: <strong>{{ $size['name'] }}</strong> ({{ $size['w'] }}×{{ $size['h'] }} px)</p>
         </div>
     </div>
 
     <div class="chart-card">
-        <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id??null]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
+        <form method="POST" action="{{ !empty($isEdit) ? route('ads.update', $ad) : route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id??null]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
             @csrf
+            @if(!empty($isEdit)) @method('PUT') @endif
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
             <input type="hidden" name="ad_image_input_type" id="adImageInputType" value="1">
@@ -22,11 +23,11 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Ad Title <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <input type="text" name="title" value="{{ old('title') }}" class="form-control" maxlength="140" required>
+                    <input type="text" name="title" value="{{ old('title', $ad->title ?? '') }}" class="form-control" maxlength="140" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Short Description</label>
-                    <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description') }}</textarea>
+                    <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description', $ad->short_description ?? '') }}</textarea>
                 </div>
                 <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -34,7 +35,7 @@
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
-                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}">{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" {{ (string) old('category_id', $ad->category_id ?? '') === (string) $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach
                     </select>
                     @if((bool) ($size['is_paid'] ?? false))
@@ -49,19 +50,22 @@
                 </div>
                 <div class="col-md-6">
                     <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <select name="subcategory_id" id="subcategorySelect" class="form-select" disabled required>
+                    <select name="subcategory_id" id="subcategorySelect" class="form-select" {{ empty($subcategories ?? []) ? 'disabled' : '' }} required>
                         <option value="">— Select a category first —</option>
+                        @foreach(($subcategories ?? []) as $subcategory)
+                            <option value="{{ $subcategory->id }}" {{ (string) old('subcategory_id', $ad->subcategory_id ?? '') === (string) $subcategory->id ? 'selected' : '' }}>{{ $subcategory->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <input type="text" name="location" id="adLocation" class="form-control" value="{{ old('location') }}" required>
-                    <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat') }}">
-                    <input type="hidden" name="location_lng" id="adLocationLng" value="{{ old('location_lng') }}">
+                    <input type="text" name="location" id="adLocation" class="form-control" value="{{ old('location', $ad->location ?? '') }}" required>
+                    <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat', $ad->location_lat ?? '') }}">
+                    <input type="hidden" name="location_lng" id="adLocationLng" value="{{ old('location_lng', $ad->location_lng ?? '') }}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Valid Upto <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <input type="date" name="valid_until" class="form-control @error('valid_until') is-invalid @enderror" value="{{ old('valid_until') }}" min="{{ now()->toDateString() }}" required>
+                    <input type="date" name="valid_until" class="form-control @error('valid_until') is-invalid @enderror" value="{{ old('valid_until', optional($ad->valid_until ?? null)->format('Y-m-d')) }}" min="{{ now()->toDateString() }}" required>
                     @error('valid_until')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
