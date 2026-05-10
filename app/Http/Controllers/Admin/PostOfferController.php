@@ -196,7 +196,8 @@ class PostOfferController extends Controller
                     default => $query,
                 };
             })
-            ->latest();
+            ->when($user->isAdmin(), fn ($query) => $query->orderByDesc('updated_at'))
+            ->when(! $user->isAdmin(), fn ($query) => $query->latest());
 
         $canEdit = $this->canWrite($user);
         $canDelete = $this->canDelete($user);
@@ -307,6 +308,7 @@ class PostOfferController extends Controller
                 'location_lat' => 'nullable|numeric|between:-90,90|required_with:location,location_lng',
                 'location_lng' => 'nullable|numeric|between:-180,180|required_with:location,location_lat',
                 'banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+                'accept_terms' => 'accepted',
             ]);
         }
 
@@ -347,7 +349,17 @@ class PostOfferController extends Controller
             }
         }
 
+        if ($canWrite && ! $this->isStaff($user)) {
+            $validated['status'] = 'inactive';
+        }
+
+        unset($validated['accept_terms']);
+
         $offer->update($validated);
+
+        if ($canWrite && ! $this->isStaff($user)) {
+            return response()->json(['message' => 'Offer updated and sent to admin for approval.']);
+        }
 
         return response()->json(['message' => 'Offer updated successfully.']);
     }

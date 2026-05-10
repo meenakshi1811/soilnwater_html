@@ -1009,7 +1009,7 @@
                         maxlength: 255
                     },
                     accept_terms: {
-                        required: !isEditMode
+                        required: true
                     }
                 },
                 messages: {
