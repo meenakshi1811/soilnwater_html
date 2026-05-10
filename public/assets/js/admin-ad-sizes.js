@@ -20,10 +20,11 @@
                     { data: 'size_key', name: 'size_key' },
                     { data: 'dimensions', name: 'dimensions', orderable: false, searchable: false },
                     { data: 'placement', name: 'placement', orderable: false, searchable: false },
+                    { data: 'status_toggle', name: 'is_active', orderable: false, searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[4, 'desc']]
+                order: [[5, 'desc']]
             });
         },
 
@@ -100,6 +101,41 @@
                     self.modal.show();
                 }).fail(function () {
                     FormHelper.showToast('danger', 'Unable to load ad size details.');
+                });
+            });
+
+
+
+            $(document).on('change', '.js-size-status-toggle', function () {
+                var $toggle = $(this);
+                var id = $toggle.data('id');
+                var isActive = $toggle.is(':checked') ? 1 : 0;
+                var previousState = !isActive;
+
+                $toggle.prop('disabled', true);
+
+                $.ajax({
+                    url: '/admin/ads/sizes/' + id + '/status',
+                    method: 'POST',
+                    data: { is_active: isActive },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).done(function (response) {
+                    var statusLabel = response.status_label || (isActive ? 'Active' : 'Inactive');
+                    $toggle.closest('.form-check').find('.form-check-label').text(statusLabel);
+                    FormHelper.showToast('success', response.message || 'Status updated successfully.');
+                }).fail(function (xhr) {
+                    var message = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'Unable to update status.';
+                    $toggle.prop('checked', !!previousState);
+                    $toggle.closest('.form-check').find('.form-check-label').text(previousState ? 'Active' : 'Inactive');
+                    FormHelper.showToast('danger', message);
+                }).always(function () {
+                    $toggle.prop('disabled', false);
                 });
             });
 

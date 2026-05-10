@@ -152,6 +152,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/{size}', [AdSizeController::class, 'show'])->name('show');
                 Route::post('/', [AdSizeController::class, 'store'])->name('store');
                 Route::put('/{size}', [AdSizeController::class, 'update'])->name('update');
+                Route::post('/{size}/status', [AdSizeController::class, 'updateStatus'])->name('status');
                 Route::delete('/{size}', [AdSizeController::class, 'destroy'])->name('destroy');
             });
         });

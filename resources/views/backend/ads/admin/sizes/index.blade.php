@@ -29,6 +29,7 @@
                         <th>Key</th>
                         <th>Dimensions</th>
                         <th>Placement</th>
+                        <th>Status</th>
                         <th>Created</th>
                         <th class="text-end">Actions</th>
                     </tr>
