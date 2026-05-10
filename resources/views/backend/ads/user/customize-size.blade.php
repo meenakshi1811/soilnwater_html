@@ -19,6 +19,7 @@
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
             <input type="hidden" name="ad_image_input_type" id="adImageInputType" value="1">
+            <input type="hidden" id="existingFinalImage" value="{{ !empty($isEdit) && !empty($ad?->final_image) ? asset($ad->final_image) : "" }}">
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
@@ -112,10 +113,10 @@
                     data-required-width="{{ $size['w'] }}"
                     data-required-height="{{ $size['h'] }}">
                 <div id="adDropzone" class="banner-dropzone">
-                    <div id="adDropzonePreviewWrap" class="d-none position-relative">
-                        <img id="adDropzonePreview" src="#" alt="Ad image preview" class="banner-preview-img">
+                    <div id="adDropzonePreviewWrap" class="{{ !empty($isEdit) && !empty($ad?->final_image) ? "" : "d-none" }} position-relative">
+                        <img id="adDropzonePreview" src="{{ !empty($isEdit) && !empty($ad?->final_image) ? asset($ad->final_image) : "#" }}" alt="Ad image preview" class="banner-preview-img">
                     </div>
-                    <div id="adDropzonePlaceholder" class="banner-placeholder-content">
+                    <div id="adDropzonePlaceholder" class="banner-placeholder-content {{ !empty($isEdit) && !empty($ad?->final_image) ? "d-none" : "" }}">
                         <i class="fa-solid fa-image fa-2x mb-2 text-secondary"></i>
                         <p class="mb-1 fw-semibold">Click or drag to upload ad image</p>
                         <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: {{ $size['w'] }}×{{ $size['h'] }}px · PNG, JPG, WebP · Max 2MB</p>
@@ -459,7 +460,7 @@ function pushScreenshotToServer(dataURL) {
     (function () {
         const page = document.getElementById('adsSizeCustomizerPage');
         if (!page) return;
-        const form = page.querySelector('form[action*="/dashboard/ads/create/"]');
+        const form = page.querySelector('form');
         if (!form) return;
 
         const previewFrame = document.getElementById('adPreviewFrame');
@@ -671,7 +672,16 @@ function pushScreenshotToServer(dataURL) {
                 .join('');
         }
 
-        document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
+                const existingFinalImage = document.getElementById('existingFinalImage')?.value || '';
+        if (existingFinalImage && dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
+            dropzonePreview.src = existingFinalImage;
+            dropzonePreviewWrap.classList.remove('d-none');
+            dropzonePlaceholder.classList.add('d-none');
+            canvasWrap.classList.remove('d-none');
+            preview.innerHTML = `<img data-upload-image="1" src="${existingFinalImage}" alt="Ad Preview" style="width:100%;height:100%;object-fit:cover;object-position:${uploadedImagePositionX}% ${uploadedImagePositionY}%;pointer-events:none;">`;
+        }
+
+document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             radio.addEventListener('change', () => setMode(radio.value));
         });
 
