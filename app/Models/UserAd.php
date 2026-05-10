@@ -53,6 +53,45 @@ class UserAd extends Model
         'grand_total' => 'decimal:2',
     ];
 
+
+    protected static function booted(): void
+    {
+        static::updating(function (UserAd $ad): void {
+            $editableFields = [
+                'title',
+                'short_description',
+                'category_id',
+                'subcategory_id',
+                'location',
+                'location_lat',
+                'location_lng',
+                'fields_json',
+                'rendered_html',
+                'final_image',
+                'valid_until',
+                'is_sponsored',
+                'base_price_per_day',
+                'total_days',
+                'subtotal',
+                'gst_rate',
+                'gst_amount',
+                'grand_total',
+            ];
+
+            $requiresReapproval = $ad->getOriginal('status') === 'approved'
+                && collect($editableFields)->contains(fn (string $field) => $ad->isDirty($field));
+
+            if (! $requiresReapproval) {
+                return;
+            }
+
+            $ad->status = 'pending';
+            $ad->reviewed_by = null;
+            $ad->reviewed_at = null;
+            $ad->review_note = null;
+            $ad->submitted_at = now();
+        });
+    }
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
