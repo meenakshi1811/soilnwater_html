@@ -112,8 +112,13 @@ function syncAdModalSize(trigger){
     const isLargeAd = adWidth >= 900 || adHeight >= 450;
 
     adModalDialog.classList.remove('modal-lg','modal-xl');
+    adModalDialog.style.removeProperty('width');
+    adModalDialog.style.removeProperty('max-width');
+
     if(isLargeAd){
         adModalDialog.classList.add('modal-xl');
+        adModalDialog.style.width = 'min(100% - 1.5rem, 1140px)';
+        adModalDialog.style.maxWidth = '1140px';
     }
 }
 adsGrid.addEventListener('click',function(e){const trigger=e.target.closest('.js-ad-modal-trigger');if(!trigger) return;syncAdModalSize(trigger);document.getElementById('adDetailsModalTitle').textContent=trigger.dataset.adTitle||'Ad Details';document.getElementById('adDetailsModalMeta').textContent=trigger.dataset.adMeta||'';document.getElementById('adDetailsModalDescription').textContent=trigger.dataset.adDescription||'';const img=trigger.dataset.adImage||'';const imgEl=document.getElementById('adDetailsModalImage');if(img){imgEl.src=img;imgEl.classList.remove('d-none');adEnlargeBtn.classList.remove('d-none');}else{imgEl.src='';imgEl.classList.add('d-none');adEnlargeBtn.classList.add('d-none');}const url=trigger.dataset.adUrl||location.href;document.getElementById('adShareLink').value=url;document.getElementById('adShareQr').src=`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;document.getElementById('adShareWhatsapp').href=`https://wa.me/?text=${encodeURIComponent('Check this ad: '+url)}`;document.getElementById('adShareFacebook').href=`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;document.getElementById('adShareInstagram').href=url;
