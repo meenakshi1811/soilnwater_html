@@ -24,7 +24,7 @@ class AdSizeController extends Controller
         abort_unless($request->ajax(), 404);
 
         $sizes = AdSize::query()
-            ->select(['id', 'size_key', 'name', 'width', 'height', 'admin_only', 'is_paid', 'amount', 'created_at']);
+            ->select(['id', 'size_key', 'name', 'width', 'height', 'admin_only', 'is_paid', 'amount', 'is_active', 'created_at']);
 
         return DataTables::of($sizes)
             ->addColumn('dimensions', fn (AdSize $size) => $size->width.'×'.$size->height)
@@ -34,6 +34,15 @@ class AdSizeController extends Controller
             ->addColumn('paid_status', fn (AdSize $size) => $size->is_paid
                 ? '<span class="badge text-bg-primary">Paid</span>'
                 : '<span class="badge text-bg-secondary">Free</span>')
+            ->addColumn('status_toggle', function (AdSize $size): string {
+                $checked = $size->is_active ? 'checked' : '';
+                $label = $size->is_active ? 'Active' : 'Inactive';
+
+                return '<div class="form-check form-switch m-0">'
+                    . '<input class="form-check-input js-size-status-toggle" type="checkbox" role="switch" data-id="'.$size->id.'" '.$checked.'>'
+                    . '<label class="form-check-label ms-2">'.$label.'</label>'
+                    . '</div>';
+            })
             ->editColumn('created_at', fn (AdSize $size) => $size->created_at?->format('Y-m-d') ?? '-')
             ->addColumn('actions', function (AdSize $size): string {
                 return '<div class="d-flex gap-2 justify-content-end">'
@@ -42,7 +51,7 @@ class AdSizeController extends Controller
                     . '<button type="button" class="btn btn-sm btn-outline-danger js-delete-ad-size" data-id="'.$size->id.'"><i class="fa-solid fa-trash"></i></button>'
                     . '</div>';
             })
-            ->rawColumns(['placement', 'paid_status', 'actions'])
+            ->rawColumns(['placement', 'paid_status', 'status_toggle', 'actions'])
             ->make(true);
     }
 
@@ -95,6 +104,25 @@ class AdSizeController extends Controller
         return response()->json(['message' => 'Ad size deleted successfully.']);
     }
 
+    public function updateStatus(Request $request, AdSize $size): JsonResponse
+    {
+        abort_unless($request->ajax(), 404);
+
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $size->update([
+            'is_active' => (bool) $validated['is_active'],
+        ]);
+
+        return response()->json([
+            'message' => $size->is_active ? 'Ad size activated successfully.' : 'Ad size deactivated successfully.',
+            'is_active' => (bool) $size->is_active,
+            'status_label' => $size->is_active ? 'Active' : 'Inactive',
+        ]);
+    }
+
     private function validateSize(Request $request, ?AdSize $size = null): array
     {
         $validated = $request->validate([
@@ -128,7 +156,10 @@ class AdSizeController extends Controller
         $validated['amount'] = $validated['is_paid']
             ? min(array_values($validated['category_prices']))
             : null;
-        $validated['is_active'] = true;
+
+        if (! $size) {
+            $validated['is_active'] = true;
+        }
 
         return $validated;
     }
