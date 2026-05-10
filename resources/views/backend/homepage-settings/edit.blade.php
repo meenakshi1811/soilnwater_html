@@ -103,6 +103,11 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const forms = document.querySelectorAll('.ajax-page-settings-form');
@@ -143,11 +148,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     const message = payload.message || 'Page settings updated successfully.';
-                    if (window.toastr && typeof window.toastr.success === 'function') {
-                        window.toastr.success(message);
-                    } else if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
-                        window.FormHelper.showToast('success', message);
-                    }
+                    toastr.success(message);
+    
 
                     setTimeout(function () {
                         window.location.reload();

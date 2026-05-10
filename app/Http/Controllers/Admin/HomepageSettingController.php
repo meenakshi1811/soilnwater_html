@@ -58,6 +58,7 @@ class HomepageSettingController extends Controller
             }
 
             $file = $request->file('offers_market_banner_image');
+            
             $path = 'uploads/homepage/offers-market-'.Str::uuid().'.'.$file->getClientOriginalExtension();
             $file->move(public_path('uploads/homepage'), basename($path));
             $validated['offers_market_banner_image'] = $path;
@@ -83,6 +84,7 @@ class HomepageSettingController extends Controller
             $validated['section_toggles'] = $sections;
             unset($validated['sections']);
         }
+       
 
         $setting->fill($validated)->save();
 
