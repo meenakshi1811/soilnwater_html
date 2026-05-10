@@ -7,26 +7,28 @@
     <div class="ems-hero mb-4">
         <div>
             <p class="ems-kicker mb-1">Ads</p>
-            <h2 class="admin-title mb-1">Create Your Ad</h2>
+            <h2 class="admin-title mb-1">{{ !empty($isEdit) ? 'Edit Your Ad' : 'Create Your Ad' }}</h2>
             <p class="mb-0 text-secondary">Selected size: <strong>{{ $size['name'] }}</strong> ({{ $size['w'] }}×{{ $size['h'] }} px)</p>
         </div>
     </div>
 
     <div class="chart-card">
-        <form method="POST" action="{{ route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id??null]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
+        <form method="POST" action="{{ !empty($isEdit) ? route('ads.update', $ad) : route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id??null]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
             @csrf
+            @if(!empty($isEdit)) @method('PUT') @endif
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
             <input type="hidden" name="generated_image_data" id="generatedImageDataInput" value="">
             <input type="hidden" name="ad_image_input_type" id="adImageInputType" value="1">
+            <input type="hidden" id="existingFinalImage" value="{{ !empty($isEdit) && !empty($ad?->final_image) ? asset($ad->final_image) : "" }}">
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Ad Title <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <input type="text" name="title" value="{{ old('title') }}" class="form-control" maxlength="140" required>
+                    <input type="text" name="title" value="{{ old('title', $ad->title ?? '') }}" class="form-control" maxlength="140" required>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Short Description</label>
-                    <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description') }}</textarea>
+                    <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description', $ad->short_description ?? '') }}</textarea>
                 </div>
                 <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -34,7 +36,7 @@
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
-                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}">{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" {{ (string) old('category_id', $ad->category_id ?? '') === (string) $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach
                     </select>
                     @if((bool) ($size['is_paid'] ?? false))
@@ -49,19 +51,22 @@
                 </div>
                 <div class="col-md-6">
                     <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <select name="subcategory_id" id="subcategorySelect" class="form-select" disabled required>
+                    <select name="subcategory_id" id="subcategorySelect" class="form-select" {{ empty($subcategories ?? []) ? 'disabled' : '' }} required>
                         <option value="">— Select a category first —</option>
+                        @foreach(($subcategories ?? []) as $subcategory)
+                            <option value="{{ $subcategory->id }}" {{ (string) old('subcategory_id', $ad->subcategory_id ?? '') === (string) $subcategory->id ? 'selected' : '' }}>{{ $subcategory->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <input type="text" name="location" id="adLocation" class="form-control" value="{{ old('location') }}" required>
-                    <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat') }}">
-                    <input type="hidden" name="location_lng" id="adLocationLng" value="{{ old('location_lng') }}">
+                    <input type="text" name="location" id="adLocation" class="form-control" value="{{ old('location', $ad->location ?? '') }}" required>
+                    <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat', $ad->location_lat ?? '') }}">
+                    <input type="hidden" name="location_lng" id="adLocationLng" value="{{ old('location_lng', $ad->location_lng ?? '') }}">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Valid Upto <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <input type="date" name="valid_until" class="form-control @error('valid_until') is-invalid @enderror" value="{{ old('valid_until') }}" min="{{ now()->toDateString() }}" required>
+                    <input type="date" name="valid_until" class="form-control @error('valid_until') is-invalid @enderror" value="{{ old('valid_until', optional($ad->valid_until ?? null)->format('Y-m-d')) }}" min="{{ now()->toDateString() }}" required>
                     @error('valid_until')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -108,10 +113,10 @@
                     data-required-width="{{ $size['w'] }}"
                     data-required-height="{{ $size['h'] }}">
                 <div id="adDropzone" class="banner-dropzone">
-                    <div id="adDropzonePreviewWrap" class="d-none position-relative">
-                        <img id="adDropzonePreview" src="#" alt="Ad image preview" class="banner-preview-img">
+                    <div id="adDropzonePreviewWrap" class="{{ !empty($isEdit) && !empty($ad?->final_image) ? "" : "d-none" }} position-relative">
+                        <img id="adDropzonePreview" src="{{ !empty($isEdit) && !empty($ad?->final_image) ? asset($ad->final_image) : "#" }}" alt="Ad image preview" class="banner-preview-img">
                     </div>
-                    <div id="adDropzonePlaceholder" class="banner-placeholder-content">
+                    <div id="adDropzonePlaceholder" class="banner-placeholder-content {{ !empty($isEdit) && !empty($ad?->final_image) ? "d-none" : "" }}">
                         <i class="fa-solid fa-image fa-2x mb-2 text-secondary"></i>
                         <p class="mb-1 fw-semibold">Click or drag to upload ad image</p>
                         <p class="mb-0 text-secondary" style="font-size:0.8rem;">Recommended: {{ $size['w'] }}×{{ $size['h'] }}px · PNG, JPG, WebP · Max 2MB</p>
@@ -238,7 +243,7 @@
 
             <div class="form-check mt-3">
                 <input class="form-check-input" type="checkbox" id="acceptTerms" name="accept_terms" value="1" required>
-                <label class="form-check-label" for="acceptTerms">I agree to Terms and Conditions</label>
+                <label class="form-check-label" for="acceptTerms">I agree to <a href="{{ route('frontend.terms.show', ['moduleKey' => 'ads']) }}" target="_blank" rel="noopener noreferrer" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms and Conditions</a></label>
             </div>
             <p class="text-secondary small mt-2 mb-0">
                 Note: Your ad will be sent to admin for verification. It will be published after approval.
@@ -455,7 +460,7 @@ function pushScreenshotToServer(dataURL) {
     (function () {
         const page = document.getElementById('adsSizeCustomizerPage');
         if (!page) return;
-        const form = page.querySelector('form[action*="/dashboard/ads/create/"]');
+        const form = page.querySelector('form');
         if (!form) return;
 
         const previewFrame = document.getElementById('adPreviewFrame');
@@ -667,7 +672,16 @@ function pushScreenshotToServer(dataURL) {
                 .join('');
         }
 
-        document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
+                const existingFinalImage = document.getElementById('existingFinalImage')?.value || '';
+        if (existingFinalImage && dropzonePreview && dropzonePreviewWrap && dropzonePlaceholder) {
+            dropzonePreview.src = existingFinalImage;
+            dropzonePreviewWrap.classList.remove('d-none');
+            dropzonePlaceholder.classList.add('d-none');
+            canvasWrap.classList.remove('d-none');
+            preview.innerHTML = `<img data-upload-image="1" src="${existingFinalImage}" alt="Ad Preview" style="width:100%;height:100%;object-fit:cover;object-position:${uploadedImagePositionX}% ${uploadedImagePositionY}%;pointer-events:none;">`;
+        }
+
+document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             radio.addEventListener('change', () => setMode(radio.value));
         });
 
