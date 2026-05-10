@@ -110,6 +110,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/create/{sizeType}/template/{template}', [UserAdController::class, 'customize'])->name('create.customize');
         Route::post('/create/{sizeType}', [UserAdController::class, 'store'])->name('store');
         Route::get('/view/{ad}', [UserAdController::class, 'show'])->name('show');
+        Route::get('/{ad}/edit', [UserAdController::class, 'edit'])->name('edit');
+        Route::put('/{ad}', [UserAdController::class, 'update'])->name('update');
         Route::delete('/{ad}', [UserAdController::class, 'destroy'])->name('destroy');
         Route::get('/{ad}', [UserAdController::class, 'show'])->name('legacy.show');
     });
