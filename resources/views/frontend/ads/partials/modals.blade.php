@@ -1,5 +1,5 @@
 <div class="modal fade offer-details-modal" id="adDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable offer-details-dialog">
+    <div id="adDetailsModalDialog" class="modal-dialog modal-dialog-centered modal-dialog-scrollable offer-details-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title fs-5">Ad Details</h2>
