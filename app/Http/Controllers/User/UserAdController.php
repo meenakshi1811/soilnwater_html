@@ -117,13 +117,75 @@ class UserAdController extends Controller
             })
             ->editColumn('submitted_at', fn (UserAd $ad) => $ad->submitted_at?->format('Y-m-d H:i') ?? '-')
             ->addColumn('valid_until', fn (UserAd $ad) => $ad->valid_until?->format('Y-m-d') ?? 'No Expiry')
-            ->addColumn('actions', fn (UserAd $ad) => '<div class="d-flex justify-content-end gap-2"><a href="'.route('ads.show', $ad).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a><button type="button" class="btn btn-sm btn-outline-danger js-delete-user-ad" data-id="'.$ad->id.'" title="Delete"><i class="fa-solid fa-trash"></i></button></div>')
+            ->addColumn('actions', fn (UserAd $ad) => '<div class="d-flex justify-content-end gap-2"><a href="'.route('ads.show', $ad).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a><a href="'.route('ads.edit', $ad).'" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fa-solid fa-pen"></i></a><button type="button" class="btn btn-sm btn-outline-danger js-delete-user-ad" data-id="'.$ad->id.'" title="Delete"><i class="fa-solid fa-trash"></i></button></div>')
             ->rawColumns(['status_badge', 'banner_preview', 'actions'])
             ->make(true);
     }
 
 
 
+
+
+    public function edit(Request $request, UserAd $ad): View
+    {
+        abort_unless($ad->user_id === $request->user()->id, 404);
+
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'ads')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $subcategories = Category::query()
+            ->where('parent_id', $ad->category_id)
+            ->whereJsonContains('modules', 'ads')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('backend.ads.user.edit', compact('ad', 'categories', 'subcategories'));
+    }
+
+    public function update(Request $request, UserAd $ad): RedirectResponse
+    {
+        abort_unless($ad->user_id === $request->user()->id, 404);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:140',
+            'short_description' => 'nullable|string|max:300',
+            'category_id' => ['required', Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id')->whereJsonContains('modules', 'ads'))],
+            'subcategory_id' => ['required', Rule::exists('categories', 'id')],
+            'location' => 'required|string|max:255',
+            'location_lat' => 'required|numeric|between:-90,90',
+            'location_lng' => 'required|numeric|between:-180,180',
+            'valid_until' => 'required|date|after_or_equal:today',
+            'is_sponsored' => 'nullable|in:0,1',
+            'generated_image_data' => 'nullable|string|starts_with:data:image/png;base64,',
+        ]);
+
+        if ($request->filled('generated_image_data')) {
+            $size = AdSizes::all()[$ad->size_type] ?? ['w' => 0, 'h' => 0];
+            if ($ad->final_image) {
+                File::delete(public_path($ad->final_image));
+            }
+            $ad->final_image = $this->storeGeneratedAdImage($validated['generated_image_data'], (int) $size['w'], (int) $size['h']);
+        }
+
+        $ad->fill([
+            'title' => $validated['title'],
+            'short_description' => $validated['short_description'] ?? null,
+            'category_id' => $validated['category_id'],
+            'subcategory_id' => $validated['subcategory_id'],
+            'location' => $validated['location'],
+            'location_lat' => $validated['location_lat'],
+            'location_lng' => $validated['location_lng'],
+            'valid_until' => $validated['valid_until'],
+            'is_sponsored' => $request->user()->isStaff() ? (bool) ($validated['is_sponsored'] ?? false) : false,
+        ]);
+
+        $ad->save();
+
+        return redirect()->route('ads.index')->with('success', 'Ad updated and submitted for admin approval.');
+    }
     public function destroy(Request $request, UserAd $ad): RedirectResponse|JsonResponse
     {
         abort_unless($ad->user_id === $request->user()->id, 404);
