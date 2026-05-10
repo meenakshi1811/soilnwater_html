@@ -243,7 +243,7 @@
 
             <div class="form-check mt-3">
                 <input class="form-check-input" type="checkbox" id="acceptTerms" name="accept_terms" value="1" required>
-                <label class="form-check-label" for="acceptTerms">I agree to <a href="{{ route('frontend.terms.show', ['moduleKey' => 'ads']) }}" target="_blank" rel="noopener noreferrer">Terms and Conditions</a></label>
+                <label class="form-check-label" for="acceptTerms">I agree to <a href="{{ route('frontend.terms.show', ['moduleKey' => 'ads']) }}" target="_blank" rel="noopener noreferrer" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms and Conditions</a></label>
             </div>
             <p class="text-secondary small mt-2 mb-0">
                 Note: Your ad will be sent to admin for verification. It will be published after approval.

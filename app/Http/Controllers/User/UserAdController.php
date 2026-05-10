@@ -152,7 +152,7 @@ class UserAdController extends Controller
         ]);
     }
 
-    public function update(Request $request, UserAd $ad): RedirectResponse
+    public function update(Request $request, UserAd $ad): RedirectResponse|JsonResponse
     {
         abort_unless($ad->user_id === $request->user()->id, 404);
 
@@ -190,6 +190,13 @@ class UserAdController extends Controller
         ]);
 
         $ad->save();
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'message' => 'Ad updated and submitted for admin approval.',
+                'redirect_url' => route('ads.index'),
+            ]);
+        }
 
         return redirect()->route('ads.index')->with('success', 'Ad updated and submitted for admin approval.');
     }
