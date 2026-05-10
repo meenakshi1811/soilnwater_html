@@ -54,13 +54,13 @@ class AdsMarketController extends Controller
                 ->select('user_ads.*')
                 ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
                 ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
-                ->orderBy('distance_km');
+                ->orderBy('distance_km')
+                ->orderByDesc('updated_at');
         } else {
-            $adsQuery->latest('reviewed_at');
+            $adsQuery->orderByDesc('updated_at');
         }
 
         $ads = $adsQuery
-            ->latest('id')
             ->paginate(12)
             ->appends($request->query());
 
