@@ -53,7 +53,10 @@
             @endforeach
         </div>
 
-        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+        <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
+            <button type="button" class="btn btn-outline-primary px-4" id="openCustomizationRequestBtn">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Request Customization
+            </button>
             <a href="{{ route('ads.index') }}" class="btn btn-light px-4">Back</a>
         </div>
     </div>
@@ -89,7 +92,49 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="customizationRequestModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content customization-request-modal">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Request Ad Size Customization</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="customizationRequestForm" action="{{ route('ads.request-customization') }}" method="POST">
+                @csrf
+                <div class="modal-body pt-0">
+                    <p class="text-secondary mb-3">Select an inactive size and share your requirement details. Our admin team will contact you.</p>
+                    <div class="mb-3">
+                        <label for="inactiveSizeType" class="form-label fw-semibold">Select Size</label>
+                        <select class="form-select" id="inactiveSizeType" name="size_type" required>
+                            <option value="">— Select inactive size —</option>
+                            @foreach($inactiveSizes as $sizeType => $size)
+                                <option value="{{ $sizeType }}">{{ $size['name'] }} ({{ $size['w'] }}×{{ $size['h'] }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="customizationDetails" class="form-label fw-semibold">Details</label>
+                        <textarea class="form-control" id="customizationDetails" name="details" rows="4" maxlength="2000" placeholder="Write your size customization requirement..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitCustomizationRequestBtn">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('styles')
+<style>
+.customization-request-modal{border:0;border-radius:14px;box-shadow:0 20px 44px rgba(15,23,42,.18)}
+.customization-request-modal .modal-header{padding:1rem 1.25rem .5rem}
+.customization-request-modal .modal-body,.customization-request-modal .modal-footer{padding:1rem 1.25rem}
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -118,6 +163,66 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    const openCustomizationModalBtn = document.getElementById('openCustomizationRequestBtn');
+    const customizationModalEl = document.getElementById('customizationRequestModal');
+    const customizationForm = document.getElementById('customizationRequestForm');
+    const customizationSubmitBtn = document.getElementById('submitCustomizationRequestBtn');
+    const inactiveSizeType = document.getElementById('inactiveSizeType');
+    const customizationModal = (window.bootstrap && customizationModalEl) ? new bootstrap.Modal(customizationModalEl) : null;
+
+    function notify(type, message) {
+        const normalizedType = type === 'danger' ? 'error' : type;
+        if (window.FormHelper && typeof window.FormHelper.showToast === 'function') {
+            window.FormHelper.showToast(normalizedType, message);
+            return;
+        }
+        if (window.toastr && typeof window.toastr[normalizedType] === 'function') {
+            window.toastr[normalizedType](message);
+            return;
+        }
+        alert(message || 'Done');
+    }
+
+    openCustomizationModalBtn?.addEventListener('click', function () {
+        if (!inactiveSizeType || inactiveSizeType.options.length <= 1) {
+            notify('warning', 'No inactive sizes are available for customization request.');
+            return;
+        }
+        customizationModal?.show();
+    });
+
+    customizationForm?.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const formData = new FormData(customizationForm);
+        customizationSubmitBtn.disabled = true;
+        customizationSubmitBtn.textContent = 'Submitting...';
+
+        fetch(customizationForm.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw data;
+            }
+            notify('success', data.message || 'Request submitted successfully.');
+            customizationForm.reset();
+            customizationModal?.hide();
+        })
+        .catch((error) => {
+            const firstError = error?.errors ? Object.values(error.errors)[0]?.[0] : null;
+            notify('error', firstError || error?.message || 'Failed to submit customization request.');
+        })
+        .finally(() => {
+            customizationSubmitBtn.disabled = false;
+            customizationSubmitBtn.textContent = 'Submit Request';
+        });
+    });
 
 });
 </script>
