@@ -104,6 +104,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/data', [UserAdController::class, 'data'])->name('data');
         Route::get('/categories/{category}/subcategories', [UserAdController::class, 'subcategories'])->name('categories.subcategories');
         Route::get('/create', [UserAdController::class, 'selectSize'])->name('create.size');
+        Route::post('/request-customization', [UserAdController::class, 'requestCustomization'])->name('request-customization');
         Route::get('/create/{sizeType}/customize', [UserAdController::class, 'customizeFromSize'])->name('create.customize.default');
         Route::post('/create/{sizeType}/pay', [UserAdController::class, 'markSizeAsPaid'])->name('create.size.pay');
         Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->name('create.template');
