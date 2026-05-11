@@ -182,7 +182,12 @@ document.addEventListener('DOMContentLoaded', function () {
             window.toastr[normalizedType](message);
             return;
         }
-        alert(message || 'Done');
+        const fallbackToast = document.createElement('div');
+        fallbackToast.className = `alert alert-${normalizedType === 'error' ? 'danger' : normalizedType} position-fixed shadow`;
+        fallbackToast.style.cssText = 'top:20px;right:20px;z-index:2000;min-width:280px;';
+        fallbackToast.textContent = message || 'Done';
+        document.body.appendChild(fallbackToast);
+        setTimeout(() => fallbackToast.remove(), 2800);
     }
 
     openCustomizationModalBtn?.addEventListener('click', function () {
