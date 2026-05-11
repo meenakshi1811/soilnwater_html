@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\AdTemplate;
 use App\Models\Category;
+use App\Models\AdSize;
 use App\Models\UserAd;
 use App\Support\AdSizes;
 use Illuminate\Http\JsonResponse;
@@ -43,12 +44,27 @@ class UserAdController extends Controller
     public function selectSize(): View
     {
         $user = request()->user();
-        $allSizes = AdSizes::all();
+        $isAdmin = (bool) ($user?->isAdmin());
         $visibleSizes = AdSizes::visibleFor($user);
+        $inactiveSizes = AdSize::query()
+            ->where('admin_only', $isAdmin)
+            ->where('is_active', false)
+            ->orderBy('name')
+            ->get(['size_key', 'name', 'width', 'height'])
+            ->mapWithKeys(function (AdSize $size) {
+                return [
+                    $size->size_key => [
+                        'name' => $size->name,
+                        'w' => (int) $size->width,
+                        'h' => (int) $size->height,
+                    ],
+                ];
+            })
+            ->all();
 
         return view('backend.ads.user.select-size', [
             'sizes' => $visibleSizes,
-            'inactiveSizes' => collect($allSizes)->except(array_keys($visibleSizes))->all(),
+            'inactiveSizes' => $inactiveSizes,
             'paidSizeAccess' => $this->paidSizeAccessMap($user),
         ]);
     }
@@ -60,9 +76,20 @@ class UserAdController extends Controller
             'details' => ['required', 'string', 'max:2000'],
         ]);
 
-        $allSizes = AdSizes::all();
-        $visibleSizes = AdSizes::visibleFor($request->user());
-        $inactiveSizes = collect($allSizes)->except(array_keys($visibleSizes));
+        $isAdmin = (bool) ($request->user()?->isAdmin());
+        $inactiveSizes = AdSize::query()
+            ->where('admin_only', $isAdmin)
+            ->where('is_active', false)
+            ->get(['size_key', 'name', 'width', 'height'])
+            ->mapWithKeys(function (AdSize $size) {
+                return [
+                    $size->size_key => [
+                        'name' => $size->name,
+                        'w' => (int) $size->width,
+                        'h' => (int) $size->height,
+                    ],
+                ];
+            });
 
         if (! $inactiveSizes->has($validated['size_type'])) {
             throw ValidationException::withMessages([
