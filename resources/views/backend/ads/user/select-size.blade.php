@@ -17,6 +17,11 @@
     @endphp
 
     <div class="chart-card">
+        <div class="d-flex justify-content-end mb-3">
+            <button type="button" class="btn btn-outline-primary px-4" id="openCustomizationRequestBtn">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Request Customization
+            </button>
+        </div>
         <div class="row g-3">
             @foreach($sizes as $sizeType => $size)
                 @php
@@ -54,9 +59,6 @@
         </div>
 
         <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
-            <button type="button" class="btn btn-outline-primary px-4" id="openCustomizationRequestBtn">
-                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Request Customization
-            </button>
             <a href="{{ route('ads.index') }}" class="btn btn-light px-4">Back</a>
         </div>
     </div>
@@ -140,10 +142,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const paidCards = document.querySelectorAll('.js-paid-size-card');
-    if (!paidCards.length || typeof bootstrap === 'undefined') return;
+    if (typeof bootstrap === 'undefined') return;
 
     const paymentModalElement = document.getElementById('sizePaymentModal');
-    const paymentModal = new bootstrap.Modal(paymentModalElement);
+    const paymentModal = paymentModalElement ? new bootstrap.Modal(paymentModalElement) : null;
     const sizeNameEl = document.getElementById('paymentSizeName');
     const sizeAmountEl = document.getElementById('paymentSizeAmount');
     const confirmBtn = document.getElementById('confirmSizePaymentBtn');
@@ -159,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
             sizeNameEl.textContent = card.dataset.sizeName || '-';
             const amount = Number(card.dataset.sizeAmount || 0);
             sizeAmountEl.textContent = `₹${amount.toFixed(2)}`;
-            paymentModal.show();
+            paymentModal?.show();
         });
     });
 
