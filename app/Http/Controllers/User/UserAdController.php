@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
@@ -42,11 +43,49 @@ class UserAdController extends Controller
     public function selectSize(): View
     {
         $user = request()->user();
+        $allSizes = AdSizes::all();
+        $visibleSizes = AdSizes::visibleFor($user);
 
         return view('backend.ads.user.select-size', [
-            'sizes' => AdSizes::visibleFor($user),
+            'sizes' => $visibleSizes,
+            'inactiveSizes' => collect($allSizes)->except(array_keys($visibleSizes))->all(),
             'paidSizeAccess' => $this->paidSizeAccessMap($user),
         ]);
+    }
+
+    public function requestCustomization(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'size_type' => ['required', 'string'],
+            'details' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $allSizes = AdSizes::all();
+        $visibleSizes = AdSizes::visibleFor($request->user());
+        $inactiveSizes = collect($allSizes)->except(array_keys($visibleSizes));
+
+        if (! $inactiveSizes->has($validated['size_type'])) {
+            throw ValidationException::withMessages([
+                'size_type' => 'Please select a valid inactive size.',
+            ]);
+        }
+
+        $size = $inactiveSizes->get($validated['size_type']);
+        $user = $request->user();
+        $body = view('emails.ads.customization-request', [
+            'user' => $user,
+            'sizeType' => $validated['size_type'],
+            'size' => $size,
+            'details' => $validated['details'],
+        ])->render();
+
+        Mail::send([], [], function ($message) use ($user, $body) {
+            $message->to('nanta1811@gmail.com')
+                ->subject('Ad Size Customization Request from '.$user->name)
+                ->html($body);
+        });
+
+        return response()->json(['message' => 'Your customization request has been sent to admin successfully.']);
     }
 
     public function customizeFromSize(string $sizeType): RedirectResponse|View
