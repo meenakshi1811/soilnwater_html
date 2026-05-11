@@ -40,8 +40,8 @@
       <div class="footer-col footer-panel">
         <h4 class="footer-col-title">Contact Us</h4>
         <ul class="footer-list footer-contact-list">
-          <li><i class="fa-solid fa-phone"></i> +91 162725 / 236-353915</li>
-          <li><i class="fa-solid fa-envelope"></i> support@soilnwater.com</li>
+          <li><i class="fa-solid fa-phone"></i> +91 7055533011</li>
+          <li><i class="fa-solid fa-envelope"></i> soilnwaterworld@gmail.com</li>
           <li><i class="fa-solid fa-clock"></i> Mon–Sat, 9 AM – 6 PM IST</li>
         </ul>
       </div>
