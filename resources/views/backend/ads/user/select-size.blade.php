@@ -41,6 +41,13 @@
                                 @endif
                                 @if(($size['admin_only'] ?? false) === true)
                                     <span class="badge text-bg-warning">Admin Placement</span>
+                                @else
+                                    <span class="badge text-bg-info">User Placement</span>
+                                @endif
+                                @if(($size['is_active'] ?? true) === false)
+                                    <span class="badge text-bg-secondary">Inactive</span>
+                                @else
+                                    <span class="badge text-bg-success">Active</span>
                                 @endif
                             </div>
                         </div>

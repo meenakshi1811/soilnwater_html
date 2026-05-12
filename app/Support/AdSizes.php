@@ -10,13 +10,13 @@ final class AdSizes
     /**
      * @return array<string, array{name:string, ratio:string, w:int, h:int, admin_only:bool, is_paid:bool, amount:float, category_prices:array<int,float>}>
      */
-    public static function all(): array
+    public static function all(bool $includeInactive = false): array
     {
         $sizes = [];
 
         $adSizes = AdSize::query()
             ->with('categoryPrices:id,ad_size_id,category_id,amount')
-            ->where('is_active', true)
+            ->when(! $includeInactive, fn ($query) => $query->where('is_active', true))
             ->orderBy('name')
             ->get();
 
@@ -38,6 +38,7 @@ final class AdSizes
                 'is_paid' => (bool) $adSize->is_paid,
                 'amount' => $categoryPrices !== [] ? min($categoryPrices) : (float) ($adSize->amount ?? 0),
                 'category_prices' => $categoryPrices,
+                'is_active' => (bool) $adSize->is_active,
             ];
         }
 
@@ -51,7 +52,7 @@ final class AdSizes
     public static function visibleFor(?User $user): array
     {
         if ((bool) ($user?->isStaff())) {
-            return self::all();
+            return self::all(true);
         }
 
         return array_filter(
