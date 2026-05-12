@@ -16,7 +16,7 @@
                             <img src="{{ asset('assets/images/logo-mark.svg') }}" alt="" style="display:inline-block;width:42px;height:42px;border:0;outline:none;">
                             <span style="display:inline-block;color:#ffffff;font-size:34px;line-height:1;font-weight:700;letter-spacing:.3px;">SoilNWater</span>
                         </div>
-                        <p style="margin: 0; color: #e8fff2; font-size: 14px; letter-spacing: 0.5px;">Secure account communication</p>
+                        <!-- <p style="margin: 0; color: #e8fff2; font-size: 14px; letter-spacing: 0.5px;">Secure account communication</p> -->
                     </td>
                 </tr>
 
