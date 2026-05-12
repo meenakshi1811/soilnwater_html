@@ -107,7 +107,7 @@ class UserAdController extends Controller
         ])->render();
 
         Mail::send([], [], function ($message) use ($user, $body) {
-            $message->to('nanta1811@gmail.com')
+            $message->to(config('services.email.admin_email'))
                 ->subject('Ad Size Customization Request from '.$user->name)
                 ->html($body);
         });

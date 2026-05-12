@@ -49,5 +49,8 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
         'maps_api_key' => env('GOOGLE_MAPS_API_KEY'),
     ],
+    'email' => [
+        'admin_email' => env('ADMIN_EMAIL'),
+    ],
 
 ];
