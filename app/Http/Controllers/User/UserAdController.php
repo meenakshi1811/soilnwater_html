@@ -133,14 +133,15 @@ class UserAdController extends Controller
         $adminEmail = config('services.email.admin_email');
         if ($adminEmail) {
             $user = $request->user();
-            $body = "New contact support request\n\n"
-                ."From: ".($user?->name ?? 'Guest')." <".($user?->email ?? 'N/A').">\n"
-                ."Subject: {$entry->subject}\n"
-                ."Message:\n{$entry->message}";
+            $body = view('emails.ads.contact-support-request', [
+                'user' => $user,
+                'entry' => $entry,
+            ])->render();
 
-            Mail::raw($body, function ($message) use ($adminEmail, $entry) {
+            Mail::send([], [], function ($message) use ($adminEmail, $entry, $body) {
                 $message->to($adminEmail)
-                    ->subject('Contact Support: '.$entry->subject);
+                    ->subject('Contact Support: '.$entry->subject)
+                    ->html($body);
             });
         }
 
