@@ -361,7 +361,7 @@ let uploadedImage = null;
 
         this.disabled = true;
         try {
-            const response = await fetch({{ route('ads.contact-support') }}, {
+            const response = await fetch("{{ route('ads.contact-support') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
