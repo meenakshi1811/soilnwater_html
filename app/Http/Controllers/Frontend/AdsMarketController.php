@@ -38,7 +38,7 @@ class AdsMarketController extends Controller
         $sponsoredFillers = $this->getSponsoredFillers($lat, $lng);
 
         $adsQuery = UserAd::query()
-            ->with(['category:id,name', 'subcategory:id,name'])
+            ->with(['category:id,name', 'subcategory:id,name', 'adSize:id,size_key,width,height'])
             ->where('status', 'approved')
             ->whereHas('user', fn (Builder $query) => $query->where('role', 'user'))
             ->whereNotNull('final_image')

@@ -22,8 +22,8 @@
                         ->value() === $normalizedSizeType;
                 });
 
-            $adWidth  = (int) ($sizeConfig['w'] ?? 458);
-            $adHeight = (int) ($sizeConfig['h'] ?? 229);
+            $adWidth  = (int) ($sizeConfig['w'] ?? ($ad->adSize?->width ?? 458));
+            $adHeight = (int) ($sizeConfig['h'] ?? ($ad->adSize?->height ?? 229));
 
             $shapeClass = 'ad-landscape';
 

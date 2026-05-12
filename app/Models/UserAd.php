@@ -102,6 +102,11 @@ class UserAd extends Model
         return $this->belongsTo(AdTemplate::class, 'ad_template_id');
     }
 
+    public function adSize(): BelongsTo
+    {
+        return $this->belongsTo(AdSize::class, 'size_type', 'size_key');
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id');
