@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\AdSizeController;
 use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
+use App\Http\Controllers\Admin\ContactSupportController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -105,6 +106,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/categories/{category}/subcategories', [UserAdController::class, 'subcategories'])->name('categories.subcategories');
         Route::get('/create', [UserAdController::class, 'selectSize'])->name('create.size');
         Route::post('/request-customization', [UserAdController::class, 'requestCustomization'])->name('request-customization');
+        Route::post('/contact-support', [UserAdController::class, 'contactSupport'])->name('contact-support');
         Route::get('/create/{sizeType}/customize', [UserAdController::class, 'customizeFromSize'])->name('create.customize.default');
         Route::post('/create/{sizeType}/pay', [UserAdController::class, 'markSizeAsPaid'])->name('create.size.pay');
         Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->name('create.template');
@@ -146,6 +148,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/data', [AdminAdReportController::class, 'data'])->name('data');
                 Route::delete('/ad/{ad}', [AdminAdReportController::class, 'deleteAd'])->name('delete-ad');
             });
+
+            Route::get('/contact-support', [ContactSupportController::class, 'index'])->name('contact-support.index');
 
             Route::prefix('sizes')->name('sizes.')->group(function () {
                 Route::get('/', [AdSizeController::class, 'index'])->name('index');
