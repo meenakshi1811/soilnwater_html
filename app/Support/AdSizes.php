@@ -50,11 +50,13 @@ final class AdSizes
      */
     public static function visibleFor(?User $user): array
     {
-        $isAdmin = (bool) ($user?->isAdmin());
+        if ((bool) ($user?->isStaff())) {
+            return self::all();
+        }
 
         return array_filter(
             self::all(),
-            fn (array $size) => (bool) ($size['admin_only'] ?? false) === $isAdmin
+            fn (array $size) => ! ((bool) ($size['admin_only'] ?? false))
         );
     }
 
