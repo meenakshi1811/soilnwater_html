@@ -387,9 +387,37 @@
                     I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'offer']) }}" target="_blank" rel="noopener noreferrer" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms and Conditions</a> for offers.
                 </label>
                 <div class="small text-secondary mt-1">Standard note: attached terms and conditions are shown at the bottom.</div>
+                <div class="small text-secondary mt-1">Need help? <a href="#" data-bs-toggle="modal" data-bs-target="#contactSupportModal" class="fw-semibold">Contact support</a>.</div>
                 @error('accept_terms')
                     <div class="invalid-feedback d-block">{{ $message }}</div>
                 @enderror
+            </div>
+
+
+            <div class="modal fade" id="contactSupportModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Contact Support</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="contactSupportAlert" class="alert d-none" role="alert"></div>
+                            <div class="mb-3">
+                                <label class="form-label">Subject</label>
+                                <input type="text" id="contactSupportSubject" class="form-control" maxlength="150" placeholder="Briefly describe your issue">
+                            </div>
+                            <div>
+                                <label class="form-label">Message</label>
+                                <textarea id="contactSupportMessage" class="form-control" rows="4" maxlength="2000" placeholder="Write your query"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                            <button type="button" id="contactSupportSendBtn" class="btn btn-primary">Send</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="offerPricingBreakdown" class="offer-pricing-breakdown d-none mt-4" aria-live="polite">
@@ -429,6 +457,7 @@
     .offer-pricing-breakdown__row { display:flex; justify-content:space-between; gap:1rem; padding:.2rem 0; font-size:.92rem; }
     .offer-pricing-breakdown__row--grand { margin-top:.25rem; padding-top:.45rem; border-top:1px dashed #f0c995; font-size:1rem; font-weight:700; }
 </style>
+
 @endpush
 
 @push('scripts')
@@ -436,6 +465,61 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/offer-and-discount.js') }}?v={{ now()->timestamp }}"></script>
+<script>
+(() => {
+    const contactSendBtn = document.getElementById('contactSupportSendBtn');
+    const contactAlert = document.getElementById('contactSupportAlert');
+    if (!contactSendBtn || !contactAlert) return;
+
+    const showAlert = (type, message) => {
+        contactAlert.className = `alert alert-${type}`;
+        contactAlert.textContent = message;
+        contactAlert.classList.remove('d-none');
+    };
+
+    contactSendBtn.addEventListener('click', async () => {
+        const subject = document.getElementById('contactSupportSubject')?.value?.trim() || '';
+        const message = document.getElementById('contactSupportMessage')?.value?.trim() || '';
+        if (!subject || !message) {
+            showAlert('danger', 'Please enter both subject and message.');
+            return;
+        }
+
+        contactSendBtn.disabled = true;
+        const originalLabel = contactSendBtn.textContent;
+        contactSendBtn.textContent = 'Sending...';
+        try {
+            const response = await fetch("{{ route('ads.contact-support') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ subject, message }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.message || 'Unable to send support request.');
+            }
+
+            showAlert('success', data.message || 'Support request sent successfully.');
+            document.getElementById('contactSupportSubject').value = '';
+            document.getElementById('contactSupportMessage').value = '';
+            setTimeout(() => {
+                const modalEl = document.getElementById('contactSupportModal');
+                const modalInstance = modalEl && window.bootstrap ? window.bootstrap.Modal.getOrCreateInstance(modalEl) : null;
+                modalInstance?.hide();
+            }, 700);
+        } catch (err) {
+            showAlert('danger', err.message || 'Failed to send support request.');
+        } finally {
+            contactSendBtn.disabled = false;
+            contactSendBtn.textContent = originalLabel;
+        }
+    });
+})();
+</script>
 @if(config('services.google.maps_api_key'))
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initOfferLocationAutocomplete"></script>
 @endif
