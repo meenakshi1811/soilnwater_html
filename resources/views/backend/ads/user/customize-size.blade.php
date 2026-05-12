@@ -2,6 +2,10 @@
 
 @section('title', 'Customize Ad')
 
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+@endpush
+
 @section('content')
 <div class="admin-panel ems-page" id="adsSizeCustomizerPage">
     <div class="ems-hero mb-4">
