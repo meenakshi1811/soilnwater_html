@@ -368,15 +368,22 @@ let uploadedImage = null;
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ subject, message, source: 'dashboard/ads/create/admin_320x300/customize' })
+                body: JSON.stringify({ subject, message })
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Failed to send request.');
 
-            contactAlert.className = 'alert alert-success';
-            contactAlert.textContent = data.message || 'Request sent successfully.';
             document.getElementById('contactSupportSubject').value = '';
             document.getElementById('contactSupportMessage').value = '';
+            if (contactAlert) {
+                contactAlert.className = 'alert d-none';
+                contactAlert.textContent = '';
+            }
+            toast('success', data.message || 'Support request sent successfully.');
+            const modalEl = document.getElementById('contactSupportModal');
+            if (window.bootstrap?.Modal && modalEl) {
+                window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            }
         } catch (err) {
             contactAlert.className = 'alert alert-danger';
             contactAlert.textContent = err.message || 'Failed to send support request.';

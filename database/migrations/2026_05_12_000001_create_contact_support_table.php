@@ -12,7 +12,6 @@ return new class extends Migration {
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('subject', 150);
             $table->text('message');
-            $table->string('source', 120)->nullable();
             $table->timestamps();
         });
     }

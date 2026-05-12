@@ -17,7 +17,6 @@
                         <th>User</th>
                         <th>Subject</th>
                         <th>Message</th>
-                        <th>Source</th>
                         <th>Date</th>
                     </tr>
                 </thead>
@@ -31,12 +30,11 @@
                             </td>
                             <td>{{ $request->subject }}</td>
                             <td style="min-width:280px;white-space:pre-wrap;">{{ $request->message }}</td>
-                            <td>{{ $request->source ?? '-' }}</td>
                             <td>{{ $request->created_at?->format('Y-m-d H:i') }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">No contact support requests yet.</td>
+                            <td colspan="5" class="text-center py-4 text-muted">No contact support requests yet.</td>
                         </tr>
                     @endforelse
                 </tbody>

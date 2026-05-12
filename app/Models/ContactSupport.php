@@ -16,7 +16,6 @@ class ContactSupport extends Model
         'user_id',
         'subject',
         'message',
-        'source',
     ];
 
     public function user(): BelongsTo

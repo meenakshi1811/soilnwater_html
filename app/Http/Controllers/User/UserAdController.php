@@ -122,14 +122,12 @@ class UserAdController extends Controller
         $validated = $request->validate([
             'subject' => ['required', 'string', 'max:150'],
             'message' => ['required', 'string', 'max:2000'],
-            'source' => ['nullable', 'string', 'max:120'],
         ]);
 
         $entry = ContactSupport::query()->create([
             'user_id' => $request->user()?->id,
             'subject' => $validated['subject'],
             'message' => $validated['message'],
-            'source' => $validated['source'] ?? 'ads-customize',
         ]);
 
         $adminEmail = config('services.email.admin_email');
@@ -138,7 +136,6 @@ class UserAdController extends Controller
             $body = "New contact support request\n\n"
                 ."From: ".($user?->name ?? 'Guest')." <".($user?->email ?? 'N/A').">\n"
                 ."Subject: {$entry->subject}\n"
-                ."Source: ".($entry->source ?? 'N/A')."\n\n"
                 ."Message:\n{$entry->message}";
 
             Mail::raw($body, function ($message) use ($adminEmail, $entry) {
