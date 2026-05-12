@@ -472,6 +472,11 @@
     if (!contactSendBtn || !contactAlert) return;
 
     const showAlert = (type, message) => {
+        const normalizedType = type === 'danger' ? 'error' : type;
+        if (window.toastr && typeof window.toastr[normalizedType] === 'function') {
+            window.toastr[normalizedType](message);
+        }
+
         contactAlert.className = `alert alert-${type}`;
         contactAlert.textContent = message;
         contactAlert.classList.remove('d-none');
