@@ -248,6 +248,35 @@
             <p class="text-secondary small mt-2 mb-0">
                 Note: Your ad will be sent to admin for verification. It will be published after approval.
             </p>
+            <p class="text-secondary small mt-2 mb-0">
+                Need help? <a href="#" data-bs-toggle="modal" data-bs-target="#contactSupportModal" class="fw-semibold">Contact support</a>.
+            </p>
+
+            <div class="modal fade" id="contactSupportModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Contact Support</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="contactSupportAlert" class="alert d-none" role="alert"></div>
+                            <div class="mb-3">
+                                <label class="form-label">Subject</label>
+                                <input type="text" id="contactSupportSubject" class="form-control" maxlength="150" placeholder="Briefly describe your issue">
+                            </div>
+                            <div>
+                                <label class="form-label">Message</label>
+                                <textarea id="contactSupportMessage" class="form-control" rows="4" maxlength="2000" placeholder="Write your query"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                            <button type="button" id="contactSupportSendBtn" class="btn btn-primary">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             @if((bool) ($size['is_paid'] ?? false))
                 <div id="pricingDetailsCard" class="mt-4 rounded-4 border p-4 d-none" style="background:#f5f2ec;border-color:#f1bb86 !important;">
@@ -316,6 +345,52 @@
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initAdLocationAutocomplete"></script>
 <script>
 let uploadedImage = null;
+
+    const contactSendBtn = document.getElementById('contactSupportSendBtn');
+    const contactAlert = document.getElementById('contactSupportAlert');
+    contactSendBtn?.addEventListener('click', async function () {
+        const subject = document.getElementById('contactSupportSubject')?.value?.trim() || '';
+        const message = document.getElementById('contactSupportMessage')?.value?.trim() || '';
+
+        contactAlert.className = 'alert d-none';
+        if (!subject || !message) {
+            contactAlert.className = 'alert alert-danger';
+            contactAlert.textContent = 'Please fill subject and message.';
+            return;
+        }
+
+        this.disabled = true;
+        try {
+            const response = await fetch("{{ route('ads.contact-support') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ subject, message })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to send request.');
+
+            document.getElementById('contactSupportSubject').value = '';
+            document.getElementById('contactSupportMessage').value = '';
+            if (contactAlert) {
+                contactAlert.className = 'alert d-none';
+                contactAlert.textContent = '';
+            }
+            toast('success', data.message || 'Support request sent successfully.');
+            const modalEl = document.getElementById('contactSupportModal');
+            if (window.bootstrap?.Modal && modalEl) {
+                window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            }
+        } catch (err) {
+            contactAlert.className = 'alert alert-danger';
+            contactAlert.textContent = err.message || 'Failed to send support request.';
+        } finally {
+            this.disabled = false;
+        }
+    });
 
 const addAdImageInput = document.getElementById('uploadImageInput');
     const addAdImageError = document.getElementById('adImageError');
