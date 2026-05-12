@@ -7,6 +7,7 @@ use App\Models\AdTemplate;
 use App\Models\Category;
 use App\Models\AdSize;
 use App\Models\UserAd;
+use App\Models\ContactSupport;
 use App\Support\AdSizes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\UploadedFile;
@@ -113,6 +114,40 @@ class UserAdController extends Controller
         });
 
         return response()->json(['message' => 'Your customization request has been sent to admin successfully.']);
+    }
+
+
+    public function contactSupport(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'subject' => ['required', 'string', 'max:150'],
+            'message' => ['required', 'string', 'max:2000'],
+            'source' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $entry = ContactSupport::query()->create([
+            'user_id' => $request->user()?->id,
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
+            'source' => $validated['source'] ?? 'ads-customize',
+        ]);
+
+        $adminEmail = config('services.email.admin_email');
+        if ($adminEmail) {
+            $user = $request->user();
+            $body = "New contact support request\n\n"
+                ."From: ".($user?->name ?? 'Guest')." <".($user?->email ?? 'N/A').">\n"
+                ."Subject: {$entry->subject}\n"
+                ."Source: ".($entry->source ?? 'N/A')."\n\n"
+                ."Message:\n{$entry->message}";
+
+            Mail::raw($body, function ($message) use ($adminEmail, $entry) {
+                $message->to($adminEmail)
+                    ->subject('Contact Support: '.$entry->subject);
+            });
+        }
+
+        return response()->json(['message' => 'Your support request has been sent successfully.']);
     }
 
     public function customizeFromSize(string $sizeType): RedirectResponse|View

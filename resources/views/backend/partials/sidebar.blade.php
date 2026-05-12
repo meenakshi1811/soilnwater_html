@@ -153,6 +153,12 @@
                                 <span>Report Ads</span>
                             </a>
                         </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.ads.contact-support.*') ? 'active' : '' }}" href="{{ route('admin.ads.contact-support.index') }}">
+                                <i class="fa-regular fa-envelope"></i>
+                                <span>Contact Support</span>
+                            </a>
+                        </li>
                     </ul>
                 </details>
             </li>
