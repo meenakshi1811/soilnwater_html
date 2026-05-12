@@ -45,10 +45,10 @@ class UserAdController extends Controller
     public function selectSize(): View
     {
         $user = request()->user();
-        $isAdmin = (bool) ($user?->isAdmin());
+        $isStaff = (bool) ($user?->isStaff());
         $visibleSizes = AdSizes::visibleFor($user);
         $inactiveSizes = AdSize::query()
-            ->where('admin_only', $isAdmin)
+            ->when(! $isStaff, fn ($query) => $query->where('admin_only', false))
             ->where('is_active', false)
             ->orderBy('name')
             ->get(['size_key', 'name', 'width', 'height'])
@@ -77,9 +77,9 @@ class UserAdController extends Controller
             'details' => ['required', 'string', 'max:2000'],
         ]);
 
-        $isAdmin = (bool) ($request->user()?->isAdmin());
+        $isStaff = (bool) ($request->user()?->isStaff());
         $inactiveSizes = AdSize::query()
-            ->where('admin_only', $isAdmin)
+            ->when(! $isStaff, fn ($query) => $query->where('admin_only', false))
             ->where('is_active', false)
             ->get(['size_key', 'name', 'width', 'height'])
             ->mapWithKeys(function (AdSize $size) {
@@ -737,7 +737,7 @@ class UserAdController extends Controller
             return false;
         }
 
-        if ((bool) ($size['admin_only'] ?? false) === true && ! (bool) ($user?->isAdmin())) {
+        if ((bool) ($size['admin_only'] ?? false) === true && ! (bool) ($user?->isStaff())) {
             return false;
         }
 
