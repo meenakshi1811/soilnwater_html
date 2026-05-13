@@ -18,6 +18,7 @@ class TermsAndConditionController extends Controller
     {
         return [
             'main' => 'Main',
+            'privacy_policy' => 'Privacy Policy',
             'register' => 'Register',
             'ads' => 'Ads',
             'offer' => 'Offer',
