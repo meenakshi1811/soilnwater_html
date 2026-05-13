@@ -61,9 +61,9 @@ final class AdSizes
         );
     }
 
-    public static function exists(string $sizeType): bool
+    public static function exists(string $sizeType, bool $includeInactive = false): bool
     {
-        return array_key_exists($sizeType, self::all());
+        return array_key_exists($sizeType, self::all($includeInactive));
     }
 
     public static function label(string $sizeType): string

@@ -152,7 +152,7 @@ class UserAdController extends Controller
     {
        
         $sizeType = $this->resolveSizeType($sizeType);
-        abort_unless(AdSizes::exists($sizeType), 404);
+        abort_unless(AdSizes::exists($sizeType, true), 404);
         if (! $this->canUserAccessSize(request()->user(), $sizeType)) {
             return redirect()->route('ads.create.size')->withErrors([
                 'size_type' => 'Please select and pay for this ad size before continuing.',
@@ -169,7 +169,7 @@ class UserAdController extends Controller
 
         return view('backend.ads.user.customize-size', [
             'sizeType' => $sizeType,
-            'size' => AdSizes::all()[$sizeType],
+            'size' => AdSizes::all(true)[$sizeType],
             'categories' => Category::query()
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'ads')
@@ -733,7 +733,7 @@ class UserAdController extends Controller
 
     private function canUserAccessSize($user, string $sizeType): bool
     {
-        $size = AdSizes::all()[$sizeType] ?? null;
+        $size = AdSizes::all(true)[$sizeType] ?? null;
         if (! is_array($size)) {
             return false;
         }
@@ -767,13 +767,13 @@ class UserAdController extends Controller
 
     private function resolveSizeType(string $sizeType): string
     {
-        if (AdSizes::exists($sizeType)) {
+        if (AdSizes::exists($sizeType, true)) {
             return $sizeType;
         }
 
         if (str_starts_with($sizeType, 'admin_')) {
             $legacySizeType = substr($sizeType, strlen('admin_'));
-            if (is_string($legacySizeType) && AdSizes::exists($legacySizeType)) {
+            if (is_string($legacySizeType) && AdSizes::exists($legacySizeType, true)) {
                 return $legacySizeType;
             }
         }
