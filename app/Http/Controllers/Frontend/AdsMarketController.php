@@ -40,7 +40,6 @@ class AdsMarketController extends Controller
         $adsQuery = UserAd::query()
             ->with(['category:id,name', 'subcategory:id,name', 'adSize:id,size_key,width,height'])
             ->where('status', 'approved')
-            ->whereHas('user', fn (Builder $query) => $query->where('role', 'user'))
             ->whereNotNull('final_image')
             ->where(function (Builder $query) {
                 $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
