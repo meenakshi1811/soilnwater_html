@@ -50,8 +50,8 @@
                 <div class="mb-2"><span class="text-secondary">Template:</span> <strong>{{ $ad->template?->name ?? '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Short Description:</span> <strong>{{ $ad->short_description ?: '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Valid Upto:</span> {{ $ad->valid_until?->format('Y-m-d') ?? '-' }}</div>
-                <div class="mb-2"><span class="text-secondary">Submitted:</span> {{ $ad->submitted_at?->format('Y-m-d H:i') ?? '-' }}</div>
-                <div class="mb-2"><span class="text-secondary">Reviewed:</span> {{ $ad->reviewed_at?->format('Y-m-d H:i') ?? '-' }}</div>
+                <div class="mb-2"><span class="text-secondary">Submitted:</span> {{ $ad->submitted_at?->timezone('Asia/Kolkata')->format('Y-m-d H:i') ?? '-' }}</div>
+                <div class="mb-2"><span class="text-secondary">Reviewed:</span> {{ $ad->reviewed_at?->timezone('Asia/Kolkata')->format('Y-m-d H:i') ?? '-' }}</div>
                 <div class="mb-3"><span class="text-secondary">User email:</span> {{ $ad->user?->email ?? '-' }}</div>
 
                 <hr>
