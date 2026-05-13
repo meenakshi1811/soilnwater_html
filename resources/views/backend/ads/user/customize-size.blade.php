@@ -1128,7 +1128,29 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 const reader = new FileReader();
 
                 reader.onload = function (e) {
-                    resolve(e.target.result);
+                    const src = e?.target?.result;
+                    if (!src) {
+                        resolve('');
+                        return;
+                    }
+
+                    const image = new Image();
+                    image.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = image.naturalWidth || image.width || sizeW || 1;
+                        canvas.height = image.naturalHeight || image.height || sizeH || 1;
+
+                        const context = canvas.getContext('2d');
+                        if (!context) {
+                            resolve('');
+                            return;
+                        }
+
+                        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/png'));
+                    };
+                    image.onerror = () => resolve('');
+                    image.src = src;
                 };
 
                 reader.onerror = function () {
