@@ -152,7 +152,12 @@ class UserAdController extends Controller
     {
        
         $sizeType = $this->resolveSizeType($sizeType);
-        abort_unless(AdSizes::exists($sizeType), 404);
+        abort_unless(AdSizes::exists($sizeType, true), 404);
+        if (! AdSizes::exists($sizeType)) {
+            return redirect()->route('ads.create.size')->withErrors([
+                'size_type' => 'This ad size is currently inactive. Please choose another size.',
+            ]);
+        }
         if (! $this->canUserAccessSize(request()->user(), $sizeType)) {
             return redirect()->route('ads.create.size')->withErrors([
                 'size_type' => 'Please select and pay for this ad size before continuing.',
@@ -767,13 +772,13 @@ class UserAdController extends Controller
 
     private function resolveSizeType(string $sizeType): string
     {
-        if (AdSizes::exists($sizeType)) {
+        if (AdSizes::exists($sizeType, true)) {
             return $sizeType;
         }
 
         if (str_starts_with($sizeType, 'admin_')) {
             $legacySizeType = substr($sizeType, strlen('admin_'));
-            if (is_string($legacySizeType) && AdSizes::exists($legacySizeType)) {
+            if (is_string($legacySizeType) && AdSizes::exists($legacySizeType, true)) {
                 return $legacySizeType;
             }
         }
