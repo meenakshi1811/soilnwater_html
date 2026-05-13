@@ -55,7 +55,7 @@
         <a href="{{ route('frontend.about-us') }}">About Us</a>
         <a href="{{ route('frontend.privacy-policy') }}">Privacy Policy</a>
         <a href="{{ route('frontend.terms.show', ['moduleKey' => 'main']) }}">Terms of Service</a>
-        <a href="#">Cookie Policy</a>
+        <a href="{{ route('frontend.cookie-policy') }}">Cookie Policy</a>
         <a href="#">Help Center</a>
       </div>
     </div>
