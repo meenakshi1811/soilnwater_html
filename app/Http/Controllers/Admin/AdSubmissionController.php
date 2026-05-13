@@ -62,7 +62,7 @@ class AdSubmissionController extends Controller
                     .'<img src="'.$imageUrl.'" alt="'.$ad->title.' banner" style="width: 96px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb;">'
                     .'</a>';
             })
-            ->editColumn('submitted_at', fn (UserAd $ad) => $ad->submitted_at?->timezone('Asia/Kolkata')->format('Y-m-d H:i') ?? '-')
+            ->editColumn('submitted_at', fn (UserAd $ad) => $ad->submitted_at?->timezone('Asia/Kolkata')->format('Y-m-d h:i A') ?? '-')
             ->addColumn('valid_until', fn (UserAd $ad) => $ad->valid_until?->format('Y-m-d') ?? 'No Expiry')
             ->addColumn('actions', fn (UserAd $ad) => '<div class="d-flex justify-content-end gap-2"><a href="'.route('admin.ads.submissions.show', $ad).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a><button type="button" class="btn btn-sm btn-outline-danger js-delete-submission" data-id="'.$ad->id.'" title="Delete"><i class="fa-solid fa-trash"></i></button></div>')
             ->rawColumns(['status_badge', 'banner_preview', 'actions'])
