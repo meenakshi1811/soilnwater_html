@@ -47,6 +47,8 @@ Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
 })->name('frontend.location.store');
 
 Route::get('/terms-and-condition/{moduleKey}', [TermsAndConditionPageController::class, 'show'])->name('frontend.terms.show');
+Route::get('/privacy-policy', [TermsAndConditionPageController::class, 'privacyPolicy'])->name('frontend.privacy-policy');
+Route::get('/cookie-policy', [TermsAndConditionPageController::class, 'cookiePolicy'])->name('frontend.cookie-policy');
 
 Auth::routes(['verify' => true]);
 

@@ -17,4 +17,25 @@ class TermsAndConditionPageController extends Controller
             'termsContent' => $terms?->content,
         ]);
     }
+
+    public function privacyPolicy(): View
+    {
+        $policy = TermsAndCondition::query()->where('module_key', 'privacy_policy')->firstOrFail();
+
+        return view('frontend.terms-and-condition', [
+            'pageTitle' => $policy->module_name,
+            'termsContent' => $policy?->content,
+        ]);
+    }
+
+    public function cookiePolicy(): View
+    {
+        $policy = TermsAndCondition::query()->where('module_key', 'cookie_policy')->firstOrFail();
+
+        return view('frontend.terms-and-condition', [
+            'pageTitle' => $policy->module_name,
+            'termsContent' => $policy?->content,
+        ]);
+    }
 }
+
