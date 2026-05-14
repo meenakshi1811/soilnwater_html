@@ -266,6 +266,7 @@ class UserAdController extends Controller
             'valid_until' => 'required|date|after_or_equal:today',
             'is_sponsored' => 'nullable|in:0,1',
             'generated_image_data' => 'nullable|string|starts_with:data:image/png;base64,',
+            'accept_terms' => 'accepted',
         ]);
 
         if ($request->filled('generated_image_data')) {
