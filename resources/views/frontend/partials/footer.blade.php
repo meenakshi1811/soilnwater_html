@@ -6,10 +6,10 @@
       </div>
       <p class="footer-tagline">India's trusted local &amp; national marketplace connecting buyers, sellers, and service providers across every category.</p>
       <div class="footer-socials">
-        <a href="#" class="social-btn" aria-label="Facebook"><i class="fa fa-facebook-f fab fa-facebook-f" aria-hidden="true"></i></a>
-        <a href="#" class="social-btn" aria-label="Instagram"><i class="fa fa-instagram fab fa-instagram" aria-hidden="true"></i></a>
-        <a href="#" class="social-btn" aria-label="Twitter"><i class="fa fa-twitter fab fa-twitter" aria-hidden="true"></i></a>
-        <a href="#" class="social-btn" aria-label="LinkedIn"><i class="fa fa-linkedin fab fa-linkedin-in" aria-hidden="true"></i></a>
+        {{-- <a href="#" class="social-btn" aria-label="Facebook"><i class="fa fa-facebook-f fab fa-facebook-f" aria-hidden="true"></i></a> --}}
+        {{-- <a href="#" class="social-btn" aria-label="Instagram"><i class="fa fa-instagram fab fa-instagram" aria-hidden="true"></i></a> --}}
+        {{-- <a href="#" class="social-btn" aria-label="Twitter"><i class="fa fa-twitter fab fa-twitter" aria-hidden="true"></i></a> --}}
+        {{-- <a href="#" class="social-btn" aria-label="LinkedIn"><i class="fa fa-linkedin fab fa-linkedin-in" aria-hidden="true"></i></a> --}}
       </div>
     </div>
 
@@ -29,7 +29,7 @@
       <div class="footer-col footer-panel">
         <h4 class="footer-col-title">For Business</h4>
         <ul class="footer-list">
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Post an Ad</a></li>
+          <li><a href="{{ auth()->check() ? route('ads.create.size') : route('login') }}"><i class="fa-solid fa-chevron-right"></i> Post an Ad</a></li>
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Sponsored Listings</a></li>
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Premium Packages</a></li>
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Seller Dashboard</a></li>
@@ -50,7 +50,7 @@
 
   <div class="footer-bottom">
     <div class="footer-bottom-inner">
-      <span>© 2025 SoilnWater. All rights reserved.</span>
+      <span>© 2021 - {{ date('Y') }} SoilnWater. All rights reserved.</span>
       <div class="footer-bottom-links">
         <a href="{{ route('frontend.about-us') }}">About Us</a>
         <a href="{{ route('frontend.privacy-policy') }}">Privacy Policy</a>
