@@ -245,7 +245,7 @@ class UserAdController extends Controller
             'ad' => $ad,
             'isEdit' => true,
             'sizeType' => $ad->size_type,
-            'size' => AdSizes::all()[$ad->size_type] ?? null,
+            'size' => AdSizes::all(true)[$ad->size_type] ?? null,
             'categories' => $categories,
             'subcategories' => $subcategories,
         ]);
@@ -270,7 +270,7 @@ class UserAdController extends Controller
         ]);
 
         if ($request->filled('generated_image_data')) {
-            $size = AdSizes::all()[$ad->size_type] ?? ['w' => 0, 'h' => 0];
+            $size = AdSizes::all(true)[$ad->size_type] ?? ['w' => 0, 'h' => 0];
             if ($ad->final_image) {
                 File::delete(public_path($ad->final_image));
             }
@@ -325,7 +325,7 @@ class UserAdController extends Controller
 
         return view('backend.ads.user.show', [
             'ad' => $ad,
-            'size' => AdSizes::all()[$ad->size_type] ?? null,
+            'size' => AdSizes::all(true)[$ad->size_type] ?? null,
         ]);
     }
 
