@@ -381,6 +381,7 @@
                     value="1"
                     id="acceptTerms"
                     name="accept_terms"
+                    required
                     {{ old('accept_terms') ? 'checked' : '' }}
                 >
                 <label class="form-check-label" for="acceptTerms">
