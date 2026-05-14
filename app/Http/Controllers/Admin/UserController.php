@@ -27,6 +27,7 @@ class UserController extends Controller
                 'name',
                 'email',
                 'phone_number',
+                'date_of_birth',
                 'email_verified_at',
                 'phone_verified_at',
                 'is_active',
@@ -56,6 +57,9 @@ class UserController extends Controller
             })
             ->editColumn('created_at', function (User $user) {
                 return $user->created_at ? $user->created_at->format('Y-m-d') : '';
+            })
+            ->editColumn('date_of_birth', function (User $user) {
+                return $user->date_of_birth ? $user->date_of_birth->format('Y-m-d') : '—';
             })
             ->addColumn('status_badge', function (User $user): string {
                 return $user->is_active
@@ -96,6 +100,7 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone_number' => $user->phone_number,
+                'date_of_birth' => optional($user->date_of_birth)->format('Y-m-d'),
                 'is_active' => (bool) $user->is_active,
             ],
         ]);
@@ -109,6 +114,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone_number' => ['required', 'digits_between:10,15'],
+            'date_of_birth' => ['nullable', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -117,6 +123,7 @@ class UserController extends Controller
             'full_name' => $validated['name'],
             'email' => strtolower($validated['email']),
             'phone_number' => $validated['phone_number'],
+            'date_of_birth' => $validated['date_of_birth'] ?? null,
             'is_active' => (bool) ($validated['is_active'] ?? true),
         ]);
         $user->save();

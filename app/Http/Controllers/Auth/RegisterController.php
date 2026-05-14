@@ -40,10 +40,12 @@ class RegisterController extends Controller
             'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email'],
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
             'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
+            'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'accept_terms' => ['accepted'],
         ], [
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+            'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
             'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
         ]);
     }
@@ -59,6 +61,7 @@ class RegisterController extends Controller
             'email' => $data['email'],
             'phone_number' => $data['phone_number'],
             'role' => $data['role'],
+            'date_of_birth' => $data['date_of_birth'],
             'password' => Hash::make($data['password']),
         ]);
     }

@@ -28,6 +28,7 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Phone</th>
+                    <th>Date of Birth</th>
                     <th>Status</th>
                     <th>Created</th>
                     <th class="text-end">Actions</th>
@@ -61,6 +62,10 @@
                         <div class="col-md-6">
                             <label class="form-label">Phone number</label>
                             <input type="text" name="phone_number" id="userPhone" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date of birth</label>
+                            <input type="date" name="date_of_birth" id="userDateOfBirth" class="form-control" max="{{ now()->subYears(18)->toDateString() }}">
                         </div>
                         <div class="col-md-6 d-flex align-items-end">
                             <div class="form-check form-switch pb-2">
