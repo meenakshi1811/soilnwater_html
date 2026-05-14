@@ -59,7 +59,6 @@
                     <th>Title</th>
                     <th>User</th>
                     <th>Size</th>
-                    <th>Template</th>
                     <th>Status</th>
                     <th>Banner</th>
                     <th>Submitted</th>

@@ -47,7 +47,6 @@
         <div class="col-12 col-lg-5">
             <div class="chart-card">
                 <h5 class="mb-3">Submission Details</h5>
-                <div class="mb-2"><span class="text-secondary">Template:</span> <strong>{{ $ad->template?->name ?? '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Short Description:</span> <strong>{{ $ad->short_description ?: '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Valid Upto:</span> {{ $ad->valid_until?->format('Y-m-d') ?? '-' }}</div>
                 <div class="mb-2"><span class="text-secondary">Submitted:</span> {{ $ad->submitted_at?->timezone('Asia/Kolkata')->format('Y-m-d h:i A') ?? '-' }}</div>
