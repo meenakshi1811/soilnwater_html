@@ -144,7 +144,6 @@ class OfferPageController extends Controller
 
     private function baseOfferQuery(?Request $request = null, ?float $lat = null, ?float $lng = null): Builder
     {
-        $today = now()->toDateString();
         $request = $request ?? request();
 
         $query = Offer::query()
@@ -159,24 +158,12 @@ class OfferPageController extends Controller
             });
 
         if ($lat !== null && $lng !== null) {
-            $query
+            return $query
                 ->select('offers.*')
                 ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
                 ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
-                ->orderBy('distance_km');
-        }
-
-        return $query
-            ->orderByRaw('CASE WHEN valid_until = ? THEN 0 ELSE 1 END', [$today])
-            ->orderByRaw('CASE WHEN valid_until IS NULL THEN 1 ELSE 0 END')
-            ->orderBy('valid_until');
-
-        if ($lat !== null && $lng !== null) {
-            $query
-                ->select('offers.*')
-                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
-                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
-                ->orderBy('distance_km');
+                ->orderBy('distance_km')
+                ->latest('id');
         }
 
         return $query->latest('id');
