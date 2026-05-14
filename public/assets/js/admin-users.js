@@ -18,11 +18,12 @@
                     { data: 'name', name: 'name' },
                     { data: 'email_display', name: 'email' },
                     { data: 'phone_display', name: 'phone_number' },
+                    { data: 'date_of_birth', name: 'date_of_birth' },
                     { data: 'status_badge', name: 'status_badge', orderable: false, searchable: true },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[4, 'desc']]
+                order: [[5, 'desc']]
             });
         },
 
@@ -40,6 +41,7 @@
                     $('#userName').val(user.name || '');
                     $('#userEmail').val(user.email || '');
                     $('#userPhone').val(user.phone_number || '');
+                    $('#userDateOfBirth').val(user.date_of_birth || '');
                     $('#userStatus').prop('checked', !!user.is_active);
                     $('#userForm').attr('action', '/admin/users/' + id).attr('method', 'POST');
                     self.modal.show();
@@ -88,6 +90,8 @@
                     name: { required: true, minlength: 3 },
                     email: { required: true, email: true },
                     phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 }
+                    ,
+                    date_of_birth: { required: false, date: true }
                 },
                 beforeSubmit: function () {
                     $('#userForm').find('input[name="_method"]').remove();
