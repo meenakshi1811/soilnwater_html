@@ -36,7 +36,6 @@
                 <tr>
                     <th>Title</th>
                     <th>Size</th>
-                    <th>Template</th>
                     <th>Category</th>
                     <th>Sub Category</th>
                     <th>Location</th>

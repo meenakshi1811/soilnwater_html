@@ -25,11 +25,10 @@
             ajax: {
                 url: $table.data('url')
             },
-            order: [[8, 'desc']],
+            order: [[7, 'desc']],
             columns: [
                 { data: 'title', name: 'title' },
                 { data: 'size_label', name: 'size_type', orderable: false, searchable: false },
-                { data: 'template_name', name: 'template.name', orderable: false, searchable: false },
                 { data: 'category_name', name: 'category.name', orderable: false, searchable: false },
                 { data: 'subcategory_name', name: 'subcategory.name', orderable: false, searchable: false },
                 { data: 'location_name', name: 'location', orderable: false, searchable: false },
@@ -42,7 +41,7 @@
             createdRow: function (row, data) {
                 $(row).find('td').eq(6).html(data.status_badge);
                 $(row).find('td').eq(7).html(data.banner_preview);
-                $(row).find('td').eq(10).html(data.actions);
+                $(row).find('td').eq(9).html(data.actions);
             }
         });
 
@@ -211,7 +210,6 @@
                 { data: 'title', name: 'title' },
                 { data: 'user_name', name: 'user.full_name', orderable: false, searchable: false },
                 { data: 'size_label', name: 'size_type', orderable: false, searchable: false },
-                { data: 'template_name', name: 'template.name', orderable: false, searchable: false },
                 { data: 'status_badge', name: 'status', orderable: false, searchable: false },
                 { data: 'banner_preview', name: 'banner_preview', orderable: false, searchable: false },
                 { data: 'submitted_at', name: 'submitted_at' },
