@@ -412,7 +412,7 @@ class UserAdController extends Controller
     public function store(Request $request, string $sizeType): RedirectResponse|JsonResponse
     {
         $sizeType = $this->resolveSizeType($sizeType);
-        abort_unless(AdSizes::exists($sizeType), 404);
+        // abort_unless(AdSizes::exists($sizeType), 404);
         if (! $this->canUserAccessSize($request->user(), $sizeType)) {
             return redirect()->route('ads.create.size')->withErrors([
                 'size_type' => 'Please select and pay for this ad size before continuing.',
