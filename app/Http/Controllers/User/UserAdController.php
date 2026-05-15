@@ -742,7 +742,7 @@ class UserAdController extends Controller
             return;
         }
 
-        $maxDate = now()->addDays(6)->toDateString();
+        $maxDate = now()->addDays(7)->toDateString();
         if ($validUntil > $maxDate) {
             throw ValidationException::withMessages([
                 'valid_until' => 'For square ad size, valid upto cannot be more than 7 days from today.',
