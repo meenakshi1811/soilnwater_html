@@ -267,7 +267,9 @@ class UserAdController extends Controller
             'is_sponsored' => 'nullable|in:0,1',
             'generated_image_data' => 'nullable|string|starts_with:data:image/png;base64,',
             'accept_terms' => 'accepted',
-        ]);
+]);
+
+        $this->validateSquareValidUntil($request, $validated['valid_until'], $ad->size_type);
 
         if ($request->filled('generated_image_data')) {
             $size = AdSizes::all(true)[$ad->size_type] ?? ['w' => 0, 'h' => 0];
@@ -442,7 +444,9 @@ class UserAdController extends Controller
             'location_lng' => 'required|numeric|between:-180,180',
             'valid_until' => 'required|date|after_or_equal:today',
             'is_sponsored' => 'nullable|in:0,1',
-        ]));
+]));
+
+        $this->validateSquareValidUntil($request, $validated['valid_until'], $sizeType);
 
         $isValidSubcategory = Category::query()
             ->where('id', $validated['subcategory_id'])
@@ -730,6 +734,20 @@ class UserAdController extends Controller
         };
 
         return $relativeDirectory.'/'.$fileName;
+    }
+
+    private function validateSquareValidUntil(Request $request, string $validUntil, string $sizeType): void
+    {
+        if ($sizeType !== 'square') {
+            return;
+        }
+
+        $maxDate = now()->addDays(7)->toDateString();
+        if ($validUntil > $maxDate) {
+            throw ValidationException::withMessages([
+                'valid_until' => 'For square ad size, valid upto cannot be more than 7 days from today.',
+            ])->redirectTo(url()->previous());
+        }
     }
 
     private function canUserAccessSize($user, string $sizeType): bool

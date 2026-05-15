@@ -70,7 +70,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Valid Upto <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <input type="date" name="valid_until" class="form-control @error('valid_until') is-invalid @enderror" value="{{ old('valid_until', optional($ad->valid_until ?? null)->format('Y-m-d')) }}" min="{{ now()->toDateString() }}" required>
+                    <input type="date" name="valid_until" class="form-control @error('valid_until') is-invalid @enderror" value="{{ old('valid_until', optional($ad->valid_until ?? null)->format('Y-m-d')) }}" min="{{ now()->toDateString() }}" {{ $sizeType === "square" ? "max=\"" . now()->addDays(7)->toDateString() . "\"" : "" }} required>
                     @error('valid_until')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -1252,6 +1252,27 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         const pricingGrandTotal = document.getElementById('pricingGrandTotal');
         const pricingHint = document.getElementById('pricingHint');
         const pricingDetailsCard = document.getElementById('pricingDetailsCard');
+        const isSquareSizeType = @json($sizeType === 'square');
+
+        function applyValidUntilLimit() {
+            if (!validUntilInput) return;
+            if (!isSquareSizeType) {
+                validUntilInput.removeAttribute('max');
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const maxDate = new Date(today);
+            maxDate.setDate(maxDate.getDate() + 7);
+            const maxDateIso = maxDate.toISOString().slice(0, 10);
+            validUntilInput.setAttribute('max', maxDateIso);
+
+            if (validUntilInput.value && validUntilInput.value > maxDateIso) {
+                validUntilInput.value = maxDateIso;
+            }
+        }
+
 
         function calculateValidDays() {
             if (!validUntilInput || !validUntilInput.value) return { days: 1, usedFallback: true };
@@ -1319,6 +1340,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         });
         subcategorySelect?.addEventListener('change', updateSubmitButtonState);
         validUntilInput?.addEventListener('change', updateCategoryPriceNote);
+        applyValidUntilLimit();
         updateCategoryPriceNote();
         updateSubmitButtonState();
 
