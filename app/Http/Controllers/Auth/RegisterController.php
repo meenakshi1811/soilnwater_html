@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Mail\OtpMail;
 use App\Models\User;
+use App\Services\VendorRegistrationService;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -74,6 +75,10 @@ class RegisterController extends Controller
         $this->validator($request->all())->validate();
 
         $user = $this->create($request->all());
+
+        if ($user->isVendor()) {
+            VendorRegistrationService::createProfileForUser($user);
+        }
 
         if ($user->isGeneralUser()) {
             $otpPayload = $this->sendContactVerificationOtp($user);

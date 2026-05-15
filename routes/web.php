@@ -24,6 +24,12 @@ use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\AdSizeController;
 use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
 use App\Http\Controllers\Admin\ContactSupportController;
+use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Frontend\VendorStoreController;
+use App\Http\Controllers\Vendor\VendorBranchController;
+use App\Http\Controllers\Vendor\VendorDashboardController;
+use App\Http\Controllers\Vendor\VendorPendingController;
+use App\Http\Controllers\Vendor\VendorPublicPageController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -49,6 +55,7 @@ Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
 Route::get('/terms-and-condition/{moduleKey}', [TermsAndConditionPageController::class, 'show'])->name('frontend.terms.show');
 Route::get('/privacy-policy', [TermsAndConditionPageController::class, 'privacyPolicy'])->name('frontend.privacy-policy');
 Route::get('/cookie-policy', [TermsAndConditionPageController::class, 'cookiePolicy'])->name('frontend.cookie-policy');
+Route::get('/store/{slug}', [VendorStoreController::class, 'show'])->name('store.show');
 
 Auth::routes(['verify' => true]);
 
@@ -92,6 +99,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/modules/{module}', [ModuleAccessController::class, 'show'])
         ->where('module', 'ecommerce|vendors|services|properties|builders|consultants|enquiry|products|offers|ads|user_enquiry')
         ->name('modules.show');
+
+    Route::get('/vendor/pending', [VendorPendingController::class, 'show'])->name('vendor.pending');
+
+    Route::prefix('vendor')->name('vendor.')->middleware(['vendor.account'])->group(function () {
+        Route::get('/dashboard', [VendorDashboardController::class, 'dashboard'])->middleware('vendor')->name('dashboard');
+        Route::get('/branches', [VendorBranchController::class, 'index'])->middleware('vendor')->name('branches.index');
+        Route::get('/branches/create', [VendorBranchController::class, 'create'])->middleware('vendor')->name('branches.create');
+        Route::post('/branches', [VendorBranchController::class, 'store'])->middleware('vendor')->name('branches.store');
+        Route::get('/branches/{branch}/edit', [VendorBranchController::class, 'edit'])->middleware('vendor')->name('branches.edit');
+        Route::put('/branches/{branch}', [VendorBranchController::class, 'update'])->middleware('vendor')->name('branches.update');
+        Route::delete('/branches/{branch}', [VendorBranchController::class, 'destroy'])->middleware('vendor')->name('branches.destroy');
+        Route::delete('/branches/{branch}/gallery', [VendorBranchController::class, 'removeGalleryImage'])->middleware('vendor')->name('branches.gallery.remove');
+        Route::get('/public-page', [VendorPublicPageController::class, 'edit'])->middleware('vendor')->name('public-page.edit');
+        Route::put('/public-page', [VendorPublicPageController::class, 'update'])->middleware('vendor')->name('public-page.update');
+        Route::get('/public-page/preview', [VendorPublicPageController::class, 'preview'])->middleware('vendor')->name('public-page.preview');
+        Route::delete('/banner-slides/{slide}', [VendorPublicPageController::class, 'deleteBannerSlide'])->middleware('vendor')->name('banner-slides.destroy');
+    });
 
     Route::prefix('user')->name('user.')->middleware('user')->group(function () {
         Route::get('/dashboard', [UserDashboardController::class, 'dashboard'])->name('dashboard');
@@ -203,6 +227,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/homepage-settings', [HomepageSettingController::class, 'edit'])->name('homepage-settings.edit');
         Route::put('/homepage-settings', [HomepageSettingController::class, 'update'])->name('homepage-settings.update');
+
+        Route::prefix('vendors')->name('vendors.')->group(function () {
+            Route::get('/', [VendorController::class, 'index'])->name('index');
+            Route::get('/data', [VendorController::class, 'data'])->name('data');
+            Route::get('/{vendor}', [VendorController::class, 'show'])->name('show');
+            Route::get('/{vendor}/edit', [VendorController::class, 'edit'])->name('edit');
+            Route::put('/{vendor}', [VendorController::class, 'update'])->name('update');
+            Route::post('/{vendor}/approve', [VendorController::class, 'approve'])->name('approve');
+            Route::post('/{vendor}/reject', [VendorController::class, 'reject'])->name('reject');
+            Route::delete('/{vendor}', [VendorController::class, 'destroy'])->name('destroy');
+        });
 
         Route::prefix('terms-and-conditions')->name('terms-and-conditions.')->group(function () {
             Route::get('/', [TermsAndConditionController::class, 'index'])->name('index');

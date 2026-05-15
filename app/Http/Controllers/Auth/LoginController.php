@@ -58,6 +58,14 @@ class LoginController extends Controller
             return route('user.dashboard');
         }
 
+        if ($user && $user->isVendor()) {
+            if ($user->vendor?->isApproved()) {
+                return route('vendor.dashboard');
+            }
+
+            return route('vendor.pending');
+        }
+
         return '/home';
     }
 
@@ -86,6 +94,25 @@ class LoginController extends Controller
                 ->withErrors([
                     'email' => 'Your account is not verified yet. Please verify your email before signing in.',
                 ]);
+        }
+
+        if ($user->isVendor()) {
+            if (! $user->vendor) {
+                \App\Services\VendorRegistrationService::createProfileForUser($user);
+                $user->load('vendor');
+            }
+
+            if (! $user->vendor?->isApproved()) {
+                Auth::logout();
+
+                $message = 'Your vendor account is pending admin approval. You will be able to log in once approved.';
+
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 403);
+                }
+
+                return redirect()->route('login')->withErrors(['email' => $message]);
+            }
         }
 
         if ($request->expectsJson()) {
@@ -273,6 +300,25 @@ class LoginController extends Controller
             ]);
         }
 
+        if ($user->isVendor()) {
+            if (! $user->vendor) {
+                \App\Services\VendorRegistrationService::createProfileForUser($user);
+                $user->load('vendor');
+            }
+
+            if (! $user->vendor?->isApproved()) {
+                Cache::forget($this->otpCacheKey($userId));
+                $request->session()->forget('otp_login_user_id');
+                $message = 'Your vendor account is pending admin approval.';
+
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 403);
+                }
+
+                return redirect()->route('login')->withErrors(['email' => $message]);
+            }
+        }
+
         Cache::forget($this->otpCacheKey($userId));
         $request->session()->forget('otp_login_user_id');
 
@@ -369,6 +415,21 @@ class LoginController extends Controller
             return redirect()
                 ->route('register.phone.verify.form')
                 ->with('status', 'Email is verified via Google. Please add and verify your mobile number to complete registration.');
+        }
+
+        if ($user->isVendor()) {
+            if (! $user->vendor) {
+                \App\Services\VendorRegistrationService::createProfileForUser($user);
+                $user->load('vendor');
+            }
+
+            if (! $user->vendor?->isApproved()) {
+                Auth::logout();
+
+                return redirect()->route('login')->withErrors([
+                    'email' => 'Your vendor account is pending admin approval.',
+                ]);
+            }
         }
 
         Auth::login($user, true);

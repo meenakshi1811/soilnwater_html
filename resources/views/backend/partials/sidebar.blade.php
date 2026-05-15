@@ -3,6 +3,8 @@
     $isGeneralUser = auth()->user()->isGeneralUser();
     $isAdmin = auth()->user()->isAdmin();
     $isEmployee = auth()->user()->isEmployee();
+    $isVendor = auth()->user()->isVendor();
+    $vendorApproved = $isVendor && auth()->user()->vendor?->isApproved();
     $canAccessOffers = $isAdmin || $isGeneralUser || auth()->user()->canModule('vendors', 'read');
     $offersMenuActive = request()->routeIs('offers.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
@@ -10,6 +12,9 @@
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
         $dashboardActive = request()->routeIs('user.dashboard');
+    } elseif ($isVendor && $vendorApproved) {
+        $dashboardUrl = route('vendor.dashboard');
+        $dashboardActive = request()->routeIs('vendor.dashboard');
     } elseif ($isAdmin) {
         $dashboardUrl = route('admin.dashboard');
         $dashboardActive = request()->routeIs('admin.dashboard');
@@ -79,6 +84,12 @@
                 <a class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
                     <i class="fa-solid fa-users"></i>
                     <span>Users</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('admin.vendors.*') ? 'active' : '' }}" href="{{ route('admin.vendors.index') }}">
+                    <i class="fa-solid fa-store"></i>
+                    <span>Vendors</span>
                 </a>
             </li>
             <li>
@@ -200,6 +211,19 @@
                 <a class="{{ request()->routeIs('user.profile.*') ? 'active' : '' }}" href="{{ route('user.profile.edit') }}">
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Profile</span>
+                </a>
+            </li>
+        @elseif($isVendor && $vendorApproved)
+            <li>
+                <a class="{{ request()->routeIs('vendor.public-page.*') ? 'active' : '' }}" href="{{ route('vendor.public-page.edit') }}">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>Public Page</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('vendor.branches.*') ? 'active' : '' }}" href="{{ route('vendor.branches.index') }}">
+                    <i class="fa-solid fa-code-branch"></i>
+                    <span>My Branches</span>
                 </a>
             </li>
         @elseif($isEmployee)
