@@ -2104,8 +2104,26 @@
 @media (max-width: 560px) {
   .header {
     gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .logo {
+    flex: 0 0 auto;
   }
   .logo-icon { width: 88px; }
+  .search-wrap {
+    order: 3;
+    flex: 1 1 100%;
+    min-width: 0;
+    width: 100%;
+  }
+  .header-actions {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
   .btn-offer,
   .btn-post,
   .btn-login {
@@ -2150,10 +2168,20 @@
 }
 
 @media (max-width: 420px) {
+  .header {
+    gap: 6px;
+  }
   .header-actions {
-    width: 100%;
-    justify-content: space-between;
-    margin-left: 0;
+    width: auto;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+  .btn-offer,
+  .btn-post,
+  .btn-login {
+    font-size: 10.5px;
+    padding: 7px 7px;
   }
 }
 
