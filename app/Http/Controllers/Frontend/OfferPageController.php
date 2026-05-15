@@ -46,7 +46,10 @@ class OfferPageController extends Controller
         $recentApprovedAdsQuery = UserAd::query()
             ->with(['category:id,name'])
             ->where('status', 'approved')
-            ->whereHas('user', fn (Builder $query) => $query->where('role', 'user'))
+            ->whereDoesntHave('adSize', fn (Builder $query) => $query->where('admin_only', true))
+            ->where(function (Builder $query) {
+                $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
+            })
             ->whereNotNull('final_image');
 
         if ($lat !== null && $lng !== null) {
