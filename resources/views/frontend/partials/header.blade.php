@@ -1,7 +1,11 @@
-<header class="header container-fluid d-flex align-items-center">
+<header class="header container-fluid d-flex align-items-center" id="frontendHeader">
   <a href="/" class="logo">
     <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
   </a>
+
+  <button class="header-menu-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mobileHeaderMenu" aria-controls="mobileHeaderMenu" aria-expanded="false" aria-label="Toggle header menu">
+    <i class="fa-solid fa-bars"></i>
+  </button>
 
   <div class="loc-wrap" id="headerLocationToggle" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
     <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
@@ -50,7 +54,7 @@
     </button>
   </form>
 
-  <div class="header-actions">
+  <div class="header-actions header-actions-desktop">
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
@@ -82,4 +86,49 @@
       <a class="btn-login" href="{{ route('login') }}">Login</a>
     @endauth
   </div>
+
+
+  <div class="collapse header-mobile-menu" id="mobileHeaderMenu">
+    <div class="header-mobile-menu-top">
+      <button class="header-menu-close" type="button" data-bs-toggle="collapse" data-bs-target="#mobileHeaderMenu" aria-controls="mobileHeaderMenu" aria-expanded="true" aria-label="Close header menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
+    <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
+
+    @auth
+      <a class="btn-login" href="{{ $dashboardUrl }}">My Account</a>
+      <form method="POST" action="{{ route('logout') }}" class="header-mobile-logout">
+        @csrf
+        <button type="submit" class="btn-login">Logout</button>
+      </form>
+    @else
+      <a class="btn-login" href="{{ route('login') }}">Login</a>
+    @endauth
+  </div>
 </header>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const header = document.getElementById('frontendHeader');
+    const menu = document.getElementById('mobileHeaderMenu');
+
+    if (!header || !menu || typeof bootstrap === 'undefined') {
+      return;
+    }
+
+    menu.addEventListener('shown.bs.collapse', function () {
+      header.classList.add('header-mobile-open');
+    });
+
+    menu.addEventListener('hide.bs.collapse', function () {
+      header.classList.remove('header-mobile-open');
+    });
+
+    menu.addEventListener('hidden.bs.collapse', function () {
+      header.classList.remove('header-mobile-open');
+    });
+  });
+</script>
