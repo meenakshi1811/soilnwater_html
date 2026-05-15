@@ -1411,6 +1411,7 @@
 
     const offerModal = document.getElementById('offerDetailsModal');
     if (!offerModal) return;
+    const isLoggedIn = @json(auth()->check());
     const titleEl = document.getElementById('offerDetailsModalTitle');
     const discountEl = document.getElementById('offerDetailsModalDiscount');
     const descriptionEl = document.getElementById('offerDetailsModalDescription');
