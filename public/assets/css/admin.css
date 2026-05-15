@@ -596,7 +596,23 @@
     user-select: none;
 }
 
+.banner-designer-watermark {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(2rem, 8vw, 5rem);
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: rgba(120, 120, 120, 0.35);
+    text-transform: lowercase;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+}
+
 .banner-designer-layer {
+    z-index: 1;
     position: absolute;
     cursor: move;
     border: 1px dashed transparent;
