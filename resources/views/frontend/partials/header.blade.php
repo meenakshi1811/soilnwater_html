@@ -119,11 +119,15 @@
       return;
     }
 
-    menu.addEventListener('show.bs.collapse', function () {
+    menu.addEventListener('shown.bs.collapse', function () {
       header.classList.add('header-mobile-open');
     });
 
     menu.addEventListener('hide.bs.collapse', function () {
+      header.classList.remove('header-mobile-open');
+    });
+
+    menu.addEventListener('hidden.bs.collapse', function () {
       header.classList.remove('header-mobile-open');
     });
   });
