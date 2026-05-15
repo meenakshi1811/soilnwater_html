@@ -77,7 +77,15 @@
                     </div>
                     <h3 class="h4 mb-2" id="offerDetailsModalTitle"></h3>
                     <p class="text-muted mb-3" id="offerDetailsModalDescription"></p>
-                    <p class="mb-0"><strong>Valid until:</strong> <span id="offerDetailsModalExpiry"></span></p>
+                    <p class="mb-0" id="offerDetailsModalValidityRow"><strong>Valid until:</strong> <span id="offerDetailsModalExpiry"></span></p>
+                    <div class="offer-login-message d-none" id="offerLoginMessageBox" role="status" aria-live="polite">
+                        <div class="offer-login-message-icon"><i class="fa-solid fa-lock"></i></div>
+                        <div>
+                            <h4 class="offer-login-message-title mb-1">You are not logged in</h4>
+                            <p class="offer-login-message-text mb-2">Please log in to view this offer details and validity.</p>
+                            <a href="{{ route('login') }}" class="btn btn-sm btn-primary">Login to continue</a>
+                        </div>
+                    </div>
                     <div class="offer-share-panel mt-4" id="offerSharePanel">
                         <div class="offer-share-panel-head">
                             <h4 class="offer-share-title mb-1">Share this offer</h4>
@@ -109,6 +117,10 @@
 
 @push('styles')
 <style>
+    .offer-login-message{display:flex;gap:.8rem;align-items:flex-start;background:#f8faff;border:1px solid #d6e4ff;border-radius:12px;padding:.85rem .9rem;margin-top:.75rem}
+    .offer-login-message-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e8f0ff;color:#2457c5;flex:0 0 34px}
+    .offer-login-message-title{font-size:1rem;font-weight:700;color:#1d3557}
+    .offer-login-message-text{font-size:.9rem;color:#5d6b82}
     .offers-market-page #offersGrid .offer-coupon-card {
         max-width: none;
         margin-inline: 0;
@@ -141,13 +153,17 @@
     (function () {
         const offerModal = document.getElementById('offerDetailsModal');
         if (!offerModal) return;
+        const isLoggedIn = @json(auth()->check());
 
         const titleEl = document.getElementById('offerDetailsModalTitle');
         const discountEl = document.getElementById('offerDetailsModalDiscount');
         const descriptionEl = document.getElementById('offerDetailsModalDescription');
         const couponEl = document.getElementById('offerDetailsModalCoupon');
         const expiryEl = document.getElementById('offerDetailsModalExpiry');
+        const validityRowEl = document.getElementById('offerDetailsModalValidityRow');
         const imageEl = document.getElementById('offerDetailsModalImage');
+        const loginMessageBox = document.getElementById('offerLoginMessageBox');
+        const sharePanelEl = document.getElementById('offerSharePanel');
         const shareLinkEl = document.getElementById('offerShareLink');
         const shareQrEl = document.getElementById('offerShareQr');
         const shareWhatsappEl = document.getElementById('offerShareWhatsapp');
@@ -369,6 +385,30 @@
         offerModal.addEventListener('show.bs.modal', function (event) {
             const trigger = event.relatedTarget;
             if (!trigger || !trigger.classList.contains('js-offer-modal-trigger')) return;
+
+            if (!isLoggedIn) {
+                if (loginMessageBox) loginMessageBox.classList.remove('d-none');
+                titleEl.textContent = 'You are not logged in';
+                descriptionEl.textContent = '';
+                discountEl.textContent = '';
+                discountEl.classList.add('d-none');
+                couponEl.textContent = '';
+                couponEl.classList.add('d-none');
+                if (validityRowEl) validityRowEl.classList.add('d-none');
+                expiryEl.textContent = '';
+                imageEl.src = '';
+                imageEl.classList.add('d-none');
+                if (sharePanelEl) sharePanelEl.classList.add('d-none');
+                if (shareLinkEl) shareLinkEl.value = '';
+                if (shareQrEl) shareQrEl.src = '';
+                if (shareWhatsappEl) shareWhatsappEl.href = '#';
+                if (shareFacebookEl) shareFacebookEl.href = '#';
+                if (shareInstagramEl) shareInstagramEl.href = '#';
+                return;
+            }
+            if (loginMessageBox) loginMessageBox.classList.add('d-none');
+            if (validityRowEl) validityRowEl.classList.remove('d-none');
+            if (sharePanelEl) sharePanelEl.classList.remove('d-none');
 
             titleEl.textContent = trigger.getAttribute('data-offer-title') || 'Offer Details';
             const couponCode = trigger.getAttribute('data-offer-coupon') || '';

@@ -16,8 +16,16 @@
                     <button type="button" class="btn btn-outline-primary btn-sm mb-3 d-none" id="adDetailsEnlargeBtn">
                         <i class="fa-solid fa-up-right-and-down-left-from-center me-1"></i> Enlarge image
                     </button>
+                    <div class="offer-login-message d-none" id="adLoginMessageBox" role="status" aria-live="polite">
+                        <div class="offer-login-message-icon"><i class="fa-solid fa-lock"></i></div>
+                        <div>
+                            <h4 class="offer-login-message-title mb-1">You are not logged in</h4>
+                            <p class="offer-login-message-text mb-2">Please log in to view this ad details and share options.</p>
+                            <a href="{{ route('login') }}" class="btn btn-sm btn-primary">Login to continue</a>
+                        </div>
+                    </div>
 
-                    <div class="offer-share-panel mt-4">
+                    <div class="offer-share-panel mt-4" id="adSharePanel">
                         <div class="offer-share-panel-head">
                             <h4 class="offer-share-title mb-1">Share this ad</h4>
                         </div>
@@ -36,7 +44,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-3 border-top pt-3">
+                    <div class="mt-3 border-top pt-3" id="adReportActions">
                         <button type="button" class="btn btn-outline-danger btn-sm" id="openAdReportPopupBtn">
                             <i class="fa-regular fa-flag me-1"></i> Report this ad
                         </button>

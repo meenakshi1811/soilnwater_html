@@ -623,7 +623,15 @@
                 <i class="fa-solid fa-up-right-and-down-left-from-center me-1"></i> Enlarge image
               </button>
 
-              <div class="offer-share-panel mt-2">
+              <div class="offer-login-message d-none" id="adLoginMessageBox" role="status" aria-live="polite">
+                <div class="offer-login-message-icon"><i class="fa-solid fa-lock"></i></div>
+                <div>
+                  <h4 class="offer-login-message-title mb-1">You are not logged in</h4>
+                  <p class="offer-login-message-text mb-2">Please log in to view this ad details and share options.</p>
+                  <a href="{{ route('login') }}" class="btn btn-sm btn-primary">Login to continue</a>
+                </div>
+              </div>
+              <div class="offer-share-panel mt-2" id="adSharePanel">
                 <div class="offer-share-panel-head">
                   <h4 class="offer-share-title mb-1">Share this ad</h4>
                 </div>
@@ -676,7 +684,15 @@
             </div>
             <h3 class="h4 mb-2" id="offerDetailsModalTitle"></h3>
             <p class="text-muted mb-3" id="offerDetailsModalDescription"></p>
-            <p class="mb-0"><strong>Valid until:</strong> <span id="offerDetailsModalExpiry"></span></p>
+            <p class="mb-0" id="offerDetailsModalValidityRow"><strong>Valid until:</strong> <span id="offerDetailsModalExpiry"></span></p>
+            <div class="offer-login-message d-none" id="offerLoginMessageBox" role="status" aria-live="polite">
+              <div class="offer-login-message-icon"><i class="fa-solid fa-lock"></i></div>
+              <div>
+                <h4 class="offer-login-message-title mb-1">You are not logged in</h4>
+                <p class="offer-login-message-text mb-2">Please log in to view this offer details and validity.</p>
+                <a href="{{ route('login') }}" class="btn btn-sm btn-primary">Login to continue</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1277,6 +1293,10 @@
   .offer-details-modal #offerDetailsModalDescription {
     line-height: 1.55;
   }
+  .offer-login-message{display:flex;gap:.8rem;align-items:flex-start;background:#f8faff;border:1px solid #d6e4ff;border-radius:12px;padding:.85rem .9rem;margin-top:.75rem}
+  .offer-login-message-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e8f0ff;color:#2457c5;flex:0 0 34px}
+  .offer-login-message-title{font-size:1rem;font-weight:700;color:#1d3557}
+  .offer-login-message-text{font-size:.9rem;color:#5d6b82}
   .offer-details-modal-image {
     width: 100%;
     aspect-ratio: 768 / 1080;
@@ -1316,9 +1336,12 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const adModal = document.getElementById('adDetailsModal');
+    const isLoggedIn = @json(auth()->check());
     const adImageEl = document.getElementById('adDetailsModalImage');
     const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
     const adImageEnlargePreview = document.getElementById('adImageEnlargePreview');
+    const adLoginMessageBox = document.getElementById('adLoginMessageBox');
+    const adSharePanel = document.getElementById('adSharePanel');
 
     if (adModal) {
       document.addEventListener('click', function (event) {
@@ -1336,6 +1359,26 @@
         document.getElementById('adDetailsModalTitle').textContent = adTitle;
         document.getElementById('adDetailsModalMeta').textContent = adMeta;
         document.getElementById('adDetailsModalDescription').textContent = adDescription;
+
+        if (!isLoggedIn) {
+          if (adLoginMessageBox) adLoginMessageBox.classList.remove('d-none');
+          if (adSharePanel) adSharePanel.classList.add('d-none');
+          document.getElementById('adDetailsModalTitle').textContent = 'You are not logged in';
+          document.getElementById('adDetailsModalMeta').textContent = '';
+          document.getElementById('adDetailsModalDescription').textContent = '';
+          adImageEl.src = '';
+          adImageEl.classList.add('d-none');
+          adEnlargeBtn.classList.add('d-none');
+          document.getElementById('adShareLink').value = '';
+          document.getElementById('adShareQr').src = '';
+          document.getElementById('adShareWhatsapp').href = '#';
+          document.getElementById('adShareFacebook').href = '#';
+          document.getElementById('adShareInstagram').href = '#';
+          new bootstrap.Modal(adModal).show();
+          return;
+        }
+        if (adLoginMessageBox) adLoginMessageBox.classList.add('d-none');
+        if (adSharePanel) adSharePanel.classList.remove('d-none');
 
         if (adSrc) {
           adImageEl.src = adSrc;
@@ -1373,7 +1416,9 @@
     const descriptionEl = document.getElementById('offerDetailsModalDescription');
     const couponEl = document.getElementById('offerDetailsModalCoupon');
     const expiryEl = document.getElementById('offerDetailsModalExpiry');
+    const validityRowEl = document.getElementById('offerDetailsModalValidityRow');
     const imageEl = document.getElementById('offerDetailsModalImage');
+    const loginMessageBox = document.getElementById('offerLoginMessageBox');
     const offerTriggers = document.querySelectorAll('.offer-coupon-card.js-offer-modal-trigger');
 
     offerTriggers.forEach(function (trigger) {
@@ -1388,6 +1433,23 @@
     offerModal.addEventListener('show.bs.modal', function (event) {
       const trigger = event.relatedTarget;
       if (!trigger || !trigger.classList.contains('js-offer-modal-trigger')) return;
+
+      if (!isLoggedIn) {
+        if (loginMessageBox) loginMessageBox.classList.remove('d-none');
+        titleEl.textContent = 'You are not logged in';
+        discountEl.textContent = '';
+        discountEl.classList.add('d-none');
+        descriptionEl.textContent = '';
+        if (validityRowEl) validityRowEl.classList.add('d-none');
+        expiryEl.textContent = '';
+        couponEl.textContent = '';
+        couponEl.classList.add('d-none');
+        imageEl.src = '';
+        imageEl.classList.add('d-none');
+        return;
+      }
+      if (loginMessageBox) loginMessageBox.classList.add('d-none');
+      if (validityRowEl) validityRowEl.classList.remove('d-none');
 
       titleEl.textContent = trigger.getAttribute('data-offer-title') || 'Offer Details';
       discountEl.textContent = trigger.getAttribute('data-offer-discount') || '';
