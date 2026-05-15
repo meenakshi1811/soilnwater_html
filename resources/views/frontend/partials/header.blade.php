@@ -1,4 +1,4 @@
-<header class="header container-fluid d-flex align-items-center">
+<header class="header container-fluid d-flex align-items-center" id="frontendHeader">
   <a href="/" class="logo">
     <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
   </a>
@@ -89,6 +89,11 @@
 
 
   <div class="collapse header-mobile-menu" id="mobileHeaderMenu">
+    <div class="header-mobile-menu-top">
+      <button class="header-menu-close" type="button" data-bs-toggle="collapse" data-bs-target="#mobileHeaderMenu" aria-controls="mobileHeaderMenu" aria-expanded="true" aria-label="Close header menu">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
@@ -104,3 +109,22 @@
   </div>
 </header>
 
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const header = document.getElementById('frontendHeader');
+    const menu = document.getElementById('mobileHeaderMenu');
+
+    if (!header || !menu || typeof bootstrap === 'undefined') {
+      return;
+    }
+
+    menu.addEventListener('show.bs.collapse', function () {
+      header.classList.add('header-mobile-open');
+    });
+
+    menu.addEventListener('hide.bs.collapse', function () {
+      header.classList.remove('header-mobile-open');
+    });
+  });
+</script>
