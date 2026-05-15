@@ -596,19 +596,29 @@
     user-select: none;
 }
 
-.banner-designer-watermark {
+.banner-designer-watermark-layer {
     position: absolute;
-    inset: 50% auto auto 50%;
-    transform: translate(-50%, -50%);
-    font-size: clamp(2rem, 8vw, 5rem);
-    line-height: 1;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: rgba(120, 120, 120, 0.35);
-    text-transform: lowercase;
+    inset: -35% -35%;
+    display: grid;
+    grid-template-columns: repeat(6, max-content);
+    grid-auto-rows: max-content;
+    gap: 3.2rem 3rem;
+    justify-content: center;
+    align-content: center;
+    transform: rotate(-30deg);
     pointer-events: none;
     user-select: none;
     z-index: 0;
+}
+
+.banner-designer-watermark {
+    font-size: clamp(1.6rem, 3.3vw, 2.5rem);
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: rgba(120, 120, 120, 0.34);
+    text-transform: lowercase;
+    white-space: nowrap;
 }
 
 .banner-designer-layer {
