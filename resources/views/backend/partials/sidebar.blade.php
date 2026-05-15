@@ -215,6 +215,18 @@
             </li>
         @elseif($isVendor && $vendorApproved)
             <li>
+                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>Post Offer</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-ad"></i>
+                    <span>Post Ad</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('vendor.public-page.*') ? 'active' : '' }}" href="{{ route('vendor.public-page.edit') }}">
                     <i class="fa-solid fa-globe"></i>
                     <span>Public Page</span>
