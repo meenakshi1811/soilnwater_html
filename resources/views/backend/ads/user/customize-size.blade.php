@@ -70,7 +70,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Valid Upto <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <input type="date" name="valid_until" class="form-control @error('valid_until') is-invalid @enderror" value="{{ old('valid_until', optional($ad->valid_until ?? null)->format('Y-m-d')) }}" min="{{ now()->toDateString() }}" {{ $sizeType === "square" ? "max=\"" . now()->addDays(7)->toDateString() . "\"" : "" }} required>
+                    <input type="date" name="valid_until" class="form-control @error('valid_until') is-invalid @enderror" value="{{ old('valid_until', optional($ad->valid_until ?? null)->format('Y-m-d')) }}" min="{{ now()->toDateString() }}" {{ $sizeType === "square" ? "max=\"" . now()->addDays(30)->toDateString() . "\"" : "" }} required>
                     @error('valid_until')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -1264,7 +1264,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const maxDate = new Date(today);
-            maxDate.setDate(maxDate.getDate() + 7);
+            maxDate.setDate(maxDate.getDate() + 30);
             const maxDateIso = maxDate.toISOString().slice(0, 10);
             validUntilInput.setAttribute('max', maxDateIso);
 
