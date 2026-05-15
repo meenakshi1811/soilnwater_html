@@ -467,6 +467,14 @@
             });
             $stage.empty();
 
+            var $watermarkLayer = $('<div class="banner-designer-watermark-layer"></div>');
+            for (var row = -1; row < 8; row++) {
+                for (var col = -1; col < 6; col++) {
+                    $watermarkLayer.append('<span class="banner-designer-watermark">soilnwater</span>');
+                }
+            }
+            $stage.append($watermarkLayer);
+
             this.designer.layers.forEach(function (layer) {
                 var $layer;
                 if (layer.type === 'text') {
@@ -556,6 +564,28 @@
                 });
             };
 
+            var drawWatermark = function () {
+                var watermarkText = 'soilnwater';
+                var stepX = 260;
+                var stepY = 180;
+
+                ctx.save();
+                ctx.fillStyle = 'rgba(120, 120, 120, 0.26)';
+                ctx.font = '700 52px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(-Math.PI / 6);
+
+                for (var y = -canvas.height; y <= canvas.height; y += stepY) {
+                    for (var x = -canvas.width; x <= canvas.width; x += stepX) {
+                        ctx.fillText(watermarkText, x, y);
+                    }
+                }
+
+                ctx.restore();
+            };
+
             var drawNext = function (index) {
                 if (index >= self.designer.layers.length) {
                     var dataUrl = canvas.toDataURL('image/png');
@@ -613,6 +643,7 @@
             };
 
             drawBackground().then(function () {
+                drawWatermark();
                 drawNext(0);
             });
         },
