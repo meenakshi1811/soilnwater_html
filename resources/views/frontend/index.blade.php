@@ -1336,7 +1336,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const adModal = document.getElementById('adDetailsModal');
-    const isLoggedIn = @json(auth()->check());
+    const isUserLoggedIn = @json(auth()->check());
     const adImageEl = document.getElementById('adDetailsModalImage');
     const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
     const adImageEnlargePreview = document.getElementById('adImageEnlargePreview');
@@ -1360,7 +1360,7 @@
         document.getElementById('adDetailsModalMeta').textContent = adMeta;
         document.getElementById('adDetailsModalDescription').textContent = adDescription;
 
-        if (!isLoggedIn) {
+        if (!isUserLoggedIn) {
           if (adLoginMessageBox) adLoginMessageBox.classList.remove('d-none');
           if (adSharePanel) adSharePanel.classList.add('d-none');
           document.getElementById('adDetailsModalTitle').textContent = 'You are not logged in';
@@ -1435,7 +1435,7 @@
       const trigger = event.relatedTarget;
       if (!trigger || !trigger.classList.contains('js-offer-modal-trigger')) return;
 
-      if (!isLoggedIn) {
+      if (!isUserLoggedIn) {
         if (loginMessageBox) loginMessageBox.classList.remove('d-none');
         titleEl.textContent = 'You are not logged in';
         discountEl.textContent = '';
