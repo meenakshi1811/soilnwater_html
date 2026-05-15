@@ -58,14 +58,27 @@
 @include('frontend.ads.partials.modals')
 @endsection
 
+@push('styles')
+<style>
+.offer-login-message{display:flex;gap:.8rem;align-items:flex-start;background:#f8faff;border:1px solid #d6e4ff;border-radius:12px;padding:.85rem .9rem;margin-top:.75rem}
+.offer-login-message-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e8f0ff;color:#2457c5;flex:0 0 34px}
+.offer-login-message-title{font-size:1rem;font-weight:700;color:#1d3557}
+.offer-login-message-text{font-size:.9rem;color:#5d6b82}
+</style>
+@endpush
+
 @push('scripts')
 <script>
 // unchanged behavior; formatting only for reliability
 // ...
 document.addEventListener('DOMContentLoaded', function () {
 const adModal = document.getElementById('adDetailsModal'); const adsGrid = document.getElementById('adsGrid'); if (!adsGrid) return;
+const isLoggedIn = @json(auth()->check());
 const adModalDialog = document.getElementById('adDetailsModalDialog');
 const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
+const adLoginMessageBox = document.getElementById('adLoginMessageBox');
+const adSharePanel = document.getElementById('adSharePanel');
+const adReportActions = document.getElementById('adReportActions');
 const adReportForm = document.getElementById('adReportForm');
 const openAdReportPopupBtn = document.getElementById('openAdReportPopupBtn');
 const closeAdReportPopupBtn = document.getElementById('closeAdReportPopupBtn');
@@ -131,6 +144,8 @@ function syncAdModalSize(trigger){
     }
 }
 adsGrid.addEventListener('click',function(e){const trigger=e.target.closest('.js-ad-modal-trigger');if(!trigger) return;syncAdModalSize(trigger);document.getElementById('adDetailsModalTitle').textContent=trigger.dataset.adTitle||'Ad Details';document.getElementById('adDetailsModalMeta').textContent=trigger.dataset.adMeta||'';document.getElementById('adDetailsModalDescription').textContent=trigger.dataset.adDescription||'';const img=trigger.dataset.adImage||'';const imgEl=document.getElementById('adDetailsModalImage');if(img){imgEl.src=img;imgEl.classList.remove('d-none');adEnlargeBtn.classList.remove('d-none');}else{imgEl.src='';imgEl.classList.add('d-none');adEnlargeBtn.classList.add('d-none');}const url=trigger.dataset.adUrl||location.href;document.getElementById('adShareLink').value=url;document.getElementById('adShareQr').src=`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;document.getElementById('adShareWhatsapp').href=`https://wa.me/?text=${encodeURIComponent('Check this ad: '+url)}`;document.getElementById('adShareFacebook').href=`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;document.getElementById('adShareInstagram').href=url;
+if(!isLoggedIn){if(adLoginMessageBox)adLoginMessageBox.classList.remove('d-none');if(adSharePanel)adSharePanel.classList.add('d-none');if(adReportActions)adReportActions.classList.add('d-none');document.getElementById('adDetailsModalTitle').textContent='You are not logged in';document.getElementById('adDetailsModalMeta').textContent='';document.getElementById('adDetailsModalDescription').textContent='';imgEl.src='';imgEl.classList.add('d-none');adEnlargeBtn.classList.add('d-none');document.getElementById('adShareLink').value='';document.getElementById('adShareQr').src='';document.getElementById('adShareWhatsapp').href='#';document.getElementById('adShareFacebook').href='#';document.getElementById('adShareInstagram').href='#';if (adReportPopupWrap) { adReportPopupWrap.classList.add('d-none'); }if (adDetailsModalInstance) { adDetailsModalInstance.show(); }return;}
+if(adLoginMessageBox)adLoginMessageBox.classList.add('d-none');if(adSharePanel)adSharePanel.classList.remove('d-none');if(adReportActions)adReportActions.classList.remove('d-none');
 if (adReportForm && trigger.dataset.adId) { adReportForm.action = `{{ url('/ads-market') }}/${trigger.dataset.adId}/report`; }
 if (adReportPopupWrap) { adReportPopupWrap.classList.add('d-none'); }
 if (adDetailsModalInstance) { adDetailsModalInstance.show(); }});

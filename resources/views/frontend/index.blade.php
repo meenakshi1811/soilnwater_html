@@ -623,7 +623,15 @@
                 <i class="fa-solid fa-up-right-and-down-left-from-center me-1"></i> Enlarge image
               </button>
 
-              <div class="offer-share-panel mt-2">
+              <div class="offer-login-message d-none" id="adLoginMessageBox" role="status" aria-live="polite">
+                <div class="offer-login-message-icon"><i class="fa-solid fa-lock"></i></div>
+                <div>
+                  <h4 class="offer-login-message-title mb-1">You are not logged in</h4>
+                  <p class="offer-login-message-text mb-2">Please log in to view this ad details and share options.</p>
+                  <a href="{{ route('login') }}" class="btn btn-sm btn-primary">Login to continue</a>
+                </div>
+              </div>
+              <div class="offer-share-panel mt-2" id="adSharePanel">
                 <div class="offer-share-panel-head">
                   <h4 class="offer-share-title mb-1">Share this ad</h4>
                 </div>
@@ -1328,9 +1336,12 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const adModal = document.getElementById('adDetailsModal');
+    const isLoggedIn = @json(auth()->check());
     const adImageEl = document.getElementById('adDetailsModalImage');
     const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
     const adImageEnlargePreview = document.getElementById('adImageEnlargePreview');
+    const adLoginMessageBox = document.getElementById('adLoginMessageBox');
+    const adSharePanel = document.getElementById('adSharePanel');
 
     if (adModal) {
       document.addEventListener('click', function (event) {
@@ -1348,6 +1359,26 @@
         document.getElementById('adDetailsModalTitle').textContent = adTitle;
         document.getElementById('adDetailsModalMeta').textContent = adMeta;
         document.getElementById('adDetailsModalDescription').textContent = adDescription;
+
+        if (!isLoggedIn) {
+          if (adLoginMessageBox) adLoginMessageBox.classList.remove('d-none');
+          if (adSharePanel) adSharePanel.classList.add('d-none');
+          document.getElementById('adDetailsModalTitle').textContent = 'You are not logged in';
+          document.getElementById('adDetailsModalMeta').textContent = '';
+          document.getElementById('adDetailsModalDescription').textContent = '';
+          adImageEl.src = '';
+          adImageEl.classList.add('d-none');
+          adEnlargeBtn.classList.add('d-none');
+          document.getElementById('adShareLink').value = '';
+          document.getElementById('adShareQr').src = '';
+          document.getElementById('adShareWhatsapp').href = '#';
+          document.getElementById('adShareFacebook').href = '#';
+          document.getElementById('adShareInstagram').href = '#';
+          new bootstrap.Modal(adModal).show();
+          return;
+        }
+        if (adLoginMessageBox) adLoginMessageBox.classList.add('d-none');
+        if (adSharePanel) adSharePanel.classList.remove('d-none');
 
         if (adSrc) {
           adImageEl.src = adSrc;
