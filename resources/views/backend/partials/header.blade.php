@@ -23,10 +23,8 @@
                 <span class="d-none d-md-inline">Index</span>
             </a>
             <a class="btn btn-sm admin-link {{ $dashboardActive ? 'active' : '' }}" href="{{ $dashboardUrl }}">Dashboard</a>
-            @if($isGeneralUser || auth()->user()->isAdmin())
+            @if($isGeneralUser || auth()->user()->isAdmin() || auth()->user()->isVendor())
                 <a class="btn btn-sm admin-header-action-offer" href="{{ route('post-offer') }}">Post Offer</a>
-            @endif
-            @if($isGeneralUser || auth()->user()->isAdmin())
                 <a class="btn btn-sm admin-header-action-ad" href="{{ route('ads.create.size') }}">Post Ad</a>
             @endif
             <a class="btn btn-sm admin-link {{ $profileActive ? 'active' : '' }}" href="{{ $profileUrl }}">Profile</a>
