@@ -106,11 +106,11 @@
                             <span class="btn-loader d-none" aria-hidden="true"></span>
                         </button>
 
-                        <div class="auth-divider"><span>or</span></div>
+                        <!-- <div class="auth-divider"><span>or</span></div>
 
                         <button type="button" class="btn btn-google w-100" id="googleRegisterTrigger">
                             <i class="fa-brands fa-google me-2"></i> Continue with Google
-                        </button>
+                        </button> -->
 
                         <p class="signin-copy">Already have an account? <a href="{{ route('login') }}">Sign in</a></p>
                     </form>

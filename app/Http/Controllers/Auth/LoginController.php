@@ -313,6 +313,8 @@ class LoginController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
         } catch (\Throwable $exception) {
+            dd($exception->getMessage());
+
             return redirect()->route('login')->withErrors([
                 'google' => 'Google authentication failed. Please try again.',
             ]);
