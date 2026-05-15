@@ -43,6 +43,14 @@ class HomeController extends Controller
             return redirect()->route('user.dashboard');
         }
 
+        if ($user?->isVendor()) {
+            if ($user->vendor?->isApproved()) {
+                return redirect()->route('vendor.dashboard');
+            }
+
+            return redirect()->route('vendor.pending');
+        }
+
         return view('home');
     }
 }
