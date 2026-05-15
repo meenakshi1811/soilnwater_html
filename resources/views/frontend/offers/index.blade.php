@@ -141,6 +141,7 @@
     (function () {
         const offerModal = document.getElementById('offerDetailsModal');
         if (!offerModal) return;
+        const isLoggedIn = @json(auth()->check());
 
         const titleEl = document.getElementById('offerDetailsModalTitle');
         const discountEl = document.getElementById('offerDetailsModalDiscount');
@@ -369,6 +370,24 @@
         offerModal.addEventListener('show.bs.modal', function (event) {
             const trigger = event.relatedTarget;
             if (!trigger || !trigger.classList.contains('js-offer-modal-trigger')) return;
+
+            if (!isLoggedIn) {
+                titleEl.textContent = 'You are not logged in';
+                descriptionEl.textContent = 'Please log in to view offer details.';
+                discountEl.textContent = '';
+                discountEl.classList.add('d-none');
+                couponEl.textContent = '';
+                couponEl.classList.add('d-none');
+                expiryEl.textContent = '-';
+                imageEl.src = '';
+                imageEl.classList.add('d-none');
+                if (shareLinkEl) shareLinkEl.value = '';
+                if (shareQrEl) shareQrEl.src = '';
+                if (shareWhatsappEl) shareWhatsappEl.href = '#';
+                if (shareFacebookEl) shareFacebookEl.href = '#';
+                if (shareInstagramEl) shareInstagramEl.href = '#';
+                return;
+            }
 
             titleEl.textContent = trigger.getAttribute('data-offer-title') || 'Offer Details';
             const couponCode = trigger.getAttribute('data-offer-coupon') || '';
