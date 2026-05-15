@@ -3,6 +3,10 @@
     <img class="logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
   </a>
 
+  <button class="header-menu-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mobileHeaderMenu" aria-controls="mobileHeaderMenu" aria-expanded="false" aria-label="Toggle header menu">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+
   <div class="loc-wrap" id="headerLocationToggle" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
     <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
     <input
@@ -50,7 +54,7 @@
     </button>
   </form>
 
-  <div class="header-actions">
+  <div class="header-actions header-actions-desktop">
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
@@ -82,4 +86,21 @@
       <a class="btn-login" href="{{ route('login') }}">Login</a>
     @endauth
   </div>
+
+
+  <div class="collapse header-mobile-menu" id="mobileHeaderMenu">
+    <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
+    <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
+
+    @auth
+      <a class="btn-login" href="{{ $dashboardUrl }}">My Account</a>
+      <form method="POST" action="{{ route('logout') }}" class="header-mobile-logout">
+        @csrf
+        <button type="submit" class="btn-login">Logout</button>
+      </form>
+    @else
+      <a class="btn-login" href="{{ route('login') }}">Login</a>
+    @endauth
+  </div>
 </header>
+
