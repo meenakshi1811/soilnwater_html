@@ -629,7 +629,6 @@
                 alertSelector: '#phoneVerifyAlert',
                 defaultText: 'Send OTP',
                 loadingText: 'Sending OTP...',
-                showLoaderOnClick: true,
                 rules: {
                     phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 }
                 },
@@ -642,6 +641,15 @@
                     }
                 },
                 fallbackErrorMessage: 'Unable to send OTP right now. Please try again.',
+                beforeSubmit: function (ctx) {
+                    var $phoneInput = ctx.form.find('[name="phone_number"]');
+                    if (!$phoneInput.length) {
+                        return;
+                    }
+
+                    var normalizedPhoneNumber = $.trim($phoneInput.val() || '').replace(/\D+/g, '');
+                    $phoneInput.val(normalizedPhoneNumber);
+                },
                 onSuccess: function (response, ctx) {
                     FormHelper.showAlert($('#phoneVerifyAlert'), 'success', response.message || 'OTP sent successfully.');
 
@@ -662,7 +670,6 @@
                 alertSelector: '#phoneVerifyAlert',
                 defaultText: 'Verify Number',
                 loadingText: 'Verifying...',
-                showLoaderOnClick: true,
                 rules: {
                     phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                     otp: { required: true, digits: true, minlength: 6, maxlength: 6 }
@@ -682,6 +689,15 @@
                     }
                 },
                 fallbackErrorMessage: 'Unable to verify OTP right now. Please try again.',
+                beforeSubmit: function (ctx) {
+                    var $phoneInput = ctx.form.find('[name="phone_number"]');
+                    if (!$phoneInput.length) {
+                        return;
+                    }
+
+                    var normalizedPhoneNumber = $.trim($phoneInput.val() || '').replace(/\D+/g, '');
+                    $phoneInput.val(normalizedPhoneNumber);
+                },
                 onSuccess: function (response) {
                     FormHelper.showAlert($('#phoneVerifyAlert'), 'success', response.message || 'Mobile number verified successfully.');
                     window.location.href = response.redirect || '/login';
