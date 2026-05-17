@@ -539,19 +539,39 @@ class PostOfferController extends Controller
         }
 
         $watermarkText = 'SOILNWATER';
-        $font = max(3, min(5, (int) round(min($bannerWidth, $bannerHeight) / 260)));
-        $textWidth = imagefontwidth($font) * strlen($watermarkText);
-        $textHeight = imagefontheight($font);
+        $fontPath = public_path('assets/fonts/DejaVuSans-Bold.ttf');
+        $canUseTtf = is_file($fontPath) && function_exists('imagettftext');
 
-        $stepX = max($textWidth + 30, (int) round($bannerWidth * 0.22));
-        $stepY = max($textHeight + 26, (int) round($bannerHeight * 0.14));
-        $watermarkColor = imagecolorallocatealpha($bannerImage, 255, 255, 255, 95);
+        if ($canUseTtf) {
+            $fontSize = max(24, (int) round(min($bannerWidth, $bannerHeight) * 0.055));
+            $angle = -28;
+            $bbox = imagettfbbox($fontSize, $angle, $fontPath, $watermarkText);
+            $textWidth = (int) (max($bbox[2], $bbox[4]) - min($bbox[0], $bbox[6]));
+            $textHeight = (int) (max($bbox[1], $bbox[3]) - min($bbox[5], $bbox[7]));
 
-        for ($y = -$stepY; $y < $bannerHeight + $stepY; $y += $stepY) {
-            $offsetX = (((int) floor($y / $stepY)) % 2 === 0) ? 0 : (int) round($stepX / 2);
+            $stepX = max($textWidth + (int) round($fontSize * 1.6), (int) round($bannerWidth * 0.26));
+            $stepY = max($textHeight + (int) round($fontSize * 1.3), (int) round($bannerHeight * 0.20));
+            $watermarkColor = imagecolorallocatealpha($bannerImage, 128, 128, 128, 88);
 
-            for ($x = -$textWidth; $x < $bannerWidth + $textWidth; $x += $stepX) {
-                imagestring($bannerImage, $font, $x + $offsetX, $y, $watermarkText, $watermarkColor);
+            for ($y = -$stepY; $y < $bannerHeight + $stepY; $y += $stepY) {
+                $offsetX = (((int) floor($y / $stepY)) % 2 === 0) ? 0 : (int) round($stepX * 0.45);
+                for ($x = -$stepX; $x < $bannerWidth + $stepX; $x += $stepX) {
+                    imagettftext($bannerImage, $fontSize, $angle, $x + $offsetX, $y + $textHeight, $watermarkColor, $fontPath, $watermarkText);
+                }
+            }
+        } else {
+            $font = 5;
+            $textWidth = imagefontwidth($font) * strlen($watermarkText);
+            $textHeight = imagefontheight($font);
+            $stepX = max($textWidth + 55, (int) round($bannerWidth * 0.25));
+            $stepY = max($textHeight + 40, (int) round($bannerHeight * 0.18));
+            $watermarkColor = imagecolorallocatealpha($bannerImage, 128, 128, 128, 86);
+
+            for ($y = -$stepY; $y < $bannerHeight + $stepY; $y += $stepY) {
+                $offsetX = (((int) floor($y / $stepY)) % 2 === 0) ? 0 : (int) round($stepX * 0.5);
+                for ($x = -$textWidth; $x < $bannerWidth + $textWidth; $x += $stepX) {
+                    imagestring($bannerImage, $font, $x + $offsetX, $y, $watermarkText, $watermarkColor);
+                }
             }
         }
 
