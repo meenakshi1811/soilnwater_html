@@ -215,33 +215,22 @@ class RegisterController extends Controller
         $data = $request->validate([
             'email' => ['required', 'email'],
         ]);
-
         $user = User::where('email', $data['email'])->first();
 
         if (! $user) {
             return redirect()->route('login')->withErrors([
-                'email' => 'No user account found for verification.',
+                'email' => 'No user account found for contact verification.',
             ]);
         }
-
-        if ($user->isGeneralUser()) {
-            if ($user->hasVerifiedContact()) {
-                return redirect()->route('login')->with('status', 'Your contact details are already verified. Please login.');
-            }
-
-            $request->session()->put('contact_verification_user_id', $user->id);
-            $this->sendContactVerificationOtp($user);
-
-            return redirect()->route('register.contact.verify.form')->with('status', 'We sent new email and phone verification codes.');
+      
+        if ($user->hasVerifiedContact()) {
+            return redirect()->route('login')->with('status', 'Your contact details are already verified. Please login.');
         }
 
-        if (! $user->hasVerifiedEmail()) {
-            $user->sendEmailVerificationNotification();
+        $request->session()->put('contact_verification_user_id', $user->id);
+        $this->sendContactVerificationOtp($user);
 
-            return redirect()->route('login')->with('status', 'We sent a fresh email verification link. Please check your inbox.');
-        }
-
-        return redirect()->route('login')->with('status', 'Your account is already verified. Please login.');
+        return redirect()->route('register.contact.verify.form')->with('status', 'We sent new email and phone verification codes.');
     }
 
     public function startPhoneVerification(Request $request): RedirectResponse

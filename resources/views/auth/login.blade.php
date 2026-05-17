@@ -34,8 +34,8 @@
                         <div class="alert alert-warning" role="alert">{{ $errors->first('email') }}</div>
                         @if (str_contains(strtolower($errors->first('email')), 'phone number are not verified') || str_contains(strtolower($errors->first('email')), 'complete verification'))
                             <div class="mb-3">
-                                <a href="{{ route('register.contact.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
-                                    Click here to verify your account details.
+                                <a href="{{ route('register.phone.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
+                                    Click here to verify your mobile number.
                                 </a>
                             </div>
                         @elseif (str_contains(strtolower($errors->first('email')), 'not verified'))
@@ -53,8 +53,8 @@
                     @if ($errors->has('contact_verification'))
                         <div class="alert alert-warning" role="alert">
                             {{ $errors->first('contact_verification') }}
-                            <a href="{{ route('register.contact.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
-                                Click here to verify your account details.
+                            <a href="{{ route('register.phone.verify.start', ['email' => old('verification_email', old('login'))]) }}" class="fw-semibold">
+                                Click here to verify your mobile number.
                             </a>
                         </div>
                     @endif
@@ -111,7 +111,7 @@
                                     <input id="login_contact" type="text" class="form-control" name="login_contact" value="{{ old('login') }}" placeholder="Enter email or phone number" required>
                                 </div>
                                 <button id="otpSendBtn" type="submit" class="btn btn-primary btn-auth auth-action-btn w-100 js-auto-loader">
-                                    <span class="btn-text">Send OTP to Email</span>
+                                    <span class="btn-text">Send OTP</span>
                                     <span class="btn-loader d-none" aria-hidden="true"></span>
                                 </button>
                             </form>
