@@ -60,7 +60,14 @@
 
     @auth
       @php
-        $dashboardUrl = auth()->user()->isGeneralUser() ? route('user.dashboard') : route('admin.dashboard');
+        $user = auth()->user();
+        if ($user->isVendor()) {
+          $dashboardUrl = route('vendor.dashboard');
+        } elseif ($user->isStaff()) {
+          $dashboardUrl = route('admin.dashboard');
+        } else {
+          $dashboardUrl = route('user.dashboard');
+        }
       @endphp
       <div class="dropdown user-menu-dropdown">
         <button
