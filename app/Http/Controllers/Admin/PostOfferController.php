@@ -464,7 +464,7 @@ class PostOfferController extends Controller
         $absolutePath = public_path($relativePath);
         file_put_contents($absolutePath, $decoded);
         $this->resizeBannerToTargetSize($absolutePath);
-        $this->applyCopyrightLogoToBanner($absolutePath);
+        $this->applyCopyrightWatermarkToBanner($absolutePath);
 
         return $relativePath;
     }
@@ -484,12 +484,12 @@ class PostOfferController extends Controller
         $file->move($absoluteDirectory, $fileName);
         $absolutePath = $absoluteDirectory.'/'.$fileName;
         $this->resizeBannerToTargetSize($absolutePath);
-        $this->applyCopyrightLogoToBanner($absolutePath);
+        $this->applyCopyrightWatermarkToBanner($absolutePath);
 
         return $relativeDirectory.'/'.$fileName;
     }
 
-    private function applyCopyrightLogoToBanner(string $bannerPath): void
+    private function applyCopyrightWatermarkToBanner(string $bannerPath): void
     {
         if (!is_file($bannerPath)) {
             return;
@@ -526,69 +526,34 @@ class PostOfferController extends Controller
             return;
         }
 
-        $logoPath = public_path('assets/images/logo_soilnwater.webp');
-        if (!is_file($logoPath)) {
-            imagedestroy($bannerImage);
-
-            return;
-        }
-
-        $logoContent = file_get_contents($logoPath);
-        $logoImage = $logoContent !== false ? @imagecreatefromstring($logoContent) : false;
-
-        if (!is_resource($logoImage) && !is_object($logoImage)) {
-            imagedestroy($bannerImage);
-
-            return;
-        }
-
         imagealphablending($bannerImage, true);
         imagesavealpha($bannerImage, true);
 
         $bannerWidth = imagesx($bannerImage);
         $bannerHeight = imagesy($bannerImage);
-        $logoWidth = imagesx($logoImage);
-        $logoHeight = imagesy($logoImage);
 
-        if ($bannerWidth <= 0 || $bannerHeight <= 0 || $logoWidth <= 0 || $logoHeight <= 0) {
-            imagedestroy($logoImage);
+        if ($bannerWidth <= 0 || $bannerHeight <= 0) {
             imagedestroy($bannerImage);
 
             return;
         }
 
-        $targetLogoWidth = max(80, (int) round($bannerWidth * 0.18));
-        $targetLogoWidth = min($targetLogoWidth, $bannerWidth - 24);
-        if ($targetLogoWidth <= 0) {
-            $targetLogoWidth = max(1, $bannerWidth);
+        $watermarkText = 'SOILNWATER';
+        $font = max(3, min(5, (int) round(min($bannerWidth, $bannerHeight) / 260)));
+        $textWidth = imagefontwidth($font) * strlen($watermarkText);
+        $textHeight = imagefontheight($font);
+
+        $stepX = max($textWidth + 30, (int) round($bannerWidth * 0.22));
+        $stepY = max($textHeight + 26, (int) round($bannerHeight * 0.14));
+        $watermarkColor = imagecolorallocatealpha($bannerImage, 255, 255, 255, 95);
+
+        for ($y = -$stepY; $y < $bannerHeight + $stepY; $y += $stepY) {
+            $offsetX = (((int) floor($y / $stepY)) % 2 === 0) ? 0 : (int) round($stepX / 2);
+
+            for ($x = -$textWidth; $x < $bannerWidth + $textWidth; $x += $stepX) {
+                imagestring($bannerImage, $font, $x + $offsetX, $y, $watermarkText, $watermarkColor);
+            }
         }
-
-        $targetLogoHeight = (int) round(($logoHeight / $logoWidth) * $targetLogoWidth);
-        if ($targetLogoHeight <= 0) {
-            $targetLogoHeight = 1;
-        }
-
-        if ($targetLogoHeight > ($bannerHeight - 24)) {
-            $targetLogoHeight = max(1, $bannerHeight - 24);
-            $targetLogoWidth = (int) round(($logoWidth / $logoHeight) * $targetLogoHeight);
-        }
-
-        $padding = max(8, (int) round(min($bannerWidth, $bannerHeight) * 0.02));
-        $destX = max(0, $bannerWidth - $targetLogoWidth - $padding);
-        $destY = max(0, $bannerHeight - $targetLogoHeight - $padding);
-
-        imagecopyresampled(
-            $bannerImage,
-            $logoImage,
-            $destX,
-            $destY,
-            0,
-            0,
-            $targetLogoWidth,
-            $targetLogoHeight,
-            $logoWidth,
-            $logoHeight
-        );
 
         match ($imageInfo[2]) {
             IMAGETYPE_JPEG => imagejpeg($bannerImage, $bannerPath, 90),
@@ -597,7 +562,6 @@ class PostOfferController extends Controller
             default => null,
         };
 
-        imagedestroy($logoImage);
         imagedestroy($bannerImage);
     }
 
