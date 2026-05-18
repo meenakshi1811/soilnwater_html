@@ -111,7 +111,7 @@
                         </div>
                     @endif
                     <div class="{{ $section->image_path ? 'col-lg-6' : 'col-12' }}">
-                        <div class="content-body">{!! nl2br(e($section->content)) !!}</div>
+                        <div class="content-body">{!! $section->content !!}</div>
                     </div>
                 </div>
             </div>
