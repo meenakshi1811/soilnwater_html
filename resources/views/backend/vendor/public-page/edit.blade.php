@@ -5,6 +5,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/vendor-store.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/vendor-portal.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 @endpush
 
 @section('content')
@@ -15,9 +16,14 @@
             <h2 class="admin-title mb-0">Manage Website</h2>
             <p class="text-muted small mb-0">This editor matches your public preview. Click any highlighted text to edit.</p>
         </div>
-        <button type="submit" form="publicPageForm" class="btn btn-primary ems-btn-primary">
-            <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
-        </button>
+        <div class="d-flex gap-2">
+            <a href="{{ route('vendor.public-page.preview') }}" target="_blank" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-up-right-from-square me-1"></i> Live Preview
+            </a>
+            <button type="submit" form="publicPageForm" class="btn btn-primary ems-btn-primary" id="publicPageSaveBtn">
+                <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+            </button>
+        </div>
     </div>
 
     @if(session('success'))
@@ -69,12 +75,24 @@
                     <div class="vendor-hero-tools mb-3">
                         <div class="row g-2 align-items-end">
                             <div class="col-auto">
+                                <label class="form-label text-white small mb-1">Heading Font</label>
+                                <select class="form-select form-select-sm" data-style-target="hero-main" data-style-prop="fontFamily">
+                                    <option value="">Default</option>
+                                    <option value="Arial, sans-serif">Arial</option>
+                                    <option value="'Poppins', sans-serif">Poppins</option>
+                                    <option value="Georgia, serif">Georgia</option>
+                                    <option value="'Times New Roman', serif">Times New Roman</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
                                 <label class="form-label text-white small mb-1">Heading Size</label>
                                 <select class="form-select form-select-sm" data-style-target="hero-main" data-style-prop="fontSize">
                                     <option value="">Default</option>
+                                    <option value="32px">32px</option>
                                     <option value="36px">36px</option>
                                     <option value="42px">42px</option>
                                     <option value="48px">48px</option>
+                                    <option value="56px">56px</option>
                                 </select>
                             </div>
                             <div class="col-auto">
@@ -82,12 +100,24 @@
                                 <input type="color" class="form-control form-control-color form-control-sm" data-style-target="hero-main" data-style-prop="color" value="#ffffff">
                             </div>
                             <div class="col-auto">
+                                <label class="form-label text-white small mb-1">Subheading Font</label>
+                                <select class="form-select form-select-sm" data-style-target="hero-sub" data-style-prop="fontFamily">
+                                    <option value="">Default</option>
+                                    <option value="Arial, sans-serif">Arial</option>
+                                    <option value="'Poppins', sans-serif">Poppins</option>
+                                    <option value="Georgia, serif">Georgia</option>
+                                    <option value="'Times New Roman', serif">Times New Roman</option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
                                 <label class="form-label text-white small mb-1">Subheading Size</label>
                                 <select class="form-select form-select-sm" data-style-target="hero-sub" data-style-prop="fontSize">
                                     <option value="">Default</option>
                                     <option value="16px">16px</option>
+                                    <option value="18px">18px</option>
                                     <option value="20px">20px</option>
                                     <option value="24px">24px</option>
+                                    <option value="28px">28px</option>
                                 </select>
                             </div>
                             <div class="col-auto">
@@ -125,16 +155,12 @@
                     <small class="text-white ms-2" id="bannerUploadStatus">No files selected</small>
                 </div>
             </div>
-                    <div class="vendor-banner-thumbs-wrap">
-                <div class="small text-muted mb-2">Banner images</div>
-                <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
-            </div>
-
-            <div class="vendor-banner-thumbs-wrap">
-                <div class="small text-muted mb-2">Banner images</div>
-                <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
-            </div>
         </section>
+
+        <div class="vendor-banner-thumbs-wrap mb-4">
+            <div class="small text-muted mb-2">Banner images</div>
+            <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
+        </div>
 
         <div class="vendor-form-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -155,5 +181,6 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="{{ asset('assets/js/vendor-public-page.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
