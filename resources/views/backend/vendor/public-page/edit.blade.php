@@ -8,7 +8,7 @@
 @endpush
 
 @section('content')
-<div class="admin-panel ems-page">
+<div class="admin-panel ems-page vendor-public-live-editor">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <p class="ems-kicker mb-1">Vendor Panel</p>
@@ -113,6 +113,23 @@
                     </label>
                     <small class="text-white ms-2" id="bannerUploadStatus">No files selected</small>
                 </div>
+            @else
+                <div class="carousel-inner h-100" id="bannerSlidesList"></div>
+            @endif
+            <div class="hero-overlay">
+                <div class="container">
+                    <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
+                    <p class="lead mb-3 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
+                    <label class="btn btn-warning btn-sm fw-bold mb-0">
+                        Upload Banner Images
+                        <input type="file" name="banner_slides[]" class="d-none" accept="image/*" multiple id="bannerSlidesInput">
+                    </label>
+                    <small class="text-white ms-2" id="bannerUploadStatus">No files selected</small>
+                </div>
+            </div>
+                    <div class="vendor-banner-thumbs-wrap">
+                <div class="small text-muted mb-2">Banner images</div>
+                <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
             </div>
 
             <div class="vendor-banner-thumbs-wrap">
@@ -134,7 +151,6 @@
         </div>
     </form>
 </div>
-
 <template id="sectionTemplate">
     @include('backend.vendor.public-page._section', ['index' => '__INDEX__', 'section' => null])
 </template>
