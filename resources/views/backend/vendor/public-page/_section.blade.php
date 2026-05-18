@@ -13,6 +13,13 @@
     <div class="vendor-form-card p-3 mb-3">
         <div class="row g-2 align-items-end">
             <div class="col-auto">
+                <label class="form-label small mb-1">Apply To</label>
+                <select class="form-select form-select-sm" data-section-target>
+                    <option value="title">Section title</option>
+                    <option value="content" selected>Section content</option>
+                </select>
+            </div>
+            <div class="col-auto">
                 <label class="form-label small mb-1">Text Color</label>
                 <input type="color" class="form-control form-control-color form-control-sm" data-section-style="color" value="#1f2937">
             </div>
@@ -38,10 +45,8 @@
     <div class="row g-4 align-items-center">
         <div class="col-lg-5">
             <label class="form-label">Section Image</label>
-            @if($section?->image_path)
-                <img src="{{ asset($section->image_path) }}" alt="" class="img-fluid rounded mb-2 d-block" style="max-height:220px;object-fit:cover;">
-            @endif
-            <input type="file" name="sections[{{ $index }}][image]" class="form-control form-control-sm" accept="image/*">
+            <img src="{{ $section?->image_path ? asset($section->image_path) : 'https://via.placeholder.com/900x500?text=Section+Image+Preview' }}" alt="" class="img-fluid rounded mb-2 d-block section-live-image" style="max-height:220px;min-height:140px;width:100%;object-fit:cover;">
+            <input type="file" name="sections[{{ $index }}][image]" class="form-control form-control-sm js-section-image-input" accept="image/*">
         </div>
         <div class="col-lg-7">
             <h2 class="vendor-live-editable mb-2" contenteditable="true" data-sync-target="section-title-{{ $index }}">{{ old('sections.'.$index.'.title', $section?->title ?: 'Section title') }}</h2>

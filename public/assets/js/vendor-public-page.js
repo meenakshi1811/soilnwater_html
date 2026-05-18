@@ -26,6 +26,12 @@
     function getActiveSectionEditable(triggerEl) {
         var block = triggerEl.closest('.vendor-section-block');
         if (!block) return null;
+
+        var targetSelect = block.querySelector('[data-section-target]');
+        if (targetSelect && targetSelect.value === 'title') {
+            return block.querySelector('[data-sync-target^="section-title-"][contenteditable="true"]');
+        }
+
         return block.querySelector('[data-sync-html="1"][contenteditable="true"]');
     }
 
@@ -110,6 +116,17 @@
             document.execCommand('fontSize', false, e.target.value);
             syncEditable(sectionEditable);
         }
+
+        if (e.target.matches('.js-section-image-input')) {
+            var imageInput = e.target;
+            var block = imageInput.closest('.vendor-section-block');
+            var previewImg = block?.querySelector('.section-live-image');
+            var file = imageInput.files && imageInput.files[0];
+            if (previewImg && file) {
+                previewImg.src = URL.createObjectURL(file);
+            }
+        }
+
     });
 
     document.addEventListener('click', function (e) {
