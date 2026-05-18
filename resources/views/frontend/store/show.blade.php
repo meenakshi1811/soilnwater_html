@@ -35,7 +35,7 @@
                 <a href="#home">Home</a>
                 <a href="#products">Products</a>
                 @foreach($vendor->pageSections as $sec)
-                    <a href="#section-{{ $sec->id }}">{{ $sec->title }}</a>
+                    <a href="#section-{{ $sec->id }}">{{ strip_tags($sec->title) }}</a>
                 @endforeach
                 <a href="#contact">Contact</a>
             </nav>
@@ -103,7 +103,7 @@
     @foreach($vendor->pageSections as $section)
         <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section">
             <div class="container">
-                <h2>{{ $section->title }}</h2>
+                <h2>{!! $section->title !!}</h2>
                 <div class="row g-4 align-items-center">
                     @if($section->image_path)
                         <div class="col-lg-6">

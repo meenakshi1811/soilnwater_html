@@ -45,7 +45,7 @@ class VendorPublicPageController extends Controller
             'banner_slides.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'sections' => ['nullable', 'array'],
             'sections.*.id' => ['nullable', 'integer'],
-            'sections.*.title' => ['nullable', 'string', 'max:255'],
+            'sections.*.title' => ['nullable', 'string', 'max:2000'],
             'sections.*.content' => ['nullable', 'string', 'max:20000'],
             'sections.*.image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'sections.*._delete' => ['nullable', 'boolean'],
@@ -150,8 +150,9 @@ class VendorPublicPageController extends Controller
             }
 
             $title = trim((string) ($sectionData['title'] ?? ''));
+            $plainTitle = trim(strip_tags($title));
             $content = $sectionData['content'] ?? '';
-            if ($title === '' && $content === '' && empty($sectionData['id'])) {
+            if ($plainTitle === '' && trim(strip_tags((string) $content)) === '' && empty($sectionData['id'])) {
                 continue;
             }
 
@@ -170,7 +171,7 @@ class VendorPublicPageController extends Controller
             }
 
             $section->fill([
-                'title' => $title ?: 'Section',
+                'title' => $plainTitle !== '' ? $title : 'Section',
                 'content' => $content,
                 'sort_order' => $sort++,
             ]);
