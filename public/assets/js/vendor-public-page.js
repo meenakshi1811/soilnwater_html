@@ -12,7 +12,8 @@
         if (!key) return;
         var input = document.querySelector('[data-sync-input="' + key + '"]');
         if (!input) return;
-        if (target.dataset.syncHtml === '1') {
+        var isSectionTitle = key.indexOf('section-title-') === 0;
+        if (target.dataset.syncHtml === '1' || isSectionTitle) {
             input.value = target.innerHTML.trim();
         } else {
             input.value = target.innerText.replace(/\n{2,}/g, '\n').trim();
