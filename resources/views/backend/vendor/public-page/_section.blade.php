@@ -41,10 +41,6 @@
                 <input type="color" class="form-control form-control-color form-control-sm w-100" data-section-style="color" value="#1f2937" title="Text color">
             </div>
             <div class="col-md-2 col-6">
-                <label class="form-label small mb-1"><i class="fa-solid fa-fill-drip me-1"></i> Box background</label>
-                <input type="color" class="form-control form-control-color form-control-sm w-100" data-section-style="backgroundColor" value="#ffffff" title="Whole box background">
-            </div>
-            <div class="col-md-2 col-6">
                 <label class="form-label small mb-1">Font size</label>
                 <select class="form-select form-select-sm" data-section-command="fontSize">
                     <option value="">Default</option>
