@@ -62,9 +62,7 @@
                         @endforeach
                     </div>
                 </div>
-            @else
-                <div class="carousel-inner h-100" id="bannerSlidesList"></div>
-            @endif
+         
 
             <div class="hero-overlay">
                 <div class="container">

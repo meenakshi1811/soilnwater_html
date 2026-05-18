@@ -487,6 +487,8 @@ class PostOfferController extends Controller
         $this->applyCopyrightWatermarkToBanner($absolutePath);
 
         return $relativeDirectory.'/'.$fileName;
+                // echo $relativeDirectory.'/'.$fileName;exit();
+
     }
 
     private function applyCopyrightWatermarkToBanner(string $bannerPath): void
