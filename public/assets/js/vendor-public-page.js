@@ -13,7 +13,12 @@
         var input = document.querySelector('[data-sync-input="' + key + '"]');
         if (!input) return;
         if (target.dataset.syncHtml === '1') {
-            input.value = target.innerHTML.trim();
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = target.innerHTML;
+            if (target.getAttribute('style')) {
+                wrapper.setAttribute('style', target.getAttribute('style'));
+            }
+            input.value = wrapper.outerHTML.trim();
         } else {
             input.value = target.innerText.replace(/\n{2,}/g, '\n').trim();
         }
@@ -108,13 +113,7 @@
 
             var styleProp = e.target.dataset.sectionStyle;
             if (sectionEditable.dataset.syncHtml === '1') {
-                sectionEditable.focus();
-                document.execCommand('styleWithCSS', false, true);
-                if (styleProp === 'color') {
-                    document.execCommand('foreColor', false, e.target.value);
-                } else if (styleProp === 'backgroundColor') {
-                    document.execCommand('hiliteColor', false, e.target.value);
-                }
+                sectionEditable.style[styleProp] = e.target.value;
             } else {
                 sectionEditable.style[styleProp] = e.target.value;
             }
