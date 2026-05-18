@@ -4,6 +4,8 @@
     var template = document.getElementById('sectionTemplate');
     var slidesList = document.getElementById('bannerSlidesList');
     var thumbsWrap = document.getElementById('bannerThumbs');
+    var bannerInput = document.getElementById('bannerSlidesInput');
+    var pendingUploadFiles = [];
 
     function syncEditable(target) {
         var key = target.dataset.syncTarget;
@@ -17,18 +19,40 @@
         return document.querySelectorAll('[data-sync-target="' + key + '"]');
     }
 
+    function syncBannerInputFiles() {
+        if (!bannerInput) return;
+        var dt = new DataTransfer();
+        pendingUploadFiles.forEach(function (entry) { dt.items.add(entry.file); });
+        bannerInput.files = dt.files;
+
+        var status = document.getElementById('bannerUploadStatus');
+        if (status) status.textContent = pendingUploadFiles.length ? (pendingUploadFiles.length + ' file(s) selected') : 'No files selected';
+    }
+
     function renderBannerThumbs() {
         if (!slidesList || !thumbsWrap) return;
         thumbsWrap.innerHTML = '';
         var slides = slidesList.querySelectorAll('.vendor-banner-slide');
         slides.forEach(function (slide, idx) {
+            var wrap = document.createElement('div');
+            wrap.className = 'position-relative d-inline-block me-2 mb-2';
+
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'vendor-banner-thumb-btn' + (slide.classList.contains('active') ? ' active' : '');
             btn.dataset.index = idx;
             btn.style.backgroundImage = slide.style.backgroundImage;
             btn.title = 'Banner ' + (idx + 1);
-            thumbsWrap.appendChild(btn);
+            wrap.appendChild(btn);
+
+            var removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-danger btn-sm position-absolute top-0 end-0 py-0 px-1 js-remove-thumb';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.dataset.index = idx;
+            wrap.appendChild(removeBtn);
+
+            thumbsWrap.appendChild(wrap);
         });
     }
 
@@ -87,6 +111,36 @@
             });
         }
 
+        if (e.target.closest('.js-remove-thumb')) {
+            var thumbBtn = e.target.closest('.js-remove-thumb');
+            var index = Number(thumbBtn.dataset.index);
+            var slide = slidesList?.querySelectorAll('.vendor-banner-slide')[index];
+            if (!slide) return;
+
+            if (slide.dataset.id) {
+                if (!confirm('Remove this banner slide?')) return;
+                fetch('/vendor/banner-slides/' + slide.dataset.id, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                }).then(function () {
+                    slide.remove();
+                    if (!slidesList.querySelector('.vendor-banner-slide.active')) setActiveSlide(0);
+                    renderBannerThumbs();
+                });
+            } else if (slide.dataset.tempId) {
+                pendingUploadFiles = pendingUploadFiles.filter(function (entry) { return entry.id !== slide.dataset.tempId; });
+                URL.revokeObjectURL(slide.dataset.previewUrl || '');
+                slide.remove();
+                syncBannerInputFiles();
+                if (!slidesList.querySelector('.vendor-banner-slide.active')) setActiveSlide(0);
+                renderBannerThumbs();
+            }
+            return;
+        }
+
         if (e.target.closest('.vendor-banner-thumb-btn')) {
             setActiveSlide(Number(e.target.closest('.vendor-banner-thumb-btn').dataset.index));
         }
@@ -109,20 +163,23 @@
         }
     });
 
-    document.getElementById('bannerSlidesInput')?.addEventListener('change', function () {
-        var status = document.getElementById('bannerUploadStatus');
-        if (status) status.textContent = this.files.length ? (this.files.length + ' file(s) selected') : 'No files selected';
+    bannerInput?.addEventListener('change', function () {
         if (!slidesList) return;
 
-        slidesList.querySelectorAll('.vendor-banner-slide-temp').forEach(function (el) { el.remove(); });
-
         Array.from(this.files || []).forEach(function (file) {
+            var tempId = 'temp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+            var previewUrl = URL.createObjectURL(file);
+            pendingUploadFiles.push({ id: tempId, file: file });
+
             var item = document.createElement('div');
             item.className = 'carousel-item vendor-banner-slide vendor-banner-slide-temp';
-            item.style.backgroundImage = 'url("' + URL.createObjectURL(file) + '")';
+            item.dataset.tempId = tempId;
+            item.dataset.previewUrl = previewUrl;
+            item.style.backgroundImage = 'url("' + previewUrl + '")';
             slidesList.appendChild(item);
         });
 
+        syncBannerInputFiles();
         setActiveSlide(0);
         renderBannerThumbs();
     });
