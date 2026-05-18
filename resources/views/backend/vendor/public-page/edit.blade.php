@@ -8,7 +8,7 @@
 @endpush
 
 @section('content')
-<div class="admin-panel ems-page">
+<div class="admin-panel ems-page vendor-public-live-editor">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <p class="ems-kicker mb-1">Vendor Panel</p>
