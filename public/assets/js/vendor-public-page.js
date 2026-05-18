@@ -13,12 +13,7 @@
         var input = document.querySelector('[data-sync-input="' + key + '"]');
         if (!input) return;
         if (target.dataset.syncHtml === '1') {
-            var wrapper = document.createElement('div');
-            wrapper.innerHTML = target.innerHTML;
-            if (target.getAttribute('style')) {
-                wrapper.setAttribute('style', target.getAttribute('style'));
-            }
-            input.value = wrapper.outerHTML.trim();
+            input.value = target.innerHTML.trim();
         } else {
             input.value = target.innerText.replace(/\n{2,}/g, '\n').trim();
         }
