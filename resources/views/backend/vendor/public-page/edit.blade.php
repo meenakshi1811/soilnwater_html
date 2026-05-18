@@ -65,29 +65,36 @@
             @else
                 <div class="carousel-inner h-100" id="bannerSlidesList"></div>
             @endif
+
             <div class="hero-overlay">
                 <div class="container">
-                                        <div class="vendor-hero-tools mb-3">
+                    <div class="vendor-hero-tools mb-3">
                         <div class="row g-2 align-items-end">
                             <div class="col-auto">
                                 <label class="form-label text-white small mb-1">Heading Size</label>
-                                <select class="form-select form-select-sm" id="heroMainSizeCtrl" data-style-target="hero-main" data-style-prop="fontSize">
-                                    <option value="">Default</option><option value="36px">36px</option><option value="42px">42px</option><option value="48px">48px</option>
+                                <select class="form-select form-select-sm" data-style-target="hero-main" data-style-prop="fontSize">
+                                    <option value="">Default</option>
+                                    <option value="36px">36px</option>
+                                    <option value="42px">42px</option>
+                                    <option value="48px">48px</option>
                                 </select>
                             </div>
                             <div class="col-auto">
                                 <label class="form-label text-white small mb-1">Heading Color</label>
-                                <input type="color" class="form-control form-control-color form-control-sm" id="heroMainColorCtrl" data-style-target="hero-main" data-style-prop="color" value="#ffffff">
+                                <input type="color" class="form-control form-control-color form-control-sm" data-style-target="hero-main" data-style-prop="color" value="#ffffff">
                             </div>
                             <div class="col-auto">
                                 <label class="form-label text-white small mb-1">Subheading Size</label>
-                                <select class="form-select form-select-sm" id="heroSubSizeCtrl" data-style-target="hero-sub" data-style-prop="fontSize">
-                                    <option value="">Default</option><option value="16px">16px</option><option value="20px">20px</option><option value="24px">24px</option>
+                                <select class="form-select form-select-sm" data-style-target="hero-sub" data-style-prop="fontSize">
+                                    <option value="">Default</option>
+                                    <option value="16px">16px</option>
+                                    <option value="20px">20px</option>
+                                    <option value="24px">24px</option>
                                 </select>
                             </div>
                             <div class="col-auto">
                                 <label class="form-label text-white small mb-1">Subheading Color</label>
-                                <input type="color" class="form-control form-control-color form-control-sm" id="heroSubColorCtrl" data-style-target="hero-sub" data-style-prop="color" value="#ffffff">
+                                <input type="color" class="form-control form-control-color form-control-sm" data-style-target="hero-sub" data-style-prop="color" value="#ffffff">
                             </div>
                             <div class="col-auto">
                                 <button type="button" class="btn btn-light btn-sm mt-4" data-style-target="hero-main" data-style-prop="fontWeight" data-style-toggle="700">Bold Heading</button>
@@ -97,6 +104,7 @@
                             </div>
                         </div>
                     </div>
+
                     <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
                     <p class="lead mb-3 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
                     <label class="btn btn-warning btn-sm fw-bold mb-0">
@@ -120,6 +128,11 @@
                 </div>
             </div>
                     <div class="vendor-banner-thumbs-wrap">
+                <div class="small text-muted mb-2">Banner images</div>
+                <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
+            </div>
+
+            <div class="vendor-banner-thumbs-wrap">
                 <div class="small text-muted mb-2">Banner images</div>
                 <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
             </div>
