@@ -149,16 +149,12 @@
                     <small class="text-white ms-2" id="bannerUploadStatus">No files selected</small>
                 </div>
             </div>
-                    <div class="vendor-banner-thumbs-wrap">
-                <div class="small text-muted mb-2">Banner images</div>
-                <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
-            </div>
-
-            <div class="vendor-banner-thumbs-wrap">
-                <div class="small text-muted mb-2">Banner images</div>
-                <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
-            </div>
         </section>
+
+        <div class="vendor-banner-thumbs-wrap mb-4">
+            <div class="small text-muted mb-2">Banner images</div>
+            <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
+        </div>
 
         <div class="vendor-form-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
