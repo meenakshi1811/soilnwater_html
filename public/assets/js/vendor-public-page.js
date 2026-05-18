@@ -5,7 +5,9 @@
     var slidesList = document.getElementById('bannerSlidesList');
     var thumbsWrap = document.getElementById('bannerThumbs');
     var bannerInput = document.getElementById('bannerSlidesInput');
+    var publicPageForm = document.getElementById('publicPageForm');
     var pendingUploadFiles = [];
+    var bannerDeleteBase = publicPageForm?.dataset.bannerDeleteUrl || '/vendor/banner-slides/';
 
     function syncEditable(target) {
         var key = target.dataset.syncTarget;
@@ -41,6 +43,55 @@
         return block.querySelector('[data-sync-html="1"][contenteditable="true"]');
     }
 
+    function selectAllContents(editable) {
+        editable.focus();
+        var range = document.createRange();
+        range.selectNodeContents(editable);
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        return selection;
+    }
+
+    function applySectionStyle(editable, prop, value) {
+        if (!editable) return;
+
+        var selection = selectAllContents(editable);
+        document.execCommand('styleWithCSS', false, true);
+
+        if (prop === 'color') {
+            document.execCommand('foreColor', false, value);
+        } else if (prop === 'backgroundColor') {
+            if (!document.execCommand('hiliteColor', false, value)) {
+                document.execCommand('backColor', false, value);
+            }
+        }
+
+        selection.removeAllRanges();
+        syncEditable(editable);
+    }
+
+    function initHeroStyleControls() {
+        document.querySelectorAll('[data-style-target][data-style-prop]').forEach(function (control) {
+            var target = control.dataset.styleTarget;
+            var prop = control.dataset.styleProp;
+            var hidden = document.querySelector('[data-style-input="' + target + '"][data-style-prop="' + prop + '"]');
+            if (!hidden || !hidden.value) return;
+
+            if (control.tagName === 'SELECT' || control.type === 'color') {
+                control.value = hidden.value;
+            }
+        });
+
+        document.querySelectorAll('[data-style-toggle]').forEach(function (btn) {
+            var editEl = document.querySelector('[data-sync-target="' + btn.dataset.styleTarget + '"]');
+            if (!editEl) return;
+            var isActive = editEl.style[btn.dataset.styleProp] === btn.dataset.styleToggle;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    }
+
     function syncBannerInputFiles() {
         if (!bannerInput) return;
         var dt = new DataTransfer();
@@ -48,7 +99,7 @@
         bannerInput.files = dt.files;
 
         var status = document.getElementById('bannerUploadStatus');
-        if (status) status.textContent = pendingUploadFiles.length ? (pendingUploadFiles.length + ' file(s) selected') : 'No files selected';
+        if (status) status.textContent = pendingUploadFiles.length ? (pendingUploadFiles.length + ' file(s) ready to upload') : 'No new files selected';
     }
 
     function renderBannerThumbs() {
@@ -87,6 +138,79 @@
         renderBannerThumbs();
     }
 
+    function getVisibleSectionBlocks() {
+        if (!container) return [];
+        return Array.from(container.querySelectorAll('.vendor-section-block')).filter(function (block) {
+            return block.style.display !== 'none' && block.querySelector('.section-delete-flag')?.value !== '1';
+        });
+    }
+
+    function updateSectionIds(sections) {
+        if (!sections || !sections.length) return;
+
+        var blocks = getVisibleSectionBlocks();
+        blocks.forEach(function (block, idx) {
+            var data = sections[idx];
+            if (!data) return;
+
+            var idInput = block.querySelector('input[name*="[id]"]');
+            if (!idInput) {
+                idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                var index = block.dataset.sectionIndex;
+                idInput.name = 'sections[' + index + '][id]';
+                var anchor = block.querySelector('.section-delete-flag');
+                if (anchor) {
+                    anchor.insertAdjacentElement('afterend', idInput);
+                } else {
+                    block.prepend(idInput);
+                }
+            }
+            idInput.value = data.id;
+
+            if (data.image_url) {
+                var previewImg = block.querySelector('.section-live-image');
+                if (previewImg) previewImg.src = data.image_url;
+            }
+        });
+    }
+
+    function refreshBannerSlides(slides) {
+        if (!slidesList || !slides || !slides.length) return;
+
+        slidesList.innerHTML = '';
+        slides.forEach(function (slide, idx) {
+            var item = document.createElement('div');
+            item.className = 'carousel-item vendor-banner-slide' + (idx === 0 ? ' active' : '');
+            item.dataset.id = slide.id;
+            item.style.backgroundImage = 'url("' + slide.image_url + '")';
+            slidesList.appendChild(item);
+        });
+
+        pendingUploadFiles = [];
+        syncBannerInputFiles();
+        renderBannerThumbs();
+    }
+
+    function updateLogoPreview(logoUrl) {
+        var wrap = document.getElementById('logoPreviewWrap');
+        var nameEl = document.getElementById('storeNamePreview');
+        if (!wrap) return;
+
+        if (logoUrl) {
+            wrap.innerHTML =
+                '<img src="' + logoUrl + '" alt="Store logo" class="vendor-logo-dropzone-img" id="logoPreviewImg">' +
+                '<span class="vendor-logo-dropzone-hint"><i class="fa-solid fa-camera"></i> Change logo</span>';
+            if (nameEl) nameEl.classList.add('d-none');
+        } else {
+            wrap.innerHTML =
+                '<span class="vendor-logo-dropzone-placeholder" id="logoPlaceholder">' +
+                '<i class="fa-solid fa-store"></i><span>Add logo</span></span>' +
+                '<span class="vendor-logo-dropzone-hint"><i class="fa-solid fa-camera"></i> Upload</span>';
+            if (nameEl) nameEl.classList.remove('d-none');
+        }
+    }
+
     document.getElementById('addSectionBtn')?.addEventListener('click', function () {
         if (!template || !container) return;
         var html = template.innerHTML.replace(/__INDEX__/g, sectionIndex++);
@@ -112,22 +236,15 @@
         if (e.target.matches('[data-section-style]')) {
             var sectionEditable = getActiveSectionEditable(e.target);
             if (!sectionEditable) return;
-
-            var styleProp = e.target.dataset.sectionStyle;
-            if (sectionEditable.dataset.syncHtml === '1') {
-                sectionEditable.style[styleProp] = e.target.value;
-            } else {
-                sectionEditable.style[styleProp] = e.target.value;
-            }
-
-            syncEditable(sectionEditable);
+            applySectionStyle(sectionEditable, e.target.dataset.sectionStyle, e.target.value);
         }
 
         if (e.target.matches('[data-section-command="fontSize"]')) {
             var sectionEditable = getActiveSectionEditable(e.target);
             if (!sectionEditable) return;
-            sectionEditable.focus();
+            selectAllContents(sectionEditable);
             document.execCommand('fontSize', false, e.target.value);
+            window.getSelection().removeAllRanges();
             syncEditable(sectionEditable);
         }
 
@@ -141,6 +258,19 @@
             }
         }
 
+        if (e.target.id === 'logoInput') {
+            var file = e.target.files && e.target.files[0];
+            if (!file) return;
+            var previewUrl = URL.createObjectURL(file);
+            var wrap = document.getElementById('logoPreviewWrap');
+            var nameEl = document.getElementById('storeNamePreview');
+            if (wrap) {
+                wrap.innerHTML =
+                    '<img src="' + previewUrl + '" alt="Logo preview" class="vendor-logo-dropzone-img" id="logoPreviewImg">' +
+                    '<span class="vendor-logo-dropzone-hint"><i class="fa-solid fa-camera"></i> Change logo</span>';
+            }
+            if (nameEl) nameEl.classList.add('d-none');
+        }
     });
 
     document.addEventListener('click', function (e) {
@@ -176,6 +306,8 @@
                 editEl.style[prop] = nextValue;
                 syncStyleInput(styleBtn.dataset.styleTarget, prop, nextValue);
             });
+            styleBtn.classList.toggle('active', editEls[0].style[prop] === activeValue);
+            styleBtn.setAttribute('aria-pressed', editEls[0].style[prop] === activeValue ? 'true' : 'false');
         }
 
         if (e.target.closest('.js-remove-thumb')) {
@@ -186,7 +318,7 @@
 
             if (slide.dataset.id) {
                 if (!confirm('Remove this banner slide?')) return;
-                fetch('/vendor/banner-slides/' + slide.dataset.id, {
+                fetch(bannerDeleteBase + slide.dataset.id, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -216,7 +348,7 @@
             var btn = e.target.closest('.js-remove-slide');
             var id = btn.dataset.id;
             if (!confirm('Remove this banner slide?')) return;
-            fetch('/vendor/banner-slides/' + id, {
+            fetch(bannerDeleteBase + id, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -252,8 +384,8 @@
     });
 
     renderBannerThumbs();
+    initHeroStyleControls();
 
-    var publicPageForm = document.getElementById('publicPageForm');
     publicPageForm?.addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -281,11 +413,26 @@
             });
         }).then(function (result) {
             if (result.ok) {
+                if (result.data.sections) {
+                    updateSectionIds(result.data.sections);
+                }
+                if (result.data.banner_slides) {
+                    refreshBannerSlides(result.data.banner_slides);
+                }
+                if (Object.prototype.hasOwnProperty.call(result.data, 'logo_url')) {
+                    updateLogoPreview(result.data.logo_url);
+                }
                 if (window.toastr && typeof window.toastr.success === 'function') {
-                    window.toastr.success(result.data.message || 'Saved successfully.');
+                    window.toastr.success(result.data.message || 'Saved successfully. Open Live Preview to see your store.');
                 }
             } else {
                 var message = result.data?.message || 'Unable to save changes.';
+                if (result.data?.errors) {
+                    var firstError = Object.values(result.data.errors)[0];
+                    if (Array.isArray(firstError) && firstError[0]) {
+                        message = firstError[0];
+                    }
+                }
                 if (window.toastr && typeof window.toastr.error === 'function') {
                     window.toastr.error(message);
                 }

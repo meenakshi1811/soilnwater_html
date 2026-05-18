@@ -9,12 +9,16 @@
 @endpush
 
 @section('content')
+@php
+    $heroMainColor = old('hero_main_style.color', $vendor->hero_main_style['color'] ?? '#ffffff');
+    $heroSubColor = old('hero_sub_style.color', $vendor->hero_sub_style['color'] ?? '#ffffff');
+@endphp
 <div class="admin-panel ems-page vendor-public-live-editor">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <p class="ems-kicker mb-1">Vendor Panel</p>
             <h2 class="admin-title mb-0">Manage Website</h2>
-            <p class="text-muted small mb-0">This editor matches your public preview. Click any highlighted text to edit.</p>
+            <p class="text-muted small mb-0">Edit your store below, click <strong>Save Changes</strong>, then open <strong>Live Preview</strong> to see the published look.</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('vendor.public-page.preview') }}" target="_blank" class="btn btn-outline-secondary">
@@ -30,7 +34,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <form id="publicPageForm" method="POST" action="{{ route('vendor.public-page.update') }}" enctype="multipart/form-data" class="vendor-store-page vendor-preview-edit-mode">
+    <form id="publicPageForm" method="POST" action="{{ route('vendor.public-page.update') }}" enctype="multipart/form-data" class="vendor-store-page vendor-preview-edit-mode" data-banner-delete-url="{{ url('vendor/banner-slides') }}/">
         @csrf
         @method('PUT')
 
@@ -43,126 +47,170 @@
         <input type="text" name="address" value="{{ old('address', $vendor->address) }}" data-sync-input="address" hidden>
         <input type="url" name="facebook_url" value="{{ old('facebook_url', $vendor->facebook_url) }}" hidden>
         <input type="url" name="instagram_url" value="{{ old('instagram_url', $vendor->instagram_url) }}" hidden>
-        <input type="hidden" name="hero_main_style[color]" data-style-input="hero-main" data-style-prop="color" value="{{ old('hero_main_style.color', $vendor->hero_main_style['color'] ?? '') }}">
+        <input type="hidden" name="hero_main_style[color]" data-style-input="hero-main" data-style-prop="color" value="{{ $heroMainColor }}">
         <input type="hidden" name="hero_main_style[fontSize]" data-style-input="hero-main" data-style-prop="fontSize" value="{{ old('hero_main_style.fontSize', $vendor->hero_main_style['fontSize'] ?? '') }}">
         <input type="hidden" name="hero_main_style[fontFamily]" data-style-input="hero-main" data-style-prop="fontFamily" value="{{ old('hero_main_style.fontFamily', $vendor->hero_main_style['fontFamily'] ?? '') }}">
         <input type="hidden" name="hero_main_style[fontWeight]" data-style-input="hero-main" data-style-prop="fontWeight" value="{{ old('hero_main_style.fontWeight', $vendor->hero_main_style['fontWeight'] ?? '') }}">
-        <input type="hidden" name="hero_sub_style[color]" data-style-input="hero-sub" data-style-prop="color" value="{{ old('hero_sub_style.color', $vendor->hero_sub_style['color'] ?? '') }}">
+        <input type="hidden" name="hero_sub_style[color]" data-style-input="hero-sub" data-style-prop="color" value="{{ $heroSubColor }}">
         <input type="hidden" name="hero_sub_style[fontSize]" data-style-input="hero-sub" data-style-prop="fontSize" value="{{ old('hero_sub_style.fontSize', $vendor->hero_sub_style['fontSize'] ?? '') }}">
         <input type="hidden" name="hero_sub_style[fontFamily]" data-style-input="hero-sub" data-style-prop="fontFamily" value="{{ old('hero_sub_style.fontFamily', $vendor->hero_sub_style['fontFamily'] ?? '') }}">
         <input type="hidden" name="hero_sub_style[fontWeight]" data-style-input="hero-sub" data-style-prop="fontWeight" value="{{ old('hero_sub_style.fontWeight', $vendor->hero_sub_style['fontWeight'] ?? '') }}">
 
-        <header class="vendor-store-header mb-3">
-            <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3 py-3">
-                <h4 class="vendor-live-editable mb-0" contenteditable="true" data-sync-target="display-name">{{ old('display_name', $vendor->display_name ?: 'Business Name') }}</h4>
-                <div class="d-flex gap-2 align-items-center">
-                    <span class="input-group input-group-sm" style="max-width:280px;">
-                        <span class="input-group-text">/store/</span>
-                        <input type="text" name="slug" class="form-control" value="{{ old('slug', $vendor->slug) }}" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*">
-                    </span>
-                    <input type="file" name="logo" class="form-control form-control-sm" accept="image/*" style="max-width:220px;">
+        <div class="vendor-editor-panel mb-3">
+            <div class="vendor-editor-panel-head">
+                <i class="fa-solid fa-store text-primary"></i>
+                <div>
+                    <strong>Store header</strong>
+                    <p class="mb-0 small text-muted">This matches your live store. Click the logo box to upload or change your logo.</p>
                 </div>
             </div>
-        </header>
-
-        <section class="vendor-store-hero mb-4">
-            @if($vendor->bannerSlides->count())
-                <div id="storeHeroCarousel" class="carousel slide h-100" data-bs-ride="carousel">
-                    <div class="carousel-inner h-100" id="bannerSlidesList">
-                        @foreach($vendor->bannerSlides as $i => $slide)
-                            <div class="carousel-item {{ $i === 0 ? 'active' : '' }} vendor-banner-slide" data-id="{{ $slide->id }}" style="background-image:url('{{ asset($slide->image_path) }}')">
-                                <button type="button" class="btn btn-danger btn-sm vendor-slide-remove js-remove-slide" data-id="{{ $slide->id }}"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        @endforeach
+            <header class="vendor-store-header vendor-header-preview">
+                <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3 py-3">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <label class="vendor-logo-dropzone mb-0" for="logoInput" title="Click to upload your store logo">
+                            <span class="vendor-logo-dropzone-inner" id="logoPreviewWrap">
+                                @if($vendor->logo)
+                                    <img src="{{ asset($vendor->logo) }}" alt="Store logo" class="vendor-logo-dropzone-img" id="logoPreviewImg">
+                                @else
+                                    <span class="vendor-logo-dropzone-placeholder" id="logoPlaceholder">
+                                        <i class="fa-solid fa-image"></i>
+                                        <span>Add logo</span>
+                                    </span>
+                                @endif
+                                <span class="vendor-logo-dropzone-hint"><i class="fa-solid fa-camera"></i> {{ $vendor->logo ? 'Change' : 'Upload' }}</span>
+                            </span>
+                            <input type="file" name="logo" id="logoInput" class="d-none" accept="image/*">
+                        </label>
+                        <strong class="fs-4 mb-0 vendor-store-name-fallback {{ $vendor->logo ? 'd-none' : '' }}" id="storeNamePreview">{{ $vendor->publicDisplayName() }}</strong>
                     </div>
+                    <nav class="vendor-store-nav d-none d-md-flex text-muted small">
+                        <span>Home</span>
+                        <span>Products</span>
+                        <span>Contact</span>
+                    </nav>
                 </div>
-            @else
-                <div class="carousel-inner h-100" id="bannerSlidesList"></div>
-            @endif
+            </header>
+            <div class="vendor-store-url-row px-3 pb-3">
+                <label class="form-label small text-muted mb-1">Your store link</label>
+                <div class="input-group input-group-sm" style="max-width:360px;">
+                    <span class="input-group-text">{{ url('/store') }}/</span>
+                    <input type="text" name="slug" class="form-control" value="{{ old('slug', $vendor->slug) }}" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="your-store-name">
+                </div>
+            </div>
+        </div>
 
-            <div class="hero-overlay">
-                <div class="container">
-                    <div class="vendor-hero-tools mb-3">
-                        <div class="row g-2 align-items-end">
-                            <div class="col-auto">
-                                <label class="form-label text-white small mb-1">Heading Font</label>
-                                <select class="form-select form-select-sm" data-style-target="hero-main" data-style-prop="fontFamily">
-                                    <option value="">Default</option>
-                                    <option value="Arial, sans-serif">Arial</option>
-                                    <option value="'Poppins', sans-serif">Poppins</option>
-                                    <option value="Georgia, serif">Georgia</option>
-                                    <option value="'Times New Roman', serif">Times New Roman</option>
-                                </select>
-                            </div>
-                            <div class="col-auto">
-                                <label class="form-label text-white small mb-1">Heading Size</label>
-                                <select class="form-select form-select-sm" data-style-target="hero-main" data-style-prop="fontSize">
-                                    <option value="">Default</option>
-                                    <option value="32px">32px</option>
-                                    <option value="36px">36px</option>
-                                    <option value="42px">42px</option>
-                                    <option value="48px">48px</option>
-                                    <option value="56px">56px</option>
-                                </select>
-                            </div>
-                            <div class="col-auto">
-                                <label class="form-label text-white small mb-1">Heading Color</label>
-                                <input type="color" class="form-control form-control-color form-control-sm" data-style-target="hero-main" data-style-prop="color" value="#ffffff">
-                            </div>
-                            <div class="col-auto">
-                                <label class="form-label text-white small mb-1">Subheading Font</label>
-                                <select class="form-select form-select-sm" data-style-target="hero-sub" data-style-prop="fontFamily">
-                                    <option value="">Default</option>
-                                    <option value="Arial, sans-serif">Arial</option>
-                                    <option value="'Poppins', sans-serif">Poppins</option>
-                                    <option value="Georgia, serif">Georgia</option>
-                                    <option value="'Times New Roman', serif">Times New Roman</option>
-                                </select>
-                            </div>
-                            <div class="col-auto">
-                                <label class="form-label text-white small mb-1">Subheading Size</label>
-                                <select class="form-select form-select-sm" data-style-target="hero-sub" data-style-prop="fontSize">
-                                    <option value="">Default</option>
-                                    <option value="16px">16px</option>
-                                    <option value="18px">18px</option>
-                                    <option value="20px">20px</option>
-                                    <option value="24px">24px</option>
-                                    <option value="28px">28px</option>
-                                </select>
-                            </div>
-                            <div class="col-auto">
-                                <label class="form-label text-white small mb-1">Subheading Color</label>
-                                <input type="color" class="form-control form-control-color form-control-sm" data-style-target="hero-sub" data-style-prop="color" value="#ffffff">
-                            </div>
-                            <div class="col-auto">
-                                <button type="button" class="btn btn-light btn-sm mt-4" data-style-target="hero-main" data-style-prop="fontWeight" data-style-toggle="700">Bold Heading</button>
-                            </div>
-                            <div class="col-auto">
-                                <button type="button" class="btn btn-light btn-sm mt-4" data-style-target="hero-sub" data-style-prop="fontWeight" data-style-toggle="700">Bold Subheading</button>
-                            </div>
+        <div class="vendor-editor-panel mb-4">
+            <div class="vendor-editor-panel-head">
+                <i class="fa-solid fa-panorama text-primary"></i>
+                <div>
+                    <strong>Hero banner</strong>
+                    <p class="mb-0 small text-muted">Upload banner images and customize the main heading text below.</p>
+                </div>
+            </div>
+            <section class="vendor-store-hero">
+                @if($vendor->bannerSlides->count())
+                    <div id="storeHeroCarousel" class="carousel slide h-100" data-bs-ride="carousel">
+                        <div class="carousel-inner h-100" id="bannerSlidesList">
+                            @foreach($vendor->bannerSlides as $i => $slide)
+                                <div class="carousel-item {{ $i === 0 ? 'active' : '' }} vendor-banner-slide" data-id="{{ $slide->id }}" style="background-image:url('{{ asset($slide->image_path) }}')">
+                                    <button type="button" class="btn btn-danger btn-sm vendor-slide-remove js-remove-slide" data-id="{{ $slide->id }}"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
+                @else
+                    <div class="carousel-inner h-100" id="bannerSlidesList"></div>
+                @endif
 
-                    <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
-                    <p class="lead mb-3 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
-                    <label class="btn btn-warning btn-sm fw-bold mb-0">
-                        Upload Banner Images
-                        <input type="file" name="banner_slides[]" class="d-none" accept="image/*" multiple id="bannerSlidesInput">
-                    </label>
-                    <small class="text-white ms-2" id="bannerUploadStatus">No files selected</small>
+                <div class="hero-overlay">
+                    <div class="container">
+                        <div class="vendor-hero-tools mb-3 p-3 rounded">
+                            <p class="text-white small mb-2 fw-semibold"><i class="fa-solid fa-palette me-1"></i> Heading style</p>
+                            <div class="row g-2 align-items-end">
+                                <div class="col-auto">
+                                    <label class="form-label text-white small mb-1">Main font</label>
+                                    <select class="form-select form-select-sm" data-style-target="hero-main" data-style-prop="fontFamily">
+                                        <option value="">Default</option>
+                                        <option value="Arial, sans-serif">Arial</option>
+                                        <option value="'Poppins', sans-serif">Poppins</option>
+                                        <option value="Georgia, serif">Georgia</option>
+                                        <option value="'Times New Roman', serif">Times New Roman</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label text-white small mb-1">Main size</label>
+                                    <select class="form-select form-select-sm" data-style-target="hero-main" data-style-prop="fontSize">
+                                        <option value="">Default</option>
+                                        <option value="32px">32px</option>
+                                        <option value="36px">36px</option>
+                                        <option value="42px">42px</option>
+                                        <option value="48px">48px</option>
+                                        <option value="56px">56px</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label text-white small mb-1">Main color</label>
+                                    <input type="color" class="form-control form-control-color form-control-sm" data-style-target="hero-main" data-style-prop="color" value="{{ $heroMainColor }}">
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label text-white small mb-1">Sub font</label>
+                                    <select class="form-select form-select-sm" data-style-target="hero-sub" data-style-prop="fontFamily">
+                                        <option value="">Default</option>
+                                        <option value="Arial, sans-serif">Arial</option>
+                                        <option value="'Poppins', sans-serif">Poppins</option>
+                                        <option value="Georgia, serif">Georgia</option>
+                                        <option value="'Times New Roman', serif">Times New Roman</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label text-white small mb-1">Sub size</label>
+                                    <select class="form-select form-select-sm" data-style-target="hero-sub" data-style-prop="fontSize">
+                                        <option value="">Default</option>
+                                        <option value="16px">16px</option>
+                                        <option value="18px">18px</option>
+                                        <option value="20px">20px</option>
+                                        <option value="24px">24px</option>
+                                        <option value="28px">28px</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label text-white small mb-1">Sub color</label>
+                                    <input type="color" class="form-control form-control-color form-control-sm" data-style-target="hero-sub" data-style-prop="color" value="{{ $heroSubColor }}">
+                                </div>
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-light btn-sm mt-4" data-style-target="hero-main" data-style-prop="fontWeight" data-style-toggle="700">Bold main</button>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-light btn-sm mt-4" data-style-target="hero-sub" data-style-prop="fontWeight" data-style-toggle="700">Bold sub</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-white-50 small mb-1">Click text to edit</p>
+                        <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
+                        <p class="lead mb-3 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
+                        <label class="btn btn-warning btn-sm fw-bold mb-0">
+                            <i class="fa-solid fa-upload me-1"></i> Upload banner images
+                            <input type="file" name="banner_slides[]" class="d-none" accept="image/*" multiple id="bannerSlidesInput">
+                        </label>
+                        <small class="text-white ms-2" id="bannerUploadStatus">No new files selected</small>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
 
         <div class="vendor-banner-thumbs-wrap mb-4">
-            <div class="small text-muted mb-2">Banner images</div>
+            <div class="small text-muted mb-2"><i class="fa-solid fa-images me-1"></i> Banner thumbnails — click to preview, × to remove</div>
             <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
         </div>
 
         <div class="vendor-form-card mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Page Sections</h5>
-                <button type="button" class="btn btn-sm btn-outline-primary" id="addSectionBtn">+ Add Section</button>
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="mb-0">Custom page sections</h5>
+                    <p class="text-muted small mb-0">Add sections with images and styled text. Save, then check Live Preview.</p>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="addSectionBtn"><i class="fa-solid fa-plus me-1"></i> Add section</button>
             </div>
             <div id="sectionsContainer">
                 @foreach($vendor->pageSections as $i => $section)

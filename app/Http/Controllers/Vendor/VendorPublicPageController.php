@@ -91,9 +91,22 @@ class VendorPublicPageController extends Controller
         $this->syncSections($vendor, $request->input('sections', []), $request);
 
         if ($request->ajax() || $request->wantsJson()) {
+            $vendor = $vendor->fresh()->load(['bannerSlides', 'pageSections']);
+
             return response()->json([
                 'message' => 'Public page saved successfully.',
-                'preview_url' => route('store.show', $vendor->fresh()->slug),
+                'preview_url' => route('vendor.public-page.preview'),
+                'logo_url' => $vendor->logo ? asset($vendor->logo) : null,
+                'sections' => $vendor->pageSections->map(fn ($section) => [
+                    'id' => $section->id,
+                    'title' => $section->title,
+                    'content' => $section->content,
+                    'image_url' => $section->image_path ? asset($section->image_path) : null,
+                ])->values(),
+                'banner_slides' => $vendor->bannerSlides->map(fn ($slide) => [
+                    'id' => $slide->id,
+                    'image_url' => asset($slide->image_path),
+                ])->values(),
             ]);
         }
 
