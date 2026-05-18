@@ -43,6 +43,14 @@
         <input type="text" name="address" value="{{ old('address', $vendor->address) }}" data-sync-input="address" hidden>
         <input type="url" name="facebook_url" value="{{ old('facebook_url', $vendor->facebook_url) }}" hidden>
         <input type="url" name="instagram_url" value="{{ old('instagram_url', $vendor->instagram_url) }}" hidden>
+        <input type="hidden" name="hero_main_style[color]" data-style-input="hero-main" data-style-prop="color" value="{{ old('hero_main_style.color', $vendor->hero_main_style['color'] ?? '') }}">
+        <input type="hidden" name="hero_main_style[fontSize]" data-style-input="hero-main" data-style-prop="fontSize" value="{{ old('hero_main_style.fontSize', $vendor->hero_main_style['fontSize'] ?? '') }}">
+        <input type="hidden" name="hero_main_style[fontFamily]" data-style-input="hero-main" data-style-prop="fontFamily" value="{{ old('hero_main_style.fontFamily', $vendor->hero_main_style['fontFamily'] ?? '') }}">
+        <input type="hidden" name="hero_main_style[fontWeight]" data-style-input="hero-main" data-style-prop="fontWeight" value="{{ old('hero_main_style.fontWeight', $vendor->hero_main_style['fontWeight'] ?? '') }}">
+        <input type="hidden" name="hero_sub_style[color]" data-style-input="hero-sub" data-style-prop="color" value="{{ old('hero_sub_style.color', $vendor->hero_sub_style['color'] ?? '') }}">
+        <input type="hidden" name="hero_sub_style[fontSize]" data-style-input="hero-sub" data-style-prop="fontSize" value="{{ old('hero_sub_style.fontSize', $vendor->hero_sub_style['fontSize'] ?? '') }}">
+        <input type="hidden" name="hero_sub_style[fontFamily]" data-style-input="hero-sub" data-style-prop="fontFamily" value="{{ old('hero_sub_style.fontFamily', $vendor->hero_sub_style['fontFamily'] ?? '') }}">
+        <input type="hidden" name="hero_sub_style[fontWeight]" data-style-input="hero-sub" data-style-prop="fontWeight" value="{{ old('hero_sub_style.fontWeight', $vendor->hero_sub_style['fontWeight'] ?? '') }}">
 
         <header class="vendor-store-header mb-3">
             <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3 py-3">
@@ -135,8 +143,8 @@
                         </div>
                     </div>
 
-                    <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
-                    <p class="lead mb-3 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
+                    <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
+                    <p class="lead mb-3 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
                     <label class="btn btn-warning btn-sm fw-bold mb-0">
                         Upload Banner Images
                         <input type="file" name="banner_slides[]" class="d-none" accept="image/*" multiple id="bannerSlidesInput">

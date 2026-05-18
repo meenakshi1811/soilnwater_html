@@ -28,6 +28,10 @@ class VendorPublicPageController extends Controller
         $validated = $request->validate([
             'hero_main_heading' => ['nullable', 'string', 'max:255'],
             'hero_sub_heading' => ['nullable', 'string', 'max:500'],
+            'hero_main_style' => ['nullable', 'array'],
+            'hero_main_style.*' => ['nullable', 'string', 'max:255'],
+            'hero_sub_style' => ['nullable', 'array'],
+            'hero_sub_style.*' => ['nullable', 'string', 'max:255'],
             'display_name' => ['nullable', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:vendors,slug,'.$vendor->id],
             'phone' => ['nullable', 'string', 'max:20'],
@@ -55,6 +59,8 @@ class VendorPublicPageController extends Controller
         $updateData = collect($validated)->only([
             'hero_main_heading',
             'hero_sub_heading',
+            'hero_main_style',
+            'hero_sub_style',
             'display_name',
             'slug',
             'phone',

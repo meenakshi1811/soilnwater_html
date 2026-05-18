@@ -28,6 +28,11 @@
         return document.querySelectorAll('[data-sync-target="' + key + '"]');
     }
 
+    function syncStyleInput(styleTarget, styleProp, styleValue) {
+        var input = document.querySelector('[data-style-input="' + styleTarget + '"][data-style-prop="' + styleProp + '"]');
+        if (input) input.value = styleValue || '';
+    }
+
     function getActiveSectionEditable(triggerEl) {
         var block = triggerEl.closest('.vendor-section-block');
         if (!block) return null;
@@ -104,6 +109,7 @@
             if (!els.length) return;
             els.forEach(function (el) {
                 el.style[e.target.dataset.styleProp] = e.target.value;
+                syncStyleInput(e.target.dataset.styleTarget, e.target.dataset.styleProp, e.target.value);
             });
         }
 
@@ -170,7 +176,9 @@
             var prop = styleBtn.dataset.styleProp;
             var activeValue = styleBtn.dataset.styleToggle;
             editEls.forEach(function (editEl) {
-                editEl.style[prop] = editEl.style[prop] === activeValue ? '' : activeValue;
+                var nextValue = editEl.style[prop] === activeValue ? '' : activeValue;
+                editEl.style[prop] = nextValue;
+                syncStyleInput(styleBtn.dataset.styleTarget, prop, nextValue);
             });
         }
 
