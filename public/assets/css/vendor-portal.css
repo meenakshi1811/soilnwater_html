@@ -143,3 +143,36 @@
     right: 12px;
     z-index: 3;
 }
+
+.vendor-hero-tools .form-select,
+.vendor-hero-tools .form-control-color {
+    min-width: 90px;
+}
+
+.vendor-banner-thumbs-wrap {
+    background: #fff;
+    border: 1px solid #e8ecef;
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+
+.vendor-banner-thumbs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+}
+
+.vendor-banner-thumb-btn {
+    width: 96px;
+    height: 56px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-size: cover;
+    background-position: center;
+    flex: 0 0 auto;
+}
+
+.vendor-banner-thumb-btn.active,
+.vendor-banner-thumb-btn:hover {
+    border-color: #0d6efd;
+}
