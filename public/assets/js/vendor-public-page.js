@@ -105,7 +105,20 @@
         if (e.target.matches('[data-section-style]')) {
             var sectionEditable = getActiveSectionEditable(e.target);
             if (!sectionEditable) return;
-            sectionEditable.style[e.target.dataset.sectionStyle] = e.target.value;
+
+            var styleProp = e.target.dataset.sectionStyle;
+            if (sectionEditable.dataset.syncHtml === '1') {
+                sectionEditable.focus();
+                document.execCommand('styleWithCSS', false, true);
+                if (styleProp === 'color') {
+                    document.execCommand('foreColor', false, e.target.value);
+                } else if (styleProp === 'backgroundColor') {
+                    document.execCommand('hiliteColor', false, e.target.value);
+                }
+            } else {
+                sectionEditable.style[styleProp] = e.target.value;
+            }
+
             syncEditable(sectionEditable);
         }
 
