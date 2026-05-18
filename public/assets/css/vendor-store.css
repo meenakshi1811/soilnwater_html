@@ -74,6 +74,14 @@
     background: #f8f9fa;
 }
 
+.vendor-section-title-display,
+.vendor-section-title-block {
+    text-align: center;
+    font-weight: 700;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    margin-bottom: 2rem;
+}
+
 .vendor-store-section h2 {
     text-align: center;
     font-weight: 700;

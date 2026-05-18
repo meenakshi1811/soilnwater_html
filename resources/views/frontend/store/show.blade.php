@@ -103,7 +103,7 @@
     @foreach($vendor->pageSections as $section)
         <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section">
             <div class="container">
-                <h2>{!! $section->title !!}</h2>
+                <div class="vendor-section-title-display">{!! $section->title !!}</div>
                 <div class="row g-4 align-items-center">
                     @if($section->image_path)
                         <div class="col-lg-6">

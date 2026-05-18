@@ -318,3 +318,22 @@
     color: #fff;
     border-color: #0d6efd;
 }
+
+.vendor-section-editable-active {
+    outline: 2px solid #0d6efd !important;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+}
+
+.vendor-section-title-editor {
+    text-align: center;
+    font-weight: 700;
+}
+
+.vendor-section-active-badge {
+    font-size: 0.75rem;
+}
+
+#toast-container {
+    z-index: 99999 !important;
+}

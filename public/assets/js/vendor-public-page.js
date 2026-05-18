@@ -8,18 +8,76 @@
     var publicPageForm = document.getElementById('publicPageForm');
     var pendingUploadFiles = [];
     var bannerDeleteBase = publicPageForm?.dataset.bannerDeleteUrl || '/vendor/banner-slides/';
+    var activeSectionEditable = null;
+
+    function showToast(type, message) {
+        if (window.toastr && typeof window.toastr[type] === 'function') {
+            window.toastr[type](message);
+            return;
+        }
+        if (window.jQuery && window.jQuery.toastr && typeof window.jQuery.toastr[type] === 'function') {
+            window.jQuery.toastr[type](message);
+            return;
+        }
+        alert(message);
+    }
+
+    function parseJsonResponse(res) {
+        return res.text().then(function (text) {
+            if (!text) return {};
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                return { message: res.ok ? 'Saved.' : 'Server returned an unexpected response.' };
+            }
+        });
+    }
 
     function syncEditable(target) {
         var key = target.dataset.syncTarget;
         if (!key) return;
         var input = document.querySelector('[data-sync-input="' + key + '"]');
         if (!input) return;
+
+        if (target.dataset.sectionField === 'title' || target.dataset.sectionField === 'content') {
+            input.value = serializeSectionField(target);
+            return;
+        }
+
         var isSectionTitle = key.indexOf('section-title-') === 0;
         if (target.dataset.syncHtml === '1' || isSectionTitle) {
             input.value = target.innerHTML.trim();
         } else {
             input.value = target.innerText.replace(/\n{2,}/g, '\n').trim();
         }
+    }
+
+    function serializeSectionField(editable) {
+        var style = editable.getAttribute('style') || '';
+        var inner = editable.innerHTML.trim();
+        var blockClass = editable.dataset.sectionField === 'title'
+            ? 'vendor-section-title-block'
+            : 'vendor-section-content-block';
+
+        if (style.trim()) {
+            return '<div class="' + blockClass + '" style="' + style.replace(/"/g, '&quot;') + '">' + inner + '</div>';
+        }
+
+        return inner;
+    }
+
+    function hydrateSectionField(editable) {
+        var input = document.querySelector('[data-sync-input="' + editable.dataset.syncTarget + '"]');
+        if (!input || !input.value) return;
+
+        var wrap = document.createElement('div');
+        wrap.innerHTML = input.value.trim();
+        var block = wrap.querySelector('.vendor-section-title-block, .vendor-section-content-block');
+        if (!block) return;
+
+        var style = block.getAttribute('style');
+        if (style) editable.setAttribute('style', style);
+        editable.innerHTML = block.innerHTML;
     }
 
     function getEditables(key) {
@@ -31,16 +89,33 @@
         if (input) input.value = styleValue || '';
     }
 
+    function setActiveSectionEditable(editable) {
+        if (!editable || !editable.dataset.sectionField) return;
+
+        if (activeSectionEditable && activeSectionEditable !== editable) {
+            activeSectionEditable.classList.remove('vendor-section-editable-active');
+        }
+
+        activeSectionEditable = editable;
+        editable.classList.add('vendor-section-editable-active');
+
+        var block = editable.closest('.vendor-section-block');
+        var label = block?.querySelector('[data-section-active-label]');
+        if (label) {
+            label.textContent = editable.dataset.sectionField === 'title' ? 'Styling: Section title' : 'Styling: Section content';
+        }
+    }
+
     function getActiveSectionEditable(triggerEl) {
         var block = triggerEl.closest('.vendor-section-block');
         if (!block) return null;
 
-        var targetSelect = block.querySelector('[data-section-target]');
-        if (targetSelect && targetSelect.value === 'title') {
-            return block.querySelector('[data-sync-target^="section-title-"][contenteditable="true"]');
+        if (activeSectionEditable && block.contains(activeSectionEditable)) {
+            return activeSectionEditable;
         }
 
-        return block.querySelector('[data-sync-html="1"][contenteditable="true"]');
+        return block.querySelector('[data-section-field="content"][contenteditable="true"]')
+            || block.querySelector('[data-section-field][contenteditable="true"]');
     }
 
     function selectAllContents(editable) {
@@ -53,21 +128,91 @@
         return selection;
     }
 
+    function hasTextSelection(editable) {
+        var sel = window.getSelection();
+        if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return false;
+        var range = sel.getRangeAt(0);
+        return editable.contains(range.commonAncestorContainer);
+    }
+
+    function applyBoxStyle(editable, prop, value) {
+        if (prop === 'color') {
+            editable.style.color = value;
+        } else if (prop === 'backgroundColor') {
+            editable.style.backgroundColor = value;
+            if (value && value !== '#ffffff' && value !== '#fff') {
+                editable.style.padding = editable.dataset.sectionField === 'title' ? '0.65rem 1rem' : '1rem';
+                editable.style.borderRadius = '8px';
+            }
+        }
+        syncEditable(editable);
+    }
+
     function applySectionStyle(editable, prop, value) {
         if (!editable) return;
 
-        var selection = selectAllContents(editable);
-        document.execCommand('styleWithCSS', false, true);
-
-        if (prop === 'color') {
-            document.execCommand('foreColor', false, value);
-        } else if (prop === 'backgroundColor') {
-            if (!document.execCommand('hiliteColor', false, value)) {
-                document.execCommand('backColor', false, value);
-            }
+        if (editable.dataset.sectionField === 'title') {
+            applyBoxStyle(editable, prop, value);
+            return;
         }
 
-        selection.removeAllRanges();
+        if (prop === 'backgroundColor') {
+            applyBoxStyle(editable, prop, value);
+            return;
+        }
+
+        if (prop === 'color' && hasTextSelection(editable)) {
+            var selection = window.getSelection();
+            document.execCommand('styleWithCSS', false, true);
+            document.execCommand('foreColor', false, value);
+            selection.removeAllRanges();
+            syncEditable(editable);
+            return;
+        }
+
+        if (prop === 'color') {
+            applyBoxStyle(editable, prop, value);
+        }
+    }
+
+    function applySectionFontSize(editable, value) {
+        if (!editable) return;
+
+        if (!value) {
+            editable.style.fontSize = '';
+            syncEditable(editable);
+            return;
+        }
+
+        if (editable.dataset.sectionField === 'title' || !hasTextSelection(editable)) {
+            editable.style.fontSize = value;
+            syncEditable(editable);
+            return;
+        }
+
+        selectAllContents(editable);
+        document.execCommand('styleWithCSS', false, true);
+        document.execCommand('fontSize', false, '7');
+        editable.querySelectorAll('font[size="7"]').forEach(function (fontEl) {
+            fontEl.removeAttribute('size');
+            fontEl.style.fontSize = value;
+        });
+        window.getSelection().removeAllRanges();
+        syncEditable(editable);
+    }
+
+    function applySectionBold(editable) {
+        if (!editable) return;
+
+        if (editable.dataset.sectionField === 'title' || !hasTextSelection(editable)) {
+            var isBold = editable.style.fontWeight === '700' || editable.style.fontWeight === 'bold';
+            editable.style.fontWeight = isBold ? '' : '700';
+            syncEditable(editable);
+            return;
+        }
+
+        editable.focus();
+        document.execCommand('bold', false, null);
         syncEditable(editable);
     }
 
@@ -90,6 +235,10 @@
             btn.classList.toggle('active', isActive);
             btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
+    }
+
+    function initSectionFields() {
+        document.querySelectorAll('[data-section-field][contenteditable="true"]').forEach(hydrateSectionField);
     }
 
     function syncBannerInputFiles() {
@@ -216,7 +365,15 @@
         var html = template.innerHTML.replace(/__INDEX__/g, sectionIndex++);
         var wrap = document.createElement('div');
         wrap.innerHTML = html.trim();
-        container.appendChild(wrap.firstElementChild);
+        var block = wrap.firstElementChild;
+        container.appendChild(block);
+        block.querySelectorAll('[data-section-field][contenteditable="true"]').forEach(hydrateSectionField);
+    });
+
+    document.addEventListener('focusin', function (e) {
+        if (e.target.matches('[data-section-field][contenteditable="true"]')) {
+            setActiveSectionEditable(e.target);
+        }
     });
 
     document.addEventListener('input', function (e) {
@@ -235,17 +392,20 @@
 
         if (e.target.matches('[data-section-style]')) {
             var sectionEditable = getActiveSectionEditable(e.target);
-            if (!sectionEditable) return;
+            if (!sectionEditable) {
+                showToast('warning', 'Click the section title or content box first, then pick a color.');
+                return;
+            }
             applySectionStyle(sectionEditable, e.target.dataset.sectionStyle, e.target.value);
         }
 
         if (e.target.matches('[data-section-command="fontSize"]')) {
             var sectionEditable = getActiveSectionEditable(e.target);
-            if (!sectionEditable) return;
-            selectAllContents(sectionEditable);
-            document.execCommand('fontSize', false, e.target.value);
-            window.getSelection().removeAllRanges();
-            syncEditable(sectionEditable);
+            if (!sectionEditable) {
+                showToast('warning', 'Click the section title or content box first, then choose font size.');
+                return;
+            }
+            applySectionFontSize(sectionEditable, e.target.value);
         }
 
         if (e.target.matches('.js-section-image-input')) {
@@ -289,7 +449,16 @@
         var sectionCmdBtn = e.target.closest('[data-section-command]:not(select)');
         if (sectionCmdBtn) {
             var sectionEditable = getActiveSectionEditable(sectionCmdBtn);
-            if (!sectionEditable) return;
+            if (!sectionEditable) {
+                showToast('warning', 'Click the section title or content box first.');
+                return;
+            }
+
+            if (sectionCmdBtn.dataset.sectionCommand === 'bold') {
+                applySectionBold(sectionEditable);
+                return;
+            }
+
             sectionEditable.focus();
             document.execCommand(sectionCmdBtn.dataset.sectionCommand, false, null);
             syncEditable(sectionEditable);
@@ -385,6 +554,7 @@
 
     renderBannerThumbs();
     initHeroStyleControls();
+    initSectionFields();
 
     publicPageForm?.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -397,6 +567,7 @@
         var oldHtml = saveBtn ? saveBtn.innerHTML : '';
         if (saveBtn) {
             saveBtn.disabled = true;
+            
             saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
         }
 
@@ -407,46 +578,38 @@
                 'Accept': 'application/json'
             },
             body: new FormData(publicPageForm)
-        }).then(function (res) {
-            return res.json().then(function (data) {
-                return { ok: res.ok, data: data };
-            });
-        }).then(function (result) {
-            if (result.ok) {
-                if (result.data.sections) {
-                    updateSectionIds(result.data.sections);
-                }
-                if (result.data.banner_slides) {
-                    refreshBannerSlides(result.data.banner_slides);
-                }
-                if (Object.prototype.hasOwnProperty.call(result.data, 'logo_url')) {
-                    updateLogoPreview(result.data.logo_url);
-                }
-                if (window.toastr && typeof window.toastr.success === 'function') {
-                    window.toastr.success(result.data.message || 'Saved successfully. Open Live Preview to see your store.');
-                }
-            } else {
-                var message = result.data?.message || 'Unable to save changes.';
-                if (result.data?.errors) {
-                    var firstError = Object.values(result.data.errors)[0];
-                    if (Array.isArray(firstError) && firstError[0]) {
-                        message = firstError[0];
+        })
+            .then(function (res) {
+                return parseJsonResponse(res).then(function (data) {
+                    return { ok: res.ok, data: data };
+                });
+            })
+            .then(function (result) {
+                if (result.ok) {
+                    if (result.data.sections) updateSectionIds(result.data.sections);
+                    if (result.data.banner_slides) refreshBannerSlides(result.data.banner_slides);
+                    if (Object.prototype.hasOwnProperty.call(result.data, 'logo_url')) {
+                        updateLogoPreview(result.data.logo_url);
                     }
+                    showToast('success', result.data.message || 'Saved successfully. Open Live Preview to see your store.');
+                } else {
+                    var message = result.data?.message || 'Unable to save changes.';
+                    if (result.data?.errors) {
+                        var firstError = Object.values(result.data.errors)[0];
+                        if (Array.isArray(firstError) && firstError[0]) message = firstError[0];
+                    }
+                    showToast('error', message);
                 }
-                if (window.toastr && typeof window.toastr.error === 'function') {
-                    window.toastr.error(message);
+            })
+            .catch(function () {
+                showToast('error', 'Network error while saving. Please try again.');
+            })
+            .finally(function () {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = oldHtml;
                 }
-            }
-        }).catch(function () {
-            if (window.toastr && typeof window.toastr.error === 'function') {
-                window.toastr.error('Network error while saving. Please try again.');
-            }
-        }).finally(function () {
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = oldHtml;
-            }
-        });
+            });
     });
 
 })();

@@ -226,6 +226,18 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+    if (window.toastr) {
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 4000,
+            extendedTimeOut: 2000
+        };
+    }
+</script>
 <script src="{{ asset('assets/js/vendor-public-page.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
