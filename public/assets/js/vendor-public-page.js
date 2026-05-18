@@ -13,8 +13,8 @@
         input.value = target.innerText.replace(/\n{2,}/g, '\n').trim();
     }
 
-    function getEditable(key) {
-        return document.querySelector('[data-sync-target="' + key + '"]');
+    function getEditables(key) {
+        return document.querySelectorAll('[data-sync-target="' + key + '"]');
     }
 
     function renderBannerThumbs() {
@@ -55,9 +55,11 @@
 
     document.addEventListener('change', function (e) {
         if (e.target.matches('[data-style-target][data-style-prop]')) {
-            var el = getEditable(e.target.dataset.styleTarget);
-            if (!el) return;
-            el.style[e.target.dataset.styleProp] = e.target.value;
+            var els = getEditables(e.target.dataset.styleTarget);
+            if (!els.length) return;
+            els.forEach(function (el) {
+                el.style[e.target.dataset.styleProp] = e.target.value;
+            });
         }
     });
 
@@ -76,11 +78,13 @@
 
         var styleBtn = e.target.closest('[data-style-toggle]');
         if (styleBtn) {
-            var editEl = getEditable(styleBtn.dataset.styleTarget);
-            if (!editEl) return;
+            var editEls = getEditables(styleBtn.dataset.styleTarget);
+            if (!editEls.length) return;
             var prop = styleBtn.dataset.styleProp;
             var activeValue = styleBtn.dataset.styleToggle;
-            editEl.style[prop] = editEl.style[prop] === activeValue ? '' : activeValue;
+            editEls.forEach(function (editEl) {
+                editEl.style[prop] = editEl.style[prop] === activeValue ? '' : activeValue;
+            });
         }
 
         if (e.target.closest('.vendor-banner-thumb-btn')) {
