@@ -12,11 +12,21 @@
         if (!key) return;
         var input = document.querySelector('[data-sync-input="' + key + '"]');
         if (!input) return;
-        input.value = target.innerText.replace(/\n{2,}/g, '\n').trim();
+        if (target.dataset.syncHtml === '1') {
+            input.value = target.innerHTML.trim();
+        } else {
+            input.value = target.innerText.replace(/\n{2,}/g, '\n').trim();
+        }
     }
 
     function getEditables(key) {
         return document.querySelectorAll('[data-sync-target="' + key + '"]');
+    }
+
+    function getActiveSectionEditable(triggerEl) {
+        var block = triggerEl.closest('.vendor-section-block');
+        if (!block) return null;
+        return block.querySelector('[data-sync-html="1"][contenteditable="true"]');
     }
 
     function syncBannerInputFiles() {
@@ -85,6 +95,21 @@
                 el.style[e.target.dataset.styleProp] = e.target.value;
             });
         }
+
+        if (e.target.matches('[data-section-style]')) {
+            var sectionEditable = getActiveSectionEditable(e.target);
+            if (!sectionEditable) return;
+            sectionEditable.style[e.target.dataset.sectionStyle] = e.target.value;
+            syncEditable(sectionEditable);
+        }
+
+        if (e.target.matches('[data-section-command="fontSize"]')) {
+            var sectionEditable = getActiveSectionEditable(e.target);
+            if (!sectionEditable) return;
+            sectionEditable.focus();
+            document.execCommand('fontSize', false, e.target.value);
+            syncEditable(sectionEditable);
+        }
     });
 
     document.addEventListener('click', function (e) {
@@ -98,6 +123,15 @@
             } else {
                 block.remove();
             }
+        }
+
+        var sectionCmdBtn = e.target.closest('[data-section-command]:not(select)');
+        if (sectionCmdBtn) {
+            var sectionEditable = getActiveSectionEditable(sectionCmdBtn);
+            if (!sectionEditable) return;
+            sectionEditable.focus();
+            document.execCommand(sectionCmdBtn.dataset.sectionCommand, false, null);
+            syncEditable(sectionEditable);
         }
 
         var styleBtn = e.target.closest('[data-style-toggle]');
