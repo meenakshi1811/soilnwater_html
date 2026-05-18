@@ -7,11 +7,12 @@
 @endpush
 
 @section('content')
-<div class="admin-panel ems-page">
+<div class="admin-panel ems-page vendor-public-live-editor">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <p class="ems-kicker mb-1">Vendor Panel</p>
             <h2 class="admin-title mb-0">Manage Website</h2>
+            <p class="text-muted mb-0 small">Edit directly on the preview below — changes sync automatically.</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('vendor.public-page.preview') }}" target="_blank" class="btn btn-light">
@@ -27,65 +28,70 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <form id="publicPageForm" method="POST" action="{{ route('vendor.public-page.update') }}" enctype="multipart/form-data" class="vendor-public-editor d-flex flex-column flex-lg-row gap-4">
+    <form id="publicPageForm" method="POST" action="{{ route('vendor.public-page.update') }}" enctype="multipart/form-data" class="vendor-public-editor">
         @csrf
         @method('PUT')
 
-        <div class="editor-main">
-            <div class="vendor-form-card mb-4">
-                <h5 class="mb-3">Hero Banner</h5>
-                <div class="mb-3">
-                    <label class="form-label">Main Heading</label>
-                    <input type="text" name="hero_main_heading" class="form-control" value="{{ old('hero_main_heading', $vendor->hero_main_heading) }}" placeholder="e.g. Smart Digital Signage">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Sub Heading</label>
-                    <input type="text" name="hero_sub_heading" class="form-control" value="{{ old('hero_sub_heading', $vendor->hero_sub_heading) }}">
-                </div>
-                <label class="form-label">Banner Images (Slider)</label>
-                <div class="d-flex flex-wrap gap-2 mb-3" id="bannerSlidesList">
-                    @foreach($vendor->bannerSlides as $slide)
-                        <div class="vendor-banner-thumb" data-id="{{ $slide->id }}">
-                            <img src="{{ asset($slide->image_path) }}" alt="">
-                            <button type="button" class="btn btn-danger btn-sm btn-remove js-remove-slide" data-id="{{ $slide->id }}"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    @endforeach
-                </div>
-                <label class="vendor-upload-zone d-block">
-                    <i class="fa-solid fa-cloud-arrow-up fa-2x text-secondary mb-2"></i>
-                    <p class="mb-0 small text-secondary">Click to upload new slides</p>
-                    <input type="file" name="banner_slides[]" class="d-none" accept="image/*" multiple id="bannerSlidesInput">
-                </label>
+        <input type="text" name="hero_main_heading" value="{{ old('hero_main_heading', $vendor->hero_main_heading) }}" data-sync-input="hero-main" hidden>
+        <input type="text" name="hero_sub_heading" value="{{ old('hero_sub_heading', $vendor->hero_sub_heading) }}" data-sync-input="hero-sub" hidden>
+        <input type="text" name="display_name" value="{{ old('display_name', $vendor->display_name) }}" data-sync-input="display-name" hidden>
+        <input type="text" name="phone" value="{{ old('phone', $vendor->phone) }}" data-sync-input="phone" hidden>
+        <input type="email" name="email" value="{{ old('email', $vendor->email) }}" data-sync-input="email" hidden>
+        <input type="text" name="city" value="{{ old('city', $vendor->city) }}" data-sync-input="city" hidden>
+        <input type="text" name="address" value="{{ old('address', $vendor->address) }}" data-sync-input="address" hidden>
+        <input type="url" name="facebook_url" value="{{ old('facebook_url', $vendor->facebook_url) }}" hidden>
+        <input type="url" name="instagram_url" value="{{ old('instagram_url', $vendor->instagram_url) }}" hidden>
+
+        <div class="vendor-live-preview-card mb-4">
+            <div class="vendor-live-hero">
+                <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
+                <p class="vendor-live-editable" contenteditable="true" data-sync-target="hero-sub">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
             </div>
 
-            <div class="vendor-form-card">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Custom Page Sections</h5>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="addSectionBtn">+ Add Section</button>
-                </div>
-                <div id="sectionsContainer">
-                    @foreach($vendor->pageSections as $i => $section)
-                        @include('backend.vendor.public-page._section', ['index' => $i, 'section' => $section])
-                    @endforeach
-                </div>
+            <h6 class="fw-bold mb-2">Banner Images</h6>
+            <div class="d-flex flex-wrap gap-2 mb-3" id="bannerSlidesList">
+                @foreach($vendor->bannerSlides as $slide)
+                    <div class="vendor-banner-thumb" data-id="{{ $slide->id }}">
+                        <img src="{{ asset($slide->image_path) }}" alt="">
+                        <button type="button" class="btn btn-danger btn-sm btn-remove js-remove-slide" data-id="{{ $slide->id }}"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                @endforeach
+            </div>
+            <label class="vendor-upload-zone d-block mb-0">
+                <i class="fa-solid fa-cloud-arrow-up fa-2x text-secondary mb-2"></i>
+                <p class="mb-0 small text-secondary">Click to upload new slides</p>
+                <input type="file" name="banner_slides[]" class="d-none" accept="image/*" multiple id="bannerSlidesInput">
+            </label>
+        </div>
+
+        <div class="vendor-live-preview-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Page Sections</h5>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="addSectionBtn">+ Add Section</button>
+            </div>
+            <div id="sectionsContainer">
+                @foreach($vendor->pageSections as $i => $section)
+                    @include('backend.vendor.public-page._section', ['index' => $i, 'section' => $section])
+                @endforeach
             </div>
         </div>
 
-        <aside class="editor-sidebar">
-            <div class="vendor-form-card mb-3">
-                <h6 class="fw-bold mb-3">Business Info</h6>
-                <div class="mb-3">
-                    <label class="form-label">Display Name</label>
-                    <input type="text" name="display_name" class="form-control" value="{{ old('display_name', $vendor->display_name) }}">
+        <div class="vendor-live-preview-card">
+            <h5 class="mb-3">Business Information</h5>
+            <div class="row g-3 align-items-start">
+                <div class="col-md-8">
+                    <h4 class="vendor-live-editable mb-2" contenteditable="true" data-sync-target="display-name">{{ old('display_name', $vendor->display_name ?: 'Business Name') }}</h4>
+                    <p class="mb-1"><strong>Phone:</strong> <span class="vendor-live-editable" contenteditable="true" data-sync-target="phone">{{ old('phone', $vendor->phone ?: 'Add phone') }}</span></p>
+                    <p class="mb-1"><strong>Email:</strong> <span class="vendor-live-editable" contenteditable="true" data-sync-target="email">{{ old('email', $vendor->email ?: 'Add email') }}</span></p>
+                    <p class="mb-1"><strong>City:</strong> <span class="vendor-live-editable" contenteditable="true" data-sync-target="city">{{ old('city', $vendor->city ?: 'Add city') }}</span></p>
+                    <p class="mb-0"><strong>Address:</strong> <span class="vendor-live-editable" contenteditable="true" data-sync-target="address">{{ old('address', $vendor->address ?: 'Add address') }}</span></p>
                 </div>
-                <div class="mb-3">
+                <div class="col-md-4">
                     <label class="form-label">Logo</label>
                     @if($vendor->logo)
                         <img src="{{ asset($vendor->logo) }}" alt="" class="d-block mb-2 rounded" style="width:64px;height:64px;object-fit:cover">
                     @endif
-                    <input type="file" name="logo" class="form-control form-control-sm" accept="image/*">
-                </div>
-                <div class="mb-0">
+                    <input type="file" name="logo" class="form-control form-control-sm mb-3" accept="image/*">
                     <label class="form-label">URL Slug</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text">/store/</span>
@@ -93,19 +99,7 @@
                     </div>
                 </div>
             </div>
-            <div class="vendor-form-card mb-3">
-                <h6 class="fw-bold mb-3">Contact Details</h6>
-                <input type="text" name="phone" class="form-control form-control-sm mb-2" placeholder="Phone" value="{{ old('phone', $vendor->phone) }}">
-                <input type="email" name="email" class="form-control form-control-sm mb-2" placeholder="Email" value="{{ old('email', $vendor->email) }}">
-                <input type="text" name="city" class="form-control form-control-sm mb-2" placeholder="City" value="{{ old('city', $vendor->city) }}">
-                <input type="text" name="address" class="form-control form-control-sm" placeholder="Address" value="{{ old('address', $vendor->address) }}">
-            </div>
-            <div class="vendor-form-card">
-                <h6 class="fw-bold mb-3">Social Links</h6>
-                <input type="url" name="facebook_url" class="form-control form-control-sm mb-2" placeholder="Facebook URL" value="{{ old('facebook_url', $vendor->facebook_url) }}">
-                <input type="url" name="instagram_url" class="form-control form-control-sm" placeholder="Instagram URL" value="{{ old('instagram_url', $vendor->instagram_url) }}">
-            </div>
-        </aside>
+        </div>
     </form>
 </div>
 

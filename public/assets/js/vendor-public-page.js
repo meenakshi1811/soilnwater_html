@@ -3,12 +3,25 @@
     var container = document.getElementById('sectionsContainer');
     var template = document.getElementById('sectionTemplate');
 
+    function syncEditable(target) {
+        var key = target.dataset.syncTarget;
+        if (!key) return;
+        var input = document.querySelector('[data-sync-input="' + key + '"]');
+        if (!input) return;
+        var value = target.innerText.replace(/\n{2,}/g, '\n').trim();
+        input.value = value;
+    }
+
     document.getElementById('addSectionBtn')?.addEventListener('click', function () {
         if (!template || !container) return;
         var html = template.innerHTML.replace(/__INDEX__/g, sectionIndex++);
         var wrap = document.createElement('div');
         wrap.innerHTML = html.trim();
         container.appendChild(wrap.firstElementChild);
+    });
+
+    document.addEventListener('input', function (e) {
+        if (e.target.matches('.vendor-live-editable')) syncEditable(e.target);
     });
 
     document.addEventListener('click', function (e) {
