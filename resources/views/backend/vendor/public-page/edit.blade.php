@@ -5,6 +5,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/vendor-store.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="{{ asset('assets/css/vendor-portal.css') }}?v={{ now()->timestamp }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 @endpush
 
 @section('content')
@@ -15,9 +16,14 @@
             <h2 class="admin-title mb-0">Manage Website</h2>
             <p class="text-muted small mb-0">This editor matches your public preview. Click any highlighted text to edit.</p>
         </div>
-        <button type="submit" form="publicPageForm" class="btn btn-primary ems-btn-primary">
-            <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
-        </button>
+        <div class="d-flex gap-2">
+            <a href="{{ route('vendor.public-page.preview') }}" target="_blank" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-up-right-from-square me-1"></i> Live Preview
+            </a>
+            <button type="submit" form="publicPageForm" class="btn btn-primary ems-btn-primary" id="publicPageSaveBtn">
+                <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+            </button>
+        </div>
     </div>
 
     @if(session('success'))
@@ -175,5 +181,6 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="{{ asset('assets/js/vendor-public-page.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

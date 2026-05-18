@@ -236,4 +236,54 @@
     });
 
     renderBannerThumbs();
+
+    var publicPageForm = document.getElementById('publicPageForm');
+    publicPageForm?.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        document.querySelectorAll('.vendor-live-editable[data-sync-target]').forEach(function (el) {
+            syncEditable(el);
+        });
+
+        var saveBtn = document.getElementById('publicPageSaveBtn');
+        var oldHtml = saveBtn ? saveBtn.innerHTML : '';
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
+        }
+
+        fetch(publicPageForm.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: new FormData(publicPageForm)
+        }).then(function (res) {
+            return res.json().then(function (data) {
+                return { ok: res.ok, data: data };
+            });
+        }).then(function (result) {
+            if (result.ok) {
+                if (window.toastr && typeof window.toastr.success === 'function') {
+                    window.toastr.success(result.data.message || 'Saved successfully.');
+                }
+            } else {
+                var message = result.data?.message || 'Unable to save changes.';
+                if (window.toastr && typeof window.toastr.error === 'function') {
+                    window.toastr.error(message);
+                }
+            }
+        }).catch(function () {
+            if (window.toastr && typeof window.toastr.error === 'function') {
+                window.toastr.error('Network error while saving. Please try again.');
+            }
+        }).finally(function () {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = oldHtml;
+            }
+        });
+    });
+
 })();
