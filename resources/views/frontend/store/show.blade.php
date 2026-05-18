@@ -54,9 +54,9 @@
         @endif
         <div class="hero-overlay">
             <div class="container">
-                <h1>{{ $vendor->hero_main_heading ?: $vendor->publicDisplayName() }}</h1>
+                <h1 style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ $vendor->hero_main_heading ?: $vendor->publicDisplayName() }}</h1>
                 @if($vendor->hero_sub_heading)
-                    <p class="lead mb-4 opacity-90">{{ $vendor->hero_sub_heading }}</p>
+                    <p class="lead mb-4 opacity-90" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ $vendor->hero_sub_heading }}</p>
                 @endif
                 <a href="#products" class="btn btn-warning btn-lg fw-bold">View Products</a>
                 @if($vendor->whatsapp)

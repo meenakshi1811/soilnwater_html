@@ -28,7 +28,9 @@ class Vendor extends Model
         'description',
         'gallery',
         'hero_main_heading',
+        'hero_main_style',
         'hero_sub_heading',
+        'hero_sub_style',
         'facebook_url',
         'instagram_url',
         'status',
@@ -40,6 +42,8 @@ class Vendor extends Model
     {
         return [
             'gallery' => 'array',
+            'hero_main_style' => 'array',
+            'hero_sub_style' => 'array',
             'approved_at' => 'datetime',
         ];
     }
