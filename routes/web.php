@@ -233,8 +233,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::prefix('vendor-products')->name('vendor-products.')->group(function () {
             Route::get('/', [VendorProductApprovalController::class, 'index'])->name('index');
+            Route::get('/data', [VendorProductApprovalController::class, 'data'])->name('data');
+            Route::get('/{product}', [VendorProductApprovalController::class, 'show'])->name('show');
             Route::post('/{product}/approve', [VendorProductApprovalController::class, 'approve'])->name('approve');
             Route::post('/{product}/reject', [VendorProductApprovalController::class, 'reject'])->name('reject');
+            Route::delete('/{product}', [VendorProductApprovalController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('vendors')->name('vendors.')->group(function () {

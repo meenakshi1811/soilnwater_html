@@ -4,29 +4,84 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\VendorProduct;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Yajra\DataTables\Facades\DataTables;
 
 class VendorProductApprovalController extends Controller
 {
-    public function index(Request $request)
+    public function index(): View
     {
-        $status = $request->query('status', 'pending');
-        $products = VendorProduct::query()->with(['category:id,name', 'subcategory:id,name'])
-            ->when($status, fn ($q) => $q->where('status', $status))
-            ->latest()->paginate(20)->withQueryString();
-
-        return view('backend.admin.vendor-products.index', compact('products', 'status'));
+        return view('backend.admin.vendor-products.index');
     }
 
-    public function approve(VendorProduct $product, Request $request)
+    public function data(Request $request): JsonResponse
+    {
+        abort_unless($request->ajax(), 404);
+
+        $status = $request->query('status', 'pending');
+
+        $query = VendorProduct::query()
+            ->with(['category:id,name', 'subcategory:id,name'])
+            ->when($status === 'pending', fn ($q) => $q->where(fn ($pending) => $pending->where('status', 'pending')->orWhereNull('status')))
+            ->when(in_array($status, ['approved', 'rejected'], true), fn ($q) => $q->where('status', $status))
+            ->select(['id', 'name', 'category', 'category_id', 'subcategory_id', 'status', 'created_at']);
+
+        return DataTables::of($query)
+            ->addColumn('category_display', function (VendorProduct $product): string {
+                $category = $product->category?->name ?? (is_string($product->category) ? $product->category : '-');
+                $subcategory = $product->subcategory?->name ?? '-';
+
+                return e($category.' / '.$subcategory);
+            })
+            ->addColumn('status_badge', function (VendorProduct $product): string {
+                $status = $product->status ?? 'pending';
+                $badge = $status === 'approved' ? 'success' : ($status === 'rejected' ? 'danger' : 'warning');
+
+                return '<span class="badge bg-'.$badge.'">'.ucfirst($status).'</span>';
+            })
+            ->addColumn('actions', function (VendorProduct $product): string {
+                $status = $product->status ?? 'pending';
+                $approve = $status !== 'approved' ? '<button type="button" class="btn btn-sm btn-success js-approve" data-id="'.$product->id.'">Approve</button>' : '';
+                $reject = $status !== 'rejected' ? '<button type="button" class="btn btn-sm btn-outline-warning js-reject" data-id="'.$product->id.'">Reject</button>' : '';
+
+                return '<div class="d-flex gap-2 justify-content-end">'
+                    .'<a href="'.route('admin.vendor-products.show', $product).'" class="btn btn-sm btn-outline-secondary">View</a>'
+                    .$approve
+                    .$reject
+                    .'<button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="'.$product->id.'">Delete</button>'
+                    .'</div>';
+            })
+            ->rawColumns(['status_badge', 'actions'])
+            ->make(true);
+    }
+
+    public function show(VendorProduct $product): View
+    {
+        $product->load(['category:id,name', 'subcategory:id,name']);
+
+        return view('backend.admin.vendor-products.show', compact('product'));
+    }
+
+    public function approve(VendorProduct $product, Request $request): JsonResponse
     {
         $product->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => $request->user()->id]);
-        return back()->with('success', 'Product approved.');
+
+        return response()->json(['message' => 'Product approved.']);
     }
 
-    public function reject(VendorProduct $product)
+    public function reject(VendorProduct $product): JsonResponse
     {
         $product->update(['status' => 'rejected', 'approved_at' => null, 'approved_by' => null]);
-        return back()->with('success', 'Product rejected.');
+
+        return response()->json(['message' => 'Product rejected.']);
+    }
+
+    public function destroy(VendorProduct $product): JsonResponse
+    {
+        $product->delete();
+
+        return response()->json(['message' => 'Product deleted successfully.']);
     }
 }
