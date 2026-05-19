@@ -21,14 +21,24 @@
     function refreshTable() {
         if (table && typeof table.ajax !== 'undefined') {
             table.ajax.reload(null, false);
+            return true;
         }
+
+        return false;
     }
 
     function postAction(url, successMessage) {
-        $.post(url, { _token: token })
+        $.ajax({
+            url: url,
+            method: 'POST',
+            data: { _token: token },
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
             .done(function (r) {
                 toast('success', r.message || successMessage);
-                refreshTable();
+                if (!refreshTable()) {
+                    window.location.reload();
+                }
             })
             .fail(function (xhr) {
                 toast('error', (xhr.responseJSON && xhr.responseJSON.message) || 'Unable to process request.');
@@ -44,7 +54,9 @@
             })
                 .done(function (r) {
                     toast('success', r.message || 'Product deleted successfully.');
-                    refreshTable();
+                    if (!refreshTable()) {
+                        window.location.href = '/admin/vendor-products';
+                    }
                 })
                 .fail(function (xhr) {
                     toast('error', (xhr.responseJSON && xhr.responseJSON.message) || 'Unable to delete product.');
