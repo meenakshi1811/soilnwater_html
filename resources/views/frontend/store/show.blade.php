@@ -97,10 +97,10 @@
         </section>
     @endforeach
 
-    <section id="products-all" class="vendor-store-section alt">
+    <section id="products" class="vendor-store-section alt">
         <div class="container">
-            <h2>All Products</h2>
-            <p class="text-center text-secondary mb-4">Catalog preview — product module coming soon</p>
+            <h2>Products</h2>
+            <p class="text-center text-secondary mb-4">Explore our complete product range.</p>
             <div class="row g-4">
                 @foreach($dummyProducts as $product)
                     <div class="col-6 col-md-4 col-lg-3">
