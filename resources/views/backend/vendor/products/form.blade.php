@@ -56,17 +56,34 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
-if (window.toastr) {
-  toastr.options = {
-    closeButton: true,
-    progressBar: true,
-    positionClass: 'toast-top-right',
-    timeOut: 4000,
-    extendedTimeOut: 2000
+(function initToastr() {
+  if (!window.jQuery) {
+    console.warn('jQuery is required for toastr but was not found.');
+    return;
+  }
+
+  const configureToastr = function () {
+    if (!window.toastr) return;
+    window.toastr.options = {
+      closeButton: true,
+      progressBar: true,
+      positionClass: 'toast-top-right',
+      timeOut: 4000,
+      extendedTimeOut: 2000
+    };
   };
-}
+
+  if (window.toastr) {
+    configureToastr();
+    return;
+  }
+
+  const toastrScript = document.createElement('script');
+  toastrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js';
+  toastrScript.onload = configureToastr;
+  document.head.appendChild(toastrScript);
+})();
 </script>
 <script>
 const subcategoryByCategory = @json($categories->mapWithKeys(fn($c)=>[$c->id=>$c->children->map(fn($s)=>['id'=>$s->id,'name'=>$s->name])->values()]));
