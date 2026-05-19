@@ -12,16 +12,6 @@
         <div class="vendor-preview-banner">Preview mode — only you can see this until your store is published.</div>
     @endif
 
-    <div class="vendor-store-topbar">
-        <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <span><i class="fa-solid fa-flag me-1"></i> Made for India · Prices in ₹ · GST invoicing available</span>
-            <span>
-                @if($vendor->phone)<a href="tel:{{ $vendor->phone }}" class="text-white text-decoration-none me-3">{{ $vendor->phone }}</a>@endif
-                <a href="{{ route('frontend.index') }}" class="text-white text-decoration-none">SoilNWater Home</a>
-            </span>
-        </div>
-    </div>
-
     <header class="vendor-store-header">
         <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div class="d-flex align-items-center gap-3">
@@ -58,23 +48,12 @@
                 @if($vendor->hero_sub_heading)
                     <p class="lead mb-4 opacity-90" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ $vendor->hero_sub_heading }}</p>
                 @endif
-                <a href="#products" class="btn btn-warning btn-lg fw-bold">View Products</a>
+                <a href="#products" class="btn btn-warning btn-lg fw-bold">Explore Products</a>
                 @if($vendor->whatsapp)
                     <a href="https://wa.me/91{{ preg_replace('/\D/', '', $vendor->whatsapp) }}" target="_blank" class="btn btn-success btn-lg ms-2">
                         <i class="fa-brands fa-whatsapp me-1"></i> Chat on WhatsApp
                     </a>
                 @endif
-            </div>
-        </div>
-    </section>
-
-    <section class="vendor-store-trust">
-        <div class="container">
-            <div class="row g-3">
-                <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-certificate d-block mb-1"></i> Quality Products</div>
-                <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-users d-block mb-1"></i> Professional Team</div>
-                <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-truck-fast d-block mb-1"></i> Pan-India Delivery</div>
-                <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-headset d-block mb-1"></i> 24/7 Support</div>
             </div>
         </div>
     </section>
