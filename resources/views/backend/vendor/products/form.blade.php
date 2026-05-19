@@ -46,7 +46,7 @@
       </div>
     </div>
 
-    <div class="col-12 text-end"><button class="btn btn-dark px-4 py-2">Save & Send for Approval</button></div>
+    <div class="col-12 text-end"><button type="submit" id="productSubmitBtn" class="btn btn-dark px-4 py-2">Save & Send for Approval</button></div>
   </form>
 </div>
 @endsection
@@ -54,6 +54,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 @endpush
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
 if (window.toastr) {
@@ -70,7 +72,7 @@ if (window.toastr) {
 const subcategoryByCategory = @json($categories->mapWithKeys(fn($c)=>[$c->id=>$c->children->map(fn($s)=>['id'=>$s->id,'name'=>$s->name])->values()]));
 const cat = document.getElementById('category_id'); const sub = document.getElementById('subcategory_id');
 function fillSub(){const rows=subcategoryByCategory[cat.value]||[]; const selected=sub.dataset.current; sub.innerHTML='<option value="">Select subcategory</option>'; rows.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.name;if(String(r.id)===String(selected))o.selected=true;sub.appendChild(o);});}
-cat?.addEventListener('change',()=>{sub.dataset.current='';fillSub();}); fillSub();
+cat?.addEventListener('change',()=>{sub.dataset.current='';fillSub();if(window.jQuery){jQuery(sub).valid();}}); fillSub();
 ['base_price','discount_percent'].forEach(i=>document.getElementById(i)?.addEventListener('input',()=>{const b=parseFloat(document.getElementById('base_price').value||0),d=parseFloat(document.getElementById('discount_percent').value||0);document.getElementById('final_price').value=(b-(b*d/100)).toFixed(2)}));
 
 const specsWrap=document.getElementById('specs-wrap');document.getElementById('add-spec')?.addEventListener('click',()=>{const row=document.createElement('div');row.className='col-12 spec-row';row.innerHTML='<div class="row g-2"><div class="col-md-5"><input class="form-control" name="spec_feature[]" placeholder="Feature"></div><div class="col-md-5"><input class="form-control" name="spec_value[]" placeholder="Value"></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm remove-spec">Remove</button></div></div>';specsWrap.appendChild(row)});specsWrap?.addEventListener('click',e=>{if(e.target.classList.contains('remove-spec'))e.target.closest('.spec-row').remove();});
@@ -102,17 +104,20 @@ window.initVendorProductLocationAutocomplete = function () {
     locationInput.value = place.formatted_address || locationInput.value;
     latitudeInput.value = place.geometry.location.lat().toFixed(7);
     longitudeInput.value = place.geometry.location.lng().toFixed(7);
+    if (window.jQuery) {
+      jQuery(locationInput).valid();
+    }
   });
 
   locationInput.addEventListener('input', () => {
     if (selectedPlaceId) selectedPlaceId = '';
     latitudeInput.value = '';
     longitudeInput.value = '';
+    if (window.jQuery) {
+      jQuery(locationInput).valid();
+    }
   });
 };
-
-const productForm=document.getElementById('vendor-product-form');
-
 
 function notify(type, msg) {
   const toastType = type === 'error' ? 'error' : 'success';
@@ -127,73 +132,146 @@ function notify(type, msg) {
   alert(msg);
 }
 
-function clearFieldErrors(){
-  productForm.querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
-  productForm.querySelectorAll('.invalid-feedback.dynamic-error').forEach(el=>el.remove());
-}
-const hiddenValidationFields = ['latitude', 'longitude'];
+$(function () {
+  const $form = $('#vendor-product-form');
+  if (!$form.length || String($form.data('ajax-create')) !== '1') {
+    return;
+  }
 
-function applyFieldErrors(errors) {
-  Object.entries(errors || {}).forEach(([field, messages]) => {
-    const normalizedField = field.replace(/\.[0-9]+(?=\.|$)/g, '').replace(/\*$/, '');
-    if (hiddenValidationFields.includes(normalizedField)) {
+  const hiddenValidationFields = ['latitude', 'longitude'];
+  const $submitBtn = $('#productSubmitBtn');
+  let originalBtnHtml = $submitBtn.html();
+
+  $.validator.addMethod('locationPicked', function () {
+    return String($('#latitude').val() || '').trim() !== '' && String($('#longitude').val() || '').trim() !== '';
+  }, 'Please select a location from the suggestions list.');
+
+  function setSubmitLoading(isLoading) {
+    if (isLoading) {
+      originalBtnHtml = $submitBtn.html();
+      $submitBtn.prop('disabled', true).html('Saving...');
       return;
     }
+    $submitBtn.prop('disabled', false).html(originalBtnHtml);
+  }
 
-    const displayField = normalizedField;
-    let input = productForm.querySelector(`[name="${field}"]`) || productForm.querySelector(`[name="${field}[]"]`) || productForm.querySelector(`[name="${displayField}"]`) || productForm.querySelector(`[name="${displayField}[]"]`);
+  function applyServerErrors(errors) {
+    const validator = $form.data('validator');
+    const mapped = {};
 
-    if(!input && field.includes('.')){
-      const base=field.split('.')[0];
-      input=productForm.querySelector(`[name="${base}[]"]`) || productForm.querySelector(`[name="${base}"]`);
-    }
+    Object.entries(errors || {}).forEach(([field, messages]) => {
+      const normalizedField = field.replace(/\.[0-9]+(?=\.|$)/g, '').replace(/\*$/, '');
+      const message = Array.isArray(messages) ? messages[0] : String(messages || 'Invalid value');
 
-    if(!input) return;
-
-    input.classList.add('is-invalid');
-    const msg=Array.isArray(messages)?messages[0]:String(messages||'Invalid value');
-    const err=document.createElement('div');
-    err.id=`${displayField.replace(/\./g,'_')}-error`;
-    err.className='invalid-feedback d-block dynamic-error';
-    err.textContent=msg;
-
-    const container=input.closest('.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8') || input.parentElement;
-    const existingStaticError=container?.querySelector(`#${displayField.replace(/\./g,'_')}-error:not(.dynamic-error)`);
-    if(existingStaticError){
-      existingStaticError.remove();
-    }
-
-    input.insertAdjacentElement('afterend', err);
-  });
-}
-
-productForm?.addEventListener('submit',async function(e){
-  if(productForm.dataset.ajaxCreate!=='1') return;
-  e.preventDefault();
-  clearFieldErrors();
-  const submitBtn=productForm.querySelector('button[type="submit"]');
-  const originalText=submitBtn?.innerHTML;
-  if(submitBtn){submitBtn.disabled=true;submitBtn.innerHTML='Saving...';}
-  const fd=new FormData(productForm);
-  try{
-    const res=await fetch(productForm.action,{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'},body:fd});
-    const payload=await res.json();
-    if (!res.ok) {
-      applyFieldErrors(payload.errors || {});
-      if (res.status === 422) {
-        notify('error', 'Please fix the highlighted fields and try again.');
-      } else {
-        notify('error', payload.message || 'Unable to save product.');
+      if (hiddenValidationFields.includes(normalizedField)) {
+        mapped.location = 'Please select a location from the suggestions list.';
+        return;
       }
-      return;
+
+      mapped[normalizedField] = message;
+    });
+
+    if (validator && Object.keys(mapped).length) {
+      validator.showErrors(mapped);
     }
-    const okMsg=payload.message || 'Product submitted successfully.';
-    notify('success',okMsg);
-    setTimeout(()=>window.location.href=(payload.redirect || '{{ route('vendor.products.index') }}'),800);
-  }catch(err){
-    const msg='Network error while saving product.';
-    notify('error',msg);
-  }finally{if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML=originalText;}}
+  }
+
+  $form.validate({
+    ignore: [],
+    rules: {
+      name: { required: true, maxlength: 255 },
+      category_id: { required: true },
+      subcategory_id: { required: true },
+      base_price: { required: true, number: true, min: 0 },
+      final_price: { required: true, number: true, min: 0 },
+      stock_quantity: { required: true, digits: true, min: 0 },
+      shipping_charges: { required: true, number: true, min: 0 },
+      location: { required: true, locationPicked: true, maxlength: 255 },
+      youtube_link: { url: true },
+      discount_percent: { number: true, min: 0, max: 100 },
+      accept_terms: { required: true }
+    },
+    messages: {
+      name: { required: 'Please enter the product name.' },
+      category_id: { required: 'Please select a category.' },
+      subcategory_id: { required: 'Please select a subcategory.' },
+      base_price: { required: 'Please enter the base price.' },
+      final_price: { required: 'Please enter the final price.' },
+      stock_quantity: { required: 'Please enter stock quantity.' },
+      shipping_charges: { required: 'Please enter shipping charges.' },
+      location: { required: 'Please enter a location.' },
+      accept_terms: { required: 'Please accept the terms and conditions.' }
+    },
+    errorElement: 'div',
+    errorClass: 'invalid-feedback d-block',
+    highlight: function (element) {
+      const $element = $(element);
+      $element.addClass('is-invalid').removeClass('is-valid');
+      $element.closest('.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8')
+        .find('.invalid-feedback')
+        .removeClass('d-none');
+    },
+    unhighlight: function (element) {
+      const $element = $(element);
+      $element.removeClass('is-invalid').addClass('is-valid');
+      $element.closest('.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8')
+        .find('.invalid-feedback')
+        .text('')
+        .addClass('d-none');
+    },
+    errorPlacement: function (error, element) {
+      const $container = $(element).closest('.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8');
+      const $existing = $container.find('.invalid-feedback').not(error).first();
+      if ($existing.length) {
+        $existing.text(error.text()).removeClass('d-none');
+        error.remove();
+        return;
+      }
+      error.insertAfter(element);
+    },
+    invalidHandler: function () {
+      setSubmitLoading(false);
+    },
+    submitHandler: function (form) {
+      setSubmitLoading(true);
+
+      fetch(form.action, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: new FormData(form)
+      })
+        .then(async (res) => {
+          const payload = await res.json();
+          if (!res.ok) {
+            applyServerErrors(payload.errors || {});
+            if (res.status === 422) {
+              notify('error', 'Please fix the highlighted fields and try again.');
+            } else {
+              notify('error', payload.message || 'Unable to save product.');
+            }
+            return;
+          }
+
+          notify('success', payload.message || 'Product submitted successfully.');
+          setTimeout(() => {
+            window.location.href = payload.redirect || '{{ route('vendor.products.index') }}';
+          }, 800);
+        })
+        .catch(() => {
+          notify('error', 'Network error while saving product.');
+        })
+        .finally(() => {
+          setSubmitLoading(false);
+        });
+    }
+  });
+
+  $('#category_id, #subcategory_id').on('change', function () {
+    $(this).valid();
+  });
 });
 
 </script>
