@@ -1,9 +1,5 @@
 @extends('backend.layouts.app')
 @section('title', $product->exists ? 'Edit Product' : 'Create Product')
-@push('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-@endpush
-
 @section('content')
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -33,7 +29,7 @@
       <div class="col-12"><label class="form-label">Description</label><textarea class="form-control @error('description') is-invalid @enderror" rows="4" name="description">{{ old('description',$product->description) }}</textarea>@error('description')<div id="description-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
     </div></div></div>
     <div class="col-lg-4"><div class="chart-card p-4"><h5 class="mb-3">Media & Listing</h5><label class="form-label">Product Images</label><input class="form-control @error('images') is-invalid @enderror @error('images.*') is-invalid @enderror" type="file" name="images[]" multiple accept="image/*">@error('images.*')<div id="images-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Max 4 MB per image.</small><label class="form-label mt-3">Product Video (MP4/WEBM)</label><input class="form-control @error('video_file') is-invalid @enderror" type="file" name="video_file" accept="video/mp4,video/webm">@error('video_file')<div id="video_file-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Max 20 MB.</small><label class="form-label mt-3">YouTube Link</label><input class="form-control @error('youtube_link') is-invalid @enderror" type="url" name="youtube_link" value="{{ old('youtube_link',$product->youtube_link) }}">@error('youtube_link')<div id="youtube_link-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<div class="form-check mt-3"><input class="form-check-input" type="checkbox" value="1" name="is_online_sale" @checked(old('is_online_sale',$product->is_online_sale))><label class="form-check-label">List for Online Sale</label></div></div></div>
-    <div class="col-12"><div class="chart-card p-4"><h5 class="mb-3">Pricing & Logistics</h5><div class="row g-3"><div class="col-md-3"><label class="form-label">Base Price *</label><input type="number" step="0.01" id="base_price" class="form-control @error('base_price') is-invalid @enderror" name="base_price" value="{{ old('base_price',$product->base_price) }}">@error('base_price')<div id="base_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Discount %</label><input type="number" step="0.01" id="discount_percent" class="form-control @error('discount_percent') is-invalid @enderror" name="discount_percent" value="{{ old('discount_percent',$product->discount_percent ?? 0) }}">@error('discount_percent')<div id="discount_percent-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Final Price *</label><input type="number" step="0.01" id="final_price" class="form-control @error('final_price') is-invalid @enderror" name="final_price" value="{{ old('final_price',$product->final_price) }}">@error('final_price')<div id="final_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Shipping Charges *</label><input type="number" step="0.01" class="form-control @error('shipping_charges') is-invalid @enderror" name="shipping_charges" value="{{ old('shipping_charges',$product->shipping_charges ?? 0) }}">@error('shipping_charges')<div id="shipping_charges-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Stock Quantity *</label><input type="number" class="form-control @error('stock_quantity') is-invalid @enderror" name="stock_quantity" value="{{ old('stock_quantity',$product->stock_quantity ?? 0) }}">@error('stock_quantity')<div id="stock_quantity-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-6"><label class="form-label">Location in India *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ old('location',$product->location) }}" placeholder="Search location in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Select a location suggestion from India only.</small></div><input id="latitude" type="hidden" name="latitude" value="{{ old('latitude',$product->latitude) }}"><input id="longitude" type="hidden" name="longitude" value="{{ old('longitude',$product->longitude) }}">@error('latitude')<div id="latitude-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror @error('longitude')<div id="longitude-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div></div></div>
+    <div class="col-12"><div class="chart-card p-4"><h5 class="mb-3">Pricing & Logistics</h5><div class="row g-3"><div class="col-md-3"><label class="form-label">Base Price *</label><input type="number" step="0.01" id="base_price" class="form-control @error('base_price') is-invalid @enderror" name="base_price" value="{{ old('base_price',$product->base_price) }}">@error('base_price')<div id="base_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Discount %</label><input type="number" step="0.01" id="discount_percent" class="form-control @error('discount_percent') is-invalid @enderror" name="discount_percent" value="{{ old('discount_percent',$product->discount_percent ?? 0) }}">@error('discount_percent')<div id="discount_percent-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Final Price *</label><input type="number" step="0.01" id="final_price" class="form-control @error('final_price') is-invalid @enderror" name="final_price" value="{{ old('final_price',$product->final_price) }}">@error('final_price')<div id="final_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Shipping Charges *</label><input type="number" step="0.01" class="form-control @error('shipping_charges') is-invalid @enderror" name="shipping_charges" value="{{ old('shipping_charges',$product->shipping_charges ?? 0) }}">@error('shipping_charges')<div id="shipping_charges-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Stock Quantity *</label><input type="number" class="form-control @error('stock_quantity') is-invalid @enderror" name="stock_quantity" value="{{ old('stock_quantity',$product->stock_quantity ?? 0) }}">@error('stock_quantity')<div id="stock_quantity-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-6"><label class="form-label">Location in India *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ old('location',$product->location) }}" placeholder="Search location in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Select a location suggestion from India only.</small></div><input id="latitude" type="hidden" name="latitude" value="{{ old('latitude',$product->latitude) }}"><input id="longitude" type="hidden" name="longitude" value="{{ old('longitude',$product->longitude) }}"></div></div></div>
 
 
     <div class="col-12"><div class="chart-card p-4"><div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0">Specs</h5><button type="button" class="btn btn-link p-0 text-decoration-none" id="add-spec">+ Add Row</button></div><div id="specs-wrap" class="row g-2">@php($oldSpecs = old('spec_feature') ? collect(old('spec_feature'))->map(fn($f,$i)=>['feature'=>$f,'value'=>old('spec_value')[$i] ?? ''])->values()->all() : ($product->specs ?? [['feature'=>'','value'=>'']]))@foreach($oldSpecs as $spec)<div class="col-12 spec-row"><div class="row g-2"><div class="col-md-5"><input class="form-control" name="spec_feature[]" placeholder="Feature" value="{{ $spec['feature'] ?? '' }}"></div><div class="col-md-5"><input class="form-control" name="spec_value[]" placeholder="Value" value="{{ $spec['value'] ?? '' }}"></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm remove-spec">Remove</button></div></div></div>@endforeach</div></div></div>
@@ -54,7 +50,6 @@
 </div>
 @endsection
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
 const subcategoryByCategory = @json($categories->mapWithKeys(fn($c)=>[$c->id=>$c->children->map(fn($s)=>['id'=>$s->id,'name'=>$s->name])->values()]));
 const cat = document.getElementById('category_id'); const sub = document.getElementById('subcategory_id');
@@ -102,6 +97,16 @@ window.initVendorProductLocationAutocomplete = function () {
 
 const productForm=document.getElementById('vendor-product-form');
 
+
+function notify(type,msg){
+  if(window.FormHelper?.showToast){
+    window.FormHelper.showToast(type==='error'?'danger':'success',msg);
+    return;
+  }
+  if(type==='error'){ alert(msg); return; }
+  alert(msg);
+}
+
 function clearFieldErrors(){
   productForm.querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
   productForm.querySelectorAll('.invalid-feedback.dynamic-error').forEach(el=>el.remove());
@@ -109,15 +114,12 @@ function clearFieldErrors(){
 function applyFieldErrors(errors){
   Object.entries(errors||{}).forEach(([field,messages])=>{
     const normalizedField=field.replace(/\.[0-9]+(?=\.|$)/g,'').replace(/\*$/,'');
-    let input=productForm.querySelector(`[name="${field}"]`) || productForm.querySelector(`[name="${field}[]"]`) || productForm.querySelector(`[name="${normalizedField}"]`) || productForm.querySelector(`[name="${normalizedField}[]"]`);
+    const displayField=(normalizedField==='latitude' || normalizedField==='longitude') ? 'location' : normalizedField;
+    let input=productForm.querySelector(`[name="${field}"]`) || productForm.querySelector(`[name="${field}[]"]`) || productForm.querySelector(`[name="${displayField}"]`) || productForm.querySelector(`[name="${displayField}[]"]`);
 
     if(!input && field.includes('.')){
       const base=field.split('.')[0];
       input=productForm.querySelector(`[name="${base}[]"]`) || productForm.querySelector(`[name="${base}"]`);
-    }
-
-    if(!input && (field==='latitude' || field==='longitude')){
-      input=productForm.querySelector('[name="location"]');
     }
 
     if(!input) return;
@@ -125,12 +127,12 @@ function applyFieldErrors(errors){
     input.classList.add('is-invalid');
     const msg=Array.isArray(messages)?messages[0]:String(messages||'Invalid value');
     const err=document.createElement('div');
-    err.id=`${field.replace(/\./g,'_')}-error`;
+    err.id=`${displayField.replace(/\./g,'_')}-error`;
     err.className='invalid-feedback d-block dynamic-error';
     err.textContent=msg;
 
     const container=input.closest('.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8') || input.parentElement;
-    const existingStaticError=container?.querySelector(`#${field.replace(/\./g,'_')}-error:not(.dynamic-error)`);
+    const existingStaticError=container?.querySelector(`#${displayField.replace(/\./g,'_')}-error:not(.dynamic-error)`);
     if(existingStaticError){
       existingStaticError.remove();
     }
@@ -153,15 +155,15 @@ productForm?.addEventListener('submit',async function(e){
     if(!res.ok){
       const msg=payload.message || Object.values(payload.errors||{}).flat().join('\n') || 'Unable to save product.';
       applyFieldErrors(payload.errors||{});
-      if(window.toastr?.error){toastr.error(msg);} else if(window.FormHelper?.showToast){window.FormHelper.showToast('danger',msg);} else {alert(msg);} 
+      notify('error',msg);
       return;
     }
     const okMsg=payload.message || 'Product submitted successfully.';
-    if(window.toastr?.success){toastr.success(okMsg);} else if(window.FormHelper?.showToast){window.FormHelper.showToast('success',okMsg);} else {alert(okMsg);} 
+    notify('success',okMsg);
     setTimeout(()=>window.location.href=(payload.redirect || '{{ route('vendor.products.index') }}'),800);
   }catch(err){
     const msg='Network error while saving product.';
-    if(window.toastr?.error){toastr.error(msg);} else if(window.FormHelper?.showToast){window.FormHelper.showToast('danger',msg);} else {alert(msg);} 
+    notify('error',msg);
   }finally{if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML=originalText;}}
 });
 
