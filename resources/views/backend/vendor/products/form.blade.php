@@ -1,5 +1,9 @@
 @extends('backend.layouts.app')
 @section('title', $product->exists ? 'Edit Product' : 'Create Product')
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+@endpush
+
 @section('content')
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -7,7 +11,7 @@
     <a href="{{ route('vendor.products.index') }}" class="btn btn-outline-secondary">Back to Listing</a>
   </div>
   @php($oldTiers = old('bulk_min') ? collect(old('bulk_min'))->map(fn($m,$i)=>['buy_min'=>$m,'price'=>old('bulk_price')[$i] ?? ''])->values()->all() : ($product->bulk_tiers ?? [['buy_min'=>10,'price'=>'']]))
-  <form method="POST" enctype="multipart/form-data" action="{{ $product->exists ? route('vendor.products.update',$product) : route('vendor.products.store') }}" class="row g-3">@csrf @if($product->exists) @method('PUT') @endif
+  <form id="vendor-product-form" data-ajax-create="{{ $product->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $product->exists ? route('vendor.products.update',$product) : route('vendor.products.store') }}" class="row g-3">@csrf @if($product->exists) @method('PUT') @endif
     <div class="col-lg-8"><div class="chart-card p-4"><h5 class="mb-3">Basic Information</h5><div class="row g-3">
       <div class="col-12"><label class="form-label">Product Name *</label><input class="form-control" required name="name" value="{{ old('name',$product->name) }}"></div>
       <div class="col-md-6"><label class="form-label">Brand</label><input class="form-control" name="brand" value="{{ old('brand',$product->brand) }}"></div>
@@ -39,6 +43,7 @@
 </div>
 @endsection
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
 const subcategoryByCategory = @json($categories->mapWithKeys(fn($c)=>[$c->id=>$c->children->map(fn($s)=>['id'=>$s->id,'name'=>$s->name])->values()]));
 const cat = document.getElementById('category_id'); const sub = document.getElementById('subcategory_id');
@@ -49,5 +54,32 @@ cat?.addEventListener('change',()=>{sub.dataset.current='';fillSub();}); fillSub
 const specsWrap=document.getElementById('specs-wrap');document.getElementById('add-spec')?.addEventListener('click',()=>{const row=document.createElement('div');row.className='col-12 spec-row';row.innerHTML='<div class="row g-2"><div class="col-md-5"><input class="form-control" name="spec_feature[]" placeholder="Feature"></div><div class="col-md-5"><input class="form-control" name="spec_value[]" placeholder="Value"></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm remove-spec">Remove</button></div></div>';specsWrap.appendChild(row)});specsWrap?.addEventListener('click',e=>{if(e.target.classList.contains('remove-spec'))e.target.closest('.spec-row').remove();});
 
 const wrap=document.getElementById('tiers-wrap');document.getElementById('add-tier')?.addEventListener('click',()=>{const row=document.createElement('div');row.className='col-12 tier-row';row.innerHTML='<div class="row g-2 align-items-end"><div class="col-md-4"><label class="form-label">Buy Min</label><input type="number" class="form-control" name="bulk_min[]" min="1"></div><div class="col-md-5"><label class="form-label">Price ₹</label><input type="number" step="0.01" class="form-control" name="bulk_price[]" placeholder="Unit Price"></div><div class="col-md-3"><button type="button" class="btn btn-outline-danger btn-sm remove-tier">Remove</button></div></div>';wrap.appendChild(row)});wrap?.addEventListener('click',e=>{if(e.target.classList.contains('remove-tier'))e.target.closest('.tier-row').remove();});
+
+const productForm=document.getElementById('vendor-product-form');
+productForm?.addEventListener('submit',async function(e){
+  if(productForm.dataset.ajaxCreate!=='1') return;
+  e.preventDefault();
+  const submitBtn=productForm.querySelector('button[type="submit"]');
+  const originalText=submitBtn?.innerHTML;
+  if(submitBtn){submitBtn.disabled=true;submitBtn.innerHTML='Saving...';}
+  const fd=new FormData(productForm);
+  try{
+    const res=await fetch(productForm.action,{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'},body:fd});
+    const payload=await res.json();
+    if(!res.ok){
+      const msg=payload.message || Object.values(payload.errors||{}).flat().join('
+') || 'Unable to save product.';
+      if(window.toastr?.error){toastr.error(msg);} else if(window.FormHelper?.showToast){window.FormHelper.showToast('danger',msg);} else {alert(msg);} 
+      return;
+    }
+    const okMsg=payload.message || 'Product submitted successfully.';
+    if(window.toastr?.success){toastr.success(okMsg);} else if(window.FormHelper?.showToast){window.FormHelper.showToast('success',okMsg);} else {alert(okMsg);} 
+    setTimeout(()=>window.location.href=(payload.redirect || '{{ route('vendor.products.index') }}'),800);
+  }catch(err){
+    const msg='Network error while saving product.';
+    if(window.toastr?.error){toastr.error(msg);} else if(window.FormHelper?.showToast){window.FormHelper.showToast('danger',msg);} else {alert(msg);} 
+  }finally{if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML=originalText;}}
+});
+
 </script>
 @endpush

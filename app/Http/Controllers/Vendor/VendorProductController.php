@@ -38,6 +38,15 @@ class VendorProductController extends Controller
         $data['vendor_id'] = auth()->user()->vendor->id;
         $data['sku'] = $data['sku'] ?: 'SKU-'.Str::upper(Str::random(8));
         VendorProduct::create($data);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Product submitted successfully and sent for admin approval.',
+                'redirect' => route('vendor.products.index'),
+            ]);
+        }
+
         return redirect()->route('vendor.products.index')->with('success', 'Product created successfully.');
     }
 
@@ -77,7 +86,7 @@ class VendorProductController extends Controller
     private function vendorCategories()
     {
         return Category::query()->whereNull('parent_id')->whereJsonContains('modules', 'vendors')
-            ->with(['children' => fn($q) => $q->orderBy('name')->select(['id', 'name', 'parent_id'])])
+            ->with(['children' => fn ($q) => $q->orderBy('name')->select(['id', 'name', 'parent_id'])])
             ->orderBy('name')->get(['id', 'name']);
     }
 
@@ -110,7 +119,7 @@ class VendorProductController extends Controller
         $validated['category'] = Category::find($validated['category_id'])?->name;
         $validated['discount_percent'] = $validated['discount_percent'] ?? 0;
         $validated['specs'] = collect($request->input('spec_feature', []))
-            ->map(fn ($feature, $idx) => ['feature' => trim((string)$feature), 'value' => trim((string)$request->input('spec_value.'.$idx))])
+            ->map(fn ($feature, $idx) => ['feature' => trim((string) $feature), 'value' => trim((string) $request->input('spec_value.'.$idx))])
             ->filter(fn ($row) => $row['feature'] !== '' || $row['value'] !== '')
             ->values()->all();
         $validated['bulk_tiers'] = collect($request->input('bulk_min', []))
