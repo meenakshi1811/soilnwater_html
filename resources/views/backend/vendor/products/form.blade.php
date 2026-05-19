@@ -67,9 +67,34 @@ const specsWrap=document.getElementById('specs-wrap');document.getElementById('a
 const wrap=document.getElementById('tiers-wrap');document.getElementById('add-tier')?.addEventListener('click',()=>{const row=document.createElement('div');row.className='col-12 tier-row';row.innerHTML='<div class="row g-2 align-items-end"><div class="col-md-4"><label class="form-label">Buy Min</label><input type="number" class="form-control" name="bulk_min[]" min="1"></div><div class="col-md-5"><label class="form-label">Price ₹</label><input type="number" step="0.01" class="form-control" name="bulk_price[]" placeholder="Unit Price"></div><div class="col-md-3"><button type="button" class="btn btn-outline-danger btn-sm remove-tier">Remove</button></div></div>';wrap.appendChild(row)});wrap?.addEventListener('click',e=>{if(e.target.classList.contains('remove-tier'))e.target.closest('.tier-row').remove();});
 
 const productForm=document.getElementById('vendor-product-form');
+
+function clearFieldErrors(){
+  productForm.querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+  productForm.querySelectorAll('.invalid-feedback.dynamic-error').forEach(el=>el.remove());
+}
+function applyFieldErrors(errors){
+  Object.entries(errors||{}).forEach(([field,messages])=>{
+    const key=field.replace(/\./g,'\.').replace(/\*$/,'');
+    let input=productForm.querySelector(`[name="${field}"]`) || productForm.querySelector(`[name="${field}[]"]`) || productForm.querySelector(`[name="${key}"]`) || productForm.querySelector(`[name="${key}[]"]`);
+    if(!input && field.includes('.')){
+      const base=field.split('.')[0];
+      input=productForm.querySelector(`[name="${base}[]"]`) || productForm.querySelector(`[name="${base}"]`);
+    }
+    if(!input) return;
+    input.classList.add('is-invalid');
+    const msg=Array.isArray(messages)?messages[0]:String(messages||'Invalid value');
+    const err=document.createElement('div');
+    err.id=`${field.replace(/\./g,'_')}-error`;
+    err.className='invalid-feedback d-block dynamic-error';
+    err.textContent=msg;
+    input.insertAdjacentElement('afterend', err);
+  });
+}
+
 productForm?.addEventListener('submit',async function(e){
   if(productForm.dataset.ajaxCreate!=='1') return;
   e.preventDefault();
+  clearFieldErrors();
   const submitBtn=productForm.querySelector('button[type="submit"]');
   const originalText=submitBtn?.innerHTML;
   if(submitBtn){submitBtn.disabled=true;submitBtn.innerHTML='Saving...';}
@@ -79,6 +104,7 @@ productForm?.addEventListener('submit',async function(e){
     const payload=await res.json();
     if(!res.ok){
       const msg=payload.message || Object.values(payload.errors||{}).flat().join('\n') || 'Unable to save product.';
+      applyFieldErrors(payload.errors||{});
       if(window.toastr?.error){toastr.error(msg);} else if(window.FormHelper?.showToast){window.FormHelper.showToast('danger',msg);} else {alert(msg);} 
       return;
     }
