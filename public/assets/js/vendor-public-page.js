@@ -341,6 +341,38 @@
         renderBannerThumbs();
     }
 
+
+    function syncSocialLinksPreview() {
+        var linksVisible = 0;
+
+        ['facebook', 'instagram'].forEach(function (platform) {
+            var uiInput = document.querySelector('[data-social-input="' + platform + '"]');
+            var hiddenInput = document.querySelector('input[name="' + platform + '_url"]');
+            var previewLink = document.querySelector('[data-social-preview="' + platform + '"]');
+            var value = (uiInput?.value || '').trim();
+
+            if (hiddenInput) {
+                hiddenInput.value = value;
+            }
+
+            if (!previewLink) return;
+
+            if (value) {
+                previewLink.href = value;
+                previewLink.classList.remove('d-none');
+                linksVisible += 1;
+            } else {
+                previewLink.href = '#';
+                previewLink.classList.add('d-none');
+            }
+        });
+
+        var emptyState = document.querySelector('[data-social-empty]');
+        if (emptyState) {
+            emptyState.classList.toggle('d-none', linksVisible > 0);
+        }
+    }
+
     function updateLogoPreview(logoUrl) {
         var wrap = document.getElementById('logoPreviewWrap');
         var nameEl = document.getElementById('storeNamePreview');
@@ -378,6 +410,7 @@
 
     document.addEventListener('input', function (e) {
         if (e.target.matches('.vendor-live-editable')) syncEditable(e.target);
+        if (e.target.matches('[data-social-input]')) syncSocialLinksPreview();
     });
 
     document.addEventListener('change', function (e) {
@@ -555,6 +588,7 @@
     renderBannerThumbs();
     initHeroStyleControls();
     initSectionFields();
+    syncSocialLinksPreview();
 
     publicPageForm?.addEventListener('submit', function (e) {
         e.preventDefault();
