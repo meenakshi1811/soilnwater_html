@@ -25,11 +25,13 @@ use App\Http\Controllers\Admin\AdSizeController;
 use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
 use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Admin\VendorProductApprovalController;
 use App\Http\Controllers\Frontend\VendorStoreController;
 use App\Http\Controllers\Vendor\VendorBranchController;
 use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorPendingController;
 use App\Http\Controllers\Vendor\VendorPublicPageController;
+use App\Http\Controllers\Vendor\VendorProductController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -115,6 +117,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/public-page', [VendorPublicPageController::class, 'update'])->middleware('vendor')->name('public-page.update');
         Route::get('/public-page/preview', [VendorPublicPageController::class, 'preview'])->middleware('vendor')->name('public-page.preview');
         Route::delete('/banner-slides/{slide}', [VendorPublicPageController::class, 'deleteBannerSlide'])->middleware('vendor')->name('banner-slides.destroy');
+        Route::resource('products', VendorProductController::class)->middleware('vendor');
     });
 
     Route::prefix('user')->name('user.')->middleware('user')->group(function () {
@@ -227,6 +230,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/homepage-settings', [HomepageSettingController::class, 'edit'])->name('homepage-settings.edit');
         Route::put('/homepage-settings', [HomepageSettingController::class, 'update'])->name('homepage-settings.update');
+
+        Route::prefix('vendor-products')->name('vendor-products.')->group(function () {
+            Route::get('/', [VendorProductApprovalController::class, 'index'])->name('index');
+            Route::post('/{product}/approve', [VendorProductApprovalController::class, 'approve'])->name('approve');
+            Route::post('/{product}/reject', [VendorProductApprovalController::class, 'reject'])->name('reject');
+        });
 
         Route::prefix('vendors')->name('vendors.')->group(function () {
             Route::get('/', [VendorController::class, 'index'])->name('index');
