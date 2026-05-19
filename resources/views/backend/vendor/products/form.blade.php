@@ -7,10 +7,11 @@
     <a href="{{ route('vendor.products.index') }}" class="btn btn-outline-secondary">Back to Listing</a>
   </div>
   @php($oldTiers = old('bulk_min') ? collect(old('bulk_min'))->map(fn($m,$i)=>['buy_min'=>$m,'price'=>old('bulk_price')[$i] ?? ''])->values()->all() : ($product->bulk_tiers ?? [['buy_min'=>10,'price'=>'']]))
-  @if ($errors->any())
+  @php($visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten())
+  @if ($visibleErrors->isNotEmpty())
     <div class="alert alert-danger">
       <ul class="mb-0">
-        @foreach ($errors->all() as $error)
+        @foreach ($visibleErrors as $error)
           <li>{{ $error }}</li>
         @endforeach
       </ul>
@@ -49,7 +50,22 @@
   </form>
 </div>
 @endsection
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+@endpush
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+if (window.toastr) {
+  toastr.options = {
+    closeButton: true,
+    progressBar: true,
+    positionClass: 'toast-top-right',
+    timeOut: 4000,
+    extendedTimeOut: 2000
+  };
+}
+</script>
 <script>
 const subcategoryByCategory = @json($categories->mapWithKeys(fn($c)=>[$c->id=>$c->children->map(fn($s)=>['id'=>$s->id,'name'=>$s->name])->values()]));
 const cat = document.getElementById('category_id'); const sub = document.getElementById('subcategory_id');
@@ -98,12 +114,16 @@ window.initVendorProductLocationAutocomplete = function () {
 const productForm=document.getElementById('vendor-product-form');
 
 
-function notify(type,msg){
-  if(window.FormHelper?.showToast){
-    window.FormHelper.showToast(type==='error'?'danger':'success',msg);
+function notify(type, msg) {
+  const toastType = type === 'error' ? 'error' : 'success';
+  if (window.toastr && typeof window.toastr[toastType] === 'function') {
+    window.toastr[toastType](msg);
     return;
   }
-  if(type==='error'){ alert(msg); return; }
+  if (type === 'error') {
+    alert(msg);
+    return;
+  }
   alert(msg);
 }
 
@@ -111,11 +131,17 @@ function clearFieldErrors(){
   productForm.querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
   productForm.querySelectorAll('.invalid-feedback.dynamic-error').forEach(el=>el.remove());
 }
-function applyFieldErrors(errors){
-  Object.entries(errors||{}).forEach(([field,messages])=>{
-    const normalizedField=field.replace(/\.[0-9]+(?=\.|$)/g,'').replace(/\*$/,'');
-    const displayField=(normalizedField==='latitude' || normalizedField==='longitude') ? 'location' : normalizedField;
-    let input=productForm.querySelector(`[name="${field}"]`) || productForm.querySelector(`[name="${field}[]"]`) || productForm.querySelector(`[name="${displayField}"]`) || productForm.querySelector(`[name="${displayField}[]"]`);
+const hiddenValidationFields = ['latitude', 'longitude'];
+
+function applyFieldErrors(errors) {
+  Object.entries(errors || {}).forEach(([field, messages]) => {
+    const normalizedField = field.replace(/\.[0-9]+(?=\.|$)/g, '').replace(/\*$/, '');
+    if (hiddenValidationFields.includes(normalizedField)) {
+      return;
+    }
+
+    const displayField = normalizedField;
+    let input = productForm.querySelector(`[name="${field}"]`) || productForm.querySelector(`[name="${field}[]"]`) || productForm.querySelector(`[name="${displayField}"]`) || productForm.querySelector(`[name="${displayField}[]"]`);
 
     if(!input && field.includes('.')){
       const base=field.split('.')[0];
@@ -152,10 +178,13 @@ productForm?.addEventListener('submit',async function(e){
   try{
     const res=await fetch(productForm.action,{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'},body:fd});
     const payload=await res.json();
-    if(!res.ok){
-      const msg=payload.message || Object.values(payload.errors||{}).flat().join('\n') || 'Unable to save product.';
-      applyFieldErrors(payload.errors||{});
-      notify('error',msg);
+    if (!res.ok) {
+      applyFieldErrors(payload.errors || {});
+      if (res.status === 422) {
+        notify('error', 'Please fix the highlighted fields and try again.');
+      } else {
+        notify('error', payload.message || 'Unable to save product.');
+      }
       return;
     }
     const okMsg=payload.message || 'Product submitted successfully.';
