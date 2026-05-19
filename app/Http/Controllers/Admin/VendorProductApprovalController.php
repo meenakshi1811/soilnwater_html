@@ -12,7 +12,10 @@ class VendorProductApprovalController extends Controller
     {
         $status = $request->query('status', 'pending');
         $products = VendorProduct::query()->with(['category:id,name', 'subcategory:id,name'])
-            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($status === 'pending', fn ($q) => $q->where(function ($pending) {
+                $pending->where('status', 'pending')->orWhereNull('status');
+            }))
+            ->when(in_array($status, ['approved', 'rejected'], true), fn ($q) => $q->where('status', $status))
             ->latest()->paginate(20)->withQueryString();
 
         return view('backend.admin.vendor-products.index', compact('products', 'status'));
