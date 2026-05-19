@@ -97,6 +97,8 @@ class VendorProductController extends Controller
             'final_price' => ['required', 'numeric', 'min:0'],
             'stock_quantity' => ['required', 'integer', 'min:0'],
             'shipping_charges' => ['required', 'numeric', 'min:0'],
+            'bulk_min.*' => ['nullable', 'integer', 'min:1'],
+            'bulk_price.*' => ['nullable', 'numeric', 'min:0'],
             'images.*' => ['nullable', 'image', 'max:4096'],
             'video_file' => ['nullable', 'mimetypes:video/mp4,video/webm', 'max:20480'],
             'youtube_link' => ['nullable', 'url'],
@@ -104,6 +106,10 @@ class VendorProductController extends Controller
         ]);
         $validated['category'] = Category::find($validated['category_id'])?->name;
         $validated['discount_percent'] = $validated['discount_percent'] ?? 0;
+        $validated['bulk_tiers'] = collect($request->input('bulk_min', []))
+            ->map(fn ($min, $idx) => ['buy_min' => (int) $min, 'price' => (float) $request->input('bulk_price.'.$idx)])
+            ->filter(fn ($row) => $row['buy_min'] > 0 && $row['price'] > 0)
+            ->values()->all();
         $validated['images'] = [];
         if ($request->hasFile('images')) foreach ($request->file('images') as $file) $validated['images'][] = $file->store('vendor-products/images', 'public');
         if ($request->hasFile('video_file')) $validated['video_file'] = $request->file('video_file')->store('vendor-products/videos', 'public');
