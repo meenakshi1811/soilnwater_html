@@ -99,6 +99,8 @@ class VendorProductController extends Controller
             'shipping_charges' => ['required', 'numeric', 'min:0'],
             'bulk_min.*' => ['nullable', 'integer', 'min:1'],
             'bulk_price.*' => ['nullable', 'numeric', 'min:0'],
+            'spec_feature.*' => ['nullable', 'string', 'max:100'],
+            'spec_value.*' => ['nullable', 'string', 'max:255'],
             'images.*' => ['nullable', 'image', 'max:4096'],
             'video_file' => ['nullable', 'mimetypes:video/mp4,video/webm', 'max:20480'],
             'youtube_link' => ['nullable', 'url'],
@@ -106,6 +108,10 @@ class VendorProductController extends Controller
         ]);
         $validated['category'] = Category::find($validated['category_id'])?->name;
         $validated['discount_percent'] = $validated['discount_percent'] ?? 0;
+        $validated['specs'] = collect($request->input('spec_feature', []))
+            ->map(fn ($feature, $idx) => ['feature' => trim((string)$feature), 'value' => trim((string)$request->input('spec_value.'.$idx))])
+            ->filter(fn ($row) => $row['feature'] !== '' || $row['value'] !== '')
+            ->values()->all();
         $validated['bulk_tiers'] = collect($request->input('bulk_min', []))
             ->map(fn ($min, $idx) => ['buy_min' => (int) $min, 'price' => (float) $request->input('bulk_price.'.$idx)])
             ->filter(fn ($row) => $row['buy_min'] > 0 && $row['price'] > 0)
