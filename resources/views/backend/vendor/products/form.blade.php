@@ -11,6 +11,16 @@
     <a href="{{ route('vendor.products.index') }}" class="btn btn-outline-secondary">Back to Listing</a>
   </div>
   @php($oldTiers = old('bulk_min') ? collect(old('bulk_min'))->map(fn($m,$i)=>['buy_min'=>$m,'price'=>old('bulk_price')[$i] ?? ''])->values()->all() : ($product->bulk_tiers ?? [['buy_min'=>10,'price'=>'']]))
+  @if ($errors->any())
+    <div class="alert alert-danger">
+      <ul class="mb-0">
+        @foreach ($errors->all() as $error)
+          <li>{{ $error }}</li>
+        @endforeach
+      </ul>
+    </div>
+  @endif
+
   <form id="vendor-product-form" data-ajax-create="{{ $product->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $product->exists ? route('vendor.products.update',$product) : route('vendor.products.store') }}" class="row g-3">@csrf @if($product->exists) @method('PUT') @endif
     <div class="col-lg-8"><div class="chart-card p-4"><h5 class="mb-3">Basic Information</h5><div class="row g-3">
       <div class="col-12"><label class="form-label">Product Name *</label><input class="form-control" required name="name" value="{{ old('name',$product->name) }}"></div>
@@ -33,8 +43,9 @@
 
     <div class="col-12">
       <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="1" id="accept_terms" name="accept_terms" required {{ old('accept_terms') ? 'checked' : '' }}>
+        <input class="form-check-input @error('accept_terms') is-invalid @enderror" type="checkbox" value="1" id="accept_terms" name="accept_terms" required {{ old('accept_terms') ? 'checked' : '' }}>
         <label class="form-check-label" for="accept_terms">I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'vendors']) }}" target="_blank" rel="noopener">Terms & Conditions</a>.</label>
+            @error('accept_terms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
     </div>
 
@@ -67,8 +78,7 @@ productForm?.addEventListener('submit',async function(e){
     const res=await fetch(productForm.action,{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'},body:fd});
     const payload=await res.json();
     if(!res.ok){
-      const msg=payload.message || Object.values(payload.errors||{}).flat().join('
-') || 'Unable to save product.';
+      const msg=payload.message || Object.values(payload.errors||{}).flat().join('\n') || 'Unable to save product.';
       if(window.toastr?.error){toastr.error(msg);} else if(window.FormHelper?.showToast){window.FormHelper.showToast('danger',msg);} else {alert(msg);} 
       return;
     }
