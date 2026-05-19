@@ -58,13 +58,23 @@
         </div>
     </section>
 
-    <section class="vendor-store-trust">
+    <section id="products" class="vendor-store-section">
         <div class="container">
-            <div class="row g-3">
-                <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-certificate d-block mb-1"></i> Quality Products</div>
-                <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-users d-block mb-1"></i> Professional Team</div>
-                <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-truck-fast d-block mb-1"></i> Pan-India Delivery</div>
-                <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-headset d-block mb-1"></i> 24/7 Support</div>
+            <h2>Top Selling Products</h2>
+            <div class="row g-4">
+                @foreach(array_slice($dummyProducts, 0, 4) as $product)
+                    <div class="col-6 col-md-3">
+                        <div class="vendor-product-card">
+                            <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}">
+                            <div class="card-body">
+                                <h6 class="mb-1">{{ $product['name'] }}</h6>
+                                <p class="price mb-0">{{ $product['price'] }}</p>
+                                <p class="moq mb-0">{{ $product['moq'] }}</p>
+                                <button type="button" class="btn btn-sm btn-outline-primary w-100 mt-2">Send Inquiry</button>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
     </section>
