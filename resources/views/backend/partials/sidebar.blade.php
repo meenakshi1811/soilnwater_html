@@ -93,6 +93,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.vendor-products.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Vendor Product Approvals</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
                     <i class="fa-solid fa-folder-tree"></i>
                     <span>Categories</span>

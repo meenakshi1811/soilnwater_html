@@ -26,7 +26,15 @@
 
     <div class="col-12"><div class="chart-card p-4" style="background:#f1f5ff;border:1px solid #c9d8ff;"><div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0 text-primary"><i class="fa-solid fa-layer-group me-2"></i>Bulk Quantity Pricing (B2B)</h5><button type="button" class="btn btn-primary btn-sm" id="add-tier">+ Add Tier</button></div><div id="tiers-wrap" class="row g-2">@foreach($oldTiers as $tier)<div class="col-12 tier-row"><div class="row g-2 align-items-end"><div class="col-md-4"><label class="form-label">Buy Min</label><input type="number" class="form-control" name="bulk_min[]" value="{{ $tier['buy_min'] ?? '' }}" min="1"></div><div class="col-md-5"><label class="form-label">Price ₹</label><input type="number" step="0.01" class="form-control" name="bulk_price[]" value="{{ $tier['price'] ?? '' }}" placeholder="Unit Price"></div><div class="col-md-3"><button type="button" class="btn btn-outline-danger btn-sm remove-tier">Remove</button></div></div></div>@endforeach</div><small class="text-primary d-block mt-2">Example: Buy 10+ @ ₹90/unit (Discounted from Base Price)</small></div></div>
 
-    <div class="col-12 text-end"><button class="btn btn-dark px-4 py-2">Save & List Product</button></div>
+
+    <div class="col-12">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="1" id="accept_terms" name="accept_terms" required {{ old('accept_terms') ? 'checked' : '' }}>
+        <label class="form-check-label" for="accept_terms">I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'vendors']) }}" target="_blank" rel="noopener">Terms & Conditions</a>.</label>
+      </div>
+    </div>
+
+    <div class="col-12 text-end"><button class="btn btn-dark px-4 py-2">Save & Send for Approval</button></div>
   </form>
 </div>
 @endsection

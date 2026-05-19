@@ -76,7 +76,7 @@ class VendorProductController extends Controller
 
     private function vendorCategories()
     {
-        return Category::query()->whereNull('parent_id')->whereJsonContains('modules', 'products')
+        return Category::query()->whereNull('parent_id')->whereJsonContains('modules', 'vendors')
             ->with(['children' => fn($q) => $q->orderBy('name')->select(['id', 'name', 'parent_id'])])
             ->orderBy('name')->get(['id', 'name']);
     }
@@ -105,6 +105,7 @@ class VendorProductController extends Controller
             'video_file' => ['nullable', 'mimetypes:video/mp4,video/webm', 'max:20480'],
             'youtube_link' => ['nullable', 'url'],
             'is_online_sale' => ['nullable', 'boolean'],
+            'accept_terms' => ['accepted'],
         ]);
         $validated['category'] = Category::find($validated['category_id'])?->name;
         $validated['discount_percent'] = $validated['discount_percent'] ?? 0;
@@ -120,6 +121,10 @@ class VendorProductController extends Controller
         if ($request->hasFile('images')) foreach ($request->file('images') as $file) $validated['images'][] = $file->store('vendor-products/images', 'public');
         if ($request->hasFile('video_file')) $validated['video_file'] = $request->file('video_file')->store('vendor-products/videos', 'public');
         $validated['is_online_sale'] = (bool) $request->boolean('is_online_sale');
+        unset($validated['accept_terms']);
+        $validated['status'] = 'pending';
+        $validated['approved_at'] = null;
+        $validated['approved_by'] = null;
         return $validated;
     }
 }
