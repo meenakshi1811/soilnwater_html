@@ -9,39 +9,79 @@
             window.FormHelper.showToast(type, message);
             return;
         }
+
+        if (window.toastr && typeof window.toastr[type] === 'function') {
+            window.toastr[type](message);
+            return;
+        }
+
         alert(message);
     }
 
-    function postAction(url, successMessage, redirectToIndex) {
-        $.post(url, { _token: token })
+    function refreshTable() {
+        if (table && typeof table.ajax !== 'undefined') {
+            table.ajax.reload(null, false);
+            return true;
+        }
+
+        return false;
+    }
+
+    function postAction(url, successMessage) {
+        $.ajax({
+            url: url,
+            method: 'POST',
+            data: { _token: token },
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
             .done(function (r) {
                 toast('success', r.message || successMessage);
-                if (table) {
-                    table.ajax.reload(null, false);
-                }
-                if (redirectToIndex) {
-                    window.location.href = '/admin/vendor-products';
-                } else {
+                if (!refreshTable()) {
                     window.location.reload();
                 }
+            })
+            .fail(function (xhr) {
+                toast('error', (xhr.responseJSON && xhr.responseJSON.message) || 'Unable to process request.');
             });
     }
 
-    function deleteAction(id, redirectToIndex) {
-        if (!confirm('Delete this product permanently?')) return;
-        $.ajax({
-            url: '/admin/vendor-products/' + id,
-            method: 'DELETE',
-            headers: { 'X-CSRF-TOKEN': token }
-        }).done(function (r) {
-            toast('success', r.message || 'Product deleted successfully.');
-            if (table) {
-                table.ajax.reload(null, false);
-            }
-            if (redirectToIndex) {
-                window.location.href = '/admin/vendor-products';
-            }
-        });
+    function deleteAction(id) {
+        var proceed = function () {
+            $.ajax({
+                url: '/admin/vendor-products/' + id,
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': token }
+            })
+                .done(function (r) {
+                    toast('success', r.message || 'Product deleted successfully.');
+                    if (!refreshTable()) {
+                        window.location.href = '/admin/vendor-products';
+                    }
+                })
+                .fail(function (xhr) {
+                    toast('error', (xhr.responseJSON && xhr.responseJSON.message) || 'Unable to delete product.');
+                });
+        };
+
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+            window.Swal.fire({
+                title: 'Are you sure?',
+                text: 'Delete this product permanently?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it',
+                cancelButtonText: 'Cancel'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    proceed();
+                }
+            });
+            return;
+        }
+
+        if (confirm('Delete this product permanently?')) {
+            proceed();
+        }
     }
 
     $(function () {
@@ -72,20 +112,17 @@
 
         $(document).on('click', '.js-approve', function () {
             var id = $(this).data('id');
-            var onShowPage = !$('#vendorProductsTable').length;
-            postAction('/admin/vendor-products/' + id + '/approve', 'Product approved.', onShowPage);
+            postAction('/admin/vendor-products/' + id + '/approve', 'Product approved.');
         });
 
         $(document).on('click', '.js-reject', function () {
             var id = $(this).data('id');
-            var onShowPage = !$('#vendorProductsTable').length;
-            postAction('/admin/vendor-products/' + id + '/reject', 'Product rejected.', onShowPage);
+            postAction('/admin/vendor-products/' + id + '/reject', 'Product rejected.');
         });
 
         $(document).on('click', '.js-delete', function () {
             var id = $(this).data('id');
-            var onShowPage = !$('#vendorProductsTable').length;
-            deleteAction(id, onShowPage);
+            deleteAction(id);
         });
     });
 })(window.jQuery);
