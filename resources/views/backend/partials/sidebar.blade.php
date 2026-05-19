@@ -93,6 +93,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ request()->routeIs('admin.vendor-products.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Vendor Product Approvals</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
                     <i class="fa-solid fa-folder-tree"></i>
                     <span>Categories</span>
@@ -236,6 +242,12 @@
                 <a class="{{ request()->routeIs('vendor.branches.*') ? 'active' : '' }}" href="{{ route('vendor.branches.index') }}">
                     <i class="fa-solid fa-code-branch"></i>
                     <span>My Branches</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('vendor.products.*') ? 'active' : '' }}" href="{{ route('vendor.products.index') }}">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>Manage Products</span>
                 </a>
             </li>
         @elseif($isEmployee)
