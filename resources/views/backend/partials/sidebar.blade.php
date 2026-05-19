@@ -8,6 +8,7 @@
     $canAccessOffers = $isAdmin || $isGeneralUser || auth()->user()->canModule('vendors', 'read');
     $offersMenuActive = request()->routeIs('offers.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
+    $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -87,18 +88,6 @@
                 </a>
             </li>
             <li>
-                <a class="{{ request()->routeIs('admin.vendors.*') ? 'active' : '' }}" href="{{ route('admin.vendors.index') }}">
-                    <i class="fa-solid fa-store"></i>
-                    <span>Vendors</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('admin.vendor-products.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                    <span>Vendor Product Approvals</span>
-                </a>
-            </li>
-            <li>
                 <a class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
                     <i class="fa-solid fa-folder-tree"></i>
                     <span>Categories</span>
@@ -174,6 +163,37 @@
                             <a class="{{ request()->routeIs('admin.ads.contact-support.*') ? 'active' : '' }}" href="{{ route('admin.ads.contact-support.index') }}">
                                 <i class="fa-regular fa-envelope"></i>
                                 <span>Contact Support</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+            <li class="admin-sidebar-group">
+                <details {{ $vendorsMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $vendorsMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-store"></i>
+                            <span>Vendor</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('admin.vendors.*') ? 'active' : '' }}" href="{{ route('admin.vendors.index') }}">
+                                <i class="fa-solid fa-list"></i>
+                                <span>All Vendors</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.vendor-products.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
+                                <i class="fa-solid fa-boxes-stacked"></i>
+                                <span>Products Approval</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.vendor-products.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
+                                <i class="fa-solid fa-rectangle-list"></i>
+                                <span>All Products</span>
                             </a>
                         </li>
                     </ul>
