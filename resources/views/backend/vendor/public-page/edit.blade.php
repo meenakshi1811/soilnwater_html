@@ -207,6 +207,33 @@
         <div class="vendor-form-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
+                    <h5 class="mb-0">Social media links</h5>
+                    <p class="text-muted small mb-0">Add your social URLs and see how they will appear on your public store page.</p>
+                </div>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Facebook URL</label>
+                    <input type="url" class="form-control" data-social-input="facebook" value="{{ old('facebook_url', $vendor->facebook_url) }}" placeholder="https://facebook.com/yourpage">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Instagram URL</label>
+                    <input type="url" class="form-control" data-social-input="instagram" value="{{ old('instagram_url', $vendor->instagram_url) }}" placeholder="https://instagram.com/yourhandle">
+                </div>
+            </div>
+            <div class="p-3 rounded border bg-light">
+                <p class="small text-muted mb-2">Frontend preview</p>
+                <div id="socialLinksPreview" class="d-flex flex-column gap-1">
+                    <a href="#" target="_blank" class="small d-none" data-social-preview="facebook">Facebook</a>
+                    <a href="#" target="_blank" class="small d-none" data-social-preview="instagram">Instagram</a>
+                    <span class="small text-muted" data-social-empty>Social links will appear here when URLs are added.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="vendor-form-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
                     <h5 class="mb-0">Custom page sections</h5>
                     <p class="text-muted small mb-0">Add sections with images and styled text. Save, then check Live Preview.</p>
                 </div>
