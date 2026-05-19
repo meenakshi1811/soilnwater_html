@@ -108,19 +108,33 @@ function clearFieldErrors(){
 }
 function applyFieldErrors(errors){
   Object.entries(errors||{}).forEach(([field,messages])=>{
-    const key=field.replace(/\./g,'\.').replace(/\*$/,'');
-    let input=productForm.querySelector(`[name="${field}"]`) || productForm.querySelector(`[name="${field}[]"]`) || productForm.querySelector(`[name="${key}"]`) || productForm.querySelector(`[name="${key}[]"]`);
+    const normalizedField=field.replace(/\.[0-9]+(?=\.|$)/g,'').replace(/\*$/,'');
+    let input=productForm.querySelector(`[name="${field}"]`) || productForm.querySelector(`[name="${field}[]"]`) || productForm.querySelector(`[name="${normalizedField}"]`) || productForm.querySelector(`[name="${normalizedField}[]"]`);
+
     if(!input && field.includes('.')){
       const base=field.split('.')[0];
       input=productForm.querySelector(`[name="${base}[]"]`) || productForm.querySelector(`[name="${base}"]`);
     }
+
+    if(!input && (field==='latitude' || field==='longitude')){
+      input=productForm.querySelector('[name="location"]');
+    }
+
     if(!input) return;
+
     input.classList.add('is-invalid');
     const msg=Array.isArray(messages)?messages[0]:String(messages||'Invalid value');
     const err=document.createElement('div');
     err.id=`${field.replace(/\./g,'_')}-error`;
     err.className='invalid-feedback d-block dynamic-error';
     err.textContent=msg;
+
+    const container=input.closest('.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8') || input.parentElement;
+    const existingStaticError=container?.querySelector(`#${field.replace(/\./g,'_')}-error:not(.dynamic-error)`);
+    if(existingStaticError){
+      existingStaticError.remove();
+    }
+
     input.insertAdjacentElement('afterend', err);
   });
 }
