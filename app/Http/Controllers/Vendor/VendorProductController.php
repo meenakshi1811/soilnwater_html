@@ -22,7 +22,7 @@ class VendorProductController extends Controller
                 ->where('name', 'like', "%{$q}%")
                 ->orWhere('sku', 'like', "%{$q}%")
             ))
-            ->latest()->paginate(10)->withQueryString();
+            ->latest()->get();
 
         return view('backend.vendor.products.index', compact('products', 'q'));
     }
