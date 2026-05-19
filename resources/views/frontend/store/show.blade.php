@@ -12,16 +12,6 @@
         <div class="vendor-preview-banner">Preview mode — only you can see this until your store is published.</div>
     @endif
 
-    <div class="vendor-store-topbar">
-        <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <span><i class="fa-solid fa-flag me-1"></i> Made for India · Prices in ₹ · GST invoicing available</span>
-            <span>
-                @if($vendor->phone)<a href="tel:{{ $vendor->phone }}" class="text-white text-decoration-none me-3">{{ $vendor->phone }}</a>@endif
-                <a href="{{ route('frontend.index') }}" class="text-white text-decoration-none">SoilNWater Home</a>
-            </span>
-        </div>
-    </div>
-
     <header class="vendor-store-header">
         <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div class="d-flex align-items-center gap-3">
@@ -58,7 +48,7 @@
                 @if($vendor->hero_sub_heading)
                     <p class="lead mb-4 opacity-90" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ $vendor->hero_sub_heading }}</p>
                 @endif
-                <a href="#products" class="btn btn-warning btn-lg fw-bold">View Products</a>
+                <a href="#products" class="btn btn-warning btn-lg fw-bold">Explore Products</a>
                 @if($vendor->whatsapp)
                     <a href="https://wa.me/91{{ preg_replace('/\D/', '', $vendor->whatsapp) }}" target="_blank" class="btn btn-success btn-lg ms-2">
                         <i class="fa-brands fa-whatsapp me-1"></i> Chat on WhatsApp
@@ -75,27 +65,6 @@
                 <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-users d-block mb-1"></i> Professional Team</div>
                 <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-truck-fast d-block mb-1"></i> Pan-India Delivery</div>
                 <div class="col-6 col-md-3 trust-item"><i class="fa-solid fa-headset d-block mb-1"></i> 24/7 Support</div>
-            </div>
-        </div>
-    </section>
-
-    <section id="products" class="vendor-store-section">
-        <div class="container">
-            <h2>Top Selling Products</h2>
-            <div class="row g-4">
-                @foreach(array_slice($dummyProducts, 0, 4) as $product)
-                    <div class="col-6 col-md-3">
-                        <div class="vendor-product-card">
-                            <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}">
-                            <div class="card-body">
-                                <h6 class="mb-1">{{ $product['name'] }}</h6>
-                                <p class="price mb-0">{{ $product['price'] }}</p>
-                                <p class="moq mb-0">{{ $product['moq'] }}</p>
-                                <button type="button" class="btn btn-sm btn-outline-primary w-100 mt-2">Send Inquiry</button>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
             </div>
         </div>
     </section>
@@ -118,10 +87,10 @@
         </section>
     @endforeach
 
-    <section id="products-all" class="vendor-store-section alt">
+    <section id="products" class="vendor-store-section alt">
         <div class="container">
-            <h2>All Products</h2>
-            <p class="text-center text-secondary mb-4">Catalog preview — product module coming soon</p>
+            <h2>Products</h2>
+            <p class="text-center text-secondary mb-4">Explore our complete product range.</p>
             <div class="row g-4">
                 @foreach($dummyProducts as $product)
                     <div class="col-6 col-md-4 col-lg-3">
