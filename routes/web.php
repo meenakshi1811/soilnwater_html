@@ -30,6 +30,7 @@ use App\Http\Controllers\Vendor\VendorBranchController;
 use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorPendingController;
 use App\Http\Controllers\Vendor\VendorPublicPageController;
+use App\Http\Controllers\Vendor\VendorProductController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -115,6 +116,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/public-page', [VendorPublicPageController::class, 'update'])->middleware('vendor')->name('public-page.update');
         Route::get('/public-page/preview', [VendorPublicPageController::class, 'preview'])->middleware('vendor')->name('public-page.preview');
         Route::delete('/banner-slides/{slide}', [VendorPublicPageController::class, 'deleteBannerSlide'])->middleware('vendor')->name('banner-slides.destroy');
+        Route::resource('products', VendorProductController::class)->middleware('vendor');
     });
 
     Route::prefix('user')->name('user.')->middleware('user')->group(function () {

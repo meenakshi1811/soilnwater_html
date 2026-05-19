@@ -238,6 +238,12 @@
                     <span>My Branches</span>
                 </a>
             </li>
+            <li>
+                <a class="{{ request()->routeIs('vendor.products.*') ? 'active' : '' }}" href="{{ route('vendor.products.index') }}">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>Manage Products</span>
+                </a>
+            </li>
         @elseif($isEmployee)
             @if($canAccessOffers)
                 <li>
