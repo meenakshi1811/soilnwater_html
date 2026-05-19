@@ -66,6 +66,7 @@ class VendorProductApprovalController extends Controller
 
     public function approve(VendorProduct $product, Request $request): JsonResponse
     {
+        // echo'<pre>';print_r($product);echo'</pre>';exit();
         $product->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => $request->user()->id]);
 
         return response()->json(['message' => 'Product approved.']);

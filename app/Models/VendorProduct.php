@@ -9,7 +9,7 @@ class VendorProduct extends Model
     protected $fillable = [
         'vendor_id', 'name', 'brand', 'sku', 'description', 'category_id', 'subcategory_id', 'category', 'colors', 'sizes',
         'base_price', 'discount_percent', 'final_price', 'stock_quantity', 'shipping_charges', 'location', 'latitude', 'longitude',
-        'specs', 'bulk_tiers', 'images', 'video_file', 'youtube_link', 'is_online_sale',
+        'specs', 'bulk_tiers', 'images', 'video_file', 'youtube_link', 'is_online_sale','status', 'approved_at', 'approved_by', 
     ];
 
     protected $casts = [
