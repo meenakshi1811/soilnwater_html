@@ -7,6 +7,7 @@ use App\Models\VendorProduct;
 use App\Models\Vendor;
 use App\Models\UserAd;
 use App\Models\VendorProductInquiry;
+use App\Support\AdSizes;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -104,12 +105,37 @@ class VendorStoreController extends Controller
 
         $ads = $ads->shuffle()->values();
 
-        $adsTop = $ads->slice(0, 2)->values();
-        $adsLeft = $ads->slice(2, 3)->values();
-        $adsRight = $ads->slice(5, 3)->values();
-        $adsBottom = $ads->slice(8, 3)->values();
+        $sizeMap = collect(AdSizes::all())->mapWithKeys(function (array $size, string $sizeKey) {
+            return [strtolower((string) $sizeKey) => ['w' => (int) ($size['w'] ?? 0), 'h' => (int) ($size['h'] ?? 0)]];
+        });
 
-        return view('frontend.store.product-show', compact('vendor', 'product', 'adsTop', 'adsLeft', 'adsRight', 'adsBottom'));
+        $adsByDimension = $ads
+            ->filter(function ($ad) use ($sizeMap) {
+                $key = strtolower((string) $ad->size_type);
+                return isset($sizeMap[$key]) && $sizeMap[$key]['w'] > 0 && $sizeMap[$key]['h'] > 0;
+            })
+            ->groupBy(function ($ad) use ($sizeMap) {
+                $key = strtolower((string) $ad->size_type);
+                return $sizeMap[$key]['w'].'x'.$sizeMap[$key]['h'];
+            });
+
+        $topGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) >= 900)->values();
+        $sideGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) < 900 && ((int) explode('x', $dim)[1]) >= 300)->values();
+        $bottomGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[1]) < 300)->values();
+
+        if ($topGroups->isEmpty()) {
+            $topGroups = $adsByDimension->take(1)->values();
+        }
+
+        if ($sideGroups->isEmpty()) {
+            $sideGroups = $adsByDimension->slice(1, 2)->values();
+        }
+
+        if ($bottomGroups->isEmpty()) {
+            $bottomGroups = $adsByDimension->slice(2, 2)->values();
+        }
+
+        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups'));
     }
 
     public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
