@@ -8,6 +8,7 @@ use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Support\ModulePermissions;
 use Yajra\DataTables\Facades\DataTables;
 
 class AdSizeController extends Controller
@@ -16,7 +17,9 @@ class AdSizeController extends Controller
     {
         $categories = Category::query()->whereNull('parent_id')->orderBy('name')->pluck('name', 'id');
 
-        return view('backend.ads.admin.sizes.index', compact('categories'));
+        $modules = ModulePermissions::modules();
+
+        return view('backend.ads.admin.sizes.index', compact('categories', 'modules'));
     }
 
     public function data(Request $request): JsonResponse
@@ -24,10 +27,12 @@ class AdSizeController extends Controller
         abort_unless($request->ajax(), 404);
 
         $sizes = AdSize::query()
-            ->select(['id', 'size_key', 'name', 'width', 'height', 'admin_only', 'is_paid', 'amount', 'is_active', 'created_at']);
+            ->select(['id', 'size_key', 'name', 'width', 'height', 'module_key', 'module_price', 'admin_only', 'is_paid', 'amount', 'is_active', 'created_at']);
 
         return DataTables::of($sizes)
             ->addColumn('dimensions', fn (AdSize $size) => $size->width.'×'.$size->height)
+            ->addColumn('module_label', fn (AdSize $size) => ModulePermissions::modules()[$size->module_key] ?? '-')
+            ->addColumn('module_price_display', fn (AdSize $size) => $size->module_price !== null ? '₹'.number_format((float) $size->module_price, 2) : '-')
             ->addColumn('placement', fn (AdSize $size) => $size->admin_only
                 ? '<span class="badge text-bg-warning">Admin</span>'
                 : '<span class="badge text-bg-success">User</span>')
@@ -136,6 +141,8 @@ class AdSizeController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'width' => ['required', 'integer', 'min:1', 'max:5000'],
             'height' => ['required', 'integer', 'min:1', 'max:5000'],
+            'module_key' => ['nullable', 'string', Rule::in(array_keys(ModulePermissions::modules()))],
+            'module_price' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'admin_only' => ['nullable', 'boolean'],
             'is_paid' => ['nullable', 'boolean'],
             'category_prices' => ['nullable', 'array'],
@@ -144,17 +151,22 @@ class AdSizeController extends Controller
 
         $validated['admin_only'] = $request->boolean('admin_only');
         $validated['is_paid'] = $request->boolean('is_paid');
+        $validated['module_price'] = $request->filled('module_price')
+            ? $this->formatAmount($validated['module_price'])
+            : null;
         $validated['category_prices'] = $this->normalizeCategoryPrices($validated['category_prices'] ?? []);
 
-        if ($validated['is_paid'] && $validated['category_prices'] === []) {
+        if ($validated['is_paid'] && $validated['category_prices'] === [] && $validated['module_price'] === null) {
             abort(response()->json([
-                'message' => 'Add at least one category price when paid is enabled.',
-                'errors' => ['category_prices' => ['Add at least one category price when paid is enabled.']],
+                'message' => 'Add at least one category price or module price when paid is enabled.',
+                'errors' => ['category_prices' => ['Add at least one category price or module price when paid is enabled.']],
             ], 422));
         }
 
         $validated['amount'] = $validated['is_paid']
-            ? min(array_values($validated['category_prices']))
+            ? ($validated['category_prices'] !== []
+                ? min(array_values($validated['category_prices']))
+                : $validated['module_price'])
             : null;
 
         if (! $size) {

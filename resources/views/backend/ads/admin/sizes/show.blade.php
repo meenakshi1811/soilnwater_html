@@ -4,6 +4,9 @@
 
 @section('content')
 @php
+    $modules = \App\Support\ModulePermissions::modules();
+@endphp
+@php
     $formatAmount = fn ($amount) => '₹'.number_format((float) $amount, 2);
 @endphp
 
@@ -56,6 +59,14 @@
                             <tr>
                                 <th class="bg-light">Dimensions</th>
                                 <td>{{ $size->width }}×{{ $size->height }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Attached Module</th>
+                                <td>{{ $size->module_key ? ($modules[$size->module_key] ?? $size->module_key) : '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Module Price</th>
+                                <td>{{ $size->module_price !== null ? $formatAmount($size->module_price) : '-' }}</td>
                             </tr>
                             <tr>
                                 <th class="bg-light">Placement</th>

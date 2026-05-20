@@ -29,6 +29,8 @@
                         <th>Key</th>
                         <th>Dimensions</th>
                         <th>Placement</th>
+                        <th>Module</th>
+                        <th>Module Price</th>
                         <th>Status</th>
                         <th>Created</th>
                         <th class="text-end">Actions</th>
@@ -67,6 +69,23 @@
                         <div class="col-md-4">
                             <label class="form-label">Height</label>
                             <input type="number" min="1" max="5000" name="height" id="adSizeHeight" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Attached Module</label>
+                            <select name="module_key" id="adSizeModuleKey" class="form-select">
+                                <option value="">Select module (optional)</option>
+                                @foreach($modules as $moduleKey => $moduleLabel)
+                                    <option value="{{ $moduleKey }}">{{ $moduleLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Module Price</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" min="0" step="0.01" name="module_price" id="adSizeModulePrice" class="form-control" placeholder="0.00">
+                            </div>
+                            <small class="text-secondary">Used on ad creation if category price is not configured.</small>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
                             <div class="form-check mb-2">
