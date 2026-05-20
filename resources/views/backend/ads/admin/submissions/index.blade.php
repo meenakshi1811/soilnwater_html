@@ -24,6 +24,16 @@
             </a>
         </div>
 
+
+        <ul class="nav nav-tabs mb-3" id="adminAdsPostedByTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" type="button" data-posted-by="admin">Admin Ads</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" type="button" data-posted-by="user">User Ads</button>
+            </li>
+        </ul>
+
         <div class="row g-2 mb-3">
             <div class="col-12 col-md-4">
                 <label class="form-label mb-1">Size</label>

@@ -35,6 +35,16 @@ class AdSubmissionController extends Controller
             $query->where('size_type', $request->string('size_type')->toString());
         }
 
+        if ($request->filled('posted_by')) {
+            $postedBy = $request->string('posted_by')->toString();
+
+            if ($postedBy === 'admin') {
+                $query->whereHas('user', fn ($userQuery) => $userQuery->where('role', 'admin'));
+            } elseif ($postedBy === 'user') {
+                $query->whereHas('user', fn ($userQuery) => $userQuery->where('role', 'user'));
+            }
+        }
+
         $sizes = AdSizes::all();
 
         return DataTables::of($query)

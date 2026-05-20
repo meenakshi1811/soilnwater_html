@@ -26,6 +26,18 @@
 
         <div id="userAdsAlert" class="alert d-none" role="alert"></div>
 
+
+        @if(auth()->user()?->isAdmin())
+            <ul class="nav nav-tabs mb-3" id="userAdsPostedByTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" type="button" data-posted-by="admin">Admin Ads</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" type="button" data-posted-by="user">User Ads</button>
+                </li>
+            </ul>
+        @endif
+
         <div class="table-responsive">
             <table
                 id="userAdsTable"

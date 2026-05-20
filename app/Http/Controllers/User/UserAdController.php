@@ -180,10 +180,23 @@ class UserAdController extends Controller
 
     public function data(Request $request): JsonResponse
     {
+        $user = $request->user();
+
         $ads = UserAd::query()
             ->with(['template:id,name', 'category:id,name', 'subcategory:id,name'])
-            ->where('user_id', $request->user()->id)
             ->latest();
+
+        if ($user?->isAdmin() && $request->filled('posted_by')) {
+            $postedBy = $request->string('posted_by')->toString();
+
+            if ($postedBy === 'admin') {
+                $ads->whereHas('user', fn ($userQuery) => $userQuery->where('role', 'admin'));
+            } elseif ($postedBy === 'user') {
+                $ads->whereHas('user', fn ($userQuery) => $userQuery->where('role', 'user'));
+            }
+        } else {
+            $ads->where('user_id', $user?->id);
+        }
 
         $sizes = AdSizes::all();
 
