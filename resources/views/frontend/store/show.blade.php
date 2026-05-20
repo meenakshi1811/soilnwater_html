@@ -58,7 +58,7 @@
         </div>
     </section>
 
-    @php($topProducts = $products->take(4))
+    @php($topProducts = $products->getCollection()->take(4))
 
     <section id="products" class="vendor-store-section">
         <div class="container">
@@ -106,23 +106,10 @@
         <div class="container">
             <h2>Products</h2>
             <p class="text-center text-secondary mb-4">Explore our complete product range.</p>
-            <div class="row g-4">
-                @forelse($products as $product)
-                    <div class="col-6 col-md-4 col-lg-3">
-                        <div class="vendor-product-card">
-                            @php($image = is_array($product->images) ? ($product->images[0] ?? null) : null)
-                            <img src="{{ $image ? asset($image) : asset('assets/images/ad-sample.png') }}" alt="{{ $product->name }}">
-                            <div class="card-body">
-                                <h6 class="mb-1 small">{{ $product->name }}</h6>
-                                <p class="price mb-0">₹{{ number_format((float) $product->final_price, 2) }}</p>
-                                <p class="moq mb-0">Stock: {{ number_format((int) $product->stock_quantity) }}</p>
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <p class="text-center text-secondary">No approved products available yet.</p>
-                @endforelse
+            <div id="store-products-grid" class="row g-4">
+                @include('frontend.store.partials.product-cards', ['products' => $products])
             </div>
+            <div id="store-products-loader" class="text-center py-4 d-none text-secondary">Loading more products...</div>
         </div>
     </section>
 
@@ -169,4 +156,62 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endif
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const grid = document.getElementById('store-products-grid');
+    const loader = document.getElementById('store-products-loader');
+
+    if (!grid || !loader) {
+        return;
+    }
+
+    let nextPage = {{ $products->hasMorePages() ? ($products->currentPage() + 1) : 'null' }};
+    let isLoading = false;
+
+    const loadProducts = async () => {
+        if (!nextPage || isLoading) {
+            return;
+        }
+
+        isLoading = true;
+        loader.classList.remove('d-none');
+
+        try {
+            const response = await fetch(`{{ route('store.show', $vendor->slug) }}?page=${nextPage}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load products');
+            }
+
+            const data = await response.json();
+            if (data.html) {
+                grid.insertAdjacentHTML('beforeend', data.html);
+            }
+            nextPage = data.next_page;
+        } catch (error) {
+            console.error(error);
+        } finally {
+            isLoading = false;
+            loader.classList.add('d-none');
+        }
+    };
+
+    window.addEventListener('scroll', () => {
+        if (!nextPage || isLoading) {
+            return;
+        }
+
+        const threshold = document.body.offsetHeight - 300;
+        if ((window.scrollY + window.innerHeight) >= threshold) {
+            loadProducts();
+        }
+    });
+});
+</script>
 @endpush
