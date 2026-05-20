@@ -62,20 +62,54 @@ class VendorStoreController extends Controller
         $vendor = Vendor::query()->where('slug', $slug)->where('status', 'approved')->firstOrFail();
         abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
 
-        $ads = UserAd::query()
+        $lat = session('frontend_lat');
+        $lng = session('frontend_lng');
+
+        $adsQuery = UserAd::query()
             ->where('status', 'approved')
+            ->whereNotNull('final_image')
+            ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
             ->where(function ($q) {
                 $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
             })
             ->where(function ($q) {
                 $q->whereJsonContains('selected_modules', 'vendors')->orWhereJsonContains('selected_modules', 'products');
-            })
-            ->latest('reviewed_at')
-            ->get();
+            });
 
-        $groupedAds = $ads->groupBy('size_type');
+        if (is_numeric($lat) && is_numeric($lng)) {
+            $adsQuery
+                ->select('user_ads.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [(float) $lat, (float) $lng, (float) $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km')
+                ->orderByDesc('updated_at');
+        } else {
+            $adsQuery->orderByDesc('updated_at');
+        }
 
-        return view('frontend.store.product-show', compact('vendor', 'product', 'groupedAds'));
+        $ads = $adsQuery->take(18)->get();
+
+        if ($ads->isEmpty()) {
+            $fallbackQuery = UserAd::query()
+                ->where('status', 'approved')
+                ->whereNotNull('final_image')
+                ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
+                ->where(function ($q) {
+                    $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
+                })
+                ->orderByDesc('updated_at');
+
+            $ads = $fallbackQuery->take(18)->get();
+        }
+
+        $ads = $ads->shuffle()->values();
+
+        $adsTop = $ads->slice(0, 2)->values();
+        $adsLeft = $ads->slice(2, 3)->values();
+        $adsRight = $ads->slice(5, 3)->values();
+        $adsBottom = $ads->slice(8, 3)->values();
+
+        return view('frontend.store.product-show', compact('vendor', 'product', 'adsTop', 'adsLeft', 'adsRight', 'adsBottom'));
     }
 
     public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
