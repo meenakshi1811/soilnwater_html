@@ -33,6 +33,7 @@ class Vendor extends Model
         'hero_sub_style',
         'facebook_url',
         'instagram_url',
+        'is_premium',
         'status',
         'approved_at',
         'approved_by',
@@ -44,6 +45,7 @@ class Vendor extends Model
             'gallery' => 'array',
             'hero_main_style' => 'array',
             'hero_sub_style' => 'array',
+            'is_premium' => 'boolean',
             'approved_at' => 'datetime',
         ];
     }

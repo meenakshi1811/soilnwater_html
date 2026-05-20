@@ -19,10 +19,11 @@
                     { data: 'owner_email', name: 'user.email', orderable: false },
                     { data: 'location', name: 'city', orderable: false },
                     { data: 'status_badge', name: 'status', orderable: false },
+                    { data: 'premium_toggle', name: 'is_premium', orderable: false, searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[5, 'desc']]
+                order: [[6, 'desc']]
             });
         },
 
@@ -89,6 +90,27 @@
                     FormHelper.showToast('success', r.message);
                     self.table.ajax.reload(null, false);
                 });
+            });
+
+            $(document).on('change', '.js-premium-toggle', function () {
+                var checkbox = $(this);
+                var id = checkbox.data('id');
+                var nextState = checkbox.is(':checked');
+
+                checkbox.prop('disabled', true);
+
+                $.post('/admin/vendors/' + id + '/toggle-premium', { _token: $('meta[name="csrf-token"]').attr('content') })
+                    .done(function (r) {
+                        checkbox.prop('checked', !!r.is_premium);
+                        FormHelper.showToast('success', r.message);
+                    })
+                    .fail(function () {
+                        checkbox.prop('checked', !nextState);
+                        FormHelper.showToast('danger', 'Unable to update premium status.');
+                    })
+                    .always(function () {
+                        checkbox.prop('disabled', false);
+                    });
             });
         },
 
