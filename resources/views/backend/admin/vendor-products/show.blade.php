@@ -117,8 +117,8 @@
                     <div class="row g-2 mb-3">
                         @foreach($product->images as $image)
                             <div class="col-6">
-                                <a href="{{ asset('storage/'.$image) }}" target="_blank" rel="noopener">
-                                    <img src="{{ asset('storage/'.$image) }}" class="img-fluid rounded border" alt="{{ $product->name }} image">
+                                <a href="{{ asset($image) }}" target="_blank" rel="noopener">
+                                    <img src="{{ asset($image) }}" class="img-fluid rounded border" alt="{{ $product->name }} image">
                                 </a>
                             </div>
                         @endforeach
@@ -129,7 +129,7 @@
 
                 @if(!empty($product->video_file))
                     <h6 class="mb-1">Product Video</h6>
-                    <video class="w-100 rounded border mb-3" controls preload="metadata" src="{{ asset('storage/'.$product->video_file) }}"></video>
+                    <video class="w-100 rounded border mb-3" controls preload="metadata" src="{{ asset($product->video_file) }}"></video>
                 @endif
 
                 @if(!empty($product->youtube_link))

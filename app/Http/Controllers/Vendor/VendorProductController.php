@@ -8,6 +8,7 @@ use App\Models\VendorProduct;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 
 class VendorProductController extends Controller
 {
@@ -130,8 +131,23 @@ class VendorProductController extends Controller
             ->filter(fn ($row) => $row['buy_min'] > 0 && $row['price'] > 0)
             ->values()->all();
         $validated['images'] = [];
-        if ($request->hasFile('images')) foreach ($request->file('images') as $file) $validated['images'][] = $file->store('vendor-products/images', 'public');
-        if ($request->hasFile('video_file')) $validated['video_file'] = $request->file('video_file')->store('vendor-products/videos', 'public');
+        if ($request->hasFile('images')) {
+            $imageDirectory = public_path('uploads/vendor-products/images');
+            if (! File::exists($imageDirectory)) File::makeDirectory($imageDirectory, 0755, true);
+            foreach ($request->file('images') as $file) {
+                $filename = time().'_'.Str::random(8).'.'.$file->getClientOriginalExtension();
+                $file->move($imageDirectory, $filename);
+                $validated['images'][] = 'uploads/vendor-products/images/'.$filename;
+            }
+        }
+        if ($request->hasFile('video_file')) {
+            $videoDirectory = public_path('uploads/vendor-products/videos');
+            if (! File::exists($videoDirectory)) File::makeDirectory($videoDirectory, 0755, true);
+            $videoFile = $request->file('video_file');
+            $videoFilename = time().'_'.Str::random(8).'.'.$videoFile->getClientOriginalExtension();
+            $videoFile->move($videoDirectory, $videoFilename);
+            $validated['video_file'] = 'uploads/vendor-products/videos/'.$videoFilename;
+        }
         $validated['is_online_sale'] = (bool) $request->boolean('is_online_sale');
         unset($validated['accept_terms']);
         $validated['status'] = 'pending';
