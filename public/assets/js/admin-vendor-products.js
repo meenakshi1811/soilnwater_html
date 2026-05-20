@@ -127,10 +127,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '/admin/vendor-products/data',
-                    data: function (d) {
-                        d.status = $('#statusFilter').val();
-                    }
+                    url: '/admin/vendor-products/data'
                 },
                 columns: [
                     { data: 'name', name: 'name' },
@@ -142,9 +139,6 @@
                 order: [[3, 'desc']]
             });
 
-            $('#statusFilter').on('change', function () {
-                table.ajax.reload();
-            });
         }
 
         $(document).on('click', '.js-approve', function () {
