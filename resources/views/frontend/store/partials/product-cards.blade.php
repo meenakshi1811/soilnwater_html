@@ -6,7 +6,8 @@
             <div class="card-body">
                 <h6 class="mb-1 small"><a href="{{ route('store.products.show', [request()->route('slug'), $product->id]) }}" class="text-decoration-none">{{ $product->name }}</a></h6>
                 <p class="price mb-0">₹{{ number_format((float) $product->final_price, 2) }}</p>
-                <p class="moq mb-0">Stock: {{ number_format((int) $product->stock_quantity) }}</p>
+                <p class="moq mb-2">Stock: {{ number_format((int) $product->stock_quantity) }}</p>
+                <a href="{{ route('store.products.show', [request()->route('slug'), $product->id]) }}" class="btn btn-sm btn-outline-primary w-100">View Details</a>
             </div>
         </div>
     </div>
