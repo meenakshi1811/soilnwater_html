@@ -234,6 +234,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('vendor-products')->name('vendor-products.')->group(function () {
             Route::get('/', [VendorProductApprovalController::class, 'index'])->name('index');
             Route::get('/data', [VendorProductApprovalController::class, 'data'])->name('data');
+            Route::get('/all-products', [VendorProductApprovalController::class, 'allProductsIndex'])->name('all.index');
+            Route::get('/all-products/data', [VendorProductApprovalController::class, 'allProductsData'])->name('all.data');
             Route::get('/{product}', [VendorProductApprovalController::class, 'show'])->name('show');
             Route::post('/{product}/approve', [VendorProductApprovalController::class, 'approve'])->name('approve');
             Route::post('/{product}/reject', [VendorProductApprovalController::class, 'reject'])->name('reject');

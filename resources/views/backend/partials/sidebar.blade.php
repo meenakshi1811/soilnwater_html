@@ -191,7 +191,7 @@
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('admin.vendor-products.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
+                            <a class="{{ request()->routeIs('admin.vendor-products.all.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.all.index') }}">
                                 <i class="fa-solid fa-rectangle-list"></i>
                                 <span>All Products</span>
                             </a>
