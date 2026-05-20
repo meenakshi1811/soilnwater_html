@@ -6,6 +6,21 @@
 @php
     $formatAmount = fn ($amount) => '₹'.number_format((float) $amount, 2);
 @endphp
+@php
+    $modules = \App\Support\ModulePermissions::modules();
+    $modulePrices = $size->modulePrices;
+
+    if ($modulePrices->isEmpty() && $size->module_key && $size->module_price !== null) {
+        $modulePrices = collect([
+            (object) [
+                'module_key' => $size->module_key,
+                'amount' => $size->module_price,
+                'created_at' => $size->created_at,
+                'updated_at' => $size->updated_at,
+            ],
+        ]);
+    }
+@endphp
 
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
@@ -20,7 +35,7 @@
     </div>
 
     <div class="row g-4">
-        <div class="col-lg-5">
+        <div class="col-lg-4">
             <div class="chart-card h-100">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
@@ -95,7 +110,7 @@
             </div>
         </div>
 
-        <div class="col-lg-7">
+        <div class="col-lg-4">
             <div class="chart-card h-100">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
@@ -133,6 +148,45 @@
                 </div>
             </div>
         </div>
-    </div>
+    
+        <div class="col-lg-4">
+            <div class="chart-card h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h4 class="mb-1">Module Pricing</h4>
+                        <p class="text-secondary mb-0">All module-specific prices configured for this ad size.</p>
+                    </div>
+                    <span class="badge text-bg-light border">{{ $modulePrices->count() }} {{ \Illuminate\Support\Str::plural('module', $modulePrices->count()) }}</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Module Name</th>
+                                <th class="text-end">Price</th>
+                                <th>Added</th>
+                                <th>Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($modulePrices as $price)
+                                <tr>
+                                    <td>{{ $modules[$price->module_key] ?? $price->module_key }}</td>
+                                    <td class="text-end fw-semibold">{{ $formatAmount($price->amount) }}</td>
+                                    <td>{{ $price->created_at?->format('Y-m-d H:i') ?? '-' }}</td>
+                                    <td>{{ $price->updated_at?->format('Y-m-d H:i') ?? '-' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center text-secondary py-4">No module pricing has been added for this size.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+</div>
 </div>
 @endsection

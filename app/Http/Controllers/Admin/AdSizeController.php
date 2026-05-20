@@ -8,6 +8,7 @@ use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Support\ModulePermissions;
 use Yajra\DataTables\Facades\DataTables;
 
 class AdSizeController extends Controller
@@ -16,7 +17,9 @@ class AdSizeController extends Controller
     {
         $categories = Category::query()->whereNull('parent_id')->orderBy('name')->pluck('name', 'id');
 
-        return view('backend.ads.admin.sizes.index', compact('categories'));
+        $modules = ModulePermissions::modules();
+
+        return view('backend.ads.admin.sizes.index', compact('categories', 'modules'));
     }
 
     public function data(Request $request): JsonResponse
@@ -57,7 +60,7 @@ class AdSizeController extends Controller
 
     public function show(Request $request, AdSize $size): JsonResponse|\Illuminate\View\View
     {
-        $size->load('categoryPrices.category:id,name');
+        $size->load('categoryPrices.category:id,name', 'modulePrices');
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
@@ -65,6 +68,11 @@ class AdSizeController extends Controller
                 'category_prices' => $size->categoryPrices
                     ->mapWithKeys(fn ($price) => [(string) $price->category_id => $this->formatAmount($price->amount)])
                     ->all(),
+                'module_prices' => ($size->modulePrices->isNotEmpty()
+                    ? $size->modulePrices->mapWithKeys(fn ($price) => [$price->module_key => $this->formatAmount($price->amount)])->all()
+                    : (($size->module_key && $size->module_price !== null)
+                        ? [$size->module_key => $this->formatAmount($size->module_price)]
+                        : [])),
             ]);
         }
 
@@ -77,10 +85,12 @@ class AdSizeController extends Controller
     {
         $validated = $this->validateSize($request);
         $categoryPrices = $validated['category_prices'] ?? [];
-        unset($validated['category_prices']);
+        $modulePrices = $validated['module_prices'] ?? [];
+        unset($validated['category_prices'], $validated['module_prices']);
 
         $size = AdSize::create($validated);
         $this->syncCategoryPrices($size, $categoryPrices);
+        $this->syncModulePrices($size, $modulePrices);
 
         return response()->json(['message' => 'Ad size added successfully.']);
     }
@@ -89,10 +99,12 @@ class AdSizeController extends Controller
     {
         $validated = $this->validateSize($request, $size);
         $categoryPrices = $validated['category_prices'] ?? [];
-        unset($validated['category_prices']);
+        $modulePrices = $validated['module_prices'] ?? [];
+        unset($validated['category_prices'], $validated['module_prices']);
 
         $size->update($validated);
         $this->syncCategoryPrices($size, $categoryPrices);
+        $this->syncModulePrices($size, $modulePrices);
 
         return response()->json(['message' => 'Ad size updated successfully.']);
     }
@@ -136,6 +148,8 @@ class AdSizeController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'width' => ['required', 'integer', 'min:1', 'max:5000'],
             'height' => ['required', 'integer', 'min:1', 'max:5000'],
+            'module_prices' => ['nullable', 'array'],
+            'module_prices.*' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'admin_only' => ['nullable', 'boolean'],
             'is_paid' => ['nullable', 'boolean'],
             'category_prices' => ['nullable', 'array'],
@@ -144,17 +158,20 @@ class AdSizeController extends Controller
 
         $validated['admin_only'] = $request->boolean('admin_only');
         $validated['is_paid'] = $request->boolean('is_paid');
+        $validated['module_prices'] = $this->normalizeModulePrices($validated['module_prices'] ?? []);
         $validated['category_prices'] = $this->normalizeCategoryPrices($validated['category_prices'] ?? []);
 
-        if ($validated['is_paid'] && $validated['category_prices'] === []) {
+        if ($validated['is_paid'] && $validated['category_prices'] === [] && $validated['module_prices'] === []) {
             abort(response()->json([
-                'message' => 'Add at least one category price when paid is enabled.',
-                'errors' => ['category_prices' => ['Add at least one category price when paid is enabled.']],
+                'message' => 'Add at least one category price or module price when paid is enabled.',
+                'errors' => ['category_prices' => ['Add at least one category price or module price when paid is enabled.']],
             ], 422));
         }
 
         $validated['amount'] = $validated['is_paid']
-            ? min(array_values($validated['category_prices']))
+            ? ($validated['category_prices'] !== []
+                ? min(array_values($validated['category_prices']))
+                : min(array_values($validated['module_prices'])))
             : null;
 
         if (! $size) {
@@ -180,6 +197,22 @@ class AdSizeController extends Controller
         return $normalized;
     }
 
+    private function normalizeModulePrices(array $modulePrices): array
+    {
+        $validModuleKeys = array_keys(ModulePermissions::modules());
+        $normalized = [];
+
+        foreach ($modulePrices as $moduleKey => $amount) {
+            if ($amount === null || $amount === '' || ! in_array((string) $moduleKey, $validModuleKeys, true)) {
+                continue;
+            }
+
+            $normalized[(string) $moduleKey] = $this->formatAmount($amount);
+        }
+
+        return $normalized;
+    }
+
     private function syncCategoryPrices(AdSize $size, array $categoryPrices): void
     {
         $size->categoryPrices()->delete();
@@ -191,6 +224,22 @@ class AdSizeController extends Controller
         foreach ($categoryPrices as $categoryId => $amount) {
             $size->categoryPrices()->create([
                 'category_id' => (int) $categoryId,
+                'amount' => $this->formatAmount($amount),
+            ]);
+        }
+    }
+
+    private function syncModulePrices(AdSize $size, array $modulePrices): void
+    {
+        $size->modulePrices()->delete();
+
+        if (! $size->is_paid) {
+            return;
+        }
+
+        foreach ($modulePrices as $moduleKey => $amount) {
+            $size->modulePrices()->create([
+                'module_key' => (string) $moduleKey,
                 'amount' => $this->formatAmount($amount),
             ]);
         }
