@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Vendor;
 use App\Http\Controllers\Controller;
 use App\Models\VendorBannerSlide;
 use App\Models\VendorPageSection;
+use App\Models\VendorProduct;
 use App\Support\VendorFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -127,25 +128,17 @@ class VendorPublicPageController extends Controller
         $vendor = auth()->user()->vendor;
         $vendor->load(['bannerSlides', 'pageSections']);
 
+        $products = VendorProduct::query()
+            ->where('vendor_id', $vendor->id)
+            ->where('status', 'approved')
+            ->orderByDesc('updated_at')
+            ->get();
+
         return view('frontend.store.show', [
             'vendor' => $vendor,
             'preview' => true,
-            'dummyProducts' => $this->dummyProducts(),
+            'products' => $products,
         ]);
-    }
-
-    public static function dummyProducts(): array
-    {
-        return [
-            ['name' => 'Submersible Pump 1HP', 'price' => '₹8,500 – ₹12,000', 'moq' => 'Min. 5 pcs', 'image' => 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop'],
-            ['name' => 'Centrifugal Water Pump', 'price' => '₹15,000 – ₹28,000', 'moq' => 'Min. 2 pcs', 'image' => 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=300&fit=crop'],
-            ['name' => 'Solar Panel 330W', 'price' => '₹9,200 – ₹11,500', 'moq' => 'Min. 10 pcs', 'image' => 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&h=300&fit=crop'],
-            ['name' => 'HDPE Irrigation Pipe', 'price' => '₹45 – ₹120 / meter', 'moq' => 'Min. 100 m', 'image' => 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=300&fit=crop'],
-            ['name' => 'Drip Irrigation Kit', 'price' => '₹2,800 – ₹6,500', 'moq' => 'Min. 20 sets', 'image' => 'https://images.unsplash.com/photo-1464226184884-fa80b87dee3f?w=400&h=300&fit=crop'],
-            ['name' => 'Pressure Controller Valve', 'price' => '₹1,200 – ₹3,400', 'moq' => 'Min. 50 pcs', 'image' => 'https://images.unsplash.com/photo-1585771724684-38269b6632f5?w=400&h=300&fit=crop'],
-            ['name' => 'Borewell Motor 3HP', 'price' => '₹18,000 – ₹32,000', 'moq' => 'Min. 3 pcs', 'image' => 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop'],
-            ['name' => 'Water Storage Tank 1000L', 'price' => '₹5,500 – ₹8,200', 'moq' => 'Min. 10 pcs', 'image' => 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop'],
-        ];
     }
 
     private function syncSections($vendor, array $sections, Request $request): void
