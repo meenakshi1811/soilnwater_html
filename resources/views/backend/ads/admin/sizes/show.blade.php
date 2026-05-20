@@ -9,6 +9,21 @@
 @php
     $formatAmount = fn ($amount) => '₹'.number_format((float) $amount, 2);
 @endphp
+@php
+    $modules = \App\Support\ModulePermissions::modules();
+    $modulePrices = $size->modulePrices;
+
+    if ($modulePrices->isEmpty() && $size->module_key && $size->module_price !== null) {
+        $modulePrices = collect([
+            (object) [
+                'module_key' => $size->module_key,
+                'amount' => $size->module_price,
+                'created_at' => $size->created_at,
+                'updated_at' => $size->updated_at,
+            ],
+        ]);
+    }
+@endphp
 
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
@@ -152,7 +167,7 @@
                         <h4 class="mb-1">Module Pricing</h4>
                         <p class="text-secondary mb-0">All module-specific prices configured for this ad size.</p>
                     </div>
-                    <span class="badge text-bg-light border">{{ $size->modulePrices->count() }} {{ \Illuminate\Support\Str::plural('module', $size->modulePrices->count()) }}</span>
+                    <span class="badge text-bg-light border">{{ $modulePrices->count() }} {{ \Illuminate\Support\Str::plural('module', $modulePrices->count()) }}</span>
                 </div>
 
                 <div class="table-responsive">
@@ -166,8 +181,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @php($modules = \App\Support\ModulePermissions::modules())
-                            @forelse($size->modulePrices as $price)
+                            @forelse($modulePrices as $price)
                                 <tr>
                                     <td>{{ $modules[$price->module_key] ?? $price->module_key }}</td>
                                     <td class="text-end fw-semibold">{{ $formatAmount($price->amount) }}</td>

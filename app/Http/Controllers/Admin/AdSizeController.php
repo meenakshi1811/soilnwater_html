@@ -71,9 +71,11 @@ class AdSizeController extends Controller
                 'category_prices' => $size->categoryPrices
                     ->mapWithKeys(fn ($price) => [(string) $price->category_id => $this->formatAmount($price->amount)])
                     ->all(),
-                'module_prices' => $size->modulePrices
-                    ->mapWithKeys(fn ($price) => [$price->module_key => $this->formatAmount($price->amount)])
-                    ->all(),
+                'module_prices' => ($size->modulePrices->isNotEmpty()
+                    ? $size->modulePrices->mapWithKeys(fn ($price) => [$price->module_key => $this->formatAmount($price->amount)])->all()
+                    : (($size->module_key && $size->module_price !== null)
+                        ? [$size->module_key => $this->formatAmount($size->module_price)]
+                        : [])),
             ]);
         }
 
