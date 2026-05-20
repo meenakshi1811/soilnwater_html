@@ -1,0 +1,15 @@
+@forelse($products as $product)
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="vendor-product-card">
+            @php($image = is_array($product->images) ? ($product->images[0] ?? null) : null)
+            <img src="{{ $image ? asset($image) : asset('assets/images/ad-sample.png') }}" alt="{{ $product->name }}">
+            <div class="card-body">
+                <h6 class="mb-1 small">{{ $product->name }}</h6>
+                <p class="price mb-0">₹{{ number_format((float) $product->final_price, 2) }}</p>
+                <p class="moq mb-0">Stock: {{ number_format((int) $product->stock_quantity) }}</p>
+            </div>
+        </div>
+    </div>
+@empty
+    <p class="text-center text-secondary">No approved products available yet.</p>
+@endforelse
