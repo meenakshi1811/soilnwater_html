@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\VendorProduct;
 use App\Models\Vendor;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class VendorStoreController extends Controller
 {
-    public function show(string $slug): View
+    public function show(Request $request, string $slug): View|JsonResponse
     {
         $lat = session('frontend_lat');
         $lng = session('frontend_lng');
@@ -32,7 +34,18 @@ class VendorStoreController extends Controller
             }, function ($query) {
                 $query->orderByDesc('updated_at');
             })
-            ->get();
+            ->paginate(12);
+
+        if ($request->ajax()) {
+            $html = view('frontend.store.partials.product-cards', [
+                'products' => $products,
+            ])->render();
+
+            return response()->json([
+                'html' => $html,
+                'next_page' => $products->hasMorePages() ? ($products->currentPage() + 1) : null,
+            ]);
+        }
 
         return view('frontend.store.show', [
             'vendor' => $vendor,
