@@ -20,11 +20,13 @@
                     { data: 'size_key', name: 'size_key' },
                     { data: 'dimensions', name: 'dimensions', orderable: false, searchable: false },
                     { data: 'placement', name: 'placement', orderable: false, searchable: false },
+                    { data: 'module_label', name: 'module_key', orderable: false, searchable: false },
+                    { data: 'module_price_display', name: 'module_price', orderable: false, searchable: false },
                     { data: 'status_toggle', name: 'is_active', orderable: false, searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[5, 'desc']]
+                order: [[7, 'desc']]
             });
         },
 
@@ -97,6 +99,8 @@
                     $('#adSizeWidth').val(size.width || '');
                     $('#adSizeHeight').val(size.height || '');
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
+                    $('#adSizeModuleKey').val(size.module_key || '');
+                    $('#adSizeModulePrice').val(size.module_price || '');
                     $('#adSizeForm').attr('action', '/admin/ads/sizes/' + id).attr('method', 'POST');
                     self.modal.show();
                 }).fail(function () {

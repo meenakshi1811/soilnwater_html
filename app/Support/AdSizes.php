@@ -36,7 +36,9 @@ final class AdSizes
                 'h' => (int) $adSize->height,
                 'admin_only' => (bool) $adSize->admin_only,
                 'is_paid' => (bool) $adSize->is_paid,
-                'amount' => $categoryPrices !== [] ? min($categoryPrices) : (float) ($adSize->amount ?? 0),
+                'module_key' => $adSize->module_key,
+                'module_price' => $adSize->module_price !== null ? (float) $adSize->module_price : null,
+                'amount' => $categoryPrices !== [] ? min($categoryPrices) : (float) ($adSize->module_price ?? $adSize->amount ?? 0),
                 'category_prices' => $categoryPrices,
                 'is_active' => (bool) $adSize->is_active,
             ];
