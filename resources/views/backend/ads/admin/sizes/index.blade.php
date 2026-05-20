@@ -92,6 +92,12 @@
                                 <label class="form-check-label" for="adSizeAdminOnly">Admin only</label>
                             </div>
                         </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="is_paid" id="adSizeIsPaid" value="1">
+                                <label class="form-check-label" for="adSizeIsPaid">Paid size</label>
+                            </div>
+                        </div>
                         <div class="col-12">
                             <label class="form-label mb-1">Category pricing mode</label>
                             <div class="d-flex flex-wrap gap-3">

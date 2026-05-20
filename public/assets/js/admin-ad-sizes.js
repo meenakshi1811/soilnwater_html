@@ -97,6 +97,7 @@
                     $('#adSizeWidth').val(size.width || '');
                     $('#adSizeHeight').val(size.height || '');
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
+                    $('#adSizeIsPaid').prop('checked', !!size.is_paid);
                     var modulePrices = response.module_prices || {};
                     $('input[name^="module_prices["]').each(function () {
                         var name = $(this).attr('name');
