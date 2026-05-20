@@ -343,10 +343,17 @@ class UserAdController extends Controller
         abort_unless($ad->user_id === $request->user()->id, 404);
 
         $ad->load(['template:id,name,size_type', 'category:id,name', 'subcategory:id,name']);
+        $moduleLabels = ModulePermissions::modules();
+        $selectedModuleLabels = collect($ad->selected_modules ?? [])
+            ->filter(fn ($key) => is_string($key) && isset($moduleLabels[$key]))
+            ->map(fn (string $key) => $moduleLabels[$key])
+            ->values()
+            ->all();
 
         return view('backend.ads.user.show', [
             'ad' => $ad,
             'size' => AdSizes::all(true)[$ad->size_type] ?? null,
+            'selectedModuleLabels' => $selectedModuleLabels,
         ]);
     }
 
