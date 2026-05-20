@@ -270,6 +270,12 @@
                     <span>Manage Products</span>
                 </a>
             </li>
+            <li>
+                <a class="{{ request()->routeIs('vendor.inquiries.*') ? 'active' : '' }}" href="{{ route('vendor.inquiries.index') }}">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>Inquiries</span>
+                </a>
+            </li>
         @elseif($isEmployee)
             @if($canAccessOffers)
                 <li>
