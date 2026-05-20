@@ -99,8 +99,12 @@
                     $('#adSizeWidth').val(size.width || '');
                     $('#adSizeHeight').val(size.height || '');
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
-                    $('#adSizeModuleKey').val(size.module_key || '');
-                    $('#adSizeModulePrice').val(size.module_price || '');
+                    var modulePrices = response.module_prices || {};
+                    $('input[name^="module_prices["]').each(function () {
+                        var name = $(this).attr('name');
+                        var key = name.substring(14, name.length - 1);
+                        $(this).val(modulePrices[key] || '');
+                    });
                     $('#adSizeForm').attr('action', '/admin/ads/sizes/' + id).attr('method', 'POST');
                     self.modal.show();
                 }).fail(function () {

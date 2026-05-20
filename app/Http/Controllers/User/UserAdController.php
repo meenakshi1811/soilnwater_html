@@ -478,7 +478,7 @@ class UserAdController extends Controller
         $user = $request->user();
 
         $size = AdSizes::all()[$sizeType] ?? null;
-        $categoryPrice = $size['category_prices'][(int) $validated['category_id']] ?? ($size['module_price'] ?? null);
+        $categoryPrice = $size['category_prices'][(int) $validated['category_id']] ?? ((($size['module_prices'] ?? []) !== []) ? min($size['module_prices']) : null);
         if ((bool) ($size['is_paid'] ?? false) && $categoryPrice === null && ! (bool) ($user?->isAdmin())) {
             return back()->withErrors([
                 'category_id' => 'No price is configured for this category and ad size.',

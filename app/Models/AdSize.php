@@ -35,4 +35,9 @@ class AdSize extends Model
     {
         return $this->hasMany(AdSizeCategoryPrice::class);
     }
+
+    public function modulePrices(): HasMany
+    {
+        return $this->hasMany(AdSizeModulePrice::class);
+    }
 }

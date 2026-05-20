@@ -15,7 +15,7 @@ final class AdSizes
         $sizes = [];
 
         $adSizes = AdSize::query()
-            ->with('categoryPrices:id,ad_size_id,category_id,amount')
+            ->with('categoryPrices:id,ad_size_id,category_id,amount', 'modulePrices:id,ad_size_id,module_key,amount')
             ->when(! $includeInactive, fn ($query) => $query->where('is_active', true))
             ->orderBy('name')
             ->get();
@@ -29,6 +29,8 @@ final class AdSizes
                 ->mapWithKeys(fn ($price) => [(int) $price->category_id => (float) $price->amount])
                 ->all();
 
+            $modulePrices = $adSize->modulePrices->mapWithKeys(fn ($price) => [(string) $price->module_key => (float) $price->amount])->all();
+
             $sizes[$adSize->size_key] = [
                 'name' => $adSize->name,
                 'ratio' => $adSize->width.' / '.$adSize->height,
@@ -36,9 +38,8 @@ final class AdSizes
                 'h' => (int) $adSize->height,
                 'admin_only' => (bool) $adSize->admin_only,
                 'is_paid' => (bool) $adSize->is_paid,
-                'module_key' => $adSize->module_key,
-                'module_price' => $adSize->module_price !== null ? (float) $adSize->module_price : null,
-                'amount' => $categoryPrices !== [] ? min($categoryPrices) : (float) ($adSize->module_price ?? $adSize->amount ?? 0),
+                'module_prices' => $modulePrices,
+                'amount' => $categoryPrices !== [] ? min($categoryPrices) : (float) (($modulePrices !== [] ? min($modulePrices) : ($adSize->amount ?? 0))),
                 'category_prices' => $categoryPrices,
                 'is_active' => (bool) $adSize->is_active,
             ];

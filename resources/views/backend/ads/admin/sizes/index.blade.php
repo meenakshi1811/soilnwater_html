@@ -70,22 +70,23 @@
                             <label class="form-label">Height</label>
                             <input type="number" min="1" max="5000" name="height" id="adSizeHeight" class="form-control" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Attached Module</label>
-                            <select name="module_key" id="adSizeModuleKey" class="form-select">
-                                <option value="">Select module (optional)</option>
-                                @foreach($modules as $moduleKey => $moduleLabel)
-                                    <option value="{{ $moduleKey }}">{{ $moduleLabel }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Module Price</label>
-                            <div class="input-group">
-                                <span class="input-group-text">₹</span>
-                                <input type="number" min="0" step="0.01" name="module_price" id="adSizeModulePrice" class="form-control" placeholder="0.00">
+                        <div class="col-12" id="modulePricingFieldsSection">
+                            <hr class="my-1">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                <label class="form-label mb-0">Module Pricing</label>
+                                <small class="text-secondary">Assign prices for one or multiple modules.</small>
                             </div>
-                            <small class="text-secondary">Used on ad creation if category price is not configured.</small>
+                            <div class="row g-3" id="modulePricingFieldsWrap">
+                                @foreach($modules as $moduleKey => $moduleLabel)
+                                    <div class="col-md-6">
+                                        <label class="form-label text-uppercase small mb-1">{{ $moduleLabel }}</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₹</span>
+                                            <input type="number" min="0" step="0.01" class="form-control" name="module_prices[{{ $moduleKey }}]" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
                             <div class="form-check mb-2">
