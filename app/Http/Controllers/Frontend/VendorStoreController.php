@@ -7,6 +7,7 @@ use App\Models\VendorProduct;
 use App\Models\Vendor;
 use App\Models\UserAd;
 use App\Models\VendorProductInquiry;
+use App\Support\AdSizes;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,20 +63,79 @@ class VendorStoreController extends Controller
         $vendor = Vendor::query()->where('slug', $slug)->where('status', 'approved')->firstOrFail();
         abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
 
-        $ads = UserAd::query()
+        $lat = session('frontend_lat');
+        $lng = session('frontend_lng');
+
+        $adsQuery = UserAd::query()
             ->where('status', 'approved')
+            ->whereNotNull('final_image')
+            ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
             ->where(function ($q) {
                 $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
             })
             ->where(function ($q) {
                 $q->whereJsonContains('selected_modules', 'vendors')->orWhereJsonContains('selected_modules', 'products');
+            });
+
+        if (is_numeric($lat) && is_numeric($lng)) {
+            $adsQuery
+                ->select('user_ads.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [(float) $lat, (float) $lng, (float) $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km')
+                ->orderByDesc('updated_at');
+        } else {
+            $adsQuery->orderByDesc('updated_at');
+        }
+
+        $ads = $adsQuery->take(18)->get();
+
+        if ($ads->isEmpty()) {
+            $fallbackQuery = UserAd::query()
+                ->where('status', 'approved')
+                ->whereNotNull('final_image')
+                ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
+                ->where(function ($q) {
+                    $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
+                })
+                ->orderByDesc('updated_at');
+
+            $ads = $fallbackQuery->take(18)->get();
+        }
+
+        $ads = $ads->shuffle()->values();
+
+        $sizeMap = collect(AdSizes::all())->mapWithKeys(function (array $size, string $sizeKey) {
+            return [strtolower((string) $sizeKey) => ['w' => (int) ($size['w'] ?? 0), 'h' => (int) ($size['h'] ?? 0)]];
+        });
+
+        $adsByDimension = $ads
+            ->filter(function ($ad) use ($sizeMap) {
+                $key = strtolower((string) $ad->size_type);
+                return isset($sizeMap[$key]) && $sizeMap[$key]['w'] > 0 && $sizeMap[$key]['h'] > 0;
             })
-            ->latest('reviewed_at')
-            ->get();
+            ->groupBy(function ($ad) use ($sizeMap) {
+                $key = strtolower((string) $ad->size_type);
+                return $sizeMap[$key]['w'].'x'.$sizeMap[$key]['h'];
+            });
 
-        $groupedAds = $ads->groupBy('size_type');
+        $topGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) >= 900)->values();
+        $sideGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) < 900 && ((int) explode('x', $dim)[1]) >= 300)->values();
+        $bottomGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[1]) < 300)->values();
 
-        return view('frontend.store.product-show', compact('vendor', 'product', 'groupedAds'));
+        if ($topGroups->isEmpty()) {
+            $topGroups = $adsByDimension->take(1)->values();
+        }
+
+        if ($sideGroups->isEmpty()) {
+            $sideGroups = $adsByDimension->slice(1, 2)->values();
+        }
+
+        if ($bottomGroups->isEmpty()) {
+            $bottomGroups = $adsByDimension->slice(2, 2)->values();
+        }
+
+        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups'));
     }
 
     public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
