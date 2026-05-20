@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\HomepageSetting;
 use App\Models\Offer;
 use App\Models\UserAd;
+use App\Models\Vendor;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -86,7 +87,22 @@ class OfferPageController extends Controller
             'belowPopularAds' => $frontPageAds->where('size_type', 'below_popular_ad')->values(),
             'buildersDevelopersAds' => $frontPageAds->where('size_type', 'builders_developers_ad')->values(),
             'belowBuildersAds' => $frontPageAds->where('size_type', 'below_builders_ad')->values(),
+            'topVendors' => $this->topVendorsQuery($lat, $lng)->limit(12)->get(),
+            'hasLocation' => is_numeric($lat) && is_numeric($lng),
             'homepageSetting' => $homepageSetting,
+        ]);
+    }
+
+    public function vendors(Request $request): View
+    {
+        $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
+        $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
+
+        $vendors = $this->topVendorsQuery($lat, $lng)->paginate(24)->appends($request->query());
+
+        return view('frontend/vendors/index', [
+            'vendors' => $vendors,
+            'hasLocation' => is_numeric($lat) && is_numeric($lng),
         ]);
     }
 
@@ -191,5 +207,32 @@ class OfferPageController extends Controller
         }
 
         return $offer->valid_until === null || $offer->valid_until->isToday() || $offer->valid_until->isFuture();
+    }
+
+    private function topVendorsQuery(?float $lat, ?float $lng): Builder
+    {
+        $query = Vendor::query()
+            ->where('status', 'approved')
+            ->with(['products:id,vendor_id,latitude,longitude', 'branches:id,vendor_id,address,city,state,is_primary'])
+            ->withCount('products');
+
+        if (is_numeric($lat) && is_numeric($lng)) {
+            $query->select('vendors.*')
+                ->selectRaw('(
+                    SELECT MIN(6371 * acos(cos(radians(?)) * cos(radians(vendor_products.latitude)) * cos(radians(vendor_products.longitude) - radians(?)) + sin(radians(?)) * sin(radians(vendor_products.latitude))))
+                    FROM vendor_products
+                    WHERE vendor_products.vendor_id = vendors.id
+                    AND vendor_products.latitude IS NOT NULL
+                    AND vendor_products.longitude IS NOT NULL
+                ) as nearest_distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN nearest_distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderByDesc('is_premium')
+                ->orderBy('nearest_distance_km')
+                ->latest('id');
+        } else {
+            $query->orderByDesc('is_premium')->latest('created_at')->latest('id');
+        }
+
+        return $query;
     }
 }
