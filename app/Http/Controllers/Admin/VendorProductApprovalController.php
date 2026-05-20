@@ -20,12 +20,9 @@ class VendorProductApprovalController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $status = $request->query('status', 'pending');
-
         $query = VendorProduct::query()
             ->with(['category:id,name', 'subcategory:id,name'])
-            ->when($status === 'pending', fn ($q) => $q->where(fn ($pending) => $pending->where('status', 'pending')->orWhereNull('status')))
-            ->when(in_array($status, ['approved', 'rejected'], true), fn ($q) => $q->where('status', $status))
+            ->where(fn ($pending) => $pending->where('status', 'pending')->orWhereNull('status'))
             ->select(['id', 'name', 'category', 'category_id', 'subcategory_id', 'status', 'created_at']);
 
         return DataTables::of($query)
@@ -52,6 +49,11 @@ class VendorProductApprovalController extends Controller
                     .$reject
                     .'<button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="'.$product->id.'">Delete</button>'
                     .'</div>';
+            })
+            ->editColumn('created_at', function (VendorProduct $product): string {
+                return optional($product->created_at)
+                    ? $product->created_at->timezone(config('app.timezone'))->format('d M Y, h:i A')
+                    : '-';
             })
             ->rawColumns(['status_badge', 'actions'])
             ->make(true);

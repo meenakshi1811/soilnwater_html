@@ -11,14 +11,6 @@
     <h2 class="admin-title mb-3">Vendor Product Approvals</h2>
 
     <div class="chart-card p-3 table-responsive">
-        <div class="d-flex justify-content-end mb-3">
-            <select id="statusFilter" class="form-select" style="max-width:220px">
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-            </select>
-        </div>
-
         <table id="vendorProductsTable" class="table table-bordered align-middle w-100">
             <thead>
                 <tr>
