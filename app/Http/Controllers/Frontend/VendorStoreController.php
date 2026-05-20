@@ -87,13 +87,29 @@ class VendorStoreController extends Controller
             $adsQuery->orderByDesc('updated_at');
         }
 
-        $ads = $adsQuery->take(12)->get()->shuffle()->values();
+        $ads = $adsQuery->take(18)->get();
+
+        if ($ads->isEmpty()) {
+            $fallbackQuery = UserAd::query()
+                ->where('status', 'approved')
+                ->whereNotNull('final_image')
+                ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
+                ->where(function ($q) {
+                    $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
+                })
+                ->orderByDesc('updated_at');
+
+            $ads = $fallbackQuery->take(18)->get();
+        }
+
+        $ads = $ads->shuffle()->values();
 
         $adsTop = $ads->slice(0, 2)->values();
-        $adsInline = $ads->slice(2, 2)->values();
-        $adsSidebar = $ads->slice(4, 4)->values();
+        $adsLeft = $ads->slice(2, 3)->values();
+        $adsRight = $ads->slice(5, 3)->values();
+        $adsBottom = $ads->slice(8, 3)->values();
 
-        return view('frontend.store.product-show', compact('vendor', 'product', 'adsTop', 'adsInline', 'adsSidebar'));
+        return view('frontend.store.product-show', compact('vendor', 'product', 'adsTop', 'adsLeft', 'adsRight', 'adsBottom'));
     }
 
     public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
