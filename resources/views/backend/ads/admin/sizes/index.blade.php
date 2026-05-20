@@ -29,8 +29,6 @@
                         <th>Key</th>
                         <th>Dimensions</th>
                         <th>Placement</th>
-                        <th>Module</th>
-                        <th>Module Price</th>
                         <th>Status</th>
                         <th>Created</th>
                         <th class="text-end">Actions</th>

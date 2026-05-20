@@ -32,8 +32,6 @@ class AdSizeController extends Controller
 
         return DataTables::of($sizes)
             ->addColumn('dimensions', fn (AdSize $size) => $size->width.'×'.$size->height)
-            ->addColumn('module_label', fn (AdSize $size) => $size->modulePrices->pluck('module_key')->map(fn ($key) => ModulePermissions::modules()[$key] ?? $key)->implode(', ') ?: '-')
-            ->addColumn('module_price_display', fn (AdSize $size) => $size->modulePrices->count() ? '₹'.number_format((float) $size->modulePrices->min('amount'), 2) : '-')
             ->addColumn('placement', fn (AdSize $size) => $size->admin_only
                 ? '<span class="badge text-bg-warning">Admin</span>'
                 : '<span class="badge text-bg-success">User</span>')

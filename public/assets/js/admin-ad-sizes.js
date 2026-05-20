@@ -20,13 +20,11 @@
                     { data: 'size_key', name: 'size_key' },
                     { data: 'dimensions', name: 'dimensions', orderable: false, searchable: false },
                     { data: 'placement', name: 'placement', orderable: false, searchable: false },
-                    { data: 'module_label', name: 'module_key', orderable: false, searchable: false },
-                    { data: 'module_price_display', name: 'module_price', orderable: false, searchable: false },
                     { data: 'status_toggle', name: 'is_active', orderable: false, searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[7, 'desc']]
+                order: [[5, 'desc']]
             });
         },
 
