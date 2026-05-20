@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\VendorProduct;
 use App\Models\Vendor;
+use App\Models\UserAd;
+use App\Models\VendorProductInquiry;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -53,4 +56,59 @@ class VendorStoreController extends Controller
             'products' => $products,
         ]);
     }
+
+    public function productShow(string $slug, VendorProduct $product): View
+    {
+        $vendor = Vendor::query()->where('slug', $slug)->where('status', 'approved')->firstOrFail();
+        abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
+
+        $ads = UserAd::query()
+            ->where('status', 'approved')
+            ->where(function ($q) {
+                $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
+            })
+            ->where(function ($q) {
+                $q->whereJsonContains('selected_modules', 'vendors')->orWhereJsonContains('selected_modules', 'products');
+            })
+            ->latest('reviewed_at')
+            ->get();
+
+        $groupedAds = $ads->groupBy('size_type');
+
+        return view('frontend.store.product-show', compact('vendor', 'product', 'groupedAds'));
+    }
+
+    public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
+    {
+        $vendor = Vendor::query()->where('slug', $slug)->where('status', 'approved')->firstOrFail();
+        abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
+
+        if (! $request->user()) {
+            return response()->json(['message' => 'Please login to send an enquiry.'], 403);
+        }
+
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+            'phone_number' => ['required', 'string', 'max:20'],
+            'preferred_contact' => ['required', 'in:text,whatsapp,call,email'],
+            'reason' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $inquiry = VendorProductInquiry::query()->create([
+            'vendor_id' => $vendor->id,
+            'vendor_product_id' => $product->id,
+            'user_id' => $request->user()->id,
+            ...$data,
+        ]);
+
+        if ($vendor->email) {
+            $body = view('emails.vendor.new-inquiry', compact('inquiry', 'vendor', 'product'))->render();
+            Mail::send([], [], function ($message) use ($vendor, $product, $body) {
+                $message->to($vendor->email)->subject('New product inquiry: '.$product->name)->html($body);
+            });
+        }
+
+        return response()->json(['message' => 'Enquiry sent successfully.']);
+    }
+
 }
