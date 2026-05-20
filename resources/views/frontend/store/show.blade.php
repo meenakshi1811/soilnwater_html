@@ -58,23 +58,28 @@
         </div>
     </section>
 
+    @php($topProducts = $products->take(4))
+
     <section id="products" class="vendor-store-section">
         <div class="container">
             <h2>Top Selling Products</h2>
             <div class="row g-4">
-                @foreach(array_slice($dummyProducts, 0, 4) as $product)
+                @forelse($topProducts as $product)
                     <div class="col-6 col-md-3">
                         <div class="vendor-product-card">
-                            <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}">
+                            @php($image = is_array($product->images) ? ($product->images[0] ?? null) : null)
+                            <img src="{{ $image ? asset($image) : asset('assets/images/ad-sample.png') }}" alt="{{ $product->name }}">
                             <div class="card-body">
-                                <h6 class="mb-1">{{ $product['name'] }}</h6>
-                                <p class="price mb-0">{{ $product['price'] }}</p>
-                                <p class="moq mb-0">{{ $product['moq'] }}</p>
+                                <h6 class="mb-1">{{ $product->name }}</h6>
+                                <p class="price mb-0">₹{{ number_format((float) $product->final_price, 2) }}</p>
+                                <p class="moq mb-0">Stock: {{ number_format((int) $product->stock_quantity) }}</p>
                                 <button type="button" class="btn btn-sm btn-outline-primary w-100 mt-2">Send Inquiry</button>
                             </div>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <p class="text-center text-secondary">No approved products available yet.</p>
+                @endforelse
             </div>
         </div>
     </section>
@@ -102,18 +107,21 @@
             <h2>Products</h2>
             <p class="text-center text-secondary mb-4">Explore our complete product range.</p>
             <div class="row g-4">
-                @foreach($dummyProducts as $product)
+                @forelse($products as $product)
                     <div class="col-6 col-md-4 col-lg-3">
                         <div class="vendor-product-card">
-                            <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}">
+                            @php($image = is_array($product->images) ? ($product->images[0] ?? null) : null)
+                            <img src="{{ $image ? asset($image) : asset('assets/images/ad-sample.png') }}" alt="{{ $product->name }}">
                             <div class="card-body">
-                                <h6 class="mb-1 small">{{ $product['name'] }}</h6>
-                                <p class="price mb-0">{{ $product['price'] }}</p>
-                                <p class="moq mb-0">{{ $product['moq'] }}</p>
+                                <h6 class="mb-1 small">{{ $product->name }}</h6>
+                                <p class="price mb-0">₹{{ number_format((float) $product->final_price, 2) }}</p>
+                                <p class="moq mb-0">Stock: {{ number_format((int) $product->stock_quantity) }}</p>
                             </div>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <p class="text-center text-secondary">No approved products available yet.</p>
+                @endforelse
             </div>
         </div>
     </section>
