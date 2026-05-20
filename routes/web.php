@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\VendorProductApprovalController;
 use App\Http\Controllers\Frontend\VendorStoreController;
 use App\Http\Controllers\Vendor\VendorBranchController;
 use App\Http\Controllers\Vendor\VendorDashboardController;
+use App\Http\Controllers\Vendor\VendorInquiryController;
 use App\Http\Controllers\Vendor\VendorPendingController;
 use App\Http\Controllers\Vendor\VendorPublicPageController;
 use App\Http\Controllers\Vendor\VendorProductController;
@@ -59,6 +60,8 @@ Route::get('/terms-and-condition/{moduleKey}', [TermsAndConditionPageController:
 Route::get('/privacy-policy', [TermsAndConditionPageController::class, 'privacyPolicy'])->name('frontend.privacy-policy');
 Route::get('/cookie-policy', [TermsAndConditionPageController::class, 'cookiePolicy'])->name('frontend.cookie-policy');
 Route::get('/store/{slug}', [VendorStoreController::class, 'show'])->name('store.show');
+Route::get('/store/{slug}/products/{product}', [VendorStoreController::class, 'productShow'])->name('store.products.show');
+Route::post('/store/{slug}/products/{product}/enquiry', [VendorStoreController::class, 'sendInquiry'])->name('store.products.enquiry');
 
 Auth::routes(['verify' => true]);
 
@@ -119,6 +122,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/public-page/preview', [VendorPublicPageController::class, 'preview'])->middleware('vendor')->name('public-page.preview');
         Route::delete('/banner-slides/{slide}', [VendorPublicPageController::class, 'deleteBannerSlide'])->middleware('vendor')->name('banner-slides.destroy');
         Route::resource('products', VendorProductController::class)->middleware('vendor');
+        Route::get('/inquiries', [VendorInquiryController::class, 'index'])->middleware('vendor')->name('inquiries.index');
     });
 
     Route::prefix('user')->name('user.')->middleware('user')->group(function () {
