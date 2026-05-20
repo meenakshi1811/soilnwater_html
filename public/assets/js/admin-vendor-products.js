@@ -65,6 +65,8 @@
     }
 
     function deleteAction(id) {
+        var sourceUrl = ($('#vendorProductsTable').data('source-url') || '/admin/vendor-products/data').toString();
+        var listingUrl = sourceUrl.replace(/\/data(?:\?.*)?$/, '');
         var proceed = function () {
             $.ajax({
                 url: '/admin/vendor-products/' + id,
@@ -79,7 +81,7 @@
                 .done(function (r) {
                     toast('success', r.message || 'Product deleted successfully.');
                     if (!refreshTable()) {
-                        window.location.href = '/admin/vendor-products';
+                        window.location.href = listingUrl || '/admin/vendor-products';
                     }
                 })
                 .fail(function (xhr) {
@@ -123,22 +125,36 @@
 
     $(function () {
         if ($('#vendorProductsTable').length && $.fn.DataTable) {
+            var sourceUrl = ($('#vendorProductsTable').data('source-url') || '/admin/vendor-products/data').toString();
             table = $('#vendorProductsTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '/admin/vendor-products/data'
+                    url: sourceUrl,
+                    data: function (d) {
+                        d.status = $('#statusFilter').val() || '';
+                    }
                 },
-                columns: [
+                columns: sourceUrl.indexOf('/all-products/data') !== -1 ? [
+                    { data: 'name', name: 'name' },
+                    { data: 'vendor_name', name: 'vendor.company_name', orderable: false },
+                    { data: 'category_display', name: 'category', orderable: false },
+                    { data: 'status_badge', name: 'status', orderable: false },
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                ] : [
                     { data: 'name', name: 'name' },
                     { data: 'category_display', name: 'category', orderable: false },
                     { data: 'status_badge', name: 'status', orderable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[3, 'desc']]
+                order: [[sourceUrl.indexOf('/all-products/data') !== -1 ? 4 : 3, 'desc']]
             });
 
+            $('#statusFilter').on('change', function () {
+                table.ajax.reload();
+            });
         }
 
         $(document).on('click', '.js-approve', function () {

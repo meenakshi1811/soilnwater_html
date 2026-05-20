@@ -59,6 +59,54 @@ class VendorProductApprovalController extends Controller
             ->make(true);
     }
 
+    public function allProductsIndex(): View
+    {
+        return view('backend.admin.vendor-products.all-products');
+    }
+
+    public function allProductsData(Request $request): JsonResponse
+    {
+        abort_unless($request->ajax(), 404);
+
+        $status = $request->string('status')->toString();
+
+        $query = VendorProduct::query()
+            ->with(['category:id,name', 'subcategory:id,name', 'vendor:id,company_name'])
+            ->select(['id', 'vendor_id', 'name', 'category', 'category_id', 'subcategory_id', 'status', 'created_at']);
+
+        if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            $query->where('status', $status);
+        }
+
+        return DataTables::of($query)
+            ->addColumn('vendor_name', fn (VendorProduct $product): string => e($product->vendor?->company_name ?? '—'))
+            ->addColumn('category_display', function (VendorProduct $product): string {
+                $category = $product->category?->name ?? (is_string($product->category) ? $product->category : '-');
+                $subcategory = $product->subcategory?->name ?? '-';
+
+                return e($category.' / '.$subcategory);
+            })
+            ->addColumn('status_badge', function (VendorProduct $product): string {
+                $rowStatus = $product->status ?? 'pending';
+                $badge = $rowStatus === 'approved' ? 'success' : ($rowStatus === 'rejected' ? 'danger' : 'warning');
+
+                return '<span class="badge bg-'.$badge.'">'.ucfirst($rowStatus).'</span>';
+            })
+            ->addColumn('actions', function (VendorProduct $product): string {
+                return '<div class="d-flex gap-2 justify-content-end">'
+                    .'<a href="'.route('admin.vendor-products.show', $product).'" class="btn btn-sm btn-outline-secondary">View</a>'
+                    .'<button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="'.$product->id.'">Delete</button>'
+                    .'</div>';
+            })
+            ->editColumn('created_at', function (VendorProduct $product): string {
+                return optional($product->created_at)
+                    ? $product->created_at->timezone(config('app.timezone'))->format('d M Y, h:i A')
+                    : '-';
+            })
+            ->rawColumns(['status_badge', 'actions'])
+            ->make(true);
+    }
+
     public function show(VendorProduct $product): View
     {
         $product->load(['category:id,name', 'subcategory:id,name']);
