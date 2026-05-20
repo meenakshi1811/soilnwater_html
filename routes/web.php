@@ -250,6 +250,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{vendor}', [VendorController::class, 'update'])->name('update');
             Route::post('/{vendor}/approve', [VendorController::class, 'approve'])->name('approve');
             Route::post('/{vendor}/reject', [VendorController::class, 'reject'])->name('reject');
+            Route::post('/{vendor}/toggle-premium', [VendorController::class, 'togglePremium'])->name('toggle-premium');
             Route::delete('/{vendor}', [VendorController::class, 'destroy'])->name('destroy');
         });
 

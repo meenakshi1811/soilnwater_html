@@ -26,6 +26,7 @@
                     <th>Email</th>
                     <th>Location</th>
                     <th>Status</th>
+                    <th>Premium</th>
                     <th>Registered</th>
                     <th class="text-end">Actions</th>
                 </tr>

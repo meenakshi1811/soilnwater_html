@@ -35,6 +35,7 @@ class VendorController extends Controller
                 'city',
                 'state',
                 'phone',
+                'is_premium',
                 'status',
                 'approved_at',
                 'created_at',
@@ -52,6 +53,13 @@ class VendorController extends Controller
                 };
 
                 return '<span class="badge text-bg-'.$badge.'">'.ucfirst($vendor->status).'</span>';
+            })
+            ->addColumn('premium_toggle', function (Vendor $vendor): string {
+                $checked = $vendor->is_premium ? 'checked' : '';
+
+                return '<div class="form-check form-switch mb-0 d-inline-flex">'
+                    .'<input class="form-check-input js-premium-toggle" type="checkbox" role="switch" data-id="'.$vendor->id.'" '.$checked.'>'
+                    .'</div>';
             })
             ->editColumn('created_at', fn (Vendor $vendor) => $vendor->created_at?->format('Y-m-d') ?? '')
             ->addColumn('actions', function (Vendor $vendor): string {
@@ -80,7 +88,7 @@ class VendorController extends Controller
                     $query->where('status', 'pending');
                 }
             })
-            ->rawColumns(['status_badge', 'actions'])
+            ->rawColumns(['status_badge', 'premium_toggle', 'actions'])
             ->make(true);
     }
 
@@ -198,5 +206,17 @@ class VendorController extends Controller
         });
 
         return response()->json(['message' => 'Vendor deleted successfully.']);
+    }
+
+    public function togglePremium(Vendor $vendor): JsonResponse
+    {
+        $vendor->update([
+            'is_premium' => ! $vendor->is_premium,
+        ]);
+
+        return response()->json([
+            'message' => $vendor->is_premium ? 'Vendor marked as premium.' : 'Vendor removed from premium.',
+            'is_premium' => $vendor->is_premium,
+        ]);
     }
 }
