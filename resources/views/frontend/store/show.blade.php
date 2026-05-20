@@ -58,6 +58,7 @@
         </div>
     </section>
 
+    {{--
     @php($topProducts = $products->getCollection()->take(4))
 
     <section id="products" class="vendor-store-section">
@@ -83,6 +84,7 @@
             </div>
         </div>
     </section>
+    --}}
 
     @foreach($vendor->pageSections as $section)
         <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section">
