@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [OfferPageController::class, 'home'])->name('frontend.index');
 Route::get('/offers-market', [OfferPageController::class, 'index'])->name('frontend.offers.index');
 Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
+Route::get('/vendors', [OfferPageController::class, 'vendors'])->name('frontend.vendors.index');
 Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
 Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');
 Route::post('/ads-market/{ad}/report', [AdReportController::class, 'store'])->middleware(['auth', 'verified'])->name('frontend.ads.report');

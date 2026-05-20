@@ -756,7 +756,7 @@
           <div class="sec">
             <div class="sec-head">
               <div class="sec-title"><span class="icon"><i class="fa-solid fa-store"></i></span> Top Vendors</div>
-              <a class="view-all" href="#">VIEW ALL ▶</a>
+              <a class="view-all" href="{{ route('frontend.vendors.index') }}">VIEW ALL ▶</a>
             </div>
             <div class="ad-slider auto-ad-slider top-ad-slider top-vendors-featured-slider" aria-label="Top vendor featured ads slider">
               @forelse(($topVendorsHeaderAds ?? collect()) as $ad)
@@ -775,53 +775,24 @@
             </div>
             <div class="row g-3 align-items-start">
               <div class="col-12 col-lg-9">
-            <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3">
-              <div class="col">
-              <div class="vendor-card card h-100">
-                <img src="https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70" alt="Fashion">
-                <div class="vendor-card-body card-body d-flex flex-column">
-                  <p>Elite Fashion Store</p>
-                  <div class="vendor-card-sub">Boutique Apparel • Downtown</div>
-                  
-                  <button class="vendor-card-btn">View Store</button>
+            <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3 ad-slider auto-ad-slider" data-show-arrows="true" data-pause-on-hover="false">
+              @forelse(($topVendors ?? collect()) as $vendor)
+                <div class="col ad-slide">
+                  <div class="vendor-card card h-100">
+                    <img src="{{ $vendor->logo ? asset($vendor->logo) : 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70' }}" alt="{{ $vendor->publicDisplayName() }}">
+                    <div class="vendor-card-body card-body d-flex flex-column">
+                      <p>{{ $vendor->publicDisplayName() }} @if($vendor->is_premium)⭐@endif</p>
+                      @php($primaryBranch = $vendor->branches->first())
+                      <div class="vendor-card-sub">{{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products</div>
+                      <a href="{{ route('store.show', $vendor->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              </div>
-              <div class="col">
-              <div class="vendor-card card h-100">
-                <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&q=70" alt="Grocery">
-                <div class="vendor-card-body card-body d-flex flex-column">
-                  <p>Fresh Grocery Mart</p>
-                  <div class="vendor-card-sub">Organic Produce • City Center</div>
-                  
-                  <button class="vendor-card-btn">View Store</button>
+              @empty
+                <div class="col">
+                  <div class="view-all-card ad-slot-card h-100" style="min-height:130px;"><h4>No vendors available</h4><p>Please check back later.</p></div>
                 </div>
-              </div>
-              </div>
-              <div class="col">
-              <div class="vendor-card card h-100">
-                <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=300&q=70" alt="Tech">
-                <div class="vendor-card-body card-body d-flex flex-column">
-                  <p>Tech World</p>
-                  <div class="vendor-card-sub">Laptops & Gadgets • North Ave</div>
-                  
-                  <button class="vendor-card-btn">View Store</button>
-                </div>
-              </div>
-              </div>
-              <div class="col">
-              <div class="vendor-card card h-100">
-                <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&q=70" alt="Decor">
-                <div class="vendor-card-body card-body d-flex flex-column">
-                  <p>Sunshine Decor</p>
-                  <div class="vendor-card-sub">Home Interiors • Market Road</div>
-                  <button class="vendor-card-btn">View Store</button>
-                </div>
-              </div>
-              </div>
-              <div class="col">
-              <div class="view-all-card ad-slot-card h-100" style="min-height:130px;"><div class="ad-tag">Sponsored</div><h4>Vendor Promotion</h4><p>Run targeted ads for local customers.</p><button class="ad-slot-btn">Advertise</button></div>
-              </div>
+              @endforelse
             </div></div>
               <aside class="col-12 col-lg-3 section-side-ad ad-slider auto-ad-slider top-vendor-side-slider" aria-label="Top vendor side ads slider">
                 @forelse(($topVendorsSideAds ?? collect()) as $ad)

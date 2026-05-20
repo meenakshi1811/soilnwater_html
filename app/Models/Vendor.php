@@ -70,6 +70,11 @@ class Vendor extends Model
         return $this->hasMany(VendorBannerSlide::class)->orderBy('sort_order');
     }
 
+    public function products(): HasMany
+    {
+        return $this->hasMany(VendorProduct::class);
+    }
+
     public function pageSections(): HasMany
     {
         return $this->hasMany(VendorPageSection::class)->orderBy('sort_order');
