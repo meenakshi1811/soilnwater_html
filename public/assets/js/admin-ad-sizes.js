@@ -38,6 +38,8 @@
             $('#applyAllCategoriesPriceWrap').addClass('d-none');
             $('#categoryPricingFieldsSection').removeClass('d-none');
             $('#applyAllCategoriesPriceInput').val('');
+            $('#adSizeIsPaid').prop('checked', false);
+            $('#modulePricingFieldsSection').addClass('d-none');
         },
 
         bindUi: function () {
@@ -63,6 +65,11 @@
                 $('input[name^="category_prices["]').val(value);
             };
 
+            var syncModulePricingVisibility = function () {
+                var isModulePriceEnabled = $('#adSizeIsPaid').is(':checked');
+                $('#modulePricingFieldsSection').toggleClass('d-none', !isModulePriceEnabled);
+            };
+
             $('#categoryPriceModeAll').on('change', function () {
                 var isAllMode = this.checked;
                 $('#applyAllCategoriesPriceWrap').toggleClass('d-none', !isAllMode);
@@ -74,6 +81,10 @@
 
             $('#applyAllCategoriesPriceInput').on('input', function () {
                 syncAllCategoriesPrice();
+            });
+
+            $('#adSizeIsPaid').on('change', function () {
+                syncModulePricingVisibility();
             });
 
             $(document).on('click', '.js-edit-ad-size', function () {
@@ -98,6 +109,7 @@
                     $('#adSizeHeight').val(size.height || '');
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
                     $('#adSizeIsPaid').prop('checked', !!size.is_paid);
+                    syncModulePricingVisibility();
                     var modulePrices = response.module_prices || {};
                     $('input[name^="module_prices["]').each(function () {
                         var name = $(this).attr('name');

@@ -68,7 +68,13 @@
                             <label class="form-label">Height</label>
                             <input type="number" min="1" max="5000" name="height" id="adSizeHeight" class="form-control" required>
                         </div>
-                        <div class="col-12" id="modulePricingFieldsSection">
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="is_paid" id="adSizeIsPaid" value="1">
+                                <label class="form-check-label" for="adSizeIsPaid">Module Price</label>
+                            </div>
+                        </div>
+                        <div class="col-12 d-none" id="modulePricingFieldsSection">
                             <hr class="my-1">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
                                 <label class="form-label mb-0">Module Pricing</label>
