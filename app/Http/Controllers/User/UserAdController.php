@@ -9,6 +9,7 @@ use App\Models\AdSize;
 use App\Models\UserAd;
 use App\Models\ContactSupport;
 use App\Support\AdSizes;
+use App\Support\ModulePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Http\RedirectResponse;
@@ -175,6 +176,7 @@ class UserAdController extends Controller
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
                 ->get(['id', 'name']),
+            'moduleOptions' => ModulePermissions::modules(),
         ]);
     }
 
@@ -261,6 +263,7 @@ class UserAdController extends Controller
             'size' => AdSizes::all(true)[$ad->size_type] ?? null,
             'categories' => $categories,
             'subcategories' => $subcategories,
+            'moduleOptions' => ModulePermissions::modules(),
         ]);
     }
 
@@ -273,6 +276,8 @@ class UserAdController extends Controller
             'short_description' => 'nullable|string|max:300',
             'category_id' => ['required', Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id')->whereJsonContains('modules', 'ads'))],
             'subcategory_id' => ['required', Rule::exists('categories', 'id')],
+            'selected_modules' => ['nullable', 'array'],
+            'selected_modules.*' => ['string', Rule::in(array_keys(ModulePermissions::modules()))],
             'location' => 'required|string|max:255',
             'location_lat' => 'required|numeric|between:-90,90',
             'location_lng' => 'required|numeric|between:-180,180',
@@ -297,6 +302,7 @@ class UserAdController extends Controller
             'short_description' => $validated['short_description'] ?? null,
             'category_id' => $validated['category_id'],
             'subcategory_id' => $validated['subcategory_id'],
+            'selected_modules' => $validated['selected_modules'] ?? [],
             'location' => $validated['location'],
             'location_lat' => $validated['location_lat'],
             'location_lng' => $validated['location_lng'],
@@ -337,10 +343,17 @@ class UserAdController extends Controller
         abort_unless($ad->user_id === $request->user()->id, 404);
 
         $ad->load(['template:id,name,size_type', 'category:id,name', 'subcategory:id,name']);
+        $moduleLabels = ModulePermissions::modules();
+        $selectedModuleLabels = collect($ad->selected_modules ?? [])
+            ->filter(fn ($key) => is_string($key) && isset($moduleLabels[$key]))
+            ->map(fn (string $key) => $moduleLabels[$key])
+            ->values()
+            ->all();
 
         return view('backend.ads.user.show', [
             'ad' => $ad,
             'size' => AdSizes::all(true)[$ad->size_type] ?? null,
+            'selectedModuleLabels' => $selectedModuleLabels,
         ]);
     }
 
@@ -452,6 +465,8 @@ class UserAdController extends Controller
                     ->whereJsonContains('modules', 'ads')),
             ],
             'subcategory_id' => ['required', Rule::exists('categories', 'id')],
+            'selected_modules' => ['nullable', 'array'],
+            'selected_modules.*' => ['string', Rule::in(array_keys(ModulePermissions::modules()))],
             'location' => 'required|string|max:255',
             'location_lat' => 'required|numeric|between:-90,90',
             'location_lng' => 'required|numeric|between:-180,180',
@@ -479,6 +494,10 @@ class UserAdController extends Controller
 
         $size = AdSizes::all()[$sizeType] ?? null;
         $categoryPrice = $size['category_prices'][(int) $validated['category_id']] ?? ((($size['module_prices'] ?? []) !== []) ? min($size['module_prices']) : null);
+        $selectedModules = collect($validated['selected_modules'] ?? [])->unique()->values()->all();
+        $modulePricePerDay = collect($selectedModules)->sum(fn (string $moduleKey) => (float) ($size['module_prices'][$moduleKey] ?? 0));
+        $categoryPricePerDay = (float) ($categoryPrice ?? 0);
+        $totalBasePricePerDay = $categoryPricePerDay + $modulePricePerDay;
         if ((bool) ($size['is_paid'] ?? false) && $categoryPrice === null && ! (bool) ($user?->isAdmin())) {
             return back()->withErrors([
                 'category_id' => 'No price is configured for this category and ad size.',
@@ -488,7 +507,7 @@ class UserAdController extends Controller
         $targetWidth = (int) ($size['w'] ?? 0);
         $targetHeight = (int) ($size['h'] ?? 0);
 
-        $pricing = $this->buildPricingDetails($categoryPrice, $validated['valid_until']);
+        $pricing = $this->buildPricingDetails($totalBasePricePerDay, $validated['valid_until']);
 
         $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $pricing) {
             $layoutHtml = (string) ($validated['custom_html'] ?? '');
@@ -510,6 +529,7 @@ class UserAdController extends Controller
                 'short_description' => $validated['short_description'] ?? null,
                 'category_id' => $validated['category_id'],
                 'subcategory_id' => $validated['subcategory_id'],
+                'selected_modules' => $selectedModules,
                 'location' => $validated['location'],
                 'location_lat' => $validated['location_lat'],
                 'location_lng' => $validated['location_lng'],

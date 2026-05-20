@@ -63,6 +63,18 @@
                     </select>
                 </div>
                 <div class="col-md-6">
+                    <label for="moduleSelect" class="form-label fw-semibold">Select Module(s)</label>
+                    <select name="selected_modules[]" id="moduleSelect" class="form-select" multiple data-module-prices='@json($size["module_prices"] ?? [])'>
+                        @foreach(($moduleOptions ?? []) as $moduleKey => $moduleName)
+                            @php $modulePrice = $size['module_prices'][$moduleKey] ?? null; @endphp
+                            <option value="{{ $moduleKey }}" data-module-price="{{ $modulePrice !== null ? (float) $modulePrice : '' }}" {{ in_array($moduleKey, old('selected_modules', $ad->selected_modules ?? []), true) ? 'selected' : '' }}>
+                                {{ $moduleName }}{{ $modulePrice !== null && $modulePrice > 0 ? ' (₹' . number_format((float) $modulePrice, 2) . '/day)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div id="adModulePriceNote" class="form-text text-muted">Select one or more modules to include additional paid module charges.</div>
+                </div>
+                <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <input type="text" name="location" id="adLocation" class="form-control" value="{{ old('location', $ad->location ?? '') }}" required>
                     <input type="hidden" name="location_lat" id="adLocationLat" value="{{ old('location_lat', $ad->location_lat ?? '') }}">
@@ -286,7 +298,15 @@
                 <div id="pricingDetailsCard" class="mt-4 rounded-4 border p-4 d-none" style="background:#f5f2ec;border-color:#f1bb86 !important;">
                     <h4 class="mb-3">Pricing Details</h4>
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Base price / day</span>
+                        <span>Category price / day</span>
+                        <strong id="pricingCategoryPrice">₹0.00</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Module price / day</span>
+                        <strong id="pricingModulePrice">₹0.00</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Base price / day (Category + Module)</span>
                         <strong id="pricingBasePrice">₹0.00</strong>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -1244,6 +1264,10 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
 
         const categoryPriceNote = document.getElementById('adCategoryPriceNote');
         const adCategoryPremiumChip = document.getElementById('adCategoryPremiumChip');
+        const moduleSelect = document.getElementById('moduleSelect');
+        const adModulePriceNote = document.getElementById('adModulePriceNote');
+        const pricingCategoryPrice = document.getElementById('pricingCategoryPrice');
+        const pricingModulePrice = document.getElementById('pricingModulePrice');
         const validUntilInput = document.querySelector('input[name="valid_until"]');
         const pricingBasePrice = document.getElementById('pricingBasePrice');
         const pricingTotalDays = document.getElementById('pricingTotalDays');
@@ -1287,10 +1311,19 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             return { days: Math.max(1, diffDays), usedFallback: false };
         }
 
-        function updatePricingDetails(price) {
+        function selectedModulePricePerDay() {
+            if (!moduleSelect) return 0;
+            return Array.from(moduleSelect.selectedOptions || []).reduce((total, option) => {
+                const amount = Number(option.dataset.modulePrice || 0);
+                return total + (Number.isFinite(amount) ? amount : 0);
+            }, 0);
+        }
+
+        function updatePricingDetails(categoryPrice, modulePrice = selectedModulePricePerDay()) {
             if (!pricingBasePrice || !pricingTotalDays || !pricingSubtotal || !pricingGst || !pricingGrandTotal) return;
-            const basePrice = Number(price);
-            const normalizedBasePrice = Number.isFinite(basePrice) && basePrice > 0 ? basePrice : 0;
+            const normalizedCategoryPrice = Number.isFinite(Number(categoryPrice)) && Number(categoryPrice) > 0 ? Number(categoryPrice) : 0;
+            const normalizedModulePrice = Number.isFinite(Number(modulePrice)) && Number(modulePrice) > 0 ? Number(modulePrice) : 0;
+            const normalizedBasePrice = normalizedCategoryPrice + normalizedModulePrice;
 
             if (pricingDetailsCard) {
                 pricingDetailsCard.classList.toggle('d-none', normalizedBasePrice <= 0);
@@ -1300,6 +1333,8 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             const gst = subtotal * 0.05;
             const grandTotal = subtotal + gst;
 
+            if (pricingCategoryPrice) pricingCategoryPrice.textContent = `₹${normalizedCategoryPrice.toFixed(2)}`;
+            if (pricingModulePrice) pricingModulePrice.textContent = `₹${normalizedModulePrice.toFixed(2)}`;
             pricingBasePrice.textContent = `₹${normalizedBasePrice.toFixed(2)}`;
             pricingTotalDays.textContent = String(days);
             pricingSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
@@ -1333,15 +1368,30 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updatePricingDetails(price);
         }
 
+        function updateModulePriceNote() {
+            if (!adModulePriceNote) return;
+            const modulePrice = selectedModulePricePerDay();
+            adModulePriceNote.textContent = modulePrice > 0
+                ? `Selected module charges: ₹${modulePrice.toFixed(2)}/day`
+                : 'Selected modules are free for this size.';
+            const selectedOption = categorySelect?.options[categorySelect.selectedIndex];
+            updatePricingDetails(selectedOption ? selectedOption.dataset.adPrice : 0, modulePrice);
+        }
+
         categorySelect?.addEventListener('change', function () {
             loadSubcategories(this.value);
             updateCategoryPriceNote();
             updateSubmitButtonState();
         });
+        moduleSelect?.addEventListener('change', updateModulePriceNote);
         subcategorySelect?.addEventListener('change', updateSubmitButtonState);
-        validUntilInput?.addEventListener('change', updateCategoryPriceNote);
+        validUntilInput?.addEventListener('change', () => {
+            updateCategoryPriceNote();
+            updateModulePriceNote();
+        });
         applyValidUntilLimit();
         updateCategoryPriceNote();
+        updateModulePriceNote();
         updateSubmitButtonState();
 
         window.initAdLocationAutocomplete = function () {

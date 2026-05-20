@@ -43,6 +43,18 @@
                 <div class="mb-2"><span class="text-secondary">Short Description:</span> <strong>{{ $ad->short_description ?: '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Category:</span> <strong>{{ $ad->category?->name ?? '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Sub Category:</span> <strong>{{ $ad->subcategory?->name ?? '-' }}</strong></div>
+                <div class="mb-2">
+                    <span class="text-secondary">Selected Modules:</span>
+                    @if(!empty($selectedModuleLabels))
+                        <div class="mt-1 d-flex flex-wrap gap-1">
+                            @foreach($selectedModuleLabels as $moduleLabel)
+                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">{{ $moduleLabel }}</span>
+                            @endforeach
+                        </div>
+                    @else
+                        <strong>-</strong>
+                    @endif
+                </div>
                 <div class="mb-2"><span class="text-secondary">Location:</span> <strong>{{ $ad->location ?? '-' }}</strong></div>
                 <div class="mb-2"><span class="text-secondary">Valid Upto:</span> {{ $ad->valid_until?->format('Y-m-d') ?? '-' }}</div>
                 <div class="mb-2"><span class="text-secondary">Submitted:</span> {{ $ad->submitted_at?->format('Y-m-d H:i') ?? '-' }}</div>
