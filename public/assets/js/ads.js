@@ -193,6 +193,9 @@
         var $table = $('#adminAdSubmissionsTable');
         if (!$table.length || !$.fn.DataTable) return;
 
+        var $postedByTabs = $('#adminAdsPostedByTabs [data-posted-by]');
+        var activePostedBy = 'admin';
+
         var dt = $table.DataTable({
             processing: true,
             serverSide: true,
@@ -203,6 +206,7 @@
                     var status = $('#adminAdsFilterStatus').val();
                     if (sizeType) d.size_type = sizeType;
                     if (status) d.status = status;
+                    if (activePostedBy) d.posted_by = activePostedBy;
                 }
             },
             order: [[5, 'desc']],
@@ -224,6 +228,14 @@
         });
 
         $('#adminAdsApplyFilters').on('click', function () {
+            dt.ajax.reload();
+        });
+
+        $postedByTabs.on('click', function () {
+            var $btn = $(this);
+            activePostedBy = $btn.data('posted-by') || 'admin';
+            $postedByTabs.removeClass('active');
+            $btn.addClass('active');
             dt.ajax.reload();
         });
 
