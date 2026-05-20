@@ -15,6 +15,8 @@ class AdSize extends Model
         'name',
         'width',
         'height',
+        'module_key',
+        'module_price',
         'admin_only',
         'is_paid',
         'amount',
@@ -23,6 +25,7 @@ class AdSize extends Model
 
     protected $casts = [
         'admin_only' => 'bool',
+        'module_price' => 'decimal:2',
         'is_paid' => 'bool',
         'amount' => 'decimal:2',
         'is_active' => 'bool',
@@ -31,5 +34,10 @@ class AdSize extends Model
     public function categoryPrices(): HasMany
     {
         return $this->hasMany(AdSizeCategoryPrice::class);
+    }
+
+    public function modulePrices(): HasMany
+    {
+        return $this->hasMany(AdSizeModulePrice::class);
     }
 }

@@ -29,6 +29,8 @@
                         <th>Key</th>
                         <th>Dimensions</th>
                         <th>Placement</th>
+                        <th>Module</th>
+                        <th>Module Price</th>
                         <th>Status</th>
                         <th>Created</th>
                         <th class="text-end">Actions</th>
@@ -67,6 +69,24 @@
                         <div class="col-md-4">
                             <label class="form-label">Height</label>
                             <input type="number" min="1" max="5000" name="height" id="adSizeHeight" class="form-control" required>
+                        </div>
+                        <div class="col-12" id="modulePricingFieldsSection">
+                            <hr class="my-1">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                <label class="form-label mb-0">Module Pricing</label>
+                                <small class="text-secondary">Assign prices for one or multiple modules.</small>
+                            </div>
+                            <div class="row g-3" id="modulePricingFieldsWrap">
+                                @foreach($modules as $moduleKey => $moduleLabel)
+                                    <div class="col-md-6">
+                                        <label class="form-label text-uppercase small mb-1">{{ $moduleLabel }}</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₹</span>
+                                            <input type="number" min="0" step="0.01" class="form-control" name="module_prices[{{ $moduleKey }}]" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
                             <div class="form-check mb-2">
