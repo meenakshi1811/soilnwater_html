@@ -33,7 +33,7 @@ $adFrameStyle = function ($ad) {
         <main class="col-xl-8">
             <section class="product-shell shadow-sm mb-4">
                 <div class="row g-3 g-lg-4">
-                    <div class="col-lg-6">
+                    <div class="col-lg-7">
                         <div class="product-gallery-layout">
                             <div class="gallery-thumbs">
                                 @foreach($galleryImages->take(5) as $image)
@@ -48,7 +48,7 @@ $adFrameStyle = function ($ad) {
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-lg-5">
                         <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                             <div>
                                 <p class="product-brand mb-1">{{ $product->brand ?: $vendor->publicDisplayName() }}</p>
@@ -124,14 +124,14 @@ $adFrameStyle = function ($ad) {
 @push('styles')
 <style>
 .product-shell{background:linear-gradient(135deg,#fff 0%,#f5f8ff 50%,#eefcf8 100%);border:1px solid #e6ebf5;border-radius:18px;padding:1rem}
-.product-gallery-layout{display:grid;grid-template-columns:96px 1fr;gap:1rem;align-items:stretch}.gallery-thumbs{display:flex;flex-direction:column;gap:.8rem}.product-main-image-wrap{position:relative;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;background:#e5e7eb;padding:1rem}.product-main-image{aspect-ratio:1/1;object-fit:cover;border-radius:8px}.thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:12px;overflow:hidden;width:100%;opacity:.9}.thumb-btn img{height:64px;width:100%;object-fit:cover;border-radius:9px}.thumb-btn.active{border-color:#111827;box-shadow:0 0 0 .15rem rgba(17,24,39,.08);opacity:1}.gallery-nav-btn{position:absolute;left:14px;top:50%;transform:translateY(-50%);height:52px;width:52px;border-radius:50%;border:none;background:#fff;color:#111827;box-shadow:0 8px 18px rgba(17,24,39,.18)}
+.product-gallery-layout{display:grid;grid-template-columns:84px 1fr;gap:1rem;align-items:stretch}.gallery-thumbs{display:flex;flex-direction:column;gap:.8rem}.product-main-image-wrap{position:relative;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;background:#e5e7eb;padding:1rem}.product-main-image{aspect-ratio:4/3;object-fit:cover;border-radius:8px;min-height:460px}.thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:12px;overflow:hidden;width:100%;opacity:.9}.thumb-btn img{height:72px;width:100%;object-fit:cover;border-radius:9px}.thumb-btn.active{border-color:#111827;box-shadow:0 0 0 .15rem rgba(17,24,39,.08);opacity:1}.gallery-nav-btn{position:absolute;left:14px;top:50%;transform:translateY(-50%);height:52px;width:52px;border-radius:50%;border:none;background:#fff;color:#111827;box-shadow:0 8px 18px rgba(17,24,39,.18)}
 .product-brand{font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;color:#16a34a;font-weight:700}
 .price-panels{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}.price-panel{border:1px solid #dce6f7;border-radius:12px;padding:.7rem .8rem;background:#fff}.price-panel span{font-size:.78rem;color:#6b7280;display:block}.price-panel strong{font-size:1.2rem;color:#111827}.price-panel.featured{background:linear-gradient(135deg,#fff0f0 0,#ffffff 100%)}
 .quick-meta{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}.quick-meta div{border:1px solid #e8edf8;border-radius:10px;padding:.6rem .75rem;background:#fff}.quick-meta small{display:block;color:#6b7280}.quick-meta p{margin:0;font-weight:600;color:#1f2937}
 .product-description{padding:.9rem;border-radius:12px;background:#fff;border:1px solid #e5e7eb;color:#374151;line-height:1.65}
 .similar-card{padding:.75rem;border:1px solid #e5e7eb;border-radius:12px;background:#fff;transition:all .2s ease}.similar-card:hover{transform:translateY(-2px);border-color:#0d6efd}
 .similar-card__image{width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb}
-@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:78px}.gallery-nav-btn{height:42px;width:42px}}
+@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:78px}.gallery-nav-btn{height:42px;width:42px}.product-main-image{min-height:300px}}
 @media (max-width:767.98px){.price-panels,.quick-meta{grid-template-columns:1fr}}
 </style>
 @endpush
