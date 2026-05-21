@@ -49,10 +49,7 @@
     @if($stackAds->isNotEmpty())
         <div class="vendor-store-ads-stack">
             @foreach($stackAds as $item)
-                @php
-                    $sizeClass = $item['ratio'] < 0.9 ? 'is-tall' : ($item['ratio'] > 1.35 ? 'is-compact' : 'is-standard');
-                @endphp
-                <a href="{{ route('frontend.ads.show', $item['ad']) }}" class="vendor-store-ad-card {{ $sizeClass }}" style="--ad-ratio: {{ max(0.55, min(1.8, $item['ratio'])) }};">
+                <a href="{{ route('frontend.ads.show', $item['ad']) }}" class="vendor-store-ad-card {{ $item['ratio'] < 0.9 ? 'is-tall' : ($item['ratio'] > 1.35 ? 'is-compact' : 'is-standard') }}" style="--ad-ratio: {{ max(0.55, min(1.8, $item['ratio'])) }};">
                     <img src="{{ asset($item['ad']->final_image) }}" alt="{{ $item['ad']->title }}" loading="lazy">
                 </a>
             @endforeach
