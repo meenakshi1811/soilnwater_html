@@ -165,3 +165,21 @@
     padding: 0.5rem;
     font-size: 0.85rem;
 }
+
+.vendor-store-nav .vendor-store-nav-products-dropdown .dropdown-toggle::after {
+    margin-left: 0.4rem;
+}
+
+.vendor-store-products-menu {
+    min-width: 220px;
+}
+
+.vendor-store-submenu-item {
+    position: relative;
+}
+
+.vendor-store-submenu-item > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-left: 0.1rem;
+}
