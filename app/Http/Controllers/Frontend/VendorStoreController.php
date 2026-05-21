@@ -110,10 +110,20 @@ class VendorStoreController extends Controller
         });
 
         $isFullPageSize = function ($ad): bool {
-            $sizeType = strtolower(trim((string) ($ad->size_type ?? '')));
-            $sizeKey = strtolower(trim((string) ($ad->adSize->size_key ?? '')));
+            $normalize = function (string $value): string {
+                $normalized = strtolower(trim($value));
 
-            // Strict match: top slot is only for explicit full_size size.
+                if (str_starts_with($normalized, 'admin_')) {
+                    return substr($normalized, strlen('admin_'));
+                }
+
+                return $normalized;
+            };
+
+            $sizeType = $normalize((string) ($ad->size_type ?? ''));
+            $sizeKey = $normalize((string) ($ad->adSize->size_key ?? ''));
+
+            // Top slot is reserved for full_page ads, including legacy admin_full_page keys.
             if ($sizeKey !== '') {
                 return $sizeKey === 'full_size';
             }
