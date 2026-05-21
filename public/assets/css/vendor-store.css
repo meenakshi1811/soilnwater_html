@@ -439,35 +439,11 @@
     margin-bottom: 0.55rem;
 }
 
-.vendor-product-card__price-row {
-    display: flex;
-    align-items: baseline;
-    gap: 0.65rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.vendor-product-card--featured .vendor-product-card__price {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #e91e63;
-    background: none;
-    -webkit-text-fill-color: #e91e63;
-}
-
-.vendor-product-card__price-original {
-    margin: 0;
-    font-size: 0.82rem;
-    color: #7a7a7a;
-    text-decoration: line-through;
-}
-
-.vendor-product-card__discount {
-    margin: 0;
-    font-size: 0.94rem;
-    color: #5f8f4e;
-    font-weight: 500;
+.vendor-product-card__btn--featured {
+    margin-top: 0.2rem;
+    border-color: #0f172a;
+    font-size: 0.75rem;
+    padding: 0.38rem 0.56rem;
 }
 
 .vendor-store-empty-products {

@@ -17,16 +17,8 @@
                     <p class="vendor-product-card__brand">{{ $product->brand }}</p>
                 @endif
                 @php($finalPrice = (float) $product->final_price)
-                @php($basePrice = (float) ($product->price ?? $product->final_price))
-                @php($discountPercent = $basePrice > $finalPrice ? round((($basePrice - $finalPrice) / $basePrice) * 100) : 0)
                 @if($isFeaturedStyle)
-                    <div class="vendor-product-card__price-row">
-                        <p class="vendor-product-card__price">₹{{ number_format($finalPrice, 0) }}</p>
-                        @if($discountPercent > 0)
-                            <p class="vendor-product-card__price-original">₹{{ number_format($basePrice, 0) }}</p>
-                            <p class="vendor-product-card__discount">{{ $discountPercent }}%off</p>
-                        @endif
-                    </div>
+                    <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="vendor-product-card__btn vendor-product-card__btn--featured">View Details</a>
                 @else
                     <p class="vendor-product-card__price">₹{{ number_format($finalPrice, 2) }}</p>
                     <p class="vendor-product-card__meta">Min. order: 1 · Stock: {{ number_format((int) $product->stock_quantity) }}</p>
