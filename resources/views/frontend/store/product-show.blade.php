@@ -4,6 +4,8 @@
 @php
 $primaryImage = is_array($product->images) ? ($product->images[0] ?? null) : null;
 $galleryImages = collect(is_array($product->images) ? $product->images : [])->filter()->values();
+$colorOptions = collect(explode(',', (string) ($product->colors ?? '')))->map(fn ($v) => trim($v))->filter()->values();
+$sizeOptions = collect(explode(',', (string) ($product->sizes ?? '')))->map(fn ($v) => trim($v))->filter()->values();
 $adFrameStyle = function ($ad) {
     $w = (int) ($ad->adSize->width ?? 0);
     $h = (int) ($ad->adSize->height ?? 0);
@@ -42,32 +44,35 @@ $adFrameStyle = function ($ad) {
                     <div class="col-lg-5">
                         <p class="vendor-label mb-1">{{ strtoupper($vendor->publicDisplayName()) }}</p>
                         <h2 class="product-title mb-2">{{ $product->name }}</h2>
-                        <div class="meta-line mb-2">
-                            <span class="text-muted">★★★★★</span>
-                            <span class="mx-2">No Review</span>
-                            <span class="sold-chip"><i class="fa-regular fa-clock me-1"></i>6 sold in last 10 hours</span>
-                        </div>
                         <p class="mb-1"><span class="label-muted">Vendor:</span> {{ $vendor->publicDisplayName() }}</p>
-                        <p class="mb-3"><span class="label-muted">Availability:</span> In Stock</p>
+                        <p class="mb-1"><span class="label-muted">Availability:</span> {{ (int) $product->stock_quantity > 0 ? "In Stock" : "Out of Stock" }}</p>
+                        <p class="mb-3"><span class="label-muted">Stock:</span> {{ number_format((int) $product->stock_quantity) }} units</p>
 
                         <div class="hero-price mb-3">₹{{ number_format((float) $product->final_price, 2) }}</div>
 
                         <div class="mb-3">
-                            <p class="option-label mb-2">Color: <strong>Blue</strong></p>
+                            <p class="option-label mb-2">Color: <strong>{{ $colorOptions->first() ?? 'N/A' }}</strong></p>
+                            @if($galleryImages->count())
                             <div class="d-flex gap-2">
-                                @foreach($galleryImages->take(2) as $image)
-                                <button type="button" class="color-chip {{ $loop->first ? 'active' : '' }}" data-image="{{ asset($image) }}"><img src="{{ asset($image) }}" alt="color option"></button>
+                                @foreach($galleryImages->take(max(1, min(4, $colorOptions->count() ?: 2))) as $image)
+                                <button type="button" class="color-chip {{ $loop->first ? 'active' : '' }}" data-image="{{ asset($image) }}" title="{{ $colorOptions[$loop->index] ?? ('Option '.($loop->iteration)) }}"><img src="{{ asset($image) }}" alt="color option {{ $loop->iteration }}"></button>
                                 @endforeach
                             </div>
+                            @endif
+                            @if($colorOptions->count())<p class="small text-muted mt-2 mb-0">Available: {{ $colorOptions->implode(', ') }}</p>@endif
                         </div>
 
                         <div class="mb-3">
-                            <p class="option-label mb-2">Size: <strong>4XL</strong></p>
+                            <p class="option-label mb-2">Size: <strong>{{ $sizeOptions->first() ?? 'N/A' }}</strong></p>
+                            @if($sizeOptions->count())
                             <div class="size-grid">
-                                @foreach(['4XL','S','M','L','XL','XXL'] as $size)
+                                @foreach($sizeOptions as $size)
                                 <button type="button" class="size-chip {{ $loop->first ? 'active' : '' }}">{{ $size }}</button>
                                 @endforeach
                             </div>
+                            @else
+                            <p class="small text-muted mb-0">No size options added.</p>
+                            @endif
                         </div>
 
                         <button class="btn btn-primary w-100 py-2" data-bs-toggle="modal" data-bs-target="#enquiryModal">Send Inquiry</button>
