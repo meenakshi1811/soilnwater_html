@@ -123,9 +123,34 @@ class VendorStoreController extends Controller
             $adsByDimension = $ads->chunk(3)->values();
         }
 
-        $topGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) >= 900)->values();
-        $sideGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) < 900 && ((int) explode('x', $dim)[1]) >= 300)->values();
-        $bottomGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[1]) < 300)->values();
+        $groupDimensions = function ($group) use ($sizeMap): array {
+            $firstAd = $group->first();
+            $sizeKey = strtolower((string) ($firstAd->size_type ?? ''));
+            $size = $sizeMap[$sizeKey] ?? null;
+
+            return [
+                'w' => (int) ($size['w'] ?? 0),
+                'h' => (int) ($size['h'] ?? 0),
+            ];
+        };
+
+        $topGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
+            ['w' => $width] = $groupDimensions($group);
+
+            return $width >= 900;
+        })->values();
+
+        $sideGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
+            ['w' => $width, 'h' => $height] = $groupDimensions($group);
+
+            return $width > 0 && $width < 900 && $height >= 300;
+        })->values();
+
+        $bottomGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
+            ['h' => $height] = $groupDimensions($group);
+
+            return $height > 0 && $height < 300;
+        })->values();
 
         if ($topGroups->isEmpty()) {
             $topGroups = $adsByDimension->take(1)->values();
