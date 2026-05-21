@@ -143,9 +143,7 @@ class VendorStoreController extends Controller
             $sideGroups = $ads->filter(fn ($ad) => strtolower((string) ($ad->size_type ?? '')) !== 'full_page')->chunk(2)->values();
         }
 
-        $topGroups = $fullPageGroups->isNotEmpty()
-            ? $fullPageGroups->take(1)->values()
-            : $adsByDimension->take(1)->values();
+        $topGroups = $fullPageGroups->take(1)->values();
 
         $bottomGroups = collect();
 
