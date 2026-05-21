@@ -5,37 +5,43 @@
 $primaryImage = is_array($product->images) ? ($product->images[0] ?? null) : null;
 $galleryImages = collect(is_array($product->images) ? $product->images : [])->filter()->values();
 $hasLocation = $product->latitude !== null && $product->longitude !== null;
+$hasAds = ($topGroups->flatten()->count() + $sideGroups->flatten()->count() + $bottomGroups->flatten()->count()) > 0;
 @endphp
 <div class="container py-4 py-lg-5">
   <div class="d-flex justify-content-between align-items-center mb-4"><a href="{{ route('store.show', $vendor->slug) }}#products" class="btn btn-sm btn-outline-secondary">← Back to products</a><span class="badge text-bg-light border">{{ $vendor->publicDisplayName() }}</span></div>
 
-  @foreach($topGroups as $gi => $group)
-    @php($id = 'topAdCarousel'.$gi)
-    <div class="mb-4">
-      @if($group->count() > 1)
-      <div id="{{ $id }}" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner rounded-3 overflow-hidden border shadow-sm">
-          @foreach($group as $i => $ad)
-          <div class="carousel-item {{ $i===0 ? 'active' : '' }}"><a href="{{ route('frontend.ads.show', $ad) }}"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>
-          @endforeach
+  @if($hasAds)
+  <section class="ad-zone mb-4">
+    <div class="ad-zone__title">Sponsored</div>
+    @foreach($topGroups as $gi => $group)
+      @php($id = 'topAdCarousel'.$gi)
+      <div class="mb-3">
+        @if($group->count() > 1)
+        <div id="{{ $id }}" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">
+            @foreach($group as $i => $ad)
+            <div class="carousel-item {{ $i===0 ? 'active' : '' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>
+            @endforeach
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#{{ $id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+          <button class="carousel-control-next" type="button" data-bs-target="#{{ $id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#{{ $id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
-        <button class="carousel-control-next" type="button" data-bs-target="#{{ $id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+        @else
+        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
+        @endif
       </div>
-      @else
-      @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="d-block rounded-3 overflow-hidden border shadow-sm"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
-      @endif
-    </div>
-  @endforeach
+    @endforeach
+  </section>
+  @endif
 
   <div class="row g-4">
     <aside class="col-lg-2">
       @foreach($sideGroups->take(1) as $gi => $group)
         @php($id = 'leftAdCarousel'.$gi)
         @if($group->count() > 1)
-        <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>@endforeach</div></div>
+        <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>@endforeach</div></div>
         @else
-        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
+        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
         @endif
       @endforeach
     </aside>
@@ -48,9 +54,9 @@ $hasLocation = $product->latitude !== null && $product->longitude !== null;
       @foreach($sideGroups->slice(1,1) as $gi => $group)
         @php($id = 'rightAdCarousel'.$gi)
         @if($group->count() > 1)
-        <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>@endforeach</div></div>
+        <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>@endforeach</div></div>
         @else
-        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
+        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
         @endif
       @endforeach
     </aside>
@@ -60,16 +66,19 @@ $hasLocation = $product->latitude !== null && $product->longitude !== null;
     @php($id = 'bottomAdCarousel'.$gi)
     <div class="mt-4">
       @if($group->count() > 1)
-      <div id="{{ $id }}" class="carousel slide" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>@endforeach</div><button class="carousel-control-prev" type="button" data-bs-target="#{{ $id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button><button class="carousel-control-next" type="button" data-bs-target="#{{ $id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button></div>
+      <div id="{{ $id }}" class="carousel slide" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>@endforeach</div><button class="carousel-control-prev" type="button" data-bs-target="#{{ $id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button><button class="carousel-control-next" type="button" data-bs-target="#{{ $id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button></div>
       @else
-      @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="d-block rounded-3 overflow-hidden border shadow-sm"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
+      @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
       @endif
     </div>
   @endforeach
 </div>
 @includeWhen(true, 'frontend.store.partials.enquiry-modal')
 @endsection
-@push('styles')<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>@endpush
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<style>.ad-zone__title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:.6rem}.ad-link img{transition:transform .25s ease}.ad-link:hover img{transform:scale(1.01)}</style>
+@endpush
 @push('scripts')
 @auth
 <script>document.getElementById('enquiryForm')?.addEventListener('submit', async function(e){e.preventDefault();const fd = new FormData(this);const res = await fetch("{{ route('store.products.enquiry', [$vendor->slug, $product->id]) }}", {method:'POST', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'}, body:fd});const data = await res.json();alert(data.message || 'Done');if(res.ok){ bootstrap.Modal.getInstance(document.getElementById('enquiryModal')).hide(); }});</script>
