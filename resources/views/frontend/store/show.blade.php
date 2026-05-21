@@ -78,6 +78,7 @@
                 @include('frontend.store.partials.product-cards', [
                     'products' => $featuredProducts,
                     'storeSlug' => $vendor->slug,
+                    'cardStyle' => 'featured',
                 ])
             </div>
         </div>

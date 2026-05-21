@@ -1,8 +1,10 @@
 @php($resolvedStoreSlug = $storeSlug ?? request()->route('slug'))
+@php($cardStyle = $cardStyle ?? 'default')
+@php($isFeaturedStyle = $cardStyle === 'featured')
 
 @forelse($products as $product)
-    <div class="col-6 col-md-6 col-xl-4">
-        <article class="vendor-product-card h-100">
+    <div class="{{ $isFeaturedStyle ? 'col-6 col-md-4 col-lg-3 col-xl-2-4' : 'col-6 col-md-6 col-xl-4' }}">
+        <article class="vendor-product-card {{ $isFeaturedStyle ? 'vendor-product-card--featured h-100' : 'h-100' }}">
             @php($image = is_array($product->images) ? ($product->images[0] ?? null) : null)
             <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="vendor-product-card__image-wrap">
                 <img src="{{ $image ? asset($image) : asset('assets/images/ad-sample.png') }}" alt="{{ $product->name }}" loading="lazy">
@@ -14,9 +16,22 @@
                 @if($product->brand)
                     <p class="vendor-product-card__brand">{{ $product->brand }}</p>
                 @endif
-                <p class="vendor-product-card__price">₹{{ number_format((float) $product->final_price, 2) }}</p>
-                <p class="vendor-product-card__meta">Min. order: 1 · Stock: {{ number_format((int) $product->stock_quantity) }}</p>
-                <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="vendor-product-card__btn">View Details</a>
+                @php($finalPrice = (float) $product->final_price)
+                @php($basePrice = (float) ($product->price ?? $product->final_price))
+                @php($discountPercent = $basePrice > $finalPrice ? round((($basePrice - $finalPrice) / $basePrice) * 100) : 0)
+                @if($isFeaturedStyle)
+                    <div class="vendor-product-card__price-row">
+                        <p class="vendor-product-card__price">₹{{ number_format($finalPrice, 0) }}</p>
+                        @if($discountPercent > 0)
+                            <p class="vendor-product-card__price-original">₹{{ number_format($basePrice, 0) }}</p>
+                            <p class="vendor-product-card__discount">{{ $discountPercent }}%off</p>
+                        @endif
+                    </div>
+                @else
+                    <p class="vendor-product-card__price">₹{{ number_format($finalPrice, 2) }}</p>
+                    <p class="vendor-product-card__meta">Min. order: 1 · Stock: {{ number_format((int) $product->stock_quantity) }}</p>
+                    <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="vendor-product-card__btn">View Details</a>
+                @endif
             </div>
         </article>
     </div>
