@@ -28,10 +28,10 @@ $adFrameStyle = function ($ad) {
     </div>
 </section>
 
-<div class="container py-4 py-lg-5">
+<div class="container py-4 py-lg-5 product-page-wrap">
     <div class="row g-4 align-items-start">
         <main class="col-xl-8">
-            <section class="product-shell shadow-lg mb-4">
+            <section class="product-shell shadow-lg mb-4 product-card-pro">
                 <div class="row g-3 g-lg-4">
                     <div class="col-lg-7">
                         <div class="product-gallery-layout">
@@ -123,32 +123,33 @@ $adFrameStyle = function ($ad) {
 
 @push('styles')
 <style>
-.product-shell{background:linear-gradient(125deg,#f8fbff 0%,#eef8ff 45%,#eefcf4 100%);border:1px solid #d8e7ff;border-radius:22px;padding:1.15rem;box-shadow:0 18px 42px rgba(37,99,235,.12)}
-.product-gallery-layout{display:grid;grid-template-columns:92px 1fr;gap:1rem;align-items:stretch}
-.gallery-thumbs{display:flex;flex-direction:column;gap:.8rem}
-.product-main-image-wrap{position:relative;border-radius:18px;overflow:hidden;border:1px solid #d9e4f5;background:linear-gradient(180deg,#f3f6fb,#dfe6ef);padding:1rem}
-.product-main-image{aspect-ratio:4/3;object-fit:cover;border-radius:12px;min-height:460px;box-shadow:0 12px 24px rgba(15,23,42,.16)}
-.thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:12px;overflow:hidden;width:100%;opacity:.9;transition:.2s ease}
-.thumb-btn img{height:72px;width:100%;object-fit:cover;border-radius:9px}
-.thumb-btn.active,.thumb-btn:hover{border-color:#2563eb;box-shadow:0 0 0 .2rem rgba(37,99,235,.14);opacity:1;transform:translateY(-1px)}
-.gallery-nav-btn{position:absolute;left:14px;top:50%;transform:translateY(-50%);height:52px;width:52px;border-radius:50%;border:none;background:#fff;color:#111827;box-shadow:0 8px 18px rgba(17,24,39,.18)}
-.product-header .btn-primary{border-radius:12px;padding:.65rem 1.1rem;background:linear-gradient(135deg,#2563eb,#3b82f6);border:none;box-shadow:0 12px 20px rgba(37,99,235,.25)}
-.product-brand{font-size:.8rem;letter-spacing:.07em;text-transform:uppercase;color:#16a34a;font-weight:800}
-.price-panels,.quick-meta{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
-.price-panel,.quick-meta div,.product-description{border:1px solid #dce6f7;border-radius:14px;padding:.8rem .9rem;background:#fff}
-.price-panel.featured{background:linear-gradient(135deg,#fff1f2 0,#fff 100%);border-color:#fecdd3}
-.price-panel span,.quick-meta small{font-size:.78rem;color:#64748b;display:block}
-.price-panel strong{font-size:1.35rem;color:#0f172a}
-.quick-meta p{margin:0;font-weight:700;color:#1f2937}
-.product-description{line-height:1.65;background:linear-gradient(180deg,#fff,#fbfdff)}
-.similar-wrap{border-radius:18px;overflow:hidden;border:1px solid #dbeafe}
-.similar-wrap .card-header{background:linear-gradient(135deg,#eff6ff,#f0fdf4)}
-.similar-card{padding:.75rem;border:1px solid #e2e8f0;border-radius:12px;background:#fff;transition:all .2s ease}
-.similar-card:hover{transform:translateY(-2px);border-color:#60a5fa;box-shadow:0 12px 20px rgba(37,99,235,.12)}
-.similar-card__image{width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb}
-.similar-price{color:#1d4ed8}
-@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:78px}.gallery-nav-btn{height:42px;width:42px}.product-main-image{min-height:300px}}
-@media (max-width:767.98px){.price-panels,.quick-meta{grid-template-columns:1fr}}
+.product-page-wrap{--brand:#1d4ed8;--brand-2:#2563eb;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#f8fafc}
+.product-card-pro{background:#fff;border:1px solid var(--line);border-radius:20px;padding:1.25rem;box-shadow:0 14px 34px rgba(15,23,42,.08)}
+.product-gallery-layout{display:grid;grid-template-columns:96px 1fr;gap:1rem;align-items:stretch}
+.gallery-thumbs{display:flex;flex-direction:column;gap:.75rem}
+.thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:12px;overflow:hidden;width:100%;opacity:.95;transition:.18s ease}
+.thumb-btn img{height:74px;width:100%;object-fit:cover;border-radius:9px}
+.thumb-btn.active,.thumb-btn:hover{border-color:var(--brand);box-shadow:0 0 0 .18rem rgba(37,99,235,.12);opacity:1}
+.product-main-image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #d7deea;background:#edf2f7;padding:.9rem}
+.product-main-image{aspect-ratio:4/3;object-fit:cover;border-radius:12px;min-height:460px;background:#fff}
+.gallery-nav-btn{position:absolute;left:14px;top:50%;transform:translateY(-50%);height:48px;width:48px;border-radius:50%;border:none;background:#fff;color:#0f172a;box-shadow:0 8px 20px rgba(15,23,42,.2)}
+.product-brand{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#16a34a;font-weight:700}
+.product-header .btn-primary{border-radius:10px;padding:.6rem 1rem;background:linear-gradient(135deg,var(--brand),var(--brand-2));border:none;font-weight:600}
+.price-panels,.quick-meta{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.price-panel,.quick-meta div,.product-description{border:1px solid var(--line);border-radius:12px;background:#fff;padding:.8rem .9rem}
+.price-panel.featured{background:#fef2f2;border-color:#fecaca}
+.price-panel span,.quick-meta small{font-size:.76rem;color:var(--muted);display:block}
+.price-panel strong{font-size:1.35rem;color:var(--ink)}
+.quick-meta p{margin:0;color:#1e293b;font-weight:700}
+.product-description h3{color:#0f172a}.product-description{line-height:1.65;color:#334155;background:#fcfdff}
+.similar-wrap{border-radius:16px;overflow:hidden;border:1px solid #dbeafe;background:#fff}
+.similar-wrap .card-header{background:#f8fbff}
+.similar-card{padding:.75rem;border:1px solid #e2e8f0;border-radius:12px;background:#fff;transition:.2s ease}
+.similar-card:hover{transform:translateY(-2px);border-color:#93c5fd;box-shadow:0 10px 20px rgba(30,64,175,.1)}
+.similar-card__image{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb}
+.similar-price{color:var(--brand);font-weight:700}
+@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:80px}.gallery-nav-btn{height:42px;width:42px}.product-main-image{min-height:300px}}
+@media (max-width:767.98px){.price-panels,.quick-meta{grid-template-columns:1fr}.product-card-pro{padding:1rem}}
 </style>
 @endpush
 @push('store_scripts')
