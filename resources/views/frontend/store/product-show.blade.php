@@ -97,21 +97,27 @@ $adFrameStyle = function ($ad) {
         </main>
 
         <aside class="col-xl-3"><div class="sticky-xl-top ads-rail" style="top: 96px;">
-            @php($carouselGroups = $sideGroups->filter(fn ($group) => $group->count() > 1)->take(2)->values())
-            @foreach($carouselGroups as $gi => $group)
-                @php($id = 'rightAdCarousel'.$gi)
-                <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel">
+            @php($railAds = $sideGroups->flatten(1)->filter()->values())
+            @if($railAds->count() < 6)
+                @php($railAds = $railAds->merge(($ads ?? collect())->filter())->unique('id')->values())
+            @endif
+
+            @php($sliderAds = $railAds->take(4)->values())
+            @if($sliderAds->count() > 1)
+                <div id="rightAdCarousel0" class="carousel slide mb-3" data-bs-ride="carousel">
                     <div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">
-                        @foreach($group as $i => $ad)
+                        @foreach($sliderAds as $i => $ad)
                         <div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a></div>
                         @endforeach
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#{{ $id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#{{ $id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#rightAdCarousel0" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#rightAdCarousel0" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
                 </div>
-            @endforeach
+            @elseif($sliderAds->count() === 1)
+                @php($ad = $sliderAds->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a>
+            @endif
 
-            @php($stackAds = $sideGroups->flatten(1)->unique('id')->take(8))
+            @php($stackAds = $railAds->slice(1)->take(10))
             @foreach($stackAds as $ad)
                 <a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3 ad-stack-item"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a>
             @endforeach
