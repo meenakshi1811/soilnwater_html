@@ -401,6 +401,7 @@
     box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
     position: sticky;
     top: 1rem;
+    overflow: hidden;
 }
 
 .vendor-store-ads-rail__label {
@@ -428,6 +429,14 @@
 .vendor-store-ads-stack {
     display: grid;
     gap: 0.8rem;
+    width: 100%;
+}
+
+.vendor-store-ads-carousel,
+.vendor-store-ads-carousel .carousel-inner,
+.vendor-store-ads-carousel .carousel-item {
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .vendor-store-ads-carousel .carousel-control-prev,
@@ -446,6 +455,8 @@
 
 .vendor-store-ad-card {
     display: block;
+    width: 100%;
+    max-width: 100%;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid #e5edf7;
@@ -461,6 +472,7 @@
 
 .vendor-store-ad-card img {
     width: 100%;
+    max-width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
