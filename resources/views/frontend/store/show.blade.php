@@ -28,7 +28,7 @@
                     <ul class="dropdown-menu vendor-store-products-menu">
                         @forelse(($vendorCategories ?? collect()) as $category)
                             <li class="vendor-store-submenu-item {{ $category->children->isNotEmpty() ? 'has-children' : '' }}">
-                                <a class="dropdown-item" href="#products">{{ $category->name }} @if($category->children->isNotEmpty())<i class="fa-solid fa-caret-right float-end mt-1"></i>@endif</a>
+                                <a class="dropdown-item" href="#products">{{ $category->name }} @if($category->children->isNotEmpty())<i class="fa-solid fa-caret-right"></i>@endif</a>
                                 @if($category->children->isNotEmpty())
                                     <ul class="dropdown-menu">
                                         @foreach($category->children as $subcategory)
