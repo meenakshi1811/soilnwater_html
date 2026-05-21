@@ -63,6 +63,15 @@ class VendorStoreController extends Controller
         $vendor = Vendor::query()->where('slug', $slug)->where('status', 'approved')->firstOrFail();
         abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
 
+        if ($vendor->is_premium) {
+            $topGroups = collect();
+            $sideGroups = collect();
+            $bottomGroups = collect();
+            $ads = collect();
+
+            return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups', 'ads'));
+        }
+
         $lat = session('frontend_lat');
         $lng = session('frontend_lng');
 
