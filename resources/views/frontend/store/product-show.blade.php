@@ -23,7 +23,7 @@ $adFrameStyle = function ($ad) {
 
 <div class="container py-4 py-lg-5 product-page-wrap">
     <div class="row g-4 align-items-start">
-        <main class="col-xl-8">
+        <main class="col-xl-9">
             <section class="product-card-pro mb-4">
                 <div class="row g-3 g-lg-4">
                     <div class="col-lg-7">
@@ -91,7 +91,7 @@ $adFrameStyle = function ($ad) {
             @endif
         </main>
 
-        <aside class="col-xl-4"><div class="sticky-xl-top" style="top: 88px;">
+        <aside class="col-xl-3"><div class="sticky-xl-top ads-rail" style="top: 88px;">
             @foreach($sideGroups as $gi => $group)
                 @php($id = 'rightAdCarousel'.$gi)
                 @if($group->count() > 1)
@@ -119,6 +119,7 @@ $adFrameStyle = function ($ad) {
 .option-label{font-size:1.25rem;color:#374151}.color-chip{height:54px;width:54px;border-radius:50%;border:2px solid #d1d5db;overflow:hidden;padding:0;background:#fff}.color-chip img{width:100%;height:100%;object-fit:cover}.color-chip.active{border-color:#111827}
 .size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.55rem}.size-chip{border:1px solid #cbd5e1;background:#fff;padding:.65rem .35rem;border-radius:8px;font-weight:700}.size-chip.active{background:#020617;color:#fff;border-color:#020617}
 .similar-wrap{border-radius:16px;overflow:hidden;border:1px solid #dbeafe}.similar-card{padding:.75rem;border:1px solid #e2e8f0;border-radius:12px;background:#fff}.similar-card__image{width:84px;height:84px;object-fit:cover;border-radius:10px}.similar-price{color:var(--brand)}
+.ads-rail{max-width:320px;margin-left:auto}.ads-rail .ad-link,.ads-rail .carousel-inner{border-radius:10px!important}.ads-rail img{max-height:240px;object-fit:cover}
 @media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:80px}.product-main-image{min-height:300px}.vendor-label{font-size:1.2rem}.product-title{font-size:1.4rem}.hero-price{font-size:2.2rem}}
 </style>
 @endpush
