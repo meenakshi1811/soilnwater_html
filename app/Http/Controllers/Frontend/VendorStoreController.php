@@ -119,6 +119,10 @@ class VendorStoreController extends Controller
                 return $sizeMap[$key]['w'].'x'.$sizeMap[$key]['h'];
             });
 
+        if ($adsByDimension->isEmpty() && $ads->isNotEmpty()) {
+            $adsByDimension = $ads->chunk(3)->values();
+        }
+
         $topGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) >= 900)->values();
         $sideGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) < 900 && ((int) explode('x', $dim)[1]) >= 300)->values();
         $bottomGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[1]) < 300)->values();
@@ -135,7 +139,7 @@ class VendorStoreController extends Controller
             $bottomGroups = $adsByDimension->slice(2, 2)->values();
         }
 
-        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups'));
+        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups', 'ads'));
     }
 
     public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
