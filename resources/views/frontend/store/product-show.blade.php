@@ -23,7 +23,7 @@ $adFrameStyle = function ($ad) {
     </div>
 </section>
 
-<div class="container py-4 py-lg-5 product-page-wrap">
+<div class="container py-2 py-lg-3 product-page-wrap">
     <div class="row g-4 align-items-start">
         <main class="col-xl-9">
             <section class="product-card-pro mb-4">
@@ -96,11 +96,10 @@ $adFrameStyle = function ($ad) {
             @endif
         </main>
 
-        <aside class="col-xl-3"><div class="sticky-xl-top ads-rail" style="top: 132px;">
-            @php($primaryAdGroups = $sideGroups->take(2))
-            @foreach($primaryAdGroups as $gi => $group)
+        <aside class="col-xl-3"><div class="sticky-xl-top ads-rail" style="top: 96px;">
+            @php($carouselGroups = $sideGroups->filter(fn ($group) => $group->count() > 1)->take(2)->values())
+            @foreach($carouselGroups as $gi => $group)
                 @php($id = 'rightAdCarousel'.$gi)
-                @if($group->count() > 1)
                 <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel">
                     <div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">
                         @foreach($group as $i => $ad)
@@ -110,12 +109,9 @@ $adFrameStyle = function ($ad) {
                     <button class="carousel-control-prev" type="button" data-bs-target="#{{ $id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
                     <button class="carousel-control-next" type="button" data-bs-target="#{{ $id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
                 </div>
-                @else
-                @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a>
-                @endif
             @endforeach
 
-            @php($stackAds = $sideGroups->slice(2)->flatten(1)->take(4))
+            @php($stackAds = $sideGroups->flatten(1)->unique('id')->take(8))
             @foreach($stackAds as $ad)
                 <a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3 ad-stack-item"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a>
             @endforeach
@@ -138,7 +134,7 @@ $adFrameStyle = function ($ad) {
 .option-label{font-size:.95rem;color:#374151}.color-chip{height:42px;width:42px;border-radius:50%;border:2px solid #d1d5db;overflow:hidden;padding:0;background:#fff}.color-chip img{width:100%;height:100%;object-fit:cover}.color-chip.active{border-color:#111827}
 .size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem}.size-chip{border:1px solid #cbd5e1;background:#fff;padding:.45rem .3rem;border-radius:8px;font-weight:700;font-size:.82rem}.size-chip.active{background:#020617;color:#fff;border-color:#020617}
 .similar-wrap{border-radius:16px;overflow:hidden;border:1px solid #dbeafe}.similar-card{padding:.75rem;border:1px solid #e2e8f0;border-radius:12px;background:#fff}.similar-card__image{width:84px;height:84px;object-fit:cover;border-radius:10px}.similar-price{color:var(--brand)}
-.ads-rail{max-width:320px;margin-left:auto;position:relative;z-index:2}.ads-rail .ad-link,.ads-rail .carousel-inner{border-radius:10px!important}.ads-rail img{max-height:240px;object-fit:cover}.ads-rail .carousel{position:relative;z-index:2}.ad-stack-item img{max-height:180px}
+.ads-rail{max-width:320px;margin-left:auto;position:relative;z-index:2}.ads-rail .ad-link,.ads-rail .carousel-inner{border-radius:10px!important}.ads-rail img{max-height:240px;object-fit:cover}.ads-rail .carousel{position:relative;z-index:2}.ad-stack-item img{max-height:165px}
 @media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:80px}.product-main-image{min-height:250px;max-height:300px}.vendor-label{font-size:1.05rem}.product-title{font-size:.98rem}.hero-price{font-size:1.05rem}.ads-rail{max-width:100%;z-index:1}.ad-stack-item img{max-height:240px}}
 </style>
 @endpush
