@@ -1,5 +1,8 @@
 <aside class="vendor-store-category-sidebar">
-    <h2 class="vendor-store-category-sidebar__title">Product categories</h2>
+    <div class="vendor-store-category-sidebar__head">
+        <h2 class="vendor-store-category-sidebar__title">Product categories</h2>
+        <span class="vendor-store-category-sidebar__count">{{ $vendorCategories->count() }} total</span>
+    </div>
     <ul class="vendor-store-category-list">
         <li>
             <a href="{{ route('store.products.index', $vendor->slug) }}"
@@ -11,10 +14,15 @@
             <li class="vendor-store-category-item">
                 <a href="{{ route('store.products.category', [$vendor->slug, $category->id]) }}"
                    class="vendor-store-category-link {{ ($activeCategory?->id ?? null) === $category->id && empty($activeSubcategory) ? 'is-active' : '' }}">
-                    <span>{{ $category->name }}</span>
+                    <span class="vendor-store-category-link__name">{{ $category->name }}</span>
+                    <span class="vendor-store-category-link__meta">
+                        @if($category->children->isNotEmpty())
+                            <span class="vendor-store-pill">{{ $category->children->count() }}</span>
+                        @endif
                     @if($category->children->isNotEmpty())
                         <i class="fa-solid fa-chevron-right"></i>
                     @endif
+                    </span>
                 </a>
                 @if(($activeCategory?->id ?? null) === $category->id && $category->children->isNotEmpty())
                     <ul class="vendor-store-subcategory-list">

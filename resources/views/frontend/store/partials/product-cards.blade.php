@@ -1,7 +1,7 @@
 @php($resolvedStoreSlug = $storeSlug ?? request()->route('slug'))
 
 @forelse($products as $product)
-    <div class="col-6 col-md-4 col-xl-4">
+    <div class="col-6 col-md-6 col-xl-6">
         <article class="vendor-product-card h-100">
             @php($image = is_array($product->images) ? ($product->images[0] ?? null) : null)
             <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="vendor-product-card__image-wrap">
