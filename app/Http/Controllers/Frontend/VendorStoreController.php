@@ -124,12 +124,15 @@ class VendorStoreController extends Controller
         }
 
         $isFullPageSize = function ($ad): bool {
-            $sizeType = strtolower((string) ($ad->size_type ?? ''));
-            $sizeKey = strtolower((string) ($ad->adSize->size_key ?? ''));
+            $sizeType = strtolower(trim((string) ($ad->size_type ?? '')));
+            $sizeKey = strtolower(trim((string) ($ad->adSize->size_key ?? '')));
 
-            $normalize = static fn (string $value): string => preg_replace('/[^a-z0-9]/', '', $value) ?? '';
+            // Strict match: top slot is only for explicit full_page size.
+            if ($sizeKey !== '') {
+                return $sizeKey === 'full_page';
+            }
 
-            return in_array($normalize($sizeType), ['fullpage'], true) || in_array($normalize($sizeKey), ['fullpage'], true);
+            return $sizeType === 'full_page';
         };
 
         $fullPageGroups = $adsByDimension->filter(function ($group) use ($isFullPageSize) {
