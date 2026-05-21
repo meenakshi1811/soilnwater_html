@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\VendorBannerSlide;
 use App\Models\VendorPageSection;
 use App\Models\VendorProduct;
@@ -134,10 +135,20 @@ class VendorPublicPageController extends Controller
             ->orderByDesc('updated_at')
             ->get();
 
+        $vendorCategories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'vendors')
+            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         return view('frontend.store.show', [
             'vendor' => $vendor,
             'preview' => true,
             'products' => $products,
+            'vendorCategories' => $vendorCategories,
+            'adPlacements' => [],
+            'sponsoredFillers' => [],
         ]);
     }
 

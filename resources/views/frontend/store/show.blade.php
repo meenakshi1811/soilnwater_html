@@ -7,6 +7,11 @@
 @endpush
 
 @section('content')
+@php
+    $adPlacements = $adPlacements ?? [];
+    $sponsoredFillers = $sponsoredFillers ?? [];
+    $vendorCategories = $vendorCategories ?? collect();
+@endphp
 <div class="vendor-store-page">
     @if(!empty($preview))
         <div class="vendor-preview-banner">Preview mode — only you can see this until your store is published.</div>
@@ -76,10 +81,12 @@
         </div>
     </section>
 
-    @includeWhen(isset($adPlacements['after_hero']), 'frontend.store.partials.ads-zone', [
-        'placement' => $adPlacements['after_hero'],
-        'sponsoredFillers' => $sponsoredFillers ?? [],
-    ])
+    @if($placement = data_get($adPlacements, 'after_hero'))
+        @include('frontend.store.partials.ads-zone', [
+            'placement' => $placement,
+            'sponsoredFillers' => $sponsoredFillers,
+        ])
+    @endif
 
     {{--
     @php($topProducts = $products->getCollection()->take(4))
@@ -126,16 +133,20 @@
             </div>
         </section>
 
-        @includeWhen(isset($adPlacements['after_section_'.$loop->index]), 'frontend.store.partials.ads-zone', [
-            'placement' => $adPlacements['after_section_'.$loop->index],
-            'sponsoredFillers' => $sponsoredFillers ?? [],
-        ])
+        @if($placement = data_get($adPlacements, 'after_section_'.$loop->index))
+            @include('frontend.store.partials.ads-zone', [
+                'placement' => $placement,
+                'sponsoredFillers' => $sponsoredFillers,
+            ])
+        @endif
     @endforeach
 
-    @includeWhen(isset($adPlacements['before_products']), 'frontend.store.partials.ads-zone', [
-        'placement' => $adPlacements['before_products'],
-        'sponsoredFillers' => $sponsoredFillers ?? [],
-    ])
+    @if($placement = data_get($adPlacements, 'before_products'))
+        @include('frontend.store.partials.ads-zone', [
+            'placement' => $placement,
+            'sponsoredFillers' => $sponsoredFillers,
+        ])
+    @endif
 
     <section id="products" class="vendor-store-section alt">
         <div class="container">
