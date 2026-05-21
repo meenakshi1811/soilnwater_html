@@ -215,8 +215,8 @@
 }
 
 .vendor-store-products-menu {
-    left: 0;
-    right: auto;
+    left: auto;
+    right: 0;
     top: calc(100% + 0.45rem);
     min-width: 300px;
     max-width: min(360px, calc(100vw - 2rem));
@@ -232,8 +232,8 @@
 
 .vendor-store-submenu-item > .dropdown-menu {
     top: -0.35rem;
-    left: auto;
-    right: calc(100% + 0.35rem);
+    left: calc(100% + 0.35rem);
+    right: auto;
     min-width: 270px;
     max-width: min(330px, calc(100vw - 2rem));
     max-height: min(64vh, 500px);
@@ -274,8 +274,12 @@
 }
 
 @media (max-width: 1200px) {
+    .vendor-store-products-menu {
+        max-width: min(320px, calc(100vw - 1rem));
+    }
+
     .vendor-store-submenu-item > .dropdown-menu {
-        left: calc(100% + 0.35rem);
-        right: auto;
+        min-width: 240px;
+        max-width: min(300px, calc(100vw - 1rem));
     }
 }
