@@ -11,6 +11,7 @@ use App\Support\AdSizes;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Models\Category;
 
 class VendorStoreController extends Controller
 {
@@ -29,10 +30,18 @@ class VendorStoreController extends Controller
             ->limit(8)
             ->get();
 
+        $vendorCategories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'vendors')
+            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         return view('frontend.store.show', [
             'vendor' => $vendor,
             'preview' => false,
             'products' => $products,
+            'vendorCategories' => $vendorCategories,
         ]);
     }
 
