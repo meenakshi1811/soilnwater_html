@@ -10,29 +10,11 @@ use App\Models\VendorProductInquiry;
 use App\Support\AdSizes;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
-use App\Models\Category;
 use Illuminate\View\View;
 
 class VendorStoreController extends Controller
 {
     public function show(string $slug): View
-    {
-        return $this->renderStorePage($slug);
-    }
-
-    public function showByCategory(string $slug, Category $category): View
-    {
-        return $this->renderStorePage($slug, $category->id, null);
-    }
-
-    public function showBySubcategory(string $slug, Category $category, Category $subcategory): View
-    {
-        abort_unless($subcategory->parent_id === $category->id, 404);
-
-        return $this->renderStorePage($slug, $category->id, $subcategory->id);
-    }
-
-    private function renderStorePage(string $slug, ?int $categoryId = null, ?int $subcategoryId = null): View
     {
         $vendor = Vendor::query()
             ->where('slug', $slug)
@@ -40,27 +22,9 @@ class VendorStoreController extends Controller
             ->with(['bannerSlides', 'pageSections'])
             ->firstOrFail();
 
-        $vendorCategories = Category::query()
-            ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'products')
-            ->whereHas('children', function ($query) use ($vendor) {
-                $query->whereHas('vendorProducts', function ($productQuery) use ($vendor) {
-                    $productQuery->where('vendor_id', $vendor->id)->where('status', 'approved');
-                });
-            })
-            ->with(['children' => function ($query) use ($vendor) {
-                $query->whereHas('vendorProducts', function ($productQuery) use ($vendor) {
-                    $productQuery->where('vendor_id', $vendor->id)->where('status', 'approved');
-                })->orderBy('name');
-            }])
-            ->orderBy('name')
-            ->get();
-
         $products = VendorProduct::query()
             ->where('vendor_id', $vendor->id)
             ->where('status', 'approved')
-            ->when($categoryId, fn ($query) => $query->where('category_id', $categoryId))
-            ->when($subcategoryId, fn ($query) => $query->where('subcategory_id', $subcategoryId))
             ->latest('updated_at')
             ->limit(8)
             ->get();
@@ -69,9 +33,6 @@ class VendorStoreController extends Controller
             'vendor' => $vendor,
             'preview' => false,
             'products' => $products,
-            'vendorCategories' => $vendorCategories,
-            'activeCategoryId' => $categoryId,
-            'activeSubcategoryId' => $subcategoryId,
         ]);
     }
 
