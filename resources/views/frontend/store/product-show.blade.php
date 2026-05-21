@@ -112,15 +112,15 @@ $adFrameStyle = function ($ad) {
 .product-card-pro{background:#fff;border:1px solid var(--line);border-radius:20px;padding:1.2rem;box-shadow:0 14px 34px rgba(15,23,42,.08)}
 .product-gallery-layout{display:grid;grid-template-columns:92px 1fr;gap:1rem}.gallery-thumbs{display:flex;flex-direction:column;gap:.7rem}
 .thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:12px}.thumb-btn img{height:74px;width:100%;object-fit:cover;border-radius:9px}.thumb-btn.active{border-color:var(--brand);box-shadow:0 0 0 .18rem rgba(37,99,235,.12)}
-.product-main-image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #d7deea;background:#edf2f7;padding:.9rem}.product-main-image{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;min-height:460px}
+.product-main-image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #d7deea;background:#edf2f7;padding:.9rem}.product-main-image{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;min-height:340px;max-height:360px}
 .gallery-nav-btn{position:absolute;left:14px;top:50%;transform:translateY(-50%);height:48px;width:48px;border-radius:50%;border:none;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.2)}
-.vendor-label{font-size:1.95rem;letter-spacing:.03em;font-weight:800;color:#16a34a;line-height:1.1}.product-title{font-size:2rem;line-height:1.2;color:var(--ink);font-weight:700}
-.meta-line{font-size:1rem;color:#475569}.sold-chip{color:#b91c1c}.label-muted{color:#6b7280;font-weight:500}.hero-price{font-size:3rem;line-height:1;color:#020617;font-weight:800}
-.option-label{font-size:1.25rem;color:#374151}.color-chip{height:54px;width:54px;border-radius:50%;border:2px solid #d1d5db;overflow:hidden;padding:0;background:#fff}.color-chip img{width:100%;height:100%;object-fit:cover}.color-chip.active{border-color:#111827}
-.size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.55rem}.size-chip{border:1px solid #cbd5e1;background:#fff;padding:.65rem .35rem;border-radius:8px;font-weight:700}.size-chip.active{background:#020617;color:#fff;border-color:#020617}
+.vendor-label{font-size:1.35rem;letter-spacing:.03em;font-weight:800;color:#16a34a;line-height:1.2}.product-title{font-size:1.05rem;line-height:1.35;color:var(--ink);font-weight:700}
+.meta-line{font-size:.88rem;color:#475569}.sold-chip{color:#b91c1c}.label-muted{color:#6b7280;font-weight:500}.hero-price{font-size:1.15rem;line-height:1.2;color:#020617;font-weight:800}
+.option-label{font-size:.95rem;color:#374151}.color-chip{height:42px;width:42px;border-radius:50%;border:2px solid #d1d5db;overflow:hidden;padding:0;background:#fff}.color-chip img{width:100%;height:100%;object-fit:cover}.color-chip.active{border-color:#111827}
+.size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem}.size-chip{border:1px solid #cbd5e1;background:#fff;padding:.45rem .3rem;border-radius:8px;font-weight:700;font-size:.82rem}.size-chip.active{background:#020617;color:#fff;border-color:#020617}
 .similar-wrap{border-radius:16px;overflow:hidden;border:1px solid #dbeafe}.similar-card{padding:.75rem;border:1px solid #e2e8f0;border-radius:12px;background:#fff}.similar-card__image{width:84px;height:84px;object-fit:cover;border-radius:10px}.similar-price{color:var(--brand)}
 .ads-rail{max-width:320px;margin-left:auto}.ads-rail .ad-link,.ads-rail .carousel-inner{border-radius:10px!important}.ads-rail img{max-height:240px;object-fit:cover}
-@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:80px}.product-main-image{min-height:300px}.vendor-label{font-size:1.2rem}.product-title{font-size:1.4rem}.hero-price{font-size:2.2rem}}
+@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:80px}.product-main-image{min-height:250px;max-height:300px}.vendor-label{font-size:1.05rem}.product-title{font-size:.98rem}.hero-price{font-size:1.05rem}}
 </style>
 @endpush
 @push('store_scripts')
