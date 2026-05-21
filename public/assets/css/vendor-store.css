@@ -430,6 +430,20 @@
     gap: 0.8rem;
 }
 
+.vendor-store-ads-carousel .carousel-control-prev,
+.vendor-store-ads-carousel .carousel-control-next {
+    width: 2rem;
+    opacity: 0.9;
+}
+
+.vendor-store-ads-carousel .carousel-control-prev-icon,
+.vendor-store-ads-carousel .carousel-control-next-icon {
+    filter: invert(1);
+    background-color: rgba(15, 23, 42, 0.55);
+    border-radius: 50%;
+    background-size: 65% 65%;
+}
+
 .vendor-store-ad-card {
     display: block;
     border-radius: 12px;
@@ -452,17 +466,24 @@
     display: block;
 }
 
+.vendor-store-ad-card.is-slider {
+    aspect-ratio: var(--ad-ratio, 1.4);
+}
+
 
 .vendor-store-ad-card.is-tall {
-    min-height: 260px;
+    aspect-ratio: var(--ad-ratio, 0.72);
+    min-height: 240px;
 }
 
 .vendor-store-ad-card.is-standard {
-    min-height: 210px;
+    aspect-ratio: var(--ad-ratio, 1.05);
+    min-height: 190px;
 }
 
 .vendor-store-ad-card.is-compact {
-    min-height: 170px;
+    aspect-ratio: var(--ad-ratio, 1.45);
+    min-height: 150px;
 }
 
 .vendor-custom-section img.section-img {
