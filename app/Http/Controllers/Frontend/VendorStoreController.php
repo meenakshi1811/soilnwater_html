@@ -11,6 +11,7 @@ use App\Support\AdSizes;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Models\Category;
 
 class VendorStoreController extends Controller
 {
@@ -29,10 +30,47 @@ class VendorStoreController extends Controller
             ->limit(8)
             ->get();
 
+        $vendorCategories = Category::query()
+            ->whereNull('parent_id')
+            ->where(function ($query) {
+                $query->whereJsonContains('modules', 'vendors')
+                    ->orWhereJsonContains('modules', 'products');
+            })
+            ->where(function ($query) use ($vendor) {
+                $query->whereHas('children', function ($childQuery) use ($vendor) {
+                    $childQuery->whereExists(function ($existsQuery) use ($vendor) {
+                        $existsQuery->selectRaw('1')
+                            ->from('vendor_products')
+                            ->whereColumn('vendor_products.subcategory_id', 'categories.id')
+                            ->where('vendor_products.vendor_id', $vendor->id)
+                            ->where('vendor_products.status', 'approved');
+                    });
+                })
+                ->orWhereExists(function ($existsQuery) use ($vendor) {
+                    $existsQuery->selectRaw('1')
+                        ->from('vendor_products')
+                        ->whereColumn('vendor_products.category_id', 'categories.id')
+                        ->where('vendor_products.vendor_id', $vendor->id)
+                        ->where('vendor_products.status', 'approved');
+                });
+            })
+            ->with(['children' => function ($query) use ($vendor) {
+                $query->whereExists(function ($existsQuery) use ($vendor) {
+                    $existsQuery->selectRaw('1')
+                        ->from('vendor_products')
+                        ->whereColumn('vendor_products.subcategory_id', 'categories.id')
+                        ->where('vendor_products.vendor_id', $vendor->id)
+                        ->where('vendor_products.status', 'approved');
+                })->orderBy('name');
+            }])
+            ->orderBy('name')
+            ->get();
+
         return view('frontend.store.show', [
             'vendor' => $vendor,
             'preview' => false,
             'products' => $products,
+            'vendorCategories' => $vendorCategories,
         ]);
     }
 
