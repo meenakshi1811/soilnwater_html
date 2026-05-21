@@ -21,13 +21,35 @@
                     <strong class="fs-4">{{ $vendor->publicDisplayName() }}</strong>
                 @endif
             </div>
-            <nav class="vendor-store-nav d-none d-md-flex">
+            <nav class="vendor-store-nav d-none d-md-flex align-items-center gap-2">
                 <a href="#home">Home</a>
-                <a href="#products">Products</a>
+                <div class="dropdown vendor-nav-dropdown">
+                    <a class="dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Products</a>
+                    <ul class="dropdown-menu shadow-sm border-0">
+                        <li><a class="dropdown-item" href="{{ route('store.show', $vendor->slug) }}">All Products</a></li>
+                        @foreach(($vendorCategories ?? collect()) as $category)
+                            <li class="dropend">
+                                <a class="dropdown-item d-flex justify-content-between align-items-center {{ (int)($activeCategoryId ?? 0) === (int)$category->id ? 'active' : '' }}" href="{{ route('store.category.show', ['slug' => $vendor->slug, 'category' => $category->id]) }}">
+                                    <span>{{ $category->name }}</span>
+                                    @if($category->children->isNotEmpty())<i class="fa-solid fa-angle-right small opacity-75"></i>@endif
+                                </a>
+                                @if($category->children->isNotEmpty())
+                                    <ul class="dropdown-menu shadow-sm border-0">
+                                        @foreach($category->children as $child)
+                                            <li>
+                                                <a class="dropdown-item {{ (int)($activeSubcategoryId ?? 0) === (int)$child->id ? 'active' : '' }}" href="{{ route('store.subcategory.show', ['slug' => $vendor->slug, 'category' => $category->id, 'subcategory' => $child->id]) }}">{{ $child->name }}</a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
                 @foreach($vendor->pageSections as $sec)
                     <a href="#section-{{ $sec->id }}">{{ strip_tags($sec->title) }}</a>
                 @endforeach
-                <a href="#contact">Contact</a>
+                <a href="#contact">Contacts</a>
             </nav>
         </div>
     </header>
@@ -108,10 +130,29 @@
         <div class="container">
             <h2>Products</h2>
             <p class="text-center text-secondary mb-4">Explore our complete product range.</p>
-            <div id="store-products-grid" class="row g-4">
-                @include('frontend.store.partials.product-cards', ['products' => $products])
+            <div class="row g-4 align-items-start">
+                <aside class="col-lg-3">
+                    <div class="store-category-panel">
+                        <h5>Product categories</h5>
+                        <a class="category-link {{ empty($activeCategoryId) ? 'active' : '' }}" href="{{ route('store.show', $vendor->slug) }}">All Products</a>
+                        @foreach(($vendorCategories ?? collect()) as $category)
+                            <a class="category-link {{ (int)($activeCategoryId ?? 0) === (int)$category->id ? 'active' : '' }}" href="{{ route('store.category.show', ['slug' => $vendor->slug, 'category' => $category->id]) }}">{{ $category->name }}</a>
+                            @if($category->children->isNotEmpty())
+                                <div class="subcategory-wrap">
+                                    @foreach($category->children as $child)
+                                        <a class="subcategory-link {{ (int)($activeSubcategoryId ?? 0) === (int)$child->id ? 'active' : '' }}" href="{{ route('store.subcategory.show', ['slug' => $vendor->slug, 'category' => $category->id, 'subcategory' => $child->id]) }}">{{ $child->name }}</a>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </aside>
+                <div class="col-lg-9">
+                    <div id="store-products-grid" class="row g-4">
+                        @include('frontend.store.partials.product-cards', ['products' => $products, 'storeSlug' => $vendor->slug])
+                    </div>
+                </div>
             </div>
-            <div id="store-products-loader" class="text-center py-4 d-none text-secondary">Loading more products...</div>
         </div>
     </section>
 
@@ -159,61 +200,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endif
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const grid = document.getElementById('store-products-grid');
-    const loader = document.getElementById('store-products-loader');
-
-    if (!grid || !loader) {
-        return;
-    }
-
-    let nextPage = {{ $products->hasMorePages() ? ($products->currentPage() + 1) : 'null' }};
-    let isLoading = false;
-
-    const loadProducts = async () => {
-        if (!nextPage || isLoading) {
-            return;
-        }
-
-        isLoading = true;
-        loader.classList.remove('d-none');
-
-        try {
-            const response = await fetch(`{{ route('store.show', $vendor->slug) }}?page=${nextPage}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to load products');
-            }
-
-            const data = await response.json();
-            if (data.html) {
-                grid.insertAdjacentHTML('beforeend', data.html);
-            }
-            nextPage = data.next_page;
-        } catch (error) {
-            console.error(error);
-        } finally {
-            isLoading = false;
-            loader.classList.add('d-none');
-        }
-    };
-
-    window.addEventListener('scroll', () => {
-        if (!nextPage || isLoading) {
-            return;
-        }
-
-        const threshold = document.body.offsetHeight - 300;
-        if ((window.scrollY + window.innerHeight) >= threshold) {
-            loadProducts();
-        }
-    });
-});
-</script>
 @endpush

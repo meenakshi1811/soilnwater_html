@@ -9,52 +9,69 @@ use App\Models\UserAd;
 use App\Models\VendorProductInquiry;
 use App\Support\AdSizes;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\Category;
 use Illuminate\View\View;
 
 class VendorStoreController extends Controller
 {
-    public function show(Request $request, string $slug): View|JsonResponse
+    public function show(string $slug): View
     {
-        $lat = session('frontend_lat');
-        $lng = session('frontend_lng');
+        return $this->renderStorePage($slug);
+    }
 
+    public function showByCategory(string $slug, Category $category): View
+    {
+        return $this->renderStorePage($slug, $category->id, null);
+    }
+
+    public function showBySubcategory(string $slug, Category $category, Category $subcategory): View
+    {
+        abort_unless($subcategory->parent_id === $category->id, 404);
+
+        return $this->renderStorePage($slug, $category->id, $subcategory->id);
+    }
+
+    private function renderStorePage(string $slug, ?int $categoryId = null, ?int $subcategoryId = null): View
+    {
         $vendor = Vendor::query()
             ->where('slug', $slug)
             ->where('status', 'approved')
             ->with(['bannerSlides', 'pageSections'])
             ->firstOrFail();
 
+        $vendorCategories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'products')
+            ->whereHas('children', function ($query) use ($vendor) {
+                $query->whereHas('vendorProducts', function ($productQuery) use ($vendor) {
+                    $productQuery->where('vendor_id', $vendor->id)->where('status', 'approved');
+                });
+            })
+            ->with(['children' => function ($query) use ($vendor) {
+                $query->whereHas('vendorProducts', function ($productQuery) use ($vendor) {
+                    $productQuery->where('vendor_id', $vendor->id)->where('status', 'approved');
+                })->orderBy('name');
+            }])
+            ->orderBy('name')
+            ->get();
+
         $products = VendorProduct::query()
             ->where('vendor_id', $vendor->id)
             ->where('status', 'approved')
-            ->when(is_numeric($lat) && is_numeric($lng), function ($query) use ($lat, $lng) {
-                $query
-                    ->select('vendor_products.*')
-                    ->selectRaw('CASE WHEN latitude IS NOT NULL AND longitude IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) ELSE NULL END as distance_km', [(float) $lat, (float) $lng, (float) $lat])
-                    ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
-                    ->orderBy('distance_km');
-            }, function ($query) {
-                $query->orderByDesc('updated_at');
-            })
-            ->paginate(12);
-
-        if ($request->ajax()) {
-            $html = view('frontend.store.partials.product-cards', [
-                'products' => $products,
-            ])->render();
-
-            return response()->json([
-                'html' => $html,
-                'next_page' => $products->hasMorePages() ? ($products->currentPage() + 1) : null,
-            ]);
-        }
+            ->when($categoryId, fn ($query) => $query->where('category_id', $categoryId))
+            ->when($subcategoryId, fn ($query) => $query->where('subcategory_id', $subcategoryId))
+            ->latest('updated_at')
+            ->limit(8)
+            ->get();
 
         return view('frontend.store.show', [
             'vendor' => $vendor,
             'preview' => false,
             'products' => $products,
+            'vendorCategories' => $vendorCategories,
+            'activeCategoryId' => $categoryId,
+            'activeSubcategoryId' => $subcategoryId,
         ]);
     }
 
