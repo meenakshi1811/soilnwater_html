@@ -142,6 +142,7 @@
 .vendor-section-title-block {
     text-align: center;
     font-weight: 700;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
     font-size: clamp(1.35rem, 3vw, 2rem);
     margin-bottom: 2rem;
 }
@@ -181,13 +182,28 @@
     top: 1rem;
 }
 
+.vendor-store-category-sidebar__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0.25rem 0.85rem 0.75rem;
+    border-bottom: 1px solid #edf1f6;
+    margin-bottom: 0.15rem;
+}
+
 .vendor-store-category-sidebar__title {
     font-size: 1rem;
     font-weight: 800;
     color: #1b2b44;
-    padding: 0.25rem 0.85rem 0.75rem;
     margin: 0;
-    border-bottom: 1px solid #edf1f6;
+}
+
+.vendor-store-category-sidebar__count {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 }
 
 .vendor-store-category-list,
@@ -210,6 +226,33 @@
     font-weight: 600;
     font-size: 0.92rem;
     transition: background 0.2s, color 0.2s;
+}
+
+.vendor-store-category-link__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vendor-store-category-link__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.vendor-store-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.25rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: #eef5ff;
+    color: #335d92;
+    font-size: 0.72rem;
+    font-weight: 700;
 }
 
 .vendor-store-category-link:hover,
@@ -351,11 +394,11 @@
 
 /* Ads right rail */
 .vendor-store-ads-rail {
-    background: linear-gradient(180deg, #ffffff, #f0f6ff);
-    border: 1px solid #dbe7f5;
+    background: #fff;
+    border: 1px solid #e5edf7;
     border-radius: 16px;
-    padding: 0.85rem;
-    box-shadow: 0 10px 26px rgba(30, 79, 155, 0.1);
+    padding: 0.95rem;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
     position: sticky;
     top: 1rem;
 }
@@ -369,34 +412,57 @@
     margin: 0 0 0.65rem;
 }
 
+.vendor-store-ads-rail__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.65rem;
+}
+
+.vendor-store-ads-rail__count {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.vendor-store-ads-stack {
+    display: grid;
+    gap: 0.8rem;
+}
+
 .vendor-store-ad-card {
     display: block;
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #dbe7f5;
+    border: 1px solid #e5edf7;
     background: #fff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.vendor-store-ad-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 22px rgba(30, 79, 155, 0.16);
+    border-color: #c8dbf3;
 }
 
 .vendor-store-ad-card img {
     width: 100%;
-    height: auto;
-    max-height: 420px;
-    object-fit: contain;
+    height: 100%;
+    object-fit: cover;
     display: block;
 }
 
-.vendor-store-ads-carousel .carousel-control-prev,
-.vendor-store-ads-carousel .carousel-control-next {
-    width: 2rem;
-    opacity: 0.85;
+
+.vendor-store-ad-card.is-tall {
+    min-height: 260px;
 }
 
-.vendor-store-ads-carousel .carousel-control-prev-icon,
-.vendor-store-ads-carousel .carousel-control-next-icon {
-    filter: invert(1);
-    background-color: rgba(30, 79, 155, 0.55);
-    border-radius: 50%;
-    padding: 0.85rem;
+.vendor-store-ad-card.is-standard {
+    min-height: 210px;
+}
+
+.vendor-store-ad-card.is-compact {
+    min-height: 170px;
 }
 
 .vendor-custom-section img.section-img {
@@ -623,14 +689,14 @@
 }
 
 .vendor-store-results-bar {
-    background: #fff;
-    border: 1px solid var(--store-card-border);
-    border-radius: 10px;
-    padding: 0.65rem 1rem;
+    background: #ffffff;
+    border: 1px solid #dbe7f5;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
     margin-bottom: 1rem;
-    font-size: 0.88rem;
-    color: #64748b;
-    font-weight: 600;
+    font-size: 0.9rem;
+    color: #334155;
+    font-weight: 700;
 }
 
 .vendor-store-catalog-section {
