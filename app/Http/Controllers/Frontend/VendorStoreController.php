@@ -68,10 +68,24 @@ class VendorStoreController extends Controller
         $vendor = $this->resolveVendor($slug);
         abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
 
+        $similarProducts = VendorProduct::query()
+            ->where('vendor_id', $vendor->id)
+            ->where('status', 'approved')
+            ->where('id', '!=', $product->id)
+            ->when($product->subcategory_id, fn ($query) => $query->where('subcategory_id', $product->subcategory_id), function ($query) use ($product) {
+                if ($product->category_id) {
+                    $query->where('category_id', $product->category_id);
+                }
+            })
+            ->latest('updated_at')
+            ->limit(4)
+            ->get();
+
         if ($vendor->is_premium) {
             return view('frontend.store.product-show', [
                 'vendor' => $vendor,
                 'product' => $product,
+                'similarProducts' => $similarProducts,
                 'vendorCategories' => $this->vendorCategories($vendor),
                 'activeNav' => 'products',
                 'topGroups' => collect(),
@@ -180,6 +194,7 @@ class VendorStoreController extends Controller
         return view('frontend.store.product-show', [
             'vendor' => $vendor,
             'product' => $product,
+            'similarProducts' => $similarProducts,
             'vendorCategories' => $this->vendorCategories($vendor),
             'activeNav' => 'products',
             'topGroups' => $topGroups,
