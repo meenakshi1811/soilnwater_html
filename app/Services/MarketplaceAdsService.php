@@ -166,7 +166,7 @@ class MarketplaceAdsService
             return ['sidebar' => collect(), 'section_rails' => []];
         }
 
-        $sidebarCount = min(5, max(2, (int) ceil($ads->count() * 0.4)));
+        $sidebarCount = min(10, max(4, (int) ceil($ads->count() * 0.65)));
         $sidebar = $ads->take($sidebarCount)->values();
         $remaining = $ads->slice($sidebarCount)->values();
 
