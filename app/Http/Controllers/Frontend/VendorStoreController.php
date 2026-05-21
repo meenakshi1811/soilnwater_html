@@ -88,7 +88,7 @@ class VendorStoreController extends Controller
             $adsQuery->orderByDesc('updated_at');
         }
 
-        $ads = $adsQuery->take(18)->get();
+        $ads = $adsQuery->with('adSize:id,size_key,width,height')->take(18)->get();
 
         if ($ads->isEmpty()) {
             $fallbackQuery = UserAd::query()
@@ -100,7 +100,7 @@ class VendorStoreController extends Controller
                 })
                 ->orderByDesc('updated_at');
 
-            $ads = $fallbackQuery->take(18)->get();
+            $ads = $fallbackQuery->with('adSize:id,size_key,width,height')->take(18)->get();
         }
 
         $ads = $ads->shuffle()->values();
@@ -119,23 +119,35 @@ class VendorStoreController extends Controller
                 return $sizeMap[$key]['w'].'x'.$sizeMap[$key]['h'];
             });
 
-        $topGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) >= 900)->values();
-        $sideGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) < 900 && ((int) explode('x', $dim)[1]) >= 300)->values();
-        $bottomGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[1]) < 300)->values();
+        if ($adsByDimension->isEmpty() && $ads->isNotEmpty()) {
+            $adsByDimension = $ads->chunk(3)->values();
+        }
 
-        if ($topGroups->isEmpty()) {
-            $topGroups = $adsByDimension->take(1)->values();
+        $fullPageGroups = $adsByDimension->filter(function ($group) {
+            $firstAd = $group->first();
+
+            return strtolower((string) ($firstAd->size_type ?? '')) === 'full_page';
+        })->values();
+
+        $sideGroups = $adsByDimension->reject(function ($group) {
+            $firstAd = $group->first();
+
+            return strtolower((string) ($firstAd->size_type ?? '')) === 'full_page';
+        })->values();
+
+        if ($fullPageGroups->isEmpty()) {
+            $fullPageGroups = $ads->filter(fn ($ad) => strtolower((string) ($ad->size_type ?? '')) === 'full_page')->chunk(1)->values();
         }
 
         if ($sideGroups->isEmpty()) {
-            $sideGroups = $adsByDimension->slice(1, 2)->values();
+            $sideGroups = $ads->filter(fn ($ad) => strtolower((string) ($ad->size_type ?? '')) !== 'full_page')->chunk(2)->values();
         }
 
-        if ($bottomGroups->isEmpty()) {
-            $bottomGroups = $adsByDimension->slice(2, 2)->values();
-        }
+        $topGroups = $fullPageGroups->take(1)->values();
 
-        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups'));
+        $bottomGroups = collect();
+
+        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups', 'ads'));
     }
 
     public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
