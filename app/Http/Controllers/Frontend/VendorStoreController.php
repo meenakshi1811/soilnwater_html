@@ -123,24 +123,33 @@ class VendorStoreController extends Controller
             $adsByDimension = $ads->chunk(3)->values();
         }
 
-        $fullPageGroups = $adsByDimension->filter(function ($group) {
+        $isFullPageSize = function ($ad): bool {
+            $sizeType = strtolower((string) ($ad->size_type ?? ''));
+            $sizeKey = strtolower((string) ($ad->adSize->size_key ?? ''));
+
+            $normalize = static fn (string $value): string => preg_replace('/[^a-z0-9]/', '', $value) ?? '';
+
+            return in_array($normalize($sizeType), ['fullpage'], true) || in_array($normalize($sizeKey), ['fullpage'], true);
+        };
+
+        $fullPageGroups = $adsByDimension->filter(function ($group) use ($isFullPageSize) {
             $firstAd = $group->first();
 
-            return strtolower((string) ($firstAd->size_type ?? '')) === 'full_page';
+            return $firstAd && $isFullPageSize($firstAd);
         })->values();
 
-        $sideGroups = $adsByDimension->reject(function ($group) {
+        $sideGroups = $adsByDimension->reject(function ($group) use ($isFullPageSize) {
             $firstAd = $group->first();
 
-            return strtolower((string) ($firstAd->size_type ?? '')) === 'full_page';
+            return $firstAd && $isFullPageSize($firstAd);
         })->values();
 
         if ($fullPageGroups->isEmpty()) {
-            $fullPageGroups = $ads->filter(fn ($ad) => strtolower((string) ($ad->size_type ?? '')) === 'full_page')->chunk(1)->values();
+            $fullPageGroups = $ads->filter(fn ($ad) => $isFullPageSize($ad))->chunk(1)->values();
         }
 
         if ($sideGroups->isEmpty()) {
-            $sideGroups = $ads->filter(fn ($ad) => strtolower((string) ($ad->size_type ?? '')) !== 'full_page')->chunk(2)->values();
+            $sideGroups = $ads->filter(fn ($ad) => ! $isFullPageSize($ad))->chunk(2)->values();
         }
 
         $topGroups = $fullPageGroups->take(1)->values();
