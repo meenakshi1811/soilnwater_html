@@ -125,10 +125,10 @@ class VendorStoreController extends Controller
 
             // Top slot is reserved for full_page ads, including legacy admin_full_page keys.
             if ($sizeKey !== '') {
-                return $sizeKey === 'full_page';
+                return $sizeKey === 'full_size';
             }
 
-            return $sizeType === 'full_page';
+            return $sizeType === 'full_size';
         };
 
         $topGroups = $ads->filter(fn ($ad) => $isFullPageSize($ad))->chunk(1)->take(1)->values();
