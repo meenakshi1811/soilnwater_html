@@ -88,7 +88,7 @@ class VendorStoreController extends Controller
             $adsQuery->orderByDesc('updated_at');
         }
 
-        $ads = $adsQuery->take(18)->get();
+        $ads = $adsQuery->with('adSize:id,size_key,width,height')->take(18)->get();
 
         if ($ads->isEmpty()) {
             $fallbackQuery = UserAd::query()
@@ -100,7 +100,7 @@ class VendorStoreController extends Controller
                 })
                 ->orderByDesc('updated_at');
 
-            $ads = $fallbackQuery->take(18)->get();
+            $ads = $fallbackQuery->with('adSize:id,size_key,width,height')->take(18)->get();
         }
 
         $ads = $ads->shuffle()->values();
@@ -119,23 +119,59 @@ class VendorStoreController extends Controller
                 return $sizeMap[$key]['w'].'x'.$sizeMap[$key]['h'];
             });
 
-        $topGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) >= 900)->values();
-        $sideGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) < 900 && ((int) explode('x', $dim)[1]) >= 300)->values();
-        $bottomGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[1]) < 300)->values();
+        if ($adsByDimension->isEmpty() && $ads->isNotEmpty()) {
+            $adsByDimension = $ads->chunk(3)->values();
+        }
+
+        $groupDimensions = function ($group) use ($sizeMap): array {
+            $firstAd = $group->first();
+            $sizeKey = strtolower((string) ($firstAd->size_type ?? ''));
+            $size = $sizeMap[$sizeKey] ?? null;
+
+            return [
+                'w' => (int) ($size['w'] ?? 0),
+                'h' => (int) ($size['h'] ?? 0),
+            ];
+        };
+
+        $topGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
+            ['w' => $width, 'h' => $height] = $groupDimensions($group);
+
+            return $width > 0 && $height > 0 && $width >= $height && $width >= 728;
+        })->values();
+
+        $sideGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
+            ['w' => $width, 'h' => $height] = $groupDimensions($group);
+
+            return $width > 0 && $height > 0 && $height > $width;
+        })->values();
+
+        $bottomGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
+            ['w' => $width, 'h' => $height] = $groupDimensions($group);
+
+            return $width > 0 && $height > 0 && $width >= $height && $width < 728;
+        })->values();
 
         if ($topGroups->isEmpty()) {
             $topGroups = $adsByDimension->take(1)->values();
         }
 
         if ($sideGroups->isEmpty()) {
-            $sideGroups = $adsByDimension->slice(1, 2)->values();
+            $portraitAds = $ads->filter(function ($ad) {
+                $w = (int) ($ad->adSize->width ?? 0);
+                $h = (int) ($ad->adSize->height ?? 0);
+
+                return $w > 0 && $h > 0 && $h > $w;
+            })->chunk(2)->values();
+
+            $sideGroups = $portraitAds;
         }
 
         if ($bottomGroups->isEmpty()) {
-            $bottomGroups = $adsByDimension->slice(2, 2)->values();
+            $bottomGroups = $adsByDimension->slice(1, 2)->values();
         }
 
-        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups'));
+        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups', 'ads'));
     }
 
     public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
