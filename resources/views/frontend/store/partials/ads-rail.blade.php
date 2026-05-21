@@ -10,7 +10,14 @@
         return compact('ad', 'w', 'h', 'ratio');
     });
 
-    $sliderAds = $normalizedAds->filter(fn ($item) => $item['ratio'] >= 1)->take(3)->values();
+    $wideAds = $normalizedAds->filter(fn ($item) => $item['ratio'] >= 1)->values();
+    $sliderTake = $normalizedAds->count() > 3 ? 2 : 1;
+    $sliderAds = $wideAds->take($sliderTake)->values();
+
+    if ($sliderAds->isEmpty() && $normalizedAds->isNotEmpty()) {
+        $sliderAds = $normalizedAds->take(1)->values();
+    }
+
     $stackAds = $normalizedAds->reject(function ($item) use ($sliderAds) {
         return $sliderAds->pluck('ad.id')->contains($item['ad']->id);
     })->values();
