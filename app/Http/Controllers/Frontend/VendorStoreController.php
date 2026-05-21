@@ -127,12 +127,12 @@ class VendorStoreController extends Controller
             $sizeType = strtolower(trim((string) ($ad->size_type ?? '')));
             $sizeKey = strtolower(trim((string) ($ad->adSize->size_key ?? '')));
 
-            // Strict match: top slot is only for explicit full_page size.
+            // Strict match: top slot is only for explicit full_size size.
             if ($sizeKey !== '') {
-                return $sizeKey === 'full_page';
+                return $sizeKey === 'full_size';
             }
 
-            return $sizeType === 'full_page';
+            return $sizeType === 'full_size';
         };
 
         $fullPageGroups = $adsByDimension->filter(function ($group) use ($isFullPageSize) {
