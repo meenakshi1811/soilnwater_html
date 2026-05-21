@@ -23,7 +23,25 @@
             </div>
             <nav class="vendor-store-nav d-none d-md-flex">
                 <a href="#home">Home</a>
-                <a href="#products">Products</a>
+                <div class="vendor-store-nav-products-dropdown">
+                    <a href="#products" class="vendor-store-products-trigger">Products <i class="fa-solid fa-caret-down ms-1"></i></a>
+                    <ul class="dropdown-menu vendor-store-products-menu">
+                        @forelse(($vendorCategories ?? collect()) as $category)
+                            <li class="vendor-store-submenu-item {{ $category->children->isNotEmpty() ? 'has-children' : '' }}">
+                                <a class="dropdown-item" href="#products">{{ $category->name }} @if($category->children->isNotEmpty())<i class="fa-solid fa-caret-right float-end mt-1"></i>@endif</a>
+                                @if($category->children->isNotEmpty())
+                                    <ul class="dropdown-menu">
+                                        @foreach($category->children as $subcategory)
+                                            <li><a class="dropdown-item" href="#products">{{ $subcategory->name }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </li>
+                        @empty
+                            <li><span class="dropdown-item-text text-muted small">No categories found</span></li>
+                        @endforelse
+                    </ul>
+                </div>
                 @foreach($vendor->pageSections as $sec)
                     <a href="#section-{{ $sec->id }}">{{ strip_tags($sec->title) }}</a>
                 @endforeach
