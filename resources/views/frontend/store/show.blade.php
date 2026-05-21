@@ -109,9 +109,8 @@
             <h2>Products</h2>
             <p class="text-center text-secondary mb-4">Explore our complete product range.</p>
             <div id="store-products-grid" class="row g-4">
-                @include('frontend.store.partials.product-cards', ['products' => $products])
+                @include('frontend.store.partials.product-cards', ['products' => $products, 'storeSlug' => $vendor->slug])
             </div>
-            <div id="store-products-loader" class="text-center py-4 d-none text-secondary">Loading more products...</div>
         </div>
     </section>
 
@@ -159,61 +158,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endif
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const grid = document.getElementById('store-products-grid');
-    const loader = document.getElementById('store-products-loader');
-
-    if (!grid || !loader) {
-        return;
-    }
-
-    let nextPage = {{ $products->hasMorePages() ? ($products->currentPage() + 1) : 'null' }};
-    let isLoading = false;
-
-    const loadProducts = async () => {
-        if (!nextPage || isLoading) {
-            return;
-        }
-
-        isLoading = true;
-        loader.classList.remove('d-none');
-
-        try {
-            const response = await fetch(`{{ route('store.show', $vendor->slug) }}?page=${nextPage}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to load products');
-            }
-
-            const data = await response.json();
-            if (data.html) {
-                grid.insertAdjacentHTML('beforeend', data.html);
-            }
-            nextPage = data.next_page;
-        } catch (error) {
-            console.error(error);
-        } finally {
-            isLoading = false;
-            loader.classList.add('d-none');
-        }
-    };
-
-    window.addEventListener('scroll', () => {
-        if (!nextPage || isLoading) {
-            return;
-        }
-
-        const threshold = document.body.offsetHeight - 300;
-        if ((window.scrollY + window.innerHeight) >= threshold) {
-            loadProducts();
-        }
-    });
-});
-</script>
 @endpush
