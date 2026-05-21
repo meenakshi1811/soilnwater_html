@@ -109,25 +109,21 @@ class VendorStoreController extends Controller
             return [strtolower((string) $sizeKey) => ['w' => (int) ($size['w'] ?? 0), 'h' => (int) ($size['h'] ?? 0)]];
         });
 
-        $adsByDimension = $ads
-            ->filter(function ($ad) use ($sizeMap) {
-                $key = strtolower((string) $ad->size_type);
-                return isset($sizeMap[$key]) && $sizeMap[$key]['w'] > 0 && $sizeMap[$key]['h'] > 0;
-            })
-            ->groupBy(function ($ad) use ($sizeMap) {
-                $key = strtolower((string) $ad->size_type);
-                return $sizeMap[$key]['w'].'x'.$sizeMap[$key]['h'];
-            });
-
-        if ($adsByDimension->isEmpty() && $ads->isNotEmpty()) {
-            $adsByDimension = $ads->chunk(3)->values();
-        }
-
         $isFullPageSize = function ($ad): bool {
-            $sizeType = strtolower(trim((string) ($ad->size_type ?? '')));
-            $sizeKey = strtolower(trim((string) ($ad->adSize->size_key ?? '')));
+            $normalize = function (string $value): string {
+                $normalized = strtolower(trim($value));
 
-            // Strict match: top slot is only for explicit full_page size.
+                if (str_starts_with($normalized, 'admin_')) {
+                    return substr($normalized, strlen('admin_'));
+                }
+
+                return $normalized;
+            };
+
+            $sizeType = $normalize((string) ($ad->size_type ?? ''));
+            $sizeKey = $normalize((string) ($ad->adSize->size_key ?? ''));
+
+            // Top slot is reserved for full_page ads, including legacy admin_full_page keys.
             if ($sizeKey !== '') {
                 return $sizeKey === 'full_page';
             }
@@ -135,27 +131,26 @@ class VendorStoreController extends Controller
             return $sizeType === 'full_page';
         };
 
-        $fullPageGroups = $adsByDimension->filter(function ($group) use ($isFullPageSize) {
-            $firstAd = $group->first();
+        $topGroups = $ads->filter(fn ($ad) => $isFullPageSize($ad))->chunk(1)->take(1)->values();
 
-            return $firstAd && $isFullPageSize($firstAd);
-        })->values();
+        $sideAds = $ads->filter(fn ($ad) => ! $isFullPageSize($ad))->values();
 
-        $sideGroups = $adsByDimension->reject(function ($group) use ($isFullPageSize) {
-            $firstAd = $group->first();
+        $sideGroups = $sideAds
+            ->filter(function ($ad) use ($sizeMap) {
+                $key = strtolower((string) $ad->size_type);
 
-            return $firstAd && $isFullPageSize($firstAd);
-        })->values();
+                return isset($sizeMap[$key]) && $sizeMap[$key]['w'] > 0 && $sizeMap[$key]['h'] > 0;
+            })
+            ->groupBy(function ($ad) use ($sizeMap) {
+                $key = strtolower((string) $ad->size_type);
 
-        if ($fullPageGroups->isEmpty()) {
-            $fullPageGroups = $ads->filter(fn ($ad) => $isFullPageSize($ad))->chunk(1)->values();
-        }
+                return $sizeMap[$key]['w'].'x'.$sizeMap[$key]['h'];
+            })
+            ->values();
 
         if ($sideGroups->isEmpty()) {
-            $sideGroups = $ads->filter(fn ($ad) => ! $isFullPageSize($ad))->chunk(2)->values();
+            $sideGroups = $sideAds->chunk(2)->values();
         }
-
-        $topGroups = $fullPageGroups->take(1)->values();
 
         $bottomGroups = collect();
 
