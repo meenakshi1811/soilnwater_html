@@ -88,7 +88,7 @@ class VendorStoreController extends Controller
             $adsQuery->orderByDesc('updated_at');
         }
 
-        $ads = $adsQuery->take(18)->get();
+        $ads = $adsQuery->with('adSize:id,size_key,width,height')->take(18)->get();
 
         if ($ads->isEmpty()) {
             $fallbackQuery = UserAd::query()
@@ -100,7 +100,7 @@ class VendorStoreController extends Controller
                 })
                 ->orderByDesc('updated_at');
 
-            $ads = $fallbackQuery->take(18)->get();
+            $ads = $fallbackQuery->with('adSize:id,size_key,width,height')->take(18)->get();
         }
 
         $ads = $ads->shuffle()->values();

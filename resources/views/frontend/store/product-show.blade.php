@@ -6,6 +6,16 @@ $primaryImage = is_array($product->images) ? ($product->images[0] ?? null) : nul
 $galleryImages = collect(is_array($product->images) ? $product->images : [])->filter()->values();
 $hasLocation = $product->latitude !== null && $product->longitude !== null;
 $hasAds = ($topGroups->flatten()->count() + $sideGroups->flatten()->count() + $bottomGroups->flatten()->count()) > 0;
+$adFrameStyle = function ($ad) {
+    $w = (int) ($ad->adSize->width ?? 0);
+    $h = (int) ($ad->adSize->height ?? 0);
+
+    if ($w > 0 && $h > 0) {
+        return 'width:min(100%, '.$w.'px);aspect-ratio:'.$w.' / '.$h.';';
+    }
+
+    return 'width:100%;';
+};
 @endphp
 <div class="container py-4 py-lg-5">
   <div class="d-flex justify-content-between align-items-center mb-4"><a href="{{ route('store.show', $vendor->slug) }}#products" class="btn btn-sm btn-outline-secondary">← Back to products</a><span class="badge text-bg-light border">{{ $vendor->publicDisplayName() }}</span></div>
@@ -20,14 +30,14 @@ $hasAds = ($topGroups->flatten()->count() + $sideGroups->flatten()->count() + $b
         <div id="{{ $id }}" class="carousel slide" data-bs-ride="carousel">
           <div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">
             @foreach($group as $i => $ad)
-            <div class="carousel-item {{ $i===0 ? 'active' : '' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>
+            <div class="carousel-item {{ $i===0 ? 'active' : '' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a></div>
             @endforeach
           </div>
           <button class="carousel-control-prev" type="button" data-bs-target="#{{ $id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
           <button class="carousel-control-next" type="button" data-bs-target="#{{ $id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
         </div>
         @else
-        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
+        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a>
         @endif
       </div>
     @endforeach
@@ -39,9 +49,9 @@ $hasAds = ($topGroups->flatten()->count() + $sideGroups->flatten()->count() + $b
       @foreach($sideGroups->take(1) as $gi => $group)
         @php($id = 'leftAdCarousel'.$gi)
         @if($group->count() > 1)
-        <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>@endforeach</div></div>
+        <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a></div>@endforeach</div></div>
         @else
-        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
+        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a>
         @endif
       @endforeach
     </aside>
@@ -54,9 +64,9 @@ $hasAds = ($topGroups->flatten()->count() + $sideGroups->flatten()->count() + $b
       @foreach($sideGroups->slice(1,1) as $gi => $group)
         @php($id = 'rightAdCarousel'.$gi)
         @if($group->count() > 1)
-        <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>@endforeach</div></div>
+        <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a></div>@endforeach</div></div>
         @else
-        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
+        @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a>
         @endif
       @endforeach
     </aside>
@@ -66,9 +76,9 @@ $hasAds = ($topGroups->flatten()->count() + $sideGroups->flatten()->count() + $b
     @php($id = 'bottomAdCarousel'.$gi)
     <div class="mt-4">
       @if($group->count() > 1)
-      <div id="{{ $id }}" class="carousel slide" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" alt="{{ $ad->title }}"></a></div>@endforeach</div><button class="carousel-control-prev" type="button" data-bs-target="#{{ $id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button><button class="carousel-control-next" type="button" data-bs-target="#{{ $id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button></div>
+      <div id="{{ $id }}" class="carousel slide" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a></div>@endforeach</div><button class="carousel-control-prev" type="button" data-bs-target="#{{ $id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button><button class="carousel-control-next" type="button" data-bs-target="#{{ $id }}" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button></div>
       @else
-      @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" alt="{{ $ad->title }}"></a>
+      @php($ad = $group->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a>
       @endif
     </div>
   @endforeach
@@ -77,7 +87,7 @@ $hasAds = ($topGroups->flatten()->count() + $sideGroups->flatten()->count() + $b
 @endsection
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-<style>.ad-zone__title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:.6rem}.ad-link img{transition:transform .25s ease}.ad-link:hover img{transform:scale(1.01)}</style>
+<style>.ad-zone__title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:.6rem}.ad-link{display:flex;justify-content:center;align-items:center;background:#fff}.ad-link img{display:block;object-fit:contain;transition:transform .25s ease}.ad-link:hover img{transform:scale(1.01)}</style>
 @endpush
 @push('scripts')
 @auth
