@@ -3,26 +3,28 @@
 @section('title', 'Contact '. $vendor->publicDisplayName())
 
 @section('store_content')
-<section class="vendor-contact-page py-5">
+<section class="vendor-contact-page py-5 py-lg-6">
     <div class="container">
-        <div class="contact-hero card border-0 shadow-sm overflow-hidden mb-4">
-            <div class="card-body p-4 p-lg-5">
-                <p class="text-uppercase fw-bold mb-2 contact-eyebrow">Let’s Connect</p>
-                <h1 class="display-6 fw-bold mb-2">{{ $vendor->publicDisplayName() }}</h1>
-                <p class="mb-0 text-muted">Reach out to us for products, availability, pricing, and delivery support.</p>
+        <div class="contact-hero shadow-sm overflow-hidden mb-4 mb-lg-5">
+            <div class="contact-hero__bg"></div>
+            <div class="contact-hero__content p-4 p-lg-5">
+                <p class="text-uppercase fw-semibold mb-2 contact-eyebrow">Let’s Connect</p>
+                <h1 class="display-5 fw-bold mb-3 text-white">{{ $vendor->publicDisplayName() }}</h1>
+                <p class="mb-0 contact-subtitle">Reach out for products, availability, pricing, and delivery support.</p>
             </div>
         </div>
 
         <div class="row g-4">
             <div class="col-lg-8">
-                <div class="contact-info-card card h-100 border-0 shadow-sm">
+                <div class="contact-panel card border-0 shadow-sm h-100">
                     <div class="card-body p-4 p-lg-5">
-                        <h2 class="h4 fw-bold mb-3">Vendor Details</h2>
-                        <p class="mb-3 text-muted">{{ $vendor->description ?: 'Trusted seller on SoilNWater marketplace.' }}</p>
+                        <h2 class="h3 fw-bold mb-3">Vendor Details</h2>
+                        <p class="text-muted mb-4">{{ $vendor->description ?: 'Trusted seller on SoilNWater marketplace.' }}</p>
+
                         <div class="d-flex align-items-start gap-3">
                             <span class="contact-icon"><i class="fa-solid fa-location-dot"></i></span>
                             <div>
-                                <p class="mb-1 fw-semibold">Address</p>
+                                <p class="mb-1 fw-semibold text-dark">Address</p>
                                 <p class="mb-0 text-muted">
                                     @if($vendor->address){{ $vendor->address }}, @endif
                                     {{ $vendor->city }}@if($vendor->state), {{ $vendor->state }}@endif @if($vendor->pincode){{ $vendor->pincode }}@endif
@@ -34,18 +36,21 @@
             </div>
 
             <div class="col-lg-4">
-                <div class="enquiry-card card border-0 shadow-sm h-100">
-                    <div class="card-body p-4 d-flex flex-column justify-content-between">
-                        <div>
-                            <p class="small text-uppercase fw-bold mb-2 text-primary">Quick Enquiry</p>
-                            <h3 class="h5 fw-bold mb-2">Need help choosing a product?</h3>
-                            <p class="text-muted mb-3">Send your requirement and our team will get back to you shortly.</p>
+                <div class="enquiry-panel card border-0 shadow-sm h-100">
+                    <div class="card-body p-4 p-lg-4 d-flex flex-column">
+                        <div class="enquiry-badge mb-3">Quick Enquiry</div>
+                        <h3 class="h5 fw-bold mb-2">Share your requirement</h3>
+                        <p class="text-muted mb-4">Our team will review your message and get back to you soon.</p>
+
+                        <div class="mt-auto">
+                            @if($inquiryProduct)
+                                <button class="btn enquiry-btn w-100" data-bs-toggle="modal" data-bs-target="#enquiryModal">
+                                    <i class="fa-regular fa-paper-plane me-2"></i>Send Enquiry
+                                </button>
+                            @else
+                                <button class="btn btn-secondary w-100" disabled>No products available for enquiry</button>
+                            @endif
                         </div>
-                        @if($inquiryProduct)
-                            <button class="btn btn-store-primary w-100" data-bs-toggle="modal" data-bs-target="#enquiryModal">Send Enquiry</button>
-                        @else
-                            <button class="btn btn-secondary w-100" disabled>No products available</button>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -60,11 +65,18 @@
 
 @push('styles')
 <style>
-.vendor-contact-page{background:linear-gradient(180deg,#f8fbff 0%,#f5f7ff 100%)}
-.contact-hero{background:linear-gradient(120deg,#1d4ed8,#7c3aed);color:#fff}
-.contact-eyebrow{letter-spacing:.08em;color:#bfdbfe}
-.contact-info-card,.enquiry-card{border-radius:18px}
-.contact-icon{height:42px;width:42px;border-radius:12px;background:#e0e7ff;color:#3730a3;display:inline-flex;align-items:center;justify-content:center}
+.vendor-contact-page{background:linear-gradient(180deg,#f8faff 0%,#f3f6ff 100%)}
+.contact-hero{position:relative;border-radius:20px}
+.contact-hero__bg{position:absolute;inset:0;background:linear-gradient(135deg,#1f4ed8 0%,#4f46e5 40%,#6d28d9 100%)}
+.contact-hero__content{position:relative;z-index:1}
+.contact-eyebrow{letter-spacing:.12em;color:#bfdbfe}
+.contact-subtitle{color:#e2e8f0;font-size:1.2rem;max-width:760px}
+.contact-panel,.enquiry-panel{border-radius:18px;background:#fff}
+.contact-icon{height:46px;width:46px;border-radius:14px;background:#e0e7ff;color:#3730a3;display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;flex:0 0 auto}
+.enquiry-badge{display:inline-flex;align-self:flex-start;padding:.35rem .75rem;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:.82rem;font-weight:700;letter-spacing:.02em}
+.enquiry-btn{background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:0;padding:.72rem 1rem;font-weight:600;border-radius:12px;box-shadow:0 8px 22px rgba(79,70,229,.26)}
+.enquiry-btn:hover{color:#fff;filter:brightness(.96)}
+@media (max-width: 991.98px){.contact-subtitle{font-size:1.05rem}}
 </style>
 @endpush
 
