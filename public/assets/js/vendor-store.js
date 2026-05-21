@@ -1,12 +1,19 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const dropdown = document.querySelector('.vendor-store-nav-products-dropdown');
-    if (!dropdown) {
+    initProductsMegaMenu();
+});
+
+function initProductsMegaMenu() {
+    const mega = document.querySelector('.vendor-store-products-mega');
+    if (!mega) {
         return;
     }
 
-    const trigger = dropdown.querySelector('.vendor-store-products-trigger');
-    const mainMenu = dropdown.querySelector('.vendor-store-products-menu');
-    const CLOSE_DELAY = 280;
+    const trigger = mega.querySelector('.vendor-store-products-trigger');
+    const panel = mega.querySelector('.vendor-store-mega-panel');
+    const catItems = mega.querySelectorAll('.vendor-store-mega-cat-item.has-children');
+    const panels = mega.querySelectorAll('.vendor-store-mega-subpanel[data-mega-panel]');
+    const placeholder = mega.querySelector('[data-mega-panel="placeholder"]');
+    const CLOSE_DELAY = 300;
     let closeTimer = null;
 
     function clearCloseTimer() {
@@ -16,111 +23,91 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function openDropdown() {
+    function openMega() {
         clearCloseTimer();
-        dropdown.classList.add('is-open');
-        positionSubmenus();
+        mega.classList.add('is-open');
+        if (trigger) {
+            trigger.setAttribute('aria-expanded', 'true');
+        }
+    }
+
+    function closeMega() {
+        clearCloseTimer();
+        mega.classList.remove('is-open');
+        if (trigger) {
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+        showSubpanel('placeholder');
     }
 
     function scheduleClose() {
         clearCloseTimer();
-        closeTimer = window.setTimeout(function () {
-            dropdown.classList.remove('is-open');
-            dropdown.querySelectorAll('.vendor-store-submenu-item.is-open').forEach(function (item) {
-                item.classList.remove('is-open');
-            });
-        }, CLOSE_DELAY);
+        closeTimer = window.setTimeout(closeMega, CLOSE_DELAY);
     }
 
-    function positionSubmenu(item) {
-        const submenu = item.querySelector(':scope > .dropdown-menu');
-        if (!submenu) {
-            return;
-        }
+    function showSubpanel(panelId) {
+        panels.forEach(function (el) {
+            const id = el.getAttribute('data-mega-panel');
+            const visible = id === String(panelId);
+            el.classList.toggle('is-visible', visible);
+            el.hidden = !visible;
+        });
 
-        submenu.classList.remove('submenu-left');
-        submenu.style.maxHeight = Math.min(window.innerHeight - 24, 500) + 'px';
-
-        const rect = submenu.getBoundingClientRect();
-        if (rect.right > window.innerWidth - 12) {
-            submenu.classList.add('submenu-left');
-        }
-
-        const updated = submenu.getBoundingClientRect();
-        if (updated.top < 12) {
-            submenu.style.top = (12 - updated.top) + 'px';
-        } else if (updated.bottom > window.innerHeight - 12) {
-            submenu.style.top = (parseFloat(submenu.style.top || '0') - (updated.bottom - window.innerHeight + 12)) + 'px';
-        }
+        catItems.forEach(function (item) {
+            item.classList.toggle('is-highlight', item.getAttribute('data-mega-cat') === String(panelId));
+        });
     }
 
-    function positionSubmenus() {
-        dropdown.querySelectorAll('.vendor-store-submenu-item.has-children').forEach(positionSubmenu);
-    }
+    mega.addEventListener('mouseenter', openMega);
+    mega.addEventListener('mouseleave', scheduleClose);
 
-    dropdown.addEventListener('mouseenter', openDropdown);
-    dropdown.addEventListener('mouseleave', scheduleClose);
+    if (panel) {
+        panel.addEventListener('mouseenter', clearCloseTimer);
+    }
 
     if (trigger) {
         trigger.addEventListener('click', function (event) {
-            event.preventDefault();
-            if (dropdown.classList.contains('is-open')) {
-                scheduleClose();
-            } else {
-                openDropdown();
+            if (window.matchMedia('(hover: hover)').matches) {
+                return;
             }
+            event.preventDefault();
+            mega.classList.toggle('is-open');
+            trigger.setAttribute('aria-expanded', mega.classList.contains('is-open') ? 'true' : 'false');
         });
     }
 
-    dropdown.querySelectorAll('.vendor-store-submenu-item.has-children').forEach(function (item) {
-        let subCloseTimer = null;
+    catItems.forEach(function (item) {
+        const catId = item.getAttribute('data-mega-cat');
 
         item.addEventListener('mouseenter', function () {
             clearCloseTimer();
-            if (subCloseTimer) {
-                clearTimeout(subCloseTimer);
-                subCloseTimer = null;
-            }
-
-            dropdown.querySelectorAll('.vendor-store-submenu-item.is-open').forEach(function (openItem) {
-                if (openItem !== item) {
-                    openItem.classList.remove('is-open');
-                }
-            });
-
-            item.classList.add('is-open');
-            positionSubmenu(item);
+            showSubpanel(catId);
         });
 
-        item.addEventListener('mouseleave', function () {
-            subCloseTimer = window.setTimeout(function () {
-                item.classList.remove('is-open');
-            }, CLOSE_DELAY);
+        item.addEventListener('focusin', function () {
+            showSubpanel(catId);
         });
-
-        const submenu = item.querySelector(':scope > .dropdown-menu');
-        if (submenu) {
-            submenu.addEventListener('mouseenter', function () {
-                clearCloseTimer();
-                if (subCloseTimer) {
-                    clearTimeout(subCloseTimer);
-                    subCloseTimer = null;
-                }
-                item.classList.add('is-open');
-            });
-        }
     });
 
-    if (mainMenu) {
-        mainMenu.addEventListener('mouseenter', clearCloseTimer);
-    }
+    mega.querySelectorAll('.vendor-store-mega-cat-item:not(.has-children)').forEach(function (item) {
+        item.addEventListener('mouseenter', function () {
+            if (placeholder) {
+                showSubpanel('placeholder');
+            }
+        });
+    });
 
     document.addEventListener('click', function (event) {
-        if (!dropdown.contains(event.target)) {
-            dropdown.classList.remove('is-open');
-            dropdown.querySelectorAll('.vendor-store-submenu-item.is-open').forEach(function (item) {
-                item.classList.remove('is-open');
-            });
+        if (!mega.contains(event.target)) {
+            closeMega();
         }
     });
-});
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeMega();
+        }
+    });
+
+    showSubpanel('placeholder');
+}

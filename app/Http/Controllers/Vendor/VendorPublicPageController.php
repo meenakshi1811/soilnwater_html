@@ -145,11 +145,10 @@ class VendorPublicPageController extends Controller
         return view('frontend.store.show', [
             'vendor' => $vendor,
             'preview' => true,
-            'products' => $products,
+            'activeNav' => 'home',
+            'featuredProducts' => $products->take(4),
             'vendorCategories' => $vendorCategories,
-            'sidebarAds' => collect(),
             'sectionAdRails' => [],
-            'sponsoredFillers' => [],
         ]);
     }
 

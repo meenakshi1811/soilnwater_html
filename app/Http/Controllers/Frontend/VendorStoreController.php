@@ -22,11 +22,11 @@ class VendorStoreController extends Controller
     {
         $vendor = $this->resolveVendor($slug);
 
-        $products = VendorProduct::query()
+        $featuredProducts = VendorProduct::query()
             ->where('vendor_id', $vendor->id)
             ->where('status', 'approved')
             ->latest('updated_at')
-            ->limit(8)
+            ->limit(4)
             ->get();
 
         $vendorCategories = $this->vendorCategories($vendor);
@@ -35,10 +35,9 @@ class VendorStoreController extends Controller
         return view('frontend.store.show', [
             'vendor' => $vendor,
             'preview' => false,
-            'products' => $products,
+            'activeNav' => 'home',
+            'featuredProducts' => $featuredProducts,
             'vendorCategories' => $vendorCategories,
-            'sponsoredFillers' => $adsContext['sponsoredFillers'],
-            'sidebarAds' => $adsContext['sidebarAds'],
             'sectionAdRails' => $adsContext['sectionAdRails'],
         ]);
     }
@@ -70,12 +69,16 @@ class VendorStoreController extends Controller
         abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
 
         if ($vendor->is_premium) {
-            $topGroups = collect();
-            $sideGroups = collect();
-            $bottomGroups = collect();
-            $ads = collect();
-
-            return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups', 'ads'));
+            return view('frontend.store.product-show', [
+                'vendor' => $vendor,
+                'product' => $product,
+                'vendorCategories' => $this->vendorCategories($vendor),
+                'activeNav' => 'products',
+                'topGroups' => collect(),
+                'sideGroups' => collect(),
+                'bottomGroups' => collect(),
+                'ads' => collect(),
+            ]);
         }
 
         $lat = session('frontend_lat');
@@ -174,7 +177,16 @@ class VendorStoreController extends Controller
         $topGroups = $fullPageGroups->take(1)->values();
         $bottomGroups = collect();
 
-        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups', 'ads'));
+        return view('frontend.store.product-show', [
+            'vendor' => $vendor,
+            'product' => $product,
+            'vendorCategories' => $this->vendorCategories($vendor),
+            'activeNav' => 'products',
+            'topGroups' => $topGroups,
+            'sideGroups' => $sideGroups,
+            'bottomGroups' => $bottomGroups,
+            'ads' => $ads,
+        ]);
     }
 
     public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
@@ -228,15 +240,31 @@ class VendorStoreController extends Controller
         $products = $productsQuery->latest('updated_at')->paginate(12)->withQueryString();
         $adsContext = $this->loadStoreAds($vendor, 0);
 
+        if ($subcategory) {
+            $pageTitle = $subcategory->name;
+            $pageSubtitle = 'Products in '.$subcategory->name.' · '.$category->name;
+            $activeNav = 'subcategory';
+        } elseif ($category) {
+            $pageTitle = $category->name;
+            $pageSubtitle = 'All products listed under '.$category->name;
+            $activeNav = 'category';
+        } else {
+            $pageTitle = 'All products';
+            $pageSubtitle = 'Browse the complete catalog from '.$vendor->publicDisplayName();
+            $activeNav = 'products';
+        }
+
         return view('frontend.store.products', [
             'vendor' => $vendor,
             'preview' => false,
+            'activeNav' => $activeNav,
+            'pageTitle' => $pageTitle,
+            'pageSubtitle' => $pageSubtitle,
             'products' => $products,
             'vendorCategories' => $vendorCategories,
             'activeCategory' => $category,
             'activeSubcategory' => $subcategory,
             'sidebarAds' => $adsContext['sidebarAds'],
-            'sponsoredFillers' => $adsContext['sponsoredFillers'],
         ]);
     }
 

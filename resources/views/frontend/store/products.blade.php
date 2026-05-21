@@ -1,48 +1,48 @@
-@extends('frontend.layouts.app')
+@extends('frontend.store.layout')
 
-@section('title', $vendor->publicDisplayName().' – Products')
+@section('title', $pageTitle.' – '.$vendor->publicDisplayName())
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/vendor-store.css') }}?v={{ now()->timestamp }}">
-@endpush
-
-@section('content')
+@section('store_content')
 @php
     $sidebarAds = $sidebarAds ?? collect();
-    $vendorCategories = $vendorCategories ?? collect();
 @endphp
-<div class="vendor-store-page">
-    @if(!empty($preview))
-        <div class="vendor-preview-banner">Preview mode — only you can see this until your store is published.</div>
-    @endif
 
-    @include('frontend.store.partials.store-header', ['vendor' => $vendor, 'activeNav' => 'products'])
+<section class="vendor-store-page-hero">
+    <div class="container">
+        <nav class="vendor-store-breadcrumb mb-2" aria-label="breadcrumb">
+            <a href="{{ route('store.show', $vendor->slug) }}">Home</a>
+            <span class="mx-1">›</span>
+            <a href="{{ route('store.products.index', $vendor->slug) }}">Products</a>
+            @if(!empty($activeCategory))
+                <span class="mx-1">›</span>
+                @if(!empty($activeSubcategory))
+                    <a href="{{ route('store.products.category', [$vendor->slug, $activeCategory->id]) }}">{{ $activeCategory->name }}</a>
+                    <span class="mx-1">›</span>
+                    <span aria-current="page">{{ $activeSubcategory->name }}</span>
+                @else
+                    <span aria-current="page">{{ $activeCategory->name }}</span>
+                @endif
+            @else
+                <span class="mx-1">›</span>
+                <span aria-current="page">All products</span>
+            @endif
+        </nav>
+        <h1 class="vendor-store-page-hero__title">{{ $pageTitle }}</h1>
+        <p class="vendor-store-page-hero__subtitle mb-0">{{ $pageSubtitle }}</p>
+    </div>
+</section>
 
-    <section class="vendor-store-catalog-section">
-        <div class="container-fluid px-3 px-lg-4 py-4">
-            <div class="vendor-store-catalog-head mb-4">
-                <h1 class="h3 mb-1">
-                    @if(!empty($activeSubcategory))
-                        {{ $activeSubcategory->name }}
-                    @elseif(!empty($activeCategory))
-                        {{ $activeCategory->name }}
-                    @else
-                        All Products
-                    @endif
-                </h1>
-                <p class="text-muted mb-0">Browse products from {{ $vendor->publicDisplayName() }}</p>
-            </div>
-
-            @include('frontend.store.partials.catalog-layout', [
-                'vendor' => $vendor,
-                'products' => $products,
-                'vendorCategories' => $vendorCategories,
-                'activeCategory' => $activeCategory ?? null,
-                'activeSubcategory' => $activeSubcategory ?? null,
-                'sidebarAds' => $sidebarAds,
-                'adsRailId' => 'storeProductsAds',
-            ])
-        </div>
-    </section>
-</div>
+<section class="vendor-store-catalog-section">
+    <div class="container py-4 py-lg-5">
+        @include('frontend.store.partials.catalog-layout', [
+            'vendor' => $vendor,
+            'products' => $products,
+            'vendorCategories' => $vendorCategories,
+            'activeCategory' => $activeCategory ?? null,
+            'activeSubcategory' => $activeSubcategory ?? null,
+            'sidebarAds' => $sidebarAds,
+            'adsRailId' => 'storeProductsAds',
+        ])
+    </div>
+</section>
 @endsection

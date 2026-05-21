@@ -1,6 +1,6 @@
-@extends('frontend.layouts.app')
+@extends('frontend.store.layout')
 @section('title', $product->name.' - '.$vendor->publicDisplayName())
-@section('content')
+@section('store_content')
 @php
 $primaryImage = is_array($product->images) ? ($product->images[0] ?? null) : null;
 $galleryImages = collect(is_array($product->images) ? $product->images : [])->filter()->values();
@@ -17,8 +17,20 @@ $adFrameStyle = function ($ad) {
     return 'width:100%;';
 };
 @endphp
+<section class="vendor-store-page-hero vendor-store-page-hero--compact">
+    <div class="container">
+        <nav class="vendor-store-breadcrumb mb-2">
+            <a href="{{ route('store.show', $vendor->slug) }}">Home</a>
+            <span class="mx-1">›</span>
+            <a href="{{ route('store.products.index', $vendor->slug) }}">Products</a>
+            <span class="mx-1">›</span>
+            <span aria-current="page">{{ $product->name }}</span>
+        </nav>
+        <h1 class="vendor-store-page-hero__title h3 mb-0">{{ $product->name }}</h1>
+    </div>
+</section>
+
 <div class="container py-4 py-lg-5">
-  <div class="d-flex justify-content-between align-items-center mb-4"><a href="{{ route('store.show', $vendor->slug) }}#products" class="btn btn-sm btn-outline-secondary">← Back to products</a><span class="badge text-bg-light border">{{ $vendor->publicDisplayName() }}</span></div>
 
   @if($hasAds)
   <section class="ad-zone mb-4">
@@ -118,11 +130,12 @@ $adFrameStyle = function ($ad) {
 </div>
 @includeWhen(true, 'frontend.store.partials.enquiry-modal')
 @endsection
+
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 <style>.ad-zone__title{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:.6rem}.ad-link{display:flex;justify-content:center;align-items:center;background:#fff}.ad-link img{display:block;object-fit:contain;transition:transform .25s ease}.ad-link:hover img{transform:scale(1.01)} .product-hero__media{border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;background:#f8fafc}.product-stat{border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;padding:.65rem .8rem;display:flex;align-items:center;justify-content:space-between}.product-stat span{font-size:.82rem;color:#6b7280}.product-stat strong{font-size:1rem;color:#111827}.product-description{line-height:1.65;color:#374151}.map-card .card-header{padding-bottom:.25rem}.product-location-map{height:320px;background:#f8fafc}@media (max-width:991.98px){.product-location-map{height:280px}}</style>
 @endpush
-@push('scripts')
+@push('store_scripts')
 @auth
 <script>document.getElementById('enquiryForm')?.addEventListener('submit', async function(e){e.preventDefault();const fd = new FormData(this);const res = await fetch("{{ route('store.products.enquiry', [$vendor->slug, $product->id]) }}", {method:'POST', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'}, body:fd});const data = await res.json();alert(data.message || 'Done');if(res.ok){ bootstrap.Modal.getInstance(document.getElementById('enquiryModal')).hide(); }});</script>
 @endauth
