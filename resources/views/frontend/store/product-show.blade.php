@@ -46,8 +46,7 @@ $adFrameStyle = function ($ad) {
 
   <div class="row g-4">
     <aside class="col-lg-3">
-      @foreach($sideGroups as $gi => $group)
-      @continue($gi % 2 !== 0)
+      @foreach($sideGroups->take(1) as $gi => $group)
         @php($id = 'leftAdCarousel'.$gi)
         @if($group->count() > 1)
         <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a></div>@endforeach</div></div>
@@ -95,8 +94,7 @@ $adFrameStyle = function ($ad) {
       </section>
     </main>
     <aside class="col-lg-3">
-      @foreach($sideGroups as $gi => $group)
-      @continue($gi % 2 === 0)
+      @foreach($sideGroups->slice(1,1) as $gi => $group)
         @php($id = 'rightAdCarousel'.$gi)
         @if($group->count() > 1)
         <div id="{{ $id }}" class="carousel slide mb-3" data-bs-ride="carousel"><div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">@foreach($group as $i => $ad)<div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a></div>@endforeach</div></div>
