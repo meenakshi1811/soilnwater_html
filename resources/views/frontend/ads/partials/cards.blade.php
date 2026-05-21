@@ -1,9 +1,11 @@
 @php
     $adSizes = \App\Support\AdSizes::all();
     $sponsoredFillers = collect($sponsoredFillers ?? [])->values()->all();
+    $gridId = $gridId ?? 'ads';
+    $autoRender = $autoRender ?? ($gridId === 'ads');
 @endphp
 
-<div id="adsSource" class="d-none">
+<div id="{{ $gridId }}Source" class="d-none">
     @forelse ($ads as $ad)
         @php
             $rawSizeType = (string) ($ad->size_type ?? '');
@@ -66,14 +68,27 @@
     @endforelse
 </div>
 
-<div id="adsLayout" class="ads-layout"></div>
+<div id="{{ $gridId }}Layout" class="ads-layout"></div>
 
+@once
 <script>
-window.renderAdsMarketCards = function () {
+window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, fillerPool) {
+    gridId = gridId || 'ads';
+    fillerPool = Array.isArray(fillerPool) ? fillerPool : [];
+
+    window.__adsMasonryInstances = window.__adsMasonryInstances || [];
+    const existingIndex = window.__adsMasonryInstances.findIndex((entry) => entry.gridId === gridId);
+    const instance = { gridId, fillerPool };
+    if (existingIndex >= 0) {
+        window.__adsMasonryInstances[existingIndex] = instance;
+    } else {
+        window.__adsMasonryInstances.push(instance);
+    }
+
     const GAP = 8;
     const SEARCH_STEP = 1;
 
-    const FILLER_POOL = @json($sponsoredFillers);
+    const FILLER_POOL = fillerPool;
 
     let fillerIndex = 0;
 
@@ -281,8 +296,8 @@ window.renderAdsMarketCards = function () {
     }
 
     function buildLayout() {
-        const source = document.getElementById('adsSource');
-        const layout = document.getElementById('adsLayout');
+        const source = document.getElementById(gridId + 'Source');
+        const layout = document.getElementById(gridId + 'Layout');
 
         if (!source || !layout) return;
 
@@ -315,17 +330,36 @@ window.renderAdsMarketCards = function () {
         });
 
         requestAnimationFrame(() => {
-            document.querySelectorAll('#adsLayout .masonry-grid').forEach(packGrid);
+            layout.querySelectorAll('.masonry-grid').forEach(packGrid);
         });
     }
 
     buildLayout();
-
-    let resizeTimer = null;
-
-    window.addEventListener('resize', function () {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(buildLayout, 250);
-    });
 };
+
+if (!window.__adsMasonryResizeBound) {
+    window.__adsMasonryResizeBound = true;
+    window.addEventListener('resize', function () {
+        clearTimeout(window.__adsMasonryResizeTimer);
+        window.__adsMasonryResizeTimer = setTimeout(function () {
+            (window.__adsMasonryInstances || []).forEach(function (entry) {
+                if (typeof window.renderAdsMarketCards === 'function') {
+                    window.renderAdsMarketCards(entry.gridId, entry.fillerPool);
+                }
+            });
+        }, 250);
+    });
+}
+
 </script>
+@endonce
+
+@if($autoRender)
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof window.renderAdsMarketCards === 'function') {
+        window.renderAdsMarketCards(@json($gridId), @json($sponsoredFillers));
+    }
+});
+</script>
+@endif

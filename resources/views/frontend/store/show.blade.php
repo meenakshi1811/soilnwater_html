@@ -76,6 +76,11 @@
         </div>
     </section>
 
+    @includeWhen(isset($adPlacements['after_hero']), 'frontend.store.partials.ads-zone', [
+        'placement' => $adPlacements['after_hero'],
+        'sponsoredFillers' => $sponsoredFillers ?? [],
+    ])
+
     {{--
     @php($topProducts = $products->getCollection()->take(4))
 
@@ -120,7 +125,17 @@
                 </div>
             </div>
         </section>
+
+        @includeWhen(isset($adPlacements['after_section_'.$loop->index]), 'frontend.store.partials.ads-zone', [
+            'placement' => $adPlacements['after_section_'.$loop->index],
+            'sponsoredFillers' => $sponsoredFillers ?? [],
+        ])
     @endforeach
+
+    @includeWhen(isset($adPlacements['before_products']), 'frontend.store.partials.ads-zone', [
+        'placement' => $adPlacements['before_products'],
+        'sponsoredFillers' => $sponsoredFillers ?? [],
+    ])
 
     <section id="products" class="vendor-store-section alt">
         <div class="container">
@@ -165,13 +180,87 @@
         </a>
     @endif
 </div>
+
+@if(!empty($adPlacements))
+    @include('frontend.ads.partials.modals')
+@endif
 @endsection
 
 @push('scripts')
+<script src="{{ asset('assets/js/vendor-store.js') }}?v={{ now()->timestamp }}" defer></script>
 @if($vendor->bannerSlides->count() > 1)
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     new bootstrap.Carousel(document.getElementById('storeHeroCarousel'), { interval: 5000 });
+});
+</script>
+@endif
+@if(!empty($adPlacements))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const fillers = @json($sponsoredFillers ?? []);
+    @foreach($adPlacements as $placement)
+        if (typeof window.renderAdsMarketCards === 'function') {
+            window.renderAdsMarketCards(@json($placement['grid_id']), fillers);
+        }
+    @endforeach
+
+    const adsGridRoot = document.querySelector('.vendor-store-page');
+    if (adsGridRoot) {
+        adsGridRoot.addEventListener('click', function (e) {
+            const trigger = e.target.closest('.js-ad-modal-trigger');
+            if (!trigger || !document.getElementById('adDetailsModal')) return;
+            const adModal = document.getElementById('adDetailsModal');
+            const isLoggedIn = @json(auth()->check());
+            const adModalDialog = document.getElementById('adDetailsModalDialog');
+            const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
+            const adLoginMessageBox = document.getElementById('adLoginMessageBox');
+            const adSharePanel = document.getElementById('adSharePanel');
+            const adReportActions = document.getElementById('adReportActions');
+            const adReportForm = document.getElementById('adReportForm');
+            const adReportPopupWrap = document.getElementById('adReportPopupWrap');
+            const adDetailsModalInstance = bootstrap.Modal.getOrCreateInstance(adModal);
+
+            document.getElementById('adDetailsModalTitle').textContent = trigger.dataset.adTitle || 'Ad Details';
+            document.getElementById('adDetailsModalMeta').textContent = trigger.dataset.adMeta || '';
+            document.getElementById('adDetailsModalDescription').textContent = trigger.dataset.adDescription || '';
+            const img = trigger.dataset.adImage || '';
+            const imgEl = document.getElementById('adDetailsModalImage');
+            if (img) {
+                imgEl.src = img;
+                imgEl.classList.remove('d-none');
+                adEnlargeBtn?.classList.remove('d-none');
+            } else {
+                imgEl.src = '';
+                imgEl.classList.add('d-none');
+                adEnlargeBtn?.classList.add('d-none');
+            }
+            const url = trigger.dataset.adUrl || location.href;
+            document.getElementById('adShareLink').value = url;
+            document.getElementById('adShareQr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
+            document.getElementById('adShareWhatsapp').href = 'https://wa.me/?text=' + encodeURIComponent('Check this ad: ' + url);
+            document.getElementById('adShareFacebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+            document.getElementById('adShareInstagram').href = url;
+
+            if (!isLoggedIn) {
+                adLoginMessageBox?.classList.remove('d-none');
+                adSharePanel?.classList.add('d-none');
+                adReportActions?.classList.add('d-none');
+                adReportPopupWrap?.classList.add('d-none');
+                adDetailsModalInstance.show();
+                return;
+            }
+
+            adLoginMessageBox?.classList.add('d-none');
+            adSharePanel?.classList.remove('d-none');
+            adReportActions?.classList.remove('d-none');
+            if (adReportForm && trigger.dataset.adId) {
+                adReportForm.action = '{{ url('/ads-market') }}/' + trigger.dataset.adId + '/report';
+            }
+            adReportPopupWrap?.classList.add('d-none');
+            adDetailsModalInstance.show();
+        });
+    }
 });
 </script>
 @endif

@@ -7,6 +7,7 @@ use App\Models\VendorProduct;
 use App\Models\Vendor;
 use App\Models\UserAd;
 use App\Models\VendorProductInquiry;
+use App\Services\MarketplaceAdsService;
 use App\Support\AdSizes;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
@@ -37,11 +38,28 @@ class VendorStoreController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        $lat = session('frontend_lat');
+        $lng = session('frontend_lng');
+        $lat = is_numeric($lat) ? (float) $lat : null;
+        $lng = is_numeric($lng) ? (float) $lng : null;
+
+        $sponsoredFillers = [];
+        $adPlacements = [];
+
+        if (! $vendor->is_premium) {
+            $adsService = app(MarketplaceAdsService::class);
+            $storeAds = $adsService->getDisplayAds(12, $lat, $lng);
+            $sponsoredFillers = $adsService->getSponsoredFillers($lat, $lng);
+            $adPlacements = $adsService->buildRandomPlacements($storeAds, $vendor->pageSections->count());
+        }
+
         return view('frontend.store.show', [
             'vendor' => $vendor,
             'preview' => false,
             'products' => $products,
             'vendorCategories' => $vendorCategories,
+            'adPlacements' => $adPlacements,
+            'sponsoredFillers' => $sponsoredFillers,
         ]);
     }
 
