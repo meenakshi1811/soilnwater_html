@@ -119,9 +119,38 @@ class VendorStoreController extends Controller
                 return $sizeMap[$key]['w'].'x'.$sizeMap[$key]['h'];
             });
 
-        $topGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) >= 900)->values();
-        $sideGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[0]) < 900 && ((int) explode('x', $dim)[1]) >= 300)->values();
-        $bottomGroups = $adsByDimension->filter(fn ($_, $dim) => ((int) explode('x', $dim)[1]) < 300)->values();
+        if ($adsByDimension->isEmpty() && $ads->isNotEmpty()) {
+            $adsByDimension = $ads->chunk(3)->values();
+        }
+
+        $groupDimensions = function ($group) use ($sizeMap): array {
+            $firstAd = $group->first();
+            $sizeKey = strtolower((string) ($firstAd->size_type ?? ''));
+            $size = $sizeMap[$sizeKey] ?? null;
+
+            return [
+                'w' => (int) ($size['w'] ?? 0),
+                'h' => (int) ($size['h'] ?? 0),
+            ];
+        };
+
+        $topGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
+            ['w' => $width] = $groupDimensions($group);
+
+            return $width >= 900;
+        })->values();
+
+        $sideGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
+            ['w' => $width, 'h' => $height] = $groupDimensions($group);
+
+            return $width > 0 && $width < 900 && $height >= 300;
+        })->values();
+
+        $bottomGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
+            ['h' => $height] = $groupDimensions($group);
+
+            return $height > 0 && $height < 300;
+        })->values();
 
         if ($topGroups->isEmpty()) {
             $topGroups = $adsByDimension->take(1)->values();
@@ -135,7 +164,7 @@ class VendorStoreController extends Controller
             $bottomGroups = $adsByDimension->slice(2, 2)->values();
         }
 
-        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups'));
+        return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups', 'ads'));
     }
 
     public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
