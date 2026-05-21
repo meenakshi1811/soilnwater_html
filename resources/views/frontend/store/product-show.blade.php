@@ -34,20 +34,19 @@ $adFrameStyle = function ($ad) {
             <section class="product-shell shadow-sm mb-4">
                 <div class="row g-3 g-lg-4">
                     <div class="col-lg-6">
-                        <div class="product-main-image-wrap">
-                            <img id="mainProductImage" src="{{ $primaryImage ? asset($primaryImage) : asset('assets/images/ad-sample.png') }}" class="img-fluid w-100 product-main-image" alt="{{ $product->name }}">
-                        </div>
-                        @if($galleryImages->count() > 1)
-                        <div class="row g-2 mt-2">
-                            @foreach($galleryImages as $image)
-                            <div class="col-3">
+                        <div class="product-gallery-layout">
+                            <div class="gallery-thumbs">
+                                @foreach($galleryImages->take(5) as $image)
                                 <button type="button" class="thumb-btn {{ $loop->first ? 'active' : '' }}" data-image="{{ asset($image) }}">
                                     <img src="{{ asset($image) }}" class="img-fluid" alt="{{ $product->name }} image {{ $loop->iteration }}">
                                 </button>
+                                @endforeach
                             </div>
-                            @endforeach
+                            <div class="product-main-image-wrap">
+                                <button type="button" class="gallery-nav-btn" id="galleryPrevBtn" aria-label="Previous image"><i class="fa-solid fa-chevron-left"></i></button>
+                                <img id="mainProductImage" src="{{ $primaryImage ? asset($primaryImage) : asset('assets/images/ad-sample.png') }}" class="img-fluid w-100 product-main-image" alt="{{ $product->name }}">
+                            </div>
                         </div>
-                        @endif
                     </div>
                     <div class="col-lg-6">
                         <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
@@ -79,7 +78,7 @@ $adFrameStyle = function ($ad) {
                 </div>
             </section>
 
-            @if(($similarProducts ?? collect())->count())
+            <div class="mt-4">@if(($similarProducts ?? collect())->count())
             <section class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-0 pb-0">
                     <h2 class="h5 mb-0">Similar products</h2>
@@ -102,7 +101,7 @@ $adFrameStyle = function ($ad) {
                     </div>
                 </div>
             </section>
-            @endif
+            @endif</div>
         </main>
 
         <aside class="col-xl-4">
@@ -125,15 +124,14 @@ $adFrameStyle = function ($ad) {
 @push('styles')
 <style>
 .product-shell{background:linear-gradient(135deg,#fff 0%,#f5f8ff 50%,#eefcf8 100%);border:1px solid #e6ebf5;border-radius:18px;padding:1rem}
-.product-main-image-wrap{border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;background:#fff}
-.product-main-image{aspect-ratio:1/1;object-fit:cover}
-.thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:0;border-radius:10px;overflow:hidden;width:100%}.thumb-btn.active{border-color:#0d6efd;box-shadow:0 0 0 .15rem rgba(13,110,253,.15)}
+.product-gallery-layout{display:grid;grid-template-columns:96px 1fr;gap:1rem;align-items:stretch}.gallery-thumbs{display:flex;flex-direction:column;gap:.8rem}.product-main-image-wrap{position:relative;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;background:#e5e7eb;padding:1rem}.product-main-image{aspect-ratio:1/1;object-fit:cover;border-radius:8px}.thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:12px;overflow:hidden;width:100%;opacity:.9}.thumb-btn img{height:64px;width:100%;object-fit:cover;border-radius:9px}.thumb-btn.active{border-color:#111827;box-shadow:0 0 0 .15rem rgba(17,24,39,.08);opacity:1}.gallery-nav-btn{position:absolute;left:14px;top:50%;transform:translateY(-50%);height:52px;width:52px;border-radius:50%;border:none;background:#fff;color:#111827;box-shadow:0 8px 18px rgba(17,24,39,.18)}
 .product-brand{font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;color:#16a34a;font-weight:700}
 .price-panels{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}.price-panel{border:1px solid #dce6f7;border-radius:12px;padding:.7rem .8rem;background:#fff}.price-panel span{font-size:.78rem;color:#6b7280;display:block}.price-panel strong{font-size:1.2rem;color:#111827}.price-panel.featured{background:linear-gradient(135deg,#fff0f0 0,#ffffff 100%)}
 .quick-meta{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}.quick-meta div{border:1px solid #e8edf8;border-radius:10px;padding:.6rem .75rem;background:#fff}.quick-meta small{display:block;color:#6b7280}.quick-meta p{margin:0;font-weight:600;color:#1f2937}
 .product-description{padding:.9rem;border-radius:12px;background:#fff;border:1px solid #e5e7eb;color:#374151;line-height:1.65}
 .similar-card{padding:.75rem;border:1px solid #e5e7eb;border-radius:12px;background:#fff;transition:all .2s ease}.similar-card:hover{transform:translateY(-2px);border-color:#0d6efd}
 .similar-card__image{width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb}
+@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:78px}.gallery-nav-btn{height:42px;width:42px}}
 @media (max-width:767.98px){.price-panels,.quick-meta{grid-template-columns:1fr}}
 </style>
 @endpush
@@ -142,12 +140,20 @@ $adFrameStyle = function ($ad) {
 <script>document.getElementById('enquiryForm')?.addEventListener('submit', async function(e){e.preventDefault();const fd = new FormData(this);const res = await fetch("{{ route('store.products.enquiry', [$vendor->slug, $product->id]) }}", {method:'POST', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'}, body:fd});const data = await res.json();alert(data.message || 'Done');if(res.ok){ bootstrap.Modal.getInstance(document.getElementById('enquiryModal')).hide(); }});</script>
 @endauth
 <script>
-document.querySelectorAll('.thumb-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-        document.getElementById('mainProductImage').src = button.dataset.image;
-        document.querySelectorAll('.thumb-btn').forEach((btn) => btn.classList.remove('active'));
-        button.classList.add('active');
-    });
+const thumbs = Array.from(document.querySelectorAll('.thumb-btn'));
+let activeIndex = thumbs.findIndex((b) => b.classList.contains('active'));
+if (activeIndex < 0) activeIndex = 0;
+const setActiveImage = (index) => {
+  if (!thumbs[index]) return;
+  document.getElementById('mainProductImage').src = thumbs[index].dataset.image;
+  thumbs.forEach((btn) => btn.classList.remove('active'));
+  thumbs[index].classList.add('active');
+  activeIndex = index;
+};
+thumbs.forEach((button, index) => button.addEventListener('click', () => setActiveImage(index)));
+document.getElementById('galleryPrevBtn')?.addEventListener('click', () => {
+  const next = activeIndex <= 0 ? thumbs.length - 1 : activeIndex - 1;
+  setActiveImage(next);
 });
 </script>
 @endpush
