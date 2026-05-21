@@ -11,7 +11,7 @@ $adFrameStyle = function ($ad) {
     $h = (int) ($ad->adSize->height ?? 0);
 
     if ($w > 0 && $h > 0) {
-        return 'width:min(100%, '.$w.'px);aspect-ratio:'.$w.' / '.$h.';';
+        return 'width:100%;max-width:'.$w.'px;aspect-ratio:'.$w.' / '.$h.';';
     }
 
     return 'width:100%;';
@@ -45,7 +45,7 @@ $adFrameStyle = function ($ad) {
   @endif
 
   <div class="row g-4">
-    <aside class="col-lg-2">
+    <aside class="col-lg-3">
       @foreach($sideGroups->take(1) as $gi => $group)
         @php($id = 'leftAdCarousel'.$gi)
         @if($group->count() > 1)
@@ -55,12 +55,12 @@ $adFrameStyle = function ($ad) {
         @endif
       @endforeach
     </aside>
-    <main class="col-lg-8">
+    <main class="col-lg-6">
       <div class="card border-0 shadow-sm mb-4"><div class="card-body p-3 p-lg-4"><img src="{{ $primaryImage ? asset($primaryImage) : asset('assets/images/ad-sample.png') }}" class="img-fluid rounded-3 mb-3 border" alt="{{ $product->name }}"><h1 class="h3 mb-1">{{ $product->name }}</h1><p class="text-muted mb-3">{{ $product->brand ?: 'Brand not specified' }}</p><div class="row g-2 mb-3"><div class="col-sm-6"><div class="p-2 border rounded-3 bg-light"><strong>Price:</strong> ₹{{ number_format((float) $product->final_price, 2) }}</div></div><div class="col-sm-6"><div class="p-2 border rounded-3 bg-light"><strong>Stock:</strong> {{ number_format((int) $product->stock_quantity) }}</div></div></div><p class="mb-0">{!! nl2br(e($product->description ?: 'No description available.')) !!}</p><button class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#enquiryModal">Send Enquiry</button></div></div>
       @if($galleryImages->count() > 1)<div class="card border-0 shadow-sm mb-4"><div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Product Gallery</h2></div><div class="card-body"><div class="row g-2">@foreach($galleryImages->slice(1) as $image)<div class="col-6 col-md-4"><img src="{{ asset($image) }}" class="img-fluid rounded-3 border" alt="{{ $product->name }} image" loading="lazy"></div>@endforeach</div></div></div>@endif
       <div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0">Product Location</h2></div><div class="card-body">@if($hasLocation)<div id="productLocationMap" style="height:360px;" class="rounded-3 border"></div>@else <p class="text-muted mb-0">Location is not available for this product.</p>@endif</div></div>
     </main>
-    <aside class="col-lg-2">
+    <aside class="col-lg-3">
       @foreach($sideGroups->slice(1,1) as $gi => $group)
         @php($id = 'rightAdCarousel'.$gi)
         @if($group->count() > 1)
