@@ -109,7 +109,7 @@
             <h2>Products</h2>
             <p class="text-center text-secondary mb-4">Explore our complete product range.</p>
             <div id="store-products-grid" class="row g-4">
-                @include('frontend.store.partials.product-cards', ['products' => $products])
+                @include('frontend.store.partials.product-cards', ['products' => $products, 'storeSlug' => $vendor->slug])
             </div>
             <div id="store-products-loader" class="text-center py-4 d-none text-secondary">Loading more products...</div>
         </div>

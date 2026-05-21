@@ -43,6 +43,7 @@ class VendorStoreController extends Controller
         if ($request->ajax()) {
             $html = view('frontend.store.partials.product-cards', [
                 'products' => $products,
+                'storeSlug' => $vendor->slug,
             ])->render();
 
             return response()->json([
