@@ -60,6 +60,9 @@ Route::get('/terms-and-condition/{moduleKey}', [TermsAndConditionPageController:
 Route::get('/privacy-policy', [TermsAndConditionPageController::class, 'privacyPolicy'])->name('frontend.privacy-policy');
 Route::get('/cookie-policy', [TermsAndConditionPageController::class, 'cookiePolicy'])->name('frontend.cookie-policy');
 Route::get('/store/{slug}', [VendorStoreController::class, 'show'])->name('store.show');
+Route::get('/store/{slug}/products', [VendorStoreController::class, 'products'])->name('store.products.index');
+Route::get('/store/{slug}/products/category/{category}', [VendorStoreController::class, 'categoryProducts'])->name('store.products.category');
+Route::get('/store/{slug}/products/category/{category}/subcategory/{subcategory}', [VendorStoreController::class, 'subcategoryProducts'])->name('store.products.subcategory');
 Route::get('/store/{slug}/products/{product}', [VendorStoreController::class, 'productShow'])->name('store.products.show');
 Route::post('/store/{slug}/products/{product}/enquiry', [VendorStoreController::class, 'sendInquiry'])->name('store.products.enquiry');
 

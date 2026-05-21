@@ -1,18 +1,29 @@
 @php($resolvedStoreSlug = $storeSlug ?? request()->route('slug'))
 
 @forelse($products as $product)
-    <div class="col-6 col-md-4 col-lg-3">
-        <div class="vendor-product-card shadow-sm border-0 h-100" style="background: linear-gradient(180deg,#ffffff 0%,#f8fbff 100%); border-radius:16px; overflow:hidden;">
+    <div class="col-6 col-md-4 col-xl-4">
+        <article class="vendor-product-card h-100">
             @php($image = is_array($product->images) ? ($product->images[0] ?? null) : null)
-            <img src="{{ $image ? asset($image) : asset('assets/images/ad-sample.png') }}" alt="{{ $product->name }}" style="height:180px; width:100%; object-fit:cover;">
-            <div class="card-body p-3">
-                <h6 class="mb-2"><a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="text-decoration-none fw-semibold text-dark">{{ $product->name }}</a></h6>
-                <p class="price mb-1 fw-bold" style="color:#0d6efd;">₹{{ number_format((float) $product->final_price, 2) }}</p>
-                <p class="moq mb-3"><span class="badge rounded-pill text-bg-success">In Stock: {{ number_format((int) $product->stock_quantity) }}</span></p>
-                <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="btn btn-sm w-100 text-white border-0" style="background:linear-gradient(90deg,#0d6efd,#20c997); font-weight:600;">View Details</a>
+            <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="vendor-product-card__image-wrap">
+                <img src="{{ $image ? asset($image) : asset('assets/images/ad-sample.png') }}" alt="{{ $product->name }}" loading="lazy">
+            </a>
+            <div class="vendor-product-card__body">
+                <h3 class="vendor-product-card__title">
+                    <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}">{{ $product->name }}</a>
+                </h3>
+                @if($product->brand)
+                    <p class="vendor-product-card__brand">{{ $product->brand }}</p>
+                @endif
+                <p class="vendor-product-card__price">₹{{ number_format((float) $product->final_price, 2) }}</p>
+                <p class="vendor-product-card__meta">Min. order: 1 · Stock: {{ number_format((int) $product->stock_quantity) }}</p>
+                <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="vendor-product-card__btn">View Details</a>
             </div>
-        </div>
+        </article>
     </div>
 @empty
-    <p class="text-center text-secondary">No approved products available yet.</p>
+    <div class="col-12">
+        <div class="vendor-store-empty-products">
+            <p class="mb-0">No products found in this category yet.</p>
+        </div>
+    </div>
 @endforelse

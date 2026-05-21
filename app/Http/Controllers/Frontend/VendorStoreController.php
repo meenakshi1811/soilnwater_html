@@ -3,26 +3,24 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\VendorProduct;
+use App\Models\Category;
 use App\Models\Vendor;
-use App\Models\UserAd;
+use App\Models\VendorProduct;
 use App\Models\VendorProductInquiry;
+use App\Models\UserAd;
 use App\Services\MarketplaceAdsService;
 use App\Support\AdSizes;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
-use App\Models\Category;
 
 class VendorStoreController extends Controller
 {
     public function show(string $slug): View
     {
-        $vendor = Vendor::query()
-            ->where('slug', $slug)
-            ->where('status', 'approved')
-            ->with(['bannerSlides', 'pageSections'])
-            ->firstOrFail();
+        $vendor = $this->resolveVendor($slug);
 
         $products = VendorProduct::query()
             ->where('vendor_id', $vendor->id)
@@ -31,41 +29,44 @@ class VendorStoreController extends Controller
             ->limit(8)
             ->get();
 
-        $vendorCategories = Category::query()
-            ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'vendors')
-            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        $lat = session('frontend_lat');
-        $lng = session('frontend_lng');
-        $lat = is_numeric($lat) ? (float) $lat : null;
-        $lng = is_numeric($lng) ? (float) $lng : null;
-
-        $sponsoredFillers = [];
-        $adPlacements = [];
-
-        if (! $vendor->is_premium) {
-            $adsService = app(MarketplaceAdsService::class);
-            $storeAds = $adsService->getDisplayAds(12, $lat, $lng);
-            $sponsoredFillers = $adsService->getSponsoredFillers($lat, $lng);
-            $adPlacements = $adsService->buildRandomPlacements($storeAds, $vendor->pageSections->count());
-        }
+        $vendorCategories = $this->vendorCategories($vendor);
+        $adsContext = $this->loadStoreAds($vendor, $vendor->pageSections->count());
 
         return view('frontend.store.show', [
             'vendor' => $vendor,
             'preview' => false,
             'products' => $products,
             'vendorCategories' => $vendorCategories,
-            'adPlacements' => $adPlacements,
-            'sponsoredFillers' => $sponsoredFillers,
+            'sponsoredFillers' => $adsContext['sponsoredFillers'],
+            'sidebarAds' => $adsContext['sidebarAds'],
+            'sectionAdRails' => $adsContext['sectionAdRails'],
         ]);
+    }
+
+    public function products(string $slug): View
+    {
+        return $this->renderProductCatalog($slug);
+    }
+
+    public function categoryProducts(string $slug, Category $category): View
+    {
+        $this->assertVendorCategory($category);
+
+        return $this->renderProductCatalog($slug, $category);
+    }
+
+    public function subcategoryProducts(string $slug, Category $category, Category $subcategory): View
+    {
+        $this->assertVendorCategory($category);
+        abort_unless((int) $subcategory->parent_id === (int) $category->id, 404);
+        $this->assertVendorCategory($subcategory, isSubcategory: true);
+
+        return $this->renderProductCatalog($slug, $category, $subcategory);
     }
 
     public function productShow(string $slug, VendorProduct $product): View
     {
-        $vendor = Vendor::query()->where('slug', $slug)->where('status', 'approved')->firstOrFail();
+        $vendor = $this->resolveVendor($slug);
         abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
 
         if ($vendor->is_premium) {
@@ -126,10 +127,12 @@ class VendorStoreController extends Controller
         $adsByDimension = $ads
             ->filter(function ($ad) use ($sizeMap) {
                 $key = strtolower((string) $ad->size_type);
+
                 return isset($sizeMap[$key]) && $sizeMap[$key]['w'] > 0 && $sizeMap[$key]['h'] > 0;
             })
             ->groupBy(function ($ad) use ($sizeMap) {
                 $key = strtolower((string) $ad->size_type);
+
                 return $sizeMap[$key]['w'].'x'.$sizeMap[$key]['h'];
             });
 
@@ -141,7 +144,6 @@ class VendorStoreController extends Controller
             $sizeType = strtolower(trim((string) ($ad->size_type ?? '')));
             $sizeKey = strtolower(trim((string) ($ad->adSize->size_key ?? '')));
 
-            // Strict match: top slot is only for explicit full_page size.
             if ($sizeKey !== '') {
                 return $sizeKey === 'full_page';
             }
@@ -170,7 +172,6 @@ class VendorStoreController extends Controller
         }
 
         $topGroups = $fullPageGroups->take(1)->values();
-
         $bottomGroups = collect();
 
         return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups', 'ads'));
@@ -178,7 +179,7 @@ class VendorStoreController extends Controller
 
     public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
     {
-        $vendor = Vendor::query()->where('slug', $slug)->where('status', 'approved')->firstOrFail();
+        $vendor = $this->resolveVendor($slug);
         abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
 
         if (! $request->user()) {
@@ -209,4 +210,121 @@ class VendorStoreController extends Controller
         return response()->json(['message' => 'Enquiry sent successfully.']);
     }
 
+    private function renderProductCatalog(string $slug, ?Category $category = null, ?Category $subcategory = null): View
+    {
+        $vendor = $this->resolveVendor($slug);
+        $vendorCategories = $this->vendorCategories($vendor);
+
+        $productsQuery = VendorProduct::query()
+            ->where('vendor_id', $vendor->id)
+            ->where('status', 'approved');
+
+        if ($subcategory) {
+            $productsQuery->where('subcategory_id', $subcategory->id);
+        } elseif ($category) {
+            $productsQuery->where('category_id', $category->id);
+        }
+
+        $products = $productsQuery->latest('updated_at')->paginate(12)->withQueryString();
+        $adsContext = $this->loadStoreAds($vendor, 0);
+
+        return view('frontend.store.products', [
+            'vendor' => $vendor,
+            'preview' => false,
+            'products' => $products,
+            'vendorCategories' => $vendorCategories,
+            'activeCategory' => $category,
+            'activeSubcategory' => $subcategory,
+            'sidebarAds' => $adsContext['sidebarAds'],
+            'sponsoredFillers' => $adsContext['sponsoredFillers'],
+        ]);
+    }
+
+    private function resolveVendor(string $slug): Vendor
+    {
+        return Vendor::query()
+            ->where('slug', $slug)
+            ->where('status', 'approved')
+            ->with(['bannerSlides', 'pageSections'])
+            ->firstOrFail();
+    }
+
+    private function vendorCategories(Vendor $vendor): Collection
+    {
+        $categoryIds = VendorProduct::query()
+            ->where('vendor_id', $vendor->id)
+            ->where('status', 'approved')
+            ->whereNotNull('category_id')
+            ->pluck('category_id')
+            ->unique()
+            ->filter();
+
+        if ($categoryIds->isEmpty()) {
+            return Category::query()
+                ->whereNull('parent_id')
+                ->whereJsonContains('modules', 'vendors')
+                ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        }
+
+        return Category::query()
+            ->whereIn('id', $categoryIds)
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'vendors')
+            ->with(['children' => function ($query) use ($vendor) {
+                $subcategoryIds = VendorProduct::query()
+                    ->where('vendor_id', $vendor->id)
+                    ->where('status', 'approved')
+                    ->whereNotNull('subcategory_id')
+                    ->pluck('subcategory_id')
+                    ->unique()
+                    ->filter();
+
+                $query
+                    ->when($subcategoryIds->isNotEmpty(), fn ($q) => $q->whereIn('id', $subcategoryIds))
+                    ->orderBy('name')
+                    ->select(['id', 'name', 'parent_id']);
+            }])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
+    /**
+     * @return array{sponsoredFillers: array, sidebarAds: Collection, sectionAdRails: array<int, Collection>}
+     */
+    private function loadStoreAds(Vendor $vendor, int $sectionCount): array
+    {
+        if ($vendor->is_premium) {
+            return [
+                'sponsoredFillers' => [],
+                'sidebarAds' => collect(),
+                'sectionAdRails' => [],
+            ];
+        }
+
+        $lat = session('frontend_lat');
+        $lng = session('frontend_lng');
+        $lat = is_numeric($lat) ? (float) $lat : null;
+        $lng = is_numeric($lng) ? (float) $lng : null;
+
+        $adsService = app(MarketplaceAdsService::class);
+        $storeAds = $adsService->getDisplayAds(14, $lat, $lng);
+        $split = $adsService->splitAdsForStoreLayout($storeAds, $sectionCount);
+
+        return [
+            'sponsoredFillers' => $adsService->getSponsoredFillers($lat, $lng),
+            'sidebarAds' => $split['sidebar'],
+            'sectionAdRails' => $split['section_rails'],
+        ];
+    }
+
+    private function assertVendorCategory(Category $category, bool $isSubcategory = false): void
+    {
+        abort_unless(in_array('vendors', $category->modules ?? [], true), 404);
+
+        if (! $isSubcategory) {
+            abort_unless($category->parent_id === null, 404);
+        }
+    }
 }

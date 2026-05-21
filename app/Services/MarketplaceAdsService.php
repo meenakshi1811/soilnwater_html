@@ -154,4 +154,39 @@ class MarketplaceAdsService
 
         return $placements;
     }
+
+    /**
+     * @return array{sidebar: Collection, section_rails: array<int, Collection>}
+     */
+    public function splitAdsForStoreLayout(Collection $ads, int $sectionCount): array
+    {
+        $ads = $ads->values();
+
+        if ($ads->isEmpty()) {
+            return ['sidebar' => collect(), 'section_rails' => []];
+        }
+
+        $sidebarCount = min(5, max(2, (int) ceil($ads->count() * 0.4)));
+        $sidebar = $ads->take($sidebarCount)->values();
+        $remaining = $ads->slice($sidebarCount)->values();
+
+        $sectionRails = [];
+
+        if ($sectionCount > 0 && $remaining->isNotEmpty()) {
+            $perSection = max(1, (int) ceil($remaining->count() / $sectionCount));
+
+            foreach (range(0, $sectionCount - 1) as $index) {
+                $chunk = $remaining->slice($index * $perSection, $perSection)->values();
+
+                if ($chunk->isNotEmpty()) {
+                    $sectionRails[$index] = $chunk;
+                }
+            }
+        }
+
+        return [
+            'sidebar' => $sidebar,
+            'section_rails' => $sectionRails,
+        ];
+    }
 }

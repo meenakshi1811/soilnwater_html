@@ -147,7 +147,8 @@ class VendorPublicPageController extends Controller
             'preview' => true,
             'products' => $products,
             'vendorCategories' => $vendorCategories,
-            'adPlacements' => [],
+            'sidebarAds' => collect(),
+            'sectionAdRails' => [],
             'sponsoredFillers' => [],
         ]);
     }

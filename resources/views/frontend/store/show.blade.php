@@ -8,8 +8,8 @@
 
 @section('content')
 @php
-    $adPlacements = $adPlacements ?? [];
-    $sponsoredFillers = $sponsoredFillers ?? [];
+    $sidebarAds = $sidebarAds ?? collect();
+    $sectionAdRails = $sectionAdRails ?? [];
     $vendorCategories = $vendorCategories ?? collect();
 @endphp
 <div class="vendor-store-page">
@@ -17,43 +17,7 @@
         <div class="vendor-preview-banner">Preview mode — only you can see this until your store is published.</div>
     @endif
 
-    <header class="vendor-store-header">
-        <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-                @if($vendor->logo)
-                    <img src="{{ asset($vendor->logo) }}" alt="{{ $vendor->publicDisplayName() }}" height="48">
-                @else
-                    <strong class="fs-4">{{ $vendor->publicDisplayName() }}</strong>
-                @endif
-            </div>
-            <nav class="vendor-store-nav d-none d-md-flex">
-                <a href="#home">Home</a>
-                <div class="vendor-store-nav-products-dropdown">
-                    <a href="#products" class="vendor-store-products-trigger">Products <i class="fa-solid fa-caret-down ms-1"></i></a>
-                    <ul class="dropdown-menu vendor-store-products-menu">
-                        @forelse(($vendorCategories ?? collect()) as $category)
-                            <li class="vendor-store-submenu-item {{ $category->children->isNotEmpty() ? 'has-children' : '' }}">
-                                <a class="dropdown-item" href="#products">{{ $category->name }} @if($category->children->isNotEmpty())<i class="fa-solid fa-caret-right"></i>@endif</a>
-                                @if($category->children->isNotEmpty())
-                                    <ul class="dropdown-menu">
-                                        @foreach($category->children as $subcategory)
-                                            <li><a class="dropdown-item" href="#products">{{ $subcategory->name }}</a></li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            </li>
-                        @empty
-                            <li><span class="dropdown-item-text text-muted small">No categories found</span></li>
-                        @endforelse
-                    </ul>
-                </div>
-                @foreach($vendor->pageSections as $sec)
-                    <a href="#section-{{ $sec->id }}">{{ strip_tags($sec->title) }}</a>
-                @endforeach
-                <a href="#contact">Contact</a>
-            </nav>
-        </div>
-    </header>
+    @include('frontend.store.partials.store-header', ['vendor' => $vendor])
 
     <section id="home" class="vendor-store-hero">
         @if($vendor->bannerSlides->count())
@@ -71,7 +35,7 @@
                 @if($vendor->hero_sub_heading)
                     <p class="lead mb-4 opacity-90" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ $vendor->hero_sub_heading }}</p>
                 @endif
-                <a href="#products" class="btn btn-warning btn-lg fw-bold">Explore Products</a>
+                <a href="{{ route('store.products.index', $vendor->slug) }}" class="btn btn-warning btn-lg fw-bold">Explore Products</a>
                 @if($vendor->whatsapp)
                     <a href="https://wa.me/91{{ preg_replace('/\D/', '', $vendor->whatsapp) }}" target="_blank" class="btn btn-success btn-lg ms-2">
                         <i class="fa-brands fa-whatsapp me-1"></i> Chat on WhatsApp
@@ -81,80 +45,55 @@
         </div>
     </section>
 
-    @if($placement = data_get($adPlacements, 'after_hero'))
-        @include('frontend.store.partials.ads-zone', [
-            'placement' => $placement,
-            'sponsoredFillers' => $sponsoredFillers,
-        ])
-    @endif
-
-    {{--
-    @php($topProducts = $products->getCollection()->take(4))
-
-    <section id="products" class="vendor-store-section">
-        <div class="container">
-            <h2>Top Selling Products</h2>
-            <div class="row g-4">
-                @forelse($topProducts as $product)
-                    <div class="col-6 col-md-3">
-                        <div class="vendor-product-card">
-                            @php($image = is_array($product->images) ? ($product->images[0] ?? null) : null)
-                            <img src="{{ $image ? asset($image) : asset('assets/images/ad-sample.png') }}" alt="{{ $product->name }}">
-                            <div class="card-body">
-                                <h6 class="mb-1">{{ $product->name }}</h6>
-                                <p class="price mb-0">₹{{ number_format((float) $product->final_price, 2) }}</p>
-                                <p class="moq mb-0">Stock: {{ number_format((int) $product->stock_quantity) }}</p>
-                                <button type="button" class="btn btn-sm btn-outline-primary w-100 mt-2">Send Inquiry</button>
+    @foreach($vendor->pageSections as $section)
+        <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section">
+            <div class="container-fluid px-3 px-lg-4">
+                <div class="vendor-section-title-display">{!! $section->title !!}</div>
+                <div class="row g-4 align-items-start">
+                    <div class="{{ !empty($sectionAdRails[$loop->index] ?? null) ? 'col-lg-8' : 'col-12' }}">
+                        <div class="row g-4 align-items-center">
+                            @if($section->image_path)
+                                <div class="col-md-6">
+                                    <img src="{{ asset($section->image_path) }}" alt="{{ $section->title }}" class="section-img">
+                                </div>
+                            @endif
+                            <div class="{{ $section->image_path ? 'col-md-6' : 'col-12' }}">
+                                <div class="content-body">{!! $section->content !!}</div>
                             </div>
                         </div>
                     </div>
-                @empty
-                    <p class="text-center text-secondary">No approved products available yet.</p>
-                @endforelse
-            </div>
-        </div>
-    </section>
-    --}}
-
-    @foreach($vendor->pageSections as $section)
-        <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section">
-            <div class="container">
-                <div class="vendor-section-title-display">{!! $section->title !!}</div>
-                <div class="row g-4 align-items-center">
-                    @if($section->image_path)
-                        <div class="col-lg-6">
-                            <img src="{{ asset($section->image_path) }}" alt="{{ $section->title }}" class="section-img">
+                    @if(!empty($sectionAdRails[$loop->index] ?? null))
+                        <div class="col-lg-4">
+                            @include('frontend.store.partials.ads-rail', [
+                                'ads' => $sectionAdRails[$loop->index],
+                                'railId' => 'storeSectionAds'.$loop->index,
+                            ])
                         </div>
                     @endif
-                    <div class="{{ $section->image_path ? 'col-lg-6' : 'col-12' }}">
-                        <div class="content-body">{!! $section->content !!}</div>
-                    </div>
                 </div>
             </div>
         </section>
-
-        @if($placement = data_get($adPlacements, 'after_section_'.$loop->index))
-            @include('frontend.store.partials.ads-zone', [
-                'placement' => $placement,
-                'sponsoredFillers' => $sponsoredFillers,
-            ])
-        @endif
     @endforeach
 
-    @if($placement = data_get($adPlacements, 'before_products'))
-        @include('frontend.store.partials.ads-zone', [
-            'placement' => $placement,
-            'sponsoredFillers' => $sponsoredFillers,
-        ])
-    @endif
-
-    <section id="products" class="vendor-store-section alt">
-        <div class="container">
-            <h2>Products</h2>
-            <p class="text-center text-secondary mb-4">Explore our complete product range.</p>
-            <div id="store-products-grid" class="row g-4">
-                @include('frontend.store.partials.product-cards', ['products' => $products, 'storeSlug' => $vendor->slug])
+    <section id="products" class="vendor-store-section vendor-store-catalog-section">
+        <div class="container-fluid px-3 px-lg-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+                <div>
+                    <h2 class="vendor-store-section-title mb-1">Products</h2>
+                    <p class="text-muted mb-0">Browse by category or view our latest items.</p>
+                </div>
+                <a href="{{ route('store.products.index', $vendor->slug) }}" class="btn btn-store-primary">View all products</a>
             </div>
+
+            @include('frontend.store.partials.catalog-layout', [
+                'vendor' => $vendor,
+                'products' => $products,
+                'vendorCategories' => $vendorCategories,
+                'activeCategory' => null,
+                'activeSubcategory' => null,
+                'sidebarAds' => $sidebarAds,
+                'adsRailId' => 'storeHomeProductsAds',
+            ])
         </div>
     </section>
 
@@ -191,14 +130,9 @@
         </a>
     @endif
 </div>
-
-@if(!empty($adPlacements))
-    @include('frontend.ads.partials.modals')
-@endif
 @endsection
 
 @push('scripts')
-<script src="{{ asset('assets/js/vendor-store.js') }}?v={{ now()->timestamp }}" defer></script>
 @if($vendor->bannerSlides->count() > 1)
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -206,74 +140,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endif
-@if(!empty($adPlacements))
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const fillers = @json($sponsoredFillers ?? []);
-    @foreach($adPlacements as $placement)
-        if (typeof window.renderAdsMarketCards === 'function') {
-            window.renderAdsMarketCards(@json($placement['grid_id']), fillers);
-        }
-    @endforeach
-
-    const adsGridRoot = document.querySelector('.vendor-store-page');
-    if (adsGridRoot) {
-        adsGridRoot.addEventListener('click', function (e) {
-            const trigger = e.target.closest('.js-ad-modal-trigger');
-            if (!trigger || !document.getElementById('adDetailsModal')) return;
-            const adModal = document.getElementById('adDetailsModal');
-            const isLoggedIn = @json(auth()->check());
-            const adModalDialog = document.getElementById('adDetailsModalDialog');
-            const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
-            const adLoginMessageBox = document.getElementById('adLoginMessageBox');
-            const adSharePanel = document.getElementById('adSharePanel');
-            const adReportActions = document.getElementById('adReportActions');
-            const adReportForm = document.getElementById('adReportForm');
-            const adReportPopupWrap = document.getElementById('adReportPopupWrap');
-            const adDetailsModalInstance = bootstrap.Modal.getOrCreateInstance(adModal);
-
-            document.getElementById('adDetailsModalTitle').textContent = trigger.dataset.adTitle || 'Ad Details';
-            document.getElementById('adDetailsModalMeta').textContent = trigger.dataset.adMeta || '';
-            document.getElementById('adDetailsModalDescription').textContent = trigger.dataset.adDescription || '';
-            const img = trigger.dataset.adImage || '';
-            const imgEl = document.getElementById('adDetailsModalImage');
-            if (img) {
-                imgEl.src = img;
-                imgEl.classList.remove('d-none');
-                adEnlargeBtn?.classList.remove('d-none');
-            } else {
-                imgEl.src = '';
-                imgEl.classList.add('d-none');
-                adEnlargeBtn?.classList.add('d-none');
-            }
-            const url = trigger.dataset.adUrl || location.href;
-            document.getElementById('adShareLink').value = url;
-            document.getElementById('adShareQr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
-            document.getElementById('adShareWhatsapp').href = 'https://wa.me/?text=' + encodeURIComponent('Check this ad: ' + url);
-            document.getElementById('adShareFacebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
-            document.getElementById('adShareInstagram').href = url;
-
-            if (!isLoggedIn) {
-                adLoginMessageBox?.classList.remove('d-none');
-                adSharePanel?.classList.add('d-none');
-                adReportActions?.classList.add('d-none');
-                adReportPopupWrap?.classList.add('d-none');
-                adDetailsModalInstance.show();
-                return;
-            }
-
-            adLoginMessageBox?.classList.add('d-none');
-            adSharePanel?.classList.remove('d-none');
-            adReportActions?.classList.remove('d-none');
-            if (adReportForm && trigger.dataset.adId) {
-                adReportForm.action = '{{ url('/ads-market') }}/' + trigger.dataset.adId + '/report';
-            }
-            adReportPopupWrap?.classList.add('d-none');
-            adDetailsModalInstance.show();
-        });
-    }
-});
-</script>
-@endif
-
 @endpush
