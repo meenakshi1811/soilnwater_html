@@ -183,3 +183,26 @@
     left: 100%;
     margin-left: 0.1rem;
 }
+
+
+.vendor-store-nav-products-dropdown {
+    position: relative;
+}
+
+.vendor-store-nav-products-dropdown .vendor-store-products-trigger {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-right: 1.25rem;
+}
+
+.vendor-store-nav-products-dropdown:hover > .vendor-store-products-menu,
+.vendor-store-submenu-item:hover > .dropdown-menu {
+    display: block;
+}
+
+.vendor-store-products-menu,
+.vendor-store-submenu-item > .dropdown-menu {
+    display: none;
+}
