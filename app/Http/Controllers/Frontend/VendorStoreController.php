@@ -123,53 +123,31 @@ class VendorStoreController extends Controller
             $adsByDimension = $ads->chunk(3)->values();
         }
 
-        $groupDimensions = function ($group) use ($sizeMap): array {
+        $fullPageGroups = $adsByDimension->filter(function ($group) {
             $firstAd = $group->first();
-            $sizeKey = strtolower((string) ($firstAd->size_type ?? ''));
-            $size = $sizeMap[$sizeKey] ?? null;
 
-            return [
-                'w' => (int) ($size['w'] ?? 0),
-                'h' => (int) ($size['h'] ?? 0),
-            ];
-        };
-
-        $topGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
-            ['w' => $width, 'h' => $height] = $groupDimensions($group);
-
-            return $width > 0 && $height > 0 && $width >= $height && $width >= 728;
+            return strtolower((string) ($firstAd->size_type ?? '')) === 'full_page';
         })->values();
 
-        $sideGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
-            ['w' => $width, 'h' => $height] = $groupDimensions($group);
+        $sideGroups = $adsByDimension->reject(function ($group) {
+            $firstAd = $group->first();
 
-            return $width > 0 && $height > 0 && $height > $width;
+            return strtolower((string) ($firstAd->size_type ?? '')) === 'full_page';
         })->values();
 
-        $bottomGroups = $adsByDimension->filter(function ($group) use ($groupDimensions) {
-            ['w' => $width, 'h' => $height] = $groupDimensions($group);
-
-            return $width > 0 && $height > 0 && $width >= $height && $width < 728;
-        })->values();
-
-        if ($topGroups->isEmpty()) {
-            $topGroups = $adsByDimension->take(1)->values();
+        if ($fullPageGroups->isEmpty()) {
+            $fullPageGroups = $ads->filter(fn ($ad) => strtolower((string) ($ad->size_type ?? '')) === 'full_page')->chunk(1)->values();
         }
 
         if ($sideGroups->isEmpty()) {
-            $portraitAds = $ads->filter(function ($ad) {
-                $w = (int) ($ad->adSize->width ?? 0);
-                $h = (int) ($ad->adSize->height ?? 0);
-
-                return $w > 0 && $h > 0 && $h > $w;
-            })->chunk(2)->values();
-
-            $sideGroups = $portraitAds;
+            $sideGroups = $ads->filter(fn ($ad) => strtolower((string) ($ad->size_type ?? '')) !== 'full_page')->chunk(2)->values();
         }
 
-        if ($bottomGroups->isEmpty()) {
-            $bottomGroups = $adsByDimension->slice(1, 2)->values();
-        }
+        $topGroups = $fullPageGroups->isNotEmpty()
+            ? $fullPageGroups->take(1)->values()
+            : $adsByDimension->take(1)->values();
+
+        $bottomGroups = collect();
 
         return view('frontend.store.product-show', compact('vendor', 'product', 'topGroups', 'sideGroups', 'bottomGroups', 'ads'));
     }
