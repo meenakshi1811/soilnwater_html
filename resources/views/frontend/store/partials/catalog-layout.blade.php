@@ -9,7 +9,7 @@
             ])
         </div>
 
-        <div class="col-lg-{{ !empty($sidebarAds) && $sidebarAds->isNotEmpty() ? '6' : '9' }}">
+        <div class="col-lg-{{ (! $vendor->is_premium && !empty($sidebarAds) && $sidebarAds->isNotEmpty()) ? '6' : '9' }}">
             <div class="vendor-store-results-bar">
                 <p class="mb-0">
                     @if(method_exists($products, 'total'))
@@ -34,7 +34,7 @@
             @endif
         </div>
 
-        @if(!empty($sidebarAds) && $sidebarAds->isNotEmpty())
+        @if(! $vendor->is_premium && !empty($sidebarAds) && $sidebarAds->isNotEmpty())
             <div class="col-lg-3">
                 @include('frontend.store.partials.ads-rail', [
                     'ads' => $sidebarAds,
