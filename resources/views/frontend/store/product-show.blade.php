@@ -24,7 +24,7 @@ $adFrameStyle = function ($ad) {
 </section>
 
 <div class="container py-2 py-lg-3 product-page-wrap">
-    <div class="row g-4 align-items-start">
+    <div class="row gx-4 gy-0 align-items-start">
         <main class="col-xl-9">
             <section class="product-card-pro mb-4">
                 <div class="row g-3 g-lg-4">
@@ -96,7 +96,7 @@ $adFrameStyle = function ($ad) {
             @endif
         </main>
 
-        <aside class="col-xl-3"><div class="sticky-xl-top ads-rail" style="top: 96px;">
+        <aside class="col-xl-3"><div class="sticky-xl-top ads-rail" style="top: 12px;">
             @php($railAds = $sideGroups->flatten(1)->filter()->values())
             @if($railAds->count() < 6)
                 @php($railAds = $railAds->merge(($ads ?? collect())->filter())->unique('id')->values())
