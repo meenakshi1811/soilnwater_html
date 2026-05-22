@@ -136,7 +136,7 @@ $adFrameStyle = function ($ad) {
 .product-gallery-layout{display:grid;grid-template-columns:92px 1fr;gap:1rem}.gallery-thumbs{display:flex;flex-direction:column;gap:.7rem}
 .thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:12px}.thumb-btn img{height:74px;width:100%;object-fit:cover;border-radius:9px}.thumb-btn.active{border-color:var(--brand);box-shadow:0 0 0 .18rem rgba(37,99,235,.12)}
 .product-main-image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #d7deea;background:#edf2f7;padding:.9rem;cursor:zoom-in}.product-main-image{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;min-height:420px;max-height:560px;display:block}.image-zoom-lens{position:absolute;width:150px;height:150px;border:2px solid rgba(255,255,255,.95);border-radius:50%;box-shadow:0 10px 26px rgba(2,6,23,.28);pointer-events:none;opacity:0;transform:translate(-50%,-50%);transition:opacity .12s ease;z-index:4;background-repeat:no-repeat}.product-main-image-wrap.is-zooming .image-zoom-lens{opacity:1}.zoom-hint{position:absolute;right:16px;bottom:16px;font-size:.8rem;font-weight:700;color:#fff;background:rgba(2,6,23,.55);padding:.34rem .55rem;border-radius:999px;z-index:5;pointer-events:none}
-.gallery-nav-btn{position:absolute;left:14px;top:50%;transform:translateY(-50%);height:48px;width:48px;border-radius:50%;border:none;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.2)}
+.gallery-nav-btn{position:absolute;left:14px;top:50%;transform:translateY(-50%);height:48px;width:48px;border-radius:50%;border:none;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.2);z-index:7}.product-main-image-wrap.pause-zoom .image-zoom-lens{opacity:0 !important}
 .vendor-label{font-size:1.35rem;letter-spacing:.03em;font-weight:800;color:#16a34a;line-height:1.2}.product-title{font-size:1.05rem;line-height:1.35;color:var(--ink);font-weight:700}
 .meta-line{font-size:.88rem;color:#475569}.sold-chip{color:#b91c1c}.label-muted{color:#6b7280;font-weight:500}.hero-price{font-size:1.15rem;line-height:1.2;color:#020617;font-weight:800}
 .option-label{font-size:.95rem;color:#374151}.color-chip{height:42px;width:42px;border-radius:50%;border:2px solid #d1d5db;overflow:hidden;padding:0;background:#fff}.color-chip img{width:100%;height:100%;object-fit:cover}.color-chip.active{border-color:#111827}
@@ -184,6 +184,13 @@ const initProductImageMagnifier = () => {
     wrap.addEventListener('mouseenter', () => wrap.classList.add('is-zooming'));
     wrap.addEventListener('mouseleave', () => wrap.classList.remove('is-zooming'));
     wrap.addEventListener('mousemove', moveLens);
+
+    const prevBtn = document.getElementById('galleryPrevBtn');
+    prevBtn?.addEventListener('mouseenter', () => wrap.classList.add('pause-zoom'));
+    prevBtn?.addEventListener('mouseleave', () => wrap.classList.remove('pause-zoom'));
+    prevBtn?.addEventListener('focus', () => wrap.classList.add('pause-zoom'));
+    prevBtn?.addEventListener('blur', () => wrap.classList.remove('pause-zoom'));
+
 };
 
 initProductImageMagnifier();
