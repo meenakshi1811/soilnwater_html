@@ -96,7 +96,7 @@ $adFrameStyle = function ($ad) {
             @endif
         </main>
 
-        <aside class="col-xl-3"><div class="sticky-xl-top ads-rail" style="top: 96px;">
+        <aside class="col-xl-3"><div class="sticky-xl-top ads-rail" style="top: 12px;">
             @php($railAds = $sideGroups->flatten(1)->filter()->values())
             @if($railAds->count() < 6)
                 @php($railAds = $railAds->merge(($ads ?? collect())->filter())->unique('id')->values())
