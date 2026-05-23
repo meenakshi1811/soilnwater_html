@@ -16,7 +16,7 @@ class VendorInquiryController extends Controller
             ->with('product:id,name')
             ->where('vendor_id', $vendorId)
             ->latest()
-            ->paginate(15);
+            ->get();
 
         return view('backend.vendor.inquiries.index', compact('inquiries'));
     }
