@@ -81,6 +81,8 @@
 @endpush
 
 @push('store_scripts')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 @if($inquiryProduct)
 <script>
 document.getElementById('enquiryForm')?.addEventListener('submit', async function(e){
@@ -92,8 +94,19 @@ document.getElementById('enquiryForm')?.addEventListener('submit', async functio
         body:fd
     });
     const data = await res.json();
-    alert(data.message || 'Done');
-    if(res.ok){ bootstrap.Modal.getInstance(document.getElementById('enquiryModal')).hide(); }
+    const toastType = res.ok ? 'success' : 'error';
+    const toastMessage = data.message || (res.ok ? 'Enquiry sent successfully.' : 'Unable to send enquiry.');
+
+    if (window.toastr && typeof window.toastr[toastType] === 'function') {
+        window.toastr[toastType](toastMessage);
+    } else {
+        alert(toastMessage);
+    }
+
+    if (res.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('enquiryModal'))?.hide();
+        this.reset();
+    }
 });
 </script>
 @endif
