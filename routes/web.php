@@ -32,6 +32,7 @@ use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorInquiryController;
 use App\Http\Controllers\Vendor\VendorPendingController;
 use App\Http\Controllers\Vendor\VendorPublicPageController;
+use App\Http\Controllers\Vendor\VendorProfileController;
 use App\Http\Controllers\Vendor\VendorProductController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -128,6 +129,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/banner-slides/{slide}', [VendorPublicPageController::class, 'deleteBannerSlide'])->middleware('vendor')->name('banner-slides.destroy');
         Route::resource('products', VendorProductController::class)->middleware('vendor');
         Route::get('/inquiries', [VendorInquiryController::class, 'index'])->middleware('vendor')->name('inquiries.index');
+        Route::get('/profile', [VendorProfileController::class, 'edit'])->middleware('vendor')->name('profile.edit');
+        Route::put('/profile', [VendorProfileController::class, 'update'])->middleware('vendor')->name('profile.update');
     });
 
     Route::prefix('user')->name('user.')->middleware('user')->group(function () {
