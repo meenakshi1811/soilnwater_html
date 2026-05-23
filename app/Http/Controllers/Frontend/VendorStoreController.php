@@ -371,7 +371,10 @@ class VendorStoreController extends Controller
         $lng = is_numeric($lng) ? (float) $lng : null;
 
         $adsService = app(MarketplaceAdsService::class);
-        $storeAds = $adsService->getDisplayAds(14, $lat, $lng);
+        $storeAds = $adsService->getDisplayAds(14, $lat, $lng, ['vendors']);
+        if ($storeAds->isEmpty()) {
+            $storeAds = $adsService->getDisplayAds(14, $lat, $lng);
+        }
         $split = $adsService->splitAdsForStoreLayout($storeAds, $sectionCount);
 
         return [

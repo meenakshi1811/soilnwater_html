@@ -9,7 +9,12 @@ use Illuminate\Support\Collection;
 
 class MarketplaceAdsService
 {
-    public function getDisplayAds(int $limit = 12, ?float $lat = null, ?float $lng = null): Collection
+    public function getDisplayAds(
+        int $limit = 12,
+        ?float $lat = null,
+        ?float $lng = null,
+        array $preferredModules = []
+    ): Collection
     {
         $adsQuery = UserAd::query()
             ->with(['category:id,name', 'subcategory:id,name', 'adSize:id,size_key,width,height'])
@@ -19,6 +24,14 @@ class MarketplaceAdsService
             ->where(function (Builder $query) {
                 $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
             });
+
+        if ($preferredModules !== []) {
+            $adsQuery->where(function (Builder $query) use ($preferredModules) {
+                foreach ($preferredModules as $module) {
+                    $query->orWhereJsonContains('selected_modules', (string) $module);
+                }
+            });
+        }
 
         if ($lat !== null && $lng !== null) {
             $adsQuery
