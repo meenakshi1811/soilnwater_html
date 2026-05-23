@@ -113,7 +113,7 @@ document.getElementById('enquiryForm')?.addEventListener('submit', async functio
 
     const fd = new FormData(this);
     try {
-        const res = await fetch("{{ route('store.products.enquiry', [$vendor->slug, $inquiryProduct->id]) }}", {
+        const res = await fetch("{{ route('store.enquiry', $vendor->slug) }}", {
             method:'POST',
             headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'},
             body:fd
