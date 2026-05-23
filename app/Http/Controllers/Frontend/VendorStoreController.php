@@ -68,7 +68,9 @@ class VendorStoreController extends Controller
     public function productShow(string $slug, VendorProduct $product): View
     {
         $vendor = $this->resolveVendor($slug);
-        abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
+        if ($product !== null) {
+            abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
+        }
 
         $similarProducts = VendorProduct::query()
             ->where('vendor_id', $vendor->id)
@@ -225,10 +227,12 @@ class VendorStoreController extends Controller
         ]);
     }
 
-    public function sendInquiry(Request $request, string $slug, VendorProduct $product): JsonResponse
+    public function sendInquiry(Request $request, string $slug, ?VendorProduct $product = null): JsonResponse
     {
         $vendor = $this->resolveVendor($slug);
-        abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
+        if ($product !== null) {
+            abort_unless($product->vendor_id === $vendor->id && $product->status === 'approved', 404);
+        }
 
         if (! $request->user()) {
             return response()->json(['message' => 'Please login to send an enquiry.'], 403);
@@ -243,7 +247,7 @@ class VendorStoreController extends Controller
 
         $inquiry = VendorProductInquiry::query()->create([
             'vendor_id' => $vendor->id,
-            'vendor_product_id' => $product->id,
+            'vendor_product_id' => $product?->id,
             'user_id' => $request->user()->id,
             ...$data,
         ]);
@@ -251,8 +255,9 @@ class VendorStoreController extends Controller
         if ($vendor->email) {
             $body = view('emails.vendor.new-inquiry', compact('inquiry', 'vendor', 'product'))->render();
             Mail::send([], [], function ($message) use ($vendor, $product, $body) {
-                // $message->to($vendor->email)->subject('New product inquiry: '.$product->name)->html($body);
-                $message->to("nanta1811@gmail.com")->subject('New product inquiry: '.$product->name)->html($body);
+                $subject = 'New product inquiry'.($product ? ': '.$product->name : '');
+                // $message->to($vendor->email)->subject($subject)->html($body);
+                $message->to("nanta1811@gmail.com")->subject($subject)->html($body);
             });
         }
 
@@ -260,7 +265,7 @@ class VendorStoreController extends Controller
         return response()->json(['message' => 'Enquiry sent successfully.']);
     }
 
-   private function sendVendorInquirySms(Vendor $vendor, VendorProduct $product): void
+   private function sendVendorInquirySms(Vendor $vendor, ?VendorProduct $product = null): void
     {
         try {
             $user = User::select('email', 'phone_number')
@@ -281,7 +286,7 @@ class VendorStoreController extends Controller
             $message = sprintf(
                 'Hello %s, A new inquiry has been submitted for %s. Please log in to your vendor account to check and respond to the inquiry. Thank you – Annuvedant Team',
                 $vendor->publicDisplayName(),
-                $product->name
+                $product?->name ?? 'your store'
             );
             
             // $message = "Verification OTP Your login verification code is {$phoneOtpCode} This code is valid for 5 minutes. Do not share it with anyone. – Annuvedant Team";
