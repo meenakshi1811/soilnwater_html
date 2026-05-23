@@ -9,10 +9,10 @@
         : ($isVendor ? request()->routeIs('vendor.dashboard') : request()->routeIs('admin.dashboard'));
     $profileUrl = $isGeneralUser
         ? route('user.profile.edit')
-        : ($isVendor ? route('vendor.public-page.edit') : route('admin.profile.edit'));
+        : ($isVendor ? route('vendor.profile.edit') : route('admin.profile.edit'));
     $profileActive = $isGeneralUser
         ? request()->routeIs('user.profile.*')
-        : ($isVendor ? request()->routeIs('vendor.public-page.*') : request()->routeIs('admin.profile.*'));
+        : ($isVendor ? request()->routeIs('vendor.profile.*') : request()->routeIs('admin.profile.*'));
     $panelTitle = $isGeneralUser
         ? 'User Dashboard'
         : ($isVendor ? 'Vendor Dashboard' : 'Admin Control Panel');
