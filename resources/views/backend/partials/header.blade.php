@@ -1,14 +1,21 @@
 @php
     $isGeneralUser = auth()->user()->isGeneralUser();
-    $dashboardUrl = $isGeneralUser ? route('user.dashboard') : route('admin.dashboard');
+    $isVendor = auth()->user()->isVendor();
+    $dashboardUrl = $isGeneralUser
+        ? route('user.dashboard')
+        : ($isVendor ? route('vendor.dashboard') : route('admin.dashboard'));
     $dashboardActive = $isGeneralUser
         ? request()->routeIs('user.dashboard')
-        : request()->routeIs('admin.dashboard');
-    $profileUrl = $isGeneralUser ? route('user.profile.edit') : route('admin.profile.edit');
+        : ($isVendor ? request()->routeIs('vendor.dashboard') : request()->routeIs('admin.dashboard'));
+    $profileUrl = $isGeneralUser
+        ? route('user.profile.edit')
+        : ($isVendor ? route('vendor.profile.edit') : route('admin.profile.edit'));
     $profileActive = $isGeneralUser
         ? request()->routeIs('user.profile.*')
-        : request()->routeIs('admin.profile.*');
-    $panelTitle = $isGeneralUser ? 'User Dashboard' : 'Admin Control Panel';
+        : ($isVendor ? request()->routeIs('vendor.profile.*') : request()->routeIs('admin.profile.*'));
+    $panelTitle = $isGeneralUser
+        ? 'User Dashboard'
+        : ($isVendor ? 'Vendor Dashboard' : 'Admin Control Panel');
 @endphp
 <header class="admin-header">
     <div class="container-fluid d-flex align-items-center justify-content-between gap-3 flex-wrap">
