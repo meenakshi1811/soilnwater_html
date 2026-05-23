@@ -10,7 +10,11 @@
           <div class="mb-2"><label>Number</label><input type="text" name="phone_number" value="{{ auth()->user()->phone_number }}" class="form-control" required></div>
           <div class="mb-2"><label>Way to connect</label><select name="preferred_contact" class="form-select" required><option value="text">Text</option><option value="whatsapp">WhatsApp</option><option value="call">Call</option><option value="email">Email</option></select></div>
           <div class="mb-2"><label>Reason</label><textarea name="reason" class="form-control" rows="4" required></textarea></div>
-          <button class="btn btn-primary w-100" type="submit">Send Enquiry</button>
+          <button class="btn btn-primary w-100" id="enquirySubmitBtn" type="submit">
+            <span class="js-enquiry-btn-text">Send Enquiry</span>
+            <span class="spinner-border spinner-border-sm ms-2 d-none js-enquiry-btn-loader" role="status" aria-hidden="true"></span>
+            <span class="ms-1 d-none js-enquiry-btn-sending">Sending...</span>
+          </button>
         </form>
         @else
         <div class="alert alert-warning mb-0">Please login to send enquiry.</div>
