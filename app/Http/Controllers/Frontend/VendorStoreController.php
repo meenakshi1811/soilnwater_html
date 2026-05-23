@@ -227,6 +227,12 @@ class VendorStoreController extends Controller
         ]);
     }
 
+
+    public function sendGeneralInquiry(Request $request, string $slug): JsonResponse
+    {
+        return $this->sendInquiry($request, $slug, null);
+    }
+
     public function sendInquiry(Request $request, string $slug, ?VendorProduct $product = null): JsonResponse
     {
         $vendor = $this->resolveVendor($slug);
@@ -245,23 +251,25 @@ class VendorStoreController extends Controller
             'reason' => ['required', 'string', 'max:2000'],
         ]);
 
+        $productId = $request->routeIs('store.enquiry') ? null : $product?->id;
+
         $inquiry = VendorProductInquiry::query()->create([
             'vendor_id' => $vendor->id,
-            'vendor_product_id' => $product?->id,
+            'vendor_product_id' => $productId,
             'user_id' => $request->user()->id,
             ...$data,
         ]);
 
         if ($vendor->email) {
             $body = view('emails.vendor.new-inquiry', compact('inquiry', 'vendor', 'product'))->render();
-            Mail::send([], [], function ($message) use ($vendor, $product, $body) {
-                $subject = 'New product inquiry'.($product ? ': '.$product->name : '');
+            Mail::send([], [], function ($message) use ($vendor, $product, $productId, $body) {
+                $subject = 'New product inquiry'.($productId ? ': '.$product->name : '');
                 // $message->to($vendor->email)->subject($subject)->html($body);
                 $message->to("nanta1811@gmail.com")->subject($subject)->html($body);
             });
         }
 
-        $this->sendVendorInquirySms($vendor, $product);
+        $this->sendVendorInquirySms($vendor, $productId ? $product : null);
         return response()->json(['message' => 'Enquiry sent successfully.']);
     }
 
