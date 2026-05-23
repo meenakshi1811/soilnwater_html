@@ -151,8 +151,34 @@ $adFrameStyle = function ($ad) {
 </style>
 @endpush
 @push('store_scripts')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 @auth
-<script>document.getElementById('enquiryForm')?.addEventListener('submit', async function(e){e.preventDefault();const fd = new FormData(this);const res = await fetch("{{ route('store.products.enquiry', [$vendor->slug, $product->id]) }}", {method:'POST', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'}, body:fd});const data = await res.json();alert(data.message || 'Done');if(res.ok){ bootstrap.Modal.getInstance(document.getElementById('enquiryModal')).hide(); }});</script>
+<script>
+document.getElementById('enquiryForm')?.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const fd = new FormData(this);
+    const res = await fetch("{{ route('store.products.enquiry', [$vendor->slug, $product->id]) }}", {
+        method:'POST',
+        headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'},
+        body:fd
+    });
+    const data = await res.json();
+    const toastType = res.ok ? 'success' : 'error';
+    const toastMessage = data.message || (res.ok ? 'Enquiry sent successfully.' : 'Unable to send enquiry.');
+
+    if (window.toastr && typeof window.toastr[toastType] === 'function') {
+        window.toastr[toastType](toastMessage);
+    } else {
+        alert(toastMessage);
+    }
+
+    if (res.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('enquiryModal'))?.hide();
+        this.reset();
+    }
+});
+</script>
 @endauth
 <script>
 const thumbs = Array.from(document.querySelectorAll('.thumb-btn, .color-chip'));
