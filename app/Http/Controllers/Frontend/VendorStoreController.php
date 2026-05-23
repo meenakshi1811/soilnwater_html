@@ -257,7 +257,6 @@ class VendorStoreController extends Controller
         }
 
         $this->sendVendorInquirySms($vendor, $product);
-        die();
         return response()->json(['message' => 'Enquiry sent successfully.']);
     }
 
@@ -314,7 +313,6 @@ class VendorStoreController extends Controller
             ]);
 
             $response = curl_exec($curl);
-            echo'<pre>';print_r($response);exit();
             if (curl_errno($curl)) {
                 Log::error('Vendor inquiry SMS failed', [
                     'phone' => $phoneNumber,
