@@ -151,8 +151,6 @@ $adFrameStyle = function ($ad) {
 </style>
 @endpush
 @push('store_scripts')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 @auth
 <script>
 document.getElementById('enquiryForm')?.addEventListener('submit', async function(e){
@@ -160,7 +158,22 @@ document.getElementById('enquiryForm')?.addEventListener('submit', async functio
     const submitBtn = this.querySelector('#enquirySubmitBtn');
     const loader = submitBtn?.querySelector('.js-enquiry-btn-loader');
     const sending = submitBtn?.querySelector('.js-enquiry-btn-sending');
+    const btnText = submitBtn?.querySelector('.js-enquiry-btn-text');
+
+    const showFeedback = (type, message) => {
+        if (window.toastr && typeof window.toastr[type] === 'function') {
+            try {
+                window.toastr[type](message);
+                return;
+            } catch (err) {
+                console.warn('Toastr failed, falling back to alert.', err);
+            }
+        }
+        alert(message);
+    };
+
     if (submitBtn) submitBtn.disabled = true;
+    btnText?.classList.add('d-none');
     loader?.classList.remove('d-none');
     sending?.classList.remove('d-none');
 
@@ -177,24 +190,17 @@ document.getElementById('enquiryForm')?.addEventListener('submit', async functio
 
         bootstrap.Modal.getInstance(document.getElementById('enquiryModal'))?.hide();
 
-        if (window.toastr && typeof window.toastr[toastType] === 'function') {
-            window.toastr[toastType](toastMessage);
-        } else {
-            alert(toastMessage);
-        }
+        showFeedback(toastType, toastMessage);
 
         if (res.ok) {
             this.reset();
         }
     } catch (error) {
         bootstrap.Modal.getInstance(document.getElementById('enquiryModal'))?.hide();
-        if (window.toastr && typeof window.toastr.error === 'function') {
-            window.toastr.error('Unable to send enquiry. Please try again.');
-        } else {
-            alert('Unable to send enquiry. Please try again.');
-        }
+        showFeedback('error', 'Unable to send enquiry. Please try again.');
     } finally {
         if (submitBtn) submitBtn.disabled = false;
+        btnText?.classList.remove('d-none');
         loader?.classList.add('d-none');
         sending?.classList.add('d-none');
     }
