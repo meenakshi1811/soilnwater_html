@@ -8,6 +8,7 @@ use App\Models\Vendor;
 use App\Models\VendorProduct;
 use App\Models\VendorProductInquiry;
 use App\Models\UserAd;
+use App\Models\User;
 use App\Services\MarketplaceAdsService;
 use App\Support\AdSizes;
 use Illuminate\Http\JsonResponse;
@@ -256,72 +257,91 @@ class VendorStoreController extends Controller
         }
 
         $this->sendVendorInquirySms($vendor, $product);
-
+        die();
         return response()->json(['message' => 'Enquiry sent successfully.']);
     }
 
-    private function sendVendorInquirySms(Vendor $vendor, VendorProduct $product): void
+   private function sendVendorInquirySms(Vendor $vendor, VendorProduct $product): void
     {
-        $phoneNumber = $vendor->phone;
-        if (! $phoneNumber) {
-            return;
-        }
+        try {
+            $user = User::select('email', 'phone_number')
+            ->where('id', $vendor->user_id)
+            ->first();
+            $phoneNumber = $user->phone_number;
 
-        $apikey = config('services.message.api_key');
-        $username = config('services.message.username');
-        $sender = config('services.message.sender', 'ANNUVE');
-        $smstype = config('services.message.smstype');
-        $peid = config('services.message.peid');
+            if (! $phoneNumber) {
+                return;
+            }
 
-        $message = sprintf(
-            'Hello %s, A new inquiry has been submitted for %s. Please log in to your vendor account to check and respond to the inquiry. Thank you – Annuvedant Team',
-            $vendor->publicDisplayName(),
-            $product->name
-        );
+            $apikey = config('services.message.api_key');
+            $username = config('services.message.username');
+            $sender = config('services.message.sender', 'ANNUVE');
+            $smstype = config('services.message.smstype');
+            $peid = config('services.message.peid');
 
-        $url = 'http://sms.messageindia.in/v2/sendSMS?' . http_build_query([
-            'username' => $username,
-            'message' => $message,
-            'sendername' => $sender,
-            'smstype' => $smstype,
-            'numbers' => $phoneNumber,
-            'apikey' => $apikey,
-            'peid' => $peid,
-            'templateid' => 1707177564944167862,
-        ]);
+            $message = sprintf(
+                'Hello %s, A new inquiry has been submitted for %s. Please log in to your vendor account to check and respond to the inquiry. Thank you – Annuvedant Team',
+                $vendor->publicDisplayName(),
+                $product->name
+            );
+            
+            // $message = "Verification OTP Your login verification code is {$phoneOtpCode} This code is valid for 5 minutes. Do not share it with anyone. – Annuvedant Team";
 
-        $curl = curl_init();
 
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'GET',
-        ]);
-
-        $response = curl_exec($curl);
-
-        if (curl_errno($curl)) {
-            Log::error('Vendor inquiry SMS failed', [
-                'phone' => $phoneNumber,
-                'error' => curl_error($curl),
+            $url = 'http://sms.messageindia.in/v2/sendSMS?' . http_build_query([
+                'username' => $username,
+                'message' => $message,
+                'sendername' => $sender,
+                'smstype' => $smstype,
+                'numbers' => $phoneNumber,
+                'apikey' => $apikey,
+                'peid' => $peid,
+                'templateid' => 1707177936224680013,
             ]);
+
+            // echo'<pre>';print_r($url);exit();
+            $curl = curl_init();
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'GET',
+            ]);
+
+            $response = curl_exec($curl);
+            echo'<pre>';print_r($response);exit();
+            if (curl_errno($curl)) {
+                Log::error('Vendor inquiry SMS failed', [
+                    'phone' => $phoneNumber,
+                    'error' => curl_error($curl),
+                ]);
+
+                curl_close($curl);
+
+                return;
+            }
 
             curl_close($curl);
 
-            return;
+            Log::info('Vendor inquiry SMS sent successfully', [
+                'phone' => $phoneNumber,
+                'response' => $response,
+            ]);
+
+        } catch (\Throwable $exception) {
+            Log::error('Exception while sending vendor inquiry SMS', [
+                'phone' => $vendor->phone_number ?? null,
+                'product_id' => $product->id ?? null,
+                'message' => $exception->getMessage(),
+                'line' => $exception->getLine(),
+                'file' => $exception->getFile(),
+            ]);
         }
-
-        curl_close($curl);
-
-        Log::info('Vendor inquiry SMS sent successfully', [
-            'phone' => $phoneNumber,
-            'response' => $response,
-        ]);
     }
 
     private function renderProductCatalog(string $slug, ?Category $category = null, ?Category $subcategory = null): View
