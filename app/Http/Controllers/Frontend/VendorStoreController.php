@@ -249,7 +249,8 @@ class VendorStoreController extends Controller
         if ($vendor->email) {
             $body = view('emails.vendor.new-inquiry', compact('inquiry', 'vendor', 'product'))->render();
             Mail::send([], [], function ($message) use ($vendor, $product, $body) {
-                $message->to($vendor->email)->subject('New product inquiry: '.$product->name)->html($body);
+                // $message->to($vendor->email)->subject('New product inquiry: '.$product->name)->html($body);
+                $message->to("nanta1811@gmail.com")->subject('New product inquiry: '.$product->name)->html($body);
             });
         }
 
