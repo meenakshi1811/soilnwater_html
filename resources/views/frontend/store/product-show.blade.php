@@ -151,8 +151,55 @@ $adFrameStyle = function ($ad) {
 </style>
 @endpush
 @push('store_scripts')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 @auth
-<script>document.getElementById('enquiryForm')?.addEventListener('submit', async function(e){e.preventDefault();const fd = new FormData(this);const res = await fetch("{{ route('store.products.enquiry', [$vendor->slug, $product->id]) }}", {method:'POST', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'}, body:fd});const data = await res.json();alert(data.message || 'Done');if(res.ok){ bootstrap.Modal.getInstance(document.getElementById('enquiryModal')).hide(); }});</script>
+<script>
+document.getElementById('enquiryForm')?.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const submitBtn = this.querySelector('#enquirySubmitBtn');
+    const loader = submitBtn?.querySelector('.js-enquiry-btn-loader');
+    const sending = submitBtn?.querySelector('.js-enquiry-btn-sending');
+    if (submitBtn) submitBtn.disabled = true;
+    loader?.classList.remove('d-none');
+    sending?.classList.remove('d-none');
+
+    const fd = new FormData(this);
+    try {
+        const res = await fetch("{{ route('store.products.enquiry', [$vendor->slug, $product->id]) }}", {
+            method:'POST',
+            headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'},
+            body:fd
+        });
+        const data = await res.json();
+        const toastType = res.ok ? 'success' : 'error';
+        const toastMessage = data.message || (res.ok ? 'Enquiry sent successfully.' : 'Unable to send enquiry.');
+
+        bootstrap.Modal.getInstance(document.getElementById('enquiryModal'))?.hide();
+
+        if (window.toastr && typeof window.toastr[toastType] === 'function') {
+            window.toastr[toastType](toastMessage);
+        } else {
+            alert(toastMessage);
+        }
+
+        if (res.ok) {
+            this.reset();
+        }
+    } catch (error) {
+        bootstrap.Modal.getInstance(document.getElementById('enquiryModal'))?.hide();
+        if (window.toastr && typeof window.toastr.error === 'function') {
+            window.toastr.error('Unable to send enquiry. Please try again.');
+        } else {
+            alert('Unable to send enquiry. Please try again.');
+        }
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        loader?.classList.add('d-none');
+        sending?.classList.add('d-none');
+    }
+});
+</script>
 @endauth
 <script>
 const thumbs = Array.from(document.querySelectorAll('.thumb-btn, .color-chip'));
