@@ -65,6 +65,7 @@ Route::get('/store/{slug}/products/category/{category}', [VendorStoreController:
 Route::get('/store/{slug}/products/category/{category}/subcategory/{subcategory}', [VendorStoreController::class, 'subcategoryProducts'])->name('store.products.subcategory');
 Route::get('/store/{slug}/products/{product}', [VendorStoreController::class, 'productShow'])->name('store.products.show');
 Route::get('/store/{slug}/contact', [VendorStoreController::class, 'contact'])->name('store.contact');
+Route::post('/store/{slug}/enquiry', [VendorStoreController::class, 'sendGeneralInquiry'])->name('store.enquiry');
 Route::post('/store/{slug}/products/{product}/enquiry', [VendorStoreController::class, 'sendInquiry'])->name('store.products.enquiry');
 
 Auth::routes(['verify' => true]);
