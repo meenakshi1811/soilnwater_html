@@ -59,7 +59,7 @@ $adFrameStyle = function ($ad) {
         <main class="col-xl-10">
             <section class="product-card-pro mb-4">
                 <div class="row g-3 g-lg-4">
-                    <div class="col-lg-8">
+                    <div class="col-lg-7">
                         <div class="product-gallery-layout">
                             <div class="gallery-thumbs">
                                 @foreach($galleryImages->take(5) as $image)
@@ -74,7 +74,7 @@ $adFrameStyle = function ($ad) {
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-4">
+                    <div class="col-lg-5">
                         <p class="vendor-label mb-1">{{ strtoupper($vendor->publicDisplayName()) }}</p>
                         <h2 class="product-title mb-2">{{ $product->name }}</h2>
                         <p class="mb-1"><span class="label-muted">Vendor:</span> {{ $vendor->publicDisplayName() }}</p>
