@@ -9,6 +9,7 @@
     var pendingUploadFiles = [];
     var bannerDeleteBase = publicPageForm?.dataset.bannerDeleteUrl || '/vendor/banner-slides/';
     var activeSectionEditable = null;
+    var activeHeroEditable = null;
 
     function showToast(type, message) {
         if (window.toastr && typeof window.toastr[type] === 'function') {
@@ -237,6 +238,35 @@
         });
     }
 
+    
+    function setActiveHeroEditable(editable) {
+        if (!editable || !editable.dataset.heroEditable) return;
+
+        document.querySelectorAll('[data-hero-editable]').forEach(function (el) {
+            el.classList.remove('vendor-section-editable-active');
+        });
+
+        activeHeroEditable = editable;
+        editable.classList.add('vendor-section-editable-active');
+
+        var label = document.querySelector('[data-hero-active-label]');
+        if (label) {
+            label.textContent = editable.dataset.heroEditable === 'main' ? 'Styling: Main heading' : 'Styling: Subheading';
+        }
+
+        var colorControl = document.querySelector('[data-hero-style="color"]');
+        var sizeControl = document.querySelector('[data-hero-style="fontSize"]');
+        var boldBtn = document.querySelector('[data-hero-toggle="fontWeight"]');
+
+        if (colorControl) colorControl.value = editable.style.color || '#1f2937';
+        if (sizeControl) sizeControl.value = editable.style.fontSize || '';
+        if (boldBtn) {
+            var isBold = editable.style.fontWeight === '700' || editable.style.fontWeight === 'bold';
+            boldBtn.classList.toggle('active', isBold);
+            boldBtn.setAttribute('aria-pressed', isBold ? 'true' : 'false');
+        }
+    }
+
     function initSectionFields() {
         document.querySelectorAll('[data-section-field][contenteditable="true"]').forEach(hydrateSectionField);
     }
@@ -406,6 +436,9 @@
         if (e.target.matches('[data-section-field][contenteditable="true"]')) {
             setActiveSectionEditable(e.target);
         }
+        if (e.target.matches('[data-hero-editable][contenteditable="true"]')) {
+            setActiveHeroEditable(e.target);
+        }
     });
 
     document.addEventListener('input', function (e) {
@@ -414,6 +447,19 @@
     });
 
     document.addEventListener('change', function (e) {
+        if (e.target.matches('[data-hero-style]')) {
+            if (!activeHeroEditable) {
+                showToast('warning', 'Click heading or subheading first.');
+                return;
+            }
+            var prop = e.target.dataset.heroStyle;
+            activeHeroEditable.style[prop] = e.target.value;
+            var syncTarget = activeHeroEditable.dataset.syncTarget;
+            syncStyleInput(syncTarget, prop, e.target.value);
+            syncEditable(activeHeroEditable);
+            return;
+        }
+
         if (e.target.matches('[data-style-target][data-style-prop]')) {
             var els = getEditables(e.target.dataset.styleTarget);
             if (!els.length) return;
@@ -495,6 +541,23 @@
             sectionEditable.focus();
             document.execCommand(sectionCmdBtn.dataset.sectionCommand, false, null);
             syncEditable(sectionEditable);
+        }
+
+        var heroToggleBtn = e.target.closest('[data-hero-toggle]');
+        if (heroToggleBtn) {
+            if (!activeHeroEditable) {
+                showToast('warning', 'Click heading or subheading first.');
+                return;
+            }
+            var heroProp = heroToggleBtn.dataset.heroToggle;
+            var heroActiveValue = heroToggleBtn.dataset.heroToggleValue;
+            var next = activeHeroEditable.style[heroProp] === heroActiveValue ? '' : heroActiveValue;
+            activeHeroEditable.style[heroProp] = next;
+            syncStyleInput(activeHeroEditable.dataset.syncTarget, heroProp, next);
+            syncEditable(activeHeroEditable);
+            heroToggleBtn.classList.toggle('active', next === heroActiveValue);
+            heroToggleBtn.setAttribute('aria-pressed', next === heroActiveValue ? 'true' : 'false');
+            return;
         }
 
         var styleBtn = e.target.closest('[data-style-toggle]');
@@ -587,6 +650,7 @@
 
     renderBannerThumbs();
     initHeroStyleControls();
+    setActiveHeroEditable(document.querySelector('[data-hero-editable="main"]'));
     initSectionFields();
     syncSocialLinksPreview();
 

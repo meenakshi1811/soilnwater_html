@@ -149,51 +149,33 @@
             <div class="vendor-section-style-panel mb-3">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
                     <p class="small fw-semibold mb-0 text-primary"><i class="fa-solid fa-palette me-1"></i> Styling tools</p>
-                    <span class="badge bg-primary-subtle text-primary border">Customize heading and subheading</span>
+                    <span class="badge bg-primary-subtle text-primary border" data-hero-active-label>Click heading or subheading below</span>
                 </div>
-                <p class="small text-muted mb-2">These settings apply directly to your hero heading and subheading text.</p>
+                <p class="small text-muted mb-2">Click the <strong>heading</strong> or <strong>subheading</strong> below — styles apply to whichever you clicked last.</p>
                 <div class="row g-2 align-items-end">
-                    <div class="col-md-2 col-6">
-                        <label class="form-label small mb-1">Main color</label>
-                        <input type="color" class="form-control form-control-color form-control-sm w-100" data-style-target="hero-main" data-style-prop="color" value="{{ $heroMainColor }}">
+                    <div class="col-md-3 col-6">
+                        <label class="form-label small mb-1">Text color</label>
+                        <input type="color" class="form-control form-control-color form-control-sm w-100" data-hero-style="color" value="{{ $heroMainColor }}">
                     </div>
-                    <div class="col-md-2 col-6">
-                        <label class="form-label small mb-1">Main size</label>
-                        <select class="form-select form-select-sm" data-style-target="hero-main" data-style-prop="fontSize">
-                            <option value="">Default</option>
-                            <option value="32px">32px</option>
-                            <option value="36px">36px</option>
-                            <option value="42px">42px</option>
-                            <option value="48px">48px</option>
-                            <option value="56px">56px</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 col-6">
-                        <label class="form-label small mb-1">Sub color</label>
-                        <input type="color" class="form-control form-control-color form-control-sm w-100" data-style-target="hero-sub" data-style-prop="color" value="{{ $heroSubColor }}">
-                    </div>
-                    <div class="col-md-2 col-6">
-                        <label class="form-label small mb-1">Sub size</label>
-                        <select class="form-select form-select-sm" data-style-target="hero-sub" data-style-prop="fontSize">
+                    <div class="col-md-3 col-6">
+                        <label class="form-label small mb-1">Font size</label>
+                        <select class="form-select form-select-sm" data-hero-style="fontSize">
                             <option value="">Default</option>
                             <option value="16px">16px</option>
-                            <option value="18px">18px</option>
                             <option value="20px">20px</option>
                             <option value="24px">24px</option>
-                            <option value="28px">28px</option>
+                            <option value="32px">32px</option>
+                            <option value="42px">42px</option>
                         </select>
                     </div>
                     <div class="col-auto">
-                        <button type="button" class="btn btn-sm btn-outline-dark" data-style-target="hero-main" data-style-prop="fontWeight" data-style-toggle="700" title="Bold main"><i class="fa-solid fa-bold"></i></button>
-                    </div>
-                    <div class="col-auto">
-                        <button type="button" class="btn btn-sm btn-outline-dark" data-style-target="hero-sub" data-style-prop="fontWeight" data-style-toggle="700" title="Bold sub"><i class="fa-solid fa-bold"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-dark" data-hero-toggle="fontWeight" data-hero-toggle-value="700" title="Bold"><i class="fa-solid fa-bold"></i></button>
                     </div>
                 </div>
             </div>
             <p class="text-muted small mb-1">Click text to edit</p>
-            <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
-            <p class="lead mb-0 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
+            <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" data-hero-editable="main" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
+            <p class="lead mb-0 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub" data-hero-editable="sub" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
         </div>
 
         <div class="vendor-form-card mb-4">
