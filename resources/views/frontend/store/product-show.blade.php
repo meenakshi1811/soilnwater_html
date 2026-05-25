@@ -6,8 +6,28 @@ $primaryImage = is_array($product->images) ? ($product->images[0] ?? null) : nul
 $galleryImages = collect(is_array($product->images) ? $product->images : [])->filter()->values();
 $colorOptions = collect(explode(',', (string) ($product->colors ?? '')))->map(fn ($v) => trim($v))->filter()->values();
 $sizeOptions = collect(explode(',', (string) ($product->sizes ?? '')))->map(fn ($v) => trim($v))->filter()->values();
-$productDetails = collect($product->getAttributes() ?? [])->reject(function ($value, $key) {
-    return in_array($key, ['id','vendor_id','user_id','slug','images','colors','sizes','created_at','updated_at','deleted_at'])
+$excludedDetailFields = ['id','vendor_id','user_id','slug','images','colors','sizes','created_at','updated_at','deleted_at','latitude','longitude','lat','lng','status','approved_at','approved_by','is_online_sale'];
+$formatJsonList = function ($raw, $featureKey, $valueKey) {
+    $decoded = is_string($raw) ? json_decode($raw, true) : (is_array($raw) ? $raw : []);
+    if (!is_array($decoded)) {
+        return collect();
+    }
+    return collect($decoded)->map(function ($row) use ($featureKey, $valueKey) {
+        if (!is_array($row)) {
+            return null;
+        }
+        $feature = trim((string) ($row[$featureKey] ?? ''));
+        $value = trim((string) ($row[$valueKey] ?? ''));
+        return ($feature !== '' && $value !== '') ? ['feature' => $feature, 'value' => $value] : null;
+    })->filter()->values();
+};
+
+$specRows = $formatJsonList($product->specifications ?? ($product->specs ?? null), 'feature', 'value');
+$bulkTierRows = $formatJsonList($product->bulk_tiers ?? null, 'buy_min', 'price');
+
+$productDetails = collect($product->getAttributes() ?? [])->reject(function ($value, $key) use ($excludedDetailFields) {
+    return in_array($key, $excludedDetailFields)
+        || in_array($key, ['specifications','specs','bulk_tiers'])
         || is_null($value)
         || $value === '';
 })->mapWithKeys(function ($value, $key) {
@@ -102,6 +122,29 @@ $adFrameStyle = function ($ad) {
                                 @endforeach
                             </div>
                         </div>
+
+
+                            @if($specRows->isNotEmpty())
+                            <div class="spec-list-wrap mt-3">
+                                <h4 class="detail-section-title mb-2">Specs</h4>
+                                <div class="spec-list">
+                                    @foreach($specRows as $item)
+                                    <div class="spec-item"><span class="spec-label">{{ $item['feature'] }}</span><span class="spec-value">{{ $item['value'] }}</span></div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($bulkTierRows->isNotEmpty())
+                            <div class="spec-list-wrap mt-3">
+                                <h4 class="detail-section-title mb-2">Bulk Tiers</h4>
+                                <div class="spec-list">
+                                    @foreach($bulkTierRows as $tier)
+                                    <div class="spec-item"><span class="spec-label">Buy {{ $tier['feature'] }}+</span><span class="spec-value">₹{{ number_format((float) $tier['value'], 2) }}</span></div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
                     </div>
                 </div>
             </section>
@@ -185,7 +228,7 @@ $adFrameStyle = function ($ad) {
 @media (min-width:1200px){.product-card-pro .row{--bs-gutter-x:2rem}}
 .product-gallery-layout{display:grid;grid-template-columns:92px 1fr;gap:1rem}.gallery-thumbs{display:flex;flex-direction:column;gap:.7rem}
 .thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:12px}.thumb-btn img{height:74px;width:100%;object-fit:cover;border-radius:9px}.thumb-btn.active{border-color:var(--brand);box-shadow:0 0 0 .18rem rgba(37,99,235,.12)}
-.product-main-image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #d7deea;background:#edf2f7;padding:.9rem}.product-main-image{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;min-height:460px;max-height:620px;display:block}
+.product-main-image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #d7deea;background:#edf2f7;padding:.9rem}.product-main-image{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;min-height:520px;max-height:680px;display:block}
 .view-gallery-btn{position:absolute;right:16px;bottom:16px;border:none;background:rgba(15,23,42,.78);color:#fff;border-radius:999px;padding:.45rem .8rem;font-size:.82rem;font-weight:700}
 .modal-main-image{width:100%;max-height:70vh;object-fit:contain;border-radius:10px;background:#f8fafc}
 .modal-gallery-thumbs{display:flex;gap:.6rem;overflow:auto;padding-bottom:.3rem}
@@ -203,6 +246,11 @@ $adFrameStyle = function ($ad) {
 .detail-item{padding:.55rem .65rem;background:#fff;border:1px solid #e2e8f0;border-radius:10px;display:flex;flex-direction:column;gap:.2rem}
 .detail-label{font-size:.75rem;font-weight:700;letter-spacing:.02em;color:#64748b;text-transform:uppercase}
 .detail-value{font-size:.88rem;color:#0f172a;word-break:break-word}
+.detail-section-title{font-size:.95rem;font-weight:700;color:#0f172a}
+.spec-list-wrap{padding:.85rem;border:1px solid #dbeafe;background:#fff;border-radius:12px}
+.spec-list{display:flex;flex-direction:column;gap:.45rem}
+.spec-item{display:flex;justify-content:space-between;gap:.75rem;padding:.45rem .55rem;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}
+.spec-label{font-size:.8rem;color:#475569;font-weight:700}.spec-value{font-size:.86rem;color:#020617;font-weight:600;text-align:right}
 @media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:80px}.product-main-image{min-height:280px;max-height:360px}.vendor-label{font-size:1.05rem}.product-title{font-size:.98rem}.hero-price{font-size:1.05rem}.ads-rail{max-width:100%;z-index:1}.ad-stack-item img{max-height:240px}.details-grid{grid-template-columns:1fr}}
 </style>
 @endpush
