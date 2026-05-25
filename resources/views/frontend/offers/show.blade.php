@@ -1,5 +1,10 @@
 @extends('frontend.layouts.app')
 
+@section('meta_title', $offer->title.' | SoilnWater Offers Market')
+@section('meta_description', $offer->short_description ?: 'Special limited-time offer available now.')
+@section('meta_url', route('frontend.offers.show', $offer))
+@section('meta_image', $offer->banner_image ? asset($offer->banner_image) : asset('assets/images/logo_soilnwater.webp'))
+
 @section('content')
 <div class="container py-4 py-lg-5">
     <a href="{{ route('frontend.offers.index') }}" class="view-all d-inline-block mb-3">← Back to offers</a>
