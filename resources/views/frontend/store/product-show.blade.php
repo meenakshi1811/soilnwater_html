@@ -36,10 +36,10 @@ $adFrameStyle = function ($ad) {
                                 @endforeach
                             </div>
                             <div class="product-main-image-wrap" id="productImageZoomWrap">
-                                <div class="image-zoom-lens" id="productImageZoomLens" aria-hidden="true"></div>
-                                <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus me-1"></i>Hover to zoom</span>
-                                <button type="button" class="gallery-nav-btn" id="galleryPrevBtn" aria-label="Previous image"><i class="fa-solid fa-chevron-left"></i></button>
                                 <img id="mainProductImage" src="{{ $primaryImage ? asset($primaryImage) : asset('assets/images/ad-sample.png') }}" class="product-main-image" alt="{{ $product->name }}">
+                                <button type="button" class="view-gallery-btn" data-bs-toggle="modal" data-bs-target="#productGalleryModal">
+                                    <i class="fa-solid fa-expand me-1"></i> View gallery
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -131,6 +131,27 @@ $adFrameStyle = function ($ad) {
     </div>
 </div>
 @includeWhen(true, 'frontend.store.partials.enquiry-modal')
+
+<div class="modal fade" id="productGalleryModal" tabindex="-1" aria-labelledby="productGalleryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productGalleryModalLabel">{{ $product->name }} - Images</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <img id="modalMainProductImage" src="{{ $primaryImage ? asset($primaryImage) : asset('assets/images/ad-sample.png') }}" class="modal-main-image mb-3" alt="{{ $product->name }}">
+                <div class="modal-gallery-thumbs">
+                    @foreach($galleryImages as $image)
+                    <button type="button" class="modal-thumb-btn {{ $loop->first ? 'active' : '' }}" data-image="{{ asset($image) }}">
+                        <img src="{{ asset($image) }}" alt="{{ $product->name }} image {{ $loop->iteration }}">
+                    </button>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')
@@ -139,15 +160,20 @@ $adFrameStyle = function ($ad) {
 .product-card-pro{background:#fff;border:1px solid var(--line);border-radius:20px;padding:1.2rem;box-shadow:0 14px 34px rgba(15,23,42,.08)}
 .product-gallery-layout{display:grid;grid-template-columns:92px 1fr;gap:1rem}.gallery-thumbs{display:flex;flex-direction:column;gap:.7rem}
 .thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:12px}.thumb-btn img{height:74px;width:100%;object-fit:cover;border-radius:9px}.thumb-btn.active{border-color:var(--brand);box-shadow:0 0 0 .18rem rgba(37,99,235,.12)}
-.product-main-image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #d7deea;background:#edf2f7;padding:.9rem;cursor:zoom-in}.product-main-image{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;min-height:420px;max-height:560px;display:block}.image-zoom-lens{position:absolute;width:150px;height:150px;border:2px solid rgba(255,255,255,.95);border-radius:50%;box-shadow:0 10px 26px rgba(2,6,23,.28);pointer-events:none;opacity:0;transform:translate(-50%,-50%);transition:opacity .12s ease;z-index:4;background-repeat:no-repeat}.product-main-image-wrap.is-zooming .image-zoom-lens{opacity:1}.zoom-hint{position:absolute;right:16px;bottom:16px;font-size:.8rem;font-weight:700;color:#fff;background:rgba(2,6,23,.55);padding:.34rem .55rem;border-radius:999px;z-index:5;pointer-events:none}
-.gallery-nav-btn{position:absolute;left:14px;top:50%;transform:translateY(-50%);height:48px;width:48px;border-radius:50%;border:none;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.2);z-index:7}.product-main-image-wrap.pause-zoom .image-zoom-lens{opacity:0 !important}
+.product-main-image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #d7deea;background:#edf2f7;padding:.9rem}.product-main-image{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;min-height:420px;max-height:560px;display:block}
+.view-gallery-btn{position:absolute;right:16px;bottom:16px;border:none;background:rgba(15,23,42,.78);color:#fff;border-radius:999px;padding:.45rem .8rem;font-size:.82rem;font-weight:700}
+.modal-main-image{width:100%;max-height:70vh;object-fit:contain;border-radius:10px;background:#f8fafc}
+.modal-gallery-thumbs{display:flex;gap:.6rem;overflow:auto;padding-bottom:.3rem}
+.modal-thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:10px;min-width:88px}
+.modal-thumb-btn img{width:84px;height:64px;object-fit:cover;border-radius:8px}
+.modal-thumb-btn.active{border-color:var(--brand);box-shadow:0 0 0 .15rem rgba(37,99,235,.14)}
 .vendor-label{font-size:1.35rem;letter-spacing:.03em;font-weight:800;color:#16a34a;line-height:1.2}.product-title{font-size:1.05rem;line-height:1.35;color:var(--ink);font-weight:700}
 .meta-line{font-size:.88rem;color:#475569}.sold-chip{color:#b91c1c}.label-muted{color:#6b7280;font-weight:500}.hero-price{font-size:1.15rem;line-height:1.2;color:#020617;font-weight:800}
 .option-label{font-size:.95rem;color:#374151}.color-chip{height:42px;width:42px;border-radius:50%;border:2px solid #d1d5db;overflow:hidden;padding:0;background:#fff}.color-chip img{width:100%;height:100%;object-fit:cover}.color-chip.active{border-color:#111827}
 .size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem}.size-chip{border:1px solid #cbd5e1;background:#fff;padding:.45rem .3rem;border-radius:8px;font-weight:700;font-size:.82rem}.size-chip.active{background:#020617;color:#fff;border-color:#020617}
 .similar-wrap{border-radius:16px;overflow:hidden;border:1px solid #dbeafe}.similar-card{padding:.75rem;border:1px solid #e2e8f0;border-radius:12px;background:#fff}.similar-card__image{width:84px;height:84px;object-fit:cover;border-radius:10px}.similar-price{color:var(--brand)}
 .ads-rail{max-width:320px;margin-left:auto;position:relative;z-index:2}.ads-rail .ad-link,.ads-rail .carousel-inner{border-radius:10px!important}.ads-rail img{max-height:240px;object-fit:cover}.ads-rail .carousel{position:relative;z-index:2}.ad-stack-item img{max-height:165px}
-@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:80px}.product-main-image{min-height:280px;max-height:360px}.image-zoom-lens,.zoom-hint{display:none}.vendor-label{font-size:1.05rem}.product-title{font-size:.98rem}.hero-price{font-size:1.05rem}.ads-rail{max-width:100%;z-index:1}.ad-stack-item img{max-height:240px}}
+@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:80px}.product-main-image{min-height:280px;max-height:360px}.vendor-label{font-size:1.05rem}.product-title{font-size:.98rem}.hero-price{font-size:1.05rem}.ads-rail{max-width:100%;z-index:1}.ad-stack-item img{max-height:240px}}
 </style>
 @endpush
 @push('store_scripts')
@@ -217,43 +243,15 @@ let activeIndex = onlyThumbs.findIndex((b) => b.classList.contains('active')); i
 const setImage = (src) => { const img=document.getElementById('mainProductImage'); if(img){ img.src=src; const wrap=document.getElementById('productImageZoomWrap'); if(wrap) wrap.style.backgroundImage=`url(${src})`; } };
 onlyThumbs.forEach((button, index) => button.addEventListener('click', () => { setImage(button.dataset.image); onlyThumbs.forEach((b)=>b.classList.remove('active')); button.classList.add('active'); activeIndex=index; }));
 document.querySelectorAll('.color-chip').forEach((button)=>button.addEventListener('click',()=>{ setImage(button.dataset.image); document.querySelectorAll('.color-chip').forEach((b)=>b.classList.remove('active')); button.classList.add('active'); }));
-document.getElementById('galleryPrevBtn')?.addEventListener('click', () => { const next = activeIndex <= 0 ? onlyThumbs.length - 1 : activeIndex - 1; onlyThumbs[next]?.click(); });
-
-const initProductImageMagnifier = () => {
-    const wrap = document.getElementById('productImageZoomWrap');
-    const img = document.getElementById('mainProductImage');
-    const lens = document.getElementById('productImageZoomLens');
-    if (!wrap || !img || !lens || window.matchMedia('(max-width: 991.98px)').matches) return;
-
-    const zoom = 2.2;
-    const moveLens = (event) => {
-        const rect = wrap.getBoundingClientRect();
-        const x = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
-        const y = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
-
-        lens.style.left = `${x}px`;
-        lens.style.top = `${y}px`;
-
-        const bgX = (x / rect.width) * 100;
-        const bgY = (y / rect.height) * 100;
-        lens.style.backgroundImage = `url(${img.currentSrc || img.src})`;
-        lens.style.backgroundSize = `${rect.width * zoom}px ${rect.height * zoom}px`;
-        lens.style.backgroundPosition = `${bgX}% ${bgY}%`;
-    };
-
-    wrap.addEventListener('mouseenter', () => wrap.classList.add('is-zooming'));
-    wrap.addEventListener('mouseleave', () => wrap.classList.remove('is-zooming'));
-    wrap.addEventListener('mousemove', moveLens);
-
-    const prevBtn = document.getElementById('galleryPrevBtn');
-    prevBtn?.addEventListener('mouseenter', () => wrap.classList.add('pause-zoom'));
-    prevBtn?.addEventListener('mouseleave', () => wrap.classList.remove('pause-zoom'));
-    prevBtn?.addEventListener('focus', () => wrap.classList.add('pause-zoom'));
-    prevBtn?.addEventListener('blur', () => wrap.classList.remove('pause-zoom'));
-
-};
-
-initProductImageMagnifier();
+const modalMainImage = document.getElementById('modalMainProductImage');
+const modalThumbs = Array.from(document.querySelectorAll('.modal-thumb-btn'));
+modalThumbs.forEach((button) => {
+    button.addEventListener('click', () => {
+        if (modalMainImage) modalMainImage.src = button.dataset.image;
+        modalThumbs.forEach((b) => b.classList.remove('active'));
+        button.classList.add('active');
+    });
+});
 
 </script>
 @endpush
