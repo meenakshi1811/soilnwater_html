@@ -48,7 +48,7 @@
 
 .vendor-store-header__inner {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 1rem;
     min-height: 72px;
@@ -115,8 +115,18 @@
     inset: 0;
     background: linear-gradient(90deg, rgba(0,0,0,.65) 0%, rgba(0,0,0,.2) 100%);
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     z-index: 2;
+}
+
+
+.vendor-store-hero .hero-overlay .container {
+    width: 100%;
+    padding-bottom: 1.75rem;
+}
+
+.vendor-store-hero .hero-text-bottom-note {
+    margin-bottom: 0.35rem;
 }
 
 .vendor-store-hero h1 {
@@ -224,7 +234,7 @@
 .vendor-store-category-link,
 .vendor-store-subcategory-link {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 0.5rem;
     padding: 0.72rem 0.9rem;
@@ -597,7 +607,7 @@
     height: 56px;
     border-radius: 50%;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     font-size: 1.75rem;
     box-shadow: 0 4px 12px rgba(37,211,102,.5);
@@ -641,7 +651,7 @@
 
 .vendor-store-mega-panel__head {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     padding: 0.75rem 1rem;
     background: linear-gradient(90deg, #fff7ed, #fff);
@@ -672,7 +682,7 @@
 
 .vendor-store-mega-cat-link {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 0.5rem;
     padding: 0.72rem 1rem;
