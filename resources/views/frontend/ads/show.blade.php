@@ -1,5 +1,10 @@
 @extends('frontend.layouts.app')
 
+@section('meta_title', $ad->title.' | SoilnWater Ads Market')
+@section('meta_description', $ad->short_description ?: 'Special marketplace ad available now.')
+@section('meta_url', route('frontend.ads.show', $ad))
+@section('meta_image', $ad->final_image ? asset($ad->final_image) : asset('assets/images/logo_soilnwater.webp'))
+
 @section('content')
 <div class="container py-4 py-lg-5">
     <a href="{{ route('frontend.ads.index') }}" class="view-all d-inline-block mb-3">← Back to ads market</a>
