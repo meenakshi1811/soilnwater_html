@@ -486,7 +486,7 @@
             <div class="ad-slide">
               <div class="product-grid-4 recent-ads-grid">
                 @foreach($recentAdsChunk as $recentAd)
-                  <article class="prod-card recent-ad-card" data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}">
+                  <article class="prod-card recent-ad-card" data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}" data-ad-url="{{ route('frontend.ads.show', $recentAd) }}">
                     <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}">
                     <div class="prod-card-body">
                       <h6 class="mb-1 offer-coupon-title">{{ $recentAd->title }}</h6>
@@ -559,6 +559,7 @@
                             data-offer-coupon="{{ $offer->coupon_code ? strtoupper($offer->coupon_code) : '' }}"
                             data-offer-validity="{{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}"
                             data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
+                            data-offer-url="{{ route('frontend.offers.show', $offer) }}"
                           >
                             @if ($offer->banner_image)
                               <div class="offer-coupon-image-wrap">
@@ -1361,7 +1362,7 @@
           adEnlargeBtn.classList.add('d-none');
         }
 
-        const shareUrl = window.location.href;
+        const shareUrl = adCard?.dataset.adUrl || window.location.href;
         document.getElementById('adShareLink').value = shareUrl;
         document.getElementById('adShareQr').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`;
         document.getElementById('adShareWhatsapp').href = `https://wa.me/?text=${encodeURIComponent('Check this ad: ' + shareUrl)}`;

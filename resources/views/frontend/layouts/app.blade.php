@@ -4,7 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>SoilnWater – Local &amp; National Marketplace</title>
+  <title>@yield('meta_title', 'SoilnWater – Local &amp; National Marketplace')</title>
+  <meta name="description" content="@yield('meta_description', 'Discover local and national deals on SoilnWater.')">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="@yield('meta_title', 'SoilnWater – Local &amp; National Marketplace')">
+  <meta property="og:description" content="@yield('meta_description', 'Discover local and national deals on SoilnWater.')">
+  <meta property="og:url" content="@yield('meta_url', url()->current())">
+  <meta property="og:image" content="@yield('meta_image', asset('assets/images/logo_soilnwater.webp'))">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="@yield('meta_title', 'SoilnWater – Local &amp; National Marketplace')">
+  <meta name="twitter:description" content="@yield('meta_description', 'Discover local and national deals on SoilnWater.')">
+  <meta name="twitter:image" content="@yield('meta_image', asset('assets/images/logo_soilnwater.webp'))">
   <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/favicon.svg') }}">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
