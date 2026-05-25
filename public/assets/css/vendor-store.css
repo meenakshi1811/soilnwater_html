@@ -115,7 +115,7 @@
     inset: 0;
     background: transparent;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     z-index: 2;
 }
 
