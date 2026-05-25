@@ -7,27 +7,20 @@
         <input type="hidden" name="sections[{{ $index }}][id]" value="{{ $section->id }}">
     @endif
     <input type="hidden" name="sections[{{ $index }}][_delete]" value="0" class="section-delete-flag">
+    <input type="hidden" name="sections[{{ $index }}][type]" value="{{ old('sections.'.$index.'.type', 'image_text') }}" data-section-type-input>
     <input type="text" name="sections[{{ $index }}][title]" class="d-none" value="{{ old('sections.'.$index.'.title', $section?->title) }}" data-sync-input="section-title-{{ $index }}">
     <textarea name="sections[{{ $index }}][content]" class="d-none" rows="6" data-sync-input="section-content-{{ $index }}">{{ old('sections.'.$index.'.content', $section?->content) }}</textarea>
 
     <div class="row g-4 align-items-start mb-3">
-        <div class="col-lg-5">
-            <label class="form-label small fw-semibold">Section image</label>
-            <div class="vendor-section-image-wrap">
-                <img src="{{ $section?->image_path ? asset($section->image_path) : 'https://via.placeholder.com/900x500/e8ecef/6b7280?text=Click+to+add+image' }}" alt="" class="img-fluid rounded d-block section-live-image">
-                <label class="vendor-section-image-upload btn btn-sm btn-light">
-                    <i class="fa-solid fa-upload me-1"></i> Change image
-                    <input type="file" name="sections[{{ $index }}][image]" class="d-none js-section-image-input" accept="image/*">
-                </label>
-            </div>
-        </div>
-        <div class="col-lg-7">
+        <div class="col-12">
             <label class="form-label small text-muted mb-1">Section title — click here to edit &amp; style</label>
             <div class="vendor-live-editable vendor-section-title-editor h2 mb-3" contenteditable="true" data-sync-target="section-title-{{ $index }}" data-section-field="title" role="textbox">{!! old('sections.'.$index.'.title', $section?->title ?: 'Section title') !!}</div>
             <label class="form-label small text-muted mb-1">Section content — click here to edit &amp; style</label>
             <div class="vendor-live-editable vendor-section-content-editor border rounded p-3 bg-white" contenteditable="true" data-sync-target="section-content-{{ $index }}" data-sync-html="1" data-section-field="content" role="textbox">{!! old('sections.'.$index.'.content', $section?->content ?: '<p>Write your section content here...</p>') !!}</div>
         </div>
     </div>
+
+div>
 
     <div class="vendor-section-style-panel">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
