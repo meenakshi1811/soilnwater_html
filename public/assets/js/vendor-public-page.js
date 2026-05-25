@@ -31,8 +31,19 @@
             title = 'Brochure Section';
             content = '<ul><li>Brochure item 1</li><li>Brochure item 2</li></ul><p>Add brochure links or descriptions here.</p>';
         } else if (type === 'image_text') {
-            title = 'Image + Text Card';
-            content = '<p>Add supporting text for this image card section.</p>';
+            title = 'Image + Text Cards';
+            content = '<div class="row g-3">' +
+                Array.from({ length: 4 }).map(function (_, i) {
+                    return '' +
+                        '<div class="col-12 col-md-6 col-lg-3">' +
+                        '<div class="card h-100">' +
+                        '<img src="https://via.placeholder.com/600x360/e8ecef/6b7280?text=Card+' + (i + 1) + '" class="card-img-top" alt="Card image ' + (i + 1) + '">' +
+                        '<div class="card-body">' +
+                        '<h6 class="card-title">Card title ' + (i + 1) + '</h6>' +
+                        '<p class="card-text">Add short description for this card.</p>' +
+                        '</div></div></div>';
+                }).join('') +
+                '</div>';
         }
 
         return { title: title, content: content };
@@ -418,7 +429,7 @@
 
         if (typeInput) typeInput.value = sectionType || 'image_text';
 
-        var showImage = sectionType === 'image_text';
+        var showImage = sectionType === 'image_text' || sectionType === 'image_grid';
         if (imageCol) {
             imageCol.style.display = showImage ? '' : 'none';
         }
