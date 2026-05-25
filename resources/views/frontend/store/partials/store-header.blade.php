@@ -22,7 +22,7 @@
                     'activeNav' => $activeNav ?? '',
                 ])
 
-                <a href="{{ route('store.about', $vendor->slug) }}" target="_blank" rel="noopener" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'about' ? 'is-active' : '' }}">About Us</a>
+                <a href="{{ route('store.about', $vendor->slug) }}" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'about' ? 'is-active' : '' }}">About Us</a>
 
                 <a href="{{ route('store.contact', $vendor->slug) }}" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'contact' ? 'is-active' : '' }}">Contact</a>
             </nav>
