@@ -211,7 +211,15 @@
                     <h5 class="mb-0">Custom page sections</h5>
                     <p class="text-muted small mb-0">Add sections with images and styled text. Save, then check Live Preview.</p>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-primary" id="addSectionBtn"><i class="fa-solid fa-plus me-1"></i> Add section</button>
+                <div class="d-flex align-items-center gap-2">
+                    <select class="form-select form-select-sm" id="sectionTypeSelect" style="min-width: 220px;">
+                        <option value="image_text">Image + Text card</option>
+                        <option value="image_grid">Image grid (8 images)</option>
+                        <option value="text_only">Only text section</option>
+                        <option value="brochure">Brochure section</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addSectionBtn"><i class="fa-solid fa-plus me-1"></i> Add section</button>
+                </div>
             </div>
             <div id="sectionsContainer">
                 @foreach($vendor->pageSections as $i => $section)
