@@ -181,6 +181,20 @@
         <div class="vendor-form-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
+                    <h5 class="mb-0">About Us page content</h5>
+                    <p class="text-muted small mb-0">This content is for a <strong>separate About Us page</strong>, not your store home page sections.</p>
+                </div>
+            </div>
+            <div class="alert alert-warning small mb-3">
+                <i class="fa-solid fa-circle-info me-1"></i>
+                Visitors open this from Store Header <strong>About Us</strong> and it opens in a new page.
+            </div>
+            <textarea name="description" id="vendorAboutUsEditor" class="form-control" rows="10">{{ old('description', $vendor->description) }}</textarea>
+        </div>
+
+        <div class="vendor-form-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
                     <h5 class="mb-0">Social media links</h5>
                     <p class="text-muted small mb-0">Add your social URLs and see how they will appear on your public store page.</p>
                 </div>
@@ -237,6 +251,7 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script>
     if (window.toastr) {
         toastr.options = {
@@ -246,6 +261,14 @@
             timeOut: 4000,
             extendedTimeOut: 2000
         };
+    }
+
+    if (window.ClassicEditor) {
+        ClassicEditor
+            .create(document.querySelector('#vendorAboutUsEditor'))
+            .catch(function (error) {
+                console.error(error);
+            });
     }
 </script>
 <script src="{{ asset('assets/js/vendor-public-page.js') }}?v={{ now()->timestamp }}"></script>

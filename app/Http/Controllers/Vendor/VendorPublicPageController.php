@@ -42,6 +42,7 @@ class VendorPublicPageController extends Controller
             'address' => ['nullable', 'string', 'max:500'],
             'facebook_url' => ['nullable', 'url', 'max:500'],
             'instagram_url' => ['nullable', 'url', 'max:500'],
+            'description' => ['nullable', 'string'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'banner_slides' => ['nullable', 'array'],
             'banner_slides.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
@@ -71,6 +72,7 @@ class VendorPublicPageController extends Controller
             'address',
             'facebook_url',
             'instagram_url',
+            'description',
         ])->toArray();
 
         if (isset($validated['logo'])) {
