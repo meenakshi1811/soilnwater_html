@@ -682,12 +682,41 @@
             <form id="vendorEnquiryForm">
               @csrf
               <div class="mb-3">
-                <label class="form-label" for="vendorEnquirySubject">Subject</label>
-                <input type="text" class="form-control" id="vendorEnquirySubject" name="subject" maxlength="150" placeholder="I am looking for a vendor for..." required>
+                <label class="form-label" for="vendorEnquiryEmail">Email</label>
+                <input type="email" class="form-control" id="vendorEnquiryEmail" name="email" value="{{ auth()->user()?->email }}" readonly required>
               </div>
               <div class="mb-3">
-                <label class="form-label" for="vendorEnquiryMessage">Requirement Details</label>
-                <textarea class="form-control" id="vendorEnquiryMessage" name="message" rows="4" maxlength="2000" placeholder="Please share your requirement, location and preferred timeline." required></textarea>
+                <label class="form-label" for="vendorEnquiryPhone">Phone Number</label>
+                <input type="text" class="form-control" id="vendorEnquiryPhone" name="phone_number" value="{{ auth()->user()?->phone_number }}" readonly required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="vendorEnquiryPreferredContact">Way to Connect</label>
+                <select class="form-select" id="vendorEnquiryPreferredContact" name="preferred_contact" required>
+                  <option value="">Select option</option>
+                  <option value="text">Text</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="call">Call</option>
+                  <option value="email">Email</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="vendorEnquiryCategory">Vendor Category</label>
+                <select class="form-select" id="vendorEnquiryCategory" name="category_id" required>
+                  <option value="">Select category</option>
+                  @foreach(($vendorEnquiryCategories ?? collect()) as $category)
+                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="vendorEnquirySubCategory">Sub Category</label>
+                <select class="form-select" id="vendorEnquirySubCategory" name="subcategory_id" required disabled>
+                  <option value="">Select sub category</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="vendorEnquiryReason">Requirement Details</label>
+                <textarea class="form-control" id="vendorEnquiryReason" name="reason" rows="4" maxlength="2000" placeholder="Please share your requirement, location and preferred timeline." required></textarea>
               </div>
               <button type="submit" class="btn btn-primary w-100" id="vendorEnquirySubmitBtn">
                 <span class="js-vendor-enquiry-btn-text">Send Enquiry</span>
@@ -1371,6 +1400,32 @@
   document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('vendorEnquiryForm');
     if (!form) return;
+    const categories = @json(($vendorEnquiryCategories ?? collect())->map(fn ($category) => [
+      'id' => $category->id,
+      'name' => $category->name,
+      'children' => $category->children->map(fn ($child) => [
+        'id' => $child->id,
+        'name' => $child->name,
+      ])->values(),
+    ])->values());
+    const categorySelect = form.querySelector('#vendorEnquiryCategory');
+    const subcategorySelect = form.querySelector('#vendorEnquirySubCategory');
+
+    categorySelect?.addEventListener('change', function () {
+      const selected = categories.find((category) => String(category.id) === this.value);
+      subcategorySelect.innerHTML = '<option value="">Select sub category</option>';
+      if (!selected || !selected.children || !selected.children.length) {
+        subcategorySelect.setAttribute('disabled', 'disabled');
+        return;
+      }
+      selected.children.forEach(function (child) {
+        const option = document.createElement('option');
+        option.value = child.id;
+        option.textContent = child.name;
+        subcategorySelect.appendChild(option);
+      });
+      subcategorySelect.removeAttribute('disabled');
+    });
 
     form.addEventListener('submit', async function (event) {
       event.preventDefault();
@@ -1402,8 +1457,12 @@
             'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
           },
           body: JSON.stringify({
-            subject: form.querySelector('#vendorEnquirySubject').value,
-            message: form.querySelector('#vendorEnquiryMessage').value,
+            email: form.querySelector('#vendorEnquiryEmail').value,
+            phone_number: form.querySelector('#vendorEnquiryPhone').value,
+            preferred_contact: form.querySelector('#vendorEnquiryPreferredContact').value,
+            category_id: form.querySelector('#vendorEnquiryCategory').value,
+            subcategory_id: form.querySelector('#vendorEnquirySubCategory').value,
+            reason: form.querySelector('#vendorEnquiryReason').value,
           }),
         });
 

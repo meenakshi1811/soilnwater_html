@@ -121,14 +121,34 @@ class UserAdController extends Controller
     public function vendorEnquiry(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'subject' => ['required', 'string', 'max:150'],
-            'message' => ['required', 'string', 'max:2000'],
+            'email' => ['required', 'email'],
+            'phone_number' => ['required', 'string', 'max:20'],
+            'preferred_contact' => ['required', 'in:text,whatsapp,call,email'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'subcategory_id' => ['required', 'exists:categories,id'],
+            'reason' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $category = Category::query()->find($validated['category_id']);
+        $subcategory = Category::query()->find($validated['subcategory_id']);
+        if (! $category || ! $subcategory || (int) $subcategory->parent_id !== (int) $category->id) {
+            return response()->json(['message' => 'Please select a valid category and subcategory combination.'], 422);
+        }
+
+        $subject = '[Vendor Enquiry] '.($category->name ?? 'General').' - '.($subcategory->name ?? 'Subcategory');
+        $message = implode("\n", [
+            'Email: '.$validated['email'],
+            'Phone Number: '.$validated['phone_number'],
+            'Preferred Contact: '.ucfirst($validated['preferred_contact']),
+            'Category: '.$category->name,
+            'Sub Category: '.$subcategory->name,
+            'Requirement Details: '.$validated['reason'],
         ]);
 
         ContactSupport::query()->create([
             'user_id' => $request->user()?->id,
-            'subject' => '[Vendor Enquiry] '.$validated['subject'],
-            'message' => $validated['message'],
+            'subject' => $subject,
+            'message' => $message,
         ]);
 
         return response()->json(['message' => 'Thanks! Your vendor enquiry has been submitted successfully.']);
