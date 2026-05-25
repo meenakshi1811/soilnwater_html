@@ -6,6 +6,17 @@ $primaryImage = is_array($product->images) ? ($product->images[0] ?? null) : nul
 $galleryImages = collect(is_array($product->images) ? $product->images : [])->filter()->values();
 $colorOptions = collect(explode(',', (string) ($product->colors ?? '')))->map(fn ($v) => trim($v))->filter()->values();
 $sizeOptions = collect(explode(',', (string) ($product->sizes ?? '')))->map(fn ($v) => trim($v))->filter()->values();
+$productDetails = collect($product->getAttributes() ?? [])->reject(function ($value, $key) {
+    return in_array($key, ['id','vendor_id','user_id','slug','images','colors','sizes','created_at','updated_at','deleted_at'])
+        || is_null($value)
+        || $value === '';
+})->mapWithKeys(function ($value, $key) {
+    $label = ucwords(str_replace('_', ' ', $key));
+    if (is_bool($value)) {
+        $value = $value ? 'Yes' : 'No';
+    }
+    return [$label => is_scalar($value) ? (string) $value : json_encode($value)];
+});
 $adFrameStyle = function ($ad) {
     $w = (int) ($ad->adSize->width ?? 0);
     $h = (int) ($ad->adSize->height ?? 0);
@@ -25,10 +36,10 @@ $adFrameStyle = function ($ad) {
 
 <div class="container py-2 py-lg-3 product-page-wrap">
     <div class="row gx-4 gy-0 align-items-start">
-        <main class="col-xl-9">
+        <main class="col-xl-10">
             <section class="product-card-pro mb-4">
                 <div class="row g-3 g-lg-4">
-                    <div class="col-lg-8">
+                    <div class="col-lg-7">
                         <div class="product-gallery-layout">
                             <div class="gallery-thumbs">
                                 @foreach($galleryImages->take(5) as $image)
@@ -43,7 +54,7 @@ $adFrameStyle = function ($ad) {
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-4">
+                    <div class="col-lg-5">
                         <p class="vendor-label mb-1">{{ strtoupper($vendor->publicDisplayName()) }}</p>
                         <h2 class="product-title mb-2">{{ $product->name }}</h2>
                         <p class="mb-1"><span class="label-muted">Vendor:</span> {{ $vendor->publicDisplayName() }}</p>
@@ -78,6 +89,19 @@ $adFrameStyle = function ($ad) {
                         </div>
 
                         <button class="btn btn-primary w-100 py-2" data-bs-toggle="modal" data-bs-target="#enquiryModal">Send Inquiry</button>
+
+
+                        <div class="product-details-card mt-3">
+                            <h3 class="h6 mb-3">Product details</h3>
+                            <div class="details-grid">
+                                @foreach($productDetails as $label => $value)
+                                <div class="detail-item">
+                                    <span class="detail-label">{{ $label }}</span>
+                                    <span class="detail-value">{{ $value }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -105,7 +129,7 @@ $adFrameStyle = function ($ad) {
             @endif
 
             @if($railAds->isNotEmpty())
-                <aside class="col-xl-3"><div class="sticky-xl-top ads-rail" style="top: 12px;">
+                <aside class="col-xl-2"><div class="sticky-xl-top ads-rail" style="top: 12px;">
                     @php($sliderAds = $railAds->take(4)->values())
                     @if($sliderAds->count() > 1)
                         <div id="rightAdCarousel0" class="carousel slide mb-3" data-bs-ride="carousel">
@@ -158,9 +182,10 @@ $adFrameStyle = function ($ad) {
 <style>
 .product-page-wrap{--brand:#1d4ed8;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0}
 .product-card-pro{background:#fff;border:1px solid var(--line);border-radius:20px;padding:1.2rem;box-shadow:0 14px 34px rgba(15,23,42,.08)}
+@media (min-width:1200px){.product-card-pro .row{--bs-gutter-x:2rem}}
 .product-gallery-layout{display:grid;grid-template-columns:92px 1fr;gap:1rem}.gallery-thumbs{display:flex;flex-direction:column;gap:.7rem}
 .thumb-btn{border:1px solid #dbe4f2;background:#fff;padding:.2rem;border-radius:12px}.thumb-btn img{height:74px;width:100%;object-fit:cover;border-radius:9px}.thumb-btn.active{border-color:var(--brand);box-shadow:0 0 0 .18rem rgba(37,99,235,.12)}
-.product-main-image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #d7deea;background:#edf2f7;padding:.9rem}.product-main-image{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;min-height:420px;max-height:560px;display:block}
+.product-main-image-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid #d7deea;background:#edf2f7;padding:.9rem}.product-main-image{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px;min-height:460px;max-height:620px;display:block}
 .view-gallery-btn{position:absolute;right:16px;bottom:16px;border:none;background:rgba(15,23,42,.78);color:#fff;border-radius:999px;padding:.45rem .8rem;font-size:.82rem;font-weight:700}
 .modal-main-image{width:100%;max-height:70vh;object-fit:contain;border-radius:10px;background:#f8fafc}
 .modal-gallery-thumbs{display:flex;gap:.6rem;overflow:auto;padding-bottom:.3rem}
@@ -172,8 +197,13 @@ $adFrameStyle = function ($ad) {
 .option-label{font-size:.95rem;color:#374151}.color-chip{height:42px;width:42px;border-radius:50%;border:2px solid #d1d5db;overflow:hidden;padding:0;background:#fff}.color-chip img{width:100%;height:100%;object-fit:cover}.color-chip.active{border-color:#111827}
 .size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem}.size-chip{border:1px solid #cbd5e1;background:#fff;padding:.45rem .3rem;border-radius:8px;font-weight:700;font-size:.82rem}.size-chip.active{background:#020617;color:#fff;border-color:#020617}
 .similar-wrap{border-radius:16px;overflow:hidden;border:1px solid #dbeafe}.similar-card{padding:.75rem;border:1px solid #e2e8f0;border-radius:12px;background:#fff}.similar-card__image{width:84px;height:84px;object-fit:cover;border-radius:10px}.similar-price{color:var(--brand)}
-.ads-rail{max-width:320px;margin-left:auto;position:relative;z-index:2}.ads-rail .ad-link,.ads-rail .carousel-inner{border-radius:10px!important}.ads-rail img{max-height:240px;object-fit:cover}.ads-rail .carousel{position:relative;z-index:2}.ad-stack-item img{max-height:165px}
-@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:80px}.product-main-image{min-height:280px;max-height:360px}.vendor-label{font-size:1.05rem}.product-title{font-size:.98rem}.hero-price{font-size:1.05rem}.ads-rail{max-width:100%;z-index:1}.ad-stack-item img{max-height:240px}}
+.ads-rail{max-width:280px;margin-left:auto;position:relative;z-index:2}.ads-rail .ad-link,.ads-rail .carousel-inner{border-radius:10px!important}.ads-rail img{max-height:240px;object-fit:cover}.ads-rail .carousel{position:relative;z-index:2}.ad-stack-item img{max-height:150px}
+ .product-details-card{margin-top:1rem;padding:1rem;border:1px solid #dbeafe;background:linear-gradient(180deg,#f8fbff 0%,#fff 100%);border-radius:12px}
+.details-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem .9rem}
+.detail-item{padding:.55rem .65rem;background:#fff;border:1px solid #e2e8f0;border-radius:10px;display:flex;flex-direction:column;gap:.2rem}
+.detail-label{font-size:.75rem;font-weight:700;letter-spacing:.02em;color:#64748b;text-transform:uppercase}
+.detail-value{font-size:.88rem;color:#0f172a;word-break:break-word}
+@media (max-width:991.98px){.product-gallery-layout{grid-template-columns:1fr}.gallery-thumbs{flex-direction:row;overflow:auto}.thumb-btn{min-width:80px}.product-main-image{min-height:280px;max-height:360px}.vendor-label{font-size:1.05rem}.product-title{font-size:.98rem}.hero-price{font-size:1.05rem}.ads-rail{max-width:100%;z-index:1}.ad-stack-item img{max-height:240px}.details-grid{grid-template-columns:1fr}}
 </style>
 @endpush
 @push('store_scripts')
