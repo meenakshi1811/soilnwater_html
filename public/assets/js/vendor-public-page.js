@@ -2,6 +2,7 @@
     var sectionIndex = document.querySelectorAll('.vendor-section-block').length;
     var container = document.getElementById('sectionsContainer');
     var template = document.getElementById('sectionTemplate');
+    var sectionTypeSelect = document.getElementById('sectionTypeSelect');
     var slidesList = document.getElementById('bannerSlidesList');
     var thumbsWrap = document.getElementById('bannerThumbs');
     var bannerInput = document.getElementById('bannerSlidesInput');
@@ -9,6 +10,47 @@
     var pendingUploadFiles = [];
     var bannerDeleteBase = publicPageForm?.dataset.bannerDeleteUrl || '/vendor/banner-slides/';
     var activeSectionEditable = null;
+    var activeHeroEditable = null;
+
+    
+    function buildSectionPreset(type, index) {
+        var title = 'Section title';
+        var content = '<p>Write your section content here...</p>';
+
+        if (type === 'image_grid') {
+            title = 'Image Grid Section';
+            content = '<div class="row g-3">' +
+                Array.from({ length: 8 }).map(function (_, i) {
+                    return '<div class="col-6 col-md-3">' +
+                        '<div class="card h-100">' +
+                        '<img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Grid Image ' + (i + 1) + '</text></svg>') + '" class="card-img-top" alt="Grid image ' + (i + 1) + '" data-grid-image-slot="' + (i + 1) + '" style="height:180px;object-fit:cover;">' +
+                        '</div></div>';
+                }).join('') +
+                '</div>';
+        } else if (type === 'text_only') {
+            title = 'Text Section';
+            content = '<h4>Section heading</h4><p>Add your text content here.</p>';
+        } else if (type === 'brochure') {
+            title = 'Brochure Section';
+            content = '<ul><li>Brochure item 1</li><li>Brochure item 2</li></ul><p>Add brochure links or descriptions here.</p>';
+        } else if (type === 'image_text') {
+            title = 'Image + Text Cards';
+            content = '<div class="row g-3">' +
+                Array.from({ length: 4 }).map(function (_, i) {
+                    return '' +
+                        '<div class="col-12 col-md-6 col-lg-3">' +
+                        '<div class="card h-100">' +
+                        '<img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Card Image ' + (i + 1) + '</text></svg>') + '" class="card-img-top" alt="Card image ' + (i + 1) + '" data-card-image-slot="' + (i + 1) + '" style="height:180px;object-fit:cover;">' +
+                        '<div class="card-body">' +
+                        '<h6 class="card-title">Card title ' + (i + 1) + '</h6>' +
+                        '<p class="card-text">Add short description for this card.</p>' +
+                        '</div></div></div>';
+                }).join('') +
+                '</div>';
+        }
+
+        return { title: title, content: content };
+    }
 
     function showToast(type, message) {
         if (window.toastr && typeof window.toastr[type] === 'function') {
@@ -237,6 +279,35 @@
         });
     }
 
+    
+    function setActiveHeroEditable(editable) {
+        if (!editable || !editable.dataset.heroEditable) return;
+
+        document.querySelectorAll('[data-hero-editable]').forEach(function (el) {
+            el.classList.remove('vendor-section-editable-active');
+        });
+
+        activeHeroEditable = editable;
+        editable.classList.add('vendor-section-editable-active');
+
+        var label = document.querySelector('[data-hero-active-label]');
+        if (label) {
+            label.textContent = editable.dataset.heroEditable === 'main' ? 'Styling: Main heading' : 'Styling: Subheading';
+        }
+
+        var colorControl = document.querySelector('[data-hero-style="color"]');
+        var sizeControl = document.querySelector('[data-hero-style="fontSize"]');
+        var boldBtn = document.querySelector('[data-hero-toggle="fontWeight"]');
+
+        if (colorControl) colorControl.value = editable.style.color || '#1f2937';
+        if (sizeControl) sizeControl.value = editable.style.fontSize || '';
+        if (boldBtn) {
+            var isBold = editable.style.fontWeight === '700' || editable.style.fontWeight === 'bold';
+            boldBtn.classList.toggle('active', isBold);
+            boldBtn.setAttribute('aria-pressed', isBold ? 'true' : 'false');
+        }
+    }
+
     function initSectionFields() {
         document.querySelectorAll('[data-section-field][contenteditable="true"]').forEach(hydrateSectionField);
     }
@@ -284,7 +355,12 @@
         slides.forEach(function (slide, idx) {
             slide.classList.toggle('active', idx === index);
         });
-        renderBannerThumbs();
+        document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
     }
 
     function getVisibleSectionBlocks() {
@@ -338,9 +414,127 @@
 
         pendingUploadFiles = [];
         syncBannerInputFiles();
-        renderBannerThumbs();
+        document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
     }
 
+
+    
+    function applySectionTypeLayout(block, sectionType) {
+        if (!block) return;
+        var imageCol = block.querySelector('.js-section-image-col');
+        var textCol = block.querySelector('.vendor-section-title-editor')?.closest('.col-lg-7, .col-lg-12');
+        var typeInput = block.querySelector('[data-section-type-input]');
+
+        if (typeInput) typeInput.value = sectionType || 'image_text';
+
+        var showImage = false;
+        if (imageCol) {
+            imageCol.style.display = showImage ? '' : 'none';
+        }
+        if (textCol) {
+            textCol.classList.remove('col-lg-7', 'col-lg-12');
+            textCol.classList.add(showImage ? 'col-lg-7' : 'col-lg-12');
+        }
+
+        renderCardImageUploadTools(block);
+        renderGridImageUploadTools(block);
+    }
+
+    
+    function renderCardImageUploadTools(block) {
+        if (!block) return;
+        var toolsWrap = block.querySelector('.js-card-image-tools');
+        var sectionType = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+
+        if (sectionType !== 'image_text') {
+            if (toolsWrap) toolsWrap.remove();
+            return;
+        }
+
+        if (!toolsWrap) {
+            toolsWrap = document.createElement('div');
+            toolsWrap.className = 'js-card-image-tools mt-3 border rounded p-3 bg-light';
+            toolsWrap.innerHTML = '<p class="small fw-semibold mb-2">Card images</p><div class="row g-2">' +
+                [1,2,3,4].map(function (i) {
+                    return '<div class="col-md-3 col-6">' +
+                        '<label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload card ' + i +
+                        '<input type="file" accept="image/*" class="d-none js-card-image-input" data-card-image-index="' + i + '"></label>' +
+                        '<small class="text-muted d-block">Change image</small>' +
+                    '</div>';
+                }).join('') + '</div>';
+            var stylePanel = block.querySelector('.vendor-section-style-panel');
+            if (stylePanel) {
+                stylePanel.insertAdjacentElement('beforebegin', toolsWrap);
+            }
+        }
+    }
+
+    function updateCardImageInSection(block, cardIndex, file) {
+        if (!block || !cardIndex || !file) return;
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        if (!contentEditable) return;
+
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var img = contentEditable.querySelector('[data-card-image-slot="' + cardIndex + '"]');
+            if (img) {
+                img.src = ev.target.result;
+                img.style.height = '180px';
+                img.style.objectFit = 'cover';
+                syncEditable(contentEditable);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    
+    function renderGridImageUploadTools(block) {
+        if (!block) return;
+        var toolsWrap = block.querySelector('.js-grid-image-tools');
+        var sectionType = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+
+        if (sectionType !== 'image_grid') {
+            if (toolsWrap) toolsWrap.remove();
+            return;
+        }
+
+        if (!toolsWrap) {
+            toolsWrap = document.createElement('div');
+            toolsWrap.className = 'js-grid-image-tools mt-3 border rounded p-3 bg-light';
+            toolsWrap.innerHTML = '<p class="small fw-semibold mb-2">Grid images</p><div class="row g-2">' +
+                Array.from({ length: 8 }).map(function (_, i) {
+                    var n = i + 1;
+                    return '<div class="col-md-3 col-6">' +
+                        '<label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload image ' + n +
+                        '<input type="file" accept="image/*" class="d-none js-grid-image-input" data-grid-image-index="' + n + '"></label>' +
+                    '</div>';
+                }).join('') + '</div>';
+            var stylePanel = block.querySelector('.vendor-section-style-panel');
+            if (stylePanel) stylePanel.insertAdjacentElement('beforebegin', toolsWrap);
+        }
+    }
+
+    function updateGridImageInSection(block, imageIndex, file) {
+        if (!block || !imageIndex || !file) return;
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        if (!contentEditable) return;
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var img = contentEditable.querySelector('[data-grid-image-slot="' + imageIndex + '"]');
+            if (img) {
+                img.src = ev.target.result;
+                img.style.height = '180px';
+                img.style.objectFit = 'cover';
+                syncEditable(contentEditable);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
 
     function syncSocialLinksPreview() {
         var linksVisible = 0;
@@ -394,10 +588,32 @@
 
     document.getElementById('addSectionBtn')?.addEventListener('click', function () {
         if (!template || !container) return;
-        var html = template.innerHTML.replace(/__INDEX__/g, sectionIndex++);
+        var idx = sectionIndex++;
+        var html = template.innerHTML.replace(/__INDEX__/g, idx);
         var wrap = document.createElement('div');
         wrap.innerHTML = html.trim();
         var block = wrap.firstElementChild;
+
+        var sectionType = sectionTypeSelect?.value || 'image_text';
+        var preset = buildSectionPreset(sectionType, idx);
+        var titleEditable = block.querySelector('[data-section-field="title"]');
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        var titleInput = block.querySelector('[data-sync-input="section-title-' + idx + '"]');
+        var contentInput = block.querySelector('[data-sync-input="section-content-' + idx + '"]');
+
+        if (titleEditable) titleEditable.innerHTML = preset.title;
+        if (contentEditable) contentEditable.innerHTML = preset.content;
+        if (titleInput) titleInput.value = preset.title;
+        if (contentInput) contentInput.value = preset.content;
+
+        applySectionTypeLayout(block, sectionType);
+
+        var badge = block.querySelector('.badge');
+        if (badge) {
+            var typeLabel = sectionType.replace('_', ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+            badge.innerHTML = '<i class="fa-solid fa-layer-group me-1"></i> ' + typeLabel;
+        }
+
         container.appendChild(block);
         block.querySelectorAll('[data-section-field][contenteditable="true"]').forEach(hydrateSectionField);
     });
@@ -405,6 +621,9 @@
     document.addEventListener('focusin', function (e) {
         if (e.target.matches('[data-section-field][contenteditable="true"]')) {
             setActiveSectionEditable(e.target);
+        }
+        if (e.target.matches('[data-hero-editable][contenteditable="true"]')) {
+            setActiveHeroEditable(e.target);
         }
     });
 
@@ -414,6 +633,19 @@
     });
 
     document.addEventListener('change', function (e) {
+        if (e.target.matches('[data-hero-style]')) {
+            if (!activeHeroEditable) {
+                showToast('warning', 'Click heading or subheading first.');
+                return;
+            }
+            var prop = e.target.dataset.heroStyle;
+            activeHeroEditable.style[prop] = e.target.value;
+            var syncTarget = activeHeroEditable.dataset.syncTarget;
+            syncStyleInput(syncTarget, prop, e.target.value);
+            syncEditable(activeHeroEditable);
+            return;
+        }
+
         if (e.target.matches('[data-style-target][data-style-prop]')) {
             var els = getEditables(e.target.dataset.styleTarget);
             if (!els.length) return;
@@ -439,6 +671,20 @@
                 return;
             }
             applySectionFontSize(sectionEditable, e.target.value);
+        }
+
+        if (e.target.matches('.js-grid-image-input')) {
+            var gfile = e.target.files && e.target.files[0];
+            var gblock = e.target.closest('.vendor-section-block');
+            var gidx = e.target.dataset.gridImageIndex;
+            if (gfile) updateGridImageInSection(gblock, gidx, gfile);
+        }
+
+        if (e.target.matches('.js-card-image-input')) {
+            var file = e.target.files && e.target.files[0];
+            var block = e.target.closest('.vendor-section-block');
+            var idx = e.target.dataset.cardImageIndex;
+            if (file) updateCardImageInSection(block, idx, file);
         }
 
         if (e.target.matches('.js-section-image-input')) {
@@ -497,6 +743,23 @@
             syncEditable(sectionEditable);
         }
 
+        var heroToggleBtn = e.target.closest('[data-hero-toggle]');
+        if (heroToggleBtn) {
+            if (!activeHeroEditable) {
+                showToast('warning', 'Click heading or subheading first.');
+                return;
+            }
+            var heroProp = heroToggleBtn.dataset.heroToggle;
+            var heroActiveValue = heroToggleBtn.dataset.heroToggleValue;
+            var next = activeHeroEditable.style[heroProp] === heroActiveValue ? '' : heroActiveValue;
+            activeHeroEditable.style[heroProp] = next;
+            syncStyleInput(activeHeroEditable.dataset.syncTarget, heroProp, next);
+            syncEditable(activeHeroEditable);
+            heroToggleBtn.classList.toggle('active', next === heroActiveValue);
+            heroToggleBtn.setAttribute('aria-pressed', next === heroActiveValue ? 'true' : 'false');
+            return;
+        }
+
         var styleBtn = e.target.closest('[data-style-toggle]');
         if (styleBtn) {
             var editEls = getEditables(styleBtn.dataset.styleTarget);
@@ -529,7 +792,12 @@
                 }).then(function () {
                     slide.remove();
                     if (!slidesList.querySelector('.vendor-banner-slide.active')) setActiveSlide(0);
-                    renderBannerThumbs();
+                    document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
                 });
             } else if (slide.dataset.tempId) {
                 pendingUploadFiles = pendingUploadFiles.filter(function (entry) { return entry.id !== slide.dataset.tempId; });
@@ -537,7 +805,12 @@
                 slide.remove();
                 syncBannerInputFiles();
                 if (!slidesList.querySelector('.vendor-banner-slide.active')) setActiveSlide(0);
-                renderBannerThumbs();
+                document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
             }
             return;
         }
@@ -559,7 +832,12 @@
             }).then(function () {
                 btn.closest('.vendor-banner-slide')?.remove();
                 if (!slidesList.querySelector('.vendor-banner-slide.active')) setActiveSlide(0);
-                renderBannerThumbs();
+                document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
             });
         }
     });
@@ -582,11 +860,22 @@
 
         syncBannerInputFiles();
         setActiveSlide(0);
-        renderBannerThumbs();
+        document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
+    });
+
+    document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
     });
 
     renderBannerThumbs();
     initHeroStyleControls();
+    setActiveHeroEditable(document.querySelector('[data-hero-editable="main"]'));
     initSectionFields();
     syncSocialLinksPreview();
 

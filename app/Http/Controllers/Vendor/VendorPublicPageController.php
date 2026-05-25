@@ -48,7 +48,7 @@ class VendorPublicPageController extends Controller
             'sections' => ['nullable', 'array'],
             'sections.*.id' => ['nullable', 'integer'],
             'sections.*.title' => ['nullable', 'string', 'max:2000'],
-            'sections.*.content' => ['nullable', 'string', 'max:20000'],
+            'sections.*.content' => ['nullable', 'string'],
             'sections.*.image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'sections.*._delete' => ['nullable', 'boolean'],
         ]);
