@@ -213,7 +213,7 @@ class OfferPageController extends Controller
     {
         $query = Vendor::query()
             ->where('status', 'approved')
-            ->with(['products:id,vendor_id,latitude,longitude', 'branches:id,vendor_id,address,city,state,is_primary'])
+            ->with(['products:id,vendor_id,name,images,latitude,longitude', 'branches:id,vendor_id,address,city,state,is_primary', 'bannerSlides:id,vendor_id,image_path,sort_order'])
             ->withCount('products');
 
         if (is_numeric($lat) && is_numeric($lng)) {
