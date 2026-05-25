@@ -52,6 +52,17 @@
         return { title: title, content: content };
     }
 
+    function cleanupDanglingDivText(editable) {
+        if (!editable) return;
+        Array.from(editable.childNodes || []).forEach(function (node) {
+            if (node.nodeType !== Node.TEXT_NODE) return;
+            var value = (node.textContent || '').trim().toLowerCase();
+            if (value === 'div>' || value === '/div>') {
+                node.remove();
+            }
+        });
+    }
+
     function showToast(type, message) {
         if (window.toastr && typeof window.toastr[type] === 'function') {
             window.toastr[type](message);
@@ -78,6 +89,9 @@
     function syncEditable(target) {
         var key = target.dataset.syncTarget;
         if (!key) return;
+        if (target.dataset.sectionField === 'content') {
+            cleanupDanglingDivText(target);
+        }
         var input = document.querySelector('[data-sync-input="' + key + '"]');
         if (!input) return;
 
@@ -120,6 +134,7 @@
         var style = block.getAttribute('style');
         if (style) editable.setAttribute('style', style);
         editable.innerHTML = block.innerHTML;
+        cleanupDanglingDivText(editable);
     }
 
     function getEditables(key) {
@@ -422,6 +437,22 @@
     renderBannerThumbs();
     }
 
+    function updateGridImageInSection(block, imageIndex, file) {
+        if (!block || !imageIndex || !file) return;
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        if (!contentEditable) return;
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var img = contentEditable.querySelector('[data-grid-image-slot="' + imageIndex + '"]');
+            if (img) {
+                img.src = ev.target.result;
+                img.style.height = '180px';
+                img.style.objectFit = 'cover';
+                syncEditable(contentEditable);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
 
     
     function applySectionTypeLayout(block, sectionType) {
@@ -603,6 +634,7 @@
 
         if (titleEditable) titleEditable.innerHTML = preset.title;
         if (contentEditable) contentEditable.innerHTML = preset.content;
+        cleanupDanglingDivText(contentEditable);
         if (titleInput) titleInput.value = preset.title;
         if (contentInput) contentInput.value = preset.content;
 
