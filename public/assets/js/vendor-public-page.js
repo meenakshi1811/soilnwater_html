@@ -37,7 +37,7 @@
                     return '' +
                         '<div class="col-12 col-md-6 col-lg-3">' +
                         '<div class="card h-100">' +
-                        '<img src="https://via.placeholder.com/600x360/e8ecef/6b7280?text=Card+' + (i + 1) + '" class="card-img-top" alt="Card image ' + (i + 1) + '" data-card-image-slot="' + (i + 1) + '">' +
+                        '<img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Card Image ' + (i + 1) + '</text></svg>') + '" class="card-img-top" alt="Card image ' + (i + 1) + '" data-card-image-slot="' + (i + 1) + '" style="height:180px;object-fit:cover;">' +
                         '<div class="card-body">' +
                         '<h6 class="card-title">Card title ' + (i + 1) + '</h6>' +
                         '<p class="card-text">Add short description for this card.</p>' +
@@ -480,6 +480,8 @@
             var img = contentEditable.querySelector('[data-card-image-slot="' + cardIndex + '"]');
             if (img) {
                 img.src = ev.target.result;
+                img.style.height = '180px';
+                img.style.objectFit = 'cover';
                 syncEditable(contentEditable);
             }
         };
