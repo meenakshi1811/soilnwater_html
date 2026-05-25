@@ -1284,7 +1284,7 @@
       </div>
     @endif
 
-    @if(!empty($sectionToggles['vendor_enquiry']) && $sectionToggles['vendor_enquiry'])
+    @if(data_get($sectionToggles, 'vendor_enquiry', true))
       <div class="sec vendor-enquiry-section">
         <div class="vendor-enquiry-card">
           <div class="vendor-enquiry-copy">
