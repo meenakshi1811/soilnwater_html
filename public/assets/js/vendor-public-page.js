@@ -429,7 +429,7 @@
 
         if (typeInput) typeInput.value = sectionType || 'image_text';
 
-        var showImage = sectionType === 'image_text' || sectionType === 'image_grid';
+        var showImage = sectionType === 'image_grid';
         if (imageCol) {
             imageCol.style.display = showImage ? '' : 'none';
         }
