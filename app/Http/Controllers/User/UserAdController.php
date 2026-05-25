@@ -8,6 +8,9 @@ use App\Models\Category;
 use App\Models\AdSize;
 use App\Models\UserAd;
 use App\Models\ContactSupport;
+use App\Models\HomepageSetting;
+use App\Models\Vendor;
+use App\Models\VendorProductInquiry;
 use App\Support\AdSizes;
 use App\Support\ModulePermissions;
 use Illuminate\Http\JsonResponse;
@@ -117,6 +120,74 @@ class UserAdController extends Controller
         return response()->json(['message' => 'Your customization request has been sent to admin successfully.']);
     }
 
+
+    public function vendorEnquiry(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+            'phone_number' => ['required', 'string', 'max:20'],
+            'preferred_contact' => ['required', 'in:text,whatsapp,call,email'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'subcategory_id' => ['required', 'exists:categories,id'],
+            'reason' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $category = Category::query()->find($validated['category_id']);
+        $subcategory = Category::query()->find($validated['subcategory_id']);
+        if (! $category || ! $subcategory || (int) $subcategory->parent_id !== (int) $category->id) {
+            return response()->json(['message' => 'Please select a valid category and subcategory combination.'], 422);
+        }
+
+        $subject = '[Vendor Enquiry] '.($category->name ?? 'General').' - '.($subcategory->name ?? 'Subcategory');
+        $message = implode("\n", [
+            'Email: '.$validated['email'],
+            'Phone Number: '.$validated['phone_number'],
+            'Preferred Contact: '.ucfirst($validated['preferred_contact']),
+            'Category: '.$category->name,
+            'Sub Category: '.$subcategory->name,
+            'Requirement Details: '.$validated['reason'],
+        ]);
+
+        ContactSupport::query()->create([
+            'user_id' => $request->user()?->id,
+            'subject' => $subject,
+            'message' => $message,
+        ]);
+
+        $sendTo = HomepageSetting::query()->find(1)?->vendor_enquiry_send_to ?? 'all';
+        $vendorsQuery = Vendor::query()
+            ->where('status', 'approved')
+            ->whereNotNull('email')
+            ->where('email', '!=', '');
+
+        if ($sendTo === 'premium') {
+            $vendorsQuery->where('is_premium', true);
+        } elseif ($sendTo === 'non_premium') {
+            $vendorsQuery->where('is_premium', false);
+        }
+
+        $vendors = $vendorsQuery->get();
+
+        foreach ($vendors as $vendor) {
+            $inquiry = VendorProductInquiry::query()->create([
+                'vendor_id' => $vendor->id,
+                'vendor_product_id' => null,
+                'user_id' => $request->user()?->id,
+                'email' => $validated['email'],
+                'phone_number' => $validated['phone_number'],
+                'preferred_contact' => $validated['preferred_contact'],
+                'reason' => $validated['reason'],
+            ]);
+
+            $product = null;
+            $body = view('emails.vendor.new-inquiry', compact('inquiry', 'vendor', 'product'))->render();
+            Mail::send([], [], function ($email) use ($vendor, $body) {
+                $email->to($vendor->email)->subject('New product inquiry')->html($body);
+            });
+        }
+
+        return response()->json(['message' => 'Thanks! Your vendor enquiry has been submitted successfully.']);
+    }
 
     public function contactSupport(Request $request): JsonResponse
     {
