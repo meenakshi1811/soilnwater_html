@@ -13,6 +13,7 @@ class HomepageSetting extends Model
         'hero_button_text',
         'hero_button_link',
         'section_toggles',
+        'vendor_enquiry_send_to',
     ];
 
     protected $casts = [
