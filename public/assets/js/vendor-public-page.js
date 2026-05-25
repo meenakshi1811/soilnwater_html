@@ -341,7 +341,12 @@
         slides.forEach(function (slide, idx) {
             slide.classList.toggle('active', idx === index);
         });
-        renderBannerThumbs();
+        document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
     }
 
     function getVisibleSectionBlocks() {
@@ -395,9 +400,33 @@
 
         pendingUploadFiles = [];
         syncBannerInputFiles();
-        renderBannerThumbs();
+        document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
     }
 
+
+    
+    function applySectionTypeLayout(block, sectionType) {
+        if (!block) return;
+        var imageCol = block.querySelector('.js-section-image-col');
+        var textCol = block.querySelector('.vendor-section-title-editor')?.closest('.col-lg-7, .col-lg-12');
+        var typeInput = block.querySelector('[data-section-type-input]');
+
+        if (typeInput) typeInput.value = sectionType || 'image_text';
+
+        var showImage = sectionType === 'image_text';
+        if (imageCol) {
+            imageCol.style.display = showImage ? '' : 'none';
+        }
+        if (textCol) {
+            textCol.classList.remove('col-lg-7', 'col-lg-12');
+            textCol.classList.add(showImage ? 'col-lg-7' : 'col-lg-12');
+        }
+    }
 
     function syncSocialLinksPreview() {
         var linksVisible = 0;
@@ -468,6 +497,8 @@
         if (contentEditable) contentEditable.innerHTML = preset.content;
         if (titleInput) titleInput.value = preset.title;
         if (contentInput) contentInput.value = preset.content;
+
+        applySectionTypeLayout(block, sectionType);
 
         var badge = block.querySelector('.badge');
         if (badge) {
@@ -639,7 +670,12 @@
                 }).then(function () {
                     slide.remove();
                     if (!slidesList.querySelector('.vendor-banner-slide.active')) setActiveSlide(0);
-                    renderBannerThumbs();
+                    document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
                 });
             } else if (slide.dataset.tempId) {
                 pendingUploadFiles = pendingUploadFiles.filter(function (entry) { return entry.id !== slide.dataset.tempId; });
@@ -647,7 +683,12 @@
                 slide.remove();
                 syncBannerInputFiles();
                 if (!slidesList.querySelector('.vendor-banner-slide.active')) setActiveSlide(0);
-                renderBannerThumbs();
+                document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
             }
             return;
         }
@@ -669,7 +710,12 @@
             }).then(function () {
                 btn.closest('.vendor-banner-slide')?.remove();
                 if (!slidesList.querySelector('.vendor-banner-slide.active')) setActiveSlide(0);
-                renderBannerThumbs();
+                document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
             });
         }
     });
@@ -692,7 +738,17 @@
 
         syncBannerInputFiles();
         setActiveSlide(0);
-        renderBannerThumbs();
+        document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
+    });
+
+    renderBannerThumbs();
+    });
+
+    document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        applySectionTypeLayout(block, type);
     });
 
     renderBannerThumbs();
