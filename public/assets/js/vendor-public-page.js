@@ -2,6 +2,7 @@
     var sectionIndex = document.querySelectorAll('.vendor-section-block').length;
     var container = document.getElementById('sectionsContainer');
     var template = document.getElementById('sectionTemplate');
+    var sectionTypeSelect = document.getElementById('sectionTypeSelect');
     var slidesList = document.getElementById('bannerSlidesList');
     var thumbsWrap = document.getElementById('bannerThumbs');
     var bannerInput = document.getElementById('bannerSlidesInput');
@@ -9,6 +10,33 @@
     var pendingUploadFiles = [];
     var bannerDeleteBase = publicPageForm?.dataset.bannerDeleteUrl || '/vendor/banner-slides/';
     var activeSectionEditable = null;
+    var activeHeroEditable = null;
+
+    
+    function buildSectionPreset(type, index) {
+        var title = 'Section title';
+        var content = '<p>Write your section content here...</p>';
+
+        if (type === 'image_grid') {
+            title = 'Image Grid Section';
+            content = '<div class="row g-2">' +
+                Array.from({ length: 8 }).map(function (_, i) {
+                    return '<div class="col-6 col-md-3"><div class="border rounded p-2 text-center text-muted small">Image ' + (i + 1) + '</div></div>';
+                }).join('') +
+                '</div>';
+        } else if (type === 'text_only') {
+            title = 'Text Section';
+            content = '<h4>Section heading</h4><p>Add your text content here.</p>';
+        } else if (type === 'brochure') {
+            title = 'Brochure Section';
+            content = '<ul><li>Brochure item 1</li><li>Brochure item 2</li></ul><p>Add brochure links or descriptions here.</p>';
+        } else if (type === 'image_text') {
+            title = 'Image + Text Card';
+            content = '<p>Add supporting text for this image card section.</p>';
+        }
+
+        return { title: title, content: content };
+    }
 
     function showToast(type, message) {
         if (window.toastr && typeof window.toastr[type] === 'function') {
@@ -237,6 +265,35 @@
         });
     }
 
+    
+    function setActiveHeroEditable(editable) {
+        if (!editable || !editable.dataset.heroEditable) return;
+
+        document.querySelectorAll('[data-hero-editable]').forEach(function (el) {
+            el.classList.remove('vendor-section-editable-active');
+        });
+
+        activeHeroEditable = editable;
+        editable.classList.add('vendor-section-editable-active');
+
+        var label = document.querySelector('[data-hero-active-label]');
+        if (label) {
+            label.textContent = editable.dataset.heroEditable === 'main' ? 'Styling: Main heading' : 'Styling: Subheading';
+        }
+
+        var colorControl = document.querySelector('[data-hero-style="color"]');
+        var sizeControl = document.querySelector('[data-hero-style="fontSize"]');
+        var boldBtn = document.querySelector('[data-hero-toggle="fontWeight"]');
+
+        if (colorControl) colorControl.value = editable.style.color || '#1f2937';
+        if (sizeControl) sizeControl.value = editable.style.fontSize || '';
+        if (boldBtn) {
+            var isBold = editable.style.fontWeight === '700' || editable.style.fontWeight === 'bold';
+            boldBtn.classList.toggle('active', isBold);
+            boldBtn.setAttribute('aria-pressed', isBold ? 'true' : 'false');
+        }
+    }
+
     function initSectionFields() {
         document.querySelectorAll('[data-section-field][contenteditable="true"]').forEach(hydrateSectionField);
     }
@@ -394,10 +451,30 @@
 
     document.getElementById('addSectionBtn')?.addEventListener('click', function () {
         if (!template || !container) return;
-        var html = template.innerHTML.replace(/__INDEX__/g, sectionIndex++);
+        var idx = sectionIndex++;
+        var html = template.innerHTML.replace(/__INDEX__/g, idx);
         var wrap = document.createElement('div');
         wrap.innerHTML = html.trim();
         var block = wrap.firstElementChild;
+
+        var sectionType = sectionTypeSelect?.value || 'image_text';
+        var preset = buildSectionPreset(sectionType, idx);
+        var titleEditable = block.querySelector('[data-section-field="title"]');
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        var titleInput = block.querySelector('[data-sync-input="section-title-' + idx + '"]');
+        var contentInput = block.querySelector('[data-sync-input="section-content-' + idx + '"]');
+
+        if (titleEditable) titleEditable.innerHTML = preset.title;
+        if (contentEditable) contentEditable.innerHTML = preset.content;
+        if (titleInput) titleInput.value = preset.title;
+        if (contentInput) contentInput.value = preset.content;
+
+        var badge = block.querySelector('.badge');
+        if (badge) {
+            var typeLabel = sectionType.replace('_', ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+            badge.innerHTML = '<i class="fa-solid fa-layer-group me-1"></i> ' + typeLabel;
+        }
+
         container.appendChild(block);
         block.querySelectorAll('[data-section-field][contenteditable="true"]').forEach(hydrateSectionField);
     });
@@ -405,6 +482,9 @@
     document.addEventListener('focusin', function (e) {
         if (e.target.matches('[data-section-field][contenteditable="true"]')) {
             setActiveSectionEditable(e.target);
+        }
+        if (e.target.matches('[data-hero-editable][contenteditable="true"]')) {
+            setActiveHeroEditable(e.target);
         }
     });
 
@@ -414,6 +494,19 @@
     });
 
     document.addEventListener('change', function (e) {
+        if (e.target.matches('[data-hero-style]')) {
+            if (!activeHeroEditable) {
+                showToast('warning', 'Click heading or subheading first.');
+                return;
+            }
+            var prop = e.target.dataset.heroStyle;
+            activeHeroEditable.style[prop] = e.target.value;
+            var syncTarget = activeHeroEditable.dataset.syncTarget;
+            syncStyleInput(syncTarget, prop, e.target.value);
+            syncEditable(activeHeroEditable);
+            return;
+        }
+
         if (e.target.matches('[data-style-target][data-style-prop]')) {
             var els = getEditables(e.target.dataset.styleTarget);
             if (!els.length) return;
@@ -495,6 +588,23 @@
             sectionEditable.focus();
             document.execCommand(sectionCmdBtn.dataset.sectionCommand, false, null);
             syncEditable(sectionEditable);
+        }
+
+        var heroToggleBtn = e.target.closest('[data-hero-toggle]');
+        if (heroToggleBtn) {
+            if (!activeHeroEditable) {
+                showToast('warning', 'Click heading or subheading first.');
+                return;
+            }
+            var heroProp = heroToggleBtn.dataset.heroToggle;
+            var heroActiveValue = heroToggleBtn.dataset.heroToggleValue;
+            var next = activeHeroEditable.style[heroProp] === heroActiveValue ? '' : heroActiveValue;
+            activeHeroEditable.style[heroProp] = next;
+            syncStyleInput(activeHeroEditable.dataset.syncTarget, heroProp, next);
+            syncEditable(activeHeroEditable);
+            heroToggleBtn.classList.toggle('active', next === heroActiveValue);
+            heroToggleBtn.setAttribute('aria-pressed', next === heroActiveValue ? 'true' : 'false');
+            return;
         }
 
         var styleBtn = e.target.closest('[data-style-toggle]');
@@ -587,6 +697,7 @@
 
     renderBannerThumbs();
     initHeroStyleControls();
+    setActiveHeroEditable(document.querySelector('[data-hero-editable="main"]'));
     initSectionFields();
     syncSocialLinksPreview();
 
