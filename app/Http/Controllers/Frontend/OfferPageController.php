@@ -88,6 +88,12 @@ class OfferPageController extends Controller
             'buildersDevelopersAds' => $frontPageAds->where('size_type', 'builders_developers_ad')->values(),
             'belowBuildersAds' => $frontPageAds->where('size_type', 'below_builders_ad')->values(),
             'topVendors' => $this->topVendorsQuery($lat, $lng)->limit(12)->get(),
+            'vendorEnquiryCategories' => Category::query()
+                ->whereNull('parent_id')
+                ->whereJsonContains('modules', 'enquiry')
+                ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'hasLocation' => is_numeric($lat) && is_numeric($lng),
             'homepageSetting' => $homepageSetting,
         ]);
