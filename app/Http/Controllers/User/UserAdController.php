@@ -118,6 +118,22 @@ class UserAdController extends Controller
     }
 
 
+    public function vendorEnquiry(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'subject' => ['required', 'string', 'max:150'],
+            'message' => ['required', 'string', 'max:2000'],
+        ]);
+
+        ContactSupport::query()->create([
+            'user_id' => $request->user()?->id,
+            'subject' => '[Vendor Enquiry] '.$validated['subject'],
+            'message' => $validated['message'],
+        ]);
+
+        return response()->json(['message' => 'Thanks! Your vendor enquiry has been submitted successfully.']);
+    }
+
     public function contactSupport(Request $request): JsonResponse
     {
         $validated = $request->validate([
