@@ -850,3 +850,20 @@
         width: 100%;
     }
 }
+
+.vendor-about-page-hero {
+    background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
+    border-top: 1px solid #ffe2c2;
+    border-bottom: 1px solid #ffe2c2;
+    padding: 2.5rem 0;
+}
+
+.vendor-about-page-card {
+    max-width: 980px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: clamp(1rem, 2.5vw, 2rem);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
