@@ -670,6 +670,36 @@
       </div>
     </div>
 
+
+    <div class="modal fade" id="vendorEnquiryModal" tabindex="-1" aria-labelledby="vendorEnquiryModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content vendor-enquiry-modal-content">
+          <div class="modal-header border-0 pb-2">
+            <h2 class="modal-title fs-5" id="vendorEnquiryModalLabel">Vendor Enquiry</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body pt-0">
+            <form id="vendorEnquiryForm">
+              @csrf
+              <div class="mb-3">
+                <label class="form-label" for="vendorEnquirySubject">Subject</label>
+                <input type="text" class="form-control" id="vendorEnquirySubject" name="subject" maxlength="150" placeholder="I am looking for a vendor for..." required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="vendorEnquiryMessage">Requirement Details</label>
+                <textarea class="form-control" id="vendorEnquiryMessage" name="message" rows="4" maxlength="2000" placeholder="Please share your requirement, location and preferred timeline." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary w-100" id="vendorEnquirySubmitBtn">
+                <span class="js-vendor-enquiry-btn-text">Send Enquiry</span>
+                <span class="spinner-border spinner-border-sm ms-2 d-none js-vendor-enquiry-btn-loader" role="status" aria-hidden="true"></span>
+                <span class="ms-1 d-none js-vendor-enquiry-btn-sending">Sending...</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -1213,6 +1243,20 @@
       </div>
     @endif
 
+
+    <div class="sec vendor-enquiry-section">
+      <div class="vendor-enquiry-card">
+        <div class="vendor-enquiry-copy">
+          <span class="vendor-enquiry-pill"><i class="fa-solid fa-circle-question"></i> Vendor Enquiry</span>
+          <h3>Need help from a vendor?</h3>
+          <p>Share your requirement and our team will connect you with the right verified vendor.</p>
+        </div>
+        <button type="button" class="btn-yellow vendor-enquiry-btn" data-bs-toggle="modal" data-bs-target="#vendorEnquiryModal">
+          Submit Enquiry
+        </button>
+      </div>
+    </div>
+
     <!-- Local Sellers CTA -->
     <div class="seller-highlight seller-highlight-redesign">
       <div class="seller-highlight-info">
@@ -1256,6 +1300,7 @@
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
   .offer-details-modal .modal-content {
     border: 0;
@@ -1309,7 +1354,78 @@
   .offer-coupon-wrap .offer-coupon-card .card-body {
     padding: .7rem .9rem .85rem;
   }
+
+  .vendor-enquiry-card{display:flex;justify-content:space-between;align-items:center;gap:1rem;background:linear-gradient(135deg,#f0f7ff,#ffffff);border:1px solid #dcecff;border-radius:16px;padding:1.2rem 1.3rem;box-shadow:0 8px 20px rgba(33,102,171,.08)}
+  .vendor-enquiry-copy h3{margin:0 0 .4rem;color:#1a3a5c;font-size:1.3rem;font-weight:800}
+  .vendor-enquiry-copy p{margin:0;color:#5d6b82}
+  .vendor-enquiry-pill{display:inline-flex;align-items:center;gap:.35rem;background:#e8f2ff;color:#1e4b8f;border-radius:999px;padding:.3rem .7rem;font-size:.78rem;font-weight:700;margin-bottom:.55rem}
+  .vendor-enquiry-btn{white-space:nowrap}
+  .vendor-enquiry-modal-content{border-radius:14px;border:0;box-shadow:0 18px 44px rgba(26,58,92,.2)}
+  @media (max-width: 767px){.vendor-enquiry-card{flex-direction:column;align-items:flex-start}.vendor-enquiry-btn{width:100%}}
+
 </style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('vendorEnquiryForm');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const submitBtn = document.getElementById('vendorEnquirySubmitBtn');
+      const loader = submitBtn?.querySelector('.js-vendor-enquiry-btn-loader');
+      const sending = submitBtn?.querySelector('.js-vendor-enquiry-btn-sending');
+      const btnText = submitBtn?.querySelector('.js-vendor-enquiry-btn-text');
+
+      const showToast = (type, message) => {
+        if (window.toastr && typeof window.toastr[type] === 'function') {
+          window.toastr.options = { closeButton: true, progressBar: true, timeOut: 3500 };
+          window.toastr[type](message);
+        } else {
+          alert(message);
+        }
+      };
+
+      submitBtn?.setAttribute('disabled', 'disabled');
+      loader?.classList.remove('d-none');
+      sending?.classList.remove('d-none');
+      btnText?.classList.add('d-none');
+
+      try {
+        const response = await fetch("{{ route('frontend.vendor-enquiry') }}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
+          },
+          body: JSON.stringify({
+            subject: form.querySelector('#vendorEnquirySubject').value,
+            message: form.querySelector('#vendorEnquiryMessage').value,
+          }),
+        });
+
+        const data = await response.json();
+        showToast(response.ok ? 'success' : 'error', data.message || (response.ok ? 'Enquiry sent successfully.' : 'Unable to send enquiry.'));
+
+        if (response.ok) {
+          form.reset();
+          bootstrap.Modal.getOrCreateInstance(document.getElementById('vendorEnquiryModal')).hide();
+        }
+      } catch (error) {
+        showToast('error', 'Unable to send enquiry. Please try again.');
+      } finally {
+        submitBtn?.removeAttribute('disabled');
+        loader?.classList.add('d-none');
+        sending?.classList.add('d-none');
+        btnText?.classList.remove('d-none');
+      }
+    });
+  });
+</script>
+
 @endpush
 
 @push('scripts')
