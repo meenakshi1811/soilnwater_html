@@ -124,9 +124,6 @@
 
                 <div class="hero-overlay">
                     <div class="container">
-                        <p class="text-white-50 small mb-1 hero-text-bottom-note">Click text to edit</p>
-                        <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
-                        <p class="lead mb-3 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
                         <label class="btn btn-warning btn-sm fw-bold mb-0">
                             <i class="fa-solid fa-upload me-1"></i> Upload banner images
                             <input type="file" name="banner_slides[]" class="d-none" accept="image/*" multiple id="bannerSlidesInput">
@@ -140,6 +137,18 @@
         <div class="vendor-banner-thumbs-wrap mb-4">
             <div class="small text-muted mb-2"><i class="fa-solid fa-images me-1"></i> Banner thumbnails — click to preview, × to remove</div>
             <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
+        </div>
+
+        <div class="vendor-form-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="mb-0">Hero heading text</h5>
+                    <p class="text-muted small mb-0">This text will appear below the banner thumbnails and on the frontend as a separate section.</p>
+                </div>
+            </div>
+            <p class="text-muted small mb-1">Click text to edit</p>
+            <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
+            <p class="lead mb-0 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
         </div>
 
         <div class="vendor-form-card mb-4">

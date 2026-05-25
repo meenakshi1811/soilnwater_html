@@ -120,19 +120,21 @@
 }
 
 
-.vendor-store-hero .hero-overlay .container {
-    width: 100%;
-    padding-bottom: 1.75rem;
-}
-
-.vendor-store-hero .hero-text-bottom-note {
-    margin-bottom: 0.35rem;
-}
-
 .vendor-store-hero h1 {
     font-size: clamp(1.75rem, 4vw, 2.75rem);
     font-weight: 800;
     text-transform: uppercase;
+}
+
+
+.vendor-hero-text-section {
+    background: #fff;
+    color: #1b2b44;
+    padding: 1.5rem 0 2rem;
+}
+
+.vendor-hero-text-section h1 {
+    margin-bottom: 0.75rem;
 }
 
 .vendor-store-trust {
