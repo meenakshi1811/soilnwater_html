@@ -37,7 +37,7 @@
                     return '' +
                         '<div class="col-12 col-md-6 col-lg-3">' +
                         '<div class="card h-100">' +
-                        '<img src="https://via.placeholder.com/600x360/e8ecef/6b7280?text=Card+' + (i + 1) + '" class="card-img-top" alt="Card image ' + (i + 1) + '">' +
+                        '<img src="https://via.placeholder.com/600x360/e8ecef/6b7280?text=Card+' + (i + 1) + '" class="card-img-top" alt="Card image ' + (i + 1) + '" data-card-image-slot="' + (i + 1) + '">' +
                         '<div class="card-body">' +
                         '<h6 class="card-title">Card title ' + (i + 1) + '</h6>' +
                         '<p class="card-text">Add short description for this card.</p>' +
@@ -437,6 +437,53 @@
             textCol.classList.remove('col-lg-7', 'col-lg-12');
             textCol.classList.add(showImage ? 'col-lg-7' : 'col-lg-12');
         }
+
+        renderCardImageUploadTools(block);
+    }
+
+    
+    function renderCardImageUploadTools(block) {
+        if (!block) return;
+        var toolsWrap = block.querySelector('.js-card-image-tools');
+        var sectionType = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+
+        if (sectionType !== 'image_text') {
+            if (toolsWrap) toolsWrap.remove();
+            return;
+        }
+
+        if (!toolsWrap) {
+            toolsWrap = document.createElement('div');
+            toolsWrap.className = 'js-card-image-tools mt-3 border rounded p-3 bg-light';
+            toolsWrap.innerHTML = '<p class="small fw-semibold mb-2">Card images</p><div class="row g-2">' +
+                [1,2,3,4].map(function (i) {
+                    return '<div class="col-md-3 col-6">' +
+                        '<label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload card ' + i +
+                        '<input type="file" accept="image/*" class="d-none js-card-image-input" data-card-image-index="' + i + '"></label>' +
+                        '<small class="text-muted d-block">Change image</small>' +
+                    '</div>';
+                }).join('') + '</div>';
+            var stylePanel = block.querySelector('.vendor-section-style-panel');
+            if (stylePanel) {
+                stylePanel.insertAdjacentElement('beforebegin', toolsWrap);
+            }
+        }
+    }
+
+    function updateCardImageInSection(block, cardIndex, file) {
+        if (!block || !cardIndex || !file) return;
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        if (!contentEditable) return;
+
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var img = contentEditable.querySelector('[data-card-image-slot="' + cardIndex + '"]');
+            if (img) {
+                img.src = ev.target.result;
+                syncEditable(contentEditable);
+            }
+        };
+        reader.readAsDataURL(file);
     }
 
     function syncSocialLinksPreview() {
@@ -574,6 +621,13 @@
                 return;
             }
             applySectionFontSize(sectionEditable, e.target.value);
+        }
+
+        if (e.target.matches('.js-card-image-input')) {
+            var file = e.target.files && e.target.files[0];
+            var block = e.target.closest('.vendor-section-block');
+            var idx = e.target.dataset.cardImageIndex;
+            if (file) updateCardImageInSection(block, idx, file);
         }
 
         if (e.target.matches('.js-section-image-input')) {
