@@ -106,17 +106,15 @@
 
 .vendor-store-hero .carousel-item {
     min-height: 500px;
-    background-size: cover;
-    background-position: center;
 }
 
-.vendor-store-hero .hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: transparent;
-    display: flex;
-    align-items: flex-end;
-    z-index: 2;
+.vendor-store-hero__image {
+    display: block;
+    width: 100%;
+    height: 500px;
+    object-fit: contain;
+    object-position: center;
+    background: #0f2742;
 }
 
 
