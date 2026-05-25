@@ -227,6 +227,18 @@ class VendorStoreController extends Controller
         ]);
     }
 
+    public function about(string $slug): View
+    {
+        $vendor = $this->resolveVendor($slug);
+
+        return view('frontend.store.about', [
+            'vendor' => $vendor,
+            'preview' => false,
+            'activeNav' => 'about',
+            'vendorCategories' => $this->vendorCategories($vendor),
+        ]);
+    }
+
 
     public function sendGeneralInquiry(Request $request, string $slug): JsonResponse
     {
