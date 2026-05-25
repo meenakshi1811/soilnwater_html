@@ -6,7 +6,19 @@
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
-  
+  $vendorEnquiryCategoryTree = ($vendorEnquiryCategories ?? collect())
+    ->map(function ($category) {
+      return [
+        'id' => $category->id,
+        'name' => $category->name,
+        'children' => $category->children->map(function ($child) {
+          return [
+            'id' => $child->id,
+            'name' => $child->name,
+          ];
+        })->values()->all(),
+      ];
+    })->values()->all();
 @endphp
 
 <div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
@@ -1400,14 +1412,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('vendorEnquiryForm');
     if (!form) return;
-    const categories = @json(($vendorEnquiryCategories ?? collect())->map(fn ($category) => [
-      'id' => $category->id,
-      'name' => $category->name,
-      'children' => $category->children->map(fn ($child) => [
-        'id' => $child->id,
-        'name' => $child->name,
-      ])->values(),
-    ])->values());
+    const categories = @json($vendorEnquiryCategoryTree);
     const categorySelect = form.querySelector('#vendorEnquiryCategory');
     const subcategorySelect = form.querySelector('#vendorEnquirySubCategory');
 
