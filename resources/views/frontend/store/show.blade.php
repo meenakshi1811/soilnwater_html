@@ -13,21 +13,13 @@
         <div id="storeHeroCarousel" class="carousel slide h-100" data-bs-ride="carousel">
             <div class="carousel-inner h-100">
                 @foreach($vendor->bannerSlides as $i => $slide)
-                    <div class="carousel-item {{ $i === 0 ? 'active' : '' }}" style="background-image:url('{{ asset($slide->image_path) }}')"></div>
+                    <div class="carousel-item {{ $i === 0 ? 'active' : '' }}">
+                        <img src="{{ asset($slide->image_path) }}" alt="{{ $vendor->publicDisplayName() }} banner {{ $i + 1 }}" class="vendor-store-hero__image">
+                    </div>
                 @endforeach
             </div>
         </div>
     @endif
-    <div class="hero-overlay">
-        <div class="container">
-            <a href="{{ route('store.products.index', $vendor->slug) }}" class="btn btn-warning btn-lg fw-bold px-4">Browse Products</a>
-            @if($vendor->whatsapp)
-                <a href="https://wa.me/91{{ preg_replace('/\D/', '', $vendor->whatsapp) }}" target="_blank" rel="noopener" class="btn btn-success btn-lg ms-2 px-4">
-                    <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp
-                </a>
-            @endif
-        </div>
-    </div>
 </section>
 
 <section class="vendor-hero-text-section">

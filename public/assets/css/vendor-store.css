@@ -98,25 +98,23 @@
 
 .vendor-store-hero {
     position: relative;
-    min-height: 380px;
+    min-height: 500px;
     background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
     color: #fff;
     overflow: hidden;
 }
 
 .vendor-store-hero .carousel-item {
-    min-height: 380px;
-    background-size: cover;
-    background-position: center;
+    min-height: 500px;
 }
 
-.vendor-store-hero .hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: transparent;
-    display: flex;
-    align-items: flex-end;
-    z-index: 2;
+.vendor-store-hero__image {
+    display: block;
+    width: 100%;
+    height: 500px;
+    object-fit: contain;
+    object-position: center;
+    background: #0f2742;
 }
 
 

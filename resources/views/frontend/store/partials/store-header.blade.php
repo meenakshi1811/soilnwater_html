@@ -22,10 +22,6 @@
                     'activeNav' => $activeNav ?? '',
                 ])
 
-                @foreach($vendor->pageSections as $sec)
-                    <a href="{{ route('store.show', $vendor->slug) }}#section-{{ $sec->id }}" class="vendor-store-nav-link">{{ strip_tags($sec->title) }}</a>
-                @endforeach
-
                 <a href="{{ route('store.contact', $vendor->slug) }}" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'contact' ? 'is-active' : '' }}">Contact</a>
             </nav>
         </div>
