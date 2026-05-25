@@ -27,7 +27,7 @@
         <nav class="admin-nav d-flex align-items-center gap-2 flex-wrap justify-content-end">
             <a class="btn btn-sm admin-icon-link" href="{{ route('frontend.index') }}" title="Go to Index Page">
                 <i class="fa-solid fa-house"></i>
-                <span class="d-none d-md-inline">Index</span>
+                <span class="d-none d-md-inline">Home</span>
             </a>
             <a class="btn btn-sm admin-link {{ $dashboardActive ? 'active' : '' }}" href="{{ $dashboardUrl }}">Dashboard</a>
             @if($isGeneralUser || auth()->user()->isAdmin() || auth()->user()->isVendor())
