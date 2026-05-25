@@ -69,6 +69,7 @@ Route::get('/store/{slug}/about', [VendorStoreController::class, 'about'])->name
 Route::get('/store/{slug}/contact', [VendorStoreController::class, 'contact'])->name('store.contact');
 Route::post('/store/{slug}/enquiry', [VendorStoreController::class, 'sendGeneralInquiry'])->name('store.enquiry');
 Route::post('/store/{slug}/products/{product}/enquiry', [VendorStoreController::class, 'sendInquiry'])->name('store.products.enquiry');
+Route::post('/vendor-enquiry', [UserAdController::class, 'vendorEnquiry'])->name('frontend.vendor-enquiry');
 
 Auth::routes(['verify' => true]);
 
