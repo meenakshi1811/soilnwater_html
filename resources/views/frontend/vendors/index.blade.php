@@ -17,17 +17,17 @@
 
       <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3">
         @forelse($vendors as $vendor)
-          @php($primaryBranch = $vendor->branches->first())
+          @php
+            $primaryBranch = $vendor->branches->first();
+            $firstProduct = $vendor->products->first();
+            $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
+            $productImage = !empty($productImages) ? asset($productImages[0]) : null;
+            $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
+            $logoImage = $vendor->logo ? asset($vendor->logo) : null;
+            $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
+          @endphp
           <div class="col">
             <div class="vendor-card card h-100">
-              @php
-                $firstProduct = $vendor->products->first();
-                $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
-                $productImage = !empty($productImages) ? asset($productImages[0]) : null;
-                $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
-                $logoImage = $vendor->logo ? asset($vendor->logo) : null;
-                $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
-              @endphp
               <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
               <div class="vendor-card-body card-body d-flex flex-column">
                 <p>{{ $vendor->publicDisplayName() }} @if($vendor->is_premium)⭐@endif</p>
