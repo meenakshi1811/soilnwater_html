@@ -437,6 +437,22 @@
     renderBannerThumbs();
     }
 
+    function updateGridImageInSection(block, imageIndex, file) {
+        if (!block || !imageIndex || !file) return;
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        if (!contentEditable) return;
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var img = contentEditable.querySelector('[data-grid-image-slot="' + imageIndex + '"]');
+            if (img) {
+                img.src = ev.target.result;
+                img.style.height = '180px';
+                img.style.objectFit = 'cover';
+                syncEditable(contentEditable);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
 
     
     function applySectionTypeLayout(block, sectionType) {

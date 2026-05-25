@@ -20,6 +20,8 @@
         </div>
     </div>
 
+div>
+
     <div class="vendor-section-style-panel">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
             <p class="small fw-semibold mb-0 text-primary"><i class="fa-solid fa-palette me-1"></i> Styling tools</p>
