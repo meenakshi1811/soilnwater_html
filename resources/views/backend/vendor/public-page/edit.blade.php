@@ -175,7 +175,8 @@
             </div>
             <p class="text-muted small mb-1">Click text to edit</p>
             <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" data-hero-editable="main" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
-            <p class="lead mb-0 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub" data-sync-html="1" data-hero-editable="sub" id="heroSubHeadingEditor" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{!! html_entity_decode(old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here')) !!}</p>
+            <p class="lead mb-0 vendor-live-editable" data-sync-target="hero-sub" data-sync-html="1" data-hero-editable="sub" id="heroSubHeadingEditor" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{!! html_entity_decode(old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here')) !!}</p>
+            <textarea id="heroSubHeadingCkEditor" class="form-control mt-2" rows="4">{!! old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') !!}</textarea>
         </div>
 
         <div class="vendor-form-card mb-4">
@@ -273,7 +274,7 @@
                 });
         }
 
-        var heroSubHeadingEditor = document.querySelector('#heroSubHeadingEditor');
+        var heroSubHeadingEditor = document.querySelector('#heroSubHeadingCkEditor');
         if (heroSubHeadingEditor) {
             ClassicEditor
                 .create(heroSubHeadingEditor, {
@@ -281,6 +282,8 @@
                 })
                 .then(function (editor) {
                     editor.model.document.on('change:data', function () {
+                        var preview = document.querySelector('#heroSubHeadingEditor');
+                        if (preview) preview.innerHTML = editor.getData();
                         var input = document.querySelector('[data-sync-input="hero-sub"]');
                         if (input) input.value = editor.getData().trim();
                     });
