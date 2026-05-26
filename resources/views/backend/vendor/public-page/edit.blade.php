@@ -281,6 +281,8 @@
                 })
                 .then(function (editor) {
                     editor.model.document.on('change:data', function () {
+                        var preview = document.querySelector('#heroSubHeadingEditor');
+                        if (preview) preview.innerHTML = editor.getData();
                         var input = document.querySelector('[data-sync-input="hero-sub"]');
                         if (input) input.value = editor.getData().trim();
                     });
