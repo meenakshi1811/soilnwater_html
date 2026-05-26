@@ -9,6 +9,7 @@
     $offersMenuActive = request()->routeIs('offers.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
+    $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -252,29 +253,42 @@
                     <span>My Ads</span>
                 </a>
             </li>
-            <li>
-                <a class="{{ request()->routeIs('vendor.public-page.*') ? 'active' : '' }}" href="{{ route('vendor.public-page.edit') }}">
-                    <i class="fa-solid fa-globe"></i>
-                    <span>Public Page</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('vendor.branches.*') ? 'active' : '' }}" href="{{ route('vendor.branches.index') }}">
-                    <i class="fa-solid fa-code-branch"></i>
-                    <span>My Branches</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('vendor.products.*') ? 'active' : '' }}" href="{{ route('vendor.products.index') }}">
-                    <i class="fa-solid fa-box-open"></i>
-                    <span>Manage Products</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ request()->routeIs('vendor.inquiries.*') ? 'active' : '' }}" href="{{ route('vendor.inquiries.index') }}">
-                    <i class="fa-solid fa-envelope-open-text"></i>
-                    <span>Inquiries</span>
-                </a>
+            <li class="admin-sidebar-group">
+                <details {{ $vendorPagesMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $vendorPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-store"></i>
+                            <span>Vendor Pages</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('vendor.public-page.*') ? 'active' : '' }}" href="{{ route('vendor.public-page.edit') }}">
+                                <i class="fa-solid fa-globe"></i>
+                                <span>Public Page</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('vendor.branches.*') ? 'active' : '' }}" href="{{ route('vendor.branches.index') }}">
+                                <i class="fa-solid fa-code-branch"></i>
+                                <span>My Branches</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('vendor.products.*') ? 'active' : '' }}" href="{{ route('vendor.products.index') }}">
+                                <i class="fa-solid fa-box-open"></i>
+                                <span>Manage Products</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('vendor.inquiries.*') ? 'active' : '' }}" href="{{ route('vendor.inquiries.index') }}">
+                                <i class="fa-solid fa-envelope-open-text"></i>
+                                <span>Inquiries</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
             </li>
         @elseif($isEmployee)
             @if($canAccessOffers)
