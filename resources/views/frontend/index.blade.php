@@ -1441,12 +1441,17 @@
       const btnText = submitBtn?.querySelector('.js-vendor-enquiry-btn-text');
 
       const showToast = (type, message) => {
-        if (window.toastr && typeof window.toastr[type] === 'function') {
-          window.toastr.options = { closeButton: true, progressBar: true, timeOut: 3500 };
-          window.toastr[type](message);
-        } else {
-          alert(message);
+        try {
+          if (window.toastr && window.jQuery && typeof window.toastr[type] === 'function') {
+            window.toastr.options = { closeButton: true, progressBar: true, timeOut: 3500 };
+            window.toastr[type](message);
+            return;
+          }
+        } catch (toastError) {
+          console.warn('Toastr unavailable, using alert fallback.', toastError);
         }
+
+        alert(message);
       };
 
       submitBtn?.setAttribute('disabled', 'disabled');
@@ -1477,7 +1482,12 @@
 
         if (response.ok) {
           form.reset();
-          bootstrap.Modal.getOrCreateInstance(document.getElementById('vendorEnquiryModal')).hide();
+          subcategorySelect.innerHTML = '<option value="">Select sub category</option>';
+          subcategorySelect.setAttribute('disabled', 'disabled');
+          const modalEl = document.getElementById('vendorEnquiryModal');
+          if (window.bootstrap?.Modal && modalEl) {
+            window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+          }
         }
       } catch (error) {
         showToast('error', 'Unable to send enquiry. Please try again.');
