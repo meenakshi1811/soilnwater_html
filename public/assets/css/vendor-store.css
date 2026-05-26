@@ -604,6 +604,57 @@
     color: #f58220;
 }
 
+.vendor-share-trigger {
+    border: 1px solid rgba(245, 130, 32, 0.6);
+    background: rgba(245, 130, 32, 0.12);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.45rem 0.9rem;
+}
+
+.vendor-share-modal {
+    border: 0;
+    border-radius: 16px;
+}
+
+.vendor-share-qr-wrap {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0.85rem;
+}
+
+.vendor-share-qr {
+    width: min(100%, 220px);
+    height: auto;
+    border-radius: 12px;
+}
+
+.vendor-share-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.vendor-share-btn {
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    color: #fff !important;
+    text-decoration: none;
+    font-size: 0.86rem;
+    padding: 0.6rem 0.5rem;
+    font-weight: 600;
+}
+
+.vendor-share-btn.share-whatsapp { background: #1ba74a; }
+.vendor-share-btn.share-facebook { background: #1877f2; }
+.vendor-share-btn.share-instagram { background: linear-gradient(135deg, #f58529, #dd2a7b 45%, #8134af); }
+
 .vendor-whatsapp-float {
     position: fixed;
     bottom: 24px;
