@@ -106,10 +106,27 @@
 
         var isSectionTitle = key.indexOf('section-title-') === 0;
         if (target.dataset.syncHtml === '1' || isSectionTitle) {
-            input.value = target.innerHTML.trim();
+            input.value = normalizeLineBreakHtml(target.innerHTML);
         } else {
             input.value = target.innerText.replace(/\n{2,}/g, '\n').trim();
         }
+    }
+
+    function normalizeLineBreakHtml(html) {
+        if (!html) return '';
+
+        var normalized = html
+            .replace(/\r\n|\r|\n/g, '<br>')
+            .replace(/<div><br><\/div>/gi, '<br>')
+            .replace(/<div>/gi, '<br>')
+            .replace(/<\/div>/gi, '')
+            .replace(/<p>/gi, '<br>')
+            .replace(/<\/p>/gi, '')
+            .replace(/(?:<br\s*\/?>\s*){2,}/gi, '<br>')
+            .replace(/^(?:<br\s*\/?>)+/i, '')
+            .trim();
+
+        return normalized;
     }
 
     function serializeSectionField(editable) {
