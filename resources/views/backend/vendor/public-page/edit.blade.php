@@ -92,7 +92,7 @@
             </header>
             <div class="vendor-store-url-row px-3 pb-3">
                 <label class="form-label small text-muted mb-1">Your store link</label>
-                <div class="input-group input-group-sm" style="max-width:360px;">
+                <div class="input-group input-group-sm" style="max-width:560px; width:100%;">
                     <span class="input-group-text">{{ url('/store') }}/</span>
                     <input type="text" name="slug" class="form-control" value="{{ old('slug', $vendor->slug) }}" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="your-store-name">
                 </div>
