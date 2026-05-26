@@ -485,6 +485,7 @@
         if (contentEditable.querySelector('[data-card-image-slot]')) return 'image_text';
         var imageCount = contentEditable.querySelectorAll('img').length;
         if (imageCount >= 8) return 'image_grid';
+        if (imageCount === 0) return 'text_only';
 
         return 'image_text';
     }
@@ -940,7 +941,11 @@
     document.querySelectorAll('.vendor-section-block').forEach(function (block) {
         var typeInput = block.querySelector('[data-section-type-input]');
         var currentType = typeInput?.value || '';
-        var effectiveType = currentType || detectSectionTypeFromContent(block);
+        var detectedType = detectSectionTypeFromContent(block);
+        var effectiveType = currentType || detectedType;
+        if (currentType === 'image_text' && detectedType === 'text_only') {
+            effectiveType = 'text_only';
+        }
         if (typeInput) typeInput.value = effectiveType;
         applySectionTypeLayout(block, effectiveType);
     });
