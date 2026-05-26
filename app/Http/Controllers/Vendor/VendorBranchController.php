@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
 use App\Models\VendorBranch;
-use App\Support\VendorFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,18 +27,10 @@ class VendorBranchController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse
     {
         $vendor = auth()->user()->vendor;
         $validated = $this->validateBranch($request);
-
-        if ($request->hasFile('logo')) {
-            $validated['logo'] = VendorFileUploader::storeImage($request->file('logo'), 'branches/logos');
-        }
-
-        if ($request->hasFile('gallery')) {
-            $validated['gallery'] = VendorFileUploader::storeImages($request->file('gallery'), 'branches/gallery');
-        }
 
         $validated['is_primary'] = $request->boolean('is_primary');
         if ($validated['is_primary']) {
@@ -48,7 +39,10 @@ class VendorBranchController extends Controller
 
         $vendor->branches()->create($validated);
 
-        return redirect()->route('vendor.branches.index')->with('success', 'Branch created successfully.');
+        return response()->json([
+            'message' => 'Branch created successfully.',
+            'redirect' => route('vendor.branches.index'),
+        ]);
     }
 
     public function edit(VendorBranch $branch): View
@@ -61,20 +55,10 @@ class VendorBranchController extends Controller
         ]);
     }
 
-    public function update(Request $request, VendorBranch $branch): RedirectResponse
+    public function update(Request $request, VendorBranch $branch): JsonResponse
     {
         $this->authorizeBranch($branch);
         $validated = $this->validateBranch($request);
-
-        if ($request->hasFile('logo')) {
-            VendorFileUploader::deleteIfExists($branch->logo);
-            $validated['logo'] = VendorFileUploader::storeImage($request->file('logo'), 'branches/logos');
-        }
-
-        if ($request->hasFile('gallery')) {
-            $newGallery = VendorFileUploader::storeImages($request->file('gallery'), 'branches/gallery');
-            $validated['gallery'] = array_merge($branch->gallery ?? [], $newGallery);
-        }
 
         $validated['is_primary'] = $request->boolean('is_primary');
         if ($validated['is_primary']) {
@@ -83,37 +67,19 @@ class VendorBranchController extends Controller
 
         $branch->update($validated);
 
-        return redirect()->route('vendor.branches.index')->with('success', 'Branch updated successfully.');
+        return response()->json([
+            'message' => 'Branch updated successfully.',
+            'redirect' => route('vendor.branches.index'),
+        ]);
     }
 
     public function destroy(VendorBranch $branch): JsonResponse
     {
         $this->authorizeBranch($branch);
 
-        VendorFileUploader::deleteIfExists($branch->logo);
-        if (is_array($branch->gallery)) {
-            foreach ($branch->gallery as $path) {
-                VendorFileUploader::deleteIfExists($path);
-            }
-        }
-
         $branch->delete();
 
         return response()->json(['message' => 'Branch deleted permanently.']);
-    }
-
-    public function removeGalleryImage(VendorBranch $branch, Request $request): JsonResponse
-    {
-        $this->authorizeBranch($branch);
-        $path = $request->string('path')->toString();
-        $gallery = $branch->gallery ?? [];
-
-        if (in_array($path, $gallery, true)) {
-            VendorFileUploader::deleteIfExists($path);
-            $branch->update(['gallery' => array_values(array_filter($gallery, fn ($p) => $p !== $path))]);
-        }
-
-        return response()->json(['message' => 'Image removed.']);
     }
 
     private function validateBranch(Request $request): array
@@ -122,19 +88,16 @@ class VendorBranchController extends Controller
             'branch_name' => ['required', 'string', 'max:255'],
             'contact_person' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
+            'alt_mobile_number' => ['nullable', 'string', 'max:20'],
             'whatsapp' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
-            'address' => ['nullable', 'string', 'max:500'],
-            'city' => ['nullable', 'string', 'max:120'],
-            'state' => ['nullable', 'string', 'max:120'],
-            'pincode' => ['nullable', 'string', 'max:10'],
-            'pan_number' => ['nullable', 'string', 'max:20'],
+            'address' => ['required', 'string', 'max:500'],
+            'city' => ['required', 'string', 'max:120'],
+            'state' => ['required', 'string', 'max:120'],
+            'pincode' => ['required', 'string', 'max:10'],
+            'pan_number' => ['required', 'string', 'max:20'],
             'gst_number' => ['nullable', 'string', 'max:20'],
-            'description' => ['nullable', 'string', 'max:5000'],
             'is_primary' => ['nullable', 'boolean'],
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            'gallery' => ['nullable', 'array'],
-            'gallery.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
     }
 
