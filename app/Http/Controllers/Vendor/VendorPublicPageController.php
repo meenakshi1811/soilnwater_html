@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Vendor;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\VendorBannerSlide;
+use App\Models\Vendor;
 use App\Models\VendorPageSection;
 use App\Models\VendorProduct;
 use App\Support\VendorFileUploader;
@@ -12,7 +13,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class VendorPublicPageController extends Controller
@@ -20,6 +20,7 @@ class VendorPublicPageController extends Controller
     public function edit(): View
     {
         $vendor = auth()->user()->vendor;
+        $this->normalizeVendorSectionContentImages($vendor);
         $vendor->load(['bannerSlides', 'pageSections']);
 
         return view('backend.vendor.public-page.edit', compact('vendor'));
@@ -131,6 +132,7 @@ class VendorPublicPageController extends Controller
     public function preview(): View
     {
         $vendor = auth()->user()->vendor;
+        $this->normalizeVendorSectionContentImages($vendor);
         $vendor->load(['bannerSlides', 'pageSections']);
 
         $products = VendorProduct::query()
@@ -222,9 +224,11 @@ class VendorPublicPageController extends Controller
                     return $matches[0];
                 }
 
-                $filename = Str::uuid().'.'.$mimeExtension;
+                $filename = sha1($decoded).'.'.$mimeExtension;
                 $absolutePath = $directory.'/'.$filename;
-                File::put($absolutePath, $decoded);
+                if (! File::exists($absolutePath)) {
+                    File::put($absolutePath, $decoded);
+                }
 
                 $relativePath = 'uploads/vendors/sections/content-images/'.$filename;
 
@@ -232,5 +236,22 @@ class VendorPublicPageController extends Controller
             },
             $html
         );
+    }
+
+    private function normalizeVendorSectionContentImages(Vendor $vendor): void
+    {
+        $sections = VendorPageSection::query()
+            ->where('vendor_id', $vendor->id)
+            ->where('content', 'like', '%data:image/%')
+            ->get(['id', 'content']);
+
+        foreach ($sections as $section) {
+            $normalized = $this->storeEmbeddedContentImages((string) $section->content);
+            if ($normalized === (string) $section->content) {
+                continue;
+            }
+
+            $section->forceFill(['content' => $normalized])->saveQuietly();
+        }
     }
 }
