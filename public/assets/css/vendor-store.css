@@ -195,8 +195,6 @@
     border-radius: 14px;
     padding: 1rem 0.5rem;
     box-shadow: 0 8px 24px rgba(30, 79, 155, 0.08);
-    position: sticky;
-    top: 1rem;
 }
 
 .vendor-store-category-sidebar__head {
@@ -230,13 +228,26 @@
     padding: 0;
 }
 
+.vendor-store-category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.35rem 0.5rem 0;
+}
+
+.vendor-store-category-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
 .vendor-store-category-link,
 .vendor-store-subcategory-link {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 0.5rem;
-    padding: 0.72rem 0.9rem;
+    padding: 0.6rem 0.85rem;
     border-radius: 10px;
     text-decoration: none;
     color: #334155;
@@ -479,8 +490,6 @@
     border-radius: 16px;
     padding: 0.95rem;
     box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
-    position: sticky;
-    top: 1rem;
     overflow: hidden;
 }
 

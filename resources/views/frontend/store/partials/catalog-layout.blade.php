@@ -1,6 +1,6 @@
 <div class="vendor-store-catalog">
     <div class="row g-4 align-items-start">
-        <div class="col-lg-3">
+        <div class="col-12">
             @include('frontend.store.partials.category-sidebar', [
                 'vendor' => $vendor,
                 'vendorCategories' => $vendorCategories,
@@ -9,7 +9,7 @@
             ])
         </div>
 
-        <div class="col-lg-{{ (! $vendor->is_premium && !empty($sidebarAds) && $sidebarAds->isNotEmpty()) ? '6' : '9' }}">
+        <div class="col-lg-{{ (! $vendor->is_premium && !empty($sidebarAds) && $sidebarAds->isNotEmpty()) ? '9' : '12' }}">
             <div class="vendor-store-results-bar">
                 <p class="mb-0">
                     @if(method_exists($products, 'total'))
