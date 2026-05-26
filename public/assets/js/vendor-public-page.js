@@ -495,20 +495,6 @@
         return 'image_text';
     }
 
-    function detectSectionTypeFromContent(block) {
-        if (!block) return 'image_text';
-        var contentEditable = block.querySelector('[data-section-field="content"]');
-        if (!contentEditable) return 'image_text';
-
-        if (contentEditable.querySelector('[data-grid-image-slot]')) return 'image_grid';
-        if (contentEditable.querySelector('[data-card-image-slot]')) return 'image_text';
-        var imageCount = contentEditable.querySelectorAll('img').length;
-        if (imageCount >= 8) return 'image_grid';
-        if (imageCount === 0) return 'text_only';
-
-        return 'image_text';
-    }
-
     
     function renderCardImageUploadTools(block) {
         if (!block) return;

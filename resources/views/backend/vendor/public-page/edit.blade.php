@@ -17,7 +17,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <p class="ems-kicker mb-1">Vendor Panel</p>
-            <h2 class="admin-title mb-0">Manage Website</h2>
+            <h2 class="admin-title mb-0">{{ $vendor->publicDisplayName() }}</h2>
             <p class="text-muted small mb-0">Edit your store below, click <strong>Save Changes</strong>, then open <strong>Live Preview</strong> to see the published look.</p>
         </div>
         <div class="d-flex gap-2">
