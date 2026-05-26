@@ -483,6 +483,8 @@
 
         if (contentEditable.querySelector('[data-grid-image-slot]')) return 'image_grid';
         if (contentEditable.querySelector('[data-card-image-slot]')) return 'image_text';
+        var imageCount = contentEditable.querySelectorAll('img').length;
+        if (imageCount >= 8) return 'image_grid';
 
         return 'image_text';
     }
