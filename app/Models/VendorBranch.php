@@ -11,8 +11,8 @@ class VendorBranch extends Model
         'vendor_id',
         'branch_name',
         'contact_person',
-        'logo',
         'phone',
+        'alt_mobile_number',
         'whatsapp',
         'email',
         'address',
@@ -21,15 +21,12 @@ class VendorBranch extends Model
         'pincode',
         'pan_number',
         'gst_number',
-        'description',
-        'gallery',
         'is_primary',
     ];
 
     protected function casts(): array
     {
         return [
-            'gallery' => 'array',
             'is_primary' => 'boolean',
         ];
     }

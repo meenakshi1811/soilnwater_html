@@ -124,7 +124,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/branches/{branch}/edit', [VendorBranchController::class, 'edit'])->middleware('vendor')->name('branches.edit');
         Route::put('/branches/{branch}', [VendorBranchController::class, 'update'])->middleware('vendor')->name('branches.update');
         Route::delete('/branches/{branch}', [VendorBranchController::class, 'destroy'])->middleware('vendor')->name('branches.destroy');
-        Route::delete('/branches/{branch}/gallery', [VendorBranchController::class, 'removeGalleryImage'])->middleware('vendor')->name('branches.gallery.remove');
         Route::get('/public-page', [VendorPublicPageController::class, 'edit'])->middleware('vendor')->name('public-page.edit');
         Route::put('/public-page', [VendorPublicPageController::class, 'update'])->middleware('vendor')->name('public-page.update');
         Route::get('/public-page/preview', [VendorPublicPageController::class, 'preview'])->middleware('vendor')->name('public-page.preview');
