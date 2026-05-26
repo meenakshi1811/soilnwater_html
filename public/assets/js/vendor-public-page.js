@@ -494,17 +494,27 @@
         if (!block) return;
         var toolsWrap = block.querySelector('.js-card-image-tools');
         var sectionType = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        var contentEditable = block.querySelector('[data-section-field="content"]');
 
         if (sectionType !== 'image_text') {
             if (toolsWrap) toolsWrap.remove();
             return;
         }
 
+        var cardCount = 4;
+        if (contentEditable) {
+            var cardSlots = contentEditable.querySelectorAll('[data-card-image-slot]');
+            if (cardSlots.length > 0) {
+                cardCount = Math.max(cardCount, cardSlots.length);
+            }
+        }
+
         if (!toolsWrap) {
             toolsWrap = document.createElement('div');
             toolsWrap.className = 'js-card-image-tools mt-3 border rounded p-3 bg-light';
             toolsWrap.innerHTML = '<p class="small fw-semibold mb-2">Card images</p><div class="row g-2">' +
-                [1,2,3,4].map(function (i) {
+                Array.from({ length: cardCount }).map(function (_, index) {
+                    var i = index + 1;
                     return '<div class="col-md-3 col-6">' +
                         '<label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload card ' + i +
                         '<input type="file" accept="image/*" class="d-none js-card-image-input" data-card-image-index="' + i + '"></label>' +
