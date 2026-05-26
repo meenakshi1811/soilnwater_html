@@ -1,6 +1,32 @@
 document.addEventListener('DOMContentLoaded', function () {
     initProductsMegaMenu();
+    initVendorShare();
 });
+
+function initVendorShare() {
+    const copyBtn = document.getElementById('copyVendorStoreLink');
+    const urlInput = document.getElementById('vendorStoreShareUrl');
+
+    if (!copyBtn || !urlInput) {
+        return;
+    }
+
+    copyBtn.addEventListener('click', async function () {
+        const original = copyBtn.textContent;
+        try {
+            await navigator.clipboard.writeText(urlInput.value);
+            copyBtn.textContent = 'Copied';
+        } catch (_) {
+            urlInput.select();
+            document.execCommand('copy');
+            copyBtn.textContent = 'Copied';
+        }
+
+        window.setTimeout(function () {
+            copyBtn.textContent = original;
+        }, 1300);
+    });
+}
 
 function initProductsMegaMenu() {
     const mega = document.querySelector('.vendor-store-products-mega');
