@@ -129,6 +129,24 @@
         return normalized;
     }
 
+    function insertBreakAtCaret(editable) {
+        if (!editable) return;
+
+        editable.focus();
+        var selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return;
+
+        var range = selection.getRangeAt(0);
+        range.deleteContents();
+
+        var br = document.createElement('br');
+        range.insertNode(br);
+        range.setStartAfter(br);
+        range.setEndAfter(br);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
     function serializeSectionField(editable) {
         var style = editable.getAttribute('style') || '';
         var inner = editable.innerHTML.trim();
@@ -775,6 +793,15 @@
     document.addEventListener('input', function (e) {
         if (e.target.matches('.vendor-live-editable')) syncEditable(e.target);
         if (e.target.matches('[data-social-input]')) syncSocialLinksPreview();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (!e.target.matches('[data-sync-target="hero-sub"][contenteditable="true"]')) return;
+        if (e.key !== 'Enter' || !e.shiftKey) return;
+
+        e.preventDefault();
+        insertBreakAtCaret(e.target);
+        syncEditable(e.target);
     });
 
     document.addEventListener('change', function (e) {
