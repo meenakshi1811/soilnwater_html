@@ -476,33 +476,62 @@
         renderGridImageUploadTools(block);
     }
 
+    function detectSectionTypeFromContent(block) {
+        if (!block) return 'image_text';
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        if (!contentEditable) return 'image_text';
+
+        if (contentEditable.querySelector('[data-grid-image-slot]')) return 'image_grid';
+        if (contentEditable.querySelector('[data-card-image-slot]')) return 'image_text';
+        var imageCount = contentEditable.querySelectorAll('img').length;
+        if (imageCount >= 8) return 'image_grid';
+
+        return 'image_text';
+    }
+
     
     function renderCardImageUploadTools(block) {
         if (!block) return;
         var toolsWrap = block.querySelector('.js-card-image-tools');
         var sectionType = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        var contentEditable = block.querySelector('[data-section-field="content"]');
 
         if (sectionType !== 'image_text') {
             if (toolsWrap) toolsWrap.remove();
             return;
         }
 
+        var cardCount = 4;
+        if (contentEditable) {
+            var cardSlots = contentEditable.querySelectorAll('[data-card-image-slot]');
+            if (cardSlots.length > 0) {
+                cardCount = Math.max(cardCount, cardSlots.length);
+            } else {
+                var imageCount = contentEditable.querySelectorAll('img').length;
+                if (imageCount > 4) {
+                    cardCount = Math.max(cardCount, imageCount);
+                }
+            }
+        }
+
         if (!toolsWrap) {
             toolsWrap = document.createElement('div');
             toolsWrap.className = 'js-card-image-tools mt-3 border rounded p-3 bg-light';
-            toolsWrap.innerHTML = '<p class="small fw-semibold mb-2">Card images</p><div class="row g-2">' +
-                [1,2,3,4].map(function (i) {
-                    return '<div class="col-md-3 col-6">' +
-                        '<label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload card ' + i +
-                        '<input type="file" accept="image/*" class="d-none js-card-image-input" data-card-image-index="' + i + '"></label>' +
-                        '<small class="text-muted d-block">Change image</small>' +
-                    '</div>';
-                }).join('') + '</div>';
             var stylePanel = block.querySelector('.vendor-section-style-panel');
             if (stylePanel) {
                 stylePanel.insertAdjacentElement('beforebegin', toolsWrap);
             }
         }
+
+        toolsWrap.innerHTML = '<p class="small fw-semibold mb-2">Card images</p><div class="row g-2">' +
+            Array.from({ length: cardCount }).map(function (_, index) {
+                var i = index + 1;
+                return '<div class="col-md-3 col-6">' +
+                    '<label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload card ' + i +
+                    '<input type="file" accept="image/*" class="d-none js-card-image-input" data-card-image-index="' + i + '"></label>' +
+                    '<small class="text-muted d-block">Change image</small>' +
+                '</div>';
+            }).join('') + '</div>';
     }
 
     function updateCardImageInSection(block, cardIndex, file) {
@@ -901,8 +930,11 @@
     });
 
     document.querySelectorAll('.vendor-section-block').forEach(function (block) {
-        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
-        applySectionTypeLayout(block, type);
+        var typeInput = block.querySelector('[data-section-type-input]');
+        var currentType = typeInput?.value || '';
+        var effectiveType = currentType || detectSectionTypeFromContent(block);
+        if (typeInput) typeInput.value = effectiveType;
+        applySectionTypeLayout(block, effectiveType);
     });
 
     renderBannerThumbs();
