@@ -32,7 +32,11 @@
             content = '<h4>Section heading</h4><p>Add your text content here.</p>';
         } else if (type === 'brochure') {
             title = 'Brochure Section';
-            content = '<ul><li>Brochure item 1</li><li>Brochure item 2</li></ul><p>Add brochure links or descriptions here.</p>';
+            content = '<div class="card border-0 shadow-sm p-3" data-brochure-wrap="1">' +
+                '<div class="row g-3 align-items-center">' +
+                '<div class="col-md-4"><img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Brochure Image</text></svg>') + '" class="img-fluid rounded" data-brochure-image-slot="1" alt="Brochure image"></div>' +
+                '<div class="col-md-8"><h5>Brochure title</h5><p>Add your brochure description text here.</p><a href="#" class="btn btn-primary btn-sm disabled" data-brochure-pdf-slot="1">Download PDF</a></div>' +
+                '</div></div>';
         } else if (type === 'image_text') {
             title = 'Image + Text Cards';
             content = '<div class="row g-3">' +
@@ -474,6 +478,21 @@
 
         renderCardImageUploadTools(block);
         renderGridImageUploadTools(block);
+        renderBrochureUploadTools(block);
+    }
+
+    function detectSectionTypeFromContent(block) {
+        if (!block) return 'image_text';
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        if (!contentEditable) return 'image_text';
+
+        if (contentEditable.querySelector('[data-grid-image-slot]')) return 'image_grid';
+        if (contentEditable.querySelector('[data-card-image-slot]')) return 'image_text';
+        var imageCount = contentEditable.querySelectorAll('img').length;
+        if (imageCount >= 8) return 'image_grid';
+        if (imageCount === 0) return 'text_only';
+
+        return 'image_text';
     }
 
     function detectSectionTypeFromContent(block) {
@@ -586,6 +605,59 @@
             var stylePanel = block.querySelector('.vendor-section-style-panel');
             if (stylePanel) stylePanel.insertAdjacentElement('beforebegin', toolsWrap);
         }
+    }
+
+    function renderBrochureUploadTools(block) {
+        if (!block) return;
+        var toolsWrap = block.querySelector('.js-brochure-tools');
+        var sectionType = block.querySelector('[data-section-type-input]')?.value || 'image_text';
+        if (sectionType !== 'brochure') {
+            if (toolsWrap) toolsWrap.remove();
+            return;
+        }
+
+        if (!toolsWrap) {
+            toolsWrap = document.createElement('div');
+            toolsWrap.className = 'js-brochure-tools mt-3 border rounded p-3 bg-light';
+            var stylePanel = block.querySelector('.vendor-section-style-panel');
+            if (stylePanel) stylePanel.insertAdjacentElement('beforebegin', toolsWrap);
+        }
+
+        toolsWrap.innerHTML = '<p class="small fw-semibold mb-2">Brochure assets</p>' +
+            '<div class="row g-2">' +
+            '<div class="col-md-6"><label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload brochure image<input type="file" accept="image/*" class="d-none js-brochure-image-input"></label></div>' +
+            '<div class="col-md-6"><label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload brochure PDF<input type="file" accept=\"application/pdf\" class=\"d-none js-brochure-pdf-input\"></label></div>' +
+            '</div><small class="text-muted d-block mt-1">You can also edit brochure text directly in the content box above.</small>';
+    }
+
+    function updateBrochureImageInSection(block, file) {
+        var contentEditable = block?.querySelector('[data-section-field="content"]');
+        if (!contentEditable || !file) return;
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var img = contentEditable.querySelector('[data-brochure-image-slot="1"]') || contentEditable.querySelector('img');
+            if (!img) return;
+            img.src = ev.target.result;
+            img.setAttribute('data-brochure-image-slot', '1');
+            syncEditable(contentEditable);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function updateBrochurePdfInSection(block, file) {
+        var contentEditable = block?.querySelector('[data-section-field="content"]');
+        if (!contentEditable || !file) return;
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var link = contentEditable.querySelector('[data-brochure-pdf-slot="1"]') || contentEditable.querySelector('a');
+            if (!link) return;
+            link.href = ev.target.result;
+            link.textContent = file.name || 'Download PDF';
+            link.classList.remove('disabled');
+            link.setAttribute('data-brochure-pdf-slot', '1');
+            syncEditable(contentEditable);
+        };
+        reader.readAsDataURL(file);
     }
 
     function updateGridImageInSection(block, imageIndex, file) {
@@ -755,6 +827,16 @@
             var block = e.target.closest('.vendor-section-block');
             var idx = e.target.dataset.cardImageIndex;
             if (file) updateCardImageInSection(block, idx, file);
+        }
+        if (e.target.matches('.js-brochure-image-input')) {
+            var bImgFile = e.target.files && e.target.files[0];
+            var bImgBlock = e.target.closest('.vendor-section-block');
+            if (bImgFile) updateBrochureImageInSection(bImgBlock, bImgFile);
+        }
+        if (e.target.matches('.js-brochure-pdf-input')) {
+            var bPdfFile = e.target.files && e.target.files[0];
+            var bPdfBlock = e.target.closest('.vendor-section-block');
+            if (bPdfFile) updateBrochurePdfInSection(bPdfBlock, bPdfFile);
         }
 
         if (e.target.matches('.js-section-image-input')) {
