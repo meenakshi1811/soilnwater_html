@@ -106,10 +106,45 @@
 
         var isSectionTitle = key.indexOf('section-title-') === 0;
         if (target.dataset.syncHtml === '1' || isSectionTitle) {
-            input.value = target.innerHTML.trim();
+            input.value = normalizeLineBreakHtml(target.innerHTML);
         } else {
             input.value = target.innerText.replace(/\n{2,}/g, '\n').trim();
         }
+    }
+
+    function normalizeLineBreakHtml(html) {
+        if (!html) return '';
+
+        var normalized = html
+            .replace(/\r\n|\r|\n/g, '<br>')
+            .replace(/<div><br><\/div>/gi, '<br>')
+            .replace(/<div>/gi, '<br>')
+            .replace(/<\/div>/gi, '')
+            .replace(/<p>/gi, '<br>')
+            .replace(/<\/p>/gi, '')
+            .replace(/(?:<br\s*\/?>\s*){2,}/gi, '<br>')
+            .replace(/^(?:<br\s*\/?>)+/i, '')
+            .trim();
+
+        return normalized;
+    }
+
+    function insertBreakAtCaret(editable) {
+        if (!editable) return;
+
+        editable.focus();
+        var selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return;
+
+        var range = selection.getRangeAt(0);
+        range.deleteContents();
+
+        var br = document.createElement('br');
+        range.insertNode(br);
+        range.setStartAfter(br);
+        range.setEndAfter(br);
+        selection.removeAllRanges();
+        selection.addRange(range);
     }
 
     function serializeSectionField(editable) {
@@ -758,6 +793,15 @@
     document.addEventListener('input', function (e) {
         if (e.target.matches('.vendor-live-editable')) syncEditable(e.target);
         if (e.target.matches('[data-social-input]')) syncSocialLinksPreview();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (!e.target.matches('[data-sync-target="hero-sub"][contenteditable="true"]')) return;
+        if (e.key !== 'Enter' || !e.shiftKey) return;
+
+        e.preventDefault();
+        insertBreakAtCaret(e.target);
+        syncEditable(e.target);
     });
 
     document.addEventListener('change', function (e) {
