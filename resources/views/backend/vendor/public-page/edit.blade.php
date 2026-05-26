@@ -92,7 +92,7 @@
             </header>
             <div class="vendor-store-url-row px-3 pb-3">
                 <label class="form-label small text-muted mb-1">Your store link</label>
-                <div class="input-group input-group-sm" style="max-width:360px;">
+                <div class="input-group input-group-sm" style="max-width:560px; width:100%;">
                     <span class="input-group-text">{{ url('/store') }}/</span>
                     <input type="text" name="slug" class="form-control" value="{{ old('slug', $vendor->slug) }}" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="your-store-name">
                 </div>
@@ -175,7 +175,7 @@
             </div>
             <p class="text-muted small mb-1">Click text to edit</p>
             <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" data-hero-editable="main" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
-            <p class="lead mb-0 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub" data-hero-editable="sub" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') }}</p>
+            <p class="lead mb-0 vendor-live-editable" contenteditable="true" data-sync-target="hero-sub" data-sync-html="1" data-hero-editable="sub" id="heroSubHeadingEditor" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{!! html_entity_decode(old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here')) !!}</p>
         </div>
 
         <div class="vendor-form-card mb-4">
@@ -264,11 +264,31 @@
     }
 
     if (window.ClassicEditor) {
-        ClassicEditor
-            .create(document.querySelector('#vendorAboutUsEditor'))
-            .catch(function (error) {
-                console.error(error);
-            });
+        var aboutUsEditor = document.querySelector('#vendorAboutUsEditor');
+        if (aboutUsEditor) {
+            ClassicEditor
+                .create(aboutUsEditor)
+                .catch(function (error) {
+                    console.error(error);
+                });
+        }
+
+        var heroSubHeadingEditor = document.querySelector('#heroSubHeadingEditor');
+        if (heroSubHeadingEditor) {
+            ClassicEditor
+                .create(heroSubHeadingEditor, {
+                    toolbar: ['bold', 'italic', 'link', '|', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+                })
+                .then(function (editor) {
+                    editor.model.document.on('change:data', function () {
+                        var input = document.querySelector('[data-sync-input="hero-sub"]');
+                        if (input) input.value = editor.getData().trim();
+                    });
+                })
+                .catch(function (error) {
+                    console.error(error);
+                });
+        }
     }
 </script>
 <script src="{{ asset('assets/js/vendor-public-page.js') }}?v={{ now()->timestamp }}"></script>

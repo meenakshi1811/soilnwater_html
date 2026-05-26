@@ -136,7 +136,13 @@
     border-color: #0d6efd;
     background: rgba(255,255,255,0.12);
 }
-.vendor-banner-slide { position: relative; }
+.vendor-banner-slide {
+    position: relative;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #fff;
+}
 .vendor-slide-remove {
     position: absolute;
     top: 12px;
