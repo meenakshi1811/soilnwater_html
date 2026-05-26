@@ -542,6 +542,14 @@
         var reader = new FileReader();
         reader.onload = function (ev) {
             var img = contentEditable.querySelector('[data-card-image-slot="' + cardIndex + '"]');
+            if (!img) {
+                var fallbackImgs = contentEditable.querySelectorAll('img');
+                var fallbackIndex = Number(cardIndex) - 1;
+                if (fallbackIndex >= 0 && fallbackImgs[fallbackIndex]) {
+                    img = fallbackImgs[fallbackIndex];
+                    img.setAttribute('data-card-image-slot', String(cardIndex));
+                }
+            }
             if (img) {
                 img.src = ev.target.result;
                 img.style.height = '180px';
