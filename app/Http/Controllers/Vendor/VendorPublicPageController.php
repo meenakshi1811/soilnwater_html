@@ -11,6 +11,8 @@ use App\Support\VendorFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class VendorPublicPageController extends Controller
@@ -191,11 +193,44 @@ class VendorPublicPageController extends Controller
 
             $section->fill([
                 'title' => $plainTitle !== '' ? $title : 'Section',
-                'content' => $content,
+                'content' => $this->storeEmbeddedContentImages((string) $content),
                 'sort_order' => $sort++,
             ]);
             $section->vendor_id = $vendor->id;
             $section->save();
         }
+    }
+
+    private function storeEmbeddedContentImages(string $html): string
+    {
+        if (! str_contains($html, 'data:image/')) {
+            return $html;
+        }
+
+        $directory = public_path('uploads/vendors/sections/content-images');
+        if (! File::isDirectory($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        return (string) preg_replace_callback(
+            '/src\s*=\s*(["\'])data:image\/(png|jpeg|jpg|webp|gif);base64,([^"\']+)\1/i',
+            function (array $matches) use ($directory) {
+                $mimeExtension = strtolower($matches[2]) === 'jpeg' ? 'jpg' : strtolower($matches[2]);
+                $decoded = base64_decode($matches[3], true);
+
+                if ($decoded === false) {
+                    return $matches[0];
+                }
+
+                $filename = Str::uuid().'.'.$mimeExtension;
+                $absolutePath = $directory.'/'.$filename;
+                File::put($absolutePath, $decoded);
+
+                $relativePath = 'uploads/vendors/sections/content-images/'.$filename;
+
+                return 'src='.$matches[1].asset($relativePath).$matches[1];
+            },
+            $html
+        );
     }
 }
