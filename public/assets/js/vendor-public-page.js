@@ -116,6 +116,7 @@
         if (!html) return '';
 
         var normalized = html
+            .replace(/\r\n|\r|\n/g, '<br>')
             .replace(/<div><br><\/div>/gi, '<br>')
             .replace(/<div>/gi, '<br>')
             .replace(/<\/div>/gi, '')
