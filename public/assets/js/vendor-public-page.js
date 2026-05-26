@@ -476,6 +476,17 @@
         renderGridImageUploadTools(block);
     }
 
+    function detectSectionTypeFromContent(block) {
+        if (!block) return 'image_text';
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        if (!contentEditable) return 'image_text';
+
+        if (contentEditable.querySelector('[data-grid-image-slot]')) return 'image_grid';
+        if (contentEditable.querySelector('[data-card-image-slot]')) return 'image_text';
+
+        return 'image_text';
+    }
+
     
     function renderCardImageUploadTools(block) {
         if (!block) return;
@@ -901,8 +912,11 @@
     });
 
     document.querySelectorAll('.vendor-section-block').forEach(function (block) {
-        var type = block.querySelector('[data-section-type-input]')?.value || 'image_text';
-        applySectionTypeLayout(block, type);
+        var typeInput = block.querySelector('[data-section-type-input]');
+        var currentType = typeInput?.value || '';
+        var effectiveType = currentType || detectSectionTypeFromContent(block);
+        if (typeInput) typeInput.value = effectiveType;
+        applySectionTypeLayout(block, effectiveType);
     });
 
     renderBannerThumbs();

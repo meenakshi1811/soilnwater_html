@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Vendor;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\VendorBannerSlide;
+use App\Models\Vendor;
 use App\Models\VendorPageSection;
 use App\Models\VendorProduct;
 use App\Support\VendorFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\View\View;
 
 class VendorPublicPageController extends Controller
@@ -18,6 +20,7 @@ class VendorPublicPageController extends Controller
     public function edit(): View
     {
         $vendor = auth()->user()->vendor;
+        $this->normalizeVendorSectionContentImages($vendor);
         $vendor->load(['bannerSlides', 'pageSections']);
 
         return view('backend.vendor.public-page.edit', compact('vendor'));
@@ -129,6 +132,7 @@ class VendorPublicPageController extends Controller
     public function preview(): View
     {
         $vendor = auth()->user()->vendor;
+        $this->normalizeVendorSectionContentImages($vendor);
         $vendor->load(['bannerSlides', 'pageSections']);
 
         $products = VendorProduct::query()
@@ -191,11 +195,63 @@ class VendorPublicPageController extends Controller
 
             $section->fill([
                 'title' => $plainTitle !== '' ? $title : 'Section',
-                'content' => $content,
+                'content' => $this->storeEmbeddedContentImages((string) $content),
                 'sort_order' => $sort++,
             ]);
             $section->vendor_id = $vendor->id;
             $section->save();
+        }
+    }
+
+    private function storeEmbeddedContentImages(string $html): string
+    {
+        if (! str_contains($html, 'data:image/')) {
+            return $html;
+        }
+
+        $directory = public_path('uploads/vendors/sections/content-images');
+        if (! File::isDirectory($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        return (string) preg_replace_callback(
+            '/src\s*=\s*(["\'])data:image\/(png|jpeg|jpg|webp|gif);base64,([^"\']+)\1/i',
+            function (array $matches) use ($directory) {
+                $mimeExtension = strtolower($matches[2]) === 'jpeg' ? 'jpg' : strtolower($matches[2]);
+                $decoded = base64_decode($matches[3], true);
+
+                if ($decoded === false) {
+                    return $matches[0];
+                }
+
+                $filename = sha1($decoded).'.'.$mimeExtension;
+                $absolutePath = $directory.'/'.$filename;
+                if (! File::exists($absolutePath)) {
+                    File::put($absolutePath, $decoded);
+                }
+
+                $relativePath = 'uploads/vendors/sections/content-images/'.$filename;
+
+                return 'src='.$matches[1].asset($relativePath).$matches[1];
+            },
+            $html
+        );
+    }
+
+    private function normalizeVendorSectionContentImages(Vendor $vendor): void
+    {
+        $sections = VendorPageSection::query()
+            ->where('vendor_id', $vendor->id)
+            ->where('content', 'like', '%data:image/%')
+            ->get(['id', 'content']);
+
+        foreach ($sections as $section) {
+            $normalized = $this->storeEmbeddedContentImages((string) $section->content);
+            if ($normalized === (string) $section->content) {
+                continue;
+            }
+
+            $section->forceFill(['content' => $normalized])->saveQuietly();
         }
     }
 }
