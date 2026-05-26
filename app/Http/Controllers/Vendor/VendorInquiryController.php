@@ -13,7 +13,11 @@ class VendorInquiryController extends Controller
     {
         $vendorId = $request->user()->vendor?->id;
         $inquiries = VendorProductInquiry::query()
-            ->with('product:id,name')
+            ->with([
+                'product:id,name,category_id,subcategory_id',
+                'product.category:id,name',
+                'product.subcategory:id,name',
+            ])
             ->where('vendor_id', $vendorId)
             ->latest()
             ->get();
