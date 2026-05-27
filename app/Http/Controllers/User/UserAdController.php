@@ -629,7 +629,7 @@ class UserAdController extends Controller
 
         $pricing = $this->buildPricingDetails($totalBasePricePerDay, $validated['valid_until']);
 
-        $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $pricing, $selectedModules) {
+        $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $pricing, $selectedModules, $primaryCategoryId, $primarySubcategoryId) {
             $layoutHtml = (string) ($validated['custom_html'] ?? '');
             $renderedHtml = $layoutHtml;
 
