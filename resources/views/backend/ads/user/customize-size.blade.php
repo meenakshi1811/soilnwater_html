@@ -4,6 +4,19 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    #adsSizeCustomizerPage .select2-container { width: 100% !important; }
+    #adsSizeCustomizerPage .select2-container--default .select2-selection--multiple {
+        min-height: calc(2.25rem + 2px);
+        border: 1px solid #ced4da;
+        border-radius: .375rem;
+        padding: .25rem .25rem;
+    }
+    #adsSizeCustomizerPage .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        margin-top: .2rem;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -363,6 +376,7 @@
 
 @push('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -1262,6 +1276,19 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updateSubmitButtonState();
         }
 
+        function initModuleSelect2() {
+            if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2 || !moduleSelect) return;
+            const $moduleSelect = window.jQuery(moduleSelect);
+            if ($moduleSelect.data('select2')) {
+                $moduleSelect.select2('destroy');
+            }
+            $moduleSelect.select2({
+                width: '100%',
+                placeholder: 'Select module(s)',
+                closeOnSelect: false
+            });
+        }
+
         const categoryPriceNote = document.getElementById('adCategoryPriceNote');
         const adCategoryPremiumChip = document.getElementById('adCategoryPremiumChip');
         const moduleSelect = document.getElementById('moduleSelect');
@@ -1277,6 +1304,8 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         const pricingHint = document.getElementById('pricingHint');
         const pricingDetailsCard = document.getElementById('pricingDetailsCard');
         const isSquareSizeType = @json($sizeType === 'square');
+
+        initModuleSelect2();
 
         function applyValidUntilLimit() {
             if (!validUntilInput) return;
