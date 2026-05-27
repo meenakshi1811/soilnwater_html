@@ -41,7 +41,7 @@
     </div>
 
     <div id="adsGrid" class="ads-market-grid" data-next-page-url="{{ $ads->nextPageUrl() }}">
-        @include('frontend.ads.partials.cards', ['ads' => $ads])
+        @include('frontend.ads.partials.cards', ['ads' => $ads, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByAdId ?? []])
     </div>
 
     <div class="mt-4 offer-pagination-wrap">
