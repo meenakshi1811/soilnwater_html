@@ -1277,6 +1277,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             if (selectedCategoryIds.length === 0 || !base || !subcategorySelect) {
                 subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
                 subcategorySelect.disabled = true;
+                syncSelect2State(subcategorySelect);
                 return;
             }
             const existingSelection = Array.from(subcategorySelect.selectedOptions || []).map((option) => String(option.value));
@@ -1302,10 +1303,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             });
             subcategorySelect.innerHTML = options.join('');
             subcategorySelect.disabled = false;
-
-            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
-                window.jQuery(subcategorySelect).trigger('change.select2');
-            }
+            syncSelect2State(subcategorySelect);
             updateSubmitButtonState();
         }
 
@@ -1325,6 +1323,11 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2) return;
             if (categorySelect) window.jQuery(categorySelect).select2({ width: '100%', placeholder: 'Select category(s)', closeOnSelect: false });
             if (subcategorySelect) window.jQuery(subcategorySelect).select2({ width: '100%', placeholder: 'Select sub category(s)', closeOnSelect: false });
+        }
+        function syncSelect2State(selectElement) {
+            if (!selectElement || !window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2) return;
+            const $select = window.jQuery(selectElement);
+            $select.prop('disabled', !!selectElement.disabled).trigger('change.select2');
         }
 
         const categoryPriceNote = document.getElementById('adCategoryPriceNote');
@@ -1371,9 +1374,11 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 categorySelect.innerHTML = '<option value="">— Select module(s) first —</option>';
                 categorySelect.disabled = true;
                 categorySelect.value = '';
+                syncSelect2State(categorySelect);
                 if (subcategorySelect) {
                     subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
                     subcategorySelect.disabled = true;
+                    syncSelect2State(subcategorySelect);
                 }
                 updateCategoryPriceNote();
                 updateSubmitButtonState();
@@ -1401,6 +1406,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
 
                 categorySelect.innerHTML = options.join('');
                 categorySelect.disabled = false;
+                syncSelect2State(categorySelect);
 
                 const availableIds = Array.from(categorySelect.options).map((option) => String(option.value));
                 const nextSelected = currentCategoryValues.filter((id) => availableIds.includes(String(id)));
@@ -1411,6 +1417,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                     if (subcategorySelect) {
                         subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
                         subcategorySelect.disabled = true;
+                        syncSelect2State(subcategorySelect);
                     }
                 } else {
                     await loadSubcategories(nextSelected);
@@ -1419,6 +1426,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 console.error('[AdsCustomize] categories fetch failed:', error);
                 categorySelect.innerHTML = '<option value="">— Unable to load categories —</option>';
                 categorySelect.disabled = true;
+                syncSelect2State(categorySelect);
             }
 
             updateCategoryPriceNote();
@@ -1551,6 +1559,15 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             });
             $moduleSelect.on('select2:select select2:unselect select2:clear', function (event) {
                 handleModuleSelectionChange(`select2-${event.type}`);
+            });
+        }
+        if (window.jQuery && categorySelect) {
+            const $categorySelect = window.jQuery(categorySelect);
+            $categorySelect.on('select2:select select2:unselect change', function () {
+                const selectedCategoryIds = Array.from(categorySelect.selectedOptions || []).map((option) => option.value).filter(Boolean);
+                loadSubcategories(selectedCategoryIds);
+                updateCategoryPriceNote();
+                updateSubmitButtonState();
             });
         }
         subcategorySelect?.addEventListener('change', updateSubmitButtonState);
