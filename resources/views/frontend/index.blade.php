@@ -498,13 +498,36 @@
             <div class="ad-slide">
               <div class="product-grid-4 recent-ads-grid">
                 @foreach($recentAdsChunk as $recentAd)
-                  <article class="prod-card recent-ad-card" data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}" data-ad-url="{{ route('frontend.ads.show', $recentAd) }}">
+                  @php
+                    $selectedCategoryNames = \App\Models\Category::query()
+                      ->whereIn('id', array_map('intval', $recentAd->selected_category_ids ?? []))
+                      ->orderBy('name')
+                      ->pluck('name')
+                      ->values()
+                      ->all();
+                    if ($selectedCategoryNames === [] && $recentAd->category?->name) {
+                      $selectedCategoryNames = [$recentAd->category->name];
+                    }
+
+                    $moduleLabels = \App\Support\ModulePermissions::modules();
+                    $selectedServiceNames = collect($recentAd->selected_modules ?? [])
+                      ->filter(fn ($key) => is_string($key) && isset($moduleLabels[$key]))
+                      ->map(fn ($key) => $moduleLabels[$key])
+                      ->values()
+                      ->all();
+                  @endphp
+                  <article class="prod-card recent-ad-card"
+                    data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}"
+                    data-ad-url="{{ route('frontend.ads.show', $recentAd) }}"
+                    data-ad-meta="{{ implode(', ', $selectedCategoryNames) }}"
+                    data-ad-services="{{ implode(', ', $selectedServiceNames) }}"
+                  >
                     <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}">
                     <div class="prod-card-body">
                       <h6 class="mb-1 offer-coupon-title">{{ $recentAd->title }}</h6>
                       <span class="recent-ad-meta">
                         <i class="fa-solid fa-layer-group"></i>
-                        {{ $recentAd->category?->name ?? 'Uncategorized' }} • {{ $recentAd->created_at?->format('d M Y') ?? 'N/A' }}
+                        {{ ($selectedCategoryNames !== [] ? implode(', ', $selectedCategoryNames) : 'Uncategorized') }} • {{ $recentAd->created_at?->format('d M Y') ?? 'N/A' }}
                       </span>
                     </div>
                   </article>
@@ -1525,8 +1548,10 @@
 
         const adTitle = adImage.getAttribute('alt') || 'Ad Details';
         const adSrc = adImage.getAttribute('src') || '';
-        const adMeta = 'Home Page Advertisement';
         const adCard = adImage.closest('.recent-ad-card');
+        const categoriesMeta = adCard?.dataset.adMeta || '';
+        const servicesMeta = adCard?.dataset.adServices || '';
+        const adMeta = categoriesMeta || servicesMeta || 'Home Page Advertisement';
         const adDescription = adCard?.dataset.adDescription || 'You are viewing this ad from the homepage slider/recent ads section.';
 
         document.getElementById('adDetailsModalTitle').textContent = adTitle;
