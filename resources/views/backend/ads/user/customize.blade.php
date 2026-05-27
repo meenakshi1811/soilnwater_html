@@ -32,6 +32,17 @@
     }
 @endphp
 
+
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container { width: 100% !important; }
+    .select2-container .select2-selection--single { height: calc(2.25rem + 2px); border: 1px solid #ced4da; }
+    .select2-container .select2-selection--single .select2-selection__rendered { line-height: calc(2.25rem + 0px); padding-left: 0.75rem; }
+    .select2-container .select2-selection--single .select2-selection__arrow { height: calc(2.25rem + 0px); }
+</style>
+@endpush
+
 @section('content')
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
@@ -806,6 +817,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     (function () {
         const form = document.querySelector('form[action*="/dashboard/ads/create/"]');
@@ -816,6 +828,21 @@
         const subcategoryBaseUrl = form.dataset.subcategoryUrlBase || '';
         const selectedSubcategory = subcategorySelect ? (subcategorySelect.dataset.selectedSubcategory || '') : '';
         const locationInput = document.getElementById('adLocation');
+
+        function initSelect2() {
+            if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2) return;
+            const $category = window.jQuery(categorySelect);
+            const $subcategory = window.jQuery(subcategorySelect);
+
+            if ($category.length) {
+                $category.select2({ width: '100%', placeholder: '— Select category —', allowClear: true });
+            }
+
+            if ($subcategory.length) {
+                $subcategory.select2({ width: '100%', placeholder: '— Select subcategory —', allowClear: true });
+            }
+        }
+
         const locationLatInput = document.getElementById('adLocationLat');
         const locationLngInput = document.getElementById('adLocationLng');
         async function loadSubcategories(categoryId, selectedId = '') {
@@ -838,11 +865,16 @@
                 });
                 subcategorySelect.innerHTML = options.join('');
                 subcategorySelect.disabled = false;
+                if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
+                    window.jQuery(subcategorySelect).trigger('change.select2');
+                }
             } catch (error) {
                 subcategorySelect.innerHTML = '<option value="">— Unable to load subcategories —</option>';
                 subcategorySelect.disabled = true;
             }
         }
+
+        initSelect2();
 
         if (categorySelect && subcategorySelect) {
             categorySelect.addEventListener('change', function () {
