@@ -703,8 +703,23 @@
         });
     }
 
+    function cleanupLegacyBrochureText(contentEditable) {
+        if (!contentEditable) return;
+        var rightCol = contentEditable.querySelector('.col-md-8, .col-md-4:last-child') || contentEditable;
+        var heading = rightCol.querySelector('h5');
+        var paragraph = rightCol.querySelector('p');
+
+        if (heading && heading.textContent && heading.textContent.trim().toLowerCase() === 'brochure title') {
+            heading.remove();
+        }
+        if (paragraph && paragraph.textContent && paragraph.textContent.trim().toLowerCase() === 'add your brochure description text here.') {
+            paragraph.remove();
+        }
+    }
+
     function normalizeBrochurePdfItems(contentEditable) {
         if (!contentEditable) return;
+        cleanupLegacyBrochureText(contentEditable);
         var list = contentEditable.querySelector('[data-brochure-pdf-list]');
         if (!list) {
             var rightCol = contentEditable.querySelector('.col-md-8') || contentEditable;
