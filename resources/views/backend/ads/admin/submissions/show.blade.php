@@ -51,6 +51,9 @@
                 <div class="mb-2"><span class="text-secondary">Valid Upto:</span> {{ $ad->valid_until?->format('Y-m-d') ?? '-' }}</div>
                 <div class="mb-2"><span class="text-secondary">Submitted:</span> {{ $ad->submitted_at?->timezone('Asia/Kolkata')->format('Y-m-d h:i A') ?? '-' }}</div>
                 <div class="mb-2"><span class="text-secondary">Reviewed:</span> {{ $ad->reviewed_at?->timezone('Asia/Kolkata')->format('Y-m-d h:i A') ?? '-' }}</div>
+                <div class="mb-2"><span class="text-secondary">Categories:</span> {{ !empty($selectedCategoryLabels) ? implode(', ', $selectedCategoryLabels) : '-' }}</div>
+                <div class="mb-2"><span class="text-secondary">Subcategories:</span> {{ !empty($selectedSubcategoryLabels) ? implode(', ', $selectedSubcategoryLabels) : '-' }}</div>
+                <div class="mb-2"><span class="text-secondary">Modules:</span> {{ !empty($selectedModuleLabels) ? implode(', ', $selectedModuleLabels) : '-' }}</div>
                 <div class="mb-3"><span class="text-secondary">User email:</span> {{ $ad->user?->email ?? '-' }}</div>
 
                 <hr>
