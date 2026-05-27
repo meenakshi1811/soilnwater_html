@@ -1066,8 +1066,11 @@
         var currentType = typeInput?.value || '';
         var detectedType = detectSectionTypeFromContent(block);
         var effectiveType = currentType || detectedType;
-        if (currentType === 'image_text' && detectedType === 'text_only') {
-            effectiveType = 'text_only';
+        if (
+            currentType === 'image_text' &&
+            ['text_only', 'image_grid', 'brochure'].includes(detectedType)
+        ) {
+            effectiveType = detectedType;
         }
         if (typeInput) typeInput.value = effectiveType;
         applySectionTypeLayout(block, effectiveType);
