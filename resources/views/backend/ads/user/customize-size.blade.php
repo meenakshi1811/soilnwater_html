@@ -1326,6 +1326,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         async function filterCategoriesByModules() {
             if (!categorySelect || !moduleSelect) return;
             const selectedModules = Array.from(moduleSelect.selectedOptions || []).map((option) => normalizeModuleKey(option.value)).filter(Boolean);
+            console.log('[AdsCustomize] filterCategoriesByModules selectedModules:', selectedModules);
             const currentCategory = categorySelect.value;
 
             if (selectedModules.length === 0) {
@@ -1342,11 +1343,15 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             }
 
             const filterUrl = form.dataset.categoryFilterUrl || '';
+            console.log('[AdsCustomize] category filter URL:', filterUrl);
             try {
-                const response = await fetch(`${filterUrl}?${new URLSearchParams(selectedModules.map((module) => ['modules[]', module]))}`, {
+                const requestUrl = `${filterUrl}?${new URLSearchParams(selectedModules.map((module) => ['modules[]', module]))}`;
+                console.log('[AdsCustomize] fetching categories:', requestUrl);
+                const response = await fetch(requestUrl, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 const data = await response.json();
+                console.log('[AdsCustomize] categories response status:', response.status, 'payload:', data);
                 const allowedIds = new Set((Array.isArray(data) ? data : []).map((item) => String(item.id)));
                 const options = ['<option value="">— Select category —</option>'];
 
@@ -1367,6 +1372,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                     }
                 }
             } catch (error) {
+                console.error('[AdsCustomize] categories fetch failed:', error);
                 categorySelect.innerHTML = '<option value="">— Unable to load categories —</option>';
                 categorySelect.disabled = true;
             }
