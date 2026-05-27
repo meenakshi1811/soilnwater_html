@@ -63,10 +63,15 @@ class AdsMarketController extends Controller
         $ads = $adsQuery
             ->paginate(12)
             ->appends($request->query());
+        $selectedCategoryNamesByAdId = $this->resolveSelectedCategoryNamesByAdId($ads->items());
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('frontend.ads.partials.cards', ['ads' => $ads, 'sponsoredFillers' => $sponsoredFillers])->render(),
+                'html' => view('frontend.ads.partials.cards', [
+                    'ads' => $ads,
+                    'sponsoredFillers' => $sponsoredFillers,
+                    'selectedCategoryNamesByAdId' => $selectedCategoryNamesByAdId,
+                ])->render(),
                 'next_page_url' => $ads->nextPageUrl(),
                 'loaded_to' => $ads->lastItem() ?? 0,
                 'total' => $ads->total(),
@@ -75,7 +80,7 @@ class AdsMarketController extends Controller
 
         $homepageSetting = HomepageSetting::query()->find(1);
 
-        return view('frontend.ads.index', compact('ads', 'categories', 'categoriesForFilter', 'sponsoredFillers', 'homepageSetting'));
+        return view('frontend.ads.index', compact('ads', 'categories', 'categoriesForFilter', 'sponsoredFillers', 'homepageSetting', 'selectedCategoryNamesByAdId'));
     }
 
     public function show(UserAd $ad): View
@@ -164,5 +169,34 @@ class AdsMarketController extends Controller
                 'url' => $picked ? route('frontend.ads.show', $picked) : null,
             ];
         })->values()->all();
+    }
+
+    private function resolveSelectedCategoryNamesByAdId(array $ads): array
+    {
+        $selectedCategoryIds = collect($ads)
+            ->flatMap(fn (UserAd $ad) => array_map('intval', $ad->selected_category_ids ?? []))
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $categoryNamesById = Category::query()
+            ->whereIn('id', $selectedCategoryIds)
+            ->pluck('name', 'id');
+
+        return collect($ads)
+            ->mapWithKeys(function (UserAd $ad) use ($categoryNamesById) {
+                $selectedNames = collect($ad->selected_category_ids ?? [])
+                    ->map(fn ($id) => $categoryNamesById->get((int) $id))
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                if ($selectedNames === [] && $ad->category?->name) {
+                    $selectedNames = [$ad->category->name];
+                }
+
+                return [$ad->id => $selectedNames];
+            })
+            ->all();
     }
 }

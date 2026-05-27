@@ -1,6 +1,7 @@
 @php
     $adSizes = \App\Support\AdSizes::all();
     $sponsoredFillers = collect($sponsoredFillers ?? [])->values()->all();
+    $selectedCategoryNamesByAdId = $selectedCategoryNamesByAdId ?? [];
     $gridId = $gridId ?? 'ads';
     $autoRender = $autoRender ?? ($gridId === 'ads');
 @endphp
@@ -26,6 +27,8 @@
 
             $adWidth  = (int) ($sizeConfig['w'] ?? ($ad->adSize?->width ?? 458));
             $adHeight = (int) ($sizeConfig['h'] ?? ($ad->adSize?->height ?? 229));
+            $categoryNames = $selectedCategoryNamesByAdId[$ad->id] ?? [];
+            $adMeta = $categoryNames !== [] ? implode(', ', $categoryNames) : ($ad->category?->name ?? 'Uncategorized');
 
             $shapeClass = 'ad-landscape';
 
@@ -48,7 +51,7 @@
             data-ad-w="{{ $adWidth }}"
             data-ad-h="{{ $adHeight }}"
             data-ad-title="{{ $ad->title }}"
-            data-ad-meta="{{ $ad->category?->name ?? 'Uncategorized' }}"
+            data-ad-meta="{{ $adMeta }}"
             data-ad-description="{{ $ad->short_description ?: 'Special marketplace ad available now.' }}"
             data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
             data-ad-url="{{ route('frontend.ads.show', $ad) }}"
