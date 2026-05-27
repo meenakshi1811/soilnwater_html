@@ -33,9 +33,9 @@
         } else if (type === 'brochure') {
             title = 'Brochure Section';
             content = '<div class="card border-0 shadow-sm p-3" data-brochure-wrap="1">' +
-                '<div class="row g-3 align-items-center">' +
+                '<div class="row g-3 align-items-start">' +
                 '<div class="col-md-4 js-brochure-image-col"><div class="position-relative d-inline-block w-100"><img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Brochure Image</text></svg>') + '" class="img-fluid rounded" data-brochure-image-slot="1" data-brochure-placeholder="1" alt="Brochure image"><button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image" title="Delete image"><i class="fa-solid fa-trash"></i></button></div></div>' +
-                '<div class="col-md-8"><h5>Brochure title</h5><p>Add your brochure description text here.</p><div class="d-flex flex-wrap gap-2" data-brochure-pdf-list><a href="#" class="btn btn-primary btn-sm disabled" data-brochure-pdf-slot="1" aria-label="Open brochure PDF"><i class="fa-solid fa-file-pdf me-1" aria-hidden="true"></i><span class="visually-hidden">Open brochure PDF</span></a></div></div>' +
+                '<div class="col-md-4"><div class="d-flex flex-wrap gap-2" data-brochure-pdf-list><div data-brochure-pdf-item="1" class="d-inline-flex align-items-start gap-1"><a href="#" class="btn btn-outline-primary disabled d-flex align-items-center justify-content-center" data-brochure-pdf-slot="1" aria-label="Open brochure PDF" style="width:100%;max-width:320px;aspect-ratio:4/3;font-size:56px;"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></a><button type="button" class="btn btn-sm btn-outline-danger js-remove-brochure-pdf" title="Delete PDF"><i class="fa-solid fa-trash"></i></button></div></div></div>' +
                 '</div></div>';
         } else if (type === 'image_text') {
             title = 'Image + Text Cards';
@@ -708,7 +708,7 @@
         var list = contentEditable.querySelector('[data-brochure-pdf-list]');
         if (!list) {
             var rightCol = contentEditable.querySelector('.col-md-8') || contentEditable;
-            var existingLinks = rightCol.querySelectorAll('a[data-brochure-pdf-slot], a.btn.btn-primary');
+            var existingLinks = rightCol.querySelectorAll('a[data-brochure-pdf-slot], a.btn.btn-primary, a.btn.btn-outline-primary');
             if (!existingLinks.length) return;
 
             list = document.createElement('div');
@@ -801,7 +801,13 @@
             }
             if (!link) return;
             link.href = ev.target.result;
-            link.innerHTML = '<i class="fa-solid fa-file-pdf me-1" aria-hidden="true"></i><span>' + (file.name || ('Brochure ' + nextSlot)) + '</span>';
+            link.classList.remove('btn-sm');
+            link.classList.add('d-flex', 'align-items-center', 'justify-content-center');
+            link.style.width = '100%';
+            link.style.maxWidth = '320px';
+            link.style.aspectRatio = '4 / 3';
+            link.style.fontSize = '56px';
+            link.innerHTML = '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>';
             link.classList.remove('disabled');
             if (!link.getAttribute('data-brochure-pdf-slot')) link.setAttribute('data-brochure-pdf-slot', String(nextSlot));
             link.setAttribute('target', '_blank');
