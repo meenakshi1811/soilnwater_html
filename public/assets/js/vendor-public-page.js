@@ -657,13 +657,66 @@
             '</div><small class="text-muted d-block mt-1">You can also edit brochure text directly in the content box above.</small>';
 
         var contentEditable = block.querySelector('[data-section-field="content"]');
+        normalizeBrochureImageItems(contentEditable);
         normalizeBrochurePdfItems(contentEditable);
+    }
+
+    function normalizeBrochureImageItems(contentEditable) {
+        if (!contentEditable) return;
+        var row = contentEditable.querySelector('[data-brochure-wrap] .row') || contentEditable.querySelector('.row');
+        if (!row) return;
+
+        row.querySelectorAll('img[data-brochure-image-slot], img').forEach(function (img, i) {
+            var slot = i + 1;
+            img.setAttribute('data-brochure-image-slot', String(slot));
+            if (!img.getAttribute('alt')) img.setAttribute('alt', 'Brochure image ' + slot);
+
+            var col = img.closest('.js-brochure-image-col');
+            if (!col) {
+                col = img.closest('.col-md-4') || document.createElement('div');
+                if (!col.parentElement) {
+                    col.className = 'col-md-4 js-brochure-image-col';
+                    row.insertAdjacentElement('afterbegin', col);
+                    col.appendChild(img);
+                } else {
+                    col.classList.add('js-brochure-image-col');
+                }
+            }
+
+            var wrap = img.closest('.position-relative');
+            if (!wrap) {
+                wrap = document.createElement('div');
+                wrap.className = 'position-relative d-inline-block w-100';
+                img.insertAdjacentElement('beforebegin', wrap);
+                wrap.appendChild(img);
+            }
+
+            var removeBtn = wrap.querySelector('.js-remove-brochure-image');
+            if (!removeBtn) {
+                removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image';
+                removeBtn.setAttribute('title', 'Delete image');
+                removeBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                wrap.appendChild(removeBtn);
+            }
+        });
     }
 
     function normalizeBrochurePdfItems(contentEditable) {
         if (!contentEditable) return;
         var list = contentEditable.querySelector('[data-brochure-pdf-list]');
-        if (!list) return;
+        if (!list) {
+            var rightCol = contentEditable.querySelector('.col-md-8') || contentEditable;
+            var existingLinks = rightCol.querySelectorAll('a[data-brochure-pdf-slot], a.btn.btn-primary');
+            if (!existingLinks.length) return;
+
+            list = document.createElement('div');
+            list.className = 'd-flex flex-wrap gap-2';
+            list.setAttribute('data-brochure-pdf-list', '');
+            rightCol.appendChild(list);
+            existingLinks.forEach(function (lnk) { list.appendChild(lnk); });
+        }
 
         list.querySelectorAll('a[data-brochure-pdf-slot]').forEach(function (link, i) {
             var slot = i + 1;
