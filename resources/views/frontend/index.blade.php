@@ -499,12 +499,7 @@
               <div class="product-grid-4 recent-ads-grid">
                 @foreach($recentAdsChunk as $recentAd)
                   @php
-                    $selectedCategoryNames = \App\Models\Category::query()
-                      ->whereIn('id', array_map('intval', $recentAd->selected_category_ids ?? []))
-                      ->orderBy('name')
-                      ->pluck('name')
-                      ->values()
-                      ->all();
+                    $selectedCategoryNames = $selectedCategoryNamesByRecentAdId[$recentAd->id] ?? [];
                     if ($selectedCategoryNames === [] && $recentAd->category?->name) {
                       $selectedCategoryNames = [$recentAd->category->name];
                     }
