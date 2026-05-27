@@ -61,7 +61,7 @@
                 </div>
                 <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <select name="category_id" id="categorySelect" class="form-select" required>
+                    <select name="category_id" id="categorySelect" class="form-select" {{ empty(old('selected_modules', $ad->selected_modules ?? [])) ? 'disabled' : '' }} required>
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
@@ -1330,7 +1330,8 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                     categoryModules = [];
                 }
                 const normalizedModules = Array.isArray(categoryModules) ? categoryModules.map((module) => String(module).toLowerCase()) : [];
-                const showCategory = selectedModules.length === 0 || selectedModules.some((module) => normalizedModules.includes(module));
+                if (selectedModules.length === 0) return;
+                const showCategory = selectedModules.some((module) => normalizedModules.includes(module));
                 if (!showCategory) return;
 
                 const isSelected = String(item.value) === String(currentCategory);
@@ -1338,6 +1339,16 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             });
 
             categorySelect.innerHTML = options.join('');
+            categorySelect.disabled = selectedModules.length === 0;
+
+            if (selectedModules.length === 0) {
+                categorySelect.innerHTML = '<option value="">— Select module(s) first —</option>';
+                categorySelect.value = '';
+                if (subcategorySelect) {
+                    subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
+                    subcategorySelect.disabled = true;
+                }
+            }
 
             if (currentCategory && !Array.from(categorySelect.options).some((option) => option.value === currentCategory)) {
                 categorySelect.value = '';
