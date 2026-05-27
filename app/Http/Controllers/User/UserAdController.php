@@ -356,8 +356,10 @@ class UserAdController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:140',
             'short_description' => 'nullable|string|max:300',
-            'category_id' => ['required', Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id'))],
-            'subcategory_id' => ['required', Rule::exists('categories', 'id')],
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['required', Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id'))],
+            'subcategory_ids' => ['required', 'array', 'min:1'],
+            'subcategory_ids.*' => ['required', Rule::exists('categories', 'id')],
             'selected_modules' => ['nullable', 'array'],
             'selected_modules.*' => ['string', Rule::in(array_keys(ModulePermissions::modules()))],
             'location' => 'required|string|max:255',
@@ -382,8 +384,10 @@ class UserAdController extends Controller
         $ad->fill([
             'title' => $validated['title'],
             'short_description' => $validated['short_description'] ?? null,
-            'category_id' => $validated['category_id'],
-            'subcategory_id' => $validated['subcategory_id'],
+            'category_id' => (int) ($validated['category_ids'][0] ?? 0),
+            'subcategory_id' => (int) ($validated['subcategory_ids'][0] ?? 0),
+            'selected_category_ids' => array_map('intval', $validated['category_ids'] ?? []),
+            'selected_subcategory_ids' => array_map('intval', $validated['subcategory_ids'] ?? []),
             'selected_modules' => $validated['selected_modules'] ?? [],
             'location' => $validated['location'],
             'location_lat' => $validated['location_lat'],
@@ -573,12 +577,13 @@ class UserAdController extends Controller
             'ad_image_input_type' => 'nullable|in:1,2',
             'generated_image_data' => ['required', 'string', 'starts_with:data:image/png;base64,'],
             'accept_terms' => 'accepted',
-            'category_id' => [
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => [
                 'required',
-                Rule::exists('categories', 'id')->where(fn ($query) => $query
-                    ->whereNull('parent_id')),
+                Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id')),
             ],
-            'subcategory_id' => ['required', Rule::exists('categories', 'id')],
+            'subcategory_ids' => ['required', 'array', 'min:1'],
+            'subcategory_ids.*' => ['required', Rule::exists('categories', 'id')],
             'selected_modules' => ['nullable', 'array'],
             'selected_modules.*' => ['string', Rule::in(array_keys(ModulePermissions::modules()))],
             'location' => 'required|string|max:255',
@@ -591,9 +596,9 @@ class UserAdController extends Controller
         $this->validateSquareValidUntil($request, $validated['valid_until'], $sizeType);
 
         $isValidSubcategory = Category::query()
-            ->where('id', $validated['subcategory_id'])
-            ->where('parent_id', $validated['category_id'])
-            ->exists();
+            ->whereIn('id', $validated['subcategory_ids'])
+            ->whereIn('parent_id', $validated['category_ids'])
+            ->count() === count($validated['subcategory_ids']);
 
         if (! $isValidSubcategory) {
             return back()->withErrors([
@@ -606,7 +611,9 @@ class UserAdController extends Controller
         $user = $request->user();
 
         $size = AdSizes::all()[$sizeType] ?? null;
-        $categoryPrice = $size['category_prices'][(int) $validated['category_id']] ?? ((($size['module_prices'] ?? []) !== []) ? min($size['module_prices']) : null);
+        $primaryCategoryId = (int) ($validated['category_ids'][0] ?? 0);
+        $primarySubcategoryId = (int) ($validated['subcategory_ids'][0] ?? 0);
+        $categoryPrice = $size['category_prices'][$primaryCategoryId] ?? ((($size['module_prices'] ?? []) !== []) ? min($size['module_prices']) : null);
         $selectedModules = collect($validated['selected_modules'] ?? [])->unique()->values()->all();
         $modulePricePerDay = collect($selectedModules)->sum(fn (string $moduleKey) => (float) ($size['module_prices'][$moduleKey] ?? 0));
         $categoryPricePerDay = (float) ($categoryPrice ?? 0);
@@ -640,8 +647,10 @@ class UserAdController extends Controller
                 'size_type' => $sizeType,
                 'title' => $validated['title'],
                 'short_description' => $validated['short_description'] ?? null,
-                'category_id' => $validated['category_id'],
-                'subcategory_id' => $validated['subcategory_id'],
+                'category_id' => $primaryCategoryId,
+                'subcategory_id' => $primarySubcategoryId,
+                'selected_category_ids' => array_map('intval', $validated['category_ids'] ?? []),
+                'selected_subcategory_ids' => array_map('intval', $validated['subcategory_ids'] ?? []),
                 'selected_modules' => $selectedModules,
                 'location' => $validated['location'],
                 'location_lat' => $validated['location_lat'],

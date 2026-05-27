@@ -61,11 +61,17 @@
                 </div>
                 <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <select name="category_id" id="categorySelect" class="form-select" {{ empty(old('selected_modules', $ad->selected_modules ?? [])) ? 'disabled' : '' }} required>
+                    @php
+                        $selectedModules = old('selected_modules', isset($ad) ? ($ad->selected_modules ?? []) : []);
+                        $selectedCategoryIds = old('category_ids', isset($ad)
+                            ? (($ad->selected_category_ids ?? []) !== [] ? $ad->selected_category_ids : (($ad->category_id ?? null) ? [$ad->category_id] : []))
+                            : []);
+                    @endphp
+                    <select name="category_ids[]" id="categorySelect" class="form-select" {{ empty($selectedModules) ? 'disabled' : '' }} required multiple>
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
-                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values(array_filter($category->modules ?? [], fn($module) => $module !== 'ads')))) }}" {{ (string) old('category_id', $ad->category_id ?? '') === (string) $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values(array_filter($category->modules ?? [], fn($module) => $module !== 'ads')))) }}" {{ in_array((string) $category->id, array_map('strval', $selectedCategoryIds), true) ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach
                     </select>
                     @if((bool) ($size['is_paid'] ?? false))
@@ -80,10 +86,15 @@
                 </div>
                 <div class="col-md-6">
                     <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <select name="subcategory_id" id="subcategorySelect" class="form-select" {{ empty($subcategories ?? []) ? 'disabled' : '' }} required>
+                    @php
+                        $selectedSubcategoryIds = old('subcategory_ids', isset($ad)
+                            ? (($ad->selected_subcategory_ids ?? []) !== [] ? $ad->selected_subcategory_ids : (($ad->subcategory_id ?? null) ? [$ad->subcategory_id] : []))
+                            : []);
+                    @endphp
+                    <select name="subcategory_ids[]" id="subcategorySelect" class="form-select" {{ empty($subcategories ?? []) ? 'disabled' : '' }} required multiple>
                         <option value="">— Select a category first —</option>
                         @foreach(($subcategories ?? []) as $subcategory)
-                            <option value="{{ $subcategory->id }}" {{ (string) old('subcategory_id', $ad->subcategory_id ?? '') === (string) $subcategory->id ? 'selected' : '' }}>{{ $subcategory->name }}</option>
+                            <option value="{{ $subcategory->id }}" {{ in_array((string) $subcategory->id, array_map('strval', $selectedSubcategoryIds), true) ? 'selected' : '' }}>{{ $subcategory->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -1258,21 +1269,43 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             }
         });
 
-        async function loadSubcategories(categoryId) {
+        async function loadSubcategories(categoryIds = []) {
             const base = form.dataset.subcategoryUrlBase || '';
-            if (!categoryId || !base || !subcategorySelect) {
+            const selectedCategoryIds = Array.isArray(categoryIds)
+                ? categoryIds.filter(Boolean)
+                : [categoryIds].filter(Boolean);
+            if (selectedCategoryIds.length === 0 || !base || !subcategorySelect) {
                 subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
                 subcategorySelect.disabled = true;
                 return;
             }
-            const response = await fetch(`${base}/${categoryId}/subcategories`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-            const data = await response.json();
+            const existingSelection = Array.from(subcategorySelect.selectedOptions || []).map((option) => String(option.value));
+            const responses = await Promise.all(
+                selectedCategoryIds.map((categoryId) => fetch(`${base}/${categoryId}/subcategories`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }))
+            );
+            const payloads = await Promise.all(responses.map((response) => response.json()));
+            const subcategoryMap = new Map();
+            payloads.forEach((items) => {
+                (Array.isArray(items) ? items : []).forEach((item) => {
+                    if (!item || !item.id) return;
+                    subcategoryMap.set(String(item.id), item);
+                });
+            });
+            const data = Array.from(subcategoryMap.values())
+                .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
             const options = ['<option value="">— Select subcategory —</option>'];
-            (Array.isArray(data) ? data : []).forEach((item) => {
-                options.push(`<option value=\"${item.id}\">${item.name}</option>`);
+            data.forEach((item) => {
+                const isSelected = existingSelection.includes(String(item.id));
+                options.push(`<option value=\"${item.id}\" ${isSelected ? 'selected' : ''}>${item.name}</option>`);
             });
             subcategorySelect.innerHTML = options.join('');
             subcategorySelect.disabled = false;
+
+            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
+                window.jQuery(subcategorySelect).trigger('change.select2');
+            }
             updateSubmitButtonState();
         }
 
@@ -1287,6 +1320,11 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 placeholder: 'Select module(s)',
                 closeOnSelect: false
             });
+        }
+        function initCategorySubcategorySelect2() {
+            if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2) return;
+            if (categorySelect) window.jQuery(categorySelect).select2({ width: '100%', placeholder: 'Select category(s)', closeOnSelect: false });
+            if (subcategorySelect) window.jQuery(subcategorySelect).select2({ width: '100%', placeholder: 'Select sub category(s)', closeOnSelect: false });
         }
 
         const categoryPriceNote = document.getElementById('adCategoryPriceNote');
@@ -1327,7 +1365,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             if (!categorySelect || !moduleSelect) return;
             const selectedModules = Array.from(moduleSelect.selectedOptions || []).map((option) => normalizeModuleKey(option.value)).filter(Boolean);
             console.log('[AdsCustomize] filterCategoriesByModules selectedModules:', selectedModules);
-            const currentCategory = categorySelect.value;
+            const currentCategoryValues = Array.from(categorySelect.selectedOptions || []).map((opt) => opt.value);
 
             if (selectedModules.length === 0) {
                 categorySelect.innerHTML = '<option value="">— Select module(s) first —</option>';
@@ -1357,19 +1395,25 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
 
                 allCategoryOptions.forEach((item) => {
                     if (!item.value || !allowedIds.has(String(item.value))) return;
-                    const isSelected = String(item.value) === String(currentCategory);
+                    const isSelected = currentCategoryValues.includes(String(item.value));
                     options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
                 });
 
                 categorySelect.innerHTML = options.join('');
                 categorySelect.disabled = false;
 
-                if (currentCategory && !Array.from(categorySelect.options).some((option) => option.value === currentCategory)) {
-                    categorySelect.value = '';
+                const availableIds = Array.from(categorySelect.options).map((option) => String(option.value));
+                const nextSelected = currentCategoryValues.filter((id) => availableIds.includes(String(id)));
+                Array.from(categorySelect.options).forEach((option) => {
+                    option.selected = nextSelected.includes(String(option.value));
+                });
+                if (nextSelected.length === 0) {
                     if (subcategorySelect) {
                         subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
                         subcategorySelect.disabled = true;
                     }
+                } else {
+                    await loadSubcategories(nextSelected);
                 }
             } catch (error) {
                 console.error('[AdsCustomize] categories fetch failed:', error);
@@ -1482,9 +1526,11 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         }
 
         initModuleSelect2();
+        initCategorySubcategorySelect2();
 
         categorySelect?.addEventListener('change', function () {
-            loadSubcategories(this.value);
+            const selectedCategoryIds = Array.from(this.selectedOptions || []).map((option) => option.value).filter(Boolean);
+            loadSubcategories(selectedCategoryIds);
             updateCategoryPriceNote();
             updateSubmitButtonState();
         });
@@ -1514,6 +1560,12 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         });
         applyValidUntilLimit();
         filterCategoriesByModules();
+        const initiallySelectedCategoryIds = Array.from(categorySelect?.selectedOptions || [])
+            .map((option) => option.value)
+            .filter(Boolean);
+        if (initiallySelectedCategoryIds.length > 0) {
+            loadSubcategories(initiallySelectedCategoryIds);
+        }
         updateCategoryPriceNote();
         updateModulePriceNote();
         updateSubmitButtonState();
