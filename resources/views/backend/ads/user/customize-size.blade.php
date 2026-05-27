@@ -48,6 +48,18 @@
                     <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description', $ad->short_description ?? '') }}</textarea>
                 </div>
                 <div class="col-md-6">
+                    <label for="moduleSelect" class="form-label fw-semibold">Select Module(s)</label>
+                    <select name="selected_modules[]" id="moduleSelect" class="form-select" multiple data-module-prices='@json($size["module_prices"] ?? [])'>
+                        @foreach(($moduleOptions ?? []) as $moduleKey => $moduleName)
+                            @php $modulePrice = $size['module_prices'][$moduleKey] ?? null; @endphp
+                            <option value="{{ $moduleKey }}" data-module-price="{{ $modulePrice !== null ? (float) $modulePrice : '' }}" {{ in_array($moduleKey, old('selected_modules', $ad->selected_modules ?? []), true) ? 'selected' : '' }}>
+                                {{ $moduleName }}{{ $modulePrice !== null && $modulePrice > 0 ? ' (₹' . number_format((float) $modulePrice, 2) . '/day)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div id="adModulePriceNote" class="form-text text-muted">Select one or more modules to include additional paid module charges.</div>
+                </div>
+                <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <select name="category_id" id="categorySelect" class="form-select" required>
                         <option value="">— Select category —</option>
@@ -74,18 +86,6 @@
                             <option value="{{ $subcategory->id }}" {{ (string) old('subcategory_id', $ad->subcategory_id ?? '') === (string) $subcategory->id ? 'selected' : '' }}>{{ $subcategory->name }}</option>
                         @endforeach
                     </select>
-                </div>
-                <div class="col-md-6">
-                    <label for="moduleSelect" class="form-label fw-semibold">Select Module(s)</label>
-                    <select name="selected_modules[]" id="moduleSelect" class="form-select" multiple data-module-prices='@json($size["module_prices"] ?? [])'>
-                        @foreach(($moduleOptions ?? []) as $moduleKey => $moduleName)
-                            @php $modulePrice = $size['module_prices'][$moduleKey] ?? null; @endphp
-                            <option value="{{ $moduleKey }}" data-module-price="{{ $modulePrice !== null ? (float) $modulePrice : '' }}" {{ in_array($moduleKey, old('selected_modules', $ad->selected_modules ?? []), true) ? 'selected' : '' }}>
-                                {{ $moduleName }}{{ $modulePrice !== null && $modulePrice > 0 ? ' (₹' . number_format((float) $modulePrice, 2) . '/day)' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div id="adModulePriceNote" class="form-text text-muted">Select one or more modules to include additional paid module charges.</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
