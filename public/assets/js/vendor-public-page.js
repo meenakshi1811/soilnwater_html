@@ -34,8 +34,7 @@
             title = 'Brochure Section';
             content = '<div class="card border-0 shadow-sm p-3" data-brochure-wrap="1">' +
                 '<div class="row g-3 align-items-start">' +
-                '<div class="col-md-4 js-brochure-image-col"><div class="position-relative d-inline-block w-100"><img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Brochure Image</text></svg>') + '" class="img-fluid rounded" data-brochure-image-slot="1" data-brochure-placeholder="1" alt="Brochure image"><button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image" title="Delete image"><i class="fa-solid fa-trash"></i></button></div></div>' +
-                '<div class="col-md-4"><div class="d-flex flex-wrap gap-2" data-brochure-pdf-list><div data-brochure-pdf-item="1" class="d-inline-flex align-items-start gap-1"><a href="#" class="btn btn-outline-primary disabled d-flex align-items-center justify-content-center" data-brochure-pdf-slot="1" aria-label="Open brochure PDF" style="width:100%;max-width:320px;aspect-ratio:4/3;font-size:56px;"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></a><button type="button" class="btn btn-sm btn-outline-danger js-remove-brochure-pdf" title="Delete PDF"><i class="fa-solid fa-trash"></i></button></div></div></div>' +
+                '<div class="col-12 d-flex flex-wrap gap-2 align-items-start" data-brochure-image-list data-brochure-pdf-list></div>' +
                 '</div></div>';
         } else if (type === 'image_text') {
             title = 'Image + Text Cards';
@@ -667,6 +666,15 @@
         if (!row) return;
         row.classList.add('d-flex', 'flex-wrap', 'align-items-start');
 
+        var imageList = contentEditable.querySelector('[data-brochure-image-list]');
+        if (!imageList) {
+            imageList = document.createElement('div');
+            imageList.className = 'col-12 d-flex flex-wrap gap-2 align-items-start';
+            imageList.setAttribute('data-brochure-image-list', '');
+            row.insertAdjacentElement('afterbegin', imageList);
+        }
+        imageList.classList.add('d-flex', 'flex-wrap', 'gap-2', 'align-items-start');
+
         row.querySelectorAll('img[data-brochure-image-slot], img').forEach(function (img, i) {
             var slot = i + 1;
             img.setAttribute('data-brochure-image-slot', String(slot));
@@ -677,14 +685,17 @@
 
             var col = img.closest('.js-brochure-image-col');
             if (!col) {
-                col = img.closest('.col-md-4') || document.createElement('div');
+                col = img.closest('.js-brochure-image-col') || document.createElement('div');
                 if (!col.parentElement) {
-                    col.className = 'col-md-4 js-brochure-image-col';
-                    row.insertAdjacentElement('afterbegin', col);
+                    col.className = 'js-brochure-image-col';
+                    imageList.insertAdjacentElement('beforeend', col);
                     col.appendChild(img);
                 } else {
                     col.classList.add('js-brochure-image-col');
                 }
+            }
+            if (col.parentElement !== imageList) {
+                imageList.appendChild(col);
             }
             col.classList.add('d-flex', 'justify-content-start');
             col.style.flex = '0 0 220px';
@@ -754,7 +765,7 @@
         cleanupLegacyBrochureText(contentEditable);
         var list = contentEditable.querySelector('[data-brochure-pdf-list]');
         if (!list) {
-            var rightCol = contentEditable.querySelector('.col-md-8') || contentEditable;
+            var rightCol = contentEditable.querySelector('[data-brochure-image-list], .col-md-8') || contentEditable;
             var existingLinks = rightCol.querySelectorAll('a[data-brochure-pdf-slot], a.btn.btn-primary, a.btn.btn-outline-primary');
             if (!existingLinks.length) return;
 
@@ -772,7 +783,7 @@
             var item = link.closest('[data-brochure-pdf-item]');
             if (!item) {
                 item = document.createElement('div');
-                item.className = 'd-inline-flex align-items-start gap-1 position-relative';
+                item.className = 'd-inline-flex align-items-start gap-1 position-relative brochure-pdf-item';
                 item.setAttribute('data-brochure-pdf-item', String(slot));
                 link.insertAdjacentElement('beforebegin', item);
                 item.appendChild(link);
@@ -813,14 +824,22 @@
             } else {
                 var row = contentEditable.querySelector('[data-brochure-wrap] .row') || contentEditable.querySelector('.row');
                 if (!row) return;
+                var imageList = contentEditable.querySelector('[data-brochure-image-list]');
+                if (!imageList) {
+                    imageList = document.createElement('div');
+                    imageList.className = 'col-12 d-flex flex-wrap gap-2 align-items-start';
+                    imageList.setAttribute('data-brochure-image-list', '');
+                    row.insertAdjacentElement('afterbegin', imageList);
+                }
                 var col = document.createElement('div');
-                col.className = 'col-md-4 js-brochure-image-col';
+                col.className = 'js-brochure-image-col';
                 col.innerHTML = '<div class="position-relative d-inline-block w-100">' +
                     '<img src="' + ev.target.result + '" class="img-fluid rounded" data-brochure-image-slot="' + nextSlot + '" alt="Brochure image ' + nextSlot + '">' +
                     '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image" title="Delete image"><i class="fa-solid fa-trash"></i></button>' +
                     '</div>';
-                row.insertAdjacentElement('beforeend', col);
+                imageList.insertAdjacentElement('beforeend', col);
             }
+            normalizeBrochureImageItems(contentEditable);
             applyBrochurePdfTileStyle(contentEditable);
             syncEditable(contentEditable);
         };
@@ -839,7 +858,7 @@
                 ? (contentEditable.querySelector('[data-brochure-pdf-slot="1"]') || contentEditable.querySelector('a'))
                 : null;
             if (!list) {
-                var rightCol = contentEditable.querySelector('.col-md-8') || contentEditable;
+                var rightCol = contentEditable.querySelector('[data-brochure-image-list], .col-md-8') || contentEditable;
                 var wrap = document.createElement('div');
                 wrap.className = 'd-flex flex-wrap gap-2';
                 wrap.setAttribute('data-brochure-pdf-list', '');
@@ -1099,7 +1118,7 @@
             e.preventDefault();
             var brochureBlock = e.target.closest('.vendor-section-block');
             var brochureContent = brochureBlock?.querySelector('[data-section-field="content"]');
-            var brochureCol = e.target.closest('.js-brochure-image-col') || e.target.closest('.col-md-4');
+            var brochureCol = e.target.closest('.js-brochure-image-col');
             if (brochureCol) brochureCol.remove();
 
             if (brochureContent) {
