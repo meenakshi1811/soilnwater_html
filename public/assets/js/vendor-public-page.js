@@ -34,8 +34,8 @@
             title = 'Brochure Section';
             content = '<div class="card border-0 shadow-sm p-3" data-brochure-wrap="1">' +
                 '<div class="row g-3 align-items-start">' +
-                '<div class="col-md-4 js-brochure-image-col"><div class="position-relative d-inline-block w-100"><img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Brochure Image</text></svg>') + '" class="img-fluid rounded" data-brochure-image-slot="1" data-brochure-placeholder="1" alt="Brochure image"><button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image" title="Delete image"><i class="fa-solid fa-trash"></i></button></div></div>' +
-                '<div class="col-md-4"><div class="d-flex flex-wrap gap-2" data-brochure-pdf-list><div data-brochure-pdf-item="1" class="d-inline-flex align-items-start gap-1"><a href="#" class="btn btn-outline-primary disabled d-flex align-items-center justify-content-center" data-brochure-pdf-slot="1" aria-label="Open brochure PDF" style="width:100%;max-width:320px;aspect-ratio:4/3;font-size:56px;"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></a><button type="button" class="btn btn-sm btn-outline-danger js-remove-brochure-pdf" title="Delete PDF"><i class="fa-solid fa-trash"></i></button></div></div></div>' +
+                '<div class="col-md-4" data-brochure-image-list></div>' +
+                '<div class="col-md-4"><div class="d-flex flex-wrap gap-2" data-brochure-pdf-list></div></div>' +
                 '</div></div>';
         } else if (type === 'image_text') {
             title = 'Image + Text Cards';
