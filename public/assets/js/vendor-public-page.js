@@ -655,6 +655,41 @@
             '<div class="col-md-6"><label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload brochure image(s)<input type="file" accept="image/*" multiple class="d-none js-brochure-image-input"></label></div>' +
             '<div class="col-md-6"><label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload brochure PDF(s)<input type="file" accept=\"application/pdf\" multiple class=\"d-none js-brochure-pdf-input\"></label></div>' +
             '</div><small class="text-muted d-block mt-1">You can also edit brochure text directly in the content box above.</small>';
+
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        normalizeBrochurePdfItems(contentEditable);
+    }
+
+    function normalizeBrochurePdfItems(contentEditable) {
+        if (!contentEditable) return;
+        var list = contentEditable.querySelector('[data-brochure-pdf-list]');
+        if (!list) return;
+
+        list.querySelectorAll('a[data-brochure-pdf-slot]').forEach(function (link, i) {
+            var slot = i + 1;
+            link.setAttribute('data-brochure-pdf-slot', String(slot));
+
+            var item = link.closest('[data-brochure-pdf-item]');
+            if (!item) {
+                item = document.createElement('div');
+                item.className = 'd-inline-flex align-items-center gap-1';
+                item.setAttribute('data-brochure-pdf-item', String(slot));
+                link.insertAdjacentElement('beforebegin', item);
+                item.appendChild(link);
+            } else {
+                item.setAttribute('data-brochure-pdf-item', String(slot));
+            }
+
+            var removeBtn = item.querySelector('.js-remove-brochure-pdf');
+            if (!removeBtn) {
+                removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-outline-danger js-remove-brochure-pdf';
+                removeBtn.setAttribute('title', 'Delete PDF');
+                removeBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                item.appendChild(removeBtn);
+            }
+        });
     }
 
     function updateBrochureImageInSection(block, file) {
@@ -721,6 +756,7 @@
             link.setAttribute('download', file.name || 'brochure.pdf');
             link.setAttribute('title', file.name || 'Open brochure PDF');
             link.setAttribute('aria-label', 'Open brochure PDF');
+            normalizeBrochurePdfItems(contentEditable);
             syncEditable(contentEditable);
         };
         reader.readAsDataURL(file);
@@ -966,6 +1002,19 @@
                 });
                 syncEditable(brochureContent);
             }
+            return;
+        }
+
+        if (e.target.closest('.js-remove-brochure-pdf')) {
+            e.preventDefault();
+            var pdfBlock = e.target.closest('.vendor-section-block');
+            var pdfContent = pdfBlock?.querySelector('[data-section-field="content"]');
+            var pdfItem = e.target.closest('[data-brochure-pdf-item]');
+            if (pdfItem) {
+                pdfItem.remove();
+            }
+            normalizeBrochurePdfItems(pdfContent);
+            if (pdfContent) syncEditable(pdfContent);
             return;
         }
 
