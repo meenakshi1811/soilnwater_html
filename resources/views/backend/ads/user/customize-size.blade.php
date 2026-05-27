@@ -30,7 +30,7 @@
     </div>
 
     <div class="chart-card">
-        <form method="POST" action="{{ !empty($isEdit) ? route('ads.update', $ad) : route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id??null]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
+        <form method="POST" action="{{ !empty($isEdit) ? route('ads.update', $ad) : route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id??null]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}" data-category-filter-url="{{ route('ads.categories.by-modules') }}">
             @csrf
             @if(!empty($isEdit)) @method('PUT') @endif
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
@@ -1323,55 +1323,57 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 .replace(/[^a-z0-9]+/g, '');
         }
 
-        function filterCategoriesByModules() {
+        async function filterCategoriesByModules() {
             if (!categorySelect || !moduleSelect) return;
-            const selectedModules = Array.from(moduleSelect.selectedOptions || []).map((option) => normalizeModuleKey(option.value));
+            const selectedModules = Array.from(moduleSelect.selectedOptions || []).map((option) => normalizeModuleKey(option.value)).filter(Boolean);
             const currentCategory = categorySelect.value;
-            const options = ['<option value="">— Select category —</option>'];
-
-            allCategoryOptions.forEach((item) => {
-                if (!item.value) return;
-                let categoryModules = [];
-                try {
-                    categoryModules = JSON.parse(item.modules || '[]');
-                } catch (e) {
-                    categoryModules = [];
-                }
-                const normalizedModules = Array.isArray(categoryModules) ? categoryModules.map((module) => normalizeModuleKey(module)) : [];
-                if (selectedModules.length === 0) return;
-                const showCategory = selectedModules.some((module) => normalizedModules.includes(module));
-                if (!showCategory) return;
-
-                const isSelected = String(item.value) === String(currentCategory);
-                options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
-            });
-
-            categorySelect.innerHTML = options.join('');
-            categorySelect.disabled = selectedModules.length === 0;
 
             if (selectedModules.length === 0) {
                 categorySelect.innerHTML = '<option value="">— Select module(s) first —</option>';
+                categorySelect.disabled = true;
                 categorySelect.value = '';
                 if (subcategorySelect) {
                     subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
                     subcategorySelect.disabled = true;
                 }
+                updateCategoryPriceNote();
+                updateSubmitButtonState();
+                return;
             }
 
-            if (currentCategory && !Array.from(categorySelect.options).some((option) => option.value === currentCategory)) {
-                categorySelect.value = '';
-                if (subcategorySelect) {
-                    subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
-                    subcategorySelect.disabled = true;
+            const filterUrl = form.dataset.categoryFilterUrl || '';
+            try {
+                const response = await fetch(`${filterUrl}?${new URLSearchParams(selectedModules.map((module) => ['modules[]', module]))}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                const allowedIds = new Set((Array.isArray(data) ? data : []).map((item) => String(item.id)));
+                const options = ['<option value="">— Select category —</option>'];
+
+                allCategoryOptions.forEach((item) => {
+                    if (!item.value || !allowedIds.has(String(item.value))) return;
+                    const isSelected = String(item.value) === String(currentCategory);
+                    options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
+                });
+
+                categorySelect.innerHTML = options.join('');
+                categorySelect.disabled = false;
+
+                if (currentCategory && !Array.from(categorySelect.options).some((option) => option.value === currentCategory)) {
+                    categorySelect.value = '';
+                    if (subcategorySelect) {
+                        subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
+                        subcategorySelect.disabled = true;
+                    }
                 }
+            } catch (error) {
+                categorySelect.innerHTML = '<option value="">— Unable to load categories —</option>';
+                categorySelect.disabled = true;
             }
 
             updateCategoryPriceNote();
             updateSubmitButtonState();
         }
-
-
-        initModuleSelect2();
 
         function applyValidUntilLimit() {
             if (!validUntilInput) return;

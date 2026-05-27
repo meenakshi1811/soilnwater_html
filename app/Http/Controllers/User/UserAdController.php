@@ -507,6 +507,32 @@ class UserAdController extends Controller
         ]);
     }
 
+
+    public function categoriesByModules(Request $request): JsonResponse
+    {
+        $selectedModules = collect($request->input('modules', []))
+            ->filter(fn ($module) => is_string($module) && $module !== '')
+            ->map(fn (string $module) => strtolower(trim($module)))
+            ->unique()
+            ->values();
+
+        if ($selectedModules->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->where(function ($query) use ($selectedModules): void {
+                foreach ($selectedModules as $module) {
+                    $query->orWhereJsonContains('modules', $module);
+                }
+            })
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json($categories);
+    }
+
     public function subcategories(Category $category): JsonResponse
     {
         return response()->json(
