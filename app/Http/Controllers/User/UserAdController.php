@@ -239,15 +239,22 @@ class UserAdController extends Controller
 
         // abort_if(! $template, 404, 'No active template found for this size.');
 
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->orderBy('name')
+            ->get(['id', 'name', 'modules']);
+
+        $allowedModuleKeys = $categories
+            ->flatMap(fn (Category $category) => array_values(array_filter($category->modules ?? [], fn ($module) => $module !== 'ads')))
+            ->unique()
+            ->values()
+            ->all();
+
         return view('backend.ads.user.customize-size', [
             'sizeType' => $sizeType,
             'size' => AdSizes::all(true)[$sizeType],
-            'categories' => Category::query()
-                ->whereNull('parent_id')
-                ->whereJsonContains('modules', 'ads')
-                ->orderBy('name')
-                ->get(['id', 'name']),
-            'moduleOptions' => ModulePermissions::modules(),
+            'categories' => $categories,
+            'moduleOptions' => array_intersect_key(ModulePermissions::modules(), array_flip($allowedModuleKeys)),
         ]);
     }
 
@@ -317,15 +324,19 @@ class UserAdController extends Controller
 
         $categories = Category::query()
             ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'ads')
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'modules']);
 
         $subcategories = Category::query()
             ->where('parent_id', $ad->category_id)
-            ->whereJsonContains('modules', 'ads')
             ->orderBy('name')
             ->get(['id', 'name']);
+
+        $allowedModuleKeys = $categories
+            ->flatMap(fn (Category $category) => array_values(array_filter($category->modules ?? [], fn ($module) => $module !== 'ads')))
+            ->unique()
+            ->values()
+            ->all();
 
         return view('backend.ads.user.customize-size', [
             'ad' => $ad,
@@ -334,7 +345,7 @@ class UserAdController extends Controller
             'size' => AdSizes::all(true)[$ad->size_type] ?? null,
             'categories' => $categories,
             'subcategories' => $subcategories,
-            'moduleOptions' => ModulePermissions::modules(),
+            'moduleOptions' => array_intersect_key(ModulePermissions::modules(), array_flip($allowedModuleKeys)),
         ]);
     }
 
@@ -345,7 +356,7 @@ class UserAdController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:140',
             'short_description' => 'nullable|string|max:300',
-            'category_id' => ['required', Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id')->whereJsonContains('modules', 'ads'))],
+            'category_id' => ['required', Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id'))],
             'subcategory_id' => ['required', Rule::exists('categories', 'id')],
             'selected_modules' => ['nullable', 'array'],
             'selected_modules.*' => ['string', Rule::in(array_keys(ModulePermissions::modules()))],
@@ -471,7 +482,7 @@ class UserAdController extends Controller
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'modules']),
         ]);
     }
 
@@ -496,13 +507,46 @@ class UserAdController extends Controller
         ]);
     }
 
+
+    public function categoriesByModules(Request $request): JsonResponse
+    {
+        $normalize = static fn (string $value): string => preg_replace('/[^a-z0-9]+/', '', str_replace('&', 'and', strtolower(trim($value)))) ?? '';
+
+        $selectedModules = collect($request->input('modules', []))
+            ->filter(fn ($module) => is_string($module) && $module !== '')
+            ->map(fn (string $module) => $normalize($module))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($selectedModules->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->orderBy('name')
+            ->get(['id', 'name', 'modules'])
+            ->filter(function (Category $category) use ($selectedModules, $normalize): bool {
+                $categoryModules = collect($category->modules ?? [])
+                    ->filter(fn ($module) => is_string($module) && $module !== '')
+                    ->map(fn (string $module) => $normalize($module))
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+                return $categoryModules->intersect($selectedModules)->isNotEmpty();
+            })
+            ->values()
+            ->map(fn (Category $category) => ['id' => $category->id, 'name' => $category->name]);
+
+        return response()->json($categories);
+    }
+
     public function subcategories(Category $category): JsonResponse
     {
-        abort_if(! in_array('ads', $category->modules ?? [], true), 404);
-
         return response()->json(
             $category->children()
-                ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
                 ->get(['id', 'name'])
         );
@@ -532,8 +576,7 @@ class UserAdController extends Controller
             'category_id' => [
                 'required',
                 Rule::exists('categories', 'id')->where(fn ($query) => $query
-                    ->whereNull('parent_id')
-                    ->whereJsonContains('modules', 'ads')),
+                    ->whereNull('parent_id')),
             ],
             'subcategory_id' => ['required', Rule::exists('categories', 'id')],
             'selected_modules' => ['nullable', 'array'],
@@ -550,7 +593,6 @@ class UserAdController extends Controller
         $isValidSubcategory = Category::query()
             ->where('id', $validated['subcategory_id'])
             ->where('parent_id', $validated['category_id'])
-            ->whereJsonContains('modules', 'ads')
             ->exists();
 
         if (! $isValidSubcategory) {
