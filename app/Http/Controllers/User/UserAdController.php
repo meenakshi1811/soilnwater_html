@@ -436,10 +436,34 @@ class UserAdController extends Controller
             ->values()
             ->all();
 
+        $selectedCategoryLabels = Category::query()
+            ->whereIn('id', array_map('intval', $ad->selected_category_ids ?? []))
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        $selectedSubcategoryLabels = Category::query()
+            ->whereIn('id', array_map('intval', $ad->selected_subcategory_ids ?? []))
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        if ($selectedCategoryLabels === [] && $ad->category?->name) {
+            $selectedCategoryLabels = [$ad->category->name];
+        }
+
+        if ($selectedSubcategoryLabels === [] && $ad->subcategory?->name) {
+            $selectedSubcategoryLabels = [$ad->subcategory->name];
+        }
+
         return view('backend.ads.user.show', [
             'ad' => $ad,
             'size' => AdSizes::all(true)[$ad->size_type] ?? null,
             'selectedModuleLabels' => $selectedModuleLabels,
+            'selectedCategoryLabels' => $selectedCategoryLabels,
+            'selectedSubcategoryLabels' => $selectedSubcategoryLabels,
         ]);
     }
 
