@@ -1,7 +1,12 @@
-<div class="vendor-section-block vendor-store-section {{ ($index !== '__INDEX__' && is_numeric($index) && ((int)$index % 2 === 1)) ? 'alt' : '' }} p-3 rounded mb-4 border" data-section-index="{{ $index }}">
+<div class="vendor-section-block vendor-store-section {{ ($index !== '__INDEX__' && is_numeric($index) && ((int)$index % 2 === 1)) ? 'alt' : '' }} p-3 rounded mb-4 border" data-section-index="{{ $index }}" draggable="true">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <span class="badge bg-light text-dark border"><i class="fa-solid fa-layer-group me-1"></i> Section {{ is_numeric($index) ? ((int)$index + 1) : 'new' }}</span>
-        <button type="button" class="btn btn-sm btn-outline-danger js-remove-section" title="Remove section"><i class="fa-solid fa-trash"></i></button>
+        <span class="badge bg-light text-dark border js-section-label"><i class="fa-solid fa-layer-group me-1"></i> Section {{ is_numeric($index) ? ((int)$index + 1) : 'new' }}</span>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary js-drag-handle" title="Drag to reorder section">
+                <i class="fa-solid fa-grip-vertical"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger js-remove-section" title="Remove section"><i class="fa-solid fa-trash"></i></button>
+        </div>
     </div>
     @if($section?->id)
         <input type="hidden" name="sections[{{ $index }}][id]" value="{{ $section->id }}">
@@ -10,7 +15,7 @@
     <input type="hidden" name="sections[{{ $index }}][type]" value="{{ old('sections.'.$index.'.type', 'image_text') }}" data-section-type-input>
     <input type="text" name="sections[{{ $index }}][title]" class="d-none" value="{{ old('sections.'.$index.'.title', $section?->title) }}" data-sync-input="section-title-{{ $index }}">
     <textarea name="sections[{{ $index }}][content]" class="d-none" rows="6" data-sync-input="section-content-{{ $index }}">{{ old('sections.'.$index.'.content', $section?->content) }}</textarea>
-    <div class="row g-3 mb-3">
+    <div class="row g-3 mb-3 js-video-fields d-none">
         <div class="col-md-6">
             <label class="form-label small">Upload video (MP4/WEBM/OGG, max 50MB)</label>
             <input type="file" name="sections[{{ $index }}][video_file]" class="form-control form-control-sm" accept="video/mp4,video/webm,video/ogg">
