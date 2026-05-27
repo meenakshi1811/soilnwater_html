@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class OfferPageController extends Controller
 {
@@ -65,7 +66,9 @@ class OfferPageController extends Controller
             ->latest('created_at')
             ->latest('id')
             ->limit(20)
-            ->get(['id', 'title', 'category_id', 'final_image', 'created_at']);
+            ->get(['id', 'title', 'category_id', 'selected_category_ids', 'selected_modules', 'final_image', 'created_at']);
+
+        $selectedCategoryNamesByRecentAdId = $this->resolveSelectedCategoryNamesByAdId($recentApprovedAds);
 
         $homepageSetting = HomepageSetting::query()->find(1);
 
@@ -77,6 +80,7 @@ class OfferPageController extends Controller
             'belowSponsoredSliderAds' => $frontPageAds->where('size_type', 'below_sponsored_ad')->values(),
             'ecommerceSideSliderAds' => $frontPageAds->where('size_type', 'ecommerce_ad')->values(),
             'recentApprovedAds' => $recentApprovedAds,
+            'selectedCategoryNamesByRecentAdId' => $selectedCategoryNamesByRecentAdId,
             'offerDiscountTopAds' => $frontPageAds->where('size_type', 'offer_discount_ad_1')->values(),
             'offerDiscountSideAds' => $frontPageAds->where('size_type', 'offer_discount_ad_2')->values(),
             'exploreProductsAds' => $frontPageAds->where('size_type', 'explore_products_ad')->values(),
@@ -240,5 +244,43 @@ class OfferPageController extends Controller
         }
 
         return $query;
+    }
+
+    /**
+     * @param  Collection<int, UserAd>  $ads
+     * @return array<int, array<int, string>>
+     */
+    private function resolveSelectedCategoryNamesByAdId(Collection $ads): array
+    {
+        $ads = $ads->values();
+        if ($ads->isEmpty()) {
+            return [];
+        }
+
+        $selectedCategoryIds = $ads
+            ->flatMap(fn (UserAd $ad) => array_map('intval', $ad->selected_category_ids ?? []))
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $categoryNamesById = Category::query()
+            ->whereIn('id', $selectedCategoryIds)
+            ->pluck('name', 'id');
+
+        return $ads
+            ->mapWithKeys(function (UserAd $ad) use ($categoryNamesById) {
+                $selectedNames = collect($ad->selected_category_ids ?? [])
+                    ->map(fn ($id) => $categoryNamesById->get((int) $id))
+                    ->filter(fn ($name) => is_string($name) && $name !== '')
+                    ->values()
+                    ->all();
+
+                if ($selectedNames === [] && $ad->category?->name) {
+                    $selectedNames = [$ad->category->name];
+                }
+
+                return [$ad->id => $selectedNames];
+            })
+            ->all();
     }
 }
