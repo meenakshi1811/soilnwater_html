@@ -4,6 +4,19 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    #adsSizeCustomizerPage .select2-container { width: 100% !important; }
+    #adsSizeCustomizerPage .select2-container--default .select2-selection--multiple {
+        min-height: calc(2.25rem + 2px);
+        border: 1px solid #ced4da;
+        border-radius: .375rem;
+        padding: .25rem .25rem;
+    }
+    #adsSizeCustomizerPage .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        margin-top: .2rem;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -35,6 +48,18 @@
                     <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description', $ad->short_description ?? '') }}</textarea>
                 </div>
                 <div class="col-md-6">
+                    <label for="moduleSelect" class="form-label fw-semibold">Select Module(s)</label>
+                    <select name="selected_modules[]" id="moduleSelect" class="form-select" multiple data-module-prices='@json($size["module_prices"] ?? [])'>
+                        @foreach(($moduleOptions ?? []) as $moduleKey => $moduleName)
+                            @php $modulePrice = $size['module_prices'][$moduleKey] ?? null; @endphp
+                            <option value="{{ $moduleKey }}" data-module-price="{{ $modulePrice !== null ? (float) $modulePrice : '' }}" {{ in_array($moduleKey, old('selected_modules', $ad->selected_modules ?? []), true) ? 'selected' : '' }}>
+                                {{ $moduleName }}{{ $modulePrice !== null && $modulePrice > 0 ? ' (₹' . number_format((float) $modulePrice, 2) . '/day)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div id="adModulePriceNote" class="form-text text-muted">Select one or more modules to include additional paid module charges.</div>
+                </div>
+                <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     <select name="category_id" id="categorySelect" class="form-select" required>
                         <option value="">— Select category —</option>
@@ -61,18 +86,6 @@
                             <option value="{{ $subcategory->id }}" {{ (string) old('subcategory_id', $ad->subcategory_id ?? '') === (string) $subcategory->id ? 'selected' : '' }}>{{ $subcategory->name }}</option>
                         @endforeach
                     </select>
-                </div>
-                <div class="col-md-6">
-                    <label for="moduleSelect" class="form-label fw-semibold">Select Module(s)</label>
-                    <select name="selected_modules[]" id="moduleSelect" class="form-select" multiple data-module-prices='@json($size["module_prices"] ?? [])'>
-                        @foreach(($moduleOptions ?? []) as $moduleKey => $moduleName)
-                            @php $modulePrice = $size['module_prices'][$moduleKey] ?? null; @endphp
-                            <option value="{{ $moduleKey }}" data-module-price="{{ $modulePrice !== null ? (float) $modulePrice : '' }}" {{ in_array($moduleKey, old('selected_modules', $ad->selected_modules ?? []), true) ? 'selected' : '' }}>
-                                {{ $moduleName }}{{ $modulePrice !== null && $modulePrice > 0 ? ' (₹' . number_format((float) $modulePrice, 2) . '/day)' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div id="adModulePriceNote" class="form-text text-muted">Select one or more modules to include additional paid module charges.</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -363,6 +376,7 @@
 
 @push('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -1262,6 +1276,19 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updateSubmitButtonState();
         }
 
+        function initModuleSelect2() {
+            if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2 || !moduleSelect) return;
+            const $moduleSelect = window.jQuery(moduleSelect);
+            if ($moduleSelect.data('select2')) {
+                $moduleSelect.select2('destroy');
+            }
+            $moduleSelect.select2({
+                width: '100%',
+                placeholder: 'Select module(s)',
+                closeOnSelect: false
+            });
+        }
+
         const categoryPriceNote = document.getElementById('adCategoryPriceNote');
         const adCategoryPremiumChip = document.getElementById('adCategoryPremiumChip');
         const moduleSelect = document.getElementById('moduleSelect');
@@ -1277,6 +1304,8 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         const pricingHint = document.getElementById('pricingHint');
         const pricingDetailsCard = document.getElementById('pricingDetailsCard');
         const isSquareSizeType = @json($sizeType === 'square');
+
+        initModuleSelect2();
 
         function applyValidUntilLimit() {
             if (!validUntilInput) return;
