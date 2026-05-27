@@ -239,15 +239,23 @@ class UserAdController extends Controller
 
         // abort_if(! $template, 404, 'No active template found for this size.');
 
+        $categories = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'ads')
+            ->orderBy('name')
+            ->get(['id', 'name', 'modules']);
+
+        $allowedModuleKeys = $categories
+            ->flatMap(fn (Category $category) => array_values(array_filter($category->modules ?? [], fn ($module) => $module !== 'ads')))
+            ->unique()
+            ->values()
+            ->all();
+
         return view('backend.ads.user.customize-size', [
             'sizeType' => $sizeType,
             'size' => AdSizes::all(true)[$sizeType],
-            'categories' => Category::query()
-                ->whereNull('parent_id')
-                ->whereJsonContains('modules', 'ads')
-                ->orderBy('name')
-                ->get(['id', 'name']),
-            'moduleOptions' => ModulePermissions::modules(),
+            'categories' => $categories,
+            'moduleOptions' => array_intersect_key(ModulePermissions::modules(), array_flip($allowedModuleKeys)),
         ]);
     }
 
@@ -319,13 +327,19 @@ class UserAdController extends Controller
             ->whereNull('parent_id')
             ->whereJsonContains('modules', 'ads')
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'modules']);
 
         $subcategories = Category::query()
             ->where('parent_id', $ad->category_id)
             ->whereJsonContains('modules', 'ads')
             ->orderBy('name')
             ->get(['id', 'name']);
+
+        $allowedModuleKeys = $categories
+            ->flatMap(fn (Category $category) => array_values(array_filter($category->modules ?? [], fn ($module) => $module !== 'ads')))
+            ->unique()
+            ->values()
+            ->all();
 
         return view('backend.ads.user.customize-size', [
             'ad' => $ad,
@@ -334,7 +348,7 @@ class UserAdController extends Controller
             'size' => AdSizes::all(true)[$ad->size_type] ?? null,
             'categories' => $categories,
             'subcategories' => $subcategories,
-            'moduleOptions' => ModulePermissions::modules(),
+            'moduleOptions' => array_intersect_key(ModulePermissions::modules(), array_flip($allowedModuleKeys)),
         ]);
     }
 
@@ -471,7 +485,7 @@ class UserAdController extends Controller
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'modules']),
         ]);
     }
 
