@@ -68,7 +68,6 @@
                             : []);
                     @endphp
                     <select name="category_ids[]" id="categorySelect" class="form-select" {{ empty($selectedModules) ? 'disabled' : '' }} required multiple>
-                        <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
                             <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values(array_filter($category->modules ?? [], fn($module) => $module !== 'ads')))) }}" {{ in_array((string) $category->id, array_map('strval', $selectedCategoryIds), true) ? 'selected' : '' }}>{{ $category->name }}</option>
@@ -92,7 +91,6 @@
                             : []);
                     @endphp
                     <select name="subcategory_ids[]" id="subcategorySelect" class="form-select" {{ empty($subcategories ?? []) ? 'disabled' : '' }} required multiple>
-                        <option value="">— Select a category first —</option>
                         @foreach(($subcategories ?? []) as $subcategory)
                             <option value="{{ $subcategory->id }}" {{ in_array((string) $subcategory->id, array_map('strval', $selectedSubcategoryIds), true) ? 'selected' : '' }}>{{ $subcategory->name }}</option>
                         @endforeach
@@ -1296,7 +1294,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             });
             const data = Array.from(subcategoryMap.values())
                 .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-            const options = ['<option value="">— Select subcategory —</option>'];
+            const options = [];
             data.forEach((item) => {
                 const isSelected = existingSelection.includes(String(item.id));
                 options.push(`<option value=\"${item.id}\" ${isSelected ? 'selected' : ''}>${item.name}</option>`);
@@ -1396,7 +1394,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 const data = await response.json();
                 console.log('[AdsCustomize] categories response status:', response.status, 'payload:', data);
                 const allowedIds = new Set((Array.isArray(data) ? data : []).map((item) => String(item.id)));
-                const options = ['<option value="">— Select category —</option>'];
+                const options = [];
 
                 allCategoryOptions.forEach((item) => {
                     if (!item.value || !allowedIds.has(String(item.value))) return;
