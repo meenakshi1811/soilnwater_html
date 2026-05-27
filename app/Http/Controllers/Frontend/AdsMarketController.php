@@ -87,7 +87,35 @@ class AdsMarketController extends Controller
     {
         abort_unless($ad->status === 'approved' && $ad->final_image && (! $ad->valid_until || $ad->valid_until->isToday() || $ad->valid_until->isFuture()), 404);
 
-        return view('frontend.ads.show', ['ad' => $ad->load(['category:id,name', 'subcategory:id,name'])]);
+        $ad->load(['category:id,name', 'subcategory:id,name']);
+
+        $selectedCategoryLabels = Category::query()
+            ->whereIn('id', array_map('intval', $ad->selected_category_ids ?? []))
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        $selectedSubcategoryLabels = Category::query()
+            ->whereIn('id', array_map('intval', $ad->selected_subcategory_ids ?? []))
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        if ($selectedCategoryLabels === [] && $ad->category?->name) {
+            $selectedCategoryLabels = [$ad->category->name];
+        }
+
+        if ($selectedSubcategoryLabels === [] && $ad->subcategory?->name) {
+            $selectedSubcategoryLabels = [$ad->subcategory->name];
+        }
+
+        return view('frontend.ads.show', [
+            'ad' => $ad,
+            'selectedCategoryLabels' => $selectedCategoryLabels,
+            'selectedSubcategoryLabels' => $selectedSubcategoryLabels,
+        ]);
     }
 
     private function getSponsoredFillers(?float $lat, ?float $lng): array

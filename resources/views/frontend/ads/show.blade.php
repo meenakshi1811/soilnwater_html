@@ -26,10 +26,13 @@
                 <p class="text-muted mb-2">{{ $ad->short_description }}</p>
             @endif
             <p class="text-muted mb-3">{{ $ad->location ?: 'Premium approved advertisement in our marketplace.' }}</p>
-            <p class="mb-2"><strong>Category:</strong> {{ $ad->category?->name ?? 'Uncategorized' }}</p>
+            <p class="mb-2">
+                <strong>Categories:</strong>
+                {{ ($selectedCategoryLabels ?? []) !== [] ? implode(', ', $selectedCategoryLabels) : 'Uncategorized' }}
+            </p>
 
-            @if ($ad->subcategory)
-                <p class="mb-2"><strong>Subcategory:</strong> {{ $ad->subcategory->name }}</p>
+            @if (($selectedSubcategoryLabels ?? []) !== [])
+                <p class="mb-2"><strong>Subcategories:</strong> {{ implode(', ', $selectedSubcategoryLabels) }}</p>
             @endif
 
             <p class="mb-2"><strong>Valid Upto:</strong> {{ $ad->valid_until?->format('d M Y') ?? 'N/A' }}</p>
