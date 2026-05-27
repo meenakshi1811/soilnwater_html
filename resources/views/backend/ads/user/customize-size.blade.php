@@ -1488,10 +1488,25 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updateCategoryPriceNote();
             updateSubmitButtonState();
         });
-        moduleSelect?.addEventListener('change', function () {
+        function handleModuleSelectionChange(eventSource = 'native') {
+            console.log('[AdsCustomize] module selection changed via:', eventSource);
             filterCategoriesByModules();
             updateModulePriceNote();
+        }
+
+        moduleSelect?.addEventListener('change', function () {
+            handleModuleSelectionChange('native-change');
         });
+
+        if (window.jQuery && moduleSelect) {
+            const $moduleSelect = window.jQuery(moduleSelect);
+            $moduleSelect.on('change', function () {
+                handleModuleSelectionChange('jquery-change');
+            });
+            $moduleSelect.on('select2:select select2:unselect select2:clear', function (event) {
+                handleModuleSelectionChange(`select2-${event.type}`);
+            });
+        }
         subcategorySelect?.addEventListener('change', updateSubmitButtonState);
         validUntilInput?.addEventListener('change', () => {
             updateCategoryPriceNote();
