@@ -147,6 +147,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [UserAdController::class, 'index'])->name('index');
         Route::get('/data', [UserAdController::class, 'data'])->name('data');
         Route::get('/categories/{category}/subcategories', [UserAdController::class, 'subcategories'])->name('categories.subcategories');
+        Route::get('/categories/by-modules/filter', [UserAdController::class, 'categoriesByModules'])->name('categories.by-modules');
         Route::get('/create', [UserAdController::class, 'selectSize'])->name('create.size');
         Route::post('/request-customization', [UserAdController::class, 'requestCustomization'])->name('request-customization');
         Route::post('/contact-support', [UserAdController::class, 'contactSupport'])->name('contact-support');

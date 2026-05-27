@@ -4,6 +4,19 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    #adsSizeCustomizerPage .select2-container { width: 100% !important; }
+    #adsSizeCustomizerPage .select2-container--default .select2-selection--multiple {
+        min-height: calc(2.25rem + 2px);
+        border: 1px solid #ced4da;
+        border-radius: .375rem;
+        padding: .25rem .25rem;
+    }
+    #adsSizeCustomizerPage .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        margin-top: .2rem;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -17,7 +30,7 @@
     </div>
 
     <div class="chart-card">
-        <form method="POST" action="{{ !empty($isEdit) ? route('ads.update', $ad) : route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id??null]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}">
+        <form method="POST" action="{{ !empty($isEdit) ? route('ads.update', $ad) : route('ads.store', ['sizeType' => $sizeType, 'template' => $template->id??null]) }}" novalidate data-subcategory-url-base="{{ url('/dashboard/ads/categories') }}" data-category-filter-url="{{ route('ads.categories.by-modules') }}">
             @csrf
             @if(!empty($isEdit)) @method('PUT') @endif
             <input type="hidden" name="custom_html" id="customHtmlInput" value="">
@@ -35,12 +48,24 @@
                     <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description', $ad->short_description ?? '') }}</textarea>
                 </div>
                 <div class="col-md-6">
+                    <label for="moduleSelect" class="form-label fw-semibold">Select Module(s)</label>
+                    <select name="selected_modules[]" id="moduleSelect" class="form-select" multiple data-module-prices='@json($size["module_prices"] ?? [])'>
+                        @foreach(($moduleOptions ?? []) as $moduleKey => $moduleName)
+                            @php $modulePrice = $size['module_prices'][$moduleKey] ?? null; @endphp
+                            <option value="{{ $moduleKey }}" data-module-price="{{ $modulePrice !== null ? (float) $modulePrice : '' }}" {{ in_array($moduleKey, old('selected_modules', $ad->selected_modules ?? []), true) ? 'selected' : '' }}>
+                                {{ $moduleName }}{{ $modulePrice !== null && $modulePrice > 0 ? ' (₹' . number_format((float) $modulePrice, 2) . '/day)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div id="adModulePriceNote" class="form-text text-muted">Select one or more modules to include additional paid module charges.</div>
+                </div>
+                <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <select name="category_id" id="categorySelect" class="form-select" required>
+                    <select name="category_id" id="categorySelect" class="form-select" {{ empty(old('selected_modules', $ad->selected_modules ?? [])) ? 'disabled' : '' }} required>
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
-                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" {{ (string) old('category_id', $ad->category_id ?? '') === (string) $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values(array_filter($category->modules ?? [], fn($module) => $module !== 'ads')))) }}" {{ (string) old('category_id', $ad->category_id ?? '') === (string) $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach
                     </select>
                     @if((bool) ($size['is_paid'] ?? false))
@@ -61,18 +86,6 @@
                             <option value="{{ $subcategory->id }}" {{ (string) old('subcategory_id', $ad->subcategory_id ?? '') === (string) $subcategory->id ? 'selected' : '' }}>{{ $subcategory->name }}</option>
                         @endforeach
                     </select>
-                </div>
-                <div class="col-md-6">
-                    <label for="moduleSelect" class="form-label fw-semibold">Select Module(s)</label>
-                    <select name="selected_modules[]" id="moduleSelect" class="form-select" multiple data-module-prices='@json($size["module_prices"] ?? [])'>
-                        @foreach(($moduleOptions ?? []) as $moduleKey => $moduleName)
-                            @php $modulePrice = $size['module_prices'][$moduleKey] ?? null; @endphp
-                            <option value="{{ $moduleKey }}" data-module-price="{{ $modulePrice !== null ? (float) $modulePrice : '' }}" {{ in_array($moduleKey, old('selected_modules', $ad->selected_modules ?? []), true) ? 'selected' : '' }}>
-                                {{ $moduleName }}{{ $modulePrice !== null && $modulePrice > 0 ? ' (₹' . number_format((float) $modulePrice, 2) . '/day)' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div id="adModulePriceNote" class="form-text text-muted">Select one or more modules to include additional paid module charges.</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold required-label">Location <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -363,6 +376,7 @@
 
 @push('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -1262,6 +1276,19 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updateSubmitButtonState();
         }
 
+        function initModuleSelect2() {
+            if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2 || !moduleSelect) return;
+            const $moduleSelect = window.jQuery(moduleSelect);
+            if ($moduleSelect.data('select2')) {
+                $moduleSelect.select2('destroy');
+            }
+            $moduleSelect.select2({
+                width: '100%',
+                placeholder: 'Select module(s)',
+                closeOnSelect: false
+            });
+        }
+
         const categoryPriceNote = document.getElementById('adCategoryPriceNote');
         const adCategoryPremiumChip = document.getElementById('adCategoryPremiumChip');
         const moduleSelect = document.getElementById('moduleSelect');
@@ -1277,6 +1304,76 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         const pricingHint = document.getElementById('pricingHint');
         const pricingDetailsCard = document.getElementById('pricingDetailsCard');
         const isSquareSizeType = @json($sizeType === 'square');
+
+        const allCategoryOptions = categorySelect
+            ? Array.from(categorySelect.querySelectorAll('option')).map((option) => ({
+                value: option.value,
+                label: option.textContent,
+                price: option.dataset.adPrice || '',
+                modules: option.dataset.modules || '[]',
+                selected: option.selected,
+            }))
+            : [];
+
+        function normalizeModuleKey(value) {
+            return String(value || '')
+                .trim()
+                .toLowerCase()
+                .replace(/&/g, 'and')
+                .replace(/[^a-z0-9]+/g, '');
+        }
+
+        async function filterCategoriesByModules() {
+            if (!categorySelect || !moduleSelect) return;
+            const selectedModules = Array.from(moduleSelect.selectedOptions || []).map((option) => normalizeModuleKey(option.value)).filter(Boolean);
+            const currentCategory = categorySelect.value;
+
+            if (selectedModules.length === 0) {
+                categorySelect.innerHTML = '<option value="">— Select module(s) first —</option>';
+                categorySelect.disabled = true;
+                categorySelect.value = '';
+                if (subcategorySelect) {
+                    subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
+                    subcategorySelect.disabled = true;
+                }
+                updateCategoryPriceNote();
+                updateSubmitButtonState();
+                return;
+            }
+
+            const filterUrl = form.dataset.categoryFilterUrl || '';
+            try {
+                const response = await fetch(`${filterUrl}?${new URLSearchParams(selectedModules.map((module) => ['modules[]', module]))}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                const allowedIds = new Set((Array.isArray(data) ? data : []).map((item) => String(item.id)));
+                const options = ['<option value="">— Select category —</option>'];
+
+                allCategoryOptions.forEach((item) => {
+                    if (!item.value || !allowedIds.has(String(item.value))) return;
+                    const isSelected = String(item.value) === String(currentCategory);
+                    options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
+                });
+
+                categorySelect.innerHTML = options.join('');
+                categorySelect.disabled = false;
+
+                if (currentCategory && !Array.from(categorySelect.options).some((option) => option.value === currentCategory)) {
+                    categorySelect.value = '';
+                    if (subcategorySelect) {
+                        subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
+                        subcategorySelect.disabled = true;
+                    }
+                }
+            } catch (error) {
+                categorySelect.innerHTML = '<option value="">— Unable to load categories —</option>';
+                categorySelect.disabled = true;
+            }
+
+            updateCategoryPriceNote();
+            updateSubmitButtonState();
+        }
 
         function applyValidUntilLimit() {
             if (!validUntilInput) return;
@@ -1378,18 +1475,24 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updatePricingDetails(selectedOption ? selectedOption.dataset.adPrice : 0, modulePrice);
         }
 
+        initModuleSelect2();
+
         categorySelect?.addEventListener('change', function () {
             loadSubcategories(this.value);
             updateCategoryPriceNote();
             updateSubmitButtonState();
         });
-        moduleSelect?.addEventListener('change', updateModulePriceNote);
+        moduleSelect?.addEventListener('change', function () {
+            filterCategoriesByModules();
+            updateModulePriceNote();
+        });
         subcategorySelect?.addEventListener('change', updateSubmitButtonState);
         validUntilInput?.addEventListener('change', () => {
             updateCategoryPriceNote();
             updateModulePriceNote();
         });
         applyValidUntilLimit();
+        filterCategoriesByModules();
         updateCategoryPriceNote();
         updateModulePriceNote();
         updateSubmitButtonState();
