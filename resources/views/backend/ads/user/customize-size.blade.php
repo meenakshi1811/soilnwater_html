@@ -1412,6 +1412,8 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                         subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
                         subcategorySelect.disabled = true;
                     }
+                } else {
+                    await loadSubcategories(nextSelected);
                 }
             } catch (error) {
                 console.error('[AdsCustomize] categories fetch failed:', error);
@@ -1558,6 +1560,12 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         });
         applyValidUntilLimit();
         filterCategoriesByModules();
+        const initiallySelectedCategoryIds = Array.from(categorySelect?.selectedOptions || [])
+            .map((option) => option.value)
+            .filter(Boolean);
+        if (initiallySelectedCategoryIds.length > 0) {
+            loadSubcategories(initiallySelectedCategoryIds);
+        }
         updateCategoryPriceNote();
         updateModulePriceNote();
         updateSubmitButtonState();
