@@ -48,8 +48,6 @@
                 <tr>
                     <th>Title</th>
                     <th>Size</th>
-                    <th>Category</th>
-                    <th>Sub Category</th>
                     <th>Location</th>
                     <th>Status</th>
                     <th>Banner</th>
