@@ -241,7 +241,6 @@ class UserAdController extends Controller
 
         $categories = Category::query()
             ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'ads')
             ->orderBy('name')
             ->get(['id', 'name', 'modules']);
 
@@ -325,13 +324,11 @@ class UserAdController extends Controller
 
         $categories = Category::query()
             ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'ads')
             ->orderBy('name')
             ->get(['id', 'name', 'modules']);
 
         $subcategories = Category::query()
             ->where('parent_id', $ad->category_id)
-            ->whereJsonContains('modules', 'ads')
             ->orderBy('name')
             ->get(['id', 'name']);
 
@@ -359,7 +356,7 @@ class UserAdController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:140',
             'short_description' => 'nullable|string|max:300',
-            'category_id' => ['required', Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id')->whereJsonContains('modules', 'ads'))],
+            'category_id' => ['required', Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id'))],
             'subcategory_id' => ['required', Rule::exists('categories', 'id')],
             'selected_modules' => ['nullable', 'array'],
             'selected_modules.*' => ['string', Rule::in(array_keys(ModulePermissions::modules()))],
@@ -512,11 +509,8 @@ class UserAdController extends Controller
 
     public function subcategories(Category $category): JsonResponse
     {
-        abort_if(! in_array('ads', $category->modules ?? [], true), 404);
-
         return response()->json(
             $category->children()
-                ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
                 ->get(['id', 'name'])
         );
@@ -546,8 +540,7 @@ class UserAdController extends Controller
             'category_id' => [
                 'required',
                 Rule::exists('categories', 'id')->where(fn ($query) => $query
-                    ->whereNull('parent_id')
-                    ->whereJsonContains('modules', 'ads')),
+                    ->whereNull('parent_id')),
             ],
             'subcategory_id' => ['required', Rule::exists('categories', 'id')],
             'selected_modules' => ['nullable', 'array'],
@@ -564,7 +557,6 @@ class UserAdController extends Controller
         $isValidSubcategory = Category::query()
             ->where('id', $validated['subcategory_id'])
             ->where('parent_id', $validated['category_id'])
-            ->whereJsonContains('modules', 'ads')
             ->exists();
 
         if (! $isValidSubcategory) {

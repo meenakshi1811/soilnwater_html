@@ -1315,9 +1315,17 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             }))
             : [];
 
+        function normalizeModuleKey(value) {
+            return String(value || '')
+                .trim()
+                .toLowerCase()
+                .replace(/&/g, 'and')
+                .replace(/[^a-z0-9]+/g, '');
+        }
+
         function filterCategoriesByModules() {
             if (!categorySelect || !moduleSelect) return;
-            const selectedModules = Array.from(moduleSelect.selectedOptions || []).map((option) => String(option.value || '').toLowerCase());
+            const selectedModules = Array.from(moduleSelect.selectedOptions || []).map((option) => normalizeModuleKey(option.value));
             const currentCategory = categorySelect.value;
             const options = ['<option value="">— Select category —</option>'];
 
@@ -1329,7 +1337,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 } catch (e) {
                     categoryModules = [];
                 }
-                const normalizedModules = Array.isArray(categoryModules) ? categoryModules.map((module) => String(module).toLowerCase()) : [];
+                const normalizedModules = Array.isArray(categoryModules) ? categoryModules.map((module) => normalizeModuleKey(module)) : [];
                 if (selectedModules.length === 0) return;
                 const showCategory = selectedModules.some((module) => normalizedModules.includes(module));
                 if (!showCategory) return;
