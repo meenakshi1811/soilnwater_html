@@ -687,6 +687,9 @@
                 }
             }
             col.classList.add('d-flex', 'justify-content-start');
+            col.style.flex = '0 0 320px';
+            col.style.width = '320px';
+            col.style.maxWidth = '320px';
 
             var wrap = img.closest('.position-relative');
             if (!wrap) {
@@ -738,7 +741,7 @@
         contentEditable.querySelectorAll('[data-brochure-pdf-slot]').forEach(function (link) {
             link.classList.remove('btn-primary', 'btn-outline-primary', 'btn-sm');
             link.classList.add('d-flex', 'align-items-center', 'justify-content-center', 'text-danger', 'border', 'rounded', 'bg-white');
-            link.style.width = size.width + 'px';
+            link.style.width = '100%';
             link.style.height = size.height + 'px';
             link.style.fontSize = '72px';
             link.style.textDecoration = 'none';
@@ -777,6 +780,9 @@
                 item.setAttribute('data-brochure-pdf-item', String(slot));
                 item.classList.add('position-relative');
             }
+            item.style.flex = '0 0 320px';
+            item.style.width = '320px';
+            item.style.maxWidth = '320px';
 
             var removeBtn = item.querySelector('.js-remove-brochure-pdf');
             if (!removeBtn) {
