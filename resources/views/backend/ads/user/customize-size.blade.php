@@ -61,11 +61,17 @@
                 </div>
                 <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
-                    <select name="category_ids[]" id="categorySelect" class="form-select" {{ empty(old('selected_modules', $ad->selected_modules ?? [])) ? 'disabled' : '' }} required multiple>
+                    @php
+                        $selectedModules = old('selected_modules', isset($ad) ? ($ad->selected_modules ?? []) : []);
+                        $selectedCategoryIds = old('category_ids', isset($ad)
+                            ? (($ad->selected_category_ids ?? []) !== [] ? $ad->selected_category_ids : (($ad->category_id ?? null) ? [$ad->category_id] : []))
+                            : []);
+                    @endphp
+                    <select name="category_ids[]" id="categorySelect" class="form-select" {{ empty($selectedModules) ? 'disabled' : '' }} required multiple>
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
-                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values(array_filter($category->modules ?? [], fn($module) => $module !== 'ads')))) }}" {{ in_array((string) $category->id, array_map('strval', old('category_ids', $ad->selected_category_ids ?? [$ad->category_id])), true) ? 'selected' : '' }}>{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values(array_filter($category->modules ?? [], fn($module) => $module !== 'ads')))) }}" {{ in_array((string) $category->id, array_map('strval', $selectedCategoryIds), true) ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach
                     </select>
                     @if((bool) ($size['is_paid'] ?? false))
@@ -80,10 +86,15 @@
                 </div>
                 <div class="col-md-6">
                     <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
+                    @php
+                        $selectedSubcategoryIds = old('subcategory_ids', isset($ad)
+                            ? (($ad->selected_subcategory_ids ?? []) !== [] ? $ad->selected_subcategory_ids : (($ad->subcategory_id ?? null) ? [$ad->subcategory_id] : []))
+                            : []);
+                    @endphp
                     <select name="subcategory_ids[]" id="subcategorySelect" class="form-select" {{ empty($subcategories ?? []) ? 'disabled' : '' }} required multiple>
                         <option value="">— Select a category first —</option>
                         @foreach(($subcategories ?? []) as $subcategory)
-                            <option value="{{ $subcategory->id }}" {{ in_array((string) $subcategory->id, array_map('strval', old('subcategory_ids', $ad->selected_subcategory_ids ?? [$ad->subcategory_id])), true) ? 'selected' : '' }}>{{ $subcategory->name }}</option>
+                            <option value="{{ $subcategory->id }}" {{ in_array((string) $subcategory->id, array_map('strval', $selectedSubcategoryIds), true) ? 'selected' : '' }}>{{ $subcategory->name }}</option>
                         @endforeach
                     </select>
                 </div>
