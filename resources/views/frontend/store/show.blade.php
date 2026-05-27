@@ -81,9 +81,33 @@
         </div>
     </section>
 @endif
+
+<div class="modal fade" id="storeSectionImageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white">Image preview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0 text-center">
+                <img id="storeSectionImageModalImg" src="" alt="Store section image" class="img-fluid rounded" style="max-height:80vh;object-fit:contain;">
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('store_scripts')
+<style>
+    .content-body .js-remove-brochure-image,
+    .content-body .js-remove-brochure-pdf {
+        display: none !important;
+    }
+    .content-body [data-brochure-image-slot] {
+        cursor: zoom-in;
+    }
+</style>
+
 @if($vendor->bannerSlides->count() > 1)
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -92,4 +116,21 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endif
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modalEl = document.getElementById('storeSectionImageModal');
+    const modalImg = document.getElementById('storeSectionImageModalImg');
+    if (!modalEl || !modalImg || typeof bootstrap === 'undefined') return;
+    const previewModal = new bootstrap.Modal(modalEl);
+
+    document.querySelectorAll('.content-body [data-brochure-image-slot], .content-body [data-brochure-image-list] img').forEach(function (img) {
+        img.addEventListener('click', function () {
+            if (!img.src) return;
+            modalImg.src = img.src;
+            modalImg.alt = img.alt || 'Store section image';
+            previewModal.show();
+        });
+    });
+});
+</script>
 @endpush
