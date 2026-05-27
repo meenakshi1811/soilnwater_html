@@ -63,10 +63,15 @@ class AdsMarketController extends Controller
         $ads = $adsQuery
             ->paginate(12)
             ->appends($request->query());
+        $selectedCategoryNamesByAdId = $this->resolveSelectedCategoryNamesByAdId($ads->items());
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('frontend.ads.partials.cards', ['ads' => $ads, 'sponsoredFillers' => $sponsoredFillers])->render(),
+                'html' => view('frontend.ads.partials.cards', [
+                    'ads' => $ads,
+                    'sponsoredFillers' => $sponsoredFillers,
+                    'selectedCategoryNamesByAdId' => $selectedCategoryNamesByAdId,
+                ])->render(),
                 'next_page_url' => $ads->nextPageUrl(),
                 'loaded_to' => $ads->lastItem() ?? 0,
                 'total' => $ads->total(),
@@ -75,14 +80,42 @@ class AdsMarketController extends Controller
 
         $homepageSetting = HomepageSetting::query()->find(1);
 
-        return view('frontend.ads.index', compact('ads', 'categories', 'categoriesForFilter', 'sponsoredFillers', 'homepageSetting'));
+        return view('frontend.ads.index', compact('ads', 'categories', 'categoriesForFilter', 'sponsoredFillers', 'homepageSetting', 'selectedCategoryNamesByAdId'));
     }
 
     public function show(UserAd $ad): View
     {
         abort_unless($ad->status === 'approved' && $ad->final_image && (! $ad->valid_until || $ad->valid_until->isToday() || $ad->valid_until->isFuture()), 404);
 
-        return view('frontend.ads.show', ['ad' => $ad->load(['category:id,name', 'subcategory:id,name'])]);
+        $ad->load(['category:id,name', 'subcategory:id,name']);
+
+        $selectedCategoryLabels = Category::query()
+            ->whereIn('id', array_map('intval', $ad->selected_category_ids ?? []))
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        $selectedSubcategoryLabels = Category::query()
+            ->whereIn('id', array_map('intval', $ad->selected_subcategory_ids ?? []))
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        if ($selectedCategoryLabels === [] && $ad->category?->name) {
+            $selectedCategoryLabels = [$ad->category->name];
+        }
+
+        if ($selectedSubcategoryLabels === [] && $ad->subcategory?->name) {
+            $selectedSubcategoryLabels = [$ad->subcategory->name];
+        }
+
+        return view('frontend.ads.show', [
+            'ad' => $ad,
+            'selectedCategoryLabels' => $selectedCategoryLabels,
+            'selectedSubcategoryLabels' => $selectedSubcategoryLabels,
+        ]);
     }
 
     private function getSponsoredFillers(?float $lat, ?float $lng): array
@@ -164,5 +197,34 @@ class AdsMarketController extends Controller
                 'url' => $picked ? route('frontend.ads.show', $picked) : null,
             ];
         })->values()->all();
+    }
+
+    private function resolveSelectedCategoryNamesByAdId(array $ads): array
+    {
+        $selectedCategoryIds = collect($ads)
+            ->flatMap(fn (UserAd $ad) => array_map('intval', $ad->selected_category_ids ?? []))
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $categoryNamesById = Category::query()
+            ->whereIn('id', $selectedCategoryIds)
+            ->pluck('name', 'id');
+
+        return collect($ads)
+            ->mapWithKeys(function (UserAd $ad) use ($categoryNamesById) {
+                $selectedNames = collect($ad->selected_category_ids ?? [])
+                    ->map(fn ($id) => $categoryNamesById->get((int) $id))
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                if ($selectedNames === [] && $ad->category?->name) {
+                    $selectedNames = [$ad->category->name];
+                }
+
+                return [$ad->id => $selectedNames];
+            })
+            ->all();
     }
 }

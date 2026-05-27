@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\UserAd;
 use App\Support\AdSizes;
+use App\Support\ModulePermissions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,7 +43,7 @@ class AdSubmissionController extends Controller
             if ($postedBy === 'admin') {
                 $query->whereHas('user', fn ($userQuery) => $userQuery->where('role', 'admin'));
             } elseif ($postedBy === 'user') {
-                $query->whereHas('user', fn ($userQuery) => $userQuery->where('role', 'user'));
+                $query->whereHas('user', fn ($userQuery) => $userQuery->whereNotIn('role', ['admin', 'employee']));
             }
         }
 
@@ -81,11 +83,43 @@ class AdSubmissionController extends Controller
 
     public function show(UserAd $ad): View
     {
-        $ad->load(['user:id,name,full_name,email', 'template:id,name,size_type,layout_html']);
+        $ad->load(['user:id,name,full_name,email', 'template:id,name,size_type,layout_html', 'category:id,name', 'subcategory:id,name']);
+
+        $moduleLabels = ModulePermissions::modules();
+        $selectedModuleLabels = collect($ad->selected_modules ?? [])
+            ->filter(fn ($key) => is_string($key) && isset($moduleLabels[$key]))
+            ->map(fn (string $key) => $moduleLabels[$key])
+            ->values()
+            ->all();
+
+        $selectedCategoryLabels = Category::query()
+            ->whereIn('id', array_map('intval', $ad->selected_category_ids ?? []))
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        $selectedSubcategoryLabels = Category::query()
+            ->whereIn('id', array_map('intval', $ad->selected_subcategory_ids ?? []))
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        if ($selectedCategoryLabels === [] && $ad->category?->name) {
+            $selectedCategoryLabels = [$ad->category->name];
+        }
+
+        if ($selectedSubcategoryLabels === [] && $ad->subcategory?->name) {
+            $selectedSubcategoryLabels = [$ad->subcategory->name];
+        }
 
         return view('backend.ads.admin.submissions.show', [
             'ad' => $ad,
             'size' => AdSizes::all()[$ad->size_type] ?? null,
+            'selectedModuleLabels' => $selectedModuleLabels,
+            'selectedCategoryLabels' => $selectedCategoryLabels,
+            'selectedSubcategoryLabels' => $selectedSubcategoryLabels,
         ]);
     }
 
