@@ -426,7 +426,9 @@ class UserAdController extends Controller
 
     public function show(Request $request, UserAd $ad): View
     {
-        abort_unless($ad->user_id === $request->user()->id, 404);
+        $user = $request->user();
+        $canViewAd = $user && ($ad->user_id === $user->id || $user->isStaff());
+        abort_unless($canViewAd, 404);
 
         $ad->load(['template:id,name,size_type', 'category:id,name', 'subcategory:id,name']);
         $moduleLabels = ModulePermissions::modules();
