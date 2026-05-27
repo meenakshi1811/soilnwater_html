@@ -521,6 +521,12 @@
         var contentEditable = block.querySelector('[data-section-field="content"]');
         if (!contentEditable) return 'image_text';
 
+        if (
+            contentEditable.querySelector('[data-brochure-wrap]') ||
+            contentEditable.querySelector('[data-brochure-pdf-slot]') ||
+            contentEditable.querySelector('[data-brochure-image-slot]')
+        ) return 'brochure';
+
         if (contentEditable.querySelector('[data-grid-image-slot]')) return 'image_grid';
         if (contentEditable.querySelector('[data-card-image-slot]')) return 'image_text';
         var imageCount = contentEditable.querySelectorAll('img').length;
