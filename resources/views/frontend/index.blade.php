@@ -1549,7 +1549,9 @@
         const adTitle = adImage.getAttribute('alt') || 'Ad Details';
         const adSrc = adImage.getAttribute('src') || '';
         const adCard = adImage.closest('.recent-ad-card');
-        const adMeta = adCard?.dataset.adServices || adCard?.dataset.adMeta || 'Home Page Advertisement';
+        const categoriesMeta = adCard?.dataset.adMeta || '';
+        const servicesMeta = adCard?.dataset.adServices || '';
+        const adMeta = categoriesMeta || servicesMeta || 'Home Page Advertisement';
         const adDescription = adCard?.dataset.adDescription || 'You are viewing this ad from the homepage slider/recent ads section.';
 
         document.getElementById('adDetailsModalTitle').textContent = adTitle;
