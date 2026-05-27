@@ -1475,6 +1475,8 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updatePricingDetails(selectedOption ? selectedOption.dataset.adPrice : 0, modulePrice);
         }
 
+        initModuleSelect2();
+
         categorySelect?.addEventListener('change', function () {
             loadSubcategories(this.value);
             updateCategoryPriceNote();
