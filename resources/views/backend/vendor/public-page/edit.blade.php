@@ -231,6 +231,7 @@
                         <option value="image_grid">Image grid (8 images)</option>
                         <option value="text_only">Only text section</option>
                         <option value="brochure">Brochure section</option>
+                        <option value="video">Video section</option>
                     </select>
                     <button type="button" class="btn btn-sm btn-outline-primary" id="addSectionBtn"><i class="fa-solid fa-plus me-1"></i> Add section</button>
                 </div>

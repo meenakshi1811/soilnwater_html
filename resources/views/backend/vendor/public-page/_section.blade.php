@@ -10,6 +10,16 @@
     <input type="hidden" name="sections[{{ $index }}][type]" value="{{ old('sections.'.$index.'.type', 'image_text') }}" data-section-type-input>
     <input type="text" name="sections[{{ $index }}][title]" class="d-none" value="{{ old('sections.'.$index.'.title', $section?->title) }}" data-sync-input="section-title-{{ $index }}">
     <textarea name="sections[{{ $index }}][content]" class="d-none" rows="6" data-sync-input="section-content-{{ $index }}">{{ old('sections.'.$index.'.content', $section?->content) }}</textarea>
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <label class="form-label small">Upload video (MP4/WEBM/OGG, max 50MB)</label>
+            <input type="file" name="sections[{{ $index }}][video_file]" class="form-control form-control-sm" accept="video/mp4,video/webm,video/ogg">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label small">Or YouTube embed link</label>
+            <input type="url" name="sections[{{ $index }}][youtube_url]" class="form-control form-control-sm" placeholder="https://www.youtube.com/embed/...">
+        </div>
+    </div>
 
     <div class="row g-4 align-items-start mb-3">
         <div class="col-12">
