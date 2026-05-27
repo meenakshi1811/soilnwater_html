@@ -686,14 +686,17 @@
 
             var col = img.closest('.js-brochure-image-col');
             if (!col) {
-                col = img.closest('.col-md-4') || document.createElement('div');
+                col = img.closest('.js-brochure-image-col') || document.createElement('div');
                 if (!col.parentElement) {
-                    col.className = 'col-md-4 js-brochure-image-col';
+                    col.className = 'js-brochure-image-col';
                     imageList.insertAdjacentElement('beforeend', col);
                     col.appendChild(img);
                 } else {
                     col.classList.add('js-brochure-image-col');
                 }
+            }
+            if (col.parentElement !== imageList) {
+                imageList.appendChild(col);
             }
             col.classList.add('d-flex', 'justify-content-start');
             col.style.flex = '0 0 220px';
@@ -781,7 +784,7 @@
             var item = link.closest('[data-brochure-pdf-item]');
             if (!item) {
                 item = document.createElement('div');
-                item.className = 'd-inline-flex align-items-start gap-1 position-relative';
+                item.className = 'd-inline-flex align-items-start gap-1 position-relative brochure-pdf-item';
                 item.setAttribute('data-brochure-pdf-item', String(slot));
                 link.insertAdjacentElement('beforebegin', item);
                 item.appendChild(link);
@@ -830,7 +833,7 @@
                     row.insertAdjacentElement('afterbegin', imageList);
                 }
                 var col = document.createElement('div');
-                col.className = 'col-md-4 js-brochure-image-col';
+                col.className = 'js-brochure-image-col';
                 col.innerHTML = '<div class="position-relative d-inline-block w-100">' +
                     '<img src="' + ev.target.result + '" class="img-fluid rounded" data-brochure-image-slot="' + nextSlot + '" alt="Brochure image ' + nextSlot + '">' +
                     '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image" title="Delete image"><i class="fa-solid fa-trash"></i></button>' +
@@ -1116,7 +1119,7 @@
             e.preventDefault();
             var brochureBlock = e.target.closest('.vendor-section-block');
             var brochureContent = brochureBlock?.querySelector('[data-section-field="content"]');
-            var brochureCol = e.target.closest('.js-brochure-image-col') || e.target.closest('.col-md-4');
+            var brochureCol = e.target.closest('.js-brochure-image-col');
             if (brochureCol) brochureCol.remove();
 
             if (brochureContent) {
