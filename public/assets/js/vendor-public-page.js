@@ -34,7 +34,7 @@
             title = 'Brochure Section';
             content = '<div class="card border-0 shadow-sm p-3" data-brochure-wrap="1">' +
                 '<div class="row g-3 align-items-center">' +
-                '<div class="col-md-4 js-brochure-image-col"><div class="position-relative d-inline-block w-100"><img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Brochure Image</text></svg>') + '" class="img-fluid rounded" data-brochure-image-slot="1" alt="Brochure image"><button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image" title="Delete image"><i class="fa-solid fa-trash"></i></button></div></div>' +
+                '<div class="col-md-4 js-brochure-image-col"><div class="position-relative d-inline-block w-100"><img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Brochure Image</text></svg>') + '" class="img-fluid rounded" data-brochure-image-slot="1" data-brochure-placeholder="1" alt="Brochure image"><button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image" title="Delete image"><i class="fa-solid fa-trash"></i></button></div></div>' +
                 '<div class="col-md-8"><h5>Brochure title</h5><p>Add your brochure description text here.</p><div class="d-flex flex-wrap gap-2" data-brochure-pdf-list><a href="#" class="btn btn-primary btn-sm disabled" data-brochure-pdf-slot="1" aria-label="Open brochure PDF"><i class="fa-solid fa-file-pdf me-1" aria-hidden="true"></i><span class="visually-hidden">Open brochure PDF</span></a></div></div>' +
                 '</div></div>';
         } else if (type === 'image_text') {
@@ -665,9 +665,11 @@
             var existing = contentEditable.querySelectorAll('[data-brochure-image-slot]');
             var nextSlot = existing.length + 1;
             var img = contentEditable.querySelector('[data-brochure-image-slot="1"]') || contentEditable.querySelector('img');
-            if (img && existing.length <= 1) {
+            var isPlaceholder = img && img.getAttribute('data-brochure-placeholder') === '1';
+            if (img && existing.length <= 1 && isPlaceholder) {
                 img.src = ev.target.result;
                 img.setAttribute('data-brochure-image-slot', '1');
+                img.removeAttribute('data-brochure-placeholder');
             } else {
                 var row = contentEditable.querySelector('[data-brochure-wrap] .row') || contentEditable.querySelector('.row');
                 if (!row) return;
