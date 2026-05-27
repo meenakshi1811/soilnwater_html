@@ -272,7 +272,7 @@ class UserAdController extends Controller
             if ($postedBy === 'admin') {
                 $ads->whereHas('user', fn ($userQuery) => $userQuery->where('role', 'admin'));
             } elseif ($postedBy === 'user') {
-                $ads->whereHas('user', fn ($userQuery) => $userQuery->where('role', 'user'));
+                $ads->whereHas('user', fn ($userQuery) => $userQuery->whereNotIn('role', ['admin', 'employee']));
             }
         } else {
             $ads->where('user_id', $user?->id);
