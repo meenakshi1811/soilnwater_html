@@ -1,7 +1,12 @@
-<div class="vendor-section-block vendor-store-section {{ ($index !== '__INDEX__' && is_numeric($index) && ((int)$index % 2 === 1)) ? 'alt' : '' }} p-3 rounded mb-4 border" data-section-index="{{ $index }}">
+<div class="vendor-section-block vendor-store-section {{ ($index !== '__INDEX__' && is_numeric($index) && ((int)$index % 2 === 1)) ? 'alt' : '' }} p-3 rounded mb-4 border" data-section-index="{{ $index }}" draggable="true">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <span class="badge bg-light text-dark border"><i class="fa-solid fa-layer-group me-1"></i> Section {{ is_numeric($index) ? ((int)$index + 1) : 'new' }}</span>
-        <button type="button" class="btn btn-sm btn-outline-danger js-remove-section" title="Remove section"><i class="fa-solid fa-trash"></i></button>
+        <span class="badge bg-light text-dark border js-section-label"><i class="fa-solid fa-layer-group me-1"></i> Section {{ is_numeric($index) ? ((int)$index + 1) : 'new' }}</span>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary js-drag-handle" title="Drag to reorder section">
+                <i class="fa-solid fa-grip-vertical"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger js-remove-section" title="Remove section"><i class="fa-solid fa-trash"></i></button>
+        </div>
     </div>
     @if($section?->id)
         <input type="hidden" name="sections[{{ $index }}][id]" value="{{ $section->id }}">
