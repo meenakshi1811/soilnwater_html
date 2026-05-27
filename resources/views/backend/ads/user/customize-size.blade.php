@@ -1269,21 +1269,43 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             }
         });
 
-        async function loadSubcategories(categoryId) {
+        async function loadSubcategories(categoryIds = []) {
             const base = form.dataset.subcategoryUrlBase || '';
-            if (!categoryId || !base || !subcategorySelect) {
+            const selectedCategoryIds = Array.isArray(categoryIds)
+                ? categoryIds.filter(Boolean)
+                : [categoryIds].filter(Boolean);
+            if (selectedCategoryIds.length === 0 || !base || !subcategorySelect) {
                 subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
                 subcategorySelect.disabled = true;
                 return;
             }
-            const response = await fetch(`${base}/${categoryId}/subcategories`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-            const data = await response.json();
+            const existingSelection = Array.from(subcategorySelect.selectedOptions || []).map((option) => String(option.value));
+            const responses = await Promise.all(
+                selectedCategoryIds.map((categoryId) => fetch(`${base}/${categoryId}/subcategories`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }))
+            );
+            const payloads = await Promise.all(responses.map((response) => response.json()));
+            const subcategoryMap = new Map();
+            payloads.forEach((items) => {
+                (Array.isArray(items) ? items : []).forEach((item) => {
+                    if (!item || !item.id) return;
+                    subcategoryMap.set(String(item.id), item);
+                });
+            });
+            const data = Array.from(subcategoryMap.values())
+                .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
             const options = ['<option value="">— Select subcategory —</option>'];
-            (Array.isArray(data) ? data : []).forEach((item) => {
-                options.push(`<option value=\"${item.id}\">${item.name}</option>`);
+            data.forEach((item) => {
+                const isSelected = existingSelection.includes(String(item.id));
+                options.push(`<option value=\"${item.id}\" ${isSelected ? 'selected' : ''}>${item.name}</option>`);
             });
             subcategorySelect.innerHTML = options.join('');
             subcategorySelect.disabled = false;
+
+            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
+                window.jQuery(subcategorySelect).trigger('change.select2');
+            }
             updateSubmitButtonState();
         }
 
@@ -1506,7 +1528,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
 
         categorySelect?.addEventListener('change', function () {
             const selectedCategoryIds = Array.from(this.selectedOptions || []).map((option) => option.value).filter(Boolean);
-            loadSubcategories(selectedCategoryIds[0] || '');
+            loadSubcategories(selectedCategoryIds);
             updateCategoryPriceNote();
             updateSubmitButtonState();
         });
