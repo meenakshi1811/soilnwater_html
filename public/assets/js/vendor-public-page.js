@@ -36,6 +36,9 @@
                 '<div class="row g-3 align-items-start">' +
                 '<div class="col-12 d-flex flex-wrap gap-2 align-items-start" data-brochure-image-list data-brochure-pdf-list></div>' +
                 '</div></div>';
+        } else if (type === 'video') {
+            title = 'Video Section';
+            content = '<p>Add a short intro for your video. Upload a file or add a YouTube embed link from the section controls above.</p>';
         } else if (type === 'image_text') {
             title = 'Image + Text Cards';
             content = '<div class="row g-3">' +
@@ -1294,7 +1297,7 @@
         var effectiveType = currentType || detectedType;
         if (
             currentType === 'image_text' &&
-            ['text_only', 'image_grid', 'brochure'].includes(detectedType)
+            ['text_only', 'image_grid', 'brochure', 'video'].includes(detectedType)
         ) {
             effectiveType = detectedType;
         }

@@ -54,6 +54,8 @@ class VendorPublicPageController extends Controller
             'sections.*.title' => ['nullable', 'string', 'max:2000'],
             'sections.*.content' => ['nullable', 'string'],
             'sections.*.image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'sections.*.video_file' => ['nullable', 'mimetypes:video/mp4,video/webm,video/ogg', 'max:51200'],
+            'sections.*.youtube_url' => ['nullable', 'url', 'max:1000'],
             'sections.*._delete' => ['nullable', 'boolean'],
         ]);
 
@@ -166,6 +168,7 @@ class VendorPublicPageController extends Controller
                 $section = VendorPageSection::where('vendor_id', $vendor->id)->find($sectionData['id']);
                 if ($section) {
                     VendorFileUploader::deleteIfExists($section->image_path);
+                    $this->deleteManagedMediaFromContent((string) $section->content);
                     $section->delete();
                 }
 
@@ -174,7 +177,7 @@ class VendorPublicPageController extends Controller
 
             $title = trim((string) ($sectionData['title'] ?? ''));
             $plainTitle = trim(strip_tags($title));
-            $content = $sectionData['content'] ?? '';
+            $content = (string) ($sectionData['content'] ?? '');
             if ($plainTitle === '' && trim(strip_tags((string) $content)) === '' && empty($sectionData['id'])) {
                 continue;
             }
@@ -187,10 +190,25 @@ class VendorPublicPageController extends Controller
                 $section = new VendorPageSection(['vendor_id' => $vendor->id]);
             }
 
+            $oldContent = (string) ($section->content ?? '');
             $imageFile = $request->file("sections.{$index}.image");
             if ($imageFile) {
                 VendorFileUploader::deleteIfExists($section->image_path);
                 $section->image_path = VendorFileUploader::storeImage($imageFile, 'sections');
+            }
+
+            $videoFile = $request->file("sections.{$index}.video_file");
+            if ($videoFile) {
+                $directory = public_path('uploads/vendors/sections/videos');
+                if (! File::isDirectory($directory)) {
+                    File::makeDirectory($directory, 0755, true);
+                }
+                $filename = uniqid('section-video-', true).'.'.$videoFile->getClientOriginalExtension();
+                $videoFile->move($directory, $filename);
+                $content .= '<div class="vendor-section-video mt-3"><video controls preload="metadata" style="width:100%;max-width:100%;border-radius:12px"><source src="'.asset('uploads/vendors/sections/videos/'.$filename).'"></video></div>';
+            } elseif (! empty($sectionData['youtube_url'])) {
+                $youtubeUrl = e((string) $sectionData['youtube_url']);
+                $content .= '<div class="vendor-section-video mt-3"><div class="ratio ratio-16x9"><iframe src="'.$youtubeUrl.'" title="Section video" allowfullscreen loading="lazy"></iframe></div></div>';
             }
 
             $section->fill([
@@ -200,6 +218,7 @@ class VendorPublicPageController extends Controller
             ]);
             $section->vendor_id = $vendor->id;
             $section->save();
+            $this->deleteOrphanManagedMedia($oldContent, (string) $section->content);
         }
     }
 
@@ -253,5 +272,27 @@ class VendorPublicPageController extends Controller
 
             $section->forceFill(['content' => $normalized])->saveQuietly();
         }
+    }
+
+    private function deleteOrphanManagedMedia(string $oldContent, string $newContent): void
+    {
+        $oldPaths = $this->extractManagedPaths($oldContent);
+        $newPaths = $this->extractManagedPaths($newContent);
+        foreach (array_diff($oldPaths, $newPaths) as $relativePath) {
+            VendorFileUploader::deleteIfExists($relativePath);
+        }
+    }
+
+    private function deleteManagedMediaFromContent(string $content): void
+    {
+        foreach ($this->extractManagedPaths($content) as $relativePath) {
+            VendorFileUploader::deleteIfExists($relativePath);
+        }
+    }
+
+    private function extractManagedPaths(string $html): array
+    {
+        preg_match_all('#uploads/vendors/sections/(?:content-images|videos)/[^"\'\s<]+#', $html, $matches);
+        return array_values(array_unique($matches[0] ?? []));
     }
 }
