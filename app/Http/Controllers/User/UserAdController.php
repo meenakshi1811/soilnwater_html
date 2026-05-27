@@ -510,9 +510,12 @@ class UserAdController extends Controller
 
     public function categoriesByModules(Request $request): JsonResponse
     {
+        $normalize = static fn (string $value): string => preg_replace('/[^a-z0-9]+/', '', str_replace('&', 'and', strtolower(trim($value)))) ?? '';
+
         $selectedModules = collect($request->input('modules', []))
             ->filter(fn ($module) => is_string($module) && $module !== '')
-            ->map(fn (string $module) => strtolower(trim($module)))
+            ->map(fn (string $module) => $normalize($module))
+            ->filter()
             ->unique()
             ->values();
 
@@ -522,13 +525,20 @@ class UserAdController extends Controller
 
         $categories = Category::query()
             ->whereNull('parent_id')
-            ->where(function ($query) use ($selectedModules): void {
-                foreach ($selectedModules as $module) {
-                    $query->orWhereJsonContains('modules', $module);
-                }
-            })
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'modules'])
+            ->filter(function (Category $category) use ($selectedModules, $normalize): bool {
+                $categoryModules = collect($category->modules ?? [])
+                    ->filter(fn ($module) => is_string($module) && $module !== '')
+                    ->map(fn (string $module) => $normalize($module))
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+                return $categoryModules->intersect($selectedModules)->isNotEmpty();
+            })
+            ->values()
+            ->map(fn (Category $category) => ['id' => $category->id, 'name' => $category->name]);
 
         return response()->json($categories);
     }
