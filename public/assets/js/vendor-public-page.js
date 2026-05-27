@@ -761,19 +761,20 @@
             var item = link.closest('[data-brochure-pdf-item]');
             if (!item) {
                 item = document.createElement('div');
-                item.className = 'd-inline-flex align-items-center gap-1';
+                item.className = 'd-inline-flex align-items-start gap-1 position-relative';
                 item.setAttribute('data-brochure-pdf-item', String(slot));
                 link.insertAdjacentElement('beforebegin', item);
                 item.appendChild(link);
             } else {
                 item.setAttribute('data-brochure-pdf-item', String(slot));
+                item.classList.add('position-relative');
             }
 
             var removeBtn = item.querySelector('.js-remove-brochure-pdf');
             if (!removeBtn) {
                 removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
-                removeBtn.className = 'btn btn-sm btn-outline-danger js-remove-brochure-pdf';
+                removeBtn.className = 'btn btn-sm btn-danger js-remove-brochure-pdf position-absolute top-0 end-0 m-1';
                 removeBtn.setAttribute('title', 'Delete PDF');
                 removeBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
                 item.appendChild(removeBtn);
