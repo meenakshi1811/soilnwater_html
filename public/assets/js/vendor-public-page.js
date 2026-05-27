@@ -665,11 +665,15 @@
         if (!contentEditable) return;
         var row = contentEditable.querySelector('[data-brochure-wrap] .row') || contentEditable.querySelector('.row');
         if (!row) return;
+        row.classList.add('d-flex', 'flex-wrap', 'align-items-start');
 
         row.querySelectorAll('img[data-brochure-image-slot], img').forEach(function (img, i) {
             var slot = i + 1;
             img.setAttribute('data-brochure-image-slot', String(slot));
             if (!img.getAttribute('alt')) img.setAttribute('alt', 'Brochure image ' + slot);
+            img.style.width = '320px';
+            img.style.height = '400px';
+            img.style.objectFit = 'cover';
 
             var col = img.closest('.js-brochure-image-col');
             if (!col) {
@@ -682,6 +686,7 @@
                     col.classList.add('js-brochure-image-col');
                 }
             }
+            col.classList.add('d-flex', 'justify-content-start');
 
             var wrap = img.closest('.position-relative');
             if (!wrap) {
@@ -718,15 +723,18 @@
     }
 
     function getBrochureTileSize(contentEditable) {
-        var refImg = contentEditable?.querySelector('[data-brochure-image-slot]');
-        var width = refImg?.clientWidth || 320;
-        var height = refImg?.clientHeight || Math.round(width * 1.25);
+        var width = 320;
+        var height = 400;
         return { width: width, height: height };
     }
 
     function applyBrochurePdfTileStyle(contentEditable) {
         if (!contentEditable) return;
         var size = getBrochureTileSize(contentEditable);
+        var list = contentEditable.querySelector('[data-brochure-pdf-list]');
+        if (list) {
+            list.classList.add('d-flex', 'flex-wrap', 'gap-2', 'align-items-start');
+        }
         contentEditable.querySelectorAll('[data-brochure-pdf-slot]').forEach(function (link) {
             link.classList.remove('btn-primary', 'btn-outline-primary', 'btn-sm');
             link.classList.add('d-flex', 'align-items-center', 'justify-content-center', 'text-danger', 'border', 'rounded', 'bg-white');
