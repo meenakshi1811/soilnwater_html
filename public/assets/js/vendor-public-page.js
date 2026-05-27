@@ -667,6 +667,15 @@
         if (!row) return;
         row.classList.add('d-flex', 'flex-wrap', 'align-items-start');
 
+        var imageList = contentEditable.querySelector('[data-brochure-image-list]');
+        if (!imageList) {
+            imageList = document.createElement('div');
+            imageList.className = 'col-md-4';
+            imageList.setAttribute('data-brochure-image-list', '');
+            row.insertAdjacentElement('afterbegin', imageList);
+        }
+        imageList.classList.add('d-flex', 'flex-wrap', 'gap-2', 'align-items-start');
+
         row.querySelectorAll('img[data-brochure-image-slot], img').forEach(function (img, i) {
             var slot = i + 1;
             img.setAttribute('data-brochure-image-slot', String(slot));
@@ -680,7 +689,7 @@
                 col = img.closest('.col-md-4') || document.createElement('div');
                 if (!col.parentElement) {
                     col.className = 'col-md-4 js-brochure-image-col';
-                    row.insertAdjacentElement('afterbegin', col);
+                    imageList.insertAdjacentElement('beforeend', col);
                     col.appendChild(img);
                 } else {
                     col.classList.add('js-brochure-image-col');
@@ -813,14 +822,22 @@
             } else {
                 var row = contentEditable.querySelector('[data-brochure-wrap] .row') || contentEditable.querySelector('.row');
                 if (!row) return;
+                var imageList = contentEditable.querySelector('[data-brochure-image-list]');
+                if (!imageList) {
+                    imageList = document.createElement('div');
+                    imageList.className = 'col-md-4 d-flex flex-wrap gap-2 align-items-start';
+                    imageList.setAttribute('data-brochure-image-list', '');
+                    row.insertAdjacentElement('afterbegin', imageList);
+                }
                 var col = document.createElement('div');
                 col.className = 'col-md-4 js-brochure-image-col';
                 col.innerHTML = '<div class="position-relative d-inline-block w-100">' +
                     '<img src="' + ev.target.result + '" class="img-fluid rounded" data-brochure-image-slot="' + nextSlot + '" alt="Brochure image ' + nextSlot + '">' +
                     '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image" title="Delete image"><i class="fa-solid fa-trash"></i></button>' +
                     '</div>';
-                row.insertAdjacentElement('beforeend', col);
+                imageList.insertAdjacentElement('beforeend', col);
             }
+            normalizeBrochureImageItems(contentEditable);
             applyBrochurePdfTileStyle(contentEditable);
             syncEditable(contentEditable);
         };
