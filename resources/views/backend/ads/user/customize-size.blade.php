@@ -65,7 +65,7 @@
                         <option value="">— Select category —</option>
                         @foreach($categories as $category)
                             @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
-                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" {{ (string) old('category_id', $ad->category_id ?? '') === (string) $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values(array_filter($category->modules ?? [], fn($module) => $module !== 'ads')))) }}" {{ (string) old('category_id', $ad->category_id ?? '') === (string) $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach
                     </select>
                     @if((bool) ($size['is_paid'] ?? false))
@@ -1305,6 +1305,53 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         const pricingDetailsCard = document.getElementById('pricingDetailsCard');
         const isSquareSizeType = @json($sizeType === 'square');
 
+        const allCategoryOptions = categorySelect
+            ? Array.from(categorySelect.querySelectorAll('option')).map((option) => ({
+                value: option.value,
+                label: option.textContent,
+                price: option.dataset.adPrice || '',
+                modules: option.dataset.modules || '[]',
+                selected: option.selected,
+            }))
+            : [];
+
+        function filterCategoriesByModules() {
+            if (!categorySelect || !moduleSelect) return;
+            const selectedModules = Array.from(moduleSelect.selectedOptions || []).map((option) => String(option.value || '').toLowerCase());
+            const currentCategory = categorySelect.value;
+            const options = ['<option value="">— Select category —</option>'];
+
+            allCategoryOptions.forEach((item) => {
+                if (!item.value) return;
+                let categoryModules = [];
+                try {
+                    categoryModules = JSON.parse(item.modules || '[]');
+                } catch (e) {
+                    categoryModules = [];
+                }
+                const normalizedModules = Array.isArray(categoryModules) ? categoryModules.map((module) => String(module).toLowerCase()) : [];
+                const showCategory = selectedModules.length === 0 || selectedModules.some((module) => normalizedModules.includes(module));
+                if (!showCategory) return;
+
+                const isSelected = String(item.value) === String(currentCategory);
+                options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
+            });
+
+            categorySelect.innerHTML = options.join('');
+
+            if (currentCategory && !Array.from(categorySelect.options).some((option) => option.value === currentCategory)) {
+                categorySelect.value = '';
+                if (subcategorySelect) {
+                    subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
+                    subcategorySelect.disabled = true;
+                }
+            }
+
+            updateCategoryPriceNote();
+            updateSubmitButtonState();
+        }
+
+
         initModuleSelect2();
 
         function applyValidUntilLimit() {
@@ -1412,13 +1459,17 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updateCategoryPriceNote();
             updateSubmitButtonState();
         });
-        moduleSelect?.addEventListener('change', updateModulePriceNote);
+        moduleSelect?.addEventListener('change', function () {
+            filterCategoriesByModules();
+            updateModulePriceNote();
+        });
         subcategorySelect?.addEventListener('change', updateSubmitButtonState);
         validUntilInput?.addEventListener('change', () => {
             updateCategoryPriceNote();
             updateModulePriceNote();
         });
         applyValidUntilLimit();
+        filterCategoriesByModules();
         updateCategoryPriceNote();
         updateModulePriceNote();
         updateSubmitButtonState();

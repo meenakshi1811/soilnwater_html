@@ -246,7 +246,7 @@ class UserAdController extends Controller
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'modules']),
             'moduleOptions' => ModulePermissions::modules(),
         ]);
     }
@@ -471,7 +471,7 @@ class UserAdController extends Controller
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'ads')
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'modules']),
         ]);
     }
 
