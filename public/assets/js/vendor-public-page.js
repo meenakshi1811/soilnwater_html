@@ -35,7 +35,7 @@
             content = '<div class="card border-0 shadow-sm p-3" data-brochure-wrap="1">' +
                 '<div class="row g-3 align-items-center">' +
                 '<div class="col-md-4"><img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Brochure Image</text></svg>') + '" class="img-fluid rounded" data-brochure-image-slot="1" alt="Brochure image"></div>' +
-                '<div class="col-md-8"><h5>Brochure title</h5><p>Add your brochure description text here.</p><a href="#" class="btn btn-primary btn-sm disabled" data-brochure-pdf-slot="1">Download PDF</a></div>' +
+                '<div class="col-md-8"><h5>Brochure title</h5><p>Add your brochure description text here.</p><a href="#" class="btn btn-primary btn-sm disabled" data-brochure-pdf-slot="1" aria-label="Open brochure PDF"><i class="fa-solid fa-file-pdf me-1" aria-hidden="true"></i><span class="visually-hidden">Open brochure PDF</span></a></div>' +
                 '</div></div>';
         } else if (type === 'image_text') {
             title = 'Image + Text Cards';
@@ -521,6 +521,12 @@
         var contentEditable = block.querySelector('[data-section-field="content"]');
         if (!contentEditable) return 'image_text';
 
+        if (
+            contentEditable.querySelector('[data-brochure-wrap]') ||
+            contentEditable.querySelector('[data-brochure-pdf-slot]') ||
+            contentEditable.querySelector('[data-brochure-image-slot]')
+        ) return 'brochure';
+
         if (contentEditable.querySelector('[data-grid-image-slot]')) return 'image_grid';
         if (contentEditable.querySelector('[data-card-image-slot]')) return 'image_text';
         var imageCount = contentEditable.querySelectorAll('img').length;
@@ -673,9 +679,14 @@
             var link = contentEditable.querySelector('[data-brochure-pdf-slot="1"]') || contentEditable.querySelector('a');
             if (!link) return;
             link.href = ev.target.result;
-            link.textContent = file.name || 'Download PDF';
+            link.innerHTML = '<i class="fa-solid fa-file-pdf me-1" aria-hidden="true"></i><span class="visually-hidden">Open brochure PDF</span>';
             link.classList.remove('disabled');
             link.setAttribute('data-brochure-pdf-slot', '1');
+            link.setAttribute('target', '_blank');
+            link.setAttribute('rel', 'noopener noreferrer');
+            link.setAttribute('download', file.name || 'brochure.pdf');
+            link.setAttribute('title', file.name || 'Open brochure PDF');
+            link.setAttribute('aria-label', 'Open brochure PDF');
             syncEditable(contentEditable);
         };
         reader.readAsDataURL(file);
