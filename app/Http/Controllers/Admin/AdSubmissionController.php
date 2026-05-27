@@ -41,7 +41,7 @@ class AdSubmissionController extends Controller
             if ($postedBy === 'admin') {
                 $query->whereHas('user', fn ($userQuery) => $userQuery->where('role', 'admin'));
             } elseif ($postedBy === 'user') {
-                $query->whereHas('user', fn ($userQuery) => $userQuery->where('role', 'user'));
+                $query->whereHas('user', fn ($userQuery) => $userQuery->whereNotIn('role', ['admin', 'employee']));
             }
         }
 
