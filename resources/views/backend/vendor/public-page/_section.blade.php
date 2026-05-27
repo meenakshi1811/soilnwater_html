@@ -15,7 +15,7 @@
     <input type="hidden" name="sections[{{ $index }}][type]" value="{{ old('sections.'.$index.'.type', 'image_text') }}" data-section-type-input>
     <input type="text" name="sections[{{ $index }}][title]" class="d-none" value="{{ old('sections.'.$index.'.title', $section?->title) }}" data-sync-input="section-title-{{ $index }}">
     <textarea name="sections[{{ $index }}][content]" class="d-none" rows="6" data-sync-input="section-content-{{ $index }}">{{ old('sections.'.$index.'.content', $section?->content) }}</textarea>
-    <div class="row g-3 mb-3">
+    <div class="row g-3 mb-3 js-video-fields d-none">
         <div class="col-md-6">
             <label class="form-label small">Upload video (MP4/WEBM/OGG, max 50MB)</label>
             <input type="file" name="sections[{{ $index }}][video_file]" class="form-control form-control-sm" accept="video/mp4,video/webm,video/ogg">

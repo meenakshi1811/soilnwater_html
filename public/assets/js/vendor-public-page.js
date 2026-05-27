@@ -501,6 +501,7 @@
         var imageCol = block.querySelector('.js-section-image-col');
         var textCol = block.querySelector('.vendor-section-title-editor')?.closest('.col-lg-7, .col-lg-12');
         var typeInput = block.querySelector('[data-section-type-input]');
+        var videoFields = block.querySelector('.js-video-fields');
 
         if (typeInput) typeInput.value = sectionType || 'image_text';
 
@@ -511,6 +512,11 @@
         if (textCol) {
             textCol.classList.remove('col-lg-7', 'col-lg-12');
             textCol.classList.add(showImage ? 'col-lg-7' : 'col-lg-12');
+        }
+
+        if (videoFields) {
+            var showVideoFields = (sectionType === 'video');
+            videoFields.classList.toggle('d-none', !showVideoFields);
         }
 
         renderCardImageUploadTools(block);
