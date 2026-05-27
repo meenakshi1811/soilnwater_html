@@ -717,6 +717,27 @@
         }
     }
 
+    function getBrochureTileSize(contentEditable) {
+        var refImg = contentEditable?.querySelector('[data-brochure-image-slot]');
+        var width = refImg?.clientWidth || 320;
+        var height = refImg?.clientHeight || Math.round(width * 1.25);
+        return { width: width, height: height };
+    }
+
+    function applyBrochurePdfTileStyle(contentEditable) {
+        if (!contentEditable) return;
+        var size = getBrochureTileSize(contentEditable);
+        contentEditable.querySelectorAll('[data-brochure-pdf-slot]').forEach(function (link) {
+            link.classList.remove('btn-primary', 'btn-outline-primary', 'btn-sm');
+            link.classList.add('d-flex', 'align-items-center', 'justify-content-center', 'text-danger', 'border', 'rounded', 'bg-white');
+            link.style.width = size.width + 'px';
+            link.style.height = size.height + 'px';
+            link.style.fontSize = '72px';
+            link.style.textDecoration = 'none';
+            link.style.lineHeight = '1';
+        });
+    }
+
     function normalizeBrochurePdfItems(contentEditable) {
         if (!contentEditable) return;
         cleanupLegacyBrochureText(contentEditable);
@@ -758,6 +779,7 @@
                 item.appendChild(removeBtn);
             }
         });
+        applyBrochurePdfTileStyle(contentEditable);
     }
 
     function updateBrochureImageInSection(block, file) {
@@ -784,6 +806,7 @@
                     '</div>';
                 row.insertAdjacentElement('beforeend', col);
             }
+            applyBrochurePdfTileStyle(contentEditable);
             syncEditable(contentEditable);
         };
         reader.readAsDataURL(file);
@@ -816,12 +839,6 @@
             }
             if (!link) return;
             link.href = ev.target.result;
-            link.classList.remove('btn-sm');
-            link.classList.add('d-flex', 'align-items-center', 'justify-content-center');
-            link.style.width = '100%';
-            link.style.maxWidth = '320px';
-            link.style.aspectRatio = '4 / 3';
-            link.style.fontSize = '56px';
             link.innerHTML = '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>';
             link.classList.remove('disabled');
             if (!link.getAttribute('data-brochure-pdf-slot')) link.setAttribute('data-brochure-pdf-slot', String(nextSlot));
@@ -831,6 +848,7 @@
             link.setAttribute('title', file.name || 'Open brochure PDF');
             link.setAttribute('aria-label', 'Open brochure PDF');
             normalizeBrochurePdfItems(contentEditable);
+            applyBrochurePdfTileStyle(contentEditable);
             syncEditable(contentEditable);
         };
         reader.readAsDataURL(file);
