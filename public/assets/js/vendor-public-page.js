@@ -34,8 +34,7 @@
             title = 'Brochure Section';
             content = '<div class="card border-0 shadow-sm p-3" data-brochure-wrap="1">' +
                 '<div class="row g-3 align-items-start">' +
-                '<div class="col-md-4" data-brochure-image-list></div>' +
-                '<div class="col-md-4"><div class="d-flex flex-wrap gap-2" data-brochure-pdf-list></div></div>' +
+                '<div class="col-12 d-flex flex-wrap gap-2 align-items-start" data-brochure-image-list data-brochure-pdf-list></div>' +
                 '</div></div>';
         } else if (type === 'image_text') {
             title = 'Image + Text Cards';
@@ -670,7 +669,7 @@
         var imageList = contentEditable.querySelector('[data-brochure-image-list]');
         if (!imageList) {
             imageList = document.createElement('div');
-            imageList.className = 'col-md-4';
+            imageList.className = 'col-12 d-flex flex-wrap gap-2 align-items-start';
             imageList.setAttribute('data-brochure-image-list', '');
             row.insertAdjacentElement('afterbegin', imageList);
         }
@@ -766,7 +765,7 @@
         cleanupLegacyBrochureText(contentEditable);
         var list = contentEditable.querySelector('[data-brochure-pdf-list]');
         if (!list) {
-            var rightCol = contentEditable.querySelector('.col-md-8') || contentEditable;
+            var rightCol = contentEditable.querySelector('[data-brochure-image-list], .col-md-8') || contentEditable;
             var existingLinks = rightCol.querySelectorAll('a[data-brochure-pdf-slot], a.btn.btn-primary, a.btn.btn-outline-primary');
             if (!existingLinks.length) return;
 
@@ -828,7 +827,7 @@
                 var imageList = contentEditable.querySelector('[data-brochure-image-list]');
                 if (!imageList) {
                     imageList = document.createElement('div');
-                    imageList.className = 'col-md-4 d-flex flex-wrap gap-2 align-items-start';
+                    imageList.className = 'col-12 d-flex flex-wrap gap-2 align-items-start';
                     imageList.setAttribute('data-brochure-image-list', '');
                     row.insertAdjacentElement('afterbegin', imageList);
                 }
@@ -859,7 +858,7 @@
                 ? (contentEditable.querySelector('[data-brochure-pdf-slot="1"]') || contentEditable.querySelector('a'))
                 : null;
             if (!list) {
-                var rightCol = contentEditable.querySelector('.col-md-8') || contentEditable;
+                var rightCol = contentEditable.querySelector('[data-brochure-image-list], .col-md-8') || contentEditable;
                 var wrap = document.createElement('div');
                 wrap.className = 'd-flex flex-wrap gap-2';
                 wrap.setAttribute('data-brochure-pdf-list', '');
