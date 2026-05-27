@@ -34,8 +34,8 @@
             title = 'Brochure Section';
             content = '<div class="card border-0 shadow-sm p-3" data-brochure-wrap="1">' +
                 '<div class="row g-3 align-items-center">' +
-                '<div class="col-md-4"><img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Brochure Image</text></svg>') + '" class="img-fluid rounded" data-brochure-image-slot="1" alt="Brochure image"></div>' +
-                '<div class="col-md-8"><h5>Brochure title</h5><p>Add your brochure description text here.</p><a href="#" class="btn btn-primary btn-sm disabled" data-brochure-pdf-slot="1">Download PDF</a></div>' +
+                '<div class="col-md-4 js-brochure-image-col"><div class="position-relative d-inline-block w-100"><img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360"><rect width="480" height="360" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Brochure Image</text></svg>') + '" class="img-fluid rounded" data-brochure-image-slot="1" data-brochure-placeholder="1" alt="Brochure image"><button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image" title="Delete image"><i class="fa-solid fa-trash"></i></button></div></div>' +
+                '<div class="col-md-8"><h5>Brochure title</h5><p>Add your brochure description text here.</p><div class="d-flex flex-wrap gap-2" data-brochure-pdf-list><a href="#" class="btn btn-primary btn-sm disabled" data-brochure-pdf-slot="1" aria-label="Open brochure PDF"><i class="fa-solid fa-file-pdf me-1" aria-hidden="true"></i><span class="visually-hidden">Open brochure PDF</span></a></div></div>' +
                 '</div></div>';
         } else if (type === 'image_text') {
             title = 'Image + Text Cards';
@@ -521,6 +521,12 @@
         var contentEditable = block.querySelector('[data-section-field="content"]');
         if (!contentEditable) return 'image_text';
 
+        if (
+            contentEditable.querySelector('[data-brochure-wrap]') ||
+            contentEditable.querySelector('[data-brochure-pdf-slot]') ||
+            contentEditable.querySelector('[data-brochure-image-slot]')
+        ) return 'brochure';
+
         if (contentEditable.querySelector('[data-grid-image-slot]')) return 'image_grid';
         if (contentEditable.querySelector('[data-card-image-slot]')) return 'image_text';
         var imageCount = contentEditable.querySelectorAll('img').length;
@@ -646,9 +652,97 @@
 
         toolsWrap.innerHTML = '<p class="small fw-semibold mb-2">Brochure assets</p>' +
             '<div class="row g-2">' +
-            '<div class="col-md-6"><label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload brochure image<input type="file" accept="image/*" class="d-none js-brochure-image-input"></label></div>' +
-            '<div class="col-md-6"><label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload brochure PDF<input type="file" accept=\"application/pdf\" class=\"d-none js-brochure-pdf-input\"></label></div>' +
+            '<div class="col-md-6"><label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload brochure image(s)<input type="file" accept="image/*" multiple class="d-none js-brochure-image-input"></label></div>' +
+            '<div class="col-md-6"><label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload brochure PDF(s)<input type="file" accept=\"application/pdf\" multiple class=\"d-none js-brochure-pdf-input\"></label></div>' +
             '</div><small class="text-muted d-block mt-1">You can also edit brochure text directly in the content box above.</small>';
+
+        var contentEditable = block.querySelector('[data-section-field="content"]');
+        normalizeBrochureImageItems(contentEditable);
+        normalizeBrochurePdfItems(contentEditable);
+    }
+
+    function normalizeBrochureImageItems(contentEditable) {
+        if (!contentEditable) return;
+        var row = contentEditable.querySelector('[data-brochure-wrap] .row') || contentEditable.querySelector('.row');
+        if (!row) return;
+
+        row.querySelectorAll('img[data-brochure-image-slot], img').forEach(function (img, i) {
+            var slot = i + 1;
+            img.setAttribute('data-brochure-image-slot', String(slot));
+            if (!img.getAttribute('alt')) img.setAttribute('alt', 'Brochure image ' + slot);
+
+            var col = img.closest('.js-brochure-image-col');
+            if (!col) {
+                col = img.closest('.col-md-4') || document.createElement('div');
+                if (!col.parentElement) {
+                    col.className = 'col-md-4 js-brochure-image-col';
+                    row.insertAdjacentElement('afterbegin', col);
+                    col.appendChild(img);
+                } else {
+                    col.classList.add('js-brochure-image-col');
+                }
+            }
+
+            var wrap = img.closest('.position-relative');
+            if (!wrap) {
+                wrap = document.createElement('div');
+                wrap.className = 'position-relative d-inline-block w-100';
+                img.insertAdjacentElement('beforebegin', wrap);
+                wrap.appendChild(img);
+            }
+
+            var removeBtn = wrap.querySelector('.js-remove-brochure-image');
+            if (!removeBtn) {
+                removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image';
+                removeBtn.setAttribute('title', 'Delete image');
+                removeBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                wrap.appendChild(removeBtn);
+            }
+        });
+    }
+
+    function normalizeBrochurePdfItems(contentEditable) {
+        if (!contentEditable) return;
+        var list = contentEditable.querySelector('[data-brochure-pdf-list]');
+        if (!list) {
+            var rightCol = contentEditable.querySelector('.col-md-8') || contentEditable;
+            var existingLinks = rightCol.querySelectorAll('a[data-brochure-pdf-slot], a.btn.btn-primary');
+            if (!existingLinks.length) return;
+
+            list = document.createElement('div');
+            list.className = 'd-flex flex-wrap gap-2';
+            list.setAttribute('data-brochure-pdf-list', '');
+            rightCol.appendChild(list);
+            existingLinks.forEach(function (lnk) { list.appendChild(lnk); });
+        }
+
+        list.querySelectorAll('a[data-brochure-pdf-slot]').forEach(function (link, i) {
+            var slot = i + 1;
+            link.setAttribute('data-brochure-pdf-slot', String(slot));
+
+            var item = link.closest('[data-brochure-pdf-item]');
+            if (!item) {
+                item = document.createElement('div');
+                item.className = 'd-inline-flex align-items-center gap-1';
+                item.setAttribute('data-brochure-pdf-item', String(slot));
+                link.insertAdjacentElement('beforebegin', item);
+                item.appendChild(link);
+            } else {
+                item.setAttribute('data-brochure-pdf-item', String(slot));
+            }
+
+            var removeBtn = item.querySelector('.js-remove-brochure-pdf');
+            if (!removeBtn) {
+                removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-outline-danger js-remove-brochure-pdf';
+                removeBtn.setAttribute('title', 'Delete PDF');
+                removeBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                item.appendChild(removeBtn);
+            }
+        });
     }
 
     function updateBrochureImageInSection(block, file) {
@@ -656,10 +750,25 @@
         if (!contentEditable || !file) return;
         var reader = new FileReader();
         reader.onload = function (ev) {
+            var existing = contentEditable.querySelectorAll('[data-brochure-image-slot]');
+            var nextSlot = existing.length + 1;
             var img = contentEditable.querySelector('[data-brochure-image-slot="1"]') || contentEditable.querySelector('img');
-            if (!img) return;
-            img.src = ev.target.result;
-            img.setAttribute('data-brochure-image-slot', '1');
+            var isPlaceholder = img && img.getAttribute('data-brochure-placeholder') === '1';
+            if (img && existing.length <= 1 && isPlaceholder) {
+                img.src = ev.target.result;
+                img.setAttribute('data-brochure-image-slot', '1');
+                img.removeAttribute('data-brochure-placeholder');
+            } else {
+                var row = contentEditable.querySelector('[data-brochure-wrap] .row') || contentEditable.querySelector('.row');
+                if (!row) return;
+                var col = document.createElement('div');
+                col.className = 'col-md-4 js-brochure-image-col';
+                col.innerHTML = '<div class="position-relative d-inline-block w-100">' +
+                    '<img src="' + ev.target.result + '" class="img-fluid rounded" data-brochure-image-slot="' + nextSlot + '" alt="Brochure image ' + nextSlot + '">' +
+                    '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 js-remove-brochure-image" title="Delete image"><i class="fa-solid fa-trash"></i></button>' +
+                    '</div>';
+                row.insertAdjacentElement('beforeend', col);
+            }
             syncEditable(contentEditable);
         };
         reader.readAsDataURL(file);
@@ -670,12 +779,37 @@
         if (!contentEditable || !file) return;
         var reader = new FileReader();
         reader.onload = function (ev) {
-            var link = contentEditable.querySelector('[data-brochure-pdf-slot="1"]') || contentEditable.querySelector('a');
+            var existingLinks = contentEditable.querySelectorAll('[data-brochure-pdf-slot]');
+            var nextSlot = existingLinks.length + 1;
+            var list = contentEditable.querySelector('[data-brochure-pdf-list]');
+            var link = existingLinks.length === 0
+                ? (contentEditable.querySelector('[data-brochure-pdf-slot="1"]') || contentEditable.querySelector('a'))
+                : null;
+            if (!list) {
+                var rightCol = contentEditable.querySelector('.col-md-8') || contentEditable;
+                var wrap = document.createElement('div');
+                wrap.className = 'd-flex flex-wrap gap-2';
+                wrap.setAttribute('data-brochure-pdf-list', '');
+                rightCol.appendChild(wrap);
+                list = wrap;
+            }
+            if (!link) {
+                link = document.createElement('a');
+                link.className = 'btn btn-primary btn-sm';
+                link.setAttribute('data-brochure-pdf-slot', String(nextSlot));
+                list.appendChild(link);
+            }
             if (!link) return;
             link.href = ev.target.result;
-            link.textContent = file.name || 'Download PDF';
+            link.innerHTML = '<i class="fa-solid fa-file-pdf me-1" aria-hidden="true"></i><span>' + (file.name || ('Brochure ' + nextSlot)) + '</span>';
             link.classList.remove('disabled');
-            link.setAttribute('data-brochure-pdf-slot', '1');
+            if (!link.getAttribute('data-brochure-pdf-slot')) link.setAttribute('data-brochure-pdf-slot', String(nextSlot));
+            link.setAttribute('target', '_blank');
+            link.setAttribute('rel', 'noopener noreferrer');
+            link.setAttribute('download', file.name || 'brochure.pdf');
+            link.setAttribute('title', file.name || 'Open brochure PDF');
+            link.setAttribute('aria-label', 'Open brochure PDF');
+            normalizeBrochurePdfItems(contentEditable);
             syncEditable(contentEditable);
         };
         reader.readAsDataURL(file);
@@ -859,14 +993,14 @@
             if (file) updateCardImageInSection(block, idx, file);
         }
         if (e.target.matches('.js-brochure-image-input')) {
-            var bImgFile = e.target.files && e.target.files[0];
+            var bImgFiles = Array.from(e.target.files || []);
             var bImgBlock = e.target.closest('.vendor-section-block');
-            if (bImgFile) updateBrochureImageInSection(bImgBlock, bImgFile);
+            bImgFiles.forEach(function (f) { updateBrochureImageInSection(bImgBlock, f); });
         }
         if (e.target.matches('.js-brochure-pdf-input')) {
-            var bPdfFile = e.target.files && e.target.files[0];
+            var bPdfFiles = Array.from(e.target.files || []);
             var bPdfBlock = e.target.closest('.vendor-section-block');
-            if (bPdfFile) updateBrochurePdfInSection(bPdfBlock, bPdfFile);
+            bPdfFiles.forEach(function (f) { updateBrochurePdfInSection(bPdfBlock, f); });
         }
 
         if (e.target.matches('.js-section-image-input')) {
@@ -905,6 +1039,36 @@
             } else {
                 block.remove();
             }
+        }
+
+        if (e.target.closest('.js-remove-brochure-image')) {
+            e.preventDefault();
+            var brochureBlock = e.target.closest('.vendor-section-block');
+            var brochureContent = brochureBlock?.querySelector('[data-section-field="content"]');
+            var brochureCol = e.target.closest('.js-brochure-image-col') || e.target.closest('.col-md-4');
+            if (brochureCol) brochureCol.remove();
+
+            if (brochureContent) {
+                brochureContent.querySelectorAll('[data-brochure-image-slot]').forEach(function (img, i) {
+                    img.setAttribute('data-brochure-image-slot', String(i + 1));
+                    img.setAttribute('alt', 'Brochure image ' + (i + 1));
+                });
+                syncEditable(brochureContent);
+            }
+            return;
+        }
+
+        if (e.target.closest('.js-remove-brochure-pdf')) {
+            e.preventDefault();
+            var pdfBlock = e.target.closest('.vendor-section-block');
+            var pdfContent = pdfBlock?.querySelector('[data-section-field="content"]');
+            var pdfItem = e.target.closest('[data-brochure-pdf-item]');
+            if (pdfItem) {
+                pdfItem.remove();
+            }
+            normalizeBrochurePdfItems(pdfContent);
+            if (pdfContent) syncEditable(pdfContent);
+            return;
         }
 
         var sectionCmdBtn = e.target.closest('[data-section-command]:not(select)');
@@ -1055,8 +1219,11 @@
         var currentType = typeInput?.value || '';
         var detectedType = detectSectionTypeFromContent(block);
         var effectiveType = currentType || detectedType;
-        if (currentType === 'image_text' && detectedType === 'text_only') {
-            effectiveType = 'text_only';
+        if (
+            currentType === 'image_text' &&
+            ['text_only', 'image_grid', 'brochure'].includes(detectedType)
+        ) {
+            effectiveType = detectedType;
         }
         if (typeInput) typeInput.value = effectiveType;
         applySectionTypeLayout(block, effectiveType);
