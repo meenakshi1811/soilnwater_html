@@ -17,7 +17,7 @@ class VendorProductController extends Controller
         $vendorId = auth()->user()->vendor->id;
         $q = trim((string) $request->query('q'));
 
-        $products = VendorProduct::query()->with(['category:id,name', 'subcategory:id,name'])
+        $products = VendorProduct::query()->with(['category:id,name', 'subcategory:id,name', 'childCategory:id,name'])
             ->where('vendor_id', $vendorId)
             ->when($q !== '', fn ($query) => $query->where(fn ($sub) => $sub
                 ->where('name', 'like', "%{$q}%")
@@ -54,7 +54,7 @@ class VendorProductController extends Controller
     public function show(VendorProduct $product)
     {
         abort_unless($product->vendor_id === auth()->user()->vendor?->id, 403);
-        $product->load(['category:id,name', 'subcategory:id,name']);
+        $product->load(['category:id,name', 'subcategory:id,name', 'childCategory:id,name']);
         return view('backend.vendor.products.show', compact('product'));
     }
 
@@ -87,7 +87,9 @@ class VendorProductController extends Controller
     private function vendorCategories()
     {
         return Category::query()->whereNull('parent_id')->whereJsonContains('modules', 'vendors')
-            ->with(['children' => fn ($q) => $q->orderBy('name')->select(['id', 'name', 'parent_id'])])
+            ->with(['children' => fn ($q) => $q->orderBy('name')->select(['id', 'name', 'parent_id'])->with([
+                'children' => fn ($childQuery) => $childQuery->orderBy('name')->select(['id', 'name', 'parent_id']),
+            ])])
             ->orderBy('name')->get(['id', 'name']);
     }
 
@@ -100,6 +102,7 @@ class VendorProductController extends Controller
             'description' => ['nullable', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
             'subcategory_id' => ['required', \Illuminate\Validation\Rule::exists('categories', 'id')->where(fn ($q) => $q->where('parent_id', $request->input('category_id')))],
+            'child_category_id' => ['nullable', \Illuminate\Validation\Rule::exists('categories', 'id')->where(fn ($q) => $q->where('parent_id', $request->input('subcategory_id')))],
             'colors' => ['nullable', 'string', 'max:200'],
             'sizes' => ['nullable', 'string', 'max:200'],
             'base_price' => ['required', 'numeric', 'min:0'],
