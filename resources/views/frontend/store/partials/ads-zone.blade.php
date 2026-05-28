@@ -5,6 +5,7 @@
         @include('frontend.store.partials.ads-rail', [
             'ads' => $placement['ads'],
             'railId' => ($placement['grid_id'] ?? 'storePlacementAds').'_slider',
+            'sliderOnly' => true,
         ])
     </div>
 </section>
