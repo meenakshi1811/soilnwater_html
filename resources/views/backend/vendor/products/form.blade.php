@@ -87,8 +87,8 @@
 })();
 </script>
 <script>
-const categoryTree = @json(
-  $categories->mapWithKeys(function ($category) {
+@php
+  $categoryTree = $categories->mapWithKeys(function ($category) {
     return [
       $category->id => $category->children->map(function ($subCategory) {
         return [
@@ -103,8 +103,9 @@ const categoryTree = @json(
         ];
       })->values(),
     ];
-  })
-);
+  });
+@endphp
+const categoryTree = @json($categoryTree);
 const cat = document.getElementById('category_id'); const sub = document.getElementById('subcategory_id'); const child = document.getElementById('child_category_id');
 function fillSub(){const rows=categoryTree[cat.value]||[]; const selected=sub.dataset.current; sub.innerHTML='<option value="">Select subcategory</option>'; rows.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.name;if(String(r.id)===String(selected))o.selected=true;sub.appendChild(o);});}
 function fillChild(){const rows=categoryTree[cat.value]||[];const chosen=rows.find(r=>String(r.id)===String(sub.value));const children=chosen?.children||[];const selected=child.dataset.current;child.innerHTML='<option value="">Select child category</option>';children.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.name;if(String(r.id)===String(selected))o.selected=true;child.appendChild(o);});}
