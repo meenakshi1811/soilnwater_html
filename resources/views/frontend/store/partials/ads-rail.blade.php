@@ -1,6 +1,7 @@
 @php
     $railAds = collect($ads ?? [])->filter();
     $railId = $railId ?? ('storeAdRail'.uniqid());
+    $sliderOnly = (bool) ($sliderOnly ?? false);
 
     $normalizedAds = $railAds->map(function ($ad) {
         $w = (int) ($ad->adSize->width ?? 0);
@@ -10,17 +11,22 @@
         return compact('ad', 'w', 'h', 'ratio');
     });
 
-    $wideAds = $normalizedAds->filter(fn ($item) => $item['ratio'] >= 1)->values();
-    $sliderTake = $normalizedAds->count() > 3 ? 2 : 1;
-    $sliderAds = $wideAds->take($sliderTake)->values();
+    if ($sliderOnly) {
+        $sliderAds = $normalizedAds->values();
+        $stackAds = collect();
+    } else {
+        $wideAds = $normalizedAds->filter(fn ($item) => $item['ratio'] >= 1)->values();
+        $sliderTake = $normalizedAds->count() > 3 ? 2 : 1;
+        $sliderAds = $wideAds->take($sliderTake)->values();
 
-    if ($sliderAds->isEmpty() && $normalizedAds->isNotEmpty()) {
-        $sliderAds = $normalizedAds->take(1)->values();
+        if ($sliderAds->isEmpty() && $normalizedAds->isNotEmpty()) {
+            $sliderAds = $normalizedAds->take(1)->values();
+        }
+
+        $stackAds = $normalizedAds->reject(function ($item) use ($sliderAds) {
+            return $sliderAds->pluck('ad.id')->contains($item['ad']->id);
+        })->values();
     }
-
-    $stackAds = $normalizedAds->reject(function ($item) use ($sliderAds) {
-        return $sliderAds->pluck('ad.id')->contains($item['ad']->id);
-    })->values();
 @endphp
 
 @if($railAds->isNotEmpty())
