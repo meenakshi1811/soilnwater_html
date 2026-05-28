@@ -189,11 +189,37 @@ class CategoryController extends Controller
     {
         $excludeId = (int) $request->integer('exclude_id');
 
-        $categories = Category::query()
+        $topCategories = Category::query()
             ->whereNull('parent_id')
             ->when($excludeId > 0, fn ($query) => $query->where('id', '!=', $excludeId))
+            ->with(['children' => fn ($query) => $query
+                ->when($excludeId > 0, fn ($subQuery) => $subQuery->where('id', '!=', $excludeId))
+                ->orderBy('name')
+                ->select(['id', 'name', 'parent_id', 'modules', 'offer_price'])])
             ->orderBy('name')
             ->get(['id', 'name', 'modules', 'offer_price']);
+
+        $categories = $topCategories->flatMap(function (Category $category) {
+            $rows = [[
+                'id' => $category->id,
+                'name' => $category->name,
+                'modules' => $category->modules ?? [],
+                'offer_price' => (float) ($category->offer_price ?? 0),
+                'depth' => 0,
+            ]];
+
+            foreach ($category->children as $child) {
+                $rows[] = [
+                    'id' => $child->id,
+                    'name' => $child->name,
+                    'modules' => $child->modules ?? [],
+                    'offer_price' => (float) ($child->offer_price ?? 0),
+                    'depth' => 1,
+                ];
+            }
+
+            return $rows;
+        })->values();
 
         return response()->json(['categories' => $categories]);
     }
@@ -220,7 +246,7 @@ class CategoryController extends Controller
     private function resolveModules(?int $parentId, array $requestedModules, bool $hasModulesInput = false): array
     {
         if ($parentId) {
-            $parent = Category::query()->whereNull('parent_id')->findOrFail($parentId);
+            $parent = Category::query()->findOrFail($parentId);
             $parentModules = array_values(array_unique($parent->modules ?? []));
 
             if (! $hasModulesInput) {

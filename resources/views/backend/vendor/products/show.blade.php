@@ -49,6 +49,10 @@
             <p class="mb-0">{{ $product->subcategory?->name ?? 'N/A' }}</p>
           </div>
           <div class="col-md-6">
+            <h6 class="mb-1">Child Category</h6>
+            <p class="mb-0">{{ $product->childCategory?->name ?? 'N/A' }}</p>
+          </div>
+          <div class="col-md-6">
             <h6 class="mb-1">Available Colors</h6>
             <p class="mb-0">{{ $product->colors ?: 'N/A' }}</p>
           </div>
