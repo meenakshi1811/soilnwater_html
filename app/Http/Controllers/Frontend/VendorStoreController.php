@@ -41,6 +41,8 @@ class VendorStoreController extends Controller
             'featuredProducts' => $featuredProducts,
             'vendorCategories' => $vendorCategories,
             'sectionAdRails' => $adsContext['sectionAdRails'],
+            'randomFullPagePlacements' => $adsContext['randomFullPagePlacements'],
+            'sponsoredFillers' => $adsContext['sponsoredFillers'],
         ]);
     }
 
@@ -472,6 +474,7 @@ class VendorStoreController extends Controller
                 'sponsoredFillers' => [],
                 'sidebarAds' => collect(),
                 'sectionAdRails' => [],
+                'randomFullPagePlacements' => [],
             ];
         }
 
@@ -482,15 +485,24 @@ class VendorStoreController extends Controller
 
         $adsService = app(MarketplaceAdsService::class);
         $storeAds = $adsService->getDisplayAds(14, $lat, $lng, ['vendors']);
-        if ($storeAds->isEmpty()) {
-            $storeAds = $adsService->getDisplayAds(14, $lat, $lng);
-        }
         $split = $adsService->splitAdsForStoreLayout($storeAds, $sectionCount);
+
+        $fullPageVendorAds = $storeAds
+            ->filter(function (UserAd $ad): bool {
+                $sizeKey = strtolower((string) ($ad->adSize->size_key ?? $ad->size_type ?? ''));
+                $selectedModules = collect($ad->selected_modules ?? [])->map(fn ($module) => strtolower((string) $module));
+
+                return $sizeKey === 'full_page' && $selectedModules->contains('vendors');
+            })
+            ->values();
+
+        $randomFullPagePlacements = $adsService->buildRandomPlacements($fullPageVendorAds, $sectionCount);
 
         return [
             'sponsoredFillers' => $adsService->getSponsoredFillers($lat, $lng),
             'sidebarAds' => $split['sidebar'],
             'sectionAdRails' => $split['section_rails'],
+            'randomFullPagePlacements' => $randomFullPagePlacements,
         ];
     }
 
