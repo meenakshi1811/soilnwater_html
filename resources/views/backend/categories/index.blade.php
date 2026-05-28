@@ -12,7 +12,7 @@
         <div>
             <p class="ems-kicker mb-1">Category Management</p>
             <h2 class="admin-title mb-1">Categories</h2>
-            <p class="mb-0 text-secondary">Create categories, create sub categories, and assign modules. Sub categories automatically inherit modules from the parent category.</p>
+            <p class="mb-0 text-secondary">Create categories, sub categories, and child categories for modules. Child levels inherit modules from the selected parent.</p>
         </div>
         <button type="button" class="btn btn-primary ems-btn-primary" id="openCategoryModalBtn">
             <i class="fa-solid fa-folder-plus me-2"></i> Add Category
@@ -60,16 +60,16 @@
                             <small class="text-secondary">Use this field when creating/updating a top-level category.</small>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Sub category name</label>
+                            <label class="form-label">Sub/Child category name</label>
                             <input type="text" id="subcategoryName" class="form-control" placeholder="Enter sub category name">
-                            <small class="text-secondary">Use this field when creating/updating a sub category.</small>
+                            <small class="text-secondary">Use this field when creating/updating a sub category or child category.</small>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Parent category (optional)</label>
+                            <label class="form-label">Parent category/sub category (optional)</label>
                             <select name="parent_id" id="categoryParentId" class="form-select">
                                 <option value="">None (Top-level category)</option>
                             </select>
-                            <small class="text-secondary">If selected, this will be created as a sub category.</small>
+                            <small class="text-secondary">If selected, this will be created under that parent (sub category or child category).</small>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Assign modules</label>

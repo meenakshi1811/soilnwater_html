@@ -73,11 +73,13 @@
                 $select.find('option:not(:first)').remove();
 
                 (response.categories || []).forEach(function (item) {
+                    var depth = Number(item.depth || 0);
+                    var prefix = depth > 0 ? '— '.repeat(depth) : '';
                     $select.append(
                         $('<option></option>')
                             .attr('value', item.id)
                             .attr('data-modules', JSON.stringify(item.modules || []))
-                            .text(item.name)
+                            .text(prefix + item.name)
                     );
                 });
 
