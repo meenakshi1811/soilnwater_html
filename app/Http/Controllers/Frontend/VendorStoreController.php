@@ -384,7 +384,7 @@ class VendorStoreController extends Controller
         }
 
         $products = $productsQuery->latest('updated_at')->paginate(12)->withQueryString();
-        $adsContext = $this->loadStoreAds($vendor, 0);
+        $adsContext = $this->loadStoreAds($vendor, 0, $category, $subcategory);
 
         if ($subcategory) {
             $pageTitle = $subcategory->name;
@@ -467,7 +467,7 @@ class VendorStoreController extends Controller
     /**
      * @return array{sponsoredFillers: array, sidebarAds: Collection, sectionAdRails: array<int, Collection>}
      */
-    private function loadStoreAds(Vendor $vendor, int $sectionCount): array
+    private function loadStoreAds(Vendor $vendor, int $sectionCount, ?Category $category = null, ?Category $subcategory = null): array
     {
         if ($vendor->is_premium) {
             return [
@@ -484,8 +484,12 @@ class VendorStoreController extends Controller
         $lng = is_numeric($lng) ? (float) $lng : null;
 
         $adsService = app(MarketplaceAdsService::class);
-        $storeAds = $adsService->getDisplayAds(14, $lat, $lng, ['vendors']);
-        $split = $adsService->splitAdsForStoreLayout($storeAds, $sectionCount);
+        $storeAds = $adsService->getDisplayAds(24, $lat, $lng, ['vendors']);
+
+        $requestedCategoryIds = collect([
+            $category?->id,
+            $subcategory?->id,
+        ])->filter()->map(fn ($id) => (int) $id)->values();
 
         $vendorModuleAds = $storeAds
             ->filter(function (UserAd $ad): bool {
@@ -495,7 +499,42 @@ class VendorStoreController extends Controller
             })
             ->values();
 
-        $randomFullPagePlacements = $adsService->buildRandomPlacements($vendorModuleAds, $sectionCount);
+        $categoryMatchedAds = $vendorModuleAds;
+
+        if ($requestedCategoryIds->isNotEmpty()) {
+            $categoryMatchedAds = $vendorModuleAds
+                ->filter(function (UserAd $ad) use ($requestedCategoryIds): bool {
+                    $selectedCategoryIds = collect($ad->selected_category_ids ?? [])->map(fn ($id) => (int) $id);
+                    $selectedSubcategoryIds = collect($ad->selected_subcategory_ids ?? [])->map(fn ($id) => (int) $id);
+
+                    return $selectedCategoryIds->intersect($requestedCategoryIds)->isNotEmpty()
+                        || $selectedSubcategoryIds->intersect($requestedCategoryIds)->isNotEmpty();
+                })
+                ->values();
+        }
+
+        $effectiveAds = $categoryMatchedAds->isNotEmpty() ? $categoryMatchedAds : $vendorModuleAds;
+
+        if ($effectiveAds->isEmpty()) {
+            $effectiveAds = $adsService->getDisplayAds(14, $lat, $lng);
+        }
+
+        if ($effectiveAds->isEmpty()) {
+            $effectiveAds = UserAd::query()
+                ->with(['category:id,name', 'subcategory:id,name', 'adSize:id,size_key,width,height'])
+                ->where('status', 'approved')
+                ->whereNotNull('final_image')
+                ->where(function ($query) {
+                    $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
+                })
+                ->inRandomOrder()
+                ->take(14)
+                ->get();
+        }
+
+        $effectiveAds = $effectiveAds->shuffle()->values();
+        $split = $adsService->splitAdsForStoreLayout($effectiveAds, $sectionCount);
+        $randomFullPagePlacements = $adsService->buildRandomPlacements($effectiveAds, $sectionCount);
 
         return [
             'sponsoredFillers' => $adsService->getSponsoredFillers($lat, $lng),
