@@ -42,6 +42,7 @@ class VendorStoreController extends Controller
             'vendorCategories' => $vendorCategories,
             'sectionAdRails' => $adsContext['sectionAdRails'],
             'randomFullPagePlacements' => $adsContext['randomFullPagePlacements'],
+            'sponsoredFillers' => $adsContext['sponsoredFillers'],
         ]);
     }
 

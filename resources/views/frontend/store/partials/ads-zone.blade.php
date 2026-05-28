@@ -1,3 +1,4 @@
+@php($sponsoredFillers = $sponsoredFillers ?? [])
 @if(!empty($placement['ads']) && $placement['ads']->isNotEmpty())
 <section class="vendor-store-ads-zone vendor-store-section py-0">
     <div class="container-fluid px-3 px-lg-4">
