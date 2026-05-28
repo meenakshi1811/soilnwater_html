@@ -55,14 +55,9 @@
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Category name</label>
+                            <label class="form-label" id="categoryNameLabel">Category name</label>
                             <input type="text" name="name" id="categoryName" class="form-control" placeholder="Enter category name">
-                            <small class="text-secondary">Use this field when creating/updating a top-level category.</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Sub/Child category name</label>
-                            <input type="text" id="subcategoryName" class="form-control" placeholder="Enter sub category name">
-                            <small class="text-secondary">Use this field when creating/updating a sub category or child category.</small>
+                            <small class="text-secondary" id="categoryNameHelp">No parent selected: this will be created as a top-level category.</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Parent category/sub category (optional)</label>

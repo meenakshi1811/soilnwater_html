@@ -246,7 +246,7 @@ class CategoryController extends Controller
     private function resolveModules(?int $parentId, array $requestedModules, bool $hasModulesInput = false): array
     {
         if ($parentId) {
-            $parent = Category::query()->whereNull('parent_id')->findOrFail($parentId);
+            $parent = Category::query()->findOrFail($parentId);
             $parentModules = array_values(array_unique($parent->modules ?? []));
 
             if (! $hasModulesInput) {

@@ -51,19 +51,26 @@
         },
         
         syncNameFields: function () {
-            var subcategoryName = $.trim($('#subcategoryName').val());
             var parentId = $('#categoryParentId').val();
-            var useSubcategory = subcategoryName.length > 0;
-            $('#categoryParentId').prop('required', useSubcategory);
-            $('#categoryName').prop('readonly', useSubcategory);
+            var parentText = $('#categoryParentId option:selected').text() || '';
+            var depth = (parentText.match(/—/g) || []).length;
+            var $label = $('#categoryNameLabel');
+            var $help = $('#categoryNameHelp');
 
-            if (useSubcategory) {
-                $('#categoryName').val(subcategoryName);
+            if (!parentId) {
+                $label.text('Category name');
+                $help.text('No parent selected: this will be created as a top-level category.');
+                return;
             }
 
-            if (!useSubcategory && parentId) {
-                $('#categoryParentId').val('').trigger('change');
+            if (depth === 0) {
+                $label.text('Sub category name');
+                $help.text('Parent is a top-level category: this will be created as a sub category.');
+                return;
             }
+
+            $label.text('Child category name');
+            $help.text('Parent is a sub category: this will be created as a child category.');
         },
 
         loadParents: function (selectedParentId, excludeId) {
@@ -140,7 +147,6 @@
                 $('#categoryForm')[0].reset();
                 $('#categoryId').val('');
                 $('#categoryName').val('');
-                $('#subcategoryName').val('');
                 self.clearModuleChecks();
                 $('#categoryOfferPrice').val('0');
 
@@ -152,11 +158,8 @@
                 });
             });
 
-            $('#categoryName, #subcategoryName').on('input', function () {
-                self.syncNameFields();
-            });
-
             $('#categoryParentId').on('change', function () {
+                self.syncNameFields();
                 self.syncModulesForParent();
                 self.syncOfferPriceState();
             });
@@ -172,16 +175,10 @@
                 $('#categoryForm')[0].reset();
                 $('#categoryId').val(id);
                 $('#categoryName').val('');
-                $('#subcategoryName').val('');
 
                 $.get('/admin/categories/' + id, function (response) {
                     var category = response.category || {};
-
-                    if (category.parent_id) {
-                        $('#subcategoryName').val(category.name || '');
-                    } else {
-                        $('#categoryName').val(category.name || '');
-                    }
+                    $('#categoryName').val(category.name || '');
                     self.setModuleChecks(category.modules || []);
                     $('#categoryOfferPrice').val(category.offer_price || 0);
                     self.loadParents(category.parent_id || '', id).always(function () {
@@ -230,16 +227,7 @@
                 loadingText: 'Saving...',
                 rules: {
                     name: { required: true, minlength: 2, maxlength: 255 },
-                    parent_id: {
-                        required: function () {
-                            return $.trim($('#subcategoryName').val()).length > 0;
-                        }
-                    }
-                },
-                messages: {
-                    parent_id: {
-                        required: 'Please choose a parent category for the sub category.'
-                    }
+                    parent_id: { required: false }
                 },
                 beforeSubmit: function () {
                     $('#categoryForm').find('input[name="_method"]').remove();
