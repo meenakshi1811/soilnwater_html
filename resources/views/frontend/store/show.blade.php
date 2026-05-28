@@ -6,6 +6,8 @@
 @php
     $sectionAdRails = $sectionAdRails ?? [];
     $featuredProducts = $featuredProducts ?? collect();
+    $randomFullPagePlacements = $randomFullPagePlacements ?? [];
+    $sponsoredFillers = $sponsoredFillers ?? [];
 @endphp
 
 <section class="vendor-store-hero">
@@ -21,6 +23,8 @@
         </div>
     @endif
 </section>
+
+@include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_hero'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 
 <section class="vendor-hero-text-section">
     <div class="container">
@@ -59,7 +63,10 @@
             </div>
         </div>
     </section>
+@include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_section_'.$loop->index] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 @endforeach
+
+@include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['before_products'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 
 @if($featuredProducts->isNotEmpty())
     <section class="vendor-store-section vendor-store-featured">
