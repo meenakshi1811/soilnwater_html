@@ -110,9 +110,6 @@ class VendorStoreController extends Controller
             ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
             ->where(function ($q) {
                 $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
-            })
-            ->where(function ($q) {
-                $q->whereJsonContains('selected_modules', 'vendors')->orWhereJsonContains('selected_modules', 'products');
             });
 
         if (is_numeric($lat) && is_numeric($lng)) {
@@ -126,22 +123,56 @@ class VendorStoreController extends Controller
             $adsQuery->orderByDesc('updated_at');
         }
 
-        $ads = $adsQuery->with('adSize:id,size_key,width,height')->take(18)->get();
+        $adsPool = $adsQuery->with('adSize:id,size_key,width,height')->take(36)->get();
+
+        $productCategoryIds = collect([
+            $product->category_id,
+            $product->subcategory_id,
+        ])->filter()->map(fn ($id) => (int) $id);
+
+        $categoryMatchedAds = $adsPool
+            ->filter(function (UserAd $ad) use ($productCategoryIds): bool {
+                if ($productCategoryIds->isEmpty()) {
+                    return false;
+                }
+
+                $selectedCategoryIds = collect($ad->selected_category_ids ?? [])->map(fn ($id) => (int) $id);
+                $selectedSubcategoryIds = collect($ad->selected_subcategory_ids ?? [])->map(fn ($id) => (int) $id);
+
+                return $selectedCategoryIds->intersect($productCategoryIds)->isNotEmpty()
+                    || $selectedSubcategoryIds->intersect($productCategoryIds)->isNotEmpty();
+            })
+            ->values();
+
+        $vendorModuleAds = $adsPool
+            ->filter(function (UserAd $ad): bool {
+                $selectedModules = collect($ad->selected_modules ?? [])->map(fn ($module) => strtolower((string) $module));
+
+                return $selectedModules->contains('vendors');
+            })
+            ->values();
+
+        $ads = $categoryMatchedAds->isNotEmpty() ? $categoryMatchedAds : $vendorModuleAds;
 
         if ($ads->isEmpty()) {
-            $fallbackQuery = UserAd::query()
+            $ads = $adsPool;
+        }
+
+        if ($ads->isEmpty()) {
+            $ads = UserAd::query()
+                ->with('adSize:id,size_key,width,height')
                 ->where('status', 'approved')
                 ->whereNotNull('final_image')
                 ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
-                ->where(function ($q) {
-                    $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
+                ->where(function ($query) {
+                    $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
                 })
-                ->orderByDesc('updated_at');
-
-            $ads = $fallbackQuery->with('adSize:id,size_key,width,height')->take(18)->get();
+                ->inRandomOrder()
+                ->take(18)
+                ->get();
         }
 
-        $ads = $ads->shuffle()->values();
+        $ads = $ads->take(18)->shuffle()->values();
 
         $sizeMap = collect(AdSizes::all())->mapWithKeys(function (array $size, string $sizeKey) {
             return [strtolower((string) $sizeKey) => ['w' => (int) ($size['w'] ?? 0), 'h' => (int) ($size['h'] ?? 0)]];
