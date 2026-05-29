@@ -11,6 +11,22 @@
     var bannerDeleteBase = publicPageForm?.dataset.bannerDeleteUrl || '/vendor/banner-slides/';
     var activeSectionEditable = null;
     var activeHeroEditable = null;
+    var IMAGE_TEXT_CARD_COUNT = 6;
+
+    function imageTextCardPlaceholder(label) {
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">' + label + '</text></svg>');
+    }
+
+    function buildImageTextCardHtml(cardNumber) {
+        return '' +
+            '<div class="col-12 col-md-6 col-lg-2">' +
+            '<div class="card h-100">' +
+            '<img src="' + imageTextCardPlaceholder('Card Image ' + cardNumber) + '" class="card-img-top" alt="Card image ' + cardNumber + '" data-card-image-slot="' + cardNumber + '" style="height:180px;object-fit:cover;">' +
+            '<div class="card-body">' +
+            '<h6 class="card-title">Card title ' + cardNumber + '</h6>' +
+            '<p class="card-text">Add short description for this card.</p>' +
+            '</div></div></div>';
+    }
 
     
     function buildSectionPreset(type, index) {
@@ -23,7 +39,7 @@
                 Array.from({ length: 8 }).map(function (_, i) {
                     return '<div class="col-6 col-md-3">' +
                         '<div class="card h-100">' +
-                        '<img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Grid Image ' + (i + 1) + '</text></svg>') + '" class="card-img-top" alt="Grid image ' + (i + 1) + '" data-grid-image-slot="' + (i + 1) + '" style="height:180px;object-fit:cover;">' +
+                        '<img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Grid Image ' + (i + 1) + '</text></svg>') + '" class="card-img-top" alt="Grid image ' + (i + 1) + '" data-grid-image-slot="' + (i + 1) + '" style="height:280px;object-fit:cover;">' +
                         '</div></div>';
                 }).join('') +
                 '</div>';
@@ -42,15 +58,8 @@
         } else if (type === 'image_text') {
             title = 'Image + Text Cards';
             content = '<div class="row g-3">' +
-                Array.from({ length: 4 }).map(function (_, i) {
-                    return '' +
-                        '<div class="col-12 col-md-6 col-lg-3">' +
-                        '<div class="card h-100">' +
-                        '<img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Card Image ' + (i + 1) + '</text></svg>') + '" class="card-img-top" alt="Card image ' + (i + 1) + '" data-card-image-slot="' + (i + 1) + '" style="height:180px;object-fit:cover;">' +
-                        '<div class="card-body">' +
-                        '<h6 class="card-title">Card title ' + (i + 1) + '</h6>' +
-                        '<p class="card-text">Add short description for this card.</p>' +
-                        '</div></div></div>';
+                Array.from({ length: IMAGE_TEXT_CARD_COUNT }).map(function (_, i) {
+                    return buildImageTextCardHtml(i + 1);
                 }).join('') +
                 '</div>';
         }
@@ -487,7 +496,7 @@
             var img = contentEditable.querySelector('[data-grid-image-slot="' + imageIndex + '"]');
             if (img) {
                 img.src = ev.target.result;
-                img.style.height = '180px';
+                img.style.height = '280px';
                 img.style.objectFit = 'cover';
                 syncEditable(contentEditable);
             }
@@ -545,6 +554,43 @@
     }
 
     
+    function ensureImageTextCards(contentEditable) {
+        if (!contentEditable) return false;
+
+        var changed = false;
+        var cards = Array.from(contentEditable.querySelectorAll('[data-card-image-slot]'));
+        cards.forEach(function (img, index) {
+            var slot = index + 1;
+            img.setAttribute('data-card-image-slot', String(slot));
+            img.setAttribute('alt', img.getAttribute('alt') || ('Card image ' + slot));
+
+            var cardCol = img.closest('[class*="col-"]');
+            if (cardCol) {
+                cardCol.classList.remove('col-lg-3', 'col-lg-4');
+                cardCol.classList.add('col-lg-2');
+                changed = true;
+            }
+        });
+
+        var firstCardImage = contentEditable.querySelector('[data-card-image-slot]');
+        var row = firstCardImage?.closest('.row') || contentEditable.querySelector('.row');
+        if (!row) {
+            row = document.createElement('div');
+            row.className = 'row g-3';
+            contentEditable.appendChild(row);
+            changed = true;
+        }
+
+        cards = Array.from(contentEditable.querySelectorAll('[data-card-image-slot]'));
+        for (var i = cards.length + 1; i <= IMAGE_TEXT_CARD_COUNT; i++) {
+            row.insertAdjacentHTML('beforeend', buildImageTextCardHtml(i));
+            changed = true;
+        }
+
+        if (changed) syncEditable(contentEditable);
+        return changed;
+    }
+
     function renderCardImageUploadTools(block) {
         if (!block) return;
         var toolsWrap = block.querySelector('.js-card-image-tools');
@@ -556,14 +602,15 @@
             return;
         }
 
-        var cardCount = 4;
+        var cardCount = IMAGE_TEXT_CARD_COUNT;
         if (contentEditable) {
+            ensureImageTextCards(contentEditable);
             var cardSlots = contentEditable.querySelectorAll('[data-card-image-slot]');
             if (cardSlots.length > 0) {
                 cardCount = Math.max(cardCount, cardSlots.length);
             } else {
                 var imageCount = contentEditable.querySelectorAll('img').length;
-                if (imageCount > 4) {
+                if (imageCount > IMAGE_TEXT_CARD_COUNT) {
                     cardCount = Math.max(cardCount, imageCount);
                 }
             }
@@ -581,7 +628,7 @@
         toolsWrap.innerHTML = '<p class="small fw-semibold mb-2">Card images</p><div class="row g-2">' +
             Array.from({ length: cardCount }).map(function (_, index) {
                 var i = index + 1;
-                return '<div class="col-md-3 col-6">' +
+                return '<div class="col-md-2 col-6">' +
                     '<label class="btn btn-sm btn-outline-secondary w-100 mb-1">Upload card ' + i +
                     '<input type="file" accept="image/*" class="d-none js-card-image-input" data-card-image-index="' + i + '"></label>' +
                     '<small class="text-muted d-block">Change image</small>' +
@@ -906,7 +953,7 @@
             var img = contentEditable.querySelector('[data-grid-image-slot="' + imageIndex + '"]');
             if (img) {
                 img.src = ev.target.result;
-                img.style.height = '180px';
+                img.style.height = '280px';
                 img.style.objectFit = 'cover';
                 syncEditable(contentEditable);
             }
