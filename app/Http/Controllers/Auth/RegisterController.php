@@ -40,12 +40,18 @@ class RegisterController extends Controller
             'fullname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email'],
             'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
+            'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
+            'address' => ['required', 'string', 'max:500'],
+            'city' => ['required', 'string', 'max:120'],
+            'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
             'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'accept_terms' => ['accepted'],
         ], [
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+            'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
+            'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
             'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
         ]);
@@ -61,6 +67,10 @@ class RegisterController extends Controller
             'full_name' => $data['fullname'],
             'email' => $data['email'],
             'phone_number' => $data['phone_number'],
+            'whatsapp_number' => $data['whatsapp_number'],
+            'address' => $data['address'],
+            'city' => $data['city'],
+            'pincode' => $data['pincode'],
             'role' => $data['role'],
             'date_of_birth' => $data['date_of_birth'],
             'password' => Hash::make($data['password']),
@@ -77,7 +87,12 @@ class RegisterController extends Controller
         $user = $this->create($request->all());
 
         if ($user->isVendor()) {
-            VendorRegistrationService::createProfileForUser($user);
+            VendorRegistrationService::createProfileForUser($user, $request->only([
+                'whatsapp_number',
+                'address',
+                'city',
+                'pincode',
+            ]));
         }
 
         if ($user->isGeneralUser()) {

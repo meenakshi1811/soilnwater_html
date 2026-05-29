@@ -28,6 +28,7 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Phone</th>
+                    <th>Location</th>
                     <th>Date of Birth</th>
                     <th>Status</th>
                     <th>Created</th>
@@ -62,6 +63,22 @@
                         <div class="col-md-6">
                             <label class="form-label">Phone number</label>
                             <input type="text" name="phone_number" id="userPhone" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">WhatsApp number</label>
+                            <input type="text" name="whatsapp_number" id="userWhatsapp" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Address</label>
+                            <textarea name="address" id="userAddress" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">City</label>
+                            <input type="text" name="city" id="userCity" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Pincode</label>
+                            <input type="text" name="pincode" id="userPincode" class="form-control">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Date of birth</label>

@@ -24,6 +24,7 @@
                     <th>Company</th>
                     <th>Owner</th>
                     <th>Email</th>
+                    <th>Phone / WhatsApp</th>
                     <th>Location</th>
                     <th>Status</th>
                     <th>Premium</th>
