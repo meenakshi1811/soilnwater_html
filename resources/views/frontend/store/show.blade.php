@@ -104,6 +104,29 @@
     .content-body [data-brochure-image-slot] {
         cursor: zoom-in;
     }
+    .content-body .row:has([data-card-image-slot]) {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+    .content-body .row:has([data-card-image-slot]) > [class*="col-"] {
+        flex: 0 0 16.666667%;
+        max-width: 16.666667%;
+    }
+    @media (max-width: 991.98px) {
+        .content-body .row:has([data-card-image-slot]) {
+            flex-wrap: wrap;
+        }
+        .content-body .row:has([data-card-image-slot]) > [class*="col-"] {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+    }
+    @media (max-width: 575.98px) {
+        .content-body .row:has([data-card-image-slot]) > [class*="col-"] {
+            flex-basis: 100%;
+            max-width: 100%;
+        }
+    }
 </style>
 
 @if($vendor->bannerSlides->count() > 1)
