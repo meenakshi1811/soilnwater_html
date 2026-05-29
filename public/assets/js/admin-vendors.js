@@ -17,13 +17,14 @@
                     { data: 'company_name', name: 'company_name' },
                     { data: 'owner_name', name: 'user.name', orderable: false },
                     { data: 'owner_email', name: 'user.email', orderable: false },
+                    { data: 'contact_numbers', name: 'phone', orderable: false },
                     { data: 'location', name: 'city', orderable: false },
                     { data: 'status_badge', name: 'status', orderable: false },
                     { data: 'premium_toggle', name: 'is_premium', orderable: false, searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[6, 'desc']]
+                order: [[7, 'desc']]
             });
         },
 
