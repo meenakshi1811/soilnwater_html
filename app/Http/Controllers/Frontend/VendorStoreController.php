@@ -40,7 +40,6 @@ class VendorStoreController extends Controller
             'activeNav' => 'home',
             'featuredProducts' => $featuredProducts,
             'vendorCategories' => $vendorCategories,
-            'sectionAdRails' => $adsContext['sectionAdRails'],
             'randomFullPagePlacements' => $adsContext['randomFullPagePlacements'],
             'sponsoredFillers' => $adsContext['sponsoredFillers'],
         ]);
