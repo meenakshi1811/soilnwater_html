@@ -156,6 +156,34 @@
     background: #f8f9fa;
 }
 
+.vendor-store-section .content-body .row:has([data-card-image-slot]) {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.vendor-store-section .content-body .row:has([data-card-image-slot]) > [class*="col-"] {
+    flex: 0 0 16.666667%;
+    max-width: 16.666667%;
+}
+
+@media (max-width: 991.98px) {
+    .vendor-store-section .content-body .row:has([data-card-image-slot]) {
+        flex-wrap: wrap;
+    }
+
+    .vendor-store-section .content-body .row:has([data-card-image-slot]) > [class*="col-"] {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .vendor-store-section .content-body .row:has([data-card-image-slot]) > [class*="col-"] {
+        flex-basis: 100%;
+        max-width: 100%;
+    }
+}
+
 .vendor-section-title-display,
 .vendor-section-title-block {
     text-align: center;
@@ -950,5 +978,117 @@
     .vendor-store-ads-zone--slider .vendor-store-ad-card.is-slider {
         aspect-ratio: 16 / 8;
         max-height: 240px;
+    }
+}
+
+.vendor-store-recent-ads-section {
+    padding-top: 1.25rem;
+    background: #f5f9ff;
+}
+
+.vendor-store-recent-ads-head {
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.vendor-store-recent-ads-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.vendor-store-recent-ad-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid #d6e0ee;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 72%, #f4f9ff 100%);
+    box-shadow: 0 8px 20px rgba(18, 52, 86, 0.08);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.vendor-store-recent-ad-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(18, 52, 86, 0.14);
+}
+
+.vendor-store-recent-ad-card img {
+    width: 100%;
+    aspect-ratio: 768 / 1080;
+    height: auto;
+    object-fit: cover;
+    object-position: center;
+}
+
+.vendor-store-recent-ad-card .prod-card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px 13px;
+}
+
+.vendor-store-recent-ad-card .offer-coupon-title {
+    color: #1b2b44;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.vendor-store-recent-ad-card .recent-ad-meta {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.4;
+}
+
+.vendor-store-recent-ad-card .recent-ad-meta i {
+    color: #2f7ed1;
+    font-size: 11px;
+}
+
+.vendor-store-recent-ads-slider .ad-slider-arrows {
+    pointer-events: none;
+}
+
+.vendor-store-recent-ads-slider .ad-slider-arrow {
+    pointer-events: auto;
+}
+
+@media (max-width: 1199.98px) {
+    .vendor-store-recent-ads-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: .75rem;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .vendor-store-recent-ads-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .vendor-store-recent-ads-section {
+        padding-top: 1rem;
+    }
+
+    .vendor-store-recent-ads-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .65rem;
+    }
+
+    .vendor-store-recent-ad-card {
+        border-radius: 12px;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    }
+
+    .vendor-store-recent-ad-card .prod-card-body {
+        gap: 8px;
+        padding: 10px 11px 12px;
     }
 }
