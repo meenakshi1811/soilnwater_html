@@ -156,6 +156,26 @@
     background: #f8f9fa;
 }
 
+
+.vendor-store-section .content-body [data-grid-image-slot] {
+    width: 100%;
+    height: 280px !important;
+    object-fit: cover;
+    object-position: center;
+}
+
+@media (max-width: 991.98px) {
+    .vendor-store-section .content-body [data-grid-image-slot] {
+        height: 240px !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .vendor-store-section .content-body [data-grid-image-slot] {
+        height: 210px !important;
+    }
+}
+
 .vendor-store-section .content-body .row:has([data-card-image-slot]) {
     display: flex;
     flex-wrap: nowrap;

@@ -39,7 +39,7 @@
                 Array.from({ length: 8 }).map(function (_, i) {
                     return '<div class="col-6 col-md-3">' +
                         '<div class="card h-100">' +
-                        '<img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Grid Image ' + (i + 1) + '</text></svg>') + '" class="card-img-top" alt="Grid image ' + (i + 1) + '" data-grid-image-slot="' + (i + 1) + '" style="height:180px;object-fit:cover;">' +
+                        '<img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Grid Image ' + (i + 1) + '</text></svg>') + '" class="card-img-top" alt="Grid image ' + (i + 1) + '" data-grid-image-slot="' + (i + 1) + '" style="height:280px;object-fit:cover;">' +
                         '</div></div>';
                 }).join('') +
                 '</div>';
@@ -496,7 +496,7 @@
             var img = contentEditable.querySelector('[data-grid-image-slot="' + imageIndex + '"]');
             if (img) {
                 img.src = ev.target.result;
-                img.style.height = '180px';
+                img.style.height = '280px';
                 img.style.objectFit = 'cover';
                 syncEditable(contentEditable);
             }
@@ -953,7 +953,7 @@
             var img = contentEditable.querySelector('[data-grid-image-slot="' + imageIndex + '"]');
             if (img) {
                 img.src = ev.target.result;
-                img.style.height = '180px';
+                img.style.height = '280px';
                 img.style.objectFit = 'cover';
                 syncEditable(contentEditable);
             }
