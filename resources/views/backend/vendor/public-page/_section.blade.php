@@ -1,10 +1,15 @@
 <div class="vendor-section-block vendor-store-section {{ ($index !== '__INDEX__' && is_numeric($index) && ((int)$index % 2 === 1)) ? 'alt' : '' }} p-3 rounded mb-4 border" data-section-index="{{ $index }}" draggable="true">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <span class="badge bg-light text-dark border js-section-label"><i class="fa-solid fa-layer-group me-1"></i> Section {{ is_numeric($index) ? ((int)$index + 1) : 'new' }}</span>
-        <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary js-drag-handle" title="Drag to reorder section">
-                <i class="fa-solid fa-grip-vertical"></i>
+        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+            <button type="button" class="btn btn-sm btn-outline-secondary vendor-section-reorder-btn js-drag-handle" title="Hold and drag to reorder this section" aria-label="Drag to reorder section">
+                <i class="fa-solid fa-grip-vertical me-1"></i>
+                <span>Reorder</span>
             </button>
+            <div class="btn-group btn-group-sm vendor-section-move-group" role="group" aria-label="Move section without dragging">
+                <button type="button" class="btn btn-outline-secondary js-move-section-up" title="Move section up" aria-label="Move section up"><i class="fa-solid fa-arrow-up"></i></button>
+                <button type="button" class="btn btn-outline-secondary js-move-section-down" title="Move section down" aria-label="Move section down"><i class="fa-solid fa-arrow-down"></i></button>
+            </div>
             <button type="button" class="btn btn-sm btn-outline-danger js-remove-section" title="Remove section"><i class="fa-solid fa-trash"></i></button>
         </div>
     </div>
