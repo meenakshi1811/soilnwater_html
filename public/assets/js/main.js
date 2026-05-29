@@ -518,8 +518,21 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
     locationInput.setAttribute('title', resolved);
   }
 
+  function getRegisteredLocationLabel() {
+    if (!locationInput) return '';
+    return (locationInput.dataset.registeredLocation || '').trim();
+  }
+
   function showSearchOnlyLocationField() {
     if (!locationInput) return;
+    const registeredLocation = getRegisteredLocationLabel();
+
+    if (registeredLocation) {
+      updateLocationLabel(registeredLocation);
+      locationInput.placeholder = 'Search location';
+      return;
+    }
+
     const locationWrapElement = locationInput.closest('.loc-wrap');
     const locationPin = locationWrapElement ? locationWrapElement.querySelector('.loc-pin') : null;
     const locationCaretElement = locationWrapElement ? locationWrapElement.querySelector('.loc-caret') : null;

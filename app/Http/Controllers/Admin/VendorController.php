@@ -35,6 +35,8 @@ class VendorController extends Controller
                 'city',
                 'state',
                 'phone',
+                'whatsapp',
+                'pincode',
                 'is_premium',
                 'status',
                 'approved_at',
@@ -44,7 +46,20 @@ class VendorController extends Controller
         return DataTables::of($query)
             ->addColumn('owner_name', fn (Vendor $vendor) => e($vendor->user?->name ?? '—'))
             ->addColumn('owner_email', fn (Vendor $vendor) => e($vendor->user?->email ?? '—'))
-            ->addColumn('location', fn (Vendor $vendor) => e(trim(($vendor->city ?? '').', '.($vendor->state ?? ''), ', ')) ?: '—')
+            ->addColumn('contact_numbers', function (Vendor $vendor): string {
+                $whatsapp = $vendor->whatsapp ? '<span class="text-success">WA: '.e($vendor->whatsapp).'</span>' : '<span class="text-muted">WA: —</span>';
+
+                return '<div class="d-flex flex-column"><span>'.e($vendor->phone ?? '—').'</span>'.$whatsapp.'</div>';
+            })
+            ->addColumn('location', function (Vendor $vendor): string {
+                $parts = array_filter([$vendor->city, $vendor->state]);
+                $location = $parts ? implode(', ', $parts) : '';
+                if ($vendor->pincode) {
+                    $location = trim($location.' '.$vendor->pincode);
+                }
+
+                return e($location ?: '—');
+            })
             ->addColumn('status_badge', function (Vendor $vendor): string {
                 $badge = match ($vendor->status) {
                     'approved' => 'success',
@@ -88,7 +103,7 @@ class VendorController extends Controller
                     $query->where('status', 'pending');
                 }
             })
-            ->rawColumns(['status_badge', 'premium_toggle', 'actions'])
+            ->rawColumns(['contact_numbers', 'status_badge', 'premium_toggle', 'actions'])
             ->make(true);
     }
 

@@ -8,7 +8,7 @@ use App\Models\VendorBranch;
 
 class VendorRegistrationService
 {
-    public static function createProfileForUser(User $user): Vendor
+    public static function createProfileForUser(User $user, array $registrationData = []): Vendor
     {
         if ($user->vendor) {
             return $user->vendor;
@@ -16,6 +16,10 @@ class VendorRegistrationService
 
         $companyName = $user->full_name ?: $user->name;
         $slug = Vendor::generateUniqueSlug($companyName);
+        $whatsapp = $registrationData['whatsapp_number'] ?? $user->whatsapp_number ?? null;
+        $address = $registrationData['address'] ?? $user->address ?? null;
+        $city = $registrationData['city'] ?? $user->city ?? null;
+        $pincode = $registrationData['pincode'] ?? $user->pincode ?? null;
 
         $vendor = Vendor::create([
             'user_id' => $user->id,
@@ -24,7 +28,11 @@ class VendorRegistrationService
             'display_name' => $companyName,
             'slug' => $slug,
             'phone' => $user->phone_number,
+            'whatsapp' => $whatsapp,
             'email' => $user->email,
+            'address' => $address,
+            'city' => $city,
+            'pincode' => $pincode,
             'status' => 'pending',
         ]);
 
@@ -33,7 +41,11 @@ class VendorRegistrationService
             'branch_name' => $companyName.' – Main Branch',
             'contact_person' => $user->name,
             'phone' => $user->phone_number,
+            'whatsapp' => $whatsapp,
             'email' => $user->email,
+            'address' => $address,
+            'city' => $city,
+            'pincode' => $pincode,
             'is_primary' => true,
         ]);
 

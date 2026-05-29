@@ -18,12 +18,13 @@
                     { data: 'name', name: 'name' },
                     { data: 'email_display', name: 'email' },
                     { data: 'phone_display', name: 'phone_number' },
+                    { data: 'location', name: 'city', orderable: false },
                     { data: 'date_of_birth', name: 'date_of_birth' },
                     { data: 'status_badge', name: 'status_badge', orderable: false, searchable: true },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[5, 'desc']]
+                order: [[6, 'desc']]
             });
         },
 
@@ -41,6 +42,10 @@
                     $('#userName').val(user.name || '');
                     $('#userEmail').val(user.email || '');
                     $('#userPhone').val(user.phone_number || '');
+                    $('#userWhatsapp').val(user.whatsapp_number || '');
+                    $('#userAddress').val(user.address || '');
+                    $('#userCity').val(user.city || '');
+                    $('#userPincode').val(user.pincode || '');
                     $('#userDateOfBirth').val(user.date_of_birth || '');
                     $('#userStatus').prop('checked', !!user.is_active);
                     $('#userForm').attr('action', '/admin/users/' + id).attr('method', 'POST');
@@ -89,8 +94,11 @@
                 rules: {
                     name: { required: true, minlength: 3 },
                     email: { required: true, email: true },
-                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 }
-                    ,
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    address: { required: true, maxlength: 500 },
+                    city: { required: true, maxlength: 120 },
+                    pincode: { required: true, digits: true, minlength: 4, maxlength: 10 },
                     date_of_birth: { required: false, date: true }
                 },
                 beforeSubmit: function () {

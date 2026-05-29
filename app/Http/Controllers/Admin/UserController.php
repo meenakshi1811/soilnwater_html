@@ -27,6 +27,10 @@ class UserController extends Controller
                 'name',
                 'email',
                 'phone_number',
+                'whatsapp_number',
+                'address',
+                'city',
+                'pincode',
                 'date_of_birth',
                 'email_verified_at',
                 'phone_verified_at',
@@ -54,6 +58,11 @@ class UserController extends Controller
                     . '<span>'.e((string) $user->phone_number).'</span>'
                     . $verificationBadge
                     . '</div>';
+            })
+            ->addColumn('location', function (User $user): string {
+                $parts = array_filter([$user->city, $user->pincode]);
+
+                return e($parts ? implode(' - ', $parts) : '—');
             })
             ->editColumn('created_at', function (User $user) {
                 return $user->created_at ? $user->created_at->format('Y-m-d') : '';
@@ -100,6 +109,10 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone_number' => $user->phone_number,
+                'whatsapp_number' => $user->whatsapp_number,
+                'address' => $user->address,
+                'city' => $user->city,
+                'pincode' => $user->pincode,
                 'date_of_birth' => optional($user->date_of_birth)->format('Y-m-d'),
                 'is_active' => (bool) $user->is_active,
             ],
@@ -114,6 +127,10 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone_number' => ['required', 'digits_between:10,15'],
+            'whatsapp_number' => ['required', 'digits_between:10,15'],
+            'address' => ['required', 'string', 'max:500'],
+            'city' => ['required', 'string', 'max:120'],
+            'pincode' => ['required', 'digits_between:4,10'],
             'date_of_birth' => ['nullable', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -123,6 +140,10 @@ class UserController extends Controller
             'full_name' => $validated['name'],
             'email' => strtolower($validated['email']),
             'phone_number' => $validated['phone_number'],
+            'whatsapp_number' => $validated['whatsapp_number'],
+            'address' => $validated['address'],
+            'city' => $validated['city'],
+            'pincode' => $validated['pincode'],
             'date_of_birth' => $validated['date_of_birth'] ?? null,
             'is_active' => (bool) ($validated['is_active'] ?? true),
         ]);

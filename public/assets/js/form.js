@@ -355,7 +355,76 @@
             this.initOtpTimer(selector);
         },
 
+        initRegisterPlaceAutocomplete: function () {
+            var addressInput = document.getElementById('address');
+            var cityInput = document.getElementById('city');
+            var pincodeInput = document.getElementById('pincode');
+
+            if (!addressInput || addressInput.dataset.googlePlacesReady === 'true') {
+                return;
+            }
+
+            if (!window.google || !google.maps || !google.maps.places) {
+                var attempts = Number(addressInput.dataset.googlePlacesAttempts || 0);
+                if (attempts >= 20) {
+                    return;
+                }
+
+                addressInput.dataset.googlePlacesAttempts = String(attempts + 1);
+                window.setTimeout(function () {
+                    if (window.FormHelper) {
+                        window.FormHelper.initRegisterPlaceAutocomplete();
+                    }
+                }, 500);
+                return;
+            }
+
+            addressInput.dataset.googlePlacesReady = 'true';
+
+            var autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                componentRestrictions: { country: 'in' },
+                fields: ['address_components', 'formatted_address'],
+                types: ['geocode']
+            });
+
+            var componentValue = function (components, type) {
+                var match = components.find(function (component) {
+                    return component.types.indexOf(type) !== -1;
+                });
+
+                return match ? match.long_name : '';
+            };
+
+            autocomplete.addListener('place_changed', function () {
+                var place = autocomplete.getPlace();
+                var components = place.address_components || [];
+
+                if (place.formatted_address) {
+                    addressInput.value = place.formatted_address;
+                }
+
+                var city = componentValue(components, 'locality')
+                    || componentValue(components, 'postal_town')
+                    || componentValue(components, 'administrative_area_level_3')
+                    || componentValue(components, 'administrative_area_level_2');
+                var pincode = componentValue(components, 'postal_code');
+
+                if (cityInput && city) {
+                    cityInput.value = city;
+                    $(cityInput).trigger('input').trigger('change');
+                }
+
+                if (pincodeInput && pincode) {
+                    pincodeInput.value = pincode;
+                    $(pincodeInput).trigger('input').trigger('change');
+                }
+
+                $(addressInput).trigger('input').trigger('change');
+            });
+        },
+
         initRegisterForm: function () {
+            this.initRegisterPlaceAutocomplete();
             this.attachAjaxForm({
                 formSelector: '#registerForm',
                 buttonSelector: '#registerSubmitBtn',
@@ -366,7 +435,12 @@
                     fullname: { required: true, minlength: 3, maxlength: 255 },
                     email: { required: true, email: true },
                     phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    address: { required: true, minlength: 5, maxlength: 500 },
+                    city: { required: true, maxlength: 120 },
+                    pincode: { required: true, digits: true, minlength: 4, maxlength: 10 },
                     role: { required: true },
+                    date_of_birth: { required: true, date: true },
                     password: { required: true, minlength: 8 },
                     password_confirmation: { required: true, equalTo: '#password' },
                     accept_terms: { required: true }
@@ -386,8 +460,31 @@
                         minlength: 'Phone number must be at least 10 digits.',
                         maxlength: 'Phone number cannot exceed 15 digits.'
                     },
+                    whatsapp_number: {
+                        required: 'Please enter your WhatsApp number.',
+                        digits: 'WhatsApp number should contain only digits.',
+                        minlength: 'WhatsApp number must be at least 10 digits.',
+                        maxlength: 'WhatsApp number cannot exceed 15 digits.'
+                    },
+                    address: {
+                        required: 'Please enter your address.',
+                        minlength: 'Address must be at least 5 characters.'
+                    },
+                    city: {
+                        required: 'Please enter your city.'
+                    },
+                    pincode: {
+                        required: 'Please enter your pincode.',
+                        digits: 'Pincode should contain only digits.',
+                        minlength: 'Pincode must be at least 4 digits.',
+                        maxlength: 'Pincode cannot exceed 10 digits.'
+                    },
                     role: {
                         required: 'Please select your role.'
+                    },
+                    date_of_birth: {
+                        required: 'Please enter your date of birth.',
+                        date: 'Please enter a valid date of birth.'
                     },
                     password: {
                         required: 'Please create a password.',
