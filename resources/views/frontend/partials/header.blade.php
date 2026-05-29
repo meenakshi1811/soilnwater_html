@@ -7,6 +7,17 @@
     <i class="fa-solid fa-bars"></i>
   </button>
 
+  @php
+    $registeredLocation = null;
+    if (auth()->check()) {
+      $registeredLocation = collect([
+        auth()->user()->address,
+        auth()->user()->city,
+        auth()->user()->pincode,
+      ])->filter()->implode(', ');
+    }
+  @endphp
+
   <div class="loc-wrap" id="headerLocationToggle" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
     <span class="loc-pin"><i class="fa-solid fa-location-dot"></i></span>
     <input
@@ -14,6 +25,7 @@
       class="loc-text-input"
       type="text"
       data-default-location="Detecting location..."
+      data-registered-location="{{ $registeredLocation }}"
       placeholder="Search location"
       autocomplete="off"
     >
