@@ -993,13 +993,40 @@
     }
 
     function refreshSectionOrderLabels() {
-        getVisibleSectionBlocks().forEach(function (block, idx) {
+        var blocks = getVisibleSectionBlocks();
+        blocks.forEach(function (block, idx) {
             block.classList.toggle('alt', idx % 2 === 1);
             var label = block.querySelector('.js-section-label');
             if (label) {
                 label.innerHTML = '<i class="fa-solid fa-layer-group me-1"></i> Section ' + (idx + 1);
             }
+
+            var moveUpBtn = block.querySelector('.js-move-section-up');
+            var moveDownBtn = block.querySelector('.js-move-section-down');
+            if (moveUpBtn) moveUpBtn.disabled = idx === 0;
+            if (moveDownBtn) moveDownBtn.disabled = idx === blocks.length - 1;
         });
+    }
+
+    function clearSectionDropIndicators() {
+        if (!container) return;
+        container.querySelectorAll('.vendor-section-block').forEach(function (block) {
+            block.classList.remove('is-drop-before', 'is-drop-after');
+        });
+    }
+
+    function moveSection(block, direction) {
+        if (!container || !block) return;
+
+        if (direction === 'up') {
+            var previous = block.previousElementSibling;
+            if (previous) container.insertBefore(block, previous);
+        } else if (direction === 'down') {
+            var next = block.nextElementSibling;
+            if (next) container.insertBefore(next, block);
+        }
+
+        refreshSectionOrderLabels();
     }
 
     function initSectionDragAndDrop(block) {
@@ -1007,11 +1034,15 @@
         block.draggable = true;
         var dragHandle = block.querySelector('.js-drag-handle');
         if (dragHandle) {
-            dragHandle.addEventListener('mousedown', function () {
-                block.setAttribute('data-drag-enabled', '1');
+            ['mousedown', 'touchstart'].forEach(function (eventName) {
+                dragHandle.addEventListener(eventName, function () {
+                    block.setAttribute('data-drag-enabled', '1');
+                }, { passive: true });
             });
-            dragHandle.addEventListener('mouseup', function () {
-                block.removeAttribute('data-drag-enabled');
+            ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(function (eventName) {
+                dragHandle.addEventListener(eventName, function () {
+                    block.removeAttribute('data-drag-enabled');
+                });
             });
         }
     }
@@ -1099,7 +1130,7 @@
             e.preventDefault();
             return;
         }
-        block.classList.add('opacity-50');
+        block.classList.add('opacity-50', 'is-dragging');
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', block.dataset.sectionIndex || '');
     });
@@ -1107,8 +1138,9 @@
     container?.addEventListener('dragend', function (e) {
         var block = e.target.closest('.vendor-section-block');
         if (!block) return;
-        block.classList.remove('opacity-50');
+        block.classList.remove('opacity-50', 'is-dragging');
         block.removeAttribute('data-drag-enabled');
+        clearSectionDropIndicators();
     });
 
     container?.addEventListener('dragover', function (e) {
@@ -1119,6 +1151,8 @@
 
         var targetRect = target.getBoundingClientRect();
         var shouldInsertBefore = e.clientY < (targetRect.top + targetRect.height / 2);
+        clearSectionDropIndicators();
+        target.classList.add(shouldInsertBefore ? 'is-drop-before' : 'is-drop-after');
         if (shouldInsertBefore) {
             container.insertBefore(dragging, target);
         } else {
@@ -1128,7 +1162,17 @@
 
     container?.addEventListener('drop', function (e) {
         e.preventDefault();
+        clearSectionDropIndicators();
         refreshSectionOrderLabels();
+    });
+
+    container?.addEventListener('click', function (e) {
+        var moveUpBtn = e.target.closest('.js-move-section-up');
+        var moveDownBtn = e.target.closest('.js-move-section-down');
+        if (!moveUpBtn && !moveDownBtn) return;
+
+        var block = e.target.closest('.vendor-section-block');
+        moveSection(block, moveUpBtn ? 'up' : 'down');
     });
 
     document.addEventListener('change', function (e) {

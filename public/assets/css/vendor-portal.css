@@ -343,3 +343,36 @@
 #toast-container {
     z-index: 99999 !important;
 }
+
+.vendor-section-reorder-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-style: dashed;
+    cursor: grab;
+    font-weight: 600;
+}
+
+.vendor-section-reorder-btn:active,
+.vendor-section-block[data-drag-enabled="1"] .vendor-section-reorder-btn {
+    cursor: grabbing;
+}
+
+.vendor-section-block.is-dragging {
+    opacity: 0.55;
+    border-style: dashed !important;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+}
+
+.vendor-section-block.is-drop-before {
+    border-top: 4px solid #0d6efd !important;
+}
+
+.vendor-section-block.is-drop-after {
+    border-bottom: 4px solid #0d6efd !important;
+}
+
+.vendor-section-move-group .btn:disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}

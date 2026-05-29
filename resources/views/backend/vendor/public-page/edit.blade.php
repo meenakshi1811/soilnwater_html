@@ -223,7 +223,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
                     <h5 class="mb-0">Custom page sections</h5>
-                    <p class="text-muted small mb-0">Add sections with images and styled text. Save, then check Live Preview.</p>
+                    <p class="text-muted small mb-0">Add sections with images and styled text. Drag the <strong>Reorder</strong> button or use the arrow buttons to change the display order.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <select class="form-select form-select-sm" id="sectionTypeSelect" style="min-width: 220px;">
