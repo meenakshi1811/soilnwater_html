@@ -32,7 +32,7 @@ class VendorStoreController extends Controller
             ->get();
 
         $vendorCategories = $this->vendorCategories($vendor);
-        $adsContext = $this->loadStoreAds($vendor, $vendor->pageSections->count());
+        $vendorRecentAds = $this->nearestVendorModuleAds();
 
         return view('frontend.store.show', [
             'vendor' => $vendor,
@@ -40,9 +40,8 @@ class VendorStoreController extends Controller
             'activeNav' => 'home',
             'featuredProducts' => $featuredProducts,
             'vendorCategories' => $vendorCategories,
-            'sectionAdRails' => $adsContext['sectionAdRails'],
-            'randomFullPagePlacements' => $adsContext['randomFullPagePlacements'],
-            'sponsoredFillers' => $adsContext['sponsoredFillers'],
+            'vendorRecentAds' => $vendorRecentAds,
+            'selectedCategoryNamesByVendorAdId' => $this->resolveSelectedCategoryNamesByAdId($vendorRecentAds),
         ]);
     }
 
@@ -493,6 +492,72 @@ class VendorStoreController extends Controller
             }])
             ->orderBy('name')
             ->get(['id', 'name']);
+    }
+
+    private function nearestVendorModuleAds(int $limit = 20): Collection
+    {
+        $lat = session('frontend_lat');
+        $lng = session('frontend_lng');
+        $lat = is_numeric($lat) ? (float) $lat : null;
+        $lng = is_numeric($lng) ? (float) $lng : null;
+
+        $adsQuery = UserAd::query()
+            ->with(['category:id,name'])
+            ->where('status', 'approved')
+            ->whereJsonContains('selected_modules', 'vendors')
+            ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
+            ->whereNotNull('final_image')
+            ->where(function ($query) {
+                $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
+            });
+
+        if ($lat !== null && $lng !== null) {
+            $adsQuery
+                ->select('user_ads.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km');
+        }
+
+        return $adsQuery
+            ->latest('created_at')
+            ->latest('id')
+            ->limit($limit)
+            ->get();
+    }
+
+    private function resolveSelectedCategoryNamesByAdId(Collection $ads): array
+    {
+        $ads = $ads->values();
+        if ($ads->isEmpty()) {
+            return [];
+        }
+
+        $selectedCategoryIds = $ads
+            ->flatMap(fn (UserAd $ad) => array_map('intval', $ad->selected_category_ids ?? []))
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $categoryNamesById = Category::query()
+            ->whereIn('id', $selectedCategoryIds)
+            ->pluck('name', 'id');
+
+        return $ads
+            ->mapWithKeys(function (UserAd $ad) use ($categoryNamesById) {
+                $selectedNames = collect($ad->selected_category_ids ?? [])
+                    ->map(fn ($id) => $categoryNamesById->get((int) $id))
+                    ->filter(fn ($name) => is_string($name) && $name !== '')
+                    ->values()
+                    ->all();
+
+                if ($selectedNames === [] && $ad->category?->name) {
+                    $selectedNames = [$ad->category->name];
+                }
+
+                return [$ad->id => $selectedNames];
+            })
+            ->all();
     }
 
     /**

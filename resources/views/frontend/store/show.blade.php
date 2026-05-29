@@ -4,10 +4,9 @@
 
 @section('store_content')
 @php
-    $sectionAdRails = $sectionAdRails ?? [];
     $featuredProducts = $featuredProducts ?? collect();
-    $randomFullPagePlacements = $randomFullPagePlacements ?? [];
-    $sponsoredFillers = $sponsoredFillers ?? [];
+    $vendorRecentAds = $vendorRecentAds ?? collect();
+    $selectedCategoryNamesByVendorAdId = $selectedCategoryNamesByVendorAdId ?? [];
 @endphp
 
 <section class="vendor-store-hero">
@@ -24,7 +23,6 @@
     @endif
 </section>
 
-@include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_hero'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 
 <section class="vendor-hero-text-section">
     <div class="container">
@@ -39,34 +37,21 @@
     <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section">
         <div class="container">
             <div class="vendor-section-title-display">{!! $section->title !!}</div>
-            <div class="row g-4 align-items-start">
-                <div class="{{ !empty($sectionAdRails[$loop->index] ?? null) ? 'col-lg-8' : 'col-12' }}">
-                    <div class="row g-4 align-items-center">
-                        @if($section->image_path)
-                            <div class="col-md-6">
-                                <img src="{{ asset($section->image_path) }}" alt="{{ strip_tags($section->title) }}" class="section-img">
-                            </div>
-                        @endif
-                        <div class="{{ $section->image_path ? 'col-md-6' : 'col-12' }}">
-                            <div class="content-body">{!! $section->content !!}</div>
-                        </div>
-                    </div>
-                </div>
-                @if(!empty($sectionAdRails[$loop->index] ?? null))
-                    <div class="col-lg-4">
-                        @include('frontend.store.partials.ads-rail', [
-                            'ads' => $sectionAdRails[$loop->index],
-                            'railId' => 'storeSectionAds'.$loop->index,
-                        ])
+            <div class="row g-4 align-items-center">
+                @if($section->image_path)
+                    <div class="col-md-6">
+                        <img src="{{ asset($section->image_path) }}" alt="{{ strip_tags($section->title) }}" class="section-img">
                     </div>
                 @endif
+                <div class="{{ $section->image_path ? 'col-md-6' : 'col-12' }}">
+                    <div class="content-body">{!! $section->content !!}</div>
+                </div>
             </div>
         </div>
     </section>
-@include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_section_'.$loop->index] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 @endforeach
 
-@include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['before_products'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
+@include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
 
 @if($featuredProducts->isNotEmpty())
     <section class="vendor-store-section vendor-store-featured">
