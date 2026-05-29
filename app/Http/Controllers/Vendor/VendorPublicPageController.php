@@ -156,7 +156,8 @@ class VendorPublicPageController extends Controller
             'activeNav' => 'home',
             'featuredProducts' => $products->take(4),
             'vendorCategories' => $vendorCategories,
-            'sectionAdRails' => [],
+            'vendorRecentAds' => collect(),
+            'selectedCategoryNamesByVendorAdId' => [],
         ]);
     }
 
