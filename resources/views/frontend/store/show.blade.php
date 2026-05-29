@@ -7,8 +7,6 @@
     $featuredProducts = $featuredProducts ?? collect();
     $vendorRecentAds = $vendorRecentAds ?? collect();
     $selectedCategoryNamesByVendorAdId = $selectedCategoryNamesByVendorAdId ?? [];
-    $randomFullPagePlacements = $randomFullPagePlacements ?? [];
-    $sponsoredFillers = $sponsoredFillers ?? [];
 @endphp
 
 <section class="vendor-store-hero">
@@ -25,7 +23,6 @@
     @endif
 </section>
 
-@include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_hero'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 
 <section class="vendor-hero-text-section">
     <div class="container">
@@ -52,12 +49,9 @@
             </div>
         </div>
     </section>
-@if(str_contains((string) $section->content, 'data-card-image-slot'))
-    @include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
-@endif
 @endforeach
 
-@include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['before_products'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
+@include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
 
 @if($featuredProducts->isNotEmpty())
     <section class="vendor-store-section vendor-store-featured">

@@ -32,7 +32,6 @@ class VendorStoreController extends Controller
             ->get();
 
         $vendorCategories = $this->vendorCategories($vendor);
-        $adsContext = $this->loadStoreAds($vendor, 0);
         $vendorRecentAds = $this->nearestVendorModuleAds();
 
         return view('frontend.store.show', [
@@ -41,8 +40,6 @@ class VendorStoreController extends Controller
             'activeNav' => 'home',
             'featuredProducts' => $featuredProducts,
             'vendorCategories' => $vendorCategories,
-            'randomFullPagePlacements' => $adsContext['randomFullPagePlacements'],
-            'sponsoredFillers' => $adsContext['sponsoredFillers'],
             'vendorRecentAds' => $vendorRecentAds,
             'selectedCategoryNamesByVendorAdId' => $this->resolveSelectedCategoryNamesByAdId($vendorRecentAds),
         ]);
