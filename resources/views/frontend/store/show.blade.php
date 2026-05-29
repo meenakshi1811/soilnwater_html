@@ -5,6 +5,8 @@
 @section('store_content')
 @php
     $featuredProducts = $featuredProducts ?? collect();
+    $vendorRecentAds = $vendorRecentAds ?? collect();
+    $selectedCategoryNamesByVendorAdId = $selectedCategoryNamesByVendorAdId ?? [];
     $randomFullPagePlacements = $randomFullPagePlacements ?? [];
     $sponsoredFillers = $sponsoredFillers ?? [];
 @endphp
@@ -50,7 +52,9 @@
             </div>
         </div>
     </section>
-@include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_section_'.$loop->index] ?? null, 'sponsoredFillers' => $sponsoredFillers])
+@if(str_contains((string) $section->content, 'data-card-image-slot'))
+    @include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
+@endif
 @endforeach
 
 @include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['before_products'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
