@@ -80,6 +80,11 @@
                         return value.toLowerCase().endsWith('.' + ext);
                     });
                 }, 'Invalid file type.');
+
+                $.validator.addMethod('locationPicked', function () {
+                    return String($('#offerLocationLat').val() || '').trim() !== ''
+                        && String($('#offerLocationLng').val() || '').trim() !== '';
+                }, 'Please select a location from the suggestions list.');
             }
         },
 
@@ -208,12 +213,14 @@
                 if (!hasGeometry) {
                     if (latInput) latInput.value = '';
                     if (lngInput) lngInput.value = '';
+                    $location.valid();
                     return;
                 }
 
                 input.value = place.formatted_address || place.name || input.value;
                 if (latInput) latInput.value = String(place.geometry.location.lat());
                 if (lngInput) lngInput.value = String(place.geometry.location.lng());
+                $location.valid();
             });
         },
 
@@ -1037,6 +1044,8 @@
                         maxlength: 300
                     },
                     location: {
+                        required: true,
+                        locationPicked: true,
                         maxlength: 255
                     },
                     accept_terms: {
@@ -1064,6 +1073,8 @@
                         maxlength: 'Description must not exceed 300 characters.'
                     },
                     location: {
+                        required: 'Please enter a location.',
+                        locationPicked: 'Please select a location from the suggestions list.',
                         maxlength: 'Location must not exceed 255 characters.'
                     },
                     accept_terms: {
@@ -1160,7 +1171,8 @@
                                 // Show Laravel validation errors on fields
                                 if (xhr.responseJSON.errors) {
                                     $.each(xhr.responseJSON.errors, function (field, errors) {
-                                        var $field = $('[name="' + field + '"]');
+                                        var displayField = (field === 'location_lat' || field === 'location_lng') ? 'location' : field;
+                                        var $field = $('[name="' + displayField + '"]');
                                         $field.addClass('is-invalid');
                                         $field.closest('.col-md-6, .col-12')
                                             .find('.invalid-feedback')

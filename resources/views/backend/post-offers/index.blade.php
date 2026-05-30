@@ -162,7 +162,7 @@
 
                 {{-- Location --}}
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">Location <span class="text-muted fw-normal">(Optional)</span></label>
+                    <label class="form-label fw-semibold">Location <span class="text-danger">*</span></label>
                     <input
                         type="text"
                         name="location"
@@ -171,10 +171,11 @@
                         placeholder="Search Indian location (e.g. Jaipur, Rajasthan)"
                         value="{{ old('location', $offer?->location) }}"
                         autocomplete="off"
+                        required
                     >
                     <input type="hidden" name="location_lat" id="offerLocationLat" value="{{ old('location_lat', $offer?->location_lat) }}">
                     <input type="hidden" name="location_lng" id="offerLocationLng" value="{{ old('location_lng', $offer?->location_lng) }}">
-                    <small class="text-secondary">Pick a location from Google suggestions to save latitude and longitude.</small>
+                    <small class="text-secondary">Pick a location from Google suggestions to save latitude and longitude. This field is required.</small>
                     @error('location')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
