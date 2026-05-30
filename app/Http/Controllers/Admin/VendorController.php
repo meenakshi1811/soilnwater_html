@@ -159,7 +159,7 @@ class VendorController extends Controller
             'pincode' => ['nullable', 'string', 'max:10'],
             'pan_number' => ['nullable', 'string', 'max:20'],
             'gst_number' => ['nullable', 'string', 'max:20'],
-            'description' => ['nullable', 'string', 'max:5000'],
+            'description' => ['nullable', 'string'],
             'status' => ['required', 'in:pending,approved,rejected'],
         ]);
 
