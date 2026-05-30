@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>@yield('meta_title', 'SoilnWater – Local &amp; National Marketplace')</title>
+  <title>@yield('meta_title', 'SoilnWater – Local & National Marketplace')</title>
   <meta name="description" content="@yield('meta_description', 'Discover local and national deals on SoilnWater.')">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="@yield('meta_title', 'SoilnWater – Local &amp; National Marketplace')">
+  <meta property="og:title" content="@yield('meta_title', 'SoilnWater – Local & National Marketplace')">
   <meta property="og:description" content="@yield('meta_description', 'Discover local and national deals on SoilnWater.')">
   <meta property="og:url" content="@yield('meta_url', url()->current())">
   <meta property="og:image" content="@yield('meta_image', asset('assets/images/logo_soilnwater.webp'))">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="@yield('meta_title', 'SoilnWater – Local &amp; National Marketplace')">
+  <meta name="twitter:title" content="@yield('meta_title', 'SoilnWater – Local & National Marketplace')">
   <meta name="twitter:description" content="@yield('meta_description', 'Discover local and national deals on SoilnWater.')">
   <meta name="twitter:image" content="@yield('meta_image', asset('assets/images/logo_soilnwater.webp'))">
   <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/favicon.svg') }}">
