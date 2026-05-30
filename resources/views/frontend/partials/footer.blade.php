@@ -5,12 +5,14 @@
         <img class="footer-logo-icon" src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
       </div>
       <p class="footer-tagline">India's trusted local &amp; national marketplace connecting buyers, sellers, and service providers across every category.</p>
+      {{--
       <div class="footer-socials">
         <a href="https://www.facebook.com" target="_blank" rel="noopener" class="social-btn" aria-label="Facebook"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
         <a href="https://www.instagram.com" target="_blank" rel="noopener" class="social-btn" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
         <a href="https://x.com" target="_blank" rel="noopener" class="social-btn" aria-label="X"><i class="fab fa-x-twitter" aria-hidden="true"></i></a>
         <a href="https://www.linkedin.com" target="_blank" rel="noopener" class="social-btn" aria-label="LinkedIn"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>
       </div>
+      --}}
     </div>
 
     <div class="footer-links-grid">
