@@ -28,11 +28,8 @@
                     <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ $vendor->email ?? '—' }}</dd>
                     <dt class="col-sm-4">Address</dt><dd class="col-sm-8">{{ $vendor->address }}, {{ $vendor->city }}, {{ $vendor->state }} {{ $vendor->pincode }}</dd>
                     <dt class="col-sm-4">PAN / GST</dt><dd class="col-sm-8">{{ $vendor->pan_number ?? '—' }} / {{ $vendor->gst_number ?? '—' }}</dd>
-                    <dt class="col-sm-4">Store URL</dt><dd class="col-sm-8"><code>/store/{{ $vendor->slug }}</code></dd>
+                    <dt class="col-sm-4">Store URL</dt><dd class="col-sm-8"><a href="{{ route('store.show', $vendor->slug) }}" target="_blank" rel="noopener noreferrer">{{ route('store.show', $vendor->slug) }}</a></dd>
                 </dl>
-                @if($vendor->description)
-                    <p class="mt-3 mb-0 text-secondary">{{ $vendor->description }}</p>
-                @endif
             </div>
             <div class="chart-card">
                 <h5 class="mb-3">Branches ({{ $vendor->branches->count() }})</h5>
