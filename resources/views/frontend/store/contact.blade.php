@@ -18,16 +18,14 @@
             <div class="col-lg-8">
                 <div class="contact-panel card border-0 shadow-sm h-100">
                     <div class="card-body p-4 p-lg-5">
-                        <h2 class="h3 fw-bold mb-3">Vendor Details</h2>
-                        <p class="text-muted mb-4">{{ $vendor->description ?: 'Trusted seller on SoilNWater marketplace.' }}</p>
+                        <h2 class="h3 fw-bold mb-4">Vendor Details</h2>
 
                         <div class="d-flex align-items-start gap-3">
                             <span class="contact-icon"><i class="fa-solid fa-location-dot"></i></span>
                             <div>
                                 <p class="mb-1 fw-semibold text-dark">Address</p>
                                 <p class="mb-0 text-muted">
-                                    @if($vendor->address){{ $vendor->address }}, @endif
-                                    {{ $vendor->city }}@if($vendor->state), {{ $vendor->state }}@endif @if($vendor->pincode){{ $vendor->pincode }}@endif
+                                    {{ $vendor->formattedAddress() ?: 'Address details are not available yet.' }}
                                 </p>
                             </div>
                         </div>
