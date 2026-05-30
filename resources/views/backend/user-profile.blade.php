@@ -77,19 +77,30 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 @endpush
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script>
     $(function () {
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 3500
+        };
+
         $('.js-convert-vendor-form').on('submit', function (event) {
             event.preventDefault();
 
             var form = this;
+            var $form = $(form);
+            var $submitButton = $form.find('button[type="submit"]');
 
             Swal.fire({
                 title: 'Convert to vendor?',
@@ -101,9 +112,35 @@
                 confirmButtonColor: '#0d6efd',
                 cancelButtonColor: '#6c757d'
             }).then(function (result) {
-                if (result.isConfirmed) {
-                    form.submit();
+                if (!result.isConfirmed) {
+                    return;
                 }
+
+                $submitButton.prop('disabled', true);
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    method: 'POST',
+                    data: $form.serialize(),
+                    headers: {
+                        Accept: 'application/json'
+                    }
+                }).done(function (response) {
+                    toastr.success(response.message || 'Your vendor conversion request has been sent for approval.');
+
+                    if (response.redirect) {
+                        setTimeout(function () {
+                            window.location.href = response.redirect;
+                        }, 1000);
+                    }
+                }).fail(function (xhr) {
+                    var message = xhr.responseJSON && xhr.responseJSON.message
+                        ? xhr.responseJSON.message
+                        : 'Unable to convert your profile right now. Please try again.';
+
+                    toastr.error(message);
+                    $submitButton.prop('disabled', false);
+                });
             });
         });
     });
