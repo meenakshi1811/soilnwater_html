@@ -37,7 +37,8 @@
 </section>
 
 @foreach($vendor->pageSections as $section)
-    <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section">
+    @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
+    <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section {{ $sectionHasVideo ? 'has-video-section' : '' }}">
         <div class="container">
             <div class="vendor-section-title-display">{!! $section->title !!}</div>
             <div class="row g-4 align-items-center">
