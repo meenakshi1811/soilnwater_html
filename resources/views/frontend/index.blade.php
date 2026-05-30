@@ -149,7 +149,7 @@
           <span>E-COMMERCE</span>
         </div>
       </a>
-      <a href="">
+      <a href="{{ route('frontend.vendors.index') }}">
         <div class="cat-item">
           <div class="cat-icon">
             <i class="fa-solid fa-store cat-icon-i cat-vendors"></i>
