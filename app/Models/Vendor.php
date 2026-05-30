@@ -95,6 +95,37 @@ class Vendor extends Model
         return $this->display_name ?: $this->company_name;
     }
 
+    public function formattedAddress(): string
+    {
+        $branch = $this->relationLoaded('branches')
+            ? ($this->branches->firstWhere('is_primary', true) ?: $this->branches->first())
+            : $this->branches()->first();
+
+        $parts = array_filter([
+            $branch?->address ?: $this->address ?: $this->user?->address,
+            $branch?->city ?: $this->city ?: $this->user?->city,
+            $branch?->state ?: $this->state,
+            $branch?->pincode ?: $this->pincode ?: $this->user?->pincode,
+        ], fn ($part) => filled($part));
+
+        $uniqueParts = [];
+
+        foreach ($parts as $part) {
+            $part = trim((string) $part);
+            $normalizedPart = Str::lower($part);
+
+            $alreadyIncluded = collect($uniqueParts)->contains(function (string $existingPart) use ($normalizedPart) {
+                return str_contains(Str::lower($existingPart), $normalizedPart);
+            });
+
+            if (! $alreadyIncluded) {
+                $uniqueParts[] = $part;
+            }
+        }
+
+        return implode(', ', $uniqueParts);
+    }
+
     public function storeUrl(): string
     {
         return url('/store/'.$this->slug);

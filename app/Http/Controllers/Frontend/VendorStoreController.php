@@ -498,7 +498,7 @@ class VendorStoreController extends Controller
         return Vendor::query()
             ->where('slug', $slug)
             ->where('status', 'approved')
-            ->with(['bannerSlides', 'pageSections'])
+            ->with(['bannerSlides', 'pageSections', 'branches', 'user'])
             ->firstOrFail();
     }
 

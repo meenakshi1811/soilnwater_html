@@ -4,8 +4,7 @@
             <div class="col-md-6">
                 <h5 class="text-white">{{ $vendor->publicDisplayName() }}</h5>
                 <p class="small mb-0 mt-2">
-                    @if($vendor->address){{ $vendor->address }}, @endif
-                    {{ $vendor->city }}@if($vendor->state), {{ $vendor->state }}@endif @if($vendor->pincode){{ $vendor->pincode }}@endif
+                    {{ $vendor->formattedAddress() ?: 'Address details are not available yet.' }}
                 </p>
             </div>
             <div class="col-md-3">
