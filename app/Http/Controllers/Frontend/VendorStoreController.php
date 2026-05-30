@@ -418,7 +418,7 @@ class VendorStoreController extends Controller
         }
 
         $products = $productsQuery->latest('updated_at')->paginate(12)->withQueryString();
-        $adsContext = $this->loadStoreAds($vendor, 0, $category, $subcategory);
+        $vendorRecentAds = $this->nearestVendorModuleAds();
 
         if ($subcategory) {
             $pageTitle = $subcategory->name;
@@ -444,7 +444,8 @@ class VendorStoreController extends Controller
             'vendorCategories' => $vendorCategories,
             'activeCategory' => $category,
             'activeSubcategory' => $subcategory,
-            'sidebarAds' => $adsContext['sidebarAds'],
+            'vendorRecentAds' => $vendorRecentAds,
+            'selectedCategoryNamesByVendorAdId' => $this->resolveSelectedCategoryNamesByAdId($vendorRecentAds),
         ]);
     }
 

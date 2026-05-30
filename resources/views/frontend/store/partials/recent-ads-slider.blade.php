@@ -1,6 +1,8 @@
 @php
     $ads = ($ads ?? collect())->values();
     $selectedCategoryNamesByAdId = $selectedCategoryNamesByAdId ?? [];
+    $sectionTitle = $sectionTitle ?? 'Recent Ads';
+    $sliderLabel = $sliderLabel ?? $sectionTitle.' slider';
     $moduleLabels = \App\Support\ModulePermissions::modules();
 @endphp
 
@@ -8,10 +10,10 @@
     <section class="vendor-store-section vendor-store-recent-ads-section recent-ads-section">
         <div class="container">
             <div class="sec-head vendor-store-recent-ads-head">
-                <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> Recent Ads</div>
+                <div class="sec-title"><span class="icon"><i class="fa-solid fa-rectangle-ad"></i></span> {{ $sectionTitle }}</div>
                 <a class="view-all" href="{{ route('frontend.ads.index') }}">VIEW ALL ▶</a>
             </div>
-            <div class="ad-slider auto-ad-slider recent-ads-slider vendor-store-recent-ads-slider" data-show-arrows="true" data-show-dots="false" aria-label="Nearest vendor ads slider">
+            <div class="ad-slider auto-ad-slider recent-ads-slider vendor-store-recent-ads-slider" data-show-arrows="true" data-show-dots="false" aria-label="{{ $sliderLabel }}">
                 @foreach($ads->chunk(6) as $adsChunk)
                     <div class="ad-slide {{ $loop->first ? 'is-active' : '' }}" @if(! $loop->first) hidden @endif>
                         <div class="product-grid-4 recent-ads-grid vendor-store-recent-ads-grid">
