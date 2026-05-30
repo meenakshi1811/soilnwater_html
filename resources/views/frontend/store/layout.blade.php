@@ -1,5 +1,9 @@
 @extends('frontend.layouts.app')
 
+@hasSection('title')
+    @section('meta_title', trim($__env->yieldContent('title')))
+@endif
+
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/vendor-store.css') }}?v={{ now()->timestamp }}">
 @endpush
