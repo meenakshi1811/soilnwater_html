@@ -17,16 +17,21 @@
       <div class="footer-col footer-panel">
         <h4 class="footer-col-title">Marketplace</h4>
         <ul class="footer-list">
+          <li><a href="{{ route('frontend.ads.index') }}"><i class="fa-solid fa-chevron-right"></i> Ads</a></li>
+          <li><a href="{{ route('frontend.offers.index') }}"><i class="fa-solid fa-chevron-right"></i> Offers</a></li>
+          <li><a href="{{ route('frontend.vendors.index') }}"><i class="fa-solid fa-chevron-right"></i> Vendors</a></li>
+          {{--
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> E-Commerce</a></li>
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Properties</a></li>
-          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Vendors</a></li>
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Services</a></li>
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Consultants</a></li>
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Builders</a></li>
           <li><a href="https://www.facebook.com" target="_blank" rel="noopener"><i class="fa-solid fa-chevron-right"></i> Social Media</a></li>
+          --}}
         </ul>
       </div>
 
+      {{--
       <div class="footer-col footer-panel">
         <h4 class="footer-col-title">For Business</h4>
         <ul class="footer-list">
@@ -37,6 +42,7 @@
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Partner with Us</a></li>
         </ul>
       </div>
+      --}}
 
       <div class="footer-col footer-panel">
         <h4 class="footer-col-title">Contact Us</h4>
