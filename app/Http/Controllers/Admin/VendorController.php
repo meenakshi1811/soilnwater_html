@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\VendorStatusMail;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Support\VendorFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
@@ -163,6 +165,8 @@ class VendorController extends Controller
             'status' => ['required', 'in:pending,approved,rejected'],
         ]);
 
+        $originalStatus = $vendor->status;
+
         if ($validated['status'] === 'approved' && $vendor->status !== 'approved') {
             $validated['approved_at'] = now();
             $validated['approved_by'] = $request->user()->id;
@@ -175,6 +179,10 @@ class VendorController extends Controller
 
         $vendor->update($validated);
 
+        if ($vendor->status !== $originalStatus && in_array($vendor->status, ['approved', 'rejected'], true)) {
+            $this->sendVendorStatusMail($vendor, $vendor->status);
+        }
+
         return response()->json(['message' => 'Vendor updated successfully.']);
     }
 
@@ -186,7 +194,11 @@ class VendorController extends Controller
             'approved_by' => $request->user()->id,
         ]);
 
-        return response()->json(['message' => 'Vendor approved. They can now log in to the vendor portal.']);
+        $emailSent = $this->sendVendorStatusMail($vendor, 'approved');
+
+        return response()->json([
+            'message' => 'Vendor approved. They can now log in to the vendor portal.'.($emailSent ? ' Email notification sent.' : ''),
+        ]);
     }
 
     public function reject(Vendor $vendor): JsonResponse
@@ -197,11 +209,19 @@ class VendorController extends Controller
             'approved_by' => null,
         ]);
 
-        return response()->json(['message' => 'Vendor application rejected.']);
+        $emailSent = $this->sendVendorStatusMail($vendor, 'rejected');
+
+        return response()->json([
+            'message' => 'Vendor application rejected.'.($emailSent ? ' Email notification sent.' : ''),
+        ]);
     }
 
     public function destroy(Vendor $vendor): JsonResponse
     {
+        $vendor->loadMissing('user');
+        $recipient = $this->vendorNotificationRecipient($vendor);
+        $mail = $recipient ? VendorStatusMail::forVendor($vendor, 'deleted') : null;
+
         DB::transaction(function () use ($vendor): void {
             $userId = $vendor->user_id;
             foreach ($vendor->bannerSlides as $slide) {
@@ -220,7 +240,33 @@ class VendorController extends Controller
             User::whereKey($userId)->where('role', 'vendor')->delete();
         });
 
-        return response()->json(['message' => 'Vendor deleted successfully.']);
+        if ($recipient && $mail) {
+            Mail::to($recipient)->send($mail);
+        }
+
+        return response()->json([
+            'message' => 'Vendor deleted successfully.'.($recipient && $mail ? ' Email notification sent.' : ''),
+        ]);
+    }
+
+    private function sendVendorStatusMail(Vendor $vendor, string $action): bool
+    {
+        $recipient = $this->vendorNotificationRecipient($vendor);
+
+        if (! $recipient) {
+            return false;
+        }
+
+        Mail::to($recipient)->send(VendorStatusMail::forVendor($vendor, $action));
+
+        return true;
+    }
+
+    private function vendorNotificationRecipient(Vendor $vendor): ?string
+    {
+        $vendor->loadMissing('user');
+
+        return $vendor->email ?: $vendor->user?->email;
     }
 
     public function togglePremium(Vendor $vendor): JsonResponse
