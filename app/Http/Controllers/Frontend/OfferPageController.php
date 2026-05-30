@@ -66,7 +66,7 @@ class OfferPageController extends Controller
             ->latest('created_at')
             ->latest('id')
             ->limit(20)
-            ->get(['id', 'title', 'category_id', 'selected_category_ids', 'selected_modules', 'final_image', 'created_at']);
+            ->get(['id', 'title', 'category_id', 'selected_category_ids', 'selected_modules', 'short_description', 'final_image', 'created_at']);
 
         $selectedCategoryNamesByRecentAdId = $this->resolveSelectedCategoryNamesByAdId($recentApprovedAds);
 
