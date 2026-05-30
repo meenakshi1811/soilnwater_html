@@ -1,6 +1,7 @@
 @php
     $ads = ($ads ?? collect())->values();
     $selectedCategoryNamesByAdId = $selectedCategoryNamesByAdId ?? [];
+    $moduleLabels = \App\Support\ModulePermissions::modules();
 @endphp
 
 @if($ads->isNotEmpty())
@@ -12,7 +13,7 @@
             </div>
             <div class="ad-slider auto-ad-slider recent-ads-slider vendor-store-recent-ads-slider" data-show-arrows="true" data-show-dots="false" aria-label="Nearest vendor ads slider">
                 @foreach($ads->chunk(6) as $adsChunk)
-                    <div class="ad-slide">
+                    <div class="ad-slide {{ $loop->first ? 'is-active' : '' }}" @if(! $loop->first) hidden @endif>
                         <div class="product-grid-4 recent-ads-grid vendor-store-recent-ads-grid">
                             @foreach($adsChunk as $ad)
                                 @php
@@ -21,7 +22,6 @@
                                         $selectedCategoryNames = [$ad->category->name];
                                     }
 
-                                    $moduleLabels = \App\Support\ModulePermissions::modules();
                                     $selectedServiceNames = collect($ad->selected_modules ?? [])
                                         ->filter(fn ($key) => is_string($key) && isset($moduleLabels[$key]))
                                         ->map(fn ($key) => $moduleLabels[$key])
@@ -35,7 +35,7 @@
                                     data-ad-meta="{{ implode(', ', $selectedCategoryNames) }}"
                                     data-ad-services="{{ implode(', ', $selectedServiceNames) }}"
                                 >
-                                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+                                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" width="768" height="1080" loading="{{ $loop->parent->first ? 'eager' : 'lazy' }}" fetchpriority="{{ $loop->parent->first && $loop->first ? 'high' : 'low' }}" decoding="async">
                                     <div class="prod-card-body">
                                         <h6 class="mb-1 offer-coupon-title">{{ $ad->title }}</h6>
                                         <span class="recent-ad-meta">
