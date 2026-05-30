@@ -248,6 +248,9 @@
                     <img
                       src="{{ asset($ad->final_image) }}"
                       alt="{{ $ad->title }}"
+                      data-ad-id="{{ $ad->id }}"
+                      data-ad-url="{{ route('frontend.ads.show', $ad) }}"
+                      data-ad-description="Special marketplace ad available now."
                       style="width:100%;height:auto;display:block;border-radius:8px;"
                     >
                   </div>
@@ -321,7 +324,7 @@
           <div class="ad-slider auto-ad-slider business-side-slider">
             @forelse(($topSidebarSliderAds ?? collect()) as $ad)
               <div class="side-card ad-slide">
-                <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+                <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
               </div>
             @empty
               <div class="side-card ad-slide">
@@ -339,7 +342,7 @@
           <div class="ad-slider auto-ad-slider dream-home-side-slider sponsored-listings-ad-slider" data-show-arrows="true" data-pause-on-hover="false">
             @forelse(($sponsoredListingsAds ?? collect()) as $ad)
               <div class="side-card ad-slide sponsored-listings-ad-card" aria-label="{{ $ad->title }}">
-                <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+                <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
               </div>
             @empty
               <div class="side-card ad-slide sponsored-listings-ad-card">
@@ -362,6 +365,9 @@
               <img
                 src="{{ asset($ad->final_image) }}"
                 alt="{{ $ad->title }}"
+                data-ad-id="{{ $ad->id }}"
+                data-ad-url="{{ route('frontend.ads.show', $ad) }}"
+                data-ad-description="Special marketplace ad available now."
                 style="width:100%;height:auto;display:block;border-radius:18px;"
               >
             </div>
@@ -448,7 +454,7 @@
                   <div class="festival-ad-slider ad-slider auto-ad-slider h-100" aria-label="Festival Campaign Deals slider">
                     @forelse(($ecommerceSideSliderAds ?? collect()) as $ad)
                       <div class="card h-100 ecommerce-ad-bs-card ecommerce-ad-image-card ad-slide">
-                        <img src="{{ asset($ad->final_image) }}" class="card-img-top ecommerce-ad-full-img" alt="{{ $ad->title }}">
+                        <img src="{{ asset($ad->final_image) }}" class="card-img-top ecommerce-ad-full-img" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
                       </div>
                     @empty
                       <div class="card h-100 ecommerce-ad-bs-card ad-slide">
@@ -521,7 +527,7 @@
                     data-ad-meta="{{ implode(', ', $selectedCategoryNames) }}"
                     data-ad-services="{{ implode(', ', $selectedServiceNames) }}"
                   >
-                    <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}">
+                    <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}" data-ad-id="{{ $recentAd->id }}" data-ad-url="{{ route('frontend.ads.show', $recentAd) }}" data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}">
                     <div class="prod-card-body">
                       <h6 class="mb-1 offer-coupon-title">{{ $recentAd->title }}</h6>
                       <span class="recent-ad-meta">
@@ -565,7 +571,7 @@
               <div class="ad-slider auto-ad-slider combo-deals-slider" data-show-dots="true" data-show-arrows="false" aria-label="Combo deals slider">
                 @forelse(($offerDiscountTopAds ?? collect()) as $ad)
                   <div class="offer-coupon-banner offer-discount-image-slide ad-slide">
-                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-discount-top-image">
+                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-discount-top-image" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
                   </div>
                 @empty
                   <div class="offer-coupon-banner ad-slide">
@@ -682,6 +688,29 @@
                       <a id="adShareInstagram" href="#" target="_blank" class="btn btn-sm offer-share-btn share-instagram">Instagram</a>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <div class="mt-3 border-top pt-3 d-none" id="adReportActions">
+                <button type="button" class="btn btn-outline-danger btn-sm" id="openAdReportPopupBtn">
+                  <i class="fa-regular fa-flag me-1"></i> Report this ad
+                </button>
+              </div>
+              <div class="mt-3 d-none" id="adReportPopupWrap">
+                <div class="ad-report-popup border rounded-3 p-3 bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="h6 mb-0"><i class="fa-regular fa-flag me-1 text-danger"></i>Report this ad</h5>
+                    <button type="button" class="btn btn-sm btn-link text-muted p-0" id="closeAdReportPopupBtn">Close</button>
+                  </div>
+                  @auth
+                    <form id="adReportForm" method="POST" action="#">
+                      @csrf
+                      <textarea name="reason" class="form-control form-control-sm mb-2 ad-report-textarea" rows="3" placeholder="Enter reason for reporting this ad" required></textarea>
+                      <button type="submit" class="btn btn-sm btn-danger">Submit Report</button>
+                    </form>
+                  @else
+                    <p class="mb-0 small text-muted">Please <a href="{{ route('login') }}">login</a> to report this ad.</p>
+                  @endauth
                 </div>
               </div>
             </div>
@@ -803,7 +832,7 @@
         <div class="ad-slider auto-ad-slider top-ad-slider" aria-label="Handpicked local ads slider">
           @forelse(($exploreProductsAds ?? collect()) as $ad)
             <div class="explore-top-banner ad-slide explore-ad-image-slide">
-              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="explore-ad-full-img">
+              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="explore-ad-full-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
             </div>
           @empty
             <div class="explore-top-banner ad-slide">
@@ -855,7 +884,7 @@
             <div class="ad-slider auto-ad-slider top-ad-slider top-vendors-featured-slider" aria-label="Top vendor featured ads slider">
               @forelse(($topVendorsHeaderAds ?? collect()) as $ad)
                 <div class="vendor-top-ad ad-slide top-vendor-image-slide">
-                  <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img">
+                  <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
                 </div>
               @empty
                 <div class="vendor-top-ad ad-slide">
@@ -899,7 +928,7 @@
               <aside class="col-12 col-lg-3 section-side-ad ad-slider auto-ad-slider top-vendor-side-slider" aria-label="Top vendor side ads slider">
                 @forelse(($topVendorsSideAds ?? collect()) as $ad)
                   <div class="side-card ad-slide top-vendor-side-image-card" aria-label="{{ $ad->title }}">
-                    <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+                    <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
                   </div>
                 @empty
                   <div class="side-card ad-slide">
@@ -992,7 +1021,7 @@
                     
                     @forelse(($popularGreenwoodAds ?? collect()) as $ad)
                       <div class="side-card ad-slide ppng-side-image-card" aria-label="{{ $ad->title }}">
-                        <img class="side-card-img ppng-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+                        <img class="side-card-img ppng-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
                       </div>
                     @empty
                     <div class="side-card shadow-sm rounded-4 overflow-hidden border-0">
@@ -1085,7 +1114,7 @@
           <aside class="popular-feature-ad ad-slider auto-ad-slider popular-feature-ad-slider" data-show-arrows="true" aria-label="Popular properties featured ad slider">
             @forelse(($popularPropertiesAds ?? collect()) as $ad)
               <div class="side-card ad-slide popular-properties-image-card" aria-label="{{ $ad->title }}">
-                <img class="side-card-img popular-properties-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+                <img class="side-card-img popular-properties-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
               </div>
             @empty
               <div class="side-card ad-slide">
@@ -1106,7 +1135,7 @@
         <div class="ad-slider auto-ad-slider ad-wide-slider" data-show-arrows="true" data-pause-on-hover="false" aria-label="Sponsored placement campaign slider">
           @forelse(($belowPopularAds ?? collect()) as $ad)
             <div class="ad-wide-content ad-slide ad-wide-image-slide">
-              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img">
+              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
             </div>
           @empty
             <div class="ad-wide-content ad-slide">
@@ -1174,7 +1203,7 @@
           <div class="ad-slider auto-ad-slider builders-side-slider builders-side-slider-1" aria-label="Builder ads slider" data-show-arrows="true" data-pause-on-hover="false">
             @forelse(($buildersDevelopersAds ?? collect()) as $ad)
               <div class="side-card ad-slide builders-side-image-card" aria-label="{{ $ad->title }}">
-                <img class="side-card-img builders-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}">
+                <img class="side-card-img builders-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
               </div>
             @empty
               <div class="side-card ad-slide">
@@ -1195,7 +1224,7 @@
         <div class="ad-slider auto-ad-slider ad-wide-slider" aria-label="Sponsored services slider" data-show-arrows="true">
           @forelse(($belowBuildersAds ?? collect()) as $ad)
             <div class="ad-wide-content ad-slide ad-wide-image-slide">
-              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img">
+              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
             </div>
           @empty
             <div class="ad-wide-content ad-slide">
@@ -1534,6 +1563,11 @@
     const adImageEnlargePreview = document.getElementById('adImageEnlargePreview');
     const adLoginMessageBox = document.getElementById('adLoginMessageBox');
     const adSharePanel = document.getElementById('adSharePanel');
+    const adReportActions = document.getElementById('adReportActions');
+    const adReportForm = document.getElementById('adReportForm');
+    const openAdReportPopupBtn = document.getElementById('openAdReportPopupBtn');
+    const closeAdReportPopupBtn = document.getElementById('closeAdReportPopupBtn');
+    const adReportPopupWrap = document.getElementById('adReportPopupWrap');
 
     if (adModal) {
       document.addEventListener('click', function (event) {
@@ -1545,10 +1579,12 @@
         const adTitle = adImage.getAttribute('alt') || 'Ad Details';
         const adSrc = adImage.getAttribute('src') || '';
         const adCard = adImage.closest('.recent-ad-card');
-        const categoriesMeta = adCard?.dataset.adMeta || '';
-        const servicesMeta = adCard?.dataset.adServices || '';
+        const adContext = adImage.dataset.adId ? adImage : (adCard || adImage.closest('[data-ad-id]'));
+        const adId = adContext?.dataset.adId || '';
+        const categoriesMeta = adCard?.dataset.adMeta || adImage.dataset.adMeta || '';
+        const servicesMeta = adCard?.dataset.adServices || adImage.dataset.adServices || '';
         const adMeta = categoriesMeta || servicesMeta || 'Home Page Advertisement';
-        const adDescription = adCard?.dataset.adDescription || 'You are viewing this ad from the homepage slider/recent ads section.';
+        const adDescription = adContext?.dataset.adDescription || 'You are viewing this ad from the homepage slider/recent ads section.';
 
         document.getElementById('adDetailsModalTitle').textContent = adTitle;
         document.getElementById('adDetailsModalMeta').textContent = adMeta;
@@ -1557,6 +1593,8 @@
         if (!isUserLoggedIn) {
           if (adLoginMessageBox) adLoginMessageBox.classList.remove('d-none');
           if (adSharePanel) adSharePanel.classList.add('d-none');
+          if (adReportActions) adReportActions.classList.add('d-none');
+          if (adReportPopupWrap) adReportPopupWrap.classList.add('d-none');
           document.getElementById('adDetailsModalTitle').textContent = 'You are not logged in';
           document.getElementById('adDetailsModalMeta').textContent = '';
           document.getElementById('adDetailsModalDescription').textContent = '';
@@ -1573,6 +1611,13 @@
         }
         if (adLoginMessageBox) adLoginMessageBox.classList.add('d-none');
         if (adSharePanel) adSharePanel.classList.remove('d-none');
+        if (adReportActions) adReportActions.classList.toggle('d-none', !adId);
+        if (adReportPopupWrap) adReportPopupWrap.classList.add('d-none');
+        if (adReportForm && adId) {
+          adReportForm.action = `{{ url('/ads-market') }}/${adId}/report`;
+          const reportReason = adReportForm.querySelector('textarea[name="reason"]');
+          if (reportReason) reportReason.value = '';
+        }
 
         if (adSrc) {
           adImageEl.src = adSrc;
@@ -1584,7 +1629,7 @@
           adEnlargeBtn.classList.add('d-none');
         }
 
-        const shareUrl = adCard?.dataset.adUrl || window.location.href;
+        const shareUrl = adContext?.dataset.adUrl || adCard?.dataset.adUrl || window.location.href;
         document.getElementById('adShareLink').value = shareUrl;
         document.getElementById('adShareQr').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`;
         document.getElementById('adShareWhatsapp').href = `https://wa.me/?text=${encodeURIComponent('Check this ad: ' + shareUrl)}`;
@@ -1601,6 +1646,21 @@
           new bootstrap.Modal(document.getElementById('adImageEnlargeModal')).show();
         });
       }
+
+
+      if (openAdReportPopupBtn && adReportPopupWrap) {
+        openAdReportPopupBtn.addEventListener('click', function () {
+          adReportPopupWrap.classList.remove('d-none');
+          adReportPopupWrap.querySelector('textarea')?.focus();
+        });
+      }
+
+      if (closeAdReportPopupBtn && adReportPopupWrap) {
+        closeAdReportPopupBtn.addEventListener('click', function () {
+          adReportPopupWrap.classList.add('d-none');
+        });
+      }
+
     }
 
     const offerModal = document.getElementById('offerDetailsModal');
