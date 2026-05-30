@@ -2,10 +2,15 @@
 
 @section('title', 'Manage Website')
 
+@php
+    $vendorStoreCssVersion = file_exists(public_path('assets/css/vendor-store.css')) ? filemtime(public_path('assets/css/vendor-store.css')) : now()->timestamp;
+    $vendorPortalCssVersion = file_exists(public_path('assets/css/vendor-portal.css')) ? filemtime(public_path('assets/css/vendor-portal.css')) : now()->timestamp;
+    $vendorPublicPageJsVersion = file_exists(public_path('assets/js/vendor-public-page.js')) ? filemtime(public_path('assets/js/vendor-public-page.js')) : now()->timestamp;
+@endphp
+
 @push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/vendor-store.css') }}?v={{ now()->timestamp }}">
-<link rel="stylesheet" href="{{ asset('assets/css/vendor-portal.css') }}?v={{ now()->timestamp }}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<link rel="stylesheet" href="{{ asset('assets/css/vendor-store.css') }}?v={{ $vendorStoreCssVersion }}">
+<link rel="stylesheet" href="{{ asset('assets/css/vendor-portal.css') }}?v={{ $vendorPortalCssVersion }}">
 @endpush
 
 @section('content')
@@ -175,7 +180,7 @@
             </div>
             <p class="text-muted small mb-1">Click text to edit</p>
             <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" data-hero-editable="main" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
-            <textarea id="heroSubHeadingCkEditor" class="form-control mt-2" rows="4">{!! old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') !!}</textarea>
+            <div id="heroSubHeadingEditor" class="vendor-live-editable vendor-lite-html-editor mt-2" contenteditable="true" data-sync-target="hero-sub" data-sync-html="1" data-hero-editable="sub" role="textbox" aria-label="Hero subheading">{!! old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') !!}</div>
         </div>
 
         <div class="vendor-form-card mb-4">
@@ -189,7 +194,18 @@
                 <i class="fa-solid fa-circle-info me-1"></i>
                 Visitors open this from Store Header <strong>About Us</strong> and it opens in a new page.
             </div>
-            <textarea name="description" id="vendorAboutUsEditor" class="form-control" rows="10">{{ old('description', $vendor->description) }}</textarea>
+            <div class="vendor-lite-editor" data-lite-editor="about-us">
+                <div class="vendor-lite-editor-toolbar" aria-label="About Us formatting tools">
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-lite-command="bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-lite-command="italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-lite-command="insertUnorderedList" title="Bullet list"><i class="fa-solid fa-list-ul"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-lite-command="insertOrderedList" title="Numbered list"><i class="fa-solid fa-list-ol"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-lite-command="createLink" title="Add link"><i class="fa-solid fa-link"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-lite-command="removeFormat" title="Remove formatting"><i class="fa-solid fa-eraser"></i></button>
+                </div>
+                <div id="vendorAboutUsEditor" class="vendor-lite-html-editor" contenteditable="true" data-lite-editor-target="description" role="textbox" aria-label="About Us page content">{!! old('description', $vendor->description) ?: '<p>Write your About Us content here...</p>' !!}</div>
+                <textarea name="description" id="vendorAboutUsInput" class="d-none" rows="10">{{ old('description', $vendor->description) }}</textarea>
+            </div>
         </div>
 
         <div class="vendor-form-card mb-4">
@@ -250,49 +266,5 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
-<script>
-    if (window.toastr) {
-        toastr.options = {
-            closeButton: true,
-            progressBar: true,
-            positionClass: 'toast-top-right',
-            timeOut: 4000,
-            extendedTimeOut: 2000
-        };
-    }
-
-    if (window.ClassicEditor) {
-        var aboutUsEditor = document.querySelector('#vendorAboutUsEditor');
-        if (aboutUsEditor) {
-            ClassicEditor
-                .create(aboutUsEditor)
-                .catch(function (error) {
-                    console.error(error);
-                });
-        }
-
-        var heroSubHeadingEditor = document.querySelector('#heroSubHeadingCkEditor');
-        if (heroSubHeadingEditor) {
-            ClassicEditor
-                .create(heroSubHeadingEditor, {
-                    toolbar: ['bold', 'italic', 'link', '|', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
-                })
-                .then(function (editor) {
-                    editor.model.document.on('change:data', function () {
-                        var preview = document.querySelector('#heroSubHeadingEditor');
-                        if (preview) preview.innerHTML = editor.getData();
-                        var input = document.querySelector('[data-sync-input="hero-sub"]');
-                        if (input) input.value = editor.getData().trim();
-                    });
-                })
-                .catch(function (error) {
-                    console.error(error);
-                });
-        }
-    }
-</script>
-<script src="{{ asset('assets/js/vendor-public-page.js') }}?v={{ now()->timestamp }}"></script>
+<script src="{{ asset('assets/js/vendor-public-page.js') }}?v={{ $vendorPublicPageJsVersion }}" defer></script>
 @endpush

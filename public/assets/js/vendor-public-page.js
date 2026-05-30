@@ -83,11 +83,23 @@
             window.toastr[type](message);
             return;
         }
-        if (window.jQuery && window.jQuery.toastr && typeof window.jQuery.toastr[type] === 'function') {
-            window.jQuery.toastr[type](message);
-            return;
-        }
-        alert(message);
+
+        var toast = document.createElement('div');
+        var isError = type === 'error';
+        var isWarning = type === 'warning';
+        toast.className = 'vendor-inline-toast alert alert-' + (isError ? 'danger' : (isWarning ? 'warning' : 'success'));
+        toast.setAttribute('role', 'status');
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        window.setTimeout(function () {
+            toast.classList.add('show');
+        }, 10);
+
+        window.setTimeout(function () {
+            toast.classList.remove('show');
+            window.setTimeout(function () { toast.remove(); }, 250);
+        }, 4000);
     }
 
     function parseJsonResponse(res) {
@@ -99,6 +111,34 @@
                 return { message: res.ok ? 'Saved.' : 'Server returned an unexpected response.' };
             }
         });
+    }
+
+    function syncLiteEditor(editor) {
+        if (!editor) return;
+        var targetName = editor.dataset.liteEditorTarget;
+        if (!targetName) return;
+
+        var input = document.querySelector('textarea[name="' + targetName + '"]');
+        if (input) input.value = editor.innerHTML.trim();
+    }
+
+    function syncLiteEditors() {
+        document.querySelectorAll('[data-lite-editor-target]').forEach(syncLiteEditor);
+    }
+
+    function runLiteEditorCommand(command, editor) {
+        if (!command || !editor) return;
+        editor.focus();
+
+        if (command === 'createLink') {
+            var url = window.prompt('Enter the link URL');
+            if (!url) return;
+            document.execCommand(command, false, url);
+        } else {
+            document.execCommand(command, false, null);
+        }
+
+        syncLiteEditor(editor);
     }
 
     function syncEditable(target) {
@@ -1142,6 +1182,7 @@
 
     document.addEventListener('input', function (e) {
         if (e.target.matches('.vendor-live-editable')) syncEditable(e.target);
+        if (e.target.matches('[data-lite-editor-target]')) syncLiteEditor(e.target);
         if (e.target.matches('[data-social-input]')) syncSocialLinksPreview();
     });
 
@@ -1203,6 +1244,19 @@
 
         var block = e.target.closest('.vendor-section-block');
         moveSection(block, moveUpBtn ? 'up' : 'down');
+    });
+
+    document.addEventListener('mousedown', function (e) {
+        if (e.target.closest('[data-lite-command]')) e.preventDefault();
+    });
+
+    document.addEventListener('click', function (e) {
+        var liteCommandBtn = e.target.closest('[data-lite-command]');
+        if (!liteCommandBtn) return;
+
+        var editorWrap = liteCommandBtn.closest('[data-lite-editor]');
+        var editor = editorWrap?.querySelector('[data-lite-editor-target]');
+        runLiteEditorCommand(liteCommandBtn.dataset.liteCommand, editor);
     });
 
     document.addEventListener('change', function (e) {
@@ -1504,6 +1558,7 @@
     setActiveHeroEditable(document.querySelector('[data-hero-editable="main"]'));
     initSectionFields();
     syncSocialLinksPreview();
+    syncLiteEditors();
 
     publicPageForm?.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -1511,6 +1566,7 @@
         document.querySelectorAll('.vendor-live-editable[data-sync-target]').forEach(function (el) {
             syncEditable(el);
         });
+        syncLiteEditors();
 
         var saveBtn = document.getElementById('publicPageSaveBtn');
         var oldHtml = saveBtn ? saveBtn.innerHTML : '';
