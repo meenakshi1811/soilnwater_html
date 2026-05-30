@@ -16,31 +16,15 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3 col-6">
-            <div class="stat-card stat-purple text-center h-100">
-                <p class="small mb-1 text-white-50">Products</p>
-                <h3 class="mb-0 text-white">{{ $stats['products'] }}</h3>
-                <span class="badge bg-white text-dark mt-2">Static preview</span>
+        @foreach($stats as $stat)
+            <div class="col-md-3 col-6">
+                <a href="{{ $stat['url'] }}" class="stat-card {{ $stat['class'] }} text-center h-100 d-block text-decoration-none">
+                    <p class="small mb-1 text-white-50">{{ $stat['label'] }}</p>
+                    <h3 class="mb-1 text-white">{{ number_format($stat['value']) }}</h3>
+                    <span class="stat-detail text-white-50">{{ $stat['detail'] }}</span>
+                </a>
             </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="stat-card stat-blue text-center h-100">
-                <p class="small mb-1 text-white-50">Branches</p>
-                <h3 class="mb-0 text-white">{{ $stats['branches'] }}</h3>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="stat-card stat-cyan text-center h-100">
-                <p class="small mb-1 text-white-50">Banner slides</p>
-                <h3 class="mb-0 text-white">{{ $stats['banner_slides'] }}</h3>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="stat-card stat-orange text-center h-100">
-                <p class="small mb-1 text-white-50">Page sections</p>
-                <h3 class="mb-0 text-white">{{ $stats['page_sections'] }}</h3>
-            </div>
-        </div>
+        @endforeach
     </div>
 
     <div class="row g-4">
@@ -96,6 +80,18 @@
     padding: 1.1rem;
     border: 0;
     box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+}
+.vendor-dashboard-redesign .stat-card {
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+.vendor-dashboard-redesign .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, .18);
+}
+.vendor-dashboard-redesign .stat-detail {
+    display: block;
+    font-size: .72rem;
+    line-height: 1.35;
 }
 .vendor-dashboard-redesign .stat-purple { background: linear-gradient(135deg, #9333ea, #7e22ce); }
 .vendor-dashboard-redesign .stat-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
