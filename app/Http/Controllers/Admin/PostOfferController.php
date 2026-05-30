@@ -87,9 +87,9 @@ class PostOfferController extends Controller
             'banner_image'      => 'nullable|required_without:generated_banner_data|image|mimes:jpg,jpeg,png,webp|max:2048',
             'generated_banner_data' => 'nullable|required_without:banner_image|string',
             'short_description' => 'nullable|string|max:300',
-            'location'          => 'nullable|string|max:255|required_with:location_lat,location_lng',
-            'location_lat'      => 'nullable|numeric|between:-90,90|required_with:location,location_lng',
-            'location_lng'      => 'nullable|numeric|between:-180,180|required_with:location,location_lat',
+            'location'          => 'required|string|max:255',
+            'location_lat'      => 'required|numeric|between:-90,90',
+            'location_lng'      => 'required|numeric|between:-180,180',
             'accept_terms'      => 'accepted',
         ]);
 
@@ -304,9 +304,9 @@ class PostOfferController extends Controller
                 ],
                 'subcategory_id' => ['nullable', Rule::exists('categories', 'id')],
                 'short_description' => 'nullable|string|max:300',
-                'location' => 'nullable|string|max:255|required_with:location_lat,location_lng',
-                'location_lat' => 'nullable|numeric|between:-90,90|required_with:location,location_lng',
-                'location_lng' => 'nullable|numeric|between:-180,180|required_with:location,location_lat',
+                'location' => 'required|string|max:255',
+                'location_lat' => 'required|numeric|between:-90,90',
+                'location_lng' => 'required|numeric|between:-180,180',
                 'banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
                 'accept_terms' => 'accepted',
             ]);
