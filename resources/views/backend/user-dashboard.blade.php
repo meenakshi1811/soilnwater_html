@@ -9,8 +9,18 @@
             <h2 class="admin-title mb-1">User Dashboard</h2>
             <p class="mb-0">Your listings and activity at a glance.</p>
         </div>
-        <a href="{{ route('user.profile.edit') }}" class="btn btn-primary">Update Profile</a>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('user.profile.edit') }}" class="btn btn-primary">Update Profile</a>
+            <form method="POST" action="{{ route('user.convert-to-vendor') }}" onsubmit="return confirm('Convert your user profile to a vendor account and send it to admin for approval?');">
+                @csrf
+                <button type="submit" class="btn btn-outline-primary">Become a Vendor</button>
+            </form>
+        </div>
     </div>
+
+    @if (session('status'))
+        <div class="alert alert-success">{{ session('status') }}</div>
+    @endif
 
     <div class="section-label">Overview</div>
     <div class="row g-3 mb-4">

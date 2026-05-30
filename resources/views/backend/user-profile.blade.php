@@ -10,6 +10,19 @@
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
 
+    <div class="card admin-table-card mb-4">
+        <div class="card-body d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+            <div>
+                <h5 class="mb-1">Want to sell on SoilNWater?</h5>
+                <p class="mb-0 text-secondary">Convert your profile to a vendor account. Your vendor profile will be sent to the admin team for approval before the vendor portal is unlocked.</p>
+            </div>
+            <form method="POST" action="{{ route('user.convert-to-vendor') }}" onsubmit="return confirm('Convert your user profile to a vendor account and send it to admin for approval?');">
+                @csrf
+                <button type="submit" class="btn btn-outline-primary">Convert to Vendor</button>
+            </form>
+        </div>
+    </div>
+
     <div class="card admin-table-card">
         <div class="card-body">
             <div id="userProfileAlert" class="alert d-none" role="alert"></div>
