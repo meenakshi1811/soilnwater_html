@@ -97,21 +97,25 @@ class Vendor extends Model
 
     public function formattedAddress(): string
     {
+        $branch = $this->relationLoaded('branches')
+            ? ($this->branches->firstWhere('is_primary', true) ?: $this->branches->first())
+            : $this->branches()->first();
+
         $parts = array_filter([
-            $this->address ?: $this->user?->address,
-            $this->city ?: $this->user?->city,
-            $this->state,
-            $this->pincode ?: $this->user?->pincode,
+            $branch?->address ?: $this->address ?: $this->user?->address,
+            $branch?->city ?: $this->city ?: $this->user?->city,
+            $branch?->state ?: $this->state,
+            $branch?->pincode ?: $this->pincode ?: $this->user?->pincode,
         ], fn ($part) => filled($part));
 
         $uniqueParts = [];
 
         foreach ($parts as $part) {
             $part = trim((string) $part);
-            $normalizedPart = mb_strtolower($part);
+            $normalizedPart = Str::lower($part);
 
             $alreadyIncluded = collect($uniqueParts)->contains(function (string $existingPart) use ($normalizedPart) {
-                return str_contains(mb_strtolower($existingPart), $normalizedPart);
+                return str_contains(Str::lower($existingPart), $normalizedPart);
             });
 
             if (! $alreadyIncluded) {
