@@ -51,7 +51,7 @@ class TermsAndConditionController extends Controller
                 return $item->updated_at?->format('Y-m-d H:i');
             })
             ->addColumn('content_preview', function (TermsAndCondition $item): string {
-                return e(mb_strimwidth(trim(strip_tags($item->content)), 0, 120, '...'));
+                return $this->contentPreview($item->content);
             })
             ->addColumn('actions', function (TermsAndCondition $item): string {
                 return '<div class="d-flex gap-2 justify-content-end">'
@@ -134,6 +134,35 @@ class TermsAndConditionController extends Controller
         return response()->json([
             'message' => 'Terms and conditions deleted successfully.',
         ]);
+    }
+
+    private function contentPreview(string $content): string
+    {
+        $plainText = $this->decodeHtmlEntities($this->replaceHtmlTagsWithSpaces($content));
+        $plainText = $this->replaceHtmlTagsWithSpaces($plainText);
+        $plainText = preg_replace('/\s+/u', ' ', $plainText) ?? $plainText;
+
+        return mb_strimwidth(trim($plainText), 0, 120, '...');
+    }
+
+    private function decodeHtmlEntities(string $content): string
+    {
+        for ($i = 0; $i < 3; $i++) {
+            $decoded = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            if ($decoded === $content) {
+                break;
+            }
+
+            $content = $decoded;
+        }
+
+        return $content;
+    }
+
+    private function replaceHtmlTagsWithSpaces(string $content): string
+    {
+        return preg_replace('/<[^>]*>/', ' ', $content) ?? $content;
     }
 
     private function validateData(Request $request, ?TermsAndCondition $termsAndCondition = null): array
