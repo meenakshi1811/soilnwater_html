@@ -16,7 +16,7 @@
                 <h5 class="mb-1">Want to sell on SoilNWater?</h5>
                 <p class="mb-0 text-secondary">Convert your profile to a vendor account. Your vendor profile will be sent to the admin team for approval before the vendor portal is unlocked.</p>
             </div>
-            <form method="POST" action="{{ route('user.convert-to-vendor') }}" onsubmit="return confirm('Convert your user profile to a vendor account and send it to admin for approval?');">
+            <form method="POST" action="{{ route('user.convert-to-vendor') }}" class="js-convert-vendor-form">
                 @csrf
                 <button type="submit" class="btn btn-outline-primary">Convert to Vendor</button>
             </form>
@@ -75,8 +75,37 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+@endpush
+
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
+<script>
+    $(function () {
+        $('.js-convert-vendor-form').on('submit', function (event) {
+            event.preventDefault();
+
+            var form = this;
+
+            Swal.fire({
+                title: 'Convert to vendor?',
+                text: 'Convert your user profile to a vendor account and send it to admin for approval?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, convert',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#0d6efd',
+                cancelButtonColor: '#6c757d'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
 @endpush
