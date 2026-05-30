@@ -27,18 +27,31 @@
                     <dt class="col-sm-4">Phone / WhatsApp</dt><dd class="col-sm-8">{{ $vendor->phone ?? '—' }} / {{ $vendor->whatsapp ?? '—' }}</dd>
                     <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ $vendor->email ?? '—' }}</dd>
                     <dt class="col-sm-4">Address</dt><dd class="col-sm-8">{{ $vendor->address }}, {{ $vendor->city }}, {{ $vendor->state }} {{ $vendor->pincode }}</dd>
-                    <dt class="col-sm-4">PAN / GST</dt><dd class="col-sm-8">{{ $vendor->pan_number ?? '—' }} / {{ $vendor->gst_number ?? '—' }}</dd>
                     <dt class="col-sm-4">Store URL</dt><dd class="col-sm-8"><a href="{{ route('store.show', $vendor->slug) }}" target="_blank" rel="noopener noreferrer">{{ route('store.show', $vendor->slug) }}</a></dd>
                 </dl>
             </div>
             <div class="chart-card">
                 <h5 class="mb-3">Branches ({{ $vendor->branches->count() }})</h5>
                 @forelse($vendor->branches as $branch)
-                    <div class="border rounded p-3 mb-2">
-                        <strong>{{ $branch->branch_name }}</strong>
-                        @if($branch->is_primary)<span class="badge text-bg-primary ms-2">Primary</span>@endif
-                        <div class="small text-secondary">{{ $branch->city }}, {{ $branch->state }}</div>
-                    </div>
+                    <details class="border rounded p-3 mb-2">
+                        <summary class="d-flex justify-content-between align-items-start gap-3" style="cursor:pointer">
+                            <span>
+                                <strong>{{ $branch->branch_name }}</strong>
+                                @if($branch->is_primary)<span class="badge text-bg-primary ms-2">Primary</span>@endif
+                                <span class="d-block small text-secondary">{{ $branch->city }}, {{ $branch->state }}</span>
+                            </span>
+                            <span class="small text-primary">View details</span>
+                        </summary>
+                        <dl class="row small mb-0 mt-3">
+                            <dt class="col-sm-4">Contact person</dt><dd class="col-sm-8">{{ $branch->contact_person ?? '—' }}</dd>
+                            <dt class="col-sm-4">Phone</dt><dd class="col-sm-8">{{ $branch->phone ?? '—' }}</dd>
+                            <dt class="col-sm-4">Alternative mobile</dt><dd class="col-sm-8">{{ $branch->alt_mobile_number ?? '—' }}</dd>
+                            <dt class="col-sm-4">WhatsApp</dt><dd class="col-sm-8">{{ $branch->whatsapp ?? '—' }}</dd>
+                            <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ $branch->email ?? '—' }}</dd>
+                            <dt class="col-sm-4">Address</dt><dd class="col-sm-8">{{ $branch->address }}, {{ $branch->city }}, {{ $branch->state }} {{ $branch->pincode }}</dd>
+                            <dt class="col-sm-4">PAN / GST</dt><dd class="col-sm-8">{{ $branch->pan_number ?? '—' }} / {{ $branch->gst_number ?? '—' }}</dd>
+                        </dl>
+                    </details>
                 @empty
                     <p class="text-secondary mb-0">No branches.</p>
                 @endforelse
