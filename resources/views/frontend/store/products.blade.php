@@ -4,7 +4,8 @@
 
 @section('store_content')
 @php
-    $sidebarAds = $sidebarAds ?? collect();
+    $vendorRecentAds = $vendorRecentAds ?? collect();
+    $selectedCategoryNamesByVendorAdId = $selectedCategoryNamesByVendorAdId ?? [];
 @endphp
 
 <section class="vendor-store-page-hero">
@@ -40,9 +41,12 @@
             'vendorCategories' => $vendorCategories,
             'activeCategory' => $activeCategory ?? null,
             'activeSubcategory' => $activeSubcategory ?? null,
-            'sidebarAds' => $sidebarAds,
-            'adsRailId' => 'storeProductsAds',
         ])
     </div>
 </section>
+
+@include('frontend.store.partials.recent-ads-slider', [
+    'ads' => $vendorRecentAds,
+    'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId,
+])
 @endsection

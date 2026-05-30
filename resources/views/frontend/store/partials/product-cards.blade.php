@@ -1,9 +1,10 @@
 @php($resolvedStoreSlug = $storeSlug ?? request()->route('slug'))
 @php($cardStyle = $cardStyle ?? 'default')
 @php($isFeaturedStyle = $cardStyle === 'featured')
+@php($cardColumnClass = $cardColumnClass ?? ($isFeaturedStyle ? 'col-6 col-md-4 col-lg-3 col-xl-2-4' : 'col-6 col-md-6 col-xl-4'))
 
 @forelse($products as $product)
-    <div class="{{ $isFeaturedStyle ? 'col-6 col-md-4 col-lg-3 col-xl-2-4' : 'col-6 col-md-6 col-xl-4' }}">
+    <div class="{{ $cardColumnClass }}">
         <article class="vendor-product-card {{ $isFeaturedStyle ? 'vendor-product-card--featured h-100' : 'h-100' }}">
             @php($image = is_array($product->images) ? ($product->images[0] ?? null) : null)
             <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="vendor-product-card__image-wrap">
