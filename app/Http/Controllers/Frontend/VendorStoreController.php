@@ -44,6 +44,7 @@ class VendorStoreController extends Controller
             'randomFullPagePlacements' => $adsContext['randomFullPagePlacements'],
             'sponsoredFillers' => $adsContext['sponsoredFillers'],
             'vendorRecentAds' => $vendorRecentAds,
+            'similarVendors' => $this->similarVendors($vendor),
             'selectedCategoryNamesByVendorAdId' => $this->resolveSelectedCategoryNamesByAdId($vendorRecentAds),
         ]);
     }
@@ -445,6 +446,50 @@ class VendorStoreController extends Controller
             'activeSubcategory' => $subcategory,
             'sidebarAds' => $adsContext['sidebarAds'],
         ]);
+    }
+
+
+    private function similarVendors(Vendor $vendor, int $limit = 12): Collection
+    {
+        $categoryIds = VendorProduct::query()
+            ->where('vendor_id', $vendor->id)
+            ->where('status', 'approved')
+            ->whereNotNull('category_id')
+            ->pluck('category_id')
+            ->unique()
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->values();
+
+        if ($categoryIds->isEmpty()) {
+            return collect();
+        }
+
+        return Vendor::query()
+            ->where('status', 'approved')
+            ->whereKeyNot($vendor->id)
+            ->whereHas('products', function ($query) use ($categoryIds): void {
+                $query
+                    ->where('status', 'approved')
+                    ->whereIn('category_id', $categoryIds);
+            })
+            ->with([
+                'products' => function ($query) use ($categoryIds): void {
+                    $query
+                        ->where('status', 'approved')
+                        ->whereIn('category_id', $categoryIds)
+                        ->latest('updated_at')
+                        ->select(['id', 'vendor_id', 'name', 'images', 'category_id', 'updated_at']);
+                },
+                'branches:id,vendor_id,branch_name,address,city,state,is_primary',
+                'bannerSlides:id,vendor_id,image_path,sort_order',
+            ])
+            ->withCount(['products as products_count' => fn ($query) => $query->where('status', 'approved')])
+            ->orderByDesc('is_premium')
+            ->latest('updated_at')
+            ->latest('id')
+            ->limit($limit)
+            ->get();
     }
 
     private function resolveVendor(string $slug): Vendor

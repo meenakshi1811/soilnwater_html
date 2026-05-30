@@ -87,6 +87,8 @@
     @include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['before_products'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 @endif
 
+@include('frontend.store.partials.similar-vendors', ['similarVendors' => $similarVendors ?? collect()])
+
 <div class="modal fade" id="storeSectionImageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content bg-dark">

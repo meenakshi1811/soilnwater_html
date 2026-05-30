@@ -1320,3 +1320,34 @@
         padding: 10px 11px 12px;
     }
 }
+
+.vendor-store-similar-vendors-section {
+    background: #f5f9ff;
+    padding-top: 2.25rem;
+}
+
+.vendor-store-similar-vendors-slider {
+    min-height: 310px;
+}
+
+.vendor-store-similar-vendors-slider .ad-slider-arrows {
+    pointer-events: none;
+}
+
+.vendor-store-similar-vendors-slider .ad-slider-arrow {
+    pointer-events: auto;
+}
+
+.vendor-store-similar-vendors-slider .vendor-card {
+    background: #fff;
+}
+
+@media (max-width: 767.98px) {
+    .vendor-store-similar-vendors-section {
+        padding-top: 1.5rem;
+    }
+
+    .vendor-store-similar-vendors-slider {
+        min-height: 285px;
+    }
+}
