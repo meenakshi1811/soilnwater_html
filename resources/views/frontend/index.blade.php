@@ -141,6 +141,7 @@
           <span>OFFERS</span>
         </div>
       </a>
+      {{--
       <a href="">
         <div class="cat-item">
           <div class="cat-icon">
@@ -149,6 +150,7 @@
           <span>E-COMMERCE</span>
         </div>
       </a>
+      --}}
       <a href="{{ route('frontend.vendors.index') }}">
         <div class="cat-item">
           <div class="cat-icon">
@@ -157,6 +159,7 @@
           <span>VENDORS</span>
         </div>
       </a>
+      {{--
       <a href="">
         <div class="cat-item">
           <div class="cat-icon">
@@ -213,6 +216,7 @@
           <span>ENQUIRY</span>
         </div>
       </a>
+      --}}
     </div><!-- /cat-bar-inner -->
   </div>
 </div>
