@@ -48,5 +48,7 @@
 @include('frontend.store.partials.recent-ads-slider', [
     'ads' => $vendorRecentAds,
     'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId,
+    'sectionTitle' => 'Sponsored Ads',
+    'sliderLabel' => 'Sponsored vendor ads slider',
 ])
 @endsection
