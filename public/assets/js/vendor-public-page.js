@@ -14,17 +14,17 @@
     var IMAGE_TEXT_CARD_COUNT = 6;
 
     function imageTextCardPlaceholder(label) {
-        return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">' + label + '</text></svg>');
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="768" height="1080" viewBox="0 0 768 1080"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="%23f8fbff"/><stop offset="1" stop-color="%23dfeaff"/></linearGradient></defs><rect width="768" height="1080" rx="36" fill="url(%23bg)"/><rect x="96" y="176" width="576" height="420" rx="28" fill="%23ffffff" stroke="%23cfe0f5" stroke-width="6"/><circle cx="278" cy="386" r="92" fill="%2392b8ff" opacity="0.8"/><circle cx="424" cy="354" r="118" fill="%23ffd36e" opacity="0.85"/><path d="M190 610h388v116H190z" rx="28" fill="%232f7ed1"/><text x="50%" y="825" dominant-baseline="middle" text-anchor="middle" fill="%231b2b44" font-family="Arial,sans-serif" font-size="54" font-weight="700">' + label + '</text></svg>');
     }
 
     function buildImageTextCardHtml(cardNumber) {
         return '' +
-            '<div class="col-12 col-md-6 col-lg-2">' +
-            '<div class="card h-100">' +
-            '<img src="' + imageTextCardPlaceholder('Card Image ' + cardNumber) + '" class="card-img-top" alt="Card image ' + cardNumber + '" data-card-image-slot="' + cardNumber + '" style="height:180px;object-fit:cover;">' +
-            '<div class="card-body">' +
-            '<h6 class="card-title">Card title ' + cardNumber + '</h6>' +
-            '<p class="card-text">Add short description for this card.</p>' +
+            '<div class="col-12 col-md-6 col-lg-2 vendor-image-text-card-col">' +
+            '<div class="prod-card recent-ad-card vendor-image-text-card h-100">' +
+            '<img src="' + imageTextCardPlaceholder('Card Image ' + cardNumber) + '" alt="Card image ' + cardNumber + '" data-card-image-slot="' + cardNumber + '">' +
+            '<div class="prod-card-body">' +
+            '<h6 class="mb-1 offer-coupon-title">Card title ' + cardNumber + '</h6>' +
+            '<span class="recent-ad-meta"><i class="fa-solid fa-layer-group"></i> Add short description for this card.</span>' +
             '</div></div></div>';
     }
 
@@ -563,12 +563,42 @@
             var slot = index + 1;
             img.setAttribute('data-card-image-slot', String(slot));
             img.setAttribute('alt', img.getAttribute('alt') || ('Card image ' + slot));
+            img.classList.remove('card-img-top');
+            img.style.height = '';
+            img.style.objectFit = '';
 
             var cardCol = img.closest('[class*="col-"]');
             if (cardCol) {
                 cardCol.classList.remove('col-lg-3', 'col-lg-4');
-                cardCol.classList.add('col-lg-2');
+                cardCol.classList.add('col-lg-2', 'vendor-image-text-card-col');
                 changed = true;
+            }
+
+            var card = img.closest('.card, .prod-card, .vendor-image-text-card');
+            if (card) {
+                card.classList.remove('card');
+                card.classList.add('prod-card', 'recent-ad-card', 'vendor-image-text-card', 'h-100');
+            }
+
+            var body = card?.querySelector('.card-body, .prod-card-body');
+            if (body) {
+                body.classList.remove('card-body');
+                body.classList.add('prod-card-body');
+            }
+
+            var title = body?.querySelector('.card-title, .offer-coupon-title, h6');
+            if (title) {
+                title.classList.remove('card-title');
+                title.classList.add('mb-1', 'offer-coupon-title');
+            }
+
+            var text = body?.querySelector('.card-text, .recent-ad-meta');
+            if (text) {
+                text.classList.remove('card-text');
+                text.classList.add('recent-ad-meta');
+                if (!text.querySelector('i')) {
+                    text.innerHTML = '<i class="fa-solid fa-layer-group"></i> ' + text.innerHTML;
+                }
             }
         });
 
@@ -654,8 +684,8 @@
             }
             if (img) {
                 img.src = ev.target.result;
-                img.style.height = '180px';
-                img.style.objectFit = 'cover';
+                img.style.height = '';
+                img.style.objectFit = '';
                 syncEditable(contentEditable);
             }
         };
