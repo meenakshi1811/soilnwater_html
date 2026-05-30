@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\VendorRegistrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
@@ -32,6 +34,43 @@ class UserDashboardController extends Controller
         return view('backend.user-profile', [
             'user' => $request->user(),
         ]);
+    }
+
+    public function convertToVendor(Request $request): RedirectResponse|JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isGeneralUser()) {
+            $message = 'Only user accounts can be converted to vendor accounts.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return redirect()->route('home')->with('status', $message);
+        }
+
+        DB::transaction(function () use ($user): void {
+            $user->forceFill(['role' => 'vendor'])->save();
+
+            $vendor = VendorRegistrationService::createProfileForUser($user->fresh());
+            $vendor->forceFill([
+                'status' => 'pending',
+                'approved_at' => null,
+                'approved_by' => null,
+            ])->save();
+        });
+
+        $message = 'Your profile has been converted to a vendor account and sent to admin for approval.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'redirect' => route('vendor.pending'),
+            ]);
+        }
+
+        return redirect()->route('vendor.pending')->with('status', $message);
     }
 
     public function updateProfile(Request $request): RedirectResponse|JsonResponse

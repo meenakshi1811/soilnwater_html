@@ -101,17 +101,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('dashboard/offers')->name('offers.')->group(function () {
         Route::get('/', [PostOfferController::class, 'offersIndex'])->name('index');
         Route::get('/data', [PostOfferController::class, 'offersData'])->name('data');
-        Route::get('/{offer}/edit', [PostOfferController::class, 'edit'])->name('edit');
+        Route::get('/{offer}/edit', [PostOfferController::class, 'edit'])->middleware('marketplace.approved')->name('edit');
         Route::get('/{offer}', [PostOfferController::class, 'show'])->name('show');
-        Route::put('/{offer}/update-offer-status', [PostOfferController::class, 'updateOfferStatus'])->name('update-offer-status');
-        Route::post('/', [PostOfferController::class, 'store'])->name('store');
-        Route::put('/{offer}', [PostOfferController::class, 'update'])->name('update');
-        Route::delete('/{offer}', [PostOfferController::class, 'destroy'])->name('destroy');
+        Route::put('/{offer}/update-offer-status', [PostOfferController::class, 'updateOfferStatus'])->middleware('marketplace.approved')->name('update-offer-status');
+        Route::post('/', [PostOfferController::class, 'store'])->middleware('marketplace.approved')->name('store');
+        Route::put('/{offer}', [PostOfferController::class, 'update'])->middleware('marketplace.approved')->name('update');
+        Route::delete('/{offer}', [PostOfferController::class, 'destroy'])->middleware('marketplace.approved')->name('destroy');
     });
 
     Route::get('dashboard/offers/categories/{category}/subcategories', [PostOfferController::class, 'subcategories'])
+        ->middleware('marketplace.approved')
         ->name('offers.categories.subcategories');
-    Route::get('/post-offer', [PostOfferController::class, 'index'])->name('post-offer');
+    Route::get('/post-offer', [PostOfferController::class, 'index'])->middleware('marketplace.approved')->name('post-offer');
 
     Route::get('/modules/{module}', [ModuleAccessController::class, 'show'])
         ->where('module', 'ecommerce|vendors|services|properties|builders|consultants|enquiry|products|offers|ads|user_enquiry')
@@ -141,6 +142,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', [UserDashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [UserDashboardController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [UserDashboardController::class, 'updateProfile'])->name('profile.update');
+        Route::post('/convert-to-vendor', [UserDashboardController::class, 'convertToVendor'])->name('convert-to-vendor');
         Route::get('/post-ad', function () {
             return redirect()->to(route('frontend.index').'#post-ad');
         })->name('post-ad');
@@ -149,20 +151,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('dashboard/ads')->name('ads.')->group(function () {
         Route::get('/', [UserAdController::class, 'index'])->name('index');
         Route::get('/data', [UserAdController::class, 'data'])->name('data');
-        Route::get('/categories/{category}/subcategories', [UserAdController::class, 'subcategories'])->name('categories.subcategories');
-        Route::get('/categories/by-modules/filter', [UserAdController::class, 'categoriesByModules'])->name('categories.by-modules');
-        Route::get('/create', [UserAdController::class, 'selectSize'])->name('create.size');
-        Route::post('/request-customization', [UserAdController::class, 'requestCustomization'])->name('request-customization');
-        Route::post('/contact-support', [UserAdController::class, 'contactSupport'])->name('contact-support');
-        Route::get('/create/{sizeType}/customize', [UserAdController::class, 'customizeFromSize'])->name('create.customize.default');
-        Route::post('/create/{sizeType}/pay', [UserAdController::class, 'markSizeAsPaid'])->name('create.size.pay');
-        Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->name('create.template');
-        Route::get('/create/{sizeType}/template/{template}', [UserAdController::class, 'customize'])->name('create.customize');
-        Route::post('/create/{sizeType}', [UserAdController::class, 'store'])->name('store');
+        Route::get('/categories/{category}/subcategories', [UserAdController::class, 'subcategories'])->middleware('marketplace.approved')->name('categories.subcategories');
+        Route::get('/categories/by-modules/filter', [UserAdController::class, 'categoriesByModules'])->middleware('marketplace.approved')->name('categories.by-modules');
+        Route::get('/create', [UserAdController::class, 'selectSize'])->middleware('marketplace.approved')->name('create.size');
+        Route::post('/request-customization', [UserAdController::class, 'requestCustomization'])->middleware('marketplace.approved')->name('request-customization');
+        Route::post('/contact-support', [UserAdController::class, 'contactSupport'])->middleware('marketplace.approved')->name('contact-support');
+        Route::get('/create/{sizeType}/customize', [UserAdController::class, 'customizeFromSize'])->middleware('marketplace.approved')->name('create.customize.default');
+        Route::post('/create/{sizeType}/pay', [UserAdController::class, 'markSizeAsPaid'])->middleware('marketplace.approved')->name('create.size.pay');
+        Route::get('/create/{sizeType}', [UserAdController::class, 'selectTemplate'])->middleware('marketplace.approved')->name('create.template');
+        Route::get('/create/{sizeType}/template/{template}', [UserAdController::class, 'customize'])->middleware('marketplace.approved')->name('create.customize');
+        Route::post('/create/{sizeType}', [UserAdController::class, 'store'])->middleware('marketplace.approved')->name('store');
         Route::get('/view/{ad}', [UserAdController::class, 'show'])->name('show');
-        Route::get('/{ad}/edit', [UserAdController::class, 'edit'])->name('edit');
-        Route::put('/{ad}', [UserAdController::class, 'update'])->name('update');
-        Route::delete('/{ad}', [UserAdController::class, 'destroy'])->name('destroy');
+        Route::get('/{ad}/edit', [UserAdController::class, 'edit'])->middleware('marketplace.approved')->name('edit');
+        Route::put('/{ad}', [UserAdController::class, 'update'])->middleware('marketplace.approved')->name('update');
+        Route::delete('/{ad}', [UserAdController::class, 'destroy'])->middleware('marketplace.approved')->name('destroy');
         Route::get('/{ad}', [UserAdController::class, 'show'])->name('legacy.show');
     });
 
