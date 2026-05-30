@@ -1322,7 +1322,7 @@
     @endif
 
     <!-- Local Sellers CTA -->
-    <div class="seller-highlight seller-highlight-redesign">
+    <!-- <div class="seller-highlight seller-highlight-redesign">
       <div class="seller-highlight-info">
         <span class="seller-badge"><i class="fa-solid fa-check"></i></span>
         <div>
@@ -1339,7 +1339,7 @@
         <button class="btn-yellow">Become a Seller</button>
         <button class="btn-login">Browse Sellers</button>
       </div>
-    </div>
+    </div> -->
 
   </div><!-- /main-col -->
 
@@ -1348,16 +1348,13 @@
 </div><!-- /main-wrap -->
 
 
-<!-- ══════════════════════════════════════════════════
-     TRUSTED BAR
-══════════════════════════════════════════════════ -->
-<div class="trusted-wrap">
+<!-- <div class="trusted-wrap">
   <div class="trusted-bar">
     <div class="trust-item"><span class="trust-icon"><i class="fa-solid fa-shield-heart"></i></span> Trusted Local Sellers</div>
     <div class="trust-item"><span class="trust-icon"><i class="fa-solid fa-earth-asia"></i></span> Nationwide Reach</div>
     <div class="trust-item"><span class="trust-icon"><i class="fa-solid fa-lock"></i></span> Secure Payments</div>
   </div>
-</div>
+</div> -->
 
 
 
