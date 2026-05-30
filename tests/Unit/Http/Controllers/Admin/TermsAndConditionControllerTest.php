@@ -10,14 +10,17 @@ use ReflectionMethod;
 class TermsAndConditionControllerTest extends TestCase
 {
     #[Test]
-    public function content_preview_decodes_html_entities_before_escaping_for_display(): void
+    public function content_preview_returns_decoded_plain_text_for_datatables(): void
     {
         $method = new ReflectionMethod(TermsAndConditionController::class, 'contentPreview');
         $controller = new TermsAndConditionController();
+        $content = '<h1>SOILNWATER VENDOR TERMS &amp;amp; CONDITIONS</h1>'
+            . '<p>Effective Date: 18 April, 2026 These Vendor Terms &amp; Conditions '
+            . '(&amp;quot;Vendor Terms&amp;quot;) go here.</p>';
 
-        $this->assertSame(
-            'Shipping &amp; Handling &lt;script&gt;',
-            $method->invoke($controller, '<p>Shipping &amp; Handling &lt;script&gt;</p>')
-        );
+        $expected = 'SOILNWATER VENDOR TERMS & CONDITIONS Effective Date: 18 April, 2026 '
+            . 'These Vendor Terms & Conditions ("Vendor Terms") ...';
+
+        $this->assertSame($expected, $method->invoke($controller, $content));
     }
 }

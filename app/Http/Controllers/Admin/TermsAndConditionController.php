@@ -138,9 +138,31 @@ class TermsAndConditionController extends Controller
 
     private function contentPreview(string $content): string
     {
-        $plainText = html_entity_decode(strip_tags($content), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $plainText = $this->decodeHtmlEntities($this->replaceHtmlTagsWithSpaces($content));
+        $plainText = $this->replaceHtmlTagsWithSpaces($plainText);
+        $plainText = preg_replace('/\s+/u', ' ', $plainText) ?? $plainText;
 
-        return e(mb_strimwidth(trim($plainText), 0, 120, '...'));
+        return mb_strimwidth(trim($plainText), 0, 120, '...');
+    }
+
+    private function decodeHtmlEntities(string $content): string
+    {
+        for ($i = 0; $i < 3; $i++) {
+            $decoded = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            if ($decoded === $content) {
+                break;
+            }
+
+            $content = $decoded;
+        }
+
+        return $content;
+    }
+
+    private function replaceHtmlTagsWithSpaces(string $content): string
+    {
+        return preg_replace('/<[^>]*>/', ' ', $content) ?? $content;
     }
 
     private function validateData(Request $request, ?TermsAndCondition $termsAndCondition = null): array
