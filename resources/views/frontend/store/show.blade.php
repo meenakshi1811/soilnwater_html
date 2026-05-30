@@ -9,7 +9,6 @@
     $selectedCategoryNamesByVendorAdId = $selectedCategoryNamesByVendorAdId ?? [];
     $randomFullPagePlacements = $randomFullPagePlacements ?? [];
     $sponsoredFillers = $sponsoredFillers ?? [];
-    $recentAdsShown = false;
 @endphp
 
 <section class="vendor-store-hero">
@@ -36,6 +35,8 @@
     </div>
 </section>
 
+@include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
+
 @foreach($vendor->pageSections as $section)
     @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
     <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section {{ $sectionHasVideo ? 'has-video-section' : '' }}">
@@ -53,17 +54,8 @@
             </div>
         </div>
     </section>
-    @if(str_contains((string) $section->content, 'data-card-image-slot') && ! $recentAdsShown)
-        @include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
-        @php($recentAdsShown = true)
-    @else
-        @include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_section_'.$loop->index] ?? null, 'sponsoredFillers' => $sponsoredFillers])
-    @endif
+    @include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_section_'.$loop->index] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 @endforeach
-
-@if(! $recentAdsShown)
-    @include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
-@endif
 
 @if($featuredProducts->isNotEmpty())
     <section class="vendor-store-section vendor-store-featured">
