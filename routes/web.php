@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\OfferPageController;
 use App\Http\Controllers\Frontend\AdsMarketController;
 use App\Http\Controllers\Frontend\AdReportController;
+use App\Http\Controllers\Frontend\OfferReportController;
 use App\Http\Controllers\Frontend\FrontendSearchController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\AdSizeController;
 use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
+use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
 use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\VendorProductApprovalController;
@@ -40,6 +42,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [OfferPageController::class, 'home'])->name('frontend.index');
 Route::get('/offers-market', [OfferPageController::class, 'index'])->name('frontend.offers.index');
 Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
+Route::post('/offers-market/{offer}/report', [OfferReportController::class, 'store'])->middleware(['auth', 'verified'])->name('frontend.offers.report');
 Route::get('/vendors', [OfferPageController::class, 'vendors'])->name('frontend.vendors.index');
 Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
 Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');
@@ -167,6 +170,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [AdminController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
+
+        Route::prefix('offers')->name('offers.')->group(function () {
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::get('/', [AdminOfferReportController::class, 'index'])->name('index');
+                Route::get('/data', [AdminOfferReportController::class, 'data'])->name('data');
+                Route::delete('/offer/{offer}', [AdminOfferReportController::class, 'deleteOffer'])->name('delete-offer');
+            });
+        });
 
         Route::prefix('ads')->name('ads.')->group(function () {
             Route::prefix('templates')->name('templates.')->group(function () {

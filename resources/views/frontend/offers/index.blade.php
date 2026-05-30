@@ -106,6 +106,29 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="mt-3 border-top pt-3 d-none" id="offerReportActions">
+                        <button type="button" class="btn btn-outline-danger btn-sm" id="openOfferReportPopupBtn">
+                            <i class="fa-regular fa-flag me-1"></i> Report this offer
+                        </button>
+                    </div>
+                    <div class="mt-3 d-none" id="offerReportPopupWrap">
+                        <div class="ad-report-popup border rounded-3 p-3 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="h6 mb-0"><i class="fa-regular fa-flag me-1 text-danger"></i>Report this offer</h5>
+                                <button type="button" class="btn btn-sm btn-link text-muted p-0" id="closeOfferReportPopupBtn">Close</button>
+                            </div>
+                            @auth
+                                <form id="offerReportForm" method="POST" action="#">
+                                    @csrf
+                                    <textarea name="reason" class="form-control form-control-sm mb-2 ad-report-textarea" rows="3" placeholder="Enter reason for reporting this offer" required></textarea>
+                                    <button type="submit" class="btn btn-sm btn-danger">Submit Report</button>
+                                </form>
+                            @else
+                                <p class="mb-0 small text-muted">Please <a href="{{ route('login') }}">login</a> to report this offer.</p>
+                            @endauth
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -169,6 +192,11 @@
         const shareWhatsappEl = document.getElementById('offerShareWhatsapp');
         const shareFacebookEl = document.getElementById('offerShareFacebook');
         const shareInstagramEl = document.getElementById('offerShareInstagram');
+        const offerReportActions = document.getElementById('offerReportActions');
+        const offerReportForm = document.getElementById('offerReportForm');
+        const openOfferReportPopupBtn = document.getElementById('openOfferReportPopupBtn');
+        const closeOfferReportPopupBtn = document.getElementById('closeOfferReportPopupBtn');
+        const offerReportPopupWrap = document.getElementById('offerReportPopupWrap');
         const offersGrid = document.getElementById('offersGrid');
         const loadingText = document.getElementById('offersLoadingText');
         const summaryText = document.getElementById('offersSummaryText');
@@ -404,11 +432,21 @@
                 if (shareWhatsappEl) shareWhatsappEl.href = '#';
                 if (shareFacebookEl) shareFacebookEl.href = '#';
                 if (shareInstagramEl) shareInstagramEl.href = '#';
+                if (offerReportActions) offerReportActions.classList.add('d-none');
+                if (offerReportPopupWrap) offerReportPopupWrap.classList.add('d-none');
                 return;
             }
             if (loginMessageBox) loginMessageBox.classList.add('d-none');
             if (validityRowEl) validityRowEl.classList.remove('d-none');
             if (sharePanelEl) sharePanelEl.classList.remove('d-none');
+            const offerId = trigger.getAttribute('data-offer-id') || '';
+            if (offerReportActions) offerReportActions.classList.toggle('d-none', !offerId);
+            if (offerReportPopupWrap) offerReportPopupWrap.classList.add('d-none');
+            if (offerReportForm && offerId) {
+                offerReportForm.action = `{{ url('/offers-market') }}/${offerId}/report`;
+                const reportReason = offerReportForm.querySelector('textarea[name="reason"]');
+                if (reportReason) reportReason.value = '';
+            }
 
             titleEl.textContent = trigger.getAttribute('data-offer-title') || 'Offer Details';
             const couponCode = trigger.getAttribute('data-offer-coupon') || '';
@@ -461,9 +499,16 @@
 
         });
 
-        if (shareToggleBtn && sharePanelEl) {
-            shareToggleBtn.addEventListener('click', function () {
-                sharePanelEl.classList.toggle('d-none');
+        if (openOfferReportPopupBtn && offerReportPopupWrap) {
+            openOfferReportPopupBtn.addEventListener('click', function () {
+                offerReportPopupWrap.classList.remove('d-none');
+                offerReportPopupWrap.querySelector('textarea')?.focus();
+            });
+        }
+
+        if (closeOfferReportPopupBtn && offerReportPopupWrap) {
+            closeOfferReportPopupBtn.addEventListener('click', function () {
+                offerReportPopupWrap.classList.add('d-none');
             });
         }
     })();

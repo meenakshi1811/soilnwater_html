@@ -27,8 +27,38 @@
                 <div class="coupon-code mb-3">{{ strtoupper($offer->coupon_code) }}</div>
             @endif
 
-            <p class="mb-0"><strong>Valid until:</strong> {{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}</p>
+            <p class="mb-3"><strong>Valid until:</strong> {{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}</p>
+            <button
+                type="button"
+                class="btn btn-outline-danger btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#offerDetailReportModal"
+            >
+                <i class="fa-regular fa-flag me-1"></i> Report this offer
+            </button>
         </div>
     </article>
+</div>
+
+<div class="modal fade" id="offerDetailReportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title h5 mb-0"><i class="fa-regular fa-flag me-1 text-danger"></i>Report this offer</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @auth
+                    <form method="POST" action="{{ route('frontend.offers.report', $offer) }}">
+                        @csrf
+                        <textarea name="reason" class="form-control mb-2" rows="4" placeholder="Enter reason for reporting this offer" required></textarea>
+                        <button type="submit" class="btn btn-danger btn-sm">Submit Report</button>
+                    </form>
+                @else
+                    <p class="mb-0 small text-muted">Please <a href="{{ route('login') }}">login</a> to report this offer.</p>
+                @endauth
+            </div>
+        </div>
+    </div>
 </div>
 @endsection

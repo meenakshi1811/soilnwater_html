@@ -6,7 +6,7 @@
     $isVendor = auth()->user()->isVendor();
     $vendorApproved = $isVendor && auth()->user()->vendor?->isApproved();
     $canAccessOffers = $isAdmin || $isGeneralUser || auth()->user()->canModule('vendors', 'read');
-    $offersMenuActive = request()->routeIs('offers.*');
+    $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
     $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
@@ -121,6 +121,12 @@
                             <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
                                 <i class="fa-solid fa-list"></i>
                                 <span>All Offers</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.offers.reports.*') ? 'active' : '' }}" href="{{ route('admin.offers.reports.index') }}">
+                                <i class="fa-regular fa-flag"></i>
+                                <span>Report Offers</span>
                             </a>
                         </li>
                     </ul>

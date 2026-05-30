@@ -6,6 +6,7 @@
             tabindex="0"
             data-bs-toggle="modal"
             data-bs-target="#offerDetailsModal"
+            data-offer-id="{{ $offer->id }}"
             data-offer-title="{{ $offer->title }}"
             data-offer-discount="{{ $offer->discount_tag }}"
             data-offer-description="{{ $offer->short_description ?: 'Special marketplace offer available now.' }}"
