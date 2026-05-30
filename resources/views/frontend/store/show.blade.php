@@ -37,7 +37,8 @@
 </section>
 
 @foreach($vendor->pageSections as $section)
-    <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section">
+    @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
+    <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section {{ $sectionHasVideo ? 'has-video-section' : '' }}">
         <div class="container">
             <div class="vendor-section-title-display">{!! $section->title !!}</div>
             <div class="row g-4 align-items-center">
@@ -109,29 +110,6 @@
     }
     .content-body [data-brochure-image-slot] {
         cursor: zoom-in;
-    }
-    .content-body .row:has([data-card-image-slot]) {
-        display: flex;
-        flex-wrap: nowrap;
-    }
-    .content-body .row:has([data-card-image-slot]) > [class*="col-"] {
-        flex: 0 0 16.666667%;
-        max-width: 16.666667%;
-    }
-    @media (max-width: 991.98px) {
-        .content-body .row:has([data-card-image-slot]) {
-            flex-wrap: wrap;
-        }
-        .content-body .row:has([data-card-image-slot]) > [class*="col-"] {
-            flex: 0 0 50%;
-            max-width: 50%;
-        }
-    }
-    @media (max-width: 575.98px) {
-        .content-body .row:has([data-card-image-slot]) > [class*="col-"] {
-            flex-basis: 100%;
-            max-width: 100%;
-        }
     }
 </style>
 
