@@ -206,7 +206,7 @@ class VendorPublicPageController extends Controller
                 }
                 $filename = uniqid('section-video-', true).'.'.$videoFile->getClientOriginalExtension();
                 $videoFile->move($directory, $filename);
-                $content .= '<div class="vendor-section-video mt-3"><video controls preload="metadata" style="width:100%;max-width:100%;border-radius:12px"><source src="'.asset('uploads/vendors/sections/videos/'.$filename).'"></video></div>';
+                $content .= '<div class="vendor-section-video mt-3"><video controls preload="metadata"><source src="'.asset('uploads/vendors/sections/videos/'.$filename).'"></video></div>';
             } elseif (! empty($sectionData['youtube_url'])) {
                 $youtubeUrl = e((string) $sectionData['youtube_url']);
                 $content .= '<div class="vendor-section-video mt-3"><div class="ratio ratio-16x9"><iframe src="'.$youtubeUrl.'" title="Section video" allowfullscreen loading="lazy"></iframe></div></div>';
