@@ -11,7 +11,9 @@
     var bannerDeleteBase = publicPageForm?.dataset.bannerDeleteUrl || '/vendor/banner-slides/';
     var activeSectionEditable = null;
     var activeHeroEditable = null;
+    var heroSubHeadingEditorInstance = null;
     var IMAGE_TEXT_CARD_COUNT = 6;
+    var HERO_TEXT_WORD_LIMIT = 500;
 
     function imageTextCardPlaceholder(label) {
         return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="768" height="1080" viewBox="0 0 768 1080"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="%23f8fbff"/><stop offset="1" stop-color="%23dfeaff"/></linearGradient></defs><rect width="768" height="1080" rx="36" fill="url(%23bg)"/><rect x="96" y="176" width="576" height="420" rx="28" fill="%23ffffff" stroke="%23cfe0f5" stroke-width="6"/><circle cx="278" cy="386" r="92" fill="%2392b8ff" opacity="0.8"/><circle cx="424" cy="354" r="118" fill="%23ffd36e" opacity="0.85"/><path d="M190 610h388v116H190z" rx="28" fill="%232f7ed1"/><text x="50%" y="825" dominant-baseline="middle" text-anchor="middle" fill="%231b2b44" font-family="Arial,sans-serif" font-size="54" font-weight="700">' + label + '</text></svg>');
@@ -26,6 +28,100 @@
             '<h6 class="mb-1 offer-coupon-title">Card title ' + cardNumber + '</h6>' +
             '<span class="recent-ad-meta"><i class="fa-solid fa-layer-group"></i> Add short description for this card.</span>' +
             '</div></div></div>';
+    }
+
+    function textFromHtml(value) {
+        var wrap = document.createElement('div');
+        wrap.innerHTML = value || '';
+        return wrap.textContent || wrap.innerText || '';
+    }
+
+    function countWords(value) {
+        var text = textFromHtml(value).replace(/\s+/g, ' ').trim();
+        return text ? text.split(' ').length : 0;
+    }
+
+    function updateHeroWordCounter(key, value) {
+        var counter = document.querySelector('[data-hero-word-counter="' + key + '"]');
+        if (!counter) return;
+
+        var total = countWords(value || '');
+        counter.textContent = total + ' / ' + HERO_TEXT_WORD_LIMIT + ' words';
+        counter.classList.toggle('text-danger', total > HERO_TEXT_WORD_LIMIT);
+        counter.classList.toggle('fw-semibold', total > HERO_TEXT_WORD_LIMIT);
+    }
+
+    function updateAllHeroWordCounters() {
+        document.querySelectorAll('[data-hero-editable][data-sync-target]').forEach(function (editable) {
+            var value = editable.id === 'heroSubHeadingEditor' && heroSubHeadingEditorInstance
+                ? heroSubHeadingEditorInstance.getData()
+                : editable.innerHTML;
+            updateHeroWordCounter(editable.dataset.syncTarget, value);
+        });
+    }
+
+    function getHeroDisplayEditable(editable) {
+        if (editable && editable.id === 'heroSubHeadingEditor' && heroSubHeadingEditorInstance) {
+            return heroSubHeadingEditorInstance.ui.view.editable.element;
+        }
+
+        return editable;
+    }
+
+    function applyHeroStyle(editable, prop, value) {
+        if (!editable) return;
+        editable.style[prop] = value;
+
+        var displayEditable = getHeroDisplayEditable(editable);
+        if (displayEditable && displayEditable !== editable) {
+            displayEditable.style[prop] = value;
+        }
+    }
+
+    function syncHeroSubHeadingEditor() {
+        var source = document.getElementById('heroSubHeadingEditor');
+        if (!source || !heroSubHeadingEditorInstance) return;
+
+        source.innerHTML = heroSubHeadingEditorInstance.getData();
+        syncEditable(source);
+        updateHeroWordCounter(source.dataset.syncTarget, source.innerHTML);
+    }
+
+    function initHeroSubHeadingEditor() {
+        var source = document.getElementById('heroSubHeadingEditor');
+        if (!source || !window.ClassicEditor) {
+            updateAllHeroWordCounters();
+            return;
+        }
+
+        window.ClassicEditor
+            .create(source, {
+                toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo']
+            })
+            .then(function (editor) {
+                heroSubHeadingEditorInstance = editor;
+                var editableElement = editor.ui.view.editable.element;
+
+                if (editableElement) {
+                    editableElement.style.color = source.style.color || '';
+                    editableElement.style.fontSize = source.style.fontSize || '';
+                    editableElement.style.fontWeight = source.style.fontWeight || '';
+                    editableElement.style.fontFamily = source.style.fontFamily || '';
+                    editableElement.addEventListener('focus', function () {
+                        setActiveHeroEditable(source);
+                    });
+                    editableElement.addEventListener('click', function () {
+                        setActiveHeroEditable(source);
+                    });
+                }
+
+                editor.model.document.on('change:data', syncHeroSubHeadingEditor);
+                syncHeroSubHeadingEditor();
+            })
+            .catch(function () {
+                showToast('warning', 'Subheading editor could not load. Plain text editing is still available.');
+                updateAllHeroWordCounters();
+            });
     }
 
     
@@ -1181,7 +1277,10 @@
     });
 
     document.addEventListener('input', function (e) {
-        if (e.target.matches('.vendor-live-editable')) syncEditable(e.target);
+        if (e.target.matches('.vendor-live-editable')) {
+            syncEditable(e.target);
+            if (e.target.matches('[data-hero-editable]')) updateHeroWordCounter(e.target.dataset.syncTarget, e.target.innerHTML);
+        }
         if (e.target.matches('[data-lite-editor-target]')) syncLiteEditor(e.target);
         if (e.target.matches('[data-social-input]')) syncSocialLinksPreview();
     });
@@ -1266,7 +1365,7 @@
                 return;
             }
             var prop = e.target.dataset.heroStyle;
-            activeHeroEditable.style[prop] = e.target.value;
+            applyHeroStyle(activeHeroEditable, prop, e.target.value);
             var syncTarget = activeHeroEditable.dataset.syncTarget;
             syncStyleInput(syncTarget, prop, e.target.value);
             syncEditable(activeHeroEditable);
@@ -1420,7 +1519,7 @@
             var heroProp = heroToggleBtn.dataset.heroToggle;
             var heroActiveValue = heroToggleBtn.dataset.heroToggleValue;
             var next = activeHeroEditable.style[heroProp] === heroActiveValue ? '' : heroActiveValue;
-            activeHeroEditable.style[heroProp] = next;
+            applyHeroStyle(activeHeroEditable, heroProp, next);
             syncStyleInput(activeHeroEditable.dataset.syncTarget, heroProp, next);
             syncEditable(activeHeroEditable);
             heroToggleBtn.classList.toggle('active', next === heroActiveValue);
@@ -1555,13 +1654,17 @@
     renderBannerThumbs();
     refreshSectionOrderLabels();
     initHeroStyleControls();
+    initHeroSubHeadingEditor();
     setActiveHeroEditable(document.querySelector('[data-hero-editable="main"]'));
+    updateAllHeroWordCounters();
     initSectionFields();
     syncSocialLinksPreview();
     syncLiteEditors();
 
     publicPageForm?.addEventListener('submit', function (e) {
         e.preventDefault();
+
+        syncHeroSubHeadingEditor();
 
         document.querySelectorAll('.vendor-live-editable[data-sync-target]').forEach(function (el) {
             syncEditable(el);
