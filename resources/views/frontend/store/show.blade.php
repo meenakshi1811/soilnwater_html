@@ -29,9 +29,9 @@
 
 <section class="vendor-hero-text-section">
     <div class="container">
-        <h1 style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{{ $vendor->hero_main_heading ?: $vendor->publicDisplayName() }}</h1>
+        <h1 style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->filter(fn($v) => filled($v))->map(fn($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)->implode(';') }}@endif">{{ $vendor->hero_main_heading ?: $vendor->publicDisplayName() }}</h1>
         @if($vendor->hero_sub_heading)
-            <p class="lead mb-0 opacity-90" style="white-space: pre-line;@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->map(fn($v,$k)=>$k.':'.$v)->implode(';') }}@endif">{!! html_entity_decode($vendor->hero_sub_heading) !!}</p>
+            <p class="lead mb-0 opacity-90" style="white-space: pre-line;@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->filter(fn($v) => filled($v))->map(fn($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)->implode(';') }}@endif">{!! html_entity_decode($vendor->hero_sub_heading) !!}</p>
         @endif
     </div>
 </section>
