@@ -31,8 +31,8 @@ class VendorPublicPageController extends Controller
         $vendor = auth()->user()->vendor;
 
         $validated = $request->validate([
-            'hero_main_heading' => ['nullable', 'string', 'max:255'],
-            'hero_sub_heading' => ['nullable', 'string', 'max:500'],
+            'hero_main_heading' => ['nullable', 'string', $this->maxWordsRule('main heading', 500)],
+            'hero_sub_heading' => ['nullable', 'string', $this->maxWordsRule('subheading', 500)],
             'hero_main_style' => ['nullable', 'array'],
             'hero_main_style.*' => ['nullable', 'string', 'max:255'],
             'hero_sub_style' => ['nullable', 'array'],
@@ -289,6 +289,19 @@ class VendorPublicPageController extends Controller
         foreach ($this->extractManagedPaths($content) as $relativePath) {
             VendorFileUploader::deleteIfExists($relativePath);
         }
+    }
+
+    private function maxWordsRule(string $label, int $limit): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) use ($label, $limit): void {
+            $plainText = trim((string) preg_replace('/\s+/u', ' ', strip_tags(html_entity_decode((string) $value))));
+            preg_match_all('/\S+/u', $plainText, $words);
+            $wordCount = count($words[0] ?? []);
+
+            if ($wordCount > $limit) {
+                $fail('The hero '.$label.' may not be greater than '.$limit.' words.');
+            }
+        };
     }
 
     private function extractManagedPaths(string $html): array

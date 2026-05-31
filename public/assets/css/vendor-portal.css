@@ -339,8 +339,13 @@
     box-shadow: inset 0 0 0 2px rgba(13, 110, 253, 0.2);
 }
 
-#heroSubHeadingEditor.vendor-lite-html-editor {
+#heroSubHeadingEditor.vendor-lite-html-editor,
+.vendor-public-live-editor .ck-editor__editable_inline {
     min-height: 110px;
+}
+
+.vendor-public-live-editor .ck-editor {
+    color: #111827;
 }
 
 .vendor-section-style-panel {
