@@ -818,6 +818,27 @@
               </div>
             </div>
 
+            <div class="offer-share-panel mt-4" id="offerSharePanel">
+              <div class="offer-share-panel-head">
+                <h4 class="offer-share-title mb-1">Share this offer</h4>
+                <p class="offer-share-subtitle mb-0">Send this deal quickly using QR or social channels.</p>
+              </div>
+              <div class="offer-share-panel-body">
+                <div class="offer-share-qr-wrap">
+                  <img id="offerShareQr" src="" alt="Offer QR code" class="offer-share-qr">
+                </div>
+                <div class="offer-share-links-wrap">
+                  <label for="offerShareLink" class="offer-share-link-label">Offer link</label>
+                  <input type="text" id="offerShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
+                  <div class="d-flex flex-wrap gap-2 mt-2">
+                    <a id="offerShareWhatsapp" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-whatsapp"><i class="fa-brands fa-whatsapp me-1"></i>WhatsApp</a>
+                    <a id="offerShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
+                    <a id="offerShareInstagram" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="mt-3 border-top pt-3 d-none" id="offerReportActions">
               <button type="button" class="btn btn-outline-danger btn-sm" id="openOfferReportPopupBtn">
                 <i class="fa-regular fa-flag me-1"></i> Report this offer
@@ -1658,7 +1679,7 @@
         document.getElementById('adShareQr').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`;
         document.getElementById('adShareWhatsapp').href = `https://wa.me/?text=${encodeURIComponent('Check this ad: ' + shareUrl)}`;
         document.getElementById('adShareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-        document.getElementById('adShareInstagram').href = shareUrl;
+        document.getElementById('adShareInstagram').href = `https://www.instagram.com/?url=${encodeURIComponent(shareUrl)}`;
 
         new bootstrap.Modal(adModal).show();
       });
@@ -1689,7 +1710,6 @@
 
     const offerModal = document.getElementById('offerDetailsModal');
     if (!offerModal) return;
-    const isLoggedIn = @json(auth()->check());
     const titleEl = document.getElementById('offerDetailsModalTitle');
     const discountEl = document.getElementById('offerDetailsModalDiscount');
     const descriptionEl = document.getElementById('offerDetailsModalDescription');
@@ -1698,6 +1718,12 @@
     const validityRowEl = document.getElementById('offerDetailsModalValidityRow');
     const imageEl = document.getElementById('offerDetailsModalImage');
     const loginMessageBox = document.getElementById('offerLoginMessageBox');
+    const sharePanelEl = document.getElementById('offerSharePanel');
+    const shareLinkEl = document.getElementById('offerShareLink');
+    const shareQrEl = document.getElementById('offerShareQr');
+    const shareWhatsappEl = document.getElementById('offerShareWhatsapp');
+    const shareFacebookEl = document.getElementById('offerShareFacebook');
+    const shareInstagramEl = document.getElementById('offerShareInstagram');
     const offerReportActions = document.getElementById('offerReportActions');
     const offerReportForm = document.getElementById('offerReportForm');
     const openOfferReportPopupBtn = document.getElementById('openOfferReportPopupBtn');
@@ -1743,12 +1769,19 @@
         couponEl.classList.add('d-none');
         imageEl.src = '';
         imageEl.classList.add('d-none');
+        if (sharePanelEl) sharePanelEl.classList.add('d-none');
+        if (shareLinkEl) shareLinkEl.value = '';
+        if (shareQrEl) shareQrEl.src = '';
+        if (shareWhatsappEl) shareWhatsappEl.href = '#';
+        if (shareFacebookEl) shareFacebookEl.href = '#';
+        if (shareInstagramEl) shareInstagramEl.href = '#';
         if (offerReportActions) offerReportActions.classList.add('d-none');
         if (offerReportPopupWrap) offerReportPopupWrap.classList.add('d-none');
         return;
       }
       if (loginMessageBox) loginMessageBox.classList.add('d-none');
       if (validityRowEl) validityRowEl.classList.remove('d-none');
+      if (sharePanelEl) sharePanelEl.classList.remove('d-none');
       const offerId = trigger.getAttribute('data-offer-id') || '';
       if (offerReportActions) offerReportActions.classList.toggle('d-none', !offerId);
       if (offerReportPopupWrap) offerReportPopupWrap.classList.add('d-none');
@@ -1773,6 +1806,8 @@
       }
 
       const bannerImage = trigger.getAttribute('data-offer-image');
+      const offerUrl = trigger.getAttribute('data-offer-url') || window.location.href;
+      const encodedOfferUrl = encodeURIComponent(offerUrl);
       if (bannerImage) {
         imageEl.src = bannerImage;
         imageEl.classList.remove('d-none');
@@ -1780,6 +1815,12 @@
         imageEl.src = '';
         imageEl.classList.add('d-none');
       }
+
+      if (shareLinkEl) shareLinkEl.value = offerUrl;
+      if (shareQrEl) shareQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=224x224&data=${encodedOfferUrl}`;
+      if (shareWhatsappEl) shareWhatsappEl.href = `https://wa.me/?text=${encodeURIComponent('Check this offer: ' + offerUrl)}`;
+      if (shareFacebookEl) shareFacebookEl.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedOfferUrl}`;
+      if (shareInstagramEl) shareInstagramEl.href = `https://www.instagram.com/?url=${encodedOfferUrl}`;
     });
   });
 </script>
