@@ -181,8 +181,7 @@
             <p class="text-muted small mb-1">Click text to edit</p>
             <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" data-hero-editable="main" data-word-limit="500" style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->filter(fn($v) => filled($v))->map(fn($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $vendor->hero_main_heading ?: 'Your Main Heading') }}</h1>
             <div class="d-flex justify-content-end small text-muted mb-2" data-hero-word-counter="hero-main">0 / 500 words</div>
-            <div id="heroSubHeadingEditor" class="vendor-live-editable vendor-lite-html-editor mt-2" contenteditable="true" data-sync-target="hero-sub" data-sync-html="1" data-hero-editable="sub" data-word-limit="500" role="textbox" aria-label="Hero subheading" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->filter(fn($v) => filled($v))->map(fn($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)->implode(';') }}@endif">{!! old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') !!}</div>
-            <div class="d-flex justify-content-end small text-muted mt-1" data-hero-word-counter="hero-sub">0 / 500 words</div>
+            <div id="heroSubHeadingEditor" class="vendor-live-editable vendor-lite-html-editor mt-2" contenteditable="true" data-sync-target="hero-sub" data-sync-html="1" data-hero-editable="sub" role="textbox" aria-label="Hero subheading" style="@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->filter(fn($v) => filled($v))->map(fn($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)->implode(';') }}@endif">{!! old('hero_sub_heading', $vendor->hero_sub_heading ?: 'Your sub heading appears here') !!}</div>
         </div>
 
         <div class="vendor-form-card mb-4">

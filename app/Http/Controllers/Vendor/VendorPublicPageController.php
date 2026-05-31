@@ -32,7 +32,7 @@ class VendorPublicPageController extends Controller
 
         $validated = $request->validate([
             'hero_main_heading' => ['nullable', 'string', $this->maxWordsRule('main heading', 500)],
-            'hero_sub_heading' => ['nullable', 'string', $this->maxWordsRule('subheading', 500)],
+            'hero_sub_heading' => ['nullable', 'string'],
             'hero_main_style' => ['nullable', 'array'],
             'hero_main_style.*' => ['nullable', 'string', 'max:255'],
             'hero_sub_style' => ['nullable', 'array'],
