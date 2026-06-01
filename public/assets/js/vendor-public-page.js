@@ -16,7 +16,7 @@
     var HERO_TEXT_WORD_LIMIT = 500;
 
     function imageTextCardPlaceholder(label) {
-        return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="768" height="1080" viewBox="0 0 768 1080"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="%23f8fbff"/><stop offset="1" stop-color="%23dfeaff"/></linearGradient></defs><rect width="768" height="1080" rx="36" fill="url(%23bg)"/><rect x="96" y="176" width="576" height="420" rx="28" fill="%23ffffff" stroke="%23cfe0f5" stroke-width="6"/><circle cx="278" cy="386" r="92" fill="%2392b8ff" opacity="0.8"/><circle cx="424" cy="354" r="118" fill="%23ffd36e" opacity="0.85"/><path d="M190 610h388v116H190z" rx="28" fill="%232f7ed1"/><text x="50%" y="825" dominant-baseline="middle" text-anchor="middle" fill="%231b2b44" font-family="Arial,sans-serif" font-size="54" font-weight="700">' + label + '</text></svg>');
+        return publicPageForm?.dataset.cardPlaceholderUrl || '/assets/images/vendor-card-placeholder.svg';
     }
 
     function buildImageTextCardHtml(cardNumber) {
@@ -135,7 +135,7 @@
                 Array.from({ length: 8 }).map(function (_, i) {
                     return '<div class="col-6 col-md-3">' +
                         '<div class="card h-100">' +
-                        '<img src="data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="320" viewBox="0 0 600 320"><rect width="600" height="320" fill="%23e8ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial,sans-serif" font-size="28">Grid Image ' + (i + 1) + '</text></svg>') + '" class="card-img-top" alt="Grid image ' + (i + 1) + '" data-grid-image-slot="' + (i + 1) + '" style="height:280px;object-fit:cover;">' +
+                        '<img src="' + imageTextCardPlaceholder('Grid Image ' + (i + 1)) + '" class="card-img-top" alt="Grid image ' + (i + 1) + '" data-grid-image-slot="' + (i + 1) + '" style="height:280px;object-fit:cover;">' +
                         '</div></div>';
                 }).join('') +
                 '</div>';
@@ -593,6 +593,23 @@
                 }
             }
             idInput.value = data.id;
+
+            if (Object.prototype.hasOwnProperty.call(data, 'title')) {
+                var titleInput = block.querySelector('input[name*="[title]"]');
+                var titleEditable = block.querySelector('[data-section-field="title"]');
+                if (titleInput) titleInput.value = data.title || '';
+                if (titleEditable) titleEditable.innerHTML = data.title || 'Section title';
+            }
+
+            if (Object.prototype.hasOwnProperty.call(data, 'content')) {
+                var contentInput = block.querySelector('textarea[name*="[content]"]');
+                var contentEditable = block.querySelector('[data-section-field="content"]');
+                if (contentInput) contentInput.value = data.content || '';
+                if (contentEditable) {
+                    contentEditable.innerHTML = data.content || '<p>Write your section content here...</p>';
+                    applySectionTypeLayout(block, block.querySelector('[data-section-type-input]')?.value || detectSectionTypeFromContent(block));
+                }
+            }
 
             if (data.image_url) {
                 var previewImg = block.querySelector('.section-live-image');
@@ -1125,6 +1142,71 @@
             }
         };
         reader.readAsDataURL(file);
+    }
+
+    function dataUrlToFile(dataUrl, fallbackName) {
+        var parts = String(dataUrl || '').match(/^data:(image\/(png|jpe?g|webp|gif));base64,(.+)$/i);
+        if (!parts) return null;
+
+        var mime = parts[1].toLowerCase();
+        var extension = mime.split('/')[1].replace('jpeg', 'jpg');
+        var binary = atob(parts[3]);
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+
+        return new File([bytes], (fallbackName || 'content-image') + '.' + extension, { type: mime });
+    }
+
+    function sectionIndexFromInputName(name) {
+        var match = String(name || '').match(/^sections\[([^\]]+)\]\[content\]$/);
+        return match ? match[1] : null;
+    }
+
+    function appendSanitizedSectionContent(formData) {
+        document.querySelectorAll('.vendor-section-block').forEach(function (block) {
+            var deleteFlag = block.querySelector('.section-delete-flag');
+            var contentInput = block.querySelector('textarea[data-sync-input]');
+            if (!contentInput) return;
+
+            var sectionIndexValue = sectionIndexFromInputName(contentInput.name);
+            if (sectionIndexValue === null) return;
+
+            if (deleteFlag && deleteFlag.value === '1') {
+                return;
+            }
+
+            var wrap = document.createElement('div');
+            wrap.innerHTML = contentInput.value || '';
+            var uploadIndex = 0;
+
+            var contentChanged = false;
+            wrap.querySelectorAll('img[src^="data:image/"]').forEach(function (img) {
+                var file = dataUrlToFile(img.getAttribute('src'), 'section-' + sectionIndexValue + '-image-' + uploadIndex);
+                if (!file) {
+                    img.setAttribute('src', imageTextCardPlaceholder('Card image'));
+                    contentChanged = true;
+                    return;
+                }
+
+                var token = '__section_content_image_' + sectionIndexValue + '_' + uploadIndex + '__';
+                formData.append('sections[' + sectionIndexValue + '][content_images][' + uploadIndex + ']', file);
+                img.setAttribute('src', token);
+                uploadIndex++;
+                contentChanged = true;
+            });
+
+            if (contentChanged) {
+                formData.set(contentInput.name, wrap.innerHTML);
+            }
+        });
+    }
+
+    function buildPublicPageFormData() {
+        var formData = new FormData(publicPageForm);
+        appendSanitizedSectionContent(formData);
+        return formData;
     }
 
     function syncSocialLinksPreview() {
@@ -1685,7 +1767,7 @@
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
             },
-            body: new FormData(publicPageForm)
+            body: buildPublicPageFormData()
         })
             .then(function (res) {
                 return parseJsonResponse(res).then(function (data) {
