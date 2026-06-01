@@ -75,6 +75,11 @@ class Consultant extends Model
         return $this->hasMany(ConsultantPageSection::class)->orderBy('sort_order');
     }
 
+    public function services(): HasMany
+    {
+        return $this->hasMany(ConsultantService::class)->latest('updated_at');
+    }
+
     public function isApproved(): bool
     {
         return $this->status === 'approved';

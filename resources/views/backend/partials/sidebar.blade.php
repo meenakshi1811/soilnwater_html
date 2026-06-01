@@ -11,9 +11,9 @@
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
-    $consultantsMenuActive = request()->routeIs('admin.consultants.*');
+    $consultantsMenuActive = request()->routeIs('admin.consultants.*') || request()->routeIs('admin.consultant-services.*');
     $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
-    $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*');
+    $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*');
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -213,11 +213,36 @@
                     </ul>
                 </details>
             </li>
-            <li>
-                <a class="{{ request()->routeIs('admin.consultants.*') ? 'active' : '' }}" href="{{ route('admin.consultants.index') }}">
-                    <i class="fa-solid fa-user-tie"></i>
-                    <span>Consultants</span>
-                </a>
+            <li class="admin-sidebar-group">
+                <details {{ $consultantsMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $consultantsMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-user-tie"></i>
+                            <span>Consultants</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('admin.consultants.*') ? 'active' : '' }}" href="{{ route('admin.consultants.index') }}">
+                                <i class="fa-solid fa-list"></i>
+                                <span>All Consultants</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.consultant-services.*') && ! request()->routeIs('admin.consultant-services.all.*') ? 'active' : '' }}" href="{{ route('admin.consultant-services.index') }}">
+                                <i class="fa-solid fa-clipboard-check"></i>
+                                <span>Services Approval</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.consultant-services.all.*') ? 'active' : '' }}" href="{{ route('admin.consultant-services.all.index') }}">
+                                <i class="fa-solid fa-rectangle-list"></i>
+                                <span>All Services</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
             </li>
         @endif
 
@@ -331,6 +356,12 @@
                             <a class="{{ request()->routeIs('consultant.branches.*') ? 'active' : '' }}" href="{{ route('consultant.branches.index') }}">
                                 <i class="fa-solid fa-code-branch"></i>
                                 <span>My Branches</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('consultant.services.*') ? 'active' : '' }}" href="{{ route('consultant.services.index') }}">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                                <span>Consultation Services</span>
                             </a>
                         </li>
                     </ul>
