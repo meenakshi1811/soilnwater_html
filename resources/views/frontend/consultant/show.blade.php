@@ -35,6 +35,47 @@
     </div>
 </section>
 
+@if(($approvedServices ?? collect())->isNotEmpty())
+<section class="vendor-store-section consultant-services-section">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-4">
+            <div>
+                <p class="text-uppercase text-primary fw-semibold mb-1">Consultation Services</p>
+                <h2 class="vendor-section-title-display mb-0">Available consultations</h2>
+            </div>
+        </div>
+        <div class="row g-4">
+            @foreach($approvedServices as $service)
+                @php($image = collect($service->images ?? [])->first())
+                <div class="col-sm-6 col-lg-3">
+                    <article class="consultant-service-card h-100">
+                        <div class="consultant-service-card__image-wrap">
+                            @if($image)
+                                <img src="{{ asset($image) }}" alt="{{ $service->name }}" class="consultant-service-card__image">
+                            @else
+                                <div class="consultant-service-card__placeholder"><i class="fa-solid fa-briefcase"></i></div>
+                            @endif
+                        </div>
+                        <div class="consultant-service-card__body">
+                            <p class="consultant-service-card__category">{{ $service->categoryModel?->name ?? $service->category ?? 'Consultation' }}</p>
+                            <h3>{{ $service->name }}</h3>
+                            @if($service->short_description)
+                                <p class="consultant-service-card__description">{{ $service->short_description }}</p>
+                            @endif
+                            <div class="consultant-service-card__meta">
+                                <span>₹{{ number_format((float) $service->price, 2) }}</span>
+                                @if($service->duration)<span>{{ $service->duration }}</span>@endif
+                            </div>
+                            <a href="{{ route('consultant.contact', $consultant->slug) }}" class="consultant-service-card__btn">Enquire Now</a>
+                        </div>
+                    </article>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
 @foreach($consultant->pageSections as $section)
     @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
     <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section {{ $sectionHasVideo ? 'has-video-section' : '' }}">
@@ -89,6 +130,79 @@
     .content-body [data-brochure-image-slot] {
         cursor: zoom-in;
     }
+
+    .consultant-service-card {
+        border: 1px solid rgba(15, 43, 77, 0.12);
+        border-radius: 18px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 12px 30px rgba(15, 43, 77, 0.08);
+        display: flex;
+        flex-direction: column;
+    }
+    .consultant-service-card__image-wrap {
+        height: 180px;
+        background: #eef4fb;
+    }
+    .consultant-service-card__image,
+    .consultant-service-card__placeholder {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .consultant-service-card__placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #2276d2;
+        font-size: 42px;
+    }
+    .consultant-service-card__body {
+        padding: 18px;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+    }
+    .consultant-service-card__category {
+        color: #2276d2;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+    .consultant-service-card h3 {
+        color: #0f2b4d;
+        font-size: 20px;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+    .consultant-service-card__description {
+        color: #607188;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    .consultant-service-card__meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        color: #0f2b4d;
+        font-weight: 700;
+        margin-top: auto;
+        padding-top: 12px;
+    }
+    .consultant-service-card__btn {
+        margin-top: 14px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #2276d2, #21833b);
+        color: #fff;
+        display: inline-flex;
+        justify-content: center;
+        padding: 10px 14px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
 </style>
 
 @if($consultant->bannerSlides->count() > 1)

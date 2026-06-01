@@ -28,12 +28,14 @@ use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportControll
 use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\ConsultantController;
+use App\Http\Controllers\Admin\ConsultantServiceApprovalController;
 use App\Http\Controllers\Frontend\ConsultantStoreController;
 use App\Http\Controllers\Consultant\ConsultantBranchController;
 use App\Http\Controllers\Consultant\ConsultantDashboardController;
 use App\Http\Controllers\Consultant\ConsultantPendingController;
 use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantProfileController;
+use App\Http\Controllers\Consultant\ConsultantServiceController;
 use App\Http\Controllers\Admin\VendorProductApprovalController;
 use App\Http\Controllers\Frontend\VendorStoreController;
 use App\Http\Controllers\Vendor\VendorBranchController;
@@ -159,6 +161,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/public-page', [ConsultantPublicPageController::class, 'update'])->middleware('consultant')->name('public-page.update');
         Route::get('/public-page/preview', [ConsultantPublicPageController::class, 'preview'])->middleware('consultant')->name('public-page.preview');
         Route::delete('/banner-slides/{slide}', [ConsultantPublicPageController::class, 'deleteBannerSlide'])->middleware('consultant')->name('banner-slides.destroy');
+        Route::resource('services', ConsultantServiceController::class)->middleware('consultant');
         Route::get('/profile', [ConsultantProfileController::class, 'edit'])->middleware('consultant')->name('profile.edit');
         Route::put('/profile', [ConsultantProfileController::class, 'update'])->middleware('consultant')->name('profile.update');
     });
@@ -305,6 +308,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/{vendor}/reject', [VendorController::class, 'reject'])->name('reject');
             Route::post('/{vendor}/toggle-premium', [VendorController::class, 'togglePremium'])->name('toggle-premium');
             Route::delete('/{vendor}', [VendorController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('consultant-services')->name('consultant-services.')->group(function () {
+            Route::get('/', [ConsultantServiceApprovalController::class, 'index'])->name('index');
+            Route::get('/data', [ConsultantServiceApprovalController::class, 'data'])->name('data');
+            Route::get('/all-services', [ConsultantServiceApprovalController::class, 'allServicesIndex'])->name('all.index');
+            Route::get('/all-services/data', [ConsultantServiceApprovalController::class, 'allServicesData'])->name('all.data');
+            Route::get('/{service}', [ConsultantServiceApprovalController::class, 'show'])->name('show');
+            Route::post('/{service}/approve', [ConsultantServiceApprovalController::class, 'approve'])->name('approve');
+            Route::post('/{service}/reject', [ConsultantServiceApprovalController::class, 'reject'])->name('reject');
+            Route::delete('/{service}', [ConsultantServiceApprovalController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('consultants')->name('consultants.')->group(function () {
