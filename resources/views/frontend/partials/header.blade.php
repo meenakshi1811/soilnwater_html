@@ -75,6 +75,8 @@
         $user = auth()->user();
         if ($user->isVendor()) {
           $dashboardUrl = route('vendor.dashboard');
+        } elseif ($user->isConsultant()) {
+          $dashboardUrl = route('consultant.dashboard');
         } elseif ($user->isStaff()) {
           $dashboardUrl = route('admin.dashboard');
         } else {

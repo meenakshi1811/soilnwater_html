@@ -66,6 +66,14 @@ class LoginController extends Controller
             return route('vendor.pending');
         }
 
+        if ($user && $user->isConsultant()) {
+            if ($user->consultant?->isApproved()) {
+                return route('consultant.dashboard');
+            }
+
+            return route('consultant.pending');
+        }
+
         return '/home';
     }
 
@@ -106,6 +114,25 @@ class LoginController extends Controller
                 Auth::logout();
 
                 $message = 'Your vendor account is pending admin approval. You will be able to log in once approved.';
+
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 403);
+                }
+
+                return redirect()->route('login')->withErrors(['email' => $message]);
+            }
+        }
+
+        if ($user->isConsultant()) {
+            if (! $user->consultant) {
+                \App\Services\ConsultantRegistrationService::createProfileForUser($user);
+                $user->load('consultant');
+            }
+
+            if (! $user->consultant?->isApproved()) {
+                Auth::logout();
+
+                $message = 'Your consultant account is pending admin approval. You will be able to log in once approved.';
 
                 if ($request->expectsJson()) {
                     return response()->json(['message' => $message], 403);
@@ -319,6 +346,25 @@ class LoginController extends Controller
             }
         }
 
+        if ($user->isConsultant()) {
+            if (! $user->consultant) {
+                \App\Services\ConsultantRegistrationService::createProfileForUser($user);
+                $user->load('consultant');
+            }
+
+            if (! $user->consultant?->isApproved()) {
+                Cache::forget($this->otpCacheKey($userId));
+                $request->session()->forget('otp_login_user_id');
+                $message = 'Your consultant account is pending admin approval.';
+
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 403);
+                }
+
+                return redirect()->route('login')->withErrors(['email' => $message]);
+            }
+        }
+
         Cache::forget($this->otpCacheKey($userId));
         $request->session()->forget('otp_login_user_id');
 
@@ -428,6 +474,21 @@ class LoginController extends Controller
 
                 return redirect()->route('login')->withErrors([
                     'email' => 'Your vendor account is pending admin approval.',
+                ]);
+            }
+        }
+
+        if ($user->isConsultant()) {
+            if (! $user->consultant) {
+                \App\Services\ConsultantRegistrationService::createProfileForUser($user);
+                $user->load('consultant');
+            }
+
+            if (! $user->consultant?->isApproved()) {
+                Auth::logout();
+
+                return redirect()->route('login')->withErrors([
+                    'email' => 'Your consultant account is pending admin approval.',
                 ]);
             }
         }

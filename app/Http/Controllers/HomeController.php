@@ -51,6 +51,14 @@ class HomeController extends Controller
             return redirect()->route('vendor.pending');
         }
 
+        if ($user?->isConsultant()) {
+            if ($user->consultant?->isApproved()) {
+                return redirect()->route('consultant.dashboard');
+            }
+
+            return redirect()->route('consultant.pending');
+        }
+
         return view('home');
     }
 }

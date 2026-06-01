@@ -4,7 +4,9 @@ use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsGeneralUser;
 use App\Http\Middleware\EnsureMarketplacePostingAccountApproved;
 use App\Http\Middleware\EnsureUserIsVendor;
+use App\Http\Middleware\EnsureUserIsConsultant;
 use App\Http\Middleware\EnsureVendorIsApproved;
+use App\Http\Middleware\EnsureConsultantIsApproved;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -23,7 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
             'user' => EnsureUserIsGeneralUser::class,
             'vendor' => EnsureUserIsVendor::class,
+            'consultant' => EnsureUserIsConsultant::class,
             'vendor.account' => EnsureVendorIsApproved::class,
+            'consultant.account' => EnsureConsultantIsApproved::class,
             'marketplace.approved' => EnsureMarketplacePostingAccountApproved::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,

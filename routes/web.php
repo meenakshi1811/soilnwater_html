@@ -27,6 +27,13 @@ use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
 use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
 use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Admin\ConsultantController;
+use App\Http\Controllers\Frontend\ConsultantStoreController;
+use App\Http\Controllers\Consultant\ConsultantBranchController;
+use App\Http\Controllers\Consultant\ConsultantDashboardController;
+use App\Http\Controllers\Consultant\ConsultantPendingController;
+use App\Http\Controllers\Consultant\ConsultantPublicPageController;
+use App\Http\Controllers\Consultant\ConsultantProfileController;
 use App\Http\Controllers\Admin\VendorProductApprovalController;
 use App\Http\Controllers\Frontend\VendorStoreController;
 use App\Http\Controllers\Vendor\VendorBranchController;
@@ -136,6 +143,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/inquiries', [VendorInquiryController::class, 'index'])->middleware('vendor')->name('inquiries.index');
         Route::get('/profile', [VendorProfileController::class, 'edit'])->middleware('vendor')->name('profile.edit');
         Route::put('/profile', [VendorProfileController::class, 'update'])->middleware('vendor')->name('profile.update');
+    });
+
+    Route::get('/consultant/pending', [ConsultantPendingController::class, 'show'])->name('consultant.pending');
+
+    Route::prefix('consultant')->name('consultant.')->middleware(['consultant.account'])->group(function () {
+        Route::get('/dashboard', [ConsultantDashboardController::class, 'dashboard'])->middleware('consultant')->name('dashboard');
+        Route::get('/branches', [ConsultantBranchController::class, 'index'])->middleware('consultant')->name('branches.index');
+        Route::get('/branches/create', [ConsultantBranchController::class, 'create'])->middleware('consultant')->name('branches.create');
+        Route::post('/branches', [ConsultantBranchController::class, 'store'])->middleware('consultant')->name('branches.store');
+        Route::get('/branches/{branch}/edit', [ConsultantBranchController::class, 'edit'])->middleware('consultant')->name('branches.edit');
+        Route::put('/branches/{branch}', [ConsultantBranchController::class, 'update'])->middleware('consultant')->name('branches.update');
+        Route::delete('/branches/{branch}', [ConsultantBranchController::class, 'destroy'])->middleware('consultant')->name('branches.destroy');
+        Route::get('/public-page', [ConsultantPublicPageController::class, 'edit'])->middleware('consultant')->name('public-page.edit');
+        Route::put('/public-page', [ConsultantPublicPageController::class, 'update'])->middleware('consultant')->name('public-page.update');
+        Route::get('/public-page/preview', [ConsultantPublicPageController::class, 'preview'])->middleware('consultant')->name('public-page.preview');
+        Route::delete('/banner-slides/{slide}', [ConsultantPublicPageController::class, 'deleteBannerSlide'])->middleware('consultant')->name('banner-slides.destroy');
+        Route::get('/profile', [ConsultantProfileController::class, 'edit'])->middleware('consultant')->name('profile.edit');
+        Route::put('/profile', [ConsultantProfileController::class, 'update'])->middleware('consultant')->name('profile.update');
     });
 
     Route::prefix('user')->name('user.')->middleware('user')->group(function () {
@@ -282,6 +307,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{vendor}', [VendorController::class, 'destroy'])->name('destroy');
         });
 
+        Route::prefix('consultants')->name('consultants.')->group(function () {
+            Route::get('/', [ConsultantController::class, 'index'])->name('index');
+            Route::get('/data', [ConsultantController::class, 'data'])->name('data');
+            Route::get('/{consultant}', [ConsultantController::class, 'show'])->name('show');
+            Route::get('/{consultant}/edit', [ConsultantController::class, 'edit'])->name('edit');
+            Route::put('/{consultant}', [ConsultantController::class, 'update'])->name('update');
+            Route::post('/{consultant}/approve', [ConsultantController::class, 'approve'])->name('approve');
+            Route::post('/{consultant}/reject', [ConsultantController::class, 'reject'])->name('reject');
+            Route::post('/{consultant}/toggle-premium', [ConsultantController::class, 'togglePremium'])->name('toggle-premium');
+            Route::delete('/{consultant}', [ConsultantController::class, 'destroy'])->name('destroy');
+        });
+
         Route::prefix('terms-and-conditions')->name('terms-and-conditions.')->group(function () {
             Route::get('/', [TermsAndConditionController::class, 'index'])->name('index');
             Route::get('/data', [TermsAndConditionController::class, 'data'])->name('data');
@@ -293,3 +330,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 });
+
+Route::get('/consultant/{slug}', [ConsultantStoreController::class, 'show'])->name('consultant.show');
+Route::get('/consultant/{slug}/about', [ConsultantStoreController::class, 'about'])->name('consultant.about');
+Route::get('/consultant/{slug}/contact', [ConsultantStoreController::class, 'contact'])->name('consultant.contact');
