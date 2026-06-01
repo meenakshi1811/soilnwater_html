@@ -1164,6 +1164,33 @@
         return match ? match[1] : null;
     }
 
+    function encodeFormValue(value) {
+        return btoa(unescape(encodeURIComponent(value || '')));
+    }
+
+    function encodeRichInput(formData, sourceName, encodedName) {
+        var input = document.querySelector('[name="' + sourceName + '"]');
+        if (!input) return;
+
+        formData.set(sourceName, '');
+        formData.set(encodedName, encodeFormValue(input.value || ''));
+    }
+
+    function encodeSectionRichFields(formData, block, sectionIndexValue, contentHtml) {
+        var titleInput = block.querySelector('input[name*="[title]"]');
+        var contentInput = block.querySelector('textarea[data-sync-input]');
+
+        if (titleInput) {
+            formData.set(titleInput.name, '');
+            formData.set('sections[' + sectionIndexValue + '][title_encoded]', encodeFormValue(titleInput.value || ''));
+        }
+
+        if (contentInput) {
+            formData.set(contentInput.name, '');
+            formData.set('sections[' + sectionIndexValue + '][content_encoded]', encodeFormValue(contentHtml));
+        }
+    }
+
     function appendSanitizedSectionContent(formData) {
         document.querySelectorAll('.vendor-section-block').forEach(function (block) {
             var deleteFlag = block.querySelector('.section-delete-flag');
@@ -1174,6 +1201,7 @@
             if (sectionIndexValue === null) return;
 
             if (deleteFlag && deleteFlag.value === '1') {
+                encodeSectionRichFields(formData, block, sectionIndexValue, '');
                 return;
             }
 
@@ -1181,12 +1209,10 @@
             wrap.innerHTML = contentInput.value || '';
             var uploadIndex = 0;
 
-            var contentChanged = false;
             wrap.querySelectorAll('img[src^="data:image/"]').forEach(function (img) {
                 var file = dataUrlToFile(img.getAttribute('src'), 'section-' + sectionIndexValue + '-image-' + uploadIndex);
                 if (!file) {
                     img.setAttribute('src', imageTextCardPlaceholder('Card image'));
-                    contentChanged = true;
                     return;
                 }
 
@@ -1194,18 +1220,17 @@
                 formData.append('sections[' + sectionIndexValue + '][content_images][' + uploadIndex + ']', file);
                 img.setAttribute('src', token);
                 uploadIndex++;
-                contentChanged = true;
             });
 
-            if (contentChanged) {
-                formData.set(contentInput.name, wrap.innerHTML);
-            }
+            encodeSectionRichFields(formData, block, sectionIndexValue, wrap.innerHTML);
         });
     }
 
     function buildPublicPageFormData() {
         var formData = new FormData(publicPageForm);
         appendSanitizedSectionContent(formData);
+        encodeRichInput(formData, 'hero_sub_heading', 'hero_sub_heading_encoded');
+        encodeRichInput(formData, 'description', 'description_encoded');
         return formData;
     }
 
