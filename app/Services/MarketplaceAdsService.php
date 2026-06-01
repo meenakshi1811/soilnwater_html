@@ -28,7 +28,7 @@ class MarketplaceAdsService
         if ($preferredModules !== []) {
             $adsQuery->where(function (Builder $query) use ($preferredModules) {
                 foreach ($preferredModules as $module) {
-                    $query->orWhereJsonContains('selected_modules', (string) $module);
+                    $query->orWhere(fn (Builder $moduleQuery) => $moduleQuery->assignedToModule((string) $module));
                 }
             });
         }
@@ -44,7 +44,7 @@ class MarketplaceAdsService
             $adsQuery->orderByDesc('updated_at');
         }
 
-        return $adsQuery->take($limit)->get()->shuffle()->values();
+        return $adsQuery->take($limit)->get()->values();
     }
 
     /**
