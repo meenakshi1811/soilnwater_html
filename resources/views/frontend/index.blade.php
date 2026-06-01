@@ -685,7 +685,7 @@
                     <input type="text" id="adShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
                     <div class="d-flex flex-wrap gap-2 mt-2">
                       <a id="adShareWhatsapp" href="#" target="_blank" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a>
-                      <a id="adShareFacebook" href="#" target="_blank" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
+                      <a id="adShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
                       <a id="adShareInstagram" href="#" target="_blank" class="btn btn-sm offer-share-btn share-instagram">Instagram</a>
                     </div>
                   </div>
@@ -1674,11 +1674,11 @@
           adEnlargeBtn.classList.add('d-none');
         }
 
-        const shareUrl = adContext?.dataset.adUrl || adCard?.dataset.adUrl || window.location.href;
+        const shareUrl = window.soilnwaterNormalizeShareUrl(adContext?.dataset.adUrl || adCard?.dataset.adUrl || window.location.href);
         document.getElementById('adShareLink').value = shareUrl;
         document.getElementById('adShareQr').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`;
         document.getElementById('adShareWhatsapp').href = `https://wa.me/?text=${encodeURIComponent('Check this ad: ' + shareUrl)}`;
-        document.getElementById('adShareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        document.getElementById('adShareFacebook').href = window.soilnwaterFacebookShareUrl(shareUrl);
         document.getElementById('adShareInstagram').href = `https://www.instagram.com/?url=${encodeURIComponent(shareUrl)}`;
 
         new bootstrap.Modal(adModal).show();
@@ -1806,7 +1806,7 @@
       }
 
       const bannerImage = trigger.getAttribute('data-offer-image');
-      const offerUrl = trigger.getAttribute('data-offer-url') || window.location.href;
+      const offerUrl = window.soilnwaterNormalizeShareUrl(trigger.getAttribute('data-offer-url') || window.location.href);
       const encodedOfferUrl = encodeURIComponent(offerUrl);
       if (bannerImage) {
         imageEl.src = bannerImage;
@@ -1819,7 +1819,7 @@
       if (shareLinkEl) shareLinkEl.value = offerUrl;
       if (shareQrEl) shareQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=224x224&data=${encodedOfferUrl}`;
       if (shareWhatsappEl) shareWhatsappEl.href = `https://wa.me/?text=${encodeURIComponent('Check this offer: ' + offerUrl)}`;
-      if (shareFacebookEl) shareFacebookEl.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedOfferUrl}`;
+      if (shareFacebookEl) shareFacebookEl.href = window.soilnwaterFacebookShareUrl(offerUrl);
       if (shareInstagramEl) shareInstagramEl.href = `https://www.instagram.com/?url=${encodedOfferUrl}`;
     });
   });
