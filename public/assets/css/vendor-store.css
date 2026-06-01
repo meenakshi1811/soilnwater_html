@@ -345,11 +345,13 @@
     font-size: .98rem;
     font-weight: 700;
     line-height: 1.35;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    min-height: auto;
+    overflow: visible;
+    display: block;
+    white-space: normal;
+    text-overflow: clip;
     overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .vendor-image-text-card .recent-ad-meta,
