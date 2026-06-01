@@ -1,0 +1,148 @@
+(function ($) {
+    if (!$ || !window.FormHelper) {
+        return;
+    }
+
+    var ConsultantsAdmin = {
+        table: null,
+        modal: null,
+        consultantId: null,
+
+        initTable: function () {
+            this.table = $('#consultantsTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: { url: '/admin/consultants/data' },
+                columns: [
+                    { data: 'company_name', name: 'company_name' },
+                    { data: 'owner_name', name: 'user.name', orderable: false },
+                    { data: 'owner_email', name: 'user.email', orderable: false },
+                    { data: 'contact_numbers', name: 'phone', orderable: false },
+                    { data: 'location', name: 'city', orderable: false },
+                    { data: 'status_badge', name: 'status', orderable: false },
+                    { data: 'premium_toggle', name: 'is_premium', orderable: false, searchable: false },
+                    { data: 'created_at', name: 'created_at' },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                ],
+                order: [[7, 'desc']]
+            });
+        },
+
+        bindUi: function () {
+            var self = this;
+            self.modal = new bootstrap.Modal(document.getElementById('consultantModal'));
+
+            $(document).on('click', '.js-edit-consultant', function () {
+                var id = $(this).data('id');
+                self.consultantId = id;
+                $.get('/admin/consultants/' + id + '/edit').done(function (response) {
+                    var v = response.consultant || {};
+                    $('#consultantCompany').val(v.company_name || '');
+                    $('#consultantContact').val(v.contact_person || '');
+                    $('#consultantSlug').val(v.slug || '').trigger('input');
+                    $('#consultantStatus').val(v.status || 'pending');
+                    $('#consultantPhone').val(v.phone || '');
+                    $('#consultantWhatsapp').val(v.whatsapp || '');
+                    $('#consultantEmail').val(v.email || '');
+                    $('#consultantCity').val(v.city || '');
+                    $('#consultantState').val(v.state || '');
+                    $('#consultantPincode').val(v.pincode || '');
+                    $('#consultantAddress').val(v.address || '');
+                    $('#consultantPan').val(v.pan_number || '');
+                    $('#consultantGst').val(v.gst_number || '');
+                    $('#consultantForm').attr('action', '/admin/consultants/' + id);
+                    self.modal.show();
+                }).fail(function () {
+                    FormHelper.showToast('danger', 'Unable to load consultant.');
+                });
+            });
+
+            $('#consultantSlug').on('input', function () {
+                $('#slugPreview').text($(this).val() || 'slug');
+            });
+
+            $(document).on('click', '.js-approve-consultant', function () {
+                var id = $(this).data('id');
+                $.post('/admin/consultants/' + id + '/approve', { _token: $('meta[name="csrf-token"]').attr('content') })
+                    .done(function (r) {
+                        FormHelper.showToast('success', r.message);
+                        self.table.ajax.reload(null, false);
+                    });
+            });
+
+            $(document).on('click', '.js-reject-consultant', function () {
+                if (!confirm('Reject this consultant?')) return;
+                var id = $(this).data('id');
+                $.post('/admin/consultants/' + id + '/reject', { _token: $('meta[name="csrf-token"]').attr('content') })
+                    .done(function (r) {
+                        FormHelper.showToast('success', r.message);
+                        self.table.ajax.reload(null, false);
+                    });
+            });
+
+            $(document).on('click', '.js-delete-consultant', function () {
+                if (!confirm('Delete this consultant permanently?')) return;
+                var id = $(this).data('id');
+                $.ajax({
+                    url: '/admin/consultants/' + id,
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+                }).done(function (r) {
+                    FormHelper.showToast('success', r.message);
+                    self.table.ajax.reload(null, false);
+                });
+            });
+
+            $(document).on('change', '.js-premium-toggle', function () {
+                var checkbox = $(this);
+                var id = checkbox.data('id');
+                var nextState = checkbox.is(':checked');
+
+                checkbox.prop('disabled', true);
+
+                $.post('/admin/consultants/' + id + '/toggle-premium', { _token: $('meta[name="csrf-token"]').attr('content') })
+                    .done(function (r) {
+                        checkbox.prop('checked', !!r.is_premium);
+                        FormHelper.showToast('success', r.message);
+                    })
+                    .fail(function () {
+                        checkbox.prop('checked', !nextState);
+                        FormHelper.showToast('danger', 'Unable to update premium status.');
+                    })
+                    .always(function () {
+                        checkbox.prop('disabled', false);
+                    });
+            });
+        },
+
+        initForm: function () {
+            var self = this;
+            FormHelper.attachAjaxForm({
+                formSelector: '#consultantForm',
+                buttonSelector: '#consultantSubmitBtn',
+                rules: {
+                    company_name: { required: true },
+                    slug: { required: true }
+                },
+                beforeSubmit: function () {
+                    $('#consultantForm').find('input[name="_method"]').remove();
+                    $('<input type="hidden" name="_method" value="PUT">').appendTo('#consultantForm');
+                },
+                onSuccess: function (r) {
+                    FormHelper.showToast('success', r.message);
+                    self.table.ajax.reload(null, false);
+                    self.modal.hide();
+                }
+            });
+        },
+
+        init: function () {
+            if (!$('#consultantsTable').length) return;
+            this.initTable();
+            this.bindUi();
+            this.initForm();
+        }
+    };
+
+    $(function () { ConsultantsAdmin.init(); });
+})(window.jQuery);

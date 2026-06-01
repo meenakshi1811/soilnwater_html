@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\OtpMail;
 use App\Models\User;
 use App\Services\VendorRegistrationService;
+use App\Services\ConsultantRegistrationService;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -88,6 +89,15 @@ class RegisterController extends Controller
 
         if ($user->isVendor()) {
             VendorRegistrationService::createProfileForUser($user, $request->only([
+                'whatsapp_number',
+                'address',
+                'city',
+                'pincode',
+            ]));
+        }
+
+        if ($user->isConsultant()) {
+            ConsultantRegistrationService::createProfileForUser($user, $request->only([
                 'whatsapp_number',
                 'address',
                 'city',

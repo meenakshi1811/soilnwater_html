@@ -4,12 +4,16 @@
     $isAdmin = auth()->user()->isAdmin();
     $isEmployee = auth()->user()->isEmployee();
     $isVendor = auth()->user()->isVendor();
+    $isConsultant = auth()->user()->isConsultant();
     $vendorApproved = $isVendor && auth()->user()->vendor?->isApproved();
+    $consultantApproved = $isConsultant && auth()->user()->consultant?->isApproved();
     $canAccessOffers = $isAdmin || $isGeneralUser || auth()->user()->canModule('vendors', 'read');
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
+    $consultantsMenuActive = request()->routeIs('admin.consultants.*');
     $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
+    $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*');
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -17,6 +21,9 @@
     } elseif ($isVendor && $vendorApproved) {
         $dashboardUrl = route('vendor.dashboard');
         $dashboardActive = request()->routeIs('vendor.dashboard');
+    } elseif ($isConsultant && $consultantApproved) {
+        $dashboardUrl = route('consultant.dashboard');
+        $dashboardActive = request()->routeIs('consultant.dashboard');
     } elseif ($isAdmin) {
         $dashboardUrl = route('admin.dashboard');
         $dashboardActive = request()->routeIs('admin.dashboard');
@@ -206,6 +213,12 @@
                     </ul>
                 </details>
             </li>
+            <li>
+                <a class="{{ request()->routeIs('admin.consultants.*') ? 'active' : '' }}" href="{{ route('admin.consultants.index') }}">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <span>Consultants</span>
+                </a>
+            </li>
         @endif
 
          @foreach($emsModules as $slug => $label)
@@ -291,6 +304,33 @@
                             <a class="{{ request()->routeIs('vendor.inquiries.*') ? 'active' : '' }}" href="{{ route('vendor.inquiries.index') }}">
                                 <i class="fa-solid fa-envelope-open-text"></i>
                                 <span>Inquiries</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+
+        @elseif($isConsultant && $consultantApproved)
+            <li class="admin-sidebar-group">
+                <details {{ $consultantPagesMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $consultantPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-user-tie"></i>
+                            <span>Consultant Pages</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('consultant.public-page.*') ? 'active' : '' }}" href="{{ route('consultant.public-page.edit') }}">
+                                <i class="fa-solid fa-globe"></i>
+                                <span>Public Page</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('consultant.branches.*') ? 'active' : '' }}" href="{{ route('consultant.branches.index') }}">
+                                <i class="fa-solid fa-code-branch"></i>
+                                <span>My Branches</span>
                             </a>
                         </li>
                     </ul>

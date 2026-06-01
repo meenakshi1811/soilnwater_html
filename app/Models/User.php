@@ -88,9 +88,19 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'vendor';
     }
 
+    public function isConsultant(): bool
+    {
+        return $this->role === 'consultant';
+    }
+
     public function vendor(): HasOne
     {
         return $this->hasOne(Vendor::class);
+    }
+
+    public function consultant(): HasOne
+    {
+        return $this->hasOne(Consultant::class);
     }
 
     public function isStaff(): bool

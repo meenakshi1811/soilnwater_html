@@ -1,0 +1,357 @@
+<?php
+
+namespace App\Http\Controllers\Consultant;
+
+use App\Http\Controllers\Controller;
+use App\Models\ConsultantBannerSlide;
+use App\Models\Consultant;
+use App\Models\ConsultantPageSection;
+use App\Support\ConsultantFileUploader;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\View\View;
+
+class ConsultantPublicPageController extends Controller
+{
+    public function edit(): View
+    {
+        $consultant = auth()->user()->consultant;
+        $this->normalizeConsultantSectionContentImages($consultant);
+        $consultant->load(['bannerSlides', 'pageSections']);
+
+        return view('backend.consultant.public-page.edit', compact('consultant'));
+    }
+
+    public function update(Request $request): RedirectResponse|JsonResponse
+    {
+        $consultant = auth()->user()->consultant;
+
+        $validated = $request->validate([
+            'hero_main_heading' => ['nullable', 'string', $this->maxWordsRule('main heading', 500)],
+            'hero_sub_heading' => ['nullable', 'string'],
+            'hero_sub_heading_encoded' => ['nullable', 'string'],
+            'hero_main_style' => ['nullable', 'array'],
+            'hero_main_style.*' => ['nullable', 'string', 'max:255'],
+            'hero_sub_style' => ['nullable', 'array'],
+            'hero_sub_style.*' => ['nullable', 'string', 'max:255'],
+            'display_name' => ['nullable', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:consultants,slug,'.$consultant->id],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'city' => ['nullable', 'string', 'max:120'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'facebook_url' => ['nullable', 'url', 'max:500'],
+            'instagram_url' => ['nullable', 'url', 'max:500'],
+            'description' => ['nullable', 'string'],
+            'description_encoded' => ['nullable', 'string'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'banner_slides' => ['nullable', 'array'],
+            'banner_slides.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'sections' => ['nullable', 'array'],
+            'sections.*.id' => ['nullable', 'integer'],
+            'sections.*.title' => ['nullable', 'string', 'max:2000'],
+            'sections.*.title_encoded' => ['nullable', 'string'],
+            'sections.*.content' => ['nullable', 'string'],
+            'sections.*.content_encoded' => ['nullable', 'string'],
+            'sections.*.image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'sections.*.content_images' => ['nullable', 'array'],
+            'sections.*.content_images.*' => ['image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
+            'sections.*.video_file' => ['nullable', 'mimetypes:video/mp4,video/webm,video/ogg', 'max:51200'],
+            'sections.*.youtube_url' => ['nullable', 'url', 'max:1000'],
+            'sections.*._delete' => ['nullable', 'boolean'],
+        ]);
+
+        if (array_key_exists('hero_sub_heading_encoded', $validated)) {
+            $validated['hero_sub_heading'] = $this->decodedField((string) $validated['hero_sub_heading_encoded']);
+        }
+
+        if (array_key_exists('description_encoded', $validated)) {
+            $validated['description'] = $this->decodedField((string) $validated['description_encoded']);
+        }
+
+        if ($request->hasFile('logo')) {
+            ConsultantFileUploader::deleteIfExists($consultant->logo);
+            $validated['logo'] = ConsultantFileUploader::storeImage($request->file('logo'), 'logos');
+        }
+
+        $updateData = collect($validated)->only([
+            'hero_main_heading',
+            'hero_sub_heading',
+            'hero_main_style',
+            'hero_sub_style',
+            'display_name',
+            'slug',
+            'phone',
+            'email',
+            'city',
+            'address',
+            'facebook_url',
+            'instagram_url',
+            'description',
+        ])->toArray();
+
+        if (isset($validated['logo'])) {
+            $updateData['logo'] = $validated['logo'];
+        }
+
+        $consultant->update($updateData);
+
+        if ($request->hasFile('banner_slides')) {
+            $sort = (int) $consultant->bannerSlides()->max('sort_order');
+            foreach ($request->file('banner_slides') as $file) {
+                $sort++;
+                $consultant->bannerSlides()->create([
+                    'image_path' => ConsultantFileUploader::storeImage($file, 'banners'),
+                    'sort_order' => $sort,
+                ]);
+            }
+        }
+
+        $this->syncSections($consultant, $request->input('sections', []), $request);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            $consultant = $consultant->fresh()->load(['bannerSlides', 'pageSections']);
+
+            return response()->json([
+                'message' => 'Public page saved successfully.',
+                'preview_url' => route('consultant.public-page.preview'),
+                'logo_url' => $consultant->logo ? asset($consultant->logo) : null,
+                'sections' => $consultant->pageSections->map(fn ($section) => [
+                    'id' => $section->id,
+                    'title' => $section->title,
+                    'content' => $section->content,
+                    'image_url' => $section->image_path ? asset($section->image_path) : null,
+                ])->values(),
+                'banner_slides' => $consultant->bannerSlides->map(fn ($slide) => [
+                    'id' => $slide->id,
+                    'image_url' => asset($slide->image_path),
+                ])->values(),
+            ]);
+        }
+
+        return redirect()->route('consultant.public-page.edit')->with('success', 'Public page saved successfully.');
+    }
+
+    public function deleteBannerSlide(ConsultantBannerSlide $slide): JsonResponse
+    {
+        abort_unless($slide->consultant_id === auth()->user()->consultant?->id, 403);
+        ConsultantFileUploader::deleteIfExists($slide->image_path);
+        $slide->delete();
+
+        return response()->json(['message' => 'Banner slide removed.']);
+    }
+
+    public function preview(): View
+    {
+        $consultant = auth()->user()->consultant;
+        $this->normalizeConsultantSectionContentImages($consultant);
+        $consultant->load(['bannerSlides', 'pageSections']);
+
+        return view('frontend.consultant.show', [
+            'consultant' => $consultant,
+            'preview' => true,
+            'activeNav' => 'home',
+            'consultantRecentAds' => collect(),
+            'selectedCategoryNamesByConsultantAdId' => [],
+        ]);
+    }
+
+    private function syncSections($consultant, array $sections, Request $request): void
+    {
+        $sort = 0;
+        foreach ($sections as $index => $sectionData) {
+            if (! empty($sectionData['_delete']) && ! empty($sectionData['id'])) {
+                $section = ConsultantPageSection::where('consultant_id', $consultant->id)->find($sectionData['id']);
+                if ($section) {
+                    ConsultantFileUploader::deleteIfExists($section->image_path);
+                    $this->deleteManagedMediaFromContent((string) $section->content);
+                    $section->delete();
+                }
+
+                continue;
+            }
+
+            $title = trim((string) $this->decodedSectionField($sectionData, 'title'));
+            $plainTitle = trim(strip_tags($title));
+            $content = (string) $this->decodedSectionField($sectionData, 'content');
+            if ($plainTitle === '' && trim(strip_tags((string) $content)) === '' && empty($sectionData['id'])) {
+                continue;
+            }
+
+            $section = ! empty($sectionData['id'])
+                ? ConsultantPageSection::where('consultant_id', $consultant->id)->find($sectionData['id'])
+                : null;
+
+            if (! $section) {
+                $section = new ConsultantPageSection(['consultant_id' => $consultant->id]);
+            }
+
+            $oldContent = (string) ($section->content ?? '');
+            $imageFile = $request->file("sections.{$index}.image");
+            if ($imageFile) {
+                ConsultantFileUploader::deleteIfExists($section->image_path);
+                $section->image_path = ConsultantFileUploader::storeImage($imageFile, 'sections');
+            }
+
+            $videoFile = $request->file("sections.{$index}.video_file");
+            if ($videoFile) {
+                $directory = public_path('uploads/consultants/sections/videos');
+                if (! File::isDirectory($directory)) {
+                    File::makeDirectory($directory, 0755, true);
+                }
+                $filename = uniqid('section-video-', true).'.'.$videoFile->getClientOriginalExtension();
+                $videoFile->move($directory, $filename);
+                $content .= '<div class="vendor-section-video mt-3"><video controls preload="metadata"><source src="'.asset('uploads/consultants/sections/videos/'.$filename).'"></video></div>';
+            } elseif (! empty($sectionData['youtube_url'])) {
+                $youtubeUrl = e((string) $sectionData['youtube_url']);
+                $content .= '<div class="vendor-section-video mt-3"><div class="ratio ratio-16x9"><iframe src="'.$youtubeUrl.'" title="Section video" allowfullscreen loading="lazy"></iframe></div></div>';
+            }
+
+            $content = $this->replaceUploadedContentImages(
+                (string) $content,
+                $request->file("sections.{$index}.content_images", []),
+                (string) $index
+            );
+
+            $section->fill([
+                'title' => $plainTitle !== '' ? $title : 'Section',
+                'content' => $this->consultantEmbeddedContentImages((string) $content),
+                'sort_order' => $sort++,
+            ]);
+            $section->consultant_id = $consultant->id;
+            $section->save();
+            $this->deleteOrphanManagedMedia($oldContent, (string) $section->content);
+        }
+    }
+
+
+    private function decodedField(string $value): string
+    {
+        $decoded = base64_decode($value, true);
+
+        return $decoded !== false ? $decoded : '';
+    }
+
+    private function decodedSectionField(array $sectionData, string $field): string
+    {
+        $encodedKey = $field.'_encoded';
+        if (array_key_exists($encodedKey, $sectionData) && $sectionData[$encodedKey] !== null) {
+            $decoded = $this->decodedField((string) $sectionData[$encodedKey]);
+
+            if ($decoded !== '') {
+                return $decoded;
+            }
+        }
+
+        return (string) ($sectionData[$field] ?? '');
+    }
+
+
+    private function replaceUploadedContentImages(string $html, array $files, string $sectionIndex): string
+    {
+        foreach ($files as $imageIndex => $file) {
+            if (! $file) {
+                continue;
+            }
+
+            $token = '__section_content_image_'.$sectionIndex.'_'.((string) $imageIndex).'__';
+            if (! str_contains($html, $token)) {
+                continue;
+            }
+
+            $path = ConsultantFileUploader::storeImage($file, 'sections/content-images');
+            $html = str_replace($token, asset($path), $html);
+        }
+
+        return $html;
+    }
+
+    private function consultantEmbeddedContentImages(string $html): string
+    {
+        if (! str_contains($html, 'data:image/')) {
+            return $html;
+        }
+
+        $directory = public_path('uploads/consultants/sections/content-images');
+        if (! File::isDirectory($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        return (string) preg_replace_callback(
+            '/src\s*=\s*(["\'])data:image\/(png|jpeg|jpg|webp|gif);base64,([^"\']+)\1/i',
+            function (array $matches) use ($directory) {
+                $mimeExtension = strtolower($matches[2]) === 'jpeg' ? 'jpg' : strtolower($matches[2]);
+                $decoded = base64_decode($matches[3], true);
+
+                if ($decoded === false) {
+                    return $matches[0];
+                }
+
+                $filename = sha1($decoded).'.'.$mimeExtension;
+                $absolutePath = $directory.'/'.$filename;
+                if (! File::exists($absolutePath)) {
+                    File::put($absolutePath, $decoded);
+                }
+
+                $relativePath = 'uploads/consultants/sections/content-images/'.$filename;
+
+                return 'src='.$matches[1].asset($relativePath).$matches[1];
+            },
+            $html
+        );
+    }
+
+    private function normalizeConsultantSectionContentImages(Consultant $consultant): void
+    {
+        $sections = ConsultantPageSection::query()
+            ->where('consultant_id', $consultant->id)
+            ->where('content', 'like', '%data:image/%')
+            ->get(['id', 'content']);
+
+        foreach ($sections as $section) {
+            $normalized = $this->consultantEmbeddedContentImages((string) $section->content);
+            if ($normalized === (string) $section->content) {
+                continue;
+            }
+
+            $section->forceFill(['content' => $normalized])->saveQuietly();
+        }
+    }
+
+    private function deleteOrphanManagedMedia(string $oldContent, string $newContent): void
+    {
+        $oldPaths = $this->extractManagedPaths($oldContent);
+        $newPaths = $this->extractManagedPaths($newContent);
+        foreach (array_diff($oldPaths, $newPaths) as $relativePath) {
+            ConsultantFileUploader::deleteIfExists($relativePath);
+        }
+    }
+
+    private function deleteManagedMediaFromContent(string $content): void
+    {
+        foreach ($this->extractManagedPaths($content) as $relativePath) {
+            ConsultantFileUploader::deleteIfExists($relativePath);
+        }
+    }
+
+    private function maxWordsRule(string $label, int $limit): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail) use ($label, $limit): void {
+            $plainText = trim((string) preg_replace('/\s+/u', ' ', strip_tags(html_entity_decode((string) $value))));
+            preg_match_all('/\S+/u', $plainText, $words);
+            $wordCount = count($words[0] ?? []);
+
+            if ($wordCount > $limit) {
+                $fail('The hero '.$label.' may not be greater than '.$limit.' words.');
+            }
+        };
+    }
+
+    private function extractManagedPaths(string $html): array
+    {
+        preg_match_all('#uploads/consultants/sections/(?:content-images|videos)/[^"\'\s<]+#', $html, $matches);
+        return array_values(array_unique($matches[0] ?? []));
+    }
+}
