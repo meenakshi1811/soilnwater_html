@@ -12,20 +12,34 @@ class EnsureMarketplacePostingAccountApproved
     {
         $user = $request->user();
 
-        if (! $user?->isVendor()) {
-            return $next($request);
+        if ($user?->isVendor()) {
+            if ($user->vendor?->isApproved()) {
+                return $next($request);
+            }
+
+            $message = 'Your vendor account must be approved by admin before you can post ads or offers.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => $message], 403);
+            }
+
+            return redirect()->route('vendor.pending')->with('status', $message);
         }
 
-        if ($user->vendor?->isApproved()) {
-            return $next($request);
+        if ($user?->isConsultant()) {
+            if ($user->consultant?->isApproved()) {
+                return $next($request);
+            }
+
+            $message = 'Your consultant account must be approved by admin before you can post ads or offers.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => $message], 403);
+            }
+
+            return redirect()->route('consultant.pending')->with('status', $message);
         }
 
-        $message = 'Your vendor account must be approved by admin before you can post ads or offers.';
-
-        if ($request->expectsJson() || $request->ajax()) {
-            return response()->json(['message' => $message], 403);
-        }
-
-        return redirect()->route('vendor.pending')->with('status', $message);
+        return $next($request);
     }
 }
