@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Consultant;
+use App\Models\ConsultantService;
 use Illuminate\View\View;
 
 class ConsultantStoreController extends Controller
@@ -12,10 +13,18 @@ class ConsultantStoreController extends Controller
     {
         $consultant = $this->resolveConsultant($slug);
 
+        $approvedServices = ConsultantService::query()
+            ->with(['categoryModel:id,name', 'subcategoryModel:id,name'])
+            ->where('consultant_id', $consultant->id)
+            ->where('status', 'approved')
+            ->latest('updated_at')
+            ->get();
+
         return view('frontend.consultant.show', [
             'consultant' => $consultant,
             'preview' => false,
             'activeNav' => 'home',
+            'approvedServices' => $approvedServices,
             'consultantRecentAds' => collect(),
             'selectedCategoryNamesByConsultantAdId' => [],
         ]);
