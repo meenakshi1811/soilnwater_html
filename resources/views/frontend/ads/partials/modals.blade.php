@@ -37,7 +37,7 @@
                                 <input type="text" id="adShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
                                 <div class="d-flex flex-wrap gap-2 mt-2">
                                     <a id="adShareWhatsapp" href="#" target="_blank" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a>
-                                    <a id="adShareFacebook" href="#" target="_blank" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
+                                    <a id="adShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
                                     <a id="adShareInstagram" href="#" target="_blank" class="btn btn-sm offer-share-btn share-instagram">Instagram</a>
                                 </div>
                             </div>

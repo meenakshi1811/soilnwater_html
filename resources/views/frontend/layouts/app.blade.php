@@ -20,6 +20,29 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link rel="stylesheet" href="{{ asset('assets/css/styles.css') }}?v={{ now()->timestamp }}" id="mainStylesheet">
+  <script>
+    window.soilnwaterNormalizeShareUrl = window.soilnwaterNormalizeShareUrl || function soilnwaterNormalizeShareUrl(url) {
+      try {
+        const parsedUrl = new URL(url || window.location.href, window.location.href);
+
+        if (parsedUrl.hostname === window.location.hostname && window.location.protocol === 'https:') {
+          parsedUrl.protocol = 'https:';
+        }
+
+        parsedUrl.hash = '';
+
+        return parsedUrl.href;
+      } catch (error) {
+        return window.location.href;
+      }
+    };
+
+    window.soilnwaterFacebookShareUrl = window.soilnwaterFacebookShareUrl || function soilnwaterFacebookShareUrl(url) {
+      const shareUrl = window.soilnwaterNormalizeShareUrl(url);
+
+      return 'https://www.facebook.com/sharer/sharer.php?display=popup&u=' + encodeURIComponent(shareUrl);
+    };
+  </script>
   <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};

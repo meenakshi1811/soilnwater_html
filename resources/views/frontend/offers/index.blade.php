@@ -471,7 +471,7 @@
             expiryEl.textContent = trigger.getAttribute('data-offer-validity') || 'No expiry';
 
             const bannerImage = trigger.getAttribute('data-offer-image');
-            const offerUrl = trigger.getAttribute('data-offer-url') || window.location.href;
+            const offerUrl = window.soilnwaterNormalizeShareUrl(trigger.getAttribute('data-offer-url') || window.location.href);
             const encodedOfferUrl = encodeURIComponent(offerUrl);
             if (bannerImage) {
                 imageEl.src = bannerImage;
@@ -491,7 +491,7 @@
                 shareWhatsappEl.href = `https://wa.me/?text=${encodeURIComponent('Check this offer: ' + offerUrl)}`;
             }
             if (shareFacebookEl) {
-                shareFacebookEl.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedOfferUrl}`;
+                shareFacebookEl.href = window.soilnwaterFacebookShareUrl(offerUrl);
             }
             if (shareInstagramEl) {
                 shareInstagramEl.href = `https://www.instagram.com/?url=${encodedOfferUrl}`;
