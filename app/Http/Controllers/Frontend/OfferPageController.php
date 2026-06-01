@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Consultant;
 use App\Models\HomepageSetting;
 use App\Models\Offer;
 use App\Models\UserAd;
@@ -112,6 +113,19 @@ class OfferPageController extends Controller
 
         return view('frontend/vendors/index', [
             'vendors' => $vendors,
+            'hasLocation' => is_numeric($lat) && is_numeric($lng),
+        ]);
+    }
+
+    public function consultants(Request $request): View
+    {
+        $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
+        $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
+
+        $consultants = $this->topConsultantsQuery($lat, $lng)->paginate(24)->appends($request->query());
+
+        return view('frontend/consultants/index', [
+            'consultants' => $consultants,
             'hasLocation' => is_numeric($lat) && is_numeric($lng),
         ]);
     }
@@ -235,6 +249,34 @@ class OfferPageController extends Controller
                     AND vendor_products.latitude IS NOT NULL
                     AND vendor_products.longitude IS NOT NULL
                 ) as nearest_distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN nearest_distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderByDesc('is_premium')
+                ->orderBy('nearest_distance_km')
+                ->latest('id');
+        } else {
+            $query->orderByDesc('is_premium')->latest('created_at')->latest('id');
+        }
+
+        return $query;
+    }
+
+    private function topConsultantsQuery(?float $lat, ?float $lng): Builder
+    {
+        $query = Consultant::query()
+            ->where('status', 'approved')
+            ->with(['services:id,consultant_id,name,image_path,latitude,longitude,status', 'branches:id,consultant_id,address,city,state,is_primary', 'bannerSlides:id,consultant_id,image_path,sort_order'])
+            ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')]);
+
+        if (is_numeric($lat) && is_numeric($lng)) {
+            $query->select('consultants.*')
+                ->selectRaw('(
+                    SELECT MIN(6371 * acos(cos(radians(?)) * cos(radians(consultant_services.latitude)) * cos(radians(consultant_services.longitude) - radians(?)) + sin(radians(?)) * sin(radians(consultant_services.latitude))))
+                    FROM consultant_services
+                    WHERE consultant_services.consultant_id = consultants.id
+                    AND consultant_services.status = ?
+                    AND consultant_services.latitude IS NOT NULL
+                    AND consultant_services.longitude IS NOT NULL
+                ) as nearest_distance_km', [$lat, $lng, $lat, 'approved'])
                 ->orderByRaw('CASE WHEN nearest_distance_km IS NULL THEN 1 ELSE 0 END')
                 ->orderByDesc('is_premium')
                 ->orderBy('nearest_distance_km')

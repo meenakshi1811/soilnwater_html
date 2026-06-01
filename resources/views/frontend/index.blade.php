@@ -159,8 +159,7 @@
           <span>VENDORS</span>
         </div>
       </a>
-      {{--
-      <a href="">
+      <a href="{{ route('frontend.consultants.index') }}">
         <div class="cat-item">
           <div class="cat-icon">
             <i class="fa-solid fa-user-tie cat-icon-i cat-consultants"></i>
@@ -168,6 +167,7 @@
           <span>CONSULTANTS</span>
         </div>
       </a>
+      {{--
       <a href="">
         <div class="cat-item">
           <div class="cat-icon">

@@ -53,6 +53,7 @@ Route::get('/offers-market', [OfferPageController::class, 'index'])->name('front
 Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name('frontend.offers.show');
 Route::post('/offers-market/{offer}/report', [OfferReportController::class, 'store'])->middleware(['auth', 'verified'])->name('frontend.offers.report');
 Route::get('/vendors', [OfferPageController::class, 'vendors'])->name('frontend.vendors.index');
+Route::get('/consultants', [OfferPageController::class, 'consultants'])->name('frontend.consultants.index');
 Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
 Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');
 Route::post('/ads-market/{ad}/report', [AdReportController::class, 'store'])->middleware(['auth', 'verified'])->name('frontend.ads.report');
