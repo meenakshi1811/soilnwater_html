@@ -108,7 +108,7 @@ class VendorStoreController extends Controller
 
         $adsQuery = UserAd::query()
             ->where('status', 'approved')
-            ->whereJsonContains('selected_modules', 'vendors')
+            ->assignedToModule('vendors')
             ->whereNotNull('final_image')
             ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
             ->where(function ($q) {
@@ -147,13 +147,7 @@ class VendorStoreController extends Controller
             })
             ->values();
 
-        $vendorModuleAds = $adsPool
-            ->filter(function (UserAd $ad): bool {
-                $selectedModules = collect($ad->selected_modules ?? [])->map(fn ($module) => strtolower((string) $module));
-
-                return $selectedModules->contains('vendors');
-            })
-            ->values();
+        $vendorModuleAds = $adsPool->values();
 
         $ads = $categoryMatchedAds->isNotEmpty() ? $categoryMatchedAds : $vendorModuleAds;
 
@@ -165,7 +159,7 @@ class VendorStoreController extends Controller
             $ads = UserAd::query()
                 ->with('adSize:id,size_key,width,height')
                 ->where('status', 'approved')
-                ->whereJsonContains('selected_modules', 'vendors')
+                ->assignedToModule('vendors')
                 ->whereNotNull('final_image')
                 ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
                 ->where(function ($query) {
@@ -551,7 +545,7 @@ class VendorStoreController extends Controller
         $adsQuery = UserAd::query()
             ->with(['category:id,name'])
             ->where('status', 'approved')
-            ->whereJsonContains('selected_modules', 'vendors')
+            ->assignedToModule('vendors')
             ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
             ->whereNotNull('final_image')
             ->where(function ($query) {
@@ -631,13 +625,7 @@ class VendorStoreController extends Controller
             $subcategory?->id,
         ])->filter()->map(fn ($id) => (int) $id)->values();
 
-        $vendorModuleAds = $storeAds
-            ->filter(function (UserAd $ad): bool {
-                $selectedModules = collect($ad->selected_modules ?? [])->map(fn ($module) => strtolower((string) $module));
-
-                return $selectedModules->contains('vendors');
-            })
-            ->values();
+        $vendorModuleAds = $storeAds->values();
 
         $categoryMatchedAds = $vendorModuleAds;
 

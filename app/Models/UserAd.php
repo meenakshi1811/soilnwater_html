@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\ModulePermissions;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -58,6 +60,50 @@ class UserAd extends Model
         'gst_amount' => 'decimal:2',
         'grand_total' => 'decimal:2',
     ];
+
+    public function scopeAssignedToModule(Builder $query, string $module): Builder
+    {
+        $module = strtolower(trim($module));
+        $moduleVariants = collect([$module, ModulePermissions::modules()[$module] ?? null])
+            ->when($module === 'vendors', fn ($variants) => $variants->merge(['vendor', 'Vendor', 'Vendors']))
+            ->filter(fn ($variant) => is_string($variant) && $variant !== '')
+            ->unique()
+            ->values();
+
+        static $categoryIdsByModule = [];
+
+        $categoryIdsByModule[$module] ??= Category::query()
+            ->where(function (Builder $categoryQuery) use ($moduleVariants): void {
+                foreach ($moduleVariants as $variant) {
+                    $categoryQuery->orWhereJsonContains('modules', $variant);
+                }
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
+
+        $categoryIds = $categoryIdsByModule[$module];
+
+        return $query->where(function (Builder $assignmentQuery) use ($moduleVariants, $categoryIds): void {
+            foreach ($moduleVariants as $variant) {
+                $assignmentQuery->orWhereJsonContains('selected_modules', $variant);
+            }
+
+            if ($categoryIds->isEmpty()) {
+                return;
+            }
+
+            $assignmentQuery
+                ->orWhereIn('category_id', $categoryIds)
+                ->orWhereIn('subcategory_id', $categoryIds);
+
+            foreach ($categoryIds as $categoryId) {
+                $assignmentQuery
+                    ->orWhereJsonContains('selected_category_ids', $categoryId)
+                    ->orWhereJsonContains('selected_subcategory_ids', $categoryId);
+            }
+        });
+    }
 
 
     protected static function booted(): void
