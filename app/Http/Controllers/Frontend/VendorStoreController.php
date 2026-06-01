@@ -104,21 +104,21 @@ class VendorStoreController extends Controller
             ]);
         }
 
-        $lat = session('frontend_lat');
-        $lng = session('frontend_lng');
+        [$lat, $lng] = $this->frontendCoordinates();
 
         $adsQuery = UserAd::query()
             ->where('status', 'approved')
+            ->whereJsonContains('selected_modules', 'vendors')
             ->whereNotNull('final_image')
             ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
             ->where(function ($q) {
                 $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
             });
 
-        if (is_numeric($lat) && is_numeric($lng)) {
+        if ($lat !== null && $lng !== null) {
             $adsQuery
                 ->select('user_ads.*')
-                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [(float) $lat, (float) $lng, (float) $lat])
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
                 ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
                 ->orderBy('distance_km')
                 ->orderByDesc('updated_at');
@@ -165,6 +165,7 @@ class VendorStoreController extends Controller
             $ads = UserAd::query()
                 ->with('adSize:id,size_key,width,height')
                 ->where('status', 'approved')
+                ->whereJsonContains('selected_modules', 'vendors')
                 ->whereNotNull('final_image')
                 ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
                 ->where(function ($query) {
@@ -175,7 +176,7 @@ class VendorStoreController extends Controller
                 ->get();
         }
 
-        $ads = $ads->take(18)->shuffle()->values();
+        $ads = $ads->take(18)->values();
 
         $sizeMap = collect(AdSizes::all())->mapWithKeys(function (array $size, string $sizeKey) {
             return [strtolower((string) $sizeKey) => ['w' => (int) ($size['w'] ?? 0), 'h' => (int) ($size['h'] ?? 0)]];
@@ -545,10 +546,7 @@ class VendorStoreController extends Controller
 
     private function nearestVendorModuleAds(int $limit = 20): Collection
     {
-        $lat = session('frontend_lat');
-        $lng = session('frontend_lng');
-        $lat = is_numeric($lat) ? (float) $lat : null;
-        $lng = is_numeric($lng) ? (float) $lng : null;
+        [$lat, $lng] = $this->frontendCoordinates();
 
         $adsQuery = UserAd::query()
             ->with(['category:id,name'])
@@ -623,10 +621,7 @@ class VendorStoreController extends Controller
             ];
         }
 
-        $lat = session('frontend_lat');
-        $lng = session('frontend_lng');
-        $lat = is_numeric($lat) ? (float) $lat : null;
-        $lng = is_numeric($lng) ? (float) $lng : null;
+        [$lat, $lng] = $this->frontendCoordinates();
 
         $adsService = app(MarketplaceAdsService::class);
         $storeAds = $adsService->getDisplayAds(24, $lat, $lng, ['vendors']);
@@ -660,24 +655,7 @@ class VendorStoreController extends Controller
 
         $effectiveAds = $categoryMatchedAds->isNotEmpty() ? $categoryMatchedAds : $vendorModuleAds;
 
-        if ($effectiveAds->isEmpty()) {
-            $effectiveAds = $adsService->getDisplayAds(14, $lat, $lng);
-        }
-
-        if ($effectiveAds->isEmpty()) {
-            $effectiveAds = UserAd::query()
-                ->with(['category:id,name', 'subcategory:id,name', 'adSize:id,size_key,width,height'])
-                ->where('status', 'approved')
-                ->whereNotNull('final_image')
-                ->where(function ($query) {
-                    $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
-                })
-                ->inRandomOrder()
-                ->take(14)
-                ->get();
-        }
-
-        $effectiveAds = $effectiveAds->shuffle()->values();
+        $effectiveAds = $effectiveAds->values();
         $split = $adsService->splitAdsForStoreLayout($effectiveAds, $sectionCount);
         $randomFullPagePlacements = $adsService->buildRandomPlacements($effectiveAds, $sectionCount);
 
@@ -686,6 +664,21 @@ class VendorStoreController extends Controller
             'sidebarAds' => $split['sidebar'],
             'sectionAdRails' => $split['section_rails'],
             'randomFullPagePlacements' => $randomFullPagePlacements,
+        ];
+    }
+
+
+    /**
+     * @return array{0:?float, 1:?float}
+     */
+    private function frontendCoordinates(): array
+    {
+        $lat = request()->query('lat', session('frontend_lat'));
+        $lng = request()->query('lng', request()->query('lang', session('frontend_lng')));
+
+        return [
+            is_numeric($lat) ? (float) $lat : null,
+            is_numeric($lng) ? (float) $lng : null,
         ];
     }
 

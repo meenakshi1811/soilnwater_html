@@ -44,7 +44,7 @@ class MarketplaceAdsService
             $adsQuery->orderByDesc('updated_at');
         }
 
-        return $adsQuery->take($limit)->get()->shuffle()->values();
+        return $adsQuery->take($limit)->get()->values();
     }
 
     /**
