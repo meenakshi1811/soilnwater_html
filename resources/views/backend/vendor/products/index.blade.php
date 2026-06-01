@@ -9,17 +9,62 @@
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><div><p class="ems-kicker mb-1">Vendor Portal</p><h2 class="admin-title mb-0">Manage Products</h2></div><a href="{{ route('vendor.products.create') }}" class="btn btn-primary ems-btn-primary"><i class="fa-solid fa-plus me-1"></i>Create Product</a></div>
   @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
   <div class="chart-card p-3 p-lg-4">
-  <div class="table-responsive"><table id="vendorProductsTable" class="table table-hover align-middle"><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th class="text-end">Actions</th></tr></thead><tbody>@forelse($products as $product)<tr><td><div class="fw-semibold">{{ $product->name }}</div><div class="small text-muted">SKU: {{ $product->sku ?: '-' }}</div></td><td>{{ $product->category?->name ?? $product->category ?? '-' }}<div class="small text-muted">{{ $product->subcategory?->name ?? '-' }}</div></td><td>₹{{ number_format($product->final_price,2) }}</td><td>{{ $product->stock_quantity }}</td><td><span class="badge bg-{{ $product->status==='approved'?'success':($product->status==='rejected'?'danger':'warning') }}">{{ ucfirst($product->status ?? "pending") }}</span></td><td class="text-end"><a href="{{ route('vendor.products.show',$product) }}" class="btn btn-sm btn-outline-secondary">View</a> <a href="{{ route('vendor.products.edit',$product) }}" class="btn btn-sm btn-outline-primary">Edit</a> <button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="{{ $product->id }}">Delete</button></td></tr>@empty<tr><td colspan="6" class="text-center text-muted py-4">No products found.</td></tr>@endforelse</tbody></table></div></div>
+    <div class="table-responsive">
+      <table id="vendorProductsTable" class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($products as $product)
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ $product->name }}</div>
+                <div class="small text-muted">SKU: {{ $product->sku ?: '-' }}</div>
+              </td>
+              <td>
+                {{ $product->category?->name ?? $product->category ?? '-' }}
+                <div class="small text-muted">{{ $product->subcategory?->name ?? '-' }}</div>
+              </td>
+              <td>₹{{ number_format($product->final_price, 2) }}</td>
+              <td>{{ $product->stock_quantity }}</td>
+              <td>
+                <span class="badge bg-{{ $product->status === 'approved' ? 'success' : ($product->status === 'rejected' ? 'danger' : 'warning') }}">
+                  {{ ucfirst($product->status ?? 'pending') }}
+                </span>
+              </td>
+              <td class="text-end">
+                <a href="{{ route('vendor.products.show', $product) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                <a href="{{ route('vendor.products.edit', $product) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                <button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="{{ $product->id }}">Delete</button>
+              </td>
+            </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 @endsection
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script>
+var vendorProductsDataTable = null;
+
 if (window.jQuery && document.getElementById('vendorProductsTable')) {
-  window.jQuery('#vendorProductsTable').DataTable({
+  vendorProductsDataTable = window.jQuery('#vendorProductsTable').DataTable({
     pageLength: 10,
-    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']]
+    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
+    language: {
+      emptyTable: 'No products found.'
+    }
   });
 }
 
@@ -42,7 +87,12 @@ document.querySelectorAll('.js-delete').forEach(function (button) {
           throw new Error('Unable to delete product.');
         }
 
-        row?.remove();
+        if (vendorProductsDataTable && row) {
+          vendorProductsDataTable.row(row).remove().draw(false);
+        } else {
+          row?.remove();
+        }
+
         if (window.toastr && typeof window.toastr.success === 'function') {
           window.toastr.success('Product deleted successfully.');
         }
