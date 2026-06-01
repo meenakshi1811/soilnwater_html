@@ -54,6 +54,8 @@ class VendorPublicPageController extends Controller
             'sections.*.title' => ['nullable', 'string', 'max:2000'],
             'sections.*.content' => ['nullable', 'string'],
             'sections.*.image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'sections.*.content_images' => ['nullable', 'array'],
+            'sections.*.content_images.*' => ['image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
             'sections.*.video_file' => ['nullable', 'mimetypes:video/mp4,video/webm,video/ogg', 'max:51200'],
             'sections.*.youtube_url' => ['nullable', 'url', 'max:1000'],
             'sections.*._delete' => ['nullable', 'boolean'],
@@ -212,6 +214,12 @@ class VendorPublicPageController extends Controller
                 $content .= '<div class="vendor-section-video mt-3"><div class="ratio ratio-16x9"><iframe src="'.$youtubeUrl.'" title="Section video" allowfullscreen loading="lazy"></iframe></div></div>';
             }
 
+            $content = $this->replaceUploadedContentImages(
+                (string) $content,
+                $request->file("sections.{$index}.content_images", []),
+                (string) $index
+            );
+
             $section->fill([
                 'title' => $plainTitle !== '' ? $title : 'Section',
                 'content' => $this->storeEmbeddedContentImages((string) $content),
@@ -221,6 +229,26 @@ class VendorPublicPageController extends Controller
             $section->save();
             $this->deleteOrphanManagedMedia($oldContent, (string) $section->content);
         }
+    }
+
+
+    private function replaceUploadedContentImages(string $html, array $files, string $sectionIndex): string
+    {
+        foreach ($files as $imageIndex => $file) {
+            if (! $file) {
+                continue;
+            }
+
+            $token = '__section_content_image_'.$sectionIndex.'_'.((string) $imageIndex).'__';
+            if (! str_contains($html, $token)) {
+                continue;
+            }
+
+            $path = VendorFileUploader::storeImage($file, 'sections/content-images');
+            $html = str_replace($token, asset($path), $html);
+        }
+
+        return $html;
     }
 
     private function storeEmbeddedContentImages(string $html): string
