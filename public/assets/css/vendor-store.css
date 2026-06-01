@@ -345,11 +345,21 @@
     font-size: .98rem;
     font-weight: 700;
     line-height: 1.35;
-    min-height: auto;
-    overflow: visible;
-    display: block;
-    white-space: normal;
-    text-overflow: clip;
+    min-height: auto !important;
+    max-width: 100%;
+    overflow: visible !important;
+    display: block !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.vendor-image-text-card .offer-coupon-title *,
+.vendor-store-section .content-body .row:has([data-card-image-slot]) .card-title *,
+.vendor-section-content-editor .row:has([data-card-image-slot]) .card-title * {
+    max-width: 100%;
+    white-space: normal !important;
     overflow-wrap: anywhere;
     word-break: break-word;
 }
