@@ -84,7 +84,7 @@ class VendorBranchController extends Controller
 
     private function validateBranch(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'branch_name' => ['required', 'string', 'max:255'],
             'contact_person' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
@@ -96,9 +96,18 @@ class VendorBranchController extends Controller
             'state' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'max:10'],
             'pan_number' => ['required', 'string', 'max:20'],
-            'gst_number' => ['nullable', 'string', 'max:20'],
+            'has_gst' => ['required', 'boolean'],
+            'gst_number' => ['required_if:has_gst,1', 'nullable', 'string', 'max:20'],
             'is_primary' => ['nullable', 'boolean'],
         ]);
+
+        if (! $request->boolean('has_gst')) {
+            $validated['gst_number'] = null;
+        }
+
+        unset($validated['has_gst']);
+
+        return $validated;
     }
 
     private function authorizeBranch(VendorBranch $branch): void

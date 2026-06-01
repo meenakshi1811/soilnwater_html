@@ -82,9 +82,23 @@
                     <label class="form-label">PAN Number *</label>
                     <input type="text" name="pan_number" class="form-control" value="{{ old('pan_number', $branch->pan_number) }}" required>
                 </div>
+                @php($hasGst = old('has_gst', filled($branch->gst_number) ? '1' : '0'))
                 <div class="col-md-6">
-                    <label class="form-label">GST Number</label>
-                    <input type="text" name="gst_number" class="form-control" value="{{ old('gst_number', $branch->gst_number) }}">
+                    <label class="form-label d-block">Do you have a GST number? *</label>
+                    <div class="d-flex gap-4 pt-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="has_gst" id="hasGstYes" value="1" {{ $hasGst === '1' ? 'checked' : '' }} required>
+                            <label class="form-check-label" for="hasGstYes">Yes</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="has_gst" id="hasGstNo" value="0" {{ $hasGst === '0' ? 'checked' : '' }} required>
+                            <label class="form-check-label" for="hasGstNo">No</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6" id="gstNumberField">
+                    <label class="form-label">GST Number *</label>
+                    <input type="text" name="gst_number" id="gstNumber" class="form-control" value="{{ old('gst_number', $branch->gst_number) }}">
                 </div>
             </div>
         </div>
@@ -128,6 +142,20 @@ function initBranchAddressAutocomplete() {
 
 $(function () {
     const $form = $('#vendor-branch-form');
+    const $gstField = $('#gstNumberField');
+    const $gstInput = $('#gstNumber');
+
+    function toggleGstField() {
+        const hasGst = $('input[name="has_gst"]:checked').val() === '1';
+        $gstField.toggleClass('d-none', !hasGst);
+        $gstInput.prop('required', hasGst);
+        if (!hasGst) {
+            $gstInput.val('');
+        }
+    }
+
+    $('input[name="has_gst"]').on('change', toggleGstField);
+    toggleGstField();
     $form.on('submit', function (e) {
         e.preventDefault();
         const $btn = $form.find('button[type="submit"]');
