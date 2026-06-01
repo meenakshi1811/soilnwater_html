@@ -11,12 +11,11 @@
         <td align="center">
             <table role="presentation" cellpadding="0" cellspacing="0" width="640" style="width: 100%; max-width: 640px; background-color: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08);">
                 <tr>
-                    <td style="padding: 28px 28px 16px; background: linear-gradient(120deg, #0f6b3f 0%, #12824e 100%); text-align: center;">
-                        <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:14px;">
-                            <img src="{{ asset('assets/images/logo-mark.svg') }}" alt="" style="display:inline-block;width:42px;height:42px;border:0;outline:none;">
-                            <span style="display:inline-block;color:#ffffff;font-size:34px;line-height:1;font-weight:700;letter-spacing:.3px;">SoilNWater</span>
+                    <td style="padding: 22px 28px 18px; background: linear-gradient(120deg, #f7fff9 0%, #e5f7eb 100%); text-align: center; border-bottom: 1px solid #d8eadf;">
+                        <div style="display:inline-block;text-align:center;">
+                            <img src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilNWater" width="180" style="display:block;width:180px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;margin:0 auto 8px;">
+                            <span style="display:block;color:#0f6b3f;font-size:18px;line-height:1.2;font-weight:700;letter-spacing:.2px;">SoilNWater</span>
                         </div>
-                        <!-- <p style="margin: 0; color: #e8fff2; font-size: 14px; letter-spacing: 0.5px;">Secure account communication</p> -->
                     </td>
                 </tr>
 
