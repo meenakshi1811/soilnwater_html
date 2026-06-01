@@ -39,7 +39,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <form id="publicPageForm" method="POST" action="{{ route('vendor.public-page.update') }}" enctype="multipart/form-data" class="vendor-store-page vendor-preview-edit-mode" data-banner-delete-url="{{ url('vendor/banner-slides') }}/">
+    <form id="publicPageForm" method="POST" action="{{ route('vendor.public-page.update') }}" enctype="multipart/form-data" class="vendor-store-page vendor-preview-edit-mode" data-banner-delete-url="{{ url('vendor/banner-slides') }}/" data-card-placeholder-url="{{ asset('assets/images/vendor-card-placeholder.svg') }}">
         @csrf
         @method('PUT')
 
