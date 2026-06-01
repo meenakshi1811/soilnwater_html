@@ -33,6 +33,7 @@ class VendorPublicPageController extends Controller
         $validated = $request->validate([
             'hero_main_heading' => ['nullable', 'string', $this->maxWordsRule('main heading', 500)],
             'hero_sub_heading' => ['nullable', 'string'],
+            'hero_sub_heading_encoded' => ['nullable', 'string'],
             'hero_main_style' => ['nullable', 'array'],
             'hero_main_style.*' => ['nullable', 'string', 'max:255'],
             'hero_sub_style' => ['nullable', 'array'],
@@ -46,18 +47,31 @@ class VendorPublicPageController extends Controller
             'facebook_url' => ['nullable', 'url', 'max:500'],
             'instagram_url' => ['nullable', 'url', 'max:500'],
             'description' => ['nullable', 'string'],
+            'description_encoded' => ['nullable', 'string'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'banner_slides' => ['nullable', 'array'],
             'banner_slides.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'sections' => ['nullable', 'array'],
             'sections.*.id' => ['nullable', 'integer'],
             'sections.*.title' => ['nullable', 'string', 'max:2000'],
+            'sections.*.title_encoded' => ['nullable', 'string'],
             'sections.*.content' => ['nullable', 'string'],
+            'sections.*.content_encoded' => ['nullable', 'string'],
             'sections.*.image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'sections.*.content_images' => ['nullable', 'array'],
+            'sections.*.content_images.*' => ['image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
             'sections.*.video_file' => ['nullable', 'mimetypes:video/mp4,video/webm,video/ogg', 'max:51200'],
             'sections.*.youtube_url' => ['nullable', 'url', 'max:1000'],
             'sections.*._delete' => ['nullable', 'boolean'],
         ]);
+
+        if (array_key_exists('hero_sub_heading_encoded', $validated)) {
+            $validated['hero_sub_heading'] = $this->decodedField((string) $validated['hero_sub_heading_encoded']);
+        }
+
+        if (array_key_exists('description_encoded', $validated)) {
+            $validated['description'] = $this->decodedField((string) $validated['description_encoded']);
+        }
 
         if ($request->hasFile('logo')) {
             VendorFileUploader::deleteIfExists($vendor->logo);
@@ -176,9 +190,9 @@ class VendorPublicPageController extends Controller
                 continue;
             }
 
-            $title = trim((string) ($sectionData['title'] ?? ''));
+            $title = trim((string) $this->decodedSectionField($sectionData, 'title'));
             $plainTitle = trim(strip_tags($title));
-            $content = (string) ($sectionData['content'] ?? '');
+            $content = (string) $this->decodedSectionField($sectionData, 'content');
             if ($plainTitle === '' && trim(strip_tags((string) $content)) === '' && empty($sectionData['id'])) {
                 continue;
             }
@@ -212,6 +226,12 @@ class VendorPublicPageController extends Controller
                 $content .= '<div class="vendor-section-video mt-3"><div class="ratio ratio-16x9"><iframe src="'.$youtubeUrl.'" title="Section video" allowfullscreen loading="lazy"></iframe></div></div>';
             }
 
+            $content = $this->replaceUploadedContentImages(
+                (string) $content,
+                $request->file("sections.{$index}.content_images", []),
+                (string) $index
+            );
+
             $section->fill([
                 'title' => $plainTitle !== '' ? $title : 'Section',
                 'content' => $this->storeEmbeddedContentImages((string) $content),
@@ -221,6 +241,48 @@ class VendorPublicPageController extends Controller
             $section->save();
             $this->deleteOrphanManagedMedia($oldContent, (string) $section->content);
         }
+    }
+
+
+    private function decodedField(string $value): string
+    {
+        $decoded = base64_decode($value, true);
+
+        return $decoded !== false ? $decoded : '';
+    }
+
+    private function decodedSectionField(array $sectionData, string $field): string
+    {
+        $encodedKey = $field.'_encoded';
+        if (array_key_exists($encodedKey, $sectionData) && $sectionData[$encodedKey] !== null) {
+            $decoded = $this->decodedField((string) $sectionData[$encodedKey]);
+
+            if ($decoded !== '') {
+                return $decoded;
+            }
+        }
+
+        return (string) ($sectionData[$field] ?? '');
+    }
+
+
+    private function replaceUploadedContentImages(string $html, array $files, string $sectionIndex): string
+    {
+        foreach ($files as $imageIndex => $file) {
+            if (! $file) {
+                continue;
+            }
+
+            $token = '__section_content_image_'.$sectionIndex.'_'.((string) $imageIndex).'__';
+            if (! str_contains($html, $token)) {
+                continue;
+            }
+
+            $path = VendorFileUploader::storeImage($file, 'sections/content-images');
+            $html = str_replace($token, asset($path), $html);
+        }
+
+        return $html;
     }
 
     private function storeEmbeddedContentImages(string $html): string

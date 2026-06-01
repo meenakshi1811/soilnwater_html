@@ -275,7 +275,7 @@
 .vendor-section-content-editor .row:has([data-card-image-slot]) {
     --vendor-image-text-gap: 14px;
     display: grid !important;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: var(--vendor-image-text-gap) !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
@@ -345,6 +345,23 @@
     font-size: .98rem;
     font-weight: 700;
     line-height: 1.35;
+    min-height: auto !important;
+    max-width: 100%;
+    overflow: visible !important;
+    display: block !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.vendor-image-text-card .offer-coupon-title *,
+.vendor-store-section .content-body .row:has([data-card-image-slot]) .card-title *,
+.vendor-section-content-editor .row:has([data-card-image-slot]) .card-title * {
+    max-width: 100%;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .vendor-image-text-card .recent-ad-meta,
@@ -352,15 +369,17 @@
 .vendor-section-content-editor .row:has([data-card-image-slot]) .card-text {
     margin: 0;
     color: #64748b;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
-    line-height: 1.4;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
 }
 
 .vendor-image-text-card .recent-ad-meta {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
 }
 
 .vendor-image-text-card .recent-ad-meta i {
@@ -371,7 +390,7 @@
 @media (max-width: 1199.98px) {
     .vendor-store-section .content-body .row:has([data-card-image-slot]),
     .vendor-section-content-editor .row:has([data-card-image-slot]) {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
         gap: .75rem !important;
     }
 }
@@ -379,14 +398,14 @@
 @media (max-width: 991.98px) {
     .vendor-store-section .content-body .row:has([data-card-image-slot]),
     .vendor-section-content-editor .row:has([data-card-image-slot]) {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     }
 }
 
 @media (max-width: 767.98px) {
     .vendor-store-section .content-body .row:has([data-card-image-slot]),
     .vendor-section-content-editor .row:has([data-card-image-slot]) {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: .65rem !important;
     }
 
