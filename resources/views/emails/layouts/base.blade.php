@@ -11,10 +11,9 @@
         <td align="center">
             <table role="presentation" cellpadding="0" cellspacing="0" width="640" style="width: 100%; max-width: 640px; background-color: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08);">
                 <tr>
-                    <td style="padding: 22px 28px 18px; background: linear-gradient(120deg, #f7fff9 0%, #e5f7eb 100%); text-align: center; border-bottom: 1px solid #d8eadf;">
+                    <td style="background: linear-gradient(120deg, #f7fff9 0%, #e5f7eb 100%); text-align: center; border-bottom: 1px solid #d8eadf;">
                         <div style="display:inline-block;text-align:center;">
-                            <img src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilNWater" width="180" style="display:block;width:180px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;margin:0 auto 8px;">
-                            <span style="display:block;color:#0f6b3f;font-size:18px;line-height:1.2;font-weight:700;letter-spacing:.2px;">SoilNWater</span>
+                            <img src="{{ asset('assets/images/soilandwater_logo.png') }}" alt="SoilNWater" width="200" style="display:block;width:200px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;">
                         </div>
                     </td>
                 </tr>

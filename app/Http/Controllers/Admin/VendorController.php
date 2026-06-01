@@ -195,7 +195,7 @@ class VendorController extends Controller
         ]);
 
         $emailSent = $this->sendVendorStatusMail($vendor, 'approved');
-
+        print_r($emailSent);exit();
         return response()->json([
             'message' => 'Vendor approved. They can now log in to the vendor portal.'.($emailSent ? ' Email notification sent.' : ''),
         ]);
@@ -257,8 +257,9 @@ class VendorController extends Controller
             return false;
         }
 
-        Mail::to($recipient)->send(VendorStatusMail::forVendor($vendor, $action));
-
+        // Mail::to($recipient)->send(VendorStatusMail::forVendor($vendor, $action));
+        Mail::to("nanta1811@gmail.com")->send(VendorStatusMail::forVendor($vendor, $action));
+        die();
         return true;
     }
 
