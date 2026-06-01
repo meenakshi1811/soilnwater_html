@@ -46,7 +46,7 @@
         </div>
         <div class="row g-4">
             @foreach($approvedServices as $service)
-                @php($image = collect($service->images ?? [])->first())
+                @php($image = $service->image_path)
                 <div class="col-sm-6 col-lg-3">
                     <article class="consultant-service-card h-100">
                         <div class="consultant-service-card__image-wrap">

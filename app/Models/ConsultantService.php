@@ -19,15 +19,18 @@ class ConsultantService extends Model
         'price',
         'duration',
         'location',
+        'latitude',
+        'longitude',
         'is_online',
-        'images',
+        'image_path',
         'status',
         'approved_at',
         'approved_by',
     ];
 
     protected $casts = [
-        'images' => 'array',
+        'latitude' => 'decimal:7',
+        'longitude' => 'decimal:7',
         'is_online' => 'boolean',
         'approved_at' => 'datetime',
     ];

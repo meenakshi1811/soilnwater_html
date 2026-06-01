@@ -19,9 +19,11 @@ return new class extends Migration {
             $table->longText('description')->nullable();
             $table->decimal('price', 12, 2)->default(0);
             $table->string('duration')->nullable();
-            $table->string('location')->nullable();
+            $table->string('location');
+            $table->decimal('latitude', 10, 7);
+            $table->decimal('longitude', 10, 7);
             $table->boolean('is_online')->default(false);
-            $table->json('images')->nullable();
+            $table->string('image_path')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending')->index();
             $table->timestamp('approved_at')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();

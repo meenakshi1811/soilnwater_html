@@ -41,6 +41,14 @@ class ConsultantServiceController extends Controller
 
         ConsultantService::create($data);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Consultation service submitted successfully and sent for admin approval.',
+                'redirect' => route('consultant.services.index'),
+            ]);
+        }
+
         return redirect()->route('consultant.services.index')
             ->with('success', 'Consultation service submitted successfully and sent for admin approval.');
     }
@@ -107,32 +115,34 @@ class ConsultantServiceController extends Controller
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'duration' => ['nullable', 'string', 'max:120'],
-            'location' => ['nullable', 'string', 'max:255'],
+            'location' => ['required', 'string', 'max:255'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
             'is_online' => ['nullable', 'boolean'],
-            'images.*' => ['nullable', 'image', 'max:4096'],
+            'image' => ['nullable', 'image', 'max:4096'],
             'accept_terms' => [$service?->exists ? 'nullable' : 'accepted'],
         ]);
 
         $validated['category'] = Category::find($validated['category_id'])?->name;
         $validated['is_online'] = $request->boolean('is_online');
 
-        if ($request->hasFile('images')) {
+        if ($request->hasFile('image')) {
             $directory = public_path('uploads/consultant-services/images');
             if (! File::exists($directory)) {
                 File::makeDirectory($directory, 0755, true);
             }
 
-            $validated['images'] = [];
-            foreach ($request->file('images') as $file) {
-                $filename = time().'_'.Str::random(8).'.'.$file->getClientOriginalExtension();
-                $file->move($directory, $filename);
-                $validated['images'][] = 'uploads/consultant-services/images/'.$filename;
-            }
+            $file = $request->file('image');
+            $filename = time().'_'.Str::random(8).'.'.$file->getClientOriginalExtension();
+            $file->move($directory, $filename);
+            $validated['image_path'] = 'uploads/consultant-services/images/'.$filename;
         } elseif ($service?->exists) {
-            unset($validated['images']);
+            unset($validated['image_path']);
         } else {
-            $validated['images'] = [];
+            $validated['image_path'] = null;
         }
+
+        unset($validated['image']);
 
         unset($validated['accept_terms']);
         $validated['status'] = 'pending';
