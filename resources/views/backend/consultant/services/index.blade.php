@@ -10,14 +10,15 @@
   <div class="chart-card p-3 p-lg-4">
     <div class="table-responsive">
       <table id="consultantServicesTable" class="table table-hover align-middle">
-        <thead><tr><th>Service</th><th>Category</th><th>Price</th><th>Mode</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+        <thead><tr><th>Service</th><th>Category</th><th>Charges</th><th>Consultation Type</th><th>Business Type</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
         <tbody>
           @foreach($services as $service)
             <tr>
               <td><div class="fw-semibold">{{ $service->name }}</div><div class="small text-muted">{{ $service->duration ?: 'Duration not set' }}</div></td>
               <td>{{ $service->categoryModel?->name ?? $service->category ?? '-' }}<div class="small text-muted">{{ $service->subcategoryModel?->name ?? '-' }}</div></td>
               <td>₹{{ number_format((float) $service->price, 2) }}</td>
-              <td>{{ $service->is_online ? 'Online' : 'In person' }}</td>
+              <td>{{ ucfirst($service->consultation_type ?: ($service->is_online ? 'online' : 'offline')) }}</td>
+              <td>{{ $service->business_type ?: '-' }}</td>
               <td><span class="badge bg-{{ $service->status === 'approved' ? 'success' : ($service->status === 'rejected' ? 'danger' : 'warning') }}">{{ ucfirst($service->status ?? 'pending') }}</span></td>
               <td class="text-end">
                 <a href="{{ route('consultant.services.show', $service) }}" class="btn btn-sm btn-outline-secondary">View</a>
