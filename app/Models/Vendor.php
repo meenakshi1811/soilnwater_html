@@ -25,6 +25,7 @@ class Vendor extends Model
         'pincode',
         'pan_number',
         'gst_number',
+        'government_certificate_number',
         'description',
         'gallery',
         'hero_main_heading',

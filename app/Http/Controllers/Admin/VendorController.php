@@ -135,7 +135,9 @@ class VendorController extends Controller
                 'state' => $vendor->state,
                 'pincode' => $vendor->pincode,
                 'pan_number' => $vendor->pan_number,
+                'has_gst' => $vendor->gst_number ? '1' : '0',
                 'gst_number' => $vendor->gst_number,
+                'government_certificate_number' => $vendor->government_certificate_number,
                 'description' => $vendor->description,
                 'status' => $vendor->status,
                 'owner_name' => $vendor->user?->name,
@@ -159,11 +161,18 @@ class VendorController extends Controller
             'city' => ['nullable', 'string', 'max:120'],
             'state' => ['nullable', 'string', 'max:120'],
             'pincode' => ['nullable', 'string', 'max:10'],
-            'pan_number' => ['nullable', 'string', 'max:20'],
-            'gst_number' => ['nullable', 'string', 'max:20'],
+            'pan_number' => ['required', 'string', 'max:20'],
+            'has_gst' => ['required', 'in:0,1'],
+            'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
+            'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'in:pending,approved,rejected'],
         ]);
+
+        if ($validated['has_gst'] !== '1') {
+            $validated['gst_number'] = null;
+        }
+        unset($validated['has_gst']);
 
         $originalStatus = $vendor->status;
 

@@ -99,11 +99,26 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">PAN</label>
-                            <input type="text" name="pan_number" id="consultantPan" class="form-control">
+                            <input type="text" name="pan_number" id="consultantPan" class="form-control" required>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label d-block">Do you have a GST number?</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input js-consultant-has-gst" type="radio" name="has_gst" id="consultantHasGstNo" value="0" checked>
+                                <label class="form-check-label" for="consultantHasGstNo">No</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input js-consultant-has-gst" type="radio" name="has_gst" id="consultantHasGstYes" value="1">
+                                <label class="form-check-label" for="consultantHasGstYes">Yes</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-none" id="consultantGstWrap">
                             <label class="form-label">GST</label>
                             <input type="text" name="gst_number" id="consultantGst" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Any Other Government Certificate Number</label>
+                            <input type="text" name="government_certificate_number" id="consultantGovernmentCertificate" class="form-control">
                         </div>
                     </div>
                 </div>

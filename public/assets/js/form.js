@@ -107,6 +107,18 @@
         },
 
         showToast: function (type, message) {
+            var toastrType = type === 'danger' ? 'error' : type;
+            if (window.toastr && typeof window.toastr[toastrType] === 'function') {
+                window.toastr.options = $.extend({}, window.toastr.options || {}, {
+                    closeButton: true,
+                    progressBar: true,
+                    positionClass: 'toast-top-right',
+                    timeOut: 4500
+                });
+                window.toastr[toastrType](message || '');
+                return;
+            }
+
             var styles = {
                 success: '#198754',
                 danger: '#dc3545',
@@ -257,7 +269,13 @@
                     }).fail(function (xhr) {
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                             self.renderFieldErrors($form, xhr.responseJSON.errors);
-                            self.showAlert($alert, 'warning', config.validationMessage || 'Please fix the highlighted fields and try again.');
+                            var validationMessage = config.validationMessage || 'Please fix the highlighted fields and try again.';
+                            if (typeof config.onValidationError === 'function') {
+                                config.onValidationError(xhr, validationMessage, { form: $form, button: $button, alert: $alert });
+                                return;
+                            }
+
+                            self.showAlert($alert, 'warning', validationMessage);
                             return;
                         }
 
@@ -291,6 +309,9 @@
                     },
                     invalidHandler: function () {
                         self.setButtonLoading($button, false, loadingText, defaultText);
+                        if (typeof config.onInvalid === 'function') {
+                            config.onInvalid({ form: $form, button: $button, alert: $alert });
+                        }
                     },
                     rules: config.rules || {},
                     messages: config.messages || {},
@@ -423,8 +444,46 @@
             });
         },
 
+        initRegisterBusinessFields: function () {
+            var $role = $('#role');
+            var $businessFields = $('#businessRegistrationFields');
+            var $pan = $('#pan_number');
+            var $gstWrap = $('#gstNumberWrap');
+            var $gst = $('#gst_number');
+            var $certificate = $('#government_certificate_number');
+            var isBusinessRole = function () {
+                var role = $role.val();
+                return role === 'vendor' || role === 'consultant';
+            };
+            var toggleGst = function () {
+                var showGst = isBusinessRole() && $('input[name="has_gst"]:checked').val() === '1';
+                $gstWrap.toggleClass('d-none', !showGst);
+                $gst.prop('required', showGst);
+                if (!showGst) {
+                    $gst.val('');
+                }
+            };
+            var toggleBusinessFields = function () {
+                var showBusinessFields = isBusinessRole();
+                $businessFields.toggleClass('d-none', !showBusinessFields);
+                $pan.prop('required', showBusinessFields);
+                $('input[name="has_gst"]').prop('required', showBusinessFields);
+                if (!showBusinessFields) {
+                    $pan.val('');
+                    $certificate.val('');
+                    $('#has_gst_no').prop('checked', true);
+                }
+                toggleGst();
+            };
+
+            $role.off('change.businessFields').on('change.businessFields', toggleBusinessFields);
+            $('input[name="has_gst"]').off('change.businessFields').on('change.businessFields', toggleGst);
+            toggleBusinessFields();
+        },
+
         initRegisterForm: function () {
             this.initRegisterPlaceAutocomplete();
+            this.initRegisterBusinessFields();
             this.attachAjaxForm({
                 formSelector: '#registerForm',
                 buttonSelector: '#registerSubmitBtn',
@@ -440,6 +499,26 @@
                     city: { required: true, maxlength: 120 },
                     pincode: { required: true, digits: true, minlength: 4, maxlength: 10 },
                     role: { required: true },
+                    pan_number: {
+                        required: function () {
+                            var role = $('#role').val();
+                            return role === 'vendor' || role === 'consultant';
+                        },
+                        maxlength: 20
+                    },
+                    has_gst: {
+                        required: function () {
+                            var role = $('#role').val();
+                            return role === 'vendor' || role === 'consultant';
+                        }
+                    },
+                    gst_number: {
+                        required: function () {
+                            return $('input[name="has_gst"]:checked').val() === '1';
+                        },
+                        maxlength: 20
+                    },
+                    government_certificate_number: { maxlength: 100 },
                     date_of_birth: { required: true, date: true },
                     password: { required: true, minlength: 8 },
                     password_confirmation: { required: true, equalTo: '#password' },
@@ -482,6 +561,20 @@
                     role: {
                         required: 'Please select your role.'
                     },
+                    pan_number: {
+                        required: 'Please enter your PAN number.',
+                        maxlength: 'PAN number cannot exceed 20 characters.'
+                    },
+                    has_gst: {
+                        required: 'Please select whether you have a GST number.'
+                    },
+                    gst_number: {
+                        required: 'Please enter your GST number.',
+                        maxlength: 'GST number cannot exceed 20 characters.'
+                    },
+                    government_certificate_number: {
+                        maxlength: 'Government certificate number cannot exceed 100 characters.'
+                    },
                     date_of_birth: {
                         required: 'Please enter your date of birth.',
                         date: 'Please enter a valid date of birth.'
@@ -499,9 +592,28 @@
                     }
                 },
                 fallbackErrorMessage: 'Unable to register right now. Please try again.',
+                validationMessage: 'Please fix the highlighted fields and try again.',
+                beforeSubmit: function () {
+                    FormHelper.showToast('info', 'Submitting your registration...');
+                },
+                onInvalid: function () {
+                    FormHelper.showToast('warning', 'Please fix the highlighted fields and try again.');
+                },
+                onValidationError: function (xhr, message) {
+                    FormHelper.showToast('warning', message || 'Please fix the highlighted fields and try again.');
+                    FormHelper.showAlert($('#registerAlert'), 'warning', message || 'Please fix the highlighted fields and try again.');
+                },
+                onError: function (xhr, message) {
+                    FormHelper.showToast('danger', message || 'Unable to register right now. Please try again.');
+                    FormHelper.showAlert($('#registerAlert'), 'danger', message || 'Unable to register right now. Please try again.');
+                },
                 onSuccess: function (response) {
-                    FormHelper.showAlert($('#registerAlert'), 'success', response.message || 'Registration successful. Redirecting...');
-                    window.location.href = response.redirect || '/verification/contact';
+                    var successMessage = response.message || 'Registration successful. Redirecting...';
+                    FormHelper.showToast('success', successMessage);
+                    FormHelper.showAlert($('#registerAlert'), 'success', successMessage);
+                    window.setTimeout(function () {
+                        window.location.href = response.redirect || '/verification/contact';
+                    }, 1500);
                 }
             });
         },

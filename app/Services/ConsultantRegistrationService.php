@@ -20,6 +20,9 @@ class ConsultantRegistrationService
         $address = $registrationData['address'] ?? $user->address ?? null;
         $city = $registrationData['city'] ?? $user->city ?? null;
         $pincode = $registrationData['pincode'] ?? $user->pincode ?? null;
+        $panNumber = $registrationData['pan_number'] ?? null;
+        $gstNumber = ($registrationData['has_gst'] ?? '0') === '1' ? ($registrationData['gst_number'] ?? null) : null;
+        $governmentCertificateNumber = $registrationData['government_certificate_number'] ?? null;
 
         $consultant = Consultant::create([
             'user_id' => $user->id,
@@ -33,6 +36,9 @@ class ConsultantRegistrationService
             'address' => $address,
             'city' => $city,
             'pincode' => $pincode,
+            'pan_number' => $panNumber,
+            'gst_number' => $gstNumber,
+            'government_certificate_number' => $governmentCertificateNumber,
             'status' => 'pending',
         ]);
 
@@ -46,6 +52,8 @@ class ConsultantRegistrationService
             'address' => $address,
             'city' => $city,
             'pincode' => $pincode,
+            'pan_number' => $panNumber,
+            'gst_number' => $gstNumber,
             'is_primary' => true,
         ]);
 

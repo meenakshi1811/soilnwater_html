@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ConsultantStatusMail;
 use App\Mail\OtpMail;
+use App\Mail\VendorStatusMail;
 use App\Models\User;
 use App\Services\VendorRegistrationService;
 use App\Services\ConsultantRegistrationService;
@@ -46,6 +48,10 @@ class RegisterController extends Controller
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
             'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,consultant', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,consultant', 'in:0,1'],
+            'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
+            'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'accept_terms' => ['accepted'],
@@ -53,6 +59,9 @@ class RegisterController extends Controller
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
+            'pan_number.required_if' => 'PAN number is required for vendor and consultant registrations.',
+            'has_gst.required_if' => 'Please select whether you have a GST number.',
+            'gst_number.required_if' => 'GST number is required when you select yes for GST.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
             'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
         ]);
@@ -87,21 +96,31 @@ class RegisterController extends Controller
 
         $user = $this->create($request->all());
 
+        $vendor = null;
         if ($user->isVendor()) {
-            VendorRegistrationService::createProfileForUser($user, $request->only([
+            $vendor = VendorRegistrationService::createProfileForUser($user, $request->only([
                 'whatsapp_number',
                 'address',
                 'city',
                 'pincode',
+                'pan_number',
+                'has_gst',
+                'gst_number',
+                'government_certificate_number',
             ]));
         }
 
+        $consultant = null;
         if ($user->isConsultant()) {
-            ConsultantRegistrationService::createProfileForUser($user, $request->only([
+            $consultant = ConsultantRegistrationService::createProfileForUser($user, $request->only([
                 'whatsapp_number',
                 'address',
                 'city',
                 'pincode',
+                'pan_number',
+                'has_gst',
+                'gst_number',
+                'government_certificate_number',
             ]));
         }
 
@@ -121,6 +140,27 @@ class RegisterController extends Controller
             }
 
             return redirect()->route('register.contact.verify.form')->with('status', $message);
+        }
+
+        if ($vendor || $consultant) {
+            $user->markEmailAsVerified();
+
+            if ($vendor) {
+                Mail::to($user->email)->send(VendorStatusMail::forVendor($vendor, 'pending'));
+                $message = 'Thank you for registering. Your vendor profile is under observation. Admin will check and approve it soon.';
+            } else {
+                Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($consultant, 'pending'));
+                $message = 'Thank you for registering. Your consultant profile is under observation. Admin will check and approve it soon.';
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'redirect' => route('login'),
+                ]);
+            }
+
+            return redirect()->route('login')->with('status', $message);
         }
 
         $user->sendEmailVerificationNotification();
