@@ -43,6 +43,59 @@ class ConsultantService extends Model
     ];
 
 
+
+    /**
+     * @return array<int, array{duration:string, price:string, note:string}>
+     */
+    public function consultationChargeRows(): array
+    {
+        $labels = [
+            'minute' => 'Per Minute',
+            'hour' => 'Per Hour',
+            'day' => 'Per Day',
+            'month' => 'Per Month',
+            'contractual' => 'Contractual',
+        ];
+
+        $notes = collect($this->consultation_charge_notes ?: []);
+
+        $rows = collect($this->consultation_charges ?: [])
+            ->map(function ($charge, $key) use ($labels, $notes): ?array {
+                if (is_array($charge)) {
+                    $duration = (string) ($charge['duration'] ?? '');
+                    $price = $charge['price'] ?? null;
+                    $note = trim((string) ($notes->get($key) ?? ($charge['note'] ?? '')));
+                } else {
+                    $duration = (string) $key;
+                    $price = $charge;
+                    $note = '';
+                }
+
+                if ($duration === '' || $price === null || $price === '') {
+                    return null;
+                }
+
+                return [
+                    'duration' => $labels[$duration] ?? ucfirst($duration),
+                    'price' => '₹'.number_format((float) $price, 2),
+                    'note' => $note,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        if (! empty($rows)) {
+            return $rows;
+        }
+
+        return [[
+            'duration' => $this->duration ?: '-',
+            'price' => '₹'.number_format((float) $this->price, 2),
+            'note' => '',
+        ]];
+    }
+
     public function formattedConsultationCharges(): string
     {
         $labels = [
