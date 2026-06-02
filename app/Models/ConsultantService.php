@@ -16,7 +16,12 @@ class ConsultantService extends Model
         'category',
         'short_description',
         'description',
+        'consultation_type',
+        'business_type',
+        'service_area',
         'price',
+        'consultation_charges',
+        'consultation_charge_notes',
         'duration',
         'location',
         'latitude',
@@ -32,8 +37,53 @@ class ConsultantService extends Model
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
         'is_online' => 'boolean',
+        'consultation_charges' => 'array',
+        'consultation_charge_notes' => 'array',
         'approved_at' => 'datetime',
     ];
+
+
+    public function formattedConsultationCharges(): string
+    {
+        $labels = [
+            'minute' => 'Per Minute',
+            'hour' => 'Per Hour',
+            'day' => 'Per Day',
+            'month' => 'Per Month',
+            'contractual' => 'Contractual',
+        ];
+
+        $notes = collect($this->consultation_charge_notes ?: []);
+
+        $charges = collect($this->consultation_charges ?: [])
+            ->map(function ($charge, $key) use ($labels, $notes): ?string {
+                if (is_array($charge)) {
+                    $duration = (string) ($charge['duration'] ?? '');
+                    $price = $charge['price'] ?? null;
+                    $note = trim((string) ($notes->get($key) ?? ($charge['note'] ?? '')));
+                } else {
+                    $duration = (string) $key;
+                    $price = $charge;
+                    $note = '';
+                }
+
+                if ($duration === '' || $price === null || $price === '') {
+                    return null;
+                }
+
+                $formatted = ($labels[$duration] ?? ucfirst($duration)).': ₹'.number_format((float) $price, 2);
+
+                return $note !== '' ? $formatted.' ('.$note.')' : $formatted;
+            })
+            ->filter()
+            ->values();
+
+        if ($charges->isNotEmpty()) {
+            return $charges->implode(', ');
+        }
+
+        return '₹'.number_format((float) $this->price, 2);
+    }
 
     public function consultant(): BelongsTo
     {

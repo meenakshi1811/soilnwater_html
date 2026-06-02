@@ -59,13 +59,15 @@
                         <div class="consultant-service-card__body">
                             <p class="consultant-service-card__category">{{ $service->categoryModel?->name ?? $service->category ?? 'Consultation' }}</p>
                             <h3>{{ $service->name }}</h3>
+                            <p class="consultant-service-card__category mb-2">{{ ucfirst($service->consultation_type ?: ($service->is_online ? 'online' : 'offline')) }}@if($service->business_type) · {{ $service->business_type }}@endif</p>
                             @if($service->short_description)
                                 <p class="consultant-service-card__description">{{ $service->short_description }}</p>
                             @endif
                             <div class="consultant-service-card__meta">
-                                <span>₹{{ number_format((float) $service->price, 2) }}</span>
+                                <span>{{ $service->formattedConsultationCharges() }}</span>
                                 @if($service->duration)<span>{{ $service->duration }}</span>@endif
                             </div>
+                            @if($service->service_area)<p class="consultant-service-card__description mt-2"><strong>Service area:</strong> {{ $service->service_area }}</p>@endif
                             <a href="{{ route('consultant.contact', $consultant->slug) }}" class="consultant-service-card__btn">Enquire Now</a>
                         </div>
                     </article>
