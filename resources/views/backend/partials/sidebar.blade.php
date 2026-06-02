@@ -13,7 +13,7 @@
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
     $consultantsMenuActive = request()->routeIs('admin.consultants.*') || request()->routeIs('admin.consultant-services.*');
     $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
-    $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*');
+    $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -362,6 +362,12 @@
                             <a class="{{ request()->routeIs('consultant.services.*') ? 'active' : '' }}" href="{{ route('consultant.services.index') }}">
                                 <i class="fa-solid fa-clipboard-list"></i>
                                 <span>Consultation Services</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('consultant.inquiries.*') ? 'active' : '' }}" href="{{ route('consultant.inquiries.index') }}">
+                                <i class="fa-solid fa-envelope-open-text"></i>
+                                <span>Inquiries</span>
                             </a>
                         </li>
                     </ul>
