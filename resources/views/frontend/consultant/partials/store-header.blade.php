@@ -19,7 +19,7 @@
 
                 <a href="{{ route('consultant.about', $consultant->slug) }}" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'about' ? 'is-active' : '' }}">About Us</a>
 
-                <a href="{{ route('consultant.public-services.index', $consultant->slug) }}" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'services' ? 'is-active' : '' }}">Services</a>
+                <a href="{{ route('consultant.public-services.index', $consultant->slug) }}" class="vendor-store-nav-link {{ in_array($activeNav ?? '', ['services', 'category', 'subcategory'], true) ? 'is-active' : '' }}">Services</a>
 
                 <a href="{{ route('consultant.contact', $consultant->slug) }}" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'contact' ? 'is-active' : '' }}">Contact</a>
 
