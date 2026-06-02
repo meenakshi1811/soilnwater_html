@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ConsultantServiceController extends Controller
@@ -113,8 +114,14 @@ class ConsultantServiceController extends Controller
             'subcategory_id' => ['nullable', Rule::exists('categories', 'id')->where(fn ($q) => $q->where('parent_id', $request->input('category_id')))],
             'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'duration' => ['nullable', 'string', 'max:120'],
+            'consultation_type' => ['required', Rule::in(['online', 'offline', 'both'])],
+            'business_type' => ['required', Rule::in(['Architect', 'Lawyer', 'Landscaper', 'Software Consultant', 'Business'])],
+            'service_area' => ['nullable', 'string', 'max:1000'],
+            'charge_duration' => ['nullable', 'array'],
+            'charge_duration.*' => ['nullable', Rule::in(['minute', 'hour', 'day', 'month', 'contractual'])],
+            'charge_price' => ['nullable', 'array'],
+            'charge_price.*' => ['nullable', 'numeric', 'min:0'],
+            'charges_detail' => ['nullable', 'string', 'max:2000'],
             'location' => ['required', 'string', 'max:255'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
@@ -124,7 +131,38 @@ class ConsultantServiceController extends Controller
         ]);
 
         $validated['category'] = Category::find($validated['category_id'])?->name;
-        $validated['is_online'] = $request->boolean('is_online');
+        $chargeRows = collect($request->input('charge_duration', []))
+            ->map(fn ($duration, $idx) => [
+                'duration' => (string) $duration,
+                'price' => $request->input('charge_price.'.$idx),
+            ]);
+
+        if ($chargeRows->contains(fn (array $row): bool => ($row['duration'] === '' && $row['price'] !== null && $row['price'] !== '') || ($row['duration'] !== '' && ($row['price'] === null || $row['price'] === '')))) {
+            throw ValidationException::withMessages([
+                'charge_duration.0' => 'Each consultation charge row must include both duration and price.',
+            ]);
+        }
+
+        $validated['consultation_charges'] = $chargeRows
+            ->filter(fn (array $row): bool => $row['duration'] !== '' && $row['price'] !== null && $row['price'] !== '')
+            ->map(fn (array $row): array => ['duration' => $row['duration'], 'price' => (float) $row['price']])
+            ->values()
+            ->all();
+
+        if (empty($validated['consultation_charges'])) {
+            throw ValidationException::withMessages([
+                'charge_duration.0' => 'Please add at least one consultation duration and price.',
+            ]);
+        }
+
+        $validated['price'] = collect($validated['consultation_charges'])->first()['price'] ?? 0;
+        $validated['duration'] = collect($validated['consultation_charges'])
+            ->pluck('duration')
+            ->unique()
+            ->map(fn (string $unit): string => $unit === 'contractual' ? 'contractual' : Str::plural($unit))
+            ->implode(', ');
+        $validated['is_online'] = in_array($validated['consultation_type'], ['online', 'both'], true);
+        unset($validated['charge_duration'], $validated['charge_price']);
 
         if ($request->hasFile('image')) {
             $directory = public_path('uploads/consultant-services/images');
