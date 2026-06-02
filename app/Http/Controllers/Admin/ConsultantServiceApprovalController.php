@@ -23,7 +23,9 @@ class ConsultantServiceApprovalController extends Controller
         $query = ConsultantService::query()
             ->with(['categoryModel:id,name', 'subcategoryModel:id,name', 'consultant:id,company_name,display_name'])
             ->where(fn ($pending) => $pending->where('status', 'pending')->orWhereNull('status'))
-            ->select(['id', 'consultant_id', 'name', 'category', 'category_id', 'subcategory_id', 'price', 'status', 'created_at']);
+            ->select(['id', 'consultant_id', 'name', 'category', 'category_id', 'subcategory_id', 'price', 'consultation_charges', 'consultation_charge_notes', 'duration', 'status', 'created_at', 'updated_at'])
+            ->orderByDesc('updated_at')
+            ->orderByDesc('created_at');
 
         return $this->datatable($query, true);
     }
@@ -39,7 +41,9 @@ class ConsultantServiceApprovalController extends Controller
 
         $query = ConsultantService::query()
             ->with(['categoryModel:id,name', 'subcategoryModel:id,name', 'consultant:id,company_name,display_name'])
-            ->select(['id', 'consultant_id', 'name', 'category', 'category_id', 'subcategory_id', 'price', 'status', 'created_at']);
+            ->select(['id', 'consultant_id', 'name', 'category', 'category_id', 'subcategory_id', 'price', 'consultation_charges', 'consultation_charge_notes', 'duration', 'status', 'created_at', 'updated_at'])
+            ->orderByDesc('updated_at')
+            ->orderByDesc('created_at');
 
         if (in_array($request->string('status')->toString(), ['pending', 'approved', 'rejected'], true)) {
             $query->where('status', $request->string('status')->toString());
@@ -81,12 +85,22 @@ class ConsultantServiceApprovalController extends Controller
         return DataTables::of($query)
             ->addColumn('consultant_name', fn (ConsultantService $service): string => e($service->consultant?->display_name ?: $service->consultant?->company_name ?: '—'))
             ->addColumn('category_display', function (ConsultantService $service): string {
-                $category = $service->categoryModel?->name ?? (is_string($service->category) ? $service->category : '-');
-                $subcategory = $service->subcategoryModel?->name ?? '-';
+                $category = html_entity_decode((string) ($service->categoryModel?->name ?? (is_string($service->category) ? $service->category : '-')));
+                $subcategory = html_entity_decode((string) ($service->subcategoryModel?->name ?? '-'));
 
                 return e($category.' / '.$subcategory);
             })
-            ->addColumn('price_display', fn (ConsultantService $service): string => e($service->formattedConsultationCharges()))
+            ->addColumn('price_display', function (ConsultantService $service): string {
+                return collect($service->consultationChargeRows())
+                    ->map(function (array $row): string {
+                        $charge = e($row['duration'].': '.$row['price']);
+
+                        return $row['note'] !== ''
+                            ? '<div>'.$charge.' <span class="text-muted">('.e($row['note']).')</span></div>'
+                            : '<div>'.$charge.'</div>';
+                    })
+                    ->implode('');
+            })
             ->addColumn('status_badge', function (ConsultantService $service): string {
                 $status = $service->status ?? 'pending';
                 $badge = $status === 'approved' ? 'success' : ($status === 'rejected' ? 'danger' : 'warning');
@@ -105,12 +119,12 @@ class ConsultantServiceApprovalController extends Controller
                     .'<button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="'.$service->id.'">Delete</button>'
                     .'</div>';
             })
-            ->editColumn('created_at', function (ConsultantService $service): string {
-                return optional($service->created_at)
-                    ? $service->created_at->timezone(config('app.timezone'))->format('d M Y, h:i A')
+            ->editColumn('updated_at', function (ConsultantService $service): string {
+                return optional($service->updated_at)
+                    ? $service->updated_at->timezone(config('app.timezone'))->format('d M Y, h:i A')
                     : '-';
             })
-            ->rawColumns(['status_badge', 'actions'])
+            ->rawColumns(['price_display', 'status_badge', 'actions'])
             ->make(true);
     }
 }
