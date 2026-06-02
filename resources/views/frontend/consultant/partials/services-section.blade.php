@@ -1,6 +1,19 @@
-@if(($approvedServices ?? collect())->isNotEmpty())
+@php
+    $approvedServices = $approvedServices ?? collect();
+    $wrapSection = $wrapSection ?? true;
+    $wrapContainer = $wrapContainer ?? true;
+    $showServicesHeading = $showServicesHeading ?? true;
+    $serviceColumnClass = $serviceColumnClass ?? 'col-sm-6 col-xl-3';
+@endphp
+
+@if($approvedServices->count() > 0)
+@if($wrapSection)
 <section class="vendor-store-section consultant-services-section">
+@endif
+    @if($wrapContainer)
     <div class="container">
+    @endif
+        @if($showServicesHeading)
         <div class="consultant-services-heading mb-4">
             <div>
                 <p class="consultant-services-heading__eyebrow mb-1">Consultation Services</p>
@@ -10,7 +23,8 @@
                 <a href="{{ route('consultant.public-services.index', $consultant->slug) }}" class="consultant-services-heading__btn">View all services</a>
             @endif
         </div>
-        <div class="row g-4">
+        @endif
+        <div class="row g-3 g-md-4">
             @foreach($approvedServices as $service)
                 @php
                     $image = $service->image_path;
@@ -27,7 +41,7 @@
                         ['Location', $service->location],
                     ])->filter(fn ($row) => filled($row[1]))->values();
                 @endphp
-                <div class="col-sm-6 col-xl-3">
+                <div class="{{ $serviceColumnClass }}">
                     <article class="consultant-service-card h-100">
                         <div class="consultant-service-card__image-wrap">
                             @if($image)
@@ -188,8 +202,12 @@
                 @endauth
             @endforeach
         </div>
+    @if($wrapContainer)
     </div>
+    @endif
+@if($wrapSection)
 </section>
+@endif
 @endif
 
 

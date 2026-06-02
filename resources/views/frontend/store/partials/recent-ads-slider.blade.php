@@ -4,6 +4,7 @@
     $sectionTitle = $sectionTitle ?? 'Recent Ads';
     $sliderLabel = $sliderLabel ?? $sectionTitle.' slider';
     $moduleLabels = \App\Support\ModulePermissions::modules();
+    $defaultCategoryLabel = $defaultCategoryLabel ?? 'Vendors';
 @endphp
 
 @if($ads->isNotEmpty())
@@ -42,7 +43,7 @@
                                         <h6 class="mb-1 offer-coupon-title">{{ $ad->title }}</h6>
                                         <span class="recent-ad-meta">
                                             <i class="fa-solid fa-layer-group"></i>
-                                            {{ ($selectedCategoryNames !== [] ? implode(', ', $selectedCategoryNames) : 'Vendors') }} • {{ $ad->created_at?->format('d M Y') ?? 'N/A' }}
+                                            {{ ($selectedCategoryNames !== [] ? implode(', ', $selectedCategoryNames) : $defaultCategoryLabel) }} • {{ $ad->created_at?->format('d M Y') ?? 'N/A' }}
                                         </span>
                                     </div>
                                 </a>

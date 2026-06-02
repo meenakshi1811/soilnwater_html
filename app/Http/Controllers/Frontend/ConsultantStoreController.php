@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Consultant;
 use App\Models\ConsultantService;
 use App\Models\ConsultantServiceInquiry;
 use App\Models\User;
+use App\Models\UserAd;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
@@ -40,21 +43,23 @@ class ConsultantStoreController extends Controller
 
     public function services(string $slug): View
     {
-        $consultant = $this->resolveConsultant($slug);
+        return $this->renderServiceCatalog($slug);
+    }
 
-        $approvedServices = ConsultantService::query()
-            ->with(['categoryModel:id,name', 'subcategoryModel:id,name'])
-            ->where('consultant_id', $consultant->id)
-            ->where('status', 'approved')
-            ->latest('updated_at')
-            ->get();
+    public function categoryServices(string $slug, Category $category): View
+    {
+        $this->assertConsultantCategory($category);
 
-        return view('frontend.consultant.services', [
-            'consultant' => $consultant,
-            'preview' => false,
-            'activeNav' => 'services',
-            'approvedServices' => $approvedServices,
-        ]);
+        return $this->renderServiceCatalog($slug, $category);
+    }
+
+    public function subcategoryServices(string $slug, Category $category, Category $subcategory): View
+    {
+        $this->assertConsultantCategory($category);
+        abort_unless((int) $subcategory->parent_id === (int) $category->id, 404);
+        $this->assertConsultantCategory($subcategory, isSubcategory: true);
+
+        return $this->renderServiceCatalog($slug, $category, $subcategory);
     }
 
     public function sendServiceInquiry(Request $request, string $slug, ConsultantService $service): JsonResponse
@@ -114,6 +119,181 @@ class ConsultantStoreController extends Controller
             'consultant' => $this->resolveConsultant($slug),
             'activeNav' => 'contact',
         ]);
+    }
+
+    private function renderServiceCatalog(string $slug, ?Category $category = null, ?Category $subcategory = null): View
+    {
+        $consultant = $this->resolveConsultant($slug);
+        $consultantCategories = $this->consultantCategories($consultant);
+
+        $servicesQuery = ConsultantService::query()
+            ->with(['categoryModel:id,name', 'subcategoryModel:id,name'])
+            ->where('consultant_id', $consultant->id)
+            ->where('status', 'approved');
+
+        if ($subcategory) {
+            $servicesQuery->where('subcategory_id', $subcategory->id);
+        } elseif ($category) {
+            $servicesQuery->where('category_id', $category->id);
+        }
+
+        $approvedServices = $servicesQuery->latest('updated_at')->paginate(12)->withQueryString();
+        $consultantRecentAds = $this->nearestConsultantModuleAds();
+
+        if ($subcategory) {
+            $pageTitle = $subcategory->name;
+            $pageSubtitle = 'Consultation services in '.$subcategory->name.' · '.$category->name;
+            $activeNav = 'subcategory';
+        } elseif ($category) {
+            $pageTitle = $category->name;
+            $pageSubtitle = 'All consultation services listed under '.$category->name;
+            $activeNav = 'category';
+        } else {
+            $pageTitle = 'All consultation services';
+            $pageSubtitle = 'Browse the complete service catalog from '.$consultant->publicDisplayName();
+            $activeNav = 'services';
+        }
+
+        return view('frontend.consultant.services', [
+            'consultant' => $consultant,
+            'preview' => false,
+            'activeNav' => $activeNav,
+            'pageTitle' => $pageTitle,
+            'pageSubtitle' => $pageSubtitle,
+            'approvedServices' => $approvedServices,
+            'consultantCategories' => $consultantCategories,
+            'activeCategory' => $category,
+            'activeSubcategory' => $subcategory,
+            'consultantRecentAds' => $consultantRecentAds,
+            'selectedCategoryNamesByConsultantAdId' => $this->resolveSelectedCategoryNamesByAdId($consultantRecentAds),
+        ]);
+    }
+
+    private function consultantCategories(Consultant $consultant): Collection
+    {
+        $categoryIds = ConsultantService::query()
+            ->where('consultant_id', $consultant->id)
+            ->where('status', 'approved')
+            ->whereNotNull('category_id')
+            ->pluck('category_id')
+            ->unique()
+            ->filter();
+
+        if ($categoryIds->isEmpty()) {
+            return Category::query()
+                ->whereNull('parent_id')
+                ->whereJsonContains('modules', 'consultants')
+                ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        }
+
+        return Category::query()
+            ->whereIn('id', $categoryIds)
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'consultants')
+            ->with(['children' => function ($query) use ($consultant) {
+                $subcategoryIds = ConsultantService::query()
+                    ->where('consultant_id', $consultant->id)
+                    ->where('status', 'approved')
+                    ->whereNotNull('subcategory_id')
+                    ->pluck('subcategory_id')
+                    ->unique()
+                    ->filter();
+
+                $query
+                    ->when($subcategoryIds->isNotEmpty(), fn ($q) => $q->whereIn('id', $subcategoryIds))
+                    ->orderBy('name')
+                    ->select(['id', 'name', 'parent_id']);
+            }])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
+    private function nearestConsultantModuleAds(int $limit = 20): Collection
+    {
+        [$lat, $lng] = $this->frontendCoordinates();
+
+        $adsQuery = UserAd::query()
+            ->with(['category:id,name'])
+            ->where('status', 'approved')
+            ->assignedToModule('consultants')
+            ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
+            ->whereNotNull('final_image')
+            ->where(function ($query) {
+                $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
+            });
+
+        if ($lat !== null && $lng !== null) {
+            $adsQuery
+                ->select('user_ads.*')
+                ->selectRaw('CASE WHEN location_lat IS NOT NULL AND location_lng IS NOT NULL THEN (6371 * acos(cos(radians(?)) * cos(radians(location_lat)) * cos(radians(location_lng) - radians(?)) + sin(radians(?)) * sin(radians(location_lat)))) ELSE NULL END as distance_km', [$lat, $lng, $lat])
+                ->orderByRaw('CASE WHEN distance_km IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('distance_km');
+        }
+
+        return $adsQuery
+            ->latest('created_at')
+            ->latest('id')
+            ->limit($limit)
+            ->get();
+    }
+
+    private function resolveSelectedCategoryNamesByAdId(Collection $ads): array
+    {
+        $ads = $ads->values();
+        if ($ads->isEmpty()) {
+            return [];
+        }
+
+        $selectedCategoryIds = $ads
+            ->flatMap(fn (UserAd $ad) => array_map('intval', $ad->selected_category_ids ?? []))
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $categoryNamesById = Category::query()
+            ->whereIn('id', $selectedCategoryIds)
+            ->pluck('name', 'id');
+
+        return $ads
+            ->mapWithKeys(function (UserAd $ad) use ($categoryNamesById) {
+                $selectedNames = collect($ad->selected_category_ids ?? [])
+                    ->map(fn ($id) => $categoryNamesById->get((int) $id))
+                    ->filter(fn ($name) => is_string($name) && $name !== '')
+                    ->values()
+                    ->all();
+
+                if ($selectedNames === [] && $ad->category?->name) {
+                    $selectedNames = [$ad->category->name];
+                }
+
+                return [$ad->id => $selectedNames];
+            })
+            ->all();
+    }
+
+    /**
+     * @return array{0:?float, 1:?float}
+     */
+    private function frontendCoordinates(): array
+    {
+        $lat = request()->query('lat', session('frontend_lat'));
+        $lng = request()->query('lng', request()->query('lang', session('frontend_lng')));
+
+        return [
+            is_numeric($lat) ? (float) $lat : null,
+            is_numeric($lng) ? (float) $lng : null,
+        ];
+    }
+
+    private function assertConsultantCategory(Category $category, bool $isSubcategory = false): void
+    {
+        abort_unless(in_array('consultants', $category->modules ?? [], true), 404);
+
+        if (! $isSubcategory) {
+            abort_unless($category->parent_id === null, 404);
+        }
     }
 
     private function sendConsultantInquirySms(Consultant $consultant, ConsultantService $service): void
