@@ -530,6 +530,119 @@
         font-weight: 800;
         padding: 10px 18px;
         text-decoration: none;
+        width: 100%;
+    }
+    .consultant-service-card__btn:hover,
+    .consultant-service-detail-modal__contact-btn:hover {
+        color: #fff;
+        filter: brightness(.96);
+    }
+    .consultant-service-detail-modal .modal-content {
+        border: 0;
+        border-radius: 24px;
+        box-shadow: 0 28px 80px rgba(6, 27, 58, 0.22);
+        overflow: hidden;
+    }
+    .consultant-service-detail-modal .modal-header,
+    .consultant-service-detail-modal .modal-footer {
+        border-color: rgba(15, 43, 77, 0.08);
+        padding: 20px 24px;
+    }
+    .consultant-service-detail-modal .modal-title {
+        color: #0f2b4d;
+        font-size: 26px;
+        font-weight: 850;
+    }
+    .consultant-service-detail-modal .modal-body {
+        padding: 24px;
+    }
+    .consultant-service-detail-modal__media {
+        background: linear-gradient(135deg, #eef6ff, #f4fbf5);
+        border-radius: 20px;
+        height: 100%;
+        min-height: 280px;
+        overflow: hidden;
+    }
+    .consultant-service-detail-modal__media img,
+    .consultant-service-detail-modal__placeholder {
+        height: 100%;
+        min-height: 280px;
+        object-fit: cover;
+        width: 100%;
+    }
+    .consultant-service-detail-modal__quick-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .consultant-service-detail-modal__quick-grid div,
+    .consultant-service-detail-modal__charge-row {
+        background: #f6f9fc;
+        border: 1px solid rgba(15, 43, 77, 0.07);
+        border-radius: 16px;
+        padding: 12px 14px;
+    }
+    .consultant-service-detail-modal__quick-grid span,
+    .consultant-service-detail-modal__charge-row span {
+        color: #607188;
+        display: block;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+    }
+    .consultant-service-detail-modal__quick-grid strong,
+    .consultant-service-detail-modal__charge-row strong {
+        color: #0f2b4d;
+        display: block;
+        font-size: 16px;
+        margin-top: 4px;
+    }
+    .consultant-service-detail-modal__section {
+        margin-top: 22px;
+    }
+    .consultant-service-detail-modal__section h4 {
+        color: #0f2b4d;
+        font-size: 16px;
+        font-weight: 850;
+        margin-bottom: 10px;
+    }
+    .consultant-service-detail-modal__section p {
+        color: #607188;
+        line-height: 1.65;
+    }
+    .consultant-service-detail-modal__charges {
+        display: grid;
+        gap: 10px;
+    }
+    .consultant-service-detail-modal__charge-row {
+        display: grid;
+        gap: 4px 12px;
+        grid-template-columns: 1fr auto;
+    }
+    .consultant-service-detail-modal__charge-row small {
+        color: #607188;
+        grid-column: 1 / -1;
+    }
+    .consultant-service-detail-modal__contact-btn {
+        background: linear-gradient(90deg, #2276d2, #21833b);
+        border: 0;
+        border-radius: 999px;
+        color: #fff;
+        font-weight: 800;
+        padding: 10px 18px;
+    }
+    @media (max-width: 767.98px) {
+        .consultant-services-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .consultant-services-heading__copy {
+            text-align: left;
+        }
+        .consultant-service-detail-modal__quick-grid {
+            grid-template-columns: 1fr;
+        }
     }
     .consultant-service-enquiry-modal .form-label {
         color: #0f2b4d;
