@@ -145,14 +145,18 @@ class ConsultantServiceController extends Controller
             ]);
         }
 
-        $validated['consultation_charges'] = $chargeRows
+        $validChargeRows = $chargeRows
             ->filter(fn (array $row): bool => $row['duration'] !== '' && $row['price'] !== null && $row['price'] !== '')
-            ->map(fn (array $row): array => array_filter([
+            ->values();
+
+        $validated['consultation_charges'] = $validChargeRows
+            ->map(fn (array $row): array => [
                 'duration' => $row['duration'],
                 'price' => (float) $row['price'],
-                'note' => $row['note'] ?? '',
-            ], fn ($value): bool => $value !== ''))
-            ->values()
+            ])
+            ->all();
+        $validated['consultation_charge_notes'] = $validChargeRows
+            ->map(fn (array $row): string => $row['note'] ?? '')
             ->all();
 
         if (empty($validated['consultation_charges'])) {

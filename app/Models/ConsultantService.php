@@ -21,6 +21,7 @@ class ConsultantService extends Model
         'service_area',
         'price',
         'consultation_charges',
+        'consultation_charge_notes',
         'duration',
         'location',
         'latitude',
@@ -37,6 +38,7 @@ class ConsultantService extends Model
         'longitude' => 'decimal:7',
         'is_online' => 'boolean',
         'consultation_charges' => 'array',
+        'consultation_charge_notes' => 'array',
         'approved_at' => 'datetime',
     ];
 
@@ -51,12 +53,14 @@ class ConsultantService extends Model
             'contractual' => 'Contractual',
         ];
 
+        $notes = collect($this->consultation_charge_notes ?: []);
+
         $charges = collect($this->consultation_charges ?: [])
-            ->map(function ($charge, $key) use ($labels): ?string {
+            ->map(function ($charge, $key) use ($labels, $notes): ?string {
                 if (is_array($charge)) {
                     $duration = (string) ($charge['duration'] ?? '');
                     $price = $charge['price'] ?? null;
-                    $note = trim((string) ($charge['note'] ?? ''));
+                    $note = trim((string) ($notes->get($key) ?? ($charge['note'] ?? '')));
                 } else {
                     $duration = (string) $key;
                     $price = $charge;
