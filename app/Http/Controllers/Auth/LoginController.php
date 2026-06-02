@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ConsultantStatusMail;
 use App\Mail\OtpMail;
+use App\Mail\VendorStatusMail;
 use App\Models\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\JsonResponse;
@@ -430,6 +432,7 @@ class LoginController extends Controller
             ]);
         }
 
+        $createdUser = false;
         if (! $user) {
             $displayName = trim((string) ($googleUser->getName() ?: 'Google User'));
             $role = $intent === 'register' ? $roleFromRegisterFlow : 'user';
@@ -442,6 +445,7 @@ class LoginController extends Controller
                 'password' => Hash::make(str()->random(40)),
                 'email_verified_at' => now(),
             ]);
+            $createdUser = true;
         }
 
         if ($user->isGeneralUser() && ! $user->phone_verified_at) {
@@ -469,6 +473,10 @@ class LoginController extends Controller
                 $user->load('vendor');
             }
 
+            if ($createdUser && $intent === 'register' && $user->vendor) {
+                Mail::to($user->email)->send(VendorStatusMail::forVendor($user->vendor, 'pending'));
+            }
+
             if (! $user->vendor?->isApproved()) {
                 Auth::logout();
 
@@ -482,6 +490,10 @@ class LoginController extends Controller
             if (! $user->consultant) {
                 \App\Services\ConsultantRegistrationService::createProfileForUser($user);
                 $user->load('consultant');
+            }
+
+            if ($createdUser && $intent === 'register' && $user->consultant) {
+                Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($user->consultant, 'pending'));
             }
 
             if (! $user->consultant?->isApproved()) {

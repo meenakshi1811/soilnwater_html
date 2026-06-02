@@ -28,6 +28,7 @@ class VendorStatusMail extends Mailable
 
         $companyName = $vendor->company_name ?: $vendor->user?->name ?: 'Vendor';
         $status = match ($action) {
+            'pending' => 'Under observation',
             'approved' => 'Approved',
             'rejected' => 'Rejected',
             'deleted' => 'Deleted',
@@ -44,6 +45,7 @@ class VendorStatusMail extends Mailable
             ],
             action: $action,
             subjectLine: match ($action) {
+                'pending' => 'Welcome to SoilNWater - Your Vendor Profile Is Under Observation',
                 'approved' => 'Your Vendor Account Has Been Approved',
                 'rejected' => 'Vendor Application Update',
                 'deleted' => 'Vendor Account Removed',

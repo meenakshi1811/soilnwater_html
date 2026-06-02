@@ -2,16 +2,21 @@
 
 @section('content')
     @php
+        $isPending = $action === 'pending';
         $isApproved = $action === 'approved';
         $isRejected = $action === 'rejected';
-        $accentColor = $isApproved ? '#166534' : ($isRejected ? '#92400e' : '#991b1b');
-        $accentBg = $isApproved ? '#f0fdf4' : ($isRejected ? '#fffbeb' : '#fef2f2');
-        $accentBorder = $isApproved ? '#bbf7d0' : ($isRejected ? '#fde68a' : '#fecaca');
+        $accentColor = $isPending ? '#1d4ed8' : ($isApproved ? '#166534' : ($isRejected ? '#92400e' : '#991b1b'));
+        $accentBg = $isPending ? '#eff6ff' : ($isApproved ? '#f0fdf4' : ($isRejected ? '#fffbeb' : '#fef2f2'));
+        $accentBorder = $isPending ? '#bfdbfe' : ($isApproved ? '#bbf7d0' : ($isRejected ? '#fde68a' : '#fecaca'));
     @endphp
 
     <h1 style="margin: 0 0 10px; color: #111827; font-size: 24px; line-height: 1.3;">{{ $subjectLine }}</h1>
 
-    @if ($isApproved)
+    @if ($isPending)
+        <p style="margin: 0 0 16px; color: #374151; font-size: 15px; line-height: 1.7;">
+            Welcome to {{ config('app.name', 'SoilNWater') }}. Your consultant profile is under observation. The admin team will check your details and approve it soon.
+        </p>
+    @elseif ($isApproved)
         <p style="margin: 0 0 16px; color: #374151; font-size: 15px; line-height: 1.7;">
             Good news! Your consultant account has been approved by the {{ config('app.name', 'SoilNWater') }} team. You can now access the consultant portal and manage your consultant profile, branches, and enquiries.
         </p>
@@ -40,7 +45,11 @@
         </tr>
     </table>
 
-    @if ($isApproved)
+    @if ($isPending)
+        <p style="margin: 0 0 12px; color: #374151; font-size: 14px; line-height: 1.7;">
+            Please wait for admin approval before trying to access the consultant portal.
+        </p>
+    @elseif ($isApproved)
         <p style="margin: 0 0 18px; color: #374151; font-size: 14px; line-height: 1.7;">
             Please login with your registered credentials to continue setting up your consultant profile.
         </p>

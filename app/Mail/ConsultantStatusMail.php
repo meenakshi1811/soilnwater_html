@@ -28,6 +28,7 @@ class ConsultantStatusMail extends Mailable
 
         $companyName = $consultant->company_name ?: $consultant->user?->name ?: 'Consultant';
         $status = match ($action) {
+            'pending' => 'Under observation',
             'approved' => 'Approved',
             'rejected' => 'Rejected',
             'deleted' => 'Deleted',
@@ -44,6 +45,7 @@ class ConsultantStatusMail extends Mailable
             ],
             action: $action,
             subjectLine: match ($action) {
+                'pending' => 'Welcome to SoilNWater - Your Consultant Profile Is Under Observation',
                 'approved' => 'Your Consultant Account Has Been Approved',
                 'rejected' => 'Consultant Application Update',
                 'deleted' => 'Consultant Account Removed',
