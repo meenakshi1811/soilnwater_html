@@ -204,7 +204,7 @@ class VendorController extends Controller
         ]);
 
         $emailSent = $this->sendVendorStatusMail($vendor, 'approved');
-        print_r($emailSent);exit();
+        // print_r($emailSent);exit();
         return response()->json([
             'message' => 'Vendor approved. They can now log in to the vendor portal.'.($emailSent ? ' Email notification sent.' : ''),
         ]);
