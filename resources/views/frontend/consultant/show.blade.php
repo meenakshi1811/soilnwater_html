@@ -66,6 +66,26 @@
     @include('frontend.consultant.partials.recent-ads-slider', ['ads' => $consultantRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByConsultantAdId])
 @endif
 
+<div class="modal fade consultant-login-required-modal" id="consultantLoginRequiredModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h3 class="modal-title">You are not logged in</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="consultant-login-required-card">
+                    <div class="consultant-login-required-card__icon"><i class="fa-solid fa-lock"></i></div>
+                    <div>
+                        <h4>You are not logged in</h4>
+                        <p>Please log in to view this consultation details and share options.</p>
+                        <a href="{{ route('login') }}" class="consultant-login-required-card__btn">Login to continue</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="consultantSectionImageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
