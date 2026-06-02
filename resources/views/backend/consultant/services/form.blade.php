@@ -5,10 +5,9 @@
   <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">Consultant Portal</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Consultation Service' : 'Add Consultation Service' }}</h2></div><a href="{{ route('consultant.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
   @php
     $visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten();
-    $durationText = old('duration', $service->duration);
-    preg_match('/^(\d+)\s*(minute|minutes|hour|hours)$/i', (string) $durationText, $durationParts);
-    $durationValue = old('duration_value', $durationParts[1] ?? '');
-    $durationUnit = old('duration_unit', isset($durationParts[2]) && str_starts_with(strtolower($durationParts[2]), 'hour') ? 'hour' : 'minute');
+    $storedCharges = $service->consultation_charges ?: [];
+    if (empty($storedCharges) && $service->price !== null) { $storedCharges = ['hour' => $service->price]; }
+    $chargeFields = ['minute' => 'Minute Charges', 'hour' => 'Hour Charges', 'day' => 'Day Charges', 'month' => 'Month Charges', 'contractual' => 'Contractual Charges'];
     $consultationType = old('consultation_type', $service->consultation_type ?: ($service->is_online ? 'online' : 'offline'));
     $businessTypes = ['Architect', 'Lawyer', 'Landscaper', 'Software Consultant', 'Business'];
   @endphp
@@ -20,8 +19,8 @@
       <div class="col-md-6"><label class="form-label">Subcategory</label><select id="subcategory_id" class="form-select @error('subcategory_id') is-invalid @enderror" name="subcategory_id" data-current="{{ old('subcategory_id', $service->subcategory_id) }}"><option value="">Select subcategory</option></select>@error('subcategory_id')<div id="subcategory_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">Consultation Type *</label><select class="form-select @error('consultation_type') is-invalid @enderror" name="consultation_type" required><option value="">Select type</option><option value="online" @selected($consultationType === 'online')>Online</option><option value="offline" @selected($consultationType === 'offline')>Offline</option><option value="both" @selected($consultationType === 'both')>Both</option></select>@error('consultation_type')<div id="consultation_type-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">Business Type *</label><select class="form-select @error('business_type') is-invalid @enderror" name="business_type" required><option value="">Select business type</option>@foreach($businessTypes as $type)<option value="{{ $type }}" @selected(old('business_type', $service->business_type) === $type)>{{ $type }}</option>@endforeach</select>@error('business_type')<div id="business_type-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
-      <div class="col-md-6"><label class="form-label">Consultation Charges *</label><input class="form-control @error('price') is-invalid @enderror" type="number" step="0.01" min="0" name="price" value="{{ old('price', $service->price ?? 0) }}" required>@error('price')<div id="price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
-      <div class="col-md-6"><label class="form-label">Time for Consultation *</label><div class="input-group"><input class="form-control @error('duration_value') is-invalid @enderror" type="number" min="1" max="999" name="duration_value" value="{{ $durationValue }}" placeholder="30" required><select class="form-select @error('duration_unit') is-invalid @enderror" name="duration_unit" required><option value="minute" @selected($durationUnit === 'minute')>Minute(s)</option><option value="hour" @selected($durationUnit === 'hour')>Hour(s)</option></select></div>@error('duration_value')<div id="duration_value-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror @error('duration_unit')<div id="duration_unit-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
+      <div class="col-12"><label class="form-label">Consultation Charges * / Time for Consultation</label><div class="row g-2">@foreach($chargeFields as $chargeKey => $chargeLabel)<div class="col-md-6 col-xl-4"><label class="form-label small text-muted mb-1">{{ $chargeLabel }}</label><input class="form-control consultation-charge-input @error('consultation_charges.'.$chargeKey) is-invalid @enderror" type="number" step="0.01" min="0" name="consultation_charges[{{ $chargeKey }}]" value="{{ old('consultation_charges.'.$chargeKey, data_get($storedCharges, $chargeKey)) }}" placeholder="0.00">@error('consultation_charges.'.$chargeKey)<div id="consultation_charges_{{ $chargeKey }}-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>@endforeach</div><small class="text-muted">Add different charges for minute, hour, day, month, or contractual consultation. Enter at least one charge.</small></div>
+      <div class="col-12"><label class="form-label">Charges Detail</label><textarea class="form-control @error('charges_detail') is-invalid @enderror" rows="3" name="charges_detail" placeholder="Describe what each charge includes, contractual pricing terms, taxes, or any special conditions.">{{ old('charges_detail', $service->charges_detail) }}</textarea>@error('charges_detail')<div id="charges_detail-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-12"><label class="form-label">Short / Brief Description</label><input class="form-control @error('short_description') is-invalid @enderror" name="short_description" maxlength="500" value="{{ old('short_description', $service->short_description) }}" placeholder="Brief description">@error('short_description')<div id="short_description-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-12"><label class="form-label">Detailed Description</label><textarea class="form-control @error('description') is-invalid @enderror" rows="5" name="description" placeholder="Detailed description">{{ old('description', $service->description) }}</textarea>@error('description')<div id="description-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-12"><label class="form-label">Geographical Service Area</label><textarea class="form-control @error('service_area') is-invalid @enderror" rows="3" name="service_area" placeholder="Example: Dehradun, Mussoorie, Haridwar">{{ old('service_area', $service->service_area) }}</textarea>@error('service_area')<div id="service_area-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Enter offline service cities or areas separated by commas.</small></div>
@@ -124,6 +123,10 @@ $(function () {
     return String($('#latitude').val() || '').trim() !== '' && String($('#longitude').val() || '').trim() !== '';
   }, 'Please select a location from the suggestions list.');
 
+  $.validator.addMethod('requireCharge', function () {
+    return $('.consultation-charge-input').filter(function () { return String($(this).val() || '').trim() !== ''; }).length > 0;
+  }, 'Please enter at least one consultation charge.');
+
   function setSubmitLoading(isLoading) {
     if (isLoading) { originalBtnHtml = $submitBtn.html(); $submitBtn.prop('disabled', true).html('Saving...'); return; }
     $submitBtn.prop('disabled', false).html(originalBtnHtml);
@@ -136,6 +139,7 @@ $(function () {
       const normalizedField = field.replace(/\.[0-9]+(?=\.|$)/g, '').replace(/\*$/, '');
       const message = Array.isArray(messages) ? messages[0] : String(messages || 'Invalid value');
       if (hiddenValidationFields.includes(normalizedField)) { mapped.location = 'Please select a location from the suggestions list.'; return; }
+      if (normalizedField.startsWith('consultation_charges.')) { mapped[normalizedField.replace('consultation_charges.', 'consultation_charges[') + ']'] = message; return; }
       mapped[normalizedField] = message;
     });
     if (validator && Object.keys(mapped).length) validator.showErrors(mapped);
@@ -148,9 +152,11 @@ $(function () {
       category_id: { required: true },
       consultation_type: { required: true },
       business_type: { required: true },
-      price: { required: true, number: true, min: 0 },
-      duration_value: { required: true, digits: true, min: 1, max: 999 },
-      duration_unit: { required: true },
+      'consultation_charges[minute]': { requireCharge: true, number: true, min: 0 },
+      'consultation_charges[hour]': { number: true, min: 0 },
+      'consultation_charges[day]': { number: true, min: 0 },
+      'consultation_charges[month]': { number: true, min: 0 },
+      'consultation_charges[contractual]': { number: true, min: 0 },
       location: { required: true, locationPicked: true, maxlength: 255 },
       accept_terms: { required: true }
     },
@@ -159,9 +165,7 @@ $(function () {
       category_id: { required: 'Please select a category.' },
       consultation_type: { required: 'Please select a consultation type.' },
       business_type: { required: 'Please select a business type.' },
-      price: { required: 'Please enter the consultation charges.' },
-      duration_value: { required: 'Please enter the consultation time.' },
-      duration_unit: { required: 'Please select minutes or hours.' },
+      'consultation_charges[minute]': { requireCharge: 'Please enter at least one consultation charge.' },
       location: { required: 'Please enter a location.' },
       accept_terms: { required: 'Please accept the terms and conditions.' }
     },

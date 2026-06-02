@@ -64,9 +64,10 @@
                                 <p class="consultant-service-card__description">{{ $service->short_description }}</p>
                             @endif
                             <div class="consultant-service-card__meta">
-                                <span>₹{{ number_format((float) $service->price, 2) }}</span>
+                                <span>{{ $service->formattedConsultationCharges() }}</span>
                                 @if($service->duration)<span>{{ $service->duration }}</span>@endif
                             </div>
+                            @if($service->charges_detail)<p class="consultant-service-card__description mt-2"><strong>Charges detail:</strong> {{ $service->charges_detail }}</p>@endif
                             @if($service->service_area)<p class="consultant-service-card__description mt-2"><strong>Service area:</strong> {{ $service->service_area }}</p>@endif
                             <a href="{{ route('consultant.contact', $consultant->slug) }}" class="consultant-service-card__btn">Enquire Now</a>
                         </div>

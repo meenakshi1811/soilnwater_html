@@ -16,7 +16,7 @@
             <tr>
               <td><div class="fw-semibold">{{ $service->name }}</div><div class="small text-muted">{{ $service->duration ?: 'Duration not set' }}</div></td>
               <td>{{ $service->categoryModel?->name ?? $service->category ?? '-' }}<div class="small text-muted">{{ $service->subcategoryModel?->name ?? '-' }}</div></td>
-              <td>₹{{ number_format((float) $service->price, 2) }}</td>
+              <td>{{ $service->formattedConsultationCharges() }}</td>
               <td>{{ ucfirst($service->consultation_type ?: ($service->is_online ? 'online' : 'offline')) }}</td>
               <td>{{ $service->business_type ?: '-' }}</td>
               <td><span class="badge bg-{{ $service->status === 'approved' ? 'success' : ($service->status === 'rejected' ? 'danger' : 'warning') }}">{{ ucfirst($service->status ?? 'pending') }}</span></td>
