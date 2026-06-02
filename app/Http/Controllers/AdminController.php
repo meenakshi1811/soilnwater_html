@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Consultant;
 use App\Models\Offer;
 use App\Models\User;
 use App\Models\UserAd;
+use App\Models\Vendor;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -68,7 +70,9 @@ class AdminController extends Controller
 
         $pendingApprovals = (int) User::query()
             ->whereNull('email_verified_at')
-            ->count();
+            ->count()
+            + (int) Vendor::query()->where('status', 'pending')->count()
+            + (int) Consultant::query()->where('status', 'pending')->count();
 
         $newLeads = (int) User::query()
             ->where('role', 'user')

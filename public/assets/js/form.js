@@ -107,6 +107,18 @@
         },
 
         showToast: function (type, message) {
+            var toastrType = type === 'danger' ? 'error' : type;
+            if (window.toastr && typeof window.toastr[toastrType] === 'function') {
+                window.toastr.options = $.extend({}, window.toastr.options || {}, {
+                    closeButton: true,
+                    progressBar: true,
+                    positionClass: 'toast-top-right',
+                    timeOut: 4500
+                });
+                window.toastr[toastrType](message || '');
+                return;
+            }
+
             var styles = {
                 success: '#198754',
                 danger: '#dc3545',
@@ -257,7 +269,13 @@
                     }).fail(function (xhr) {
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                             self.renderFieldErrors($form, xhr.responseJSON.errors);
-                            self.showAlert($alert, 'warning', config.validationMessage || 'Please fix the highlighted fields and try again.');
+                            var validationMessage = config.validationMessage || 'Please fix the highlighted fields and try again.';
+                            if (typeof config.onValidationError === 'function') {
+                                config.onValidationError(xhr, validationMessage, { form: $form, button: $button, alert: $alert });
+                                return;
+                            }
+
+                            self.showAlert($alert, 'warning', validationMessage);
                             return;
                         }
 
@@ -291,6 +309,9 @@
                     },
                     invalidHandler: function () {
                         self.setButtonLoading($button, false, loadingText, defaultText);
+                        if (typeof config.onInvalid === 'function') {
+                            config.onInvalid({ form: $form, button: $button, alert: $alert });
+                        }
                     },
                     rules: config.rules || {},
                     messages: config.messages || {},
@@ -499,9 +520,28 @@
                     }
                 },
                 fallbackErrorMessage: 'Unable to register right now. Please try again.',
+                validationMessage: 'Please fix the highlighted fields and try again.',
+                beforeSubmit: function () {
+                    FormHelper.showToast('info', 'Submitting your registration...');
+                },
+                onInvalid: function () {
+                    FormHelper.showToast('warning', 'Please fix the highlighted fields and try again.');
+                },
+                onValidationError: function (xhr, message) {
+                    FormHelper.showToast('warning', message || 'Please fix the highlighted fields and try again.');
+                    FormHelper.showAlert($('#registerAlert'), 'warning', message || 'Please fix the highlighted fields and try again.');
+                },
+                onError: function (xhr, message) {
+                    FormHelper.showToast('danger', message || 'Unable to register right now. Please try again.');
+                    FormHelper.showAlert($('#registerAlert'), 'danger', message || 'Unable to register right now. Please try again.');
+                },
                 onSuccess: function (response) {
-                    FormHelper.showAlert($('#registerAlert'), 'success', response.message || 'Registration successful. Redirecting...');
-                    window.location.href = response.redirect || '/verification/contact';
+                    var successMessage = response.message || 'Registration successful. Redirecting...';
+                    FormHelper.showToast('success', successMessage);
+                    FormHelper.showAlert($('#registerAlert'), 'success', successMessage);
+                    window.setTimeout(function () {
+                        window.location.href = response.redirect || '/verification/contact';
+                    }, 1500);
                 }
             });
         },
