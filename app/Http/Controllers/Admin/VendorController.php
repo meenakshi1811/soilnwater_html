@@ -257,9 +257,9 @@ class VendorController extends Controller
             return false;
         }
 
-        // Mail::to($recipient)->send(VendorStatusMail::forVendor($vendor, $action));
-        Mail::to("nanta1811@gmail.com")->send(VendorStatusMail::forVendor($vendor, $action));
-        die();
+        Mail::to($recipient)->send(VendorStatusMail::forVendor($vendor, $action));
+        // Mail::to("nanta1811@gmail.com")->send(VendorStatusMail::forVendor($vendor, $action));
+        // die();
         return true;
     }
 
