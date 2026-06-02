@@ -113,8 +113,12 @@ class ConsultantServiceController extends Controller
             'subcategory_id' => ['nullable', Rule::exists('categories', 'id')->where(fn ($q) => $q->where('parent_id', $request->input('category_id')))],
             'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
+            'consultation_type' => ['required', Rule::in(['online', 'offline', 'both'])],
+            'business_type' => ['required', Rule::in(['Architect', 'Lawyer', 'Landscaper', 'Software Consultant', 'Business'])],
+            'service_area' => ['nullable', 'string', 'max:1000'],
             'price' => ['required', 'numeric', 'min:0'],
-            'duration' => ['nullable', 'string', 'max:120'],
+            'duration_value' => ['required', 'integer', 'min:1', 'max:999'],
+            'duration_unit' => ['required', Rule::in(['minute', 'hour'])],
             'location' => ['required', 'string', 'max:255'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
@@ -124,7 +128,9 @@ class ConsultantServiceController extends Controller
         ]);
 
         $validated['category'] = Category::find($validated['category_id'])?->name;
-        $validated['is_online'] = $request->boolean('is_online');
+        $validated['duration'] = $validated['duration_value'].' '.Str::plural($validated['duration_unit'], (int) $validated['duration_value']);
+        $validated['is_online'] = in_array($validated['consultation_type'], ['online', 'both'], true);
+        unset($validated['duration_value'], $validated['duration_unit']);
 
         if ($request->hasFile('image')) {
             $directory = public_path('uploads/consultant-services/images');
