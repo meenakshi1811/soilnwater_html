@@ -32,6 +32,7 @@ use App\Http\Controllers\Admin\ConsultantServiceApprovalController;
 use App\Http\Controllers\Frontend\ConsultantStoreController;
 use App\Http\Controllers\Consultant\ConsultantBranchController;
 use App\Http\Controllers\Consultant\ConsultantDashboardController;
+use App\Http\Controllers\Consultant\ConsultantInquiryController;
 use App\Http\Controllers\Consultant\ConsultantPendingController;
 use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantProfileController;
@@ -83,6 +84,7 @@ Route::get('/store/{slug}/contact', [VendorStoreController::class, 'contact'])->
 Route::post('/store/{slug}/enquiry', [VendorStoreController::class, 'sendGeneralInquiry'])->name('store.enquiry');
 Route::post('/store/{slug}/products/{product}/enquiry', [VendorStoreController::class, 'sendInquiry'])->name('store.products.enquiry');
 Route::post('/vendor-enquiry', [UserAdController::class, 'vendorEnquiry'])->name('frontend.vendor-enquiry');
+Route::post('/consultant/{slug}/services/{service}/enquiry', [ConsultantStoreController::class, 'sendServiceInquiry'])->name('consultant.services.enquiry');
 
 Auth::routes(['verify' => true]);
 
@@ -163,6 +165,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/public-page/preview', [ConsultantPublicPageController::class, 'preview'])->middleware('consultant')->name('public-page.preview');
         Route::delete('/banner-slides/{slide}', [ConsultantPublicPageController::class, 'deleteBannerSlide'])->middleware('consultant')->name('banner-slides.destroy');
         Route::resource('services', ConsultantServiceController::class)->middleware('consultant');
+        Route::get('/inquiries', [ConsultantInquiryController::class, 'index'])->middleware('consultant')->name('inquiries.index');
         Route::get('/profile', [ConsultantProfileController::class, 'edit'])->middleware('consultant')->name('profile.edit');
         Route::put('/profile', [ConsultantProfileController::class, 'update'])->middleware('consultant')->name('profile.update');
     });
