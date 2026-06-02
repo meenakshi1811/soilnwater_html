@@ -86,7 +86,7 @@ class ConsultantServiceApprovalController extends Controller
 
                 return e($category.' / '.$subcategory);
             })
-            ->addColumn('price_display', fn (ConsultantService $service): string => '₹'.number_format((float) $service->price, 2))
+            ->addColumn('price_display', fn (ConsultantService $service): string => e($service->formattedConsultationCharges()))
             ->addColumn('status_badge', function (ConsultantService $service): string {
                 $status = $service->status ?? 'pending';
                 $badge = $status === 'approved' ? 'success' : ($status === 'rejected' ? 'danger' : 'warning');
