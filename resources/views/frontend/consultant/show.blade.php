@@ -53,6 +53,23 @@
                     $chargeRows = $service->consultationChargeRows();
                     $modalId = 'consultantServiceDetailModal'.$service->id;
                     $enquiryModalId = 'consultantServiceEnquiryModal'.$service->id;
+                    $serviceInfoRows = collect([
+                        ['Service ID', $service->id],
+                        ['Service slug', $service->slug],
+                        ['Category', $service->categoryModel?->name ?? $service->category],
+                        ['Subcategory', $service->subcategoryModel?->name],
+                        ['Consultation type', $serviceType],
+                        ['Business type', $service->business_type],
+                        ['Duration', $service->duration],
+                        ['Base price', $service->price ? '₹'.number_format((float) $service->price, 2) : null],
+                        ['Online service', $service->is_online ? 'Yes' : 'No'],
+                        ['Service area', $service->service_area],
+                        ['Location', $service->location],
+                        ['Status', ucfirst((string) $service->status)],
+                        ['Approved at', $service->approved_at?->format('d M Y H:i')],
+                        ['Created at', $service->created_at?->format('d M Y H:i')],
+                        ['Updated at', $service->updated_at?->format('d M Y H:i')],
+                    ])->filter(fn ($row) => filled($row[1]))->values();
                 @endphp
                 <div class="col-sm-6 col-xl-3">
                     <article class="consultant-service-card h-100">
@@ -79,97 +96,87 @@
                     </article>
                 </div>
 
-                <div class="modal fade consultant-service-detail-modal" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-xl">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <div>
-                                    <p class="consultant-service-detail-modal__eyebrow mb-1">{{ $service->categoryModel?->name ?? $service->category ?? 'Consultation' }}</p>
-                                    <h3 class="modal-title" id="{{ $modalId }}Label">{{ $service->name }}</h3>
-                                </div>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="row g-4">
-                                    <div class="col-md-5">
-                                        <div class="consultant-service-detail-modal__media">
-                                            @if($image)
-                                                <img src="{{ asset($image) }}" alt="{{ $service->name }}">
-                                            @else
-                                                <div class="consultant-service-detail-modal__placeholder"><i class="fa-solid fa-briefcase"></i></div>
-                                            @endif
-                                        </div>
+                @auth
+                    <div class="modal fade consultant-service-detail-modal" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <div>
+                                        <p class="consultant-service-detail-modal__eyebrow mb-1">{{ $service->categoryModel?->name ?? $service->category ?? 'Consultation' }}</p>
+                                        <h3 class="modal-title" id="{{ $modalId }}Label">{{ $service->name }}</h3>
                                     </div>
-                                    <div class="col-md-7">
-                                        <div class="consultant-service-detail-modal__quick-grid">
-                                            <div>
-                                                <span>Consultation type</span>
-                                                <strong>{{ $serviceType }}</strong>
-                                            </div>
-                                            @if($service->business_type)
-                                                <div>
-                                                    <span>Business type</span>
-                                                    <strong>{{ $service->business_type }}</strong>
-                                                </div>
-                                            @endif
-                                            @if($service->duration)
-                                                <div>
-                                                    <span>Duration</span>
-                                                    <strong>{{ $service->duration }}</strong>
-                                                </div>
-                                            @endif
-                                            @if($service->subcategoryModel?->name)
-                                                <div>
-                                                    <span>Speciality</span>
-                                                    <strong>{{ $service->subcategoryModel->name }}</strong>
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        @if($service->short_description || $service->description)
-                                            <div class="consultant-service-detail-modal__section">
-                                                <h4>Overview</h4>
-                                                @if($service->short_description)
-                                                    <p>{{ $service->short_description }}</p>
-                                                @endif
-                                                @if($service->description)
-                                                    <p class="mb-0">{!! nl2br(e($service->description)) !!}</p>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row g-4">
+                                        <div class="col-lg-5">
+                                            <div class="consultant-service-detail-modal__media">
+                                                @if($image)
+                                                    <img src="{{ asset($image) }}" alt="{{ $service->name }}">
+                                                @else
+                                                    <div class="consultant-service-detail-modal__placeholder"><i class="fa-solid fa-briefcase"></i></div>
                                                 @endif
                                             </div>
-                                        @endif
+                                        </div>
+                                        <div class="col-lg-7">
+                                            <div class="consultant-service-detail-modal__section mt-0">
+                                                <h4>Service information</h4>
+                                                <div class="consultant-service-detail-modal__info-grid">
+                                                    @foreach($serviceInfoRows as [$label, $value])
+                                                        <div class="consultant-service-detail-modal__info-item">
+                                                            <span>{{ $label }}</span>
+                                                            <strong>{{ $value }}</strong>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
 
-                                        <div class="consultant-service-detail-modal__section">
-                                            <h4>Charges</h4>
-                                            <div class="consultant-service-detail-modal__charges">
-                                                @foreach($chargeRows as $charge)
-                                                    <div class="consultant-service-detail-modal__charge-row">
-                                                        <span>{{ $charge['duration'] }}</span>
-                                                        <strong>{{ $charge['price'] }}</strong>
-                                                        @if(!empty($charge['note']))
-                                                            <small>{{ $charge['note'] }}</small>
-                                                        @endif
-                                                    </div>
-                                                @endforeach
+                                            @if($service->short_description || $service->description)
+                                                <div class="consultant-service-detail-modal__section">
+                                                    <h4>Overview</h4>
+                                                    @if($service->short_description)
+                                                        <p>{{ $service->short_description }}</p>
+                                                    @endif
+                                                    @if($service->description)
+                                                        <p class="mb-0">{!! nl2br(e($service->description)) !!}</p>
+                                                    @endif
+                                                </div>
+                                            @endif
+
+                                            <div class="consultant-service-detail-modal__section">
+                                                <h4>Charges</h4>
+                                                <div class="table-responsive consultant-service-detail-modal__charges-table-wrap">
+                                                    <table class="table consultant-service-detail-modal__charges-table mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Duration</th>
+                                                                <th>Price</th>
+                                                                <th>Note</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach($chargeRows as $charge)
+                                                                <tr>
+                                                                    <td>{{ $charge['duration'] }}</td>
+                                                                    <td>{{ $charge['price'] }}</td>
+                                                                    <td>{{ $charge['note'] ?: '—' }}</td>
+                                                                </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
-
-                                        @if($service->service_area || $service->location)
-                                            <div class="consultant-service-detail-modal__section">
-                                                <h4>Service location</h4>
-                                                @if($service->service_area)<p class="mb-1"><strong>Service area:</strong> {{ $service->service_area }}</p>@endif
-                                                @if($service->location)<p class="mb-0"><strong>Location:</strong> {{ $service->location }}</p>@endif
-                                            </div>
-                                        @endif
                                     </div>
                                 </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn consultant-service-detail-modal__contact-btn" data-bs-target="#{{ $enquiryModalId }}" data-bs-toggle="modal">Enquiry</button>
+                                <div class="modal-footer consultant-service-detail-modal__footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn consultant-service-detail-modal__contact-btn" data-bs-target="#{{ $enquiryModalId }}" data-bs-toggle="modal">Enquiry</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                @endauth
 
                 @auth
                     <div class="modal fade consultant-service-enquiry-modal" id="{{ $enquiryModalId }}" tabindex="-1" aria-labelledby="{{ $enquiryModalId }}Label" aria-hidden="true">
@@ -298,413 +305,7 @@
 @endsection
 
 @push('consultant_scripts')
-<style>
-    .content-body .js-remove-brochure-image,
-    .content-body .js-remove-brochure-pdf {
-        display: none !important;
-    }
-    .content-body [data-brochure-image-slot] {
-        cursor: zoom-in;
-    }
 
-    .consultant-services-heading {
-        align-items: flex-end;
-        display: flex;
-        gap: 18px;
-        justify-content: space-between;
-    }
-    .consultant-services-heading__eyebrow,
-    .consultant-service-detail-modal__eyebrow {
-        color: #2276d2;
-        font-size: 13px;
-        font-weight: 800;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-    }
-    .consultant-services-heading__copy {
-        color: #607188;
-        max-width: 480px;
-        text-align: right;
-    }
-    .consultant-service-card {
-        background: #fff;
-        border: 1px solid rgba(15, 43, 77, 0.1);
-        border-radius: 22px;
-        box-shadow: 0 16px 42px rgba(15, 43, 77, 0.08);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-    }
-    .consultant-service-card:hover {
-        border-color: rgba(34, 118, 210, 0.24);
-        box-shadow: 0 22px 54px rgba(15, 43, 77, 0.14);
-        transform: translateY(-4px);
-    }
-    .consultant-service-card__image-wrap {
-        background: linear-gradient(135deg, #eef6ff, #f4fbf5);
-        height: 172px;
-        overflow: hidden;
-        position: relative;
-    }
-    .consultant-service-card__image,
-    .consultant-service-card__placeholder {
-        height: 100%;
-        object-fit: cover;
-        width: 100%;
-    }
-    .consultant-service-card__placeholder,
-    .consultant-service-detail-modal__placeholder {
-        align-items: center;
-        color: #2276d2;
-        display: flex;
-        font-size: 44px;
-        justify-content: center;
-    }
-    .consultant-service-card__type-badge {
-        background: rgba(255, 255, 255, 0.94);
-        border: 1px solid rgba(15, 43, 77, 0.08);
-        border-radius: 999px;
-        box-shadow: 0 8px 22px rgba(15, 43, 77, 0.12);
-        color: #0f2b4d;
-        font-size: 12px;
-        font-weight: 800;
-        padding: 7px 12px;
-        position: absolute;
-        right: 14px;
-        text-transform: uppercase;
-        top: 14px;
-    }
-    .consultant-service-card__body {
-        display: flex;
-        flex: 1;
-        flex-direction: column;
-        padding: 20px;
-    }
-    .consultant-service-card__category {
-        color: #2276d2;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: .08em;
-        margin-bottom: 8px;
-        text-transform: uppercase;
-    }
-    .consultant-service-card h3 {
-        color: #0f2b4d;
-        font-size: 21px;
-        font-weight: 850;
-        line-height: 1.25;
-        margin-bottom: 16px;
-    }
-    .consultant-service-card__area {
-        color: #607188;
-        font-size: 14px;
-        line-height: 1.45;
-        margin-top: 12px;
-    }
-    .consultant-service-card__area i {
-        color: #21833b;
-        margin-right: 6px;
-    }
-    .consultant-service-card__btn {
-        align-items: center;
-        border: 0;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #2276d2, #21833b);
-        color: #fff;
-        display: inline-flex;
-        justify-content: center;
-        margin-top: 16px;
-        padding: 11px 16px;
-        font-weight: 800;
-        text-decoration: none;
-        width: 100%;
-    }
-    .consultant-service-card__btn:hover,
-    .consultant-service-detail-modal__contact-btn:hover,
-    .consultant-login-required-card__btn:hover {
-        color: #fff;
-        filter: brightness(.96);
-    }
-    .consultant-service-detail-modal .modal-content,
-    .consultant-service-enquiry-modal .modal-content,
-    .consultant-login-required-modal .modal-content {
-        border: 0;
-        border-radius: 24px;
-        box-shadow: 0 28px 80px rgba(6, 27, 58, 0.22);
-        overflow: hidden;
-    }
-    .consultant-service-detail-modal .modal-header,
-    .consultant-service-detail-modal .modal-footer,
-    .consultant-service-enquiry-modal .modal-header,
-    .consultant-service-enquiry-modal .modal-footer {
-        border-color: rgba(15, 43, 77, 0.08);
-        padding: 20px 24px;
-    }
-    .consultant-service-detail-modal .modal-title,
-    .consultant-service-enquiry-modal .modal-title,
-    .consultant-login-required-modal .modal-title {
-        color: #0f2b4d;
-        font-size: 26px;
-        font-weight: 850;
-    }
-    .consultant-service-detail-modal .modal-body,
-    .consultant-service-enquiry-modal .modal-body,
-    .consultant-login-required-modal .modal-body {
-        padding: 24px;
-    }
-    .consultant-service-detail-modal__media {
-        background: linear-gradient(135deg, #eef6ff, #f4fbf5);
-        border-radius: 20px;
-        height: 100%;
-        min-height: 280px;
-        overflow: hidden;
-    }
-    .consultant-service-detail-modal__media img,
-    .consultant-service-detail-modal__placeholder {
-        height: 100%;
-        min-height: 280px;
-        object-fit: cover;
-        width: 100%;
-    }
-    .consultant-service-detail-modal__quick-grid {
-        display: grid;
-        gap: 12px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .consultant-service-detail-modal__quick-grid div,
-    .consultant-service-detail-modal__charge-row {
-        background: #f6f9fc;
-        border: 1px solid rgba(15, 43, 77, 0.07);
-        border-radius: 16px;
-        padding: 12px 14px;
-    }
-    .consultant-service-detail-modal__quick-grid span,
-    .consultant-service-detail-modal__charge-row span {
-        color: #607188;
-        display: block;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: .05em;
-        text-transform: uppercase;
-    }
-    .consultant-service-detail-modal__quick-grid strong,
-    .consultant-service-detail-modal__charge-row strong {
-        color: #0f2b4d;
-        display: block;
-        font-size: 16px;
-        margin-top: 4px;
-    }
-    .consultant-service-detail-modal__section {
-        margin-top: 22px;
-    }
-    .consultant-service-detail-modal__section h4 {
-        color: #0f2b4d;
-        font-size: 16px;
-        font-weight: 850;
-        margin-bottom: 10px;
-    }
-    .consultant-service-detail-modal__section p {
-        color: #607188;
-        line-height: 1.65;
-    }
-    .consultant-service-detail-modal__charges {
-        display: grid;
-        gap: 10px;
-    }
-    .consultant-service-detail-modal__charge-row {
-        display: grid;
-        gap: 4px 12px;
-        grid-template-columns: 1fr auto;
-    }
-    .consultant-service-detail-modal__charge-row small {
-        color: #607188;
-        grid-column: 1 / -1;
-    }
-    .consultant-service-detail-modal__contact-btn,
-    .consultant-login-required-card__btn {
-        background: linear-gradient(90deg, #2276d2, #21833b);
-        border: 0;
-        border-radius: 999px;
-        color: #fff;
-        font-weight: 800;
-        padding: 10px 18px;
-        text-decoration: none;
-        width: 100%;
-    }
-    .consultant-service-card__btn:hover,
-    .consultant-service-detail-modal__contact-btn:hover {
-        color: #fff;
-        filter: brightness(.96);
-    }
-    .consultant-service-detail-modal .modal-content {
-        border: 0;
-        border-radius: 24px;
-        box-shadow: 0 28px 80px rgba(6, 27, 58, 0.22);
-        overflow: hidden;
-    }
-    .consultant-service-detail-modal .modal-header,
-    .consultant-service-detail-modal .modal-footer {
-        border-color: rgba(15, 43, 77, 0.08);
-        padding: 20px 24px;
-    }
-    .consultant-service-detail-modal .modal-title {
-        color: #0f2b4d;
-        font-size: 26px;
-        font-weight: 850;
-    }
-    .consultant-service-detail-modal .modal-body {
-        padding: 24px;
-    }
-    .consultant-service-detail-modal__media {
-        background: linear-gradient(135deg, #eef6ff, #f4fbf5);
-        border-radius: 20px;
-        height: 100%;
-        min-height: 280px;
-        overflow: hidden;
-    }
-    .consultant-service-detail-modal__media img,
-    .consultant-service-detail-modal__placeholder {
-        height: 100%;
-        min-height: 280px;
-        object-fit: cover;
-        width: 100%;
-    }
-    .consultant-service-detail-modal__quick-grid {
-        display: grid;
-        gap: 12px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .consultant-service-detail-modal__quick-grid div,
-    .consultant-service-detail-modal__charge-row {
-        background: #f6f9fc;
-        border: 1px solid rgba(15, 43, 77, 0.07);
-        border-radius: 16px;
-        padding: 12px 14px;
-    }
-    .consultant-service-detail-modal__quick-grid span,
-    .consultant-service-detail-modal__charge-row span {
-        color: #607188;
-        display: block;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: .05em;
-        text-transform: uppercase;
-    }
-    .consultant-service-detail-modal__quick-grid strong,
-    .consultant-service-detail-modal__charge-row strong {
-        color: #0f2b4d;
-        display: block;
-        font-size: 16px;
-        margin-top: 4px;
-    }
-    .consultant-service-detail-modal__section {
-        margin-top: 22px;
-    }
-    .consultant-service-detail-modal__section h4 {
-        color: #0f2b4d;
-        font-size: 16px;
-        font-weight: 850;
-        margin-bottom: 10px;
-    }
-    .consultant-service-detail-modal__section p {
-        color: #607188;
-        line-height: 1.65;
-    }
-    .consultant-service-detail-modal__charges {
-        display: grid;
-        gap: 10px;
-    }
-    .consultant-service-detail-modal__charge-row {
-        display: grid;
-        gap: 4px 12px;
-        grid-template-columns: 1fr auto;
-    }
-    .consultant-service-detail-modal__charge-row small {
-        color: #607188;
-        grid-column: 1 / -1;
-    }
-    .consultant-service-detail-modal__contact-btn {
-        background: linear-gradient(90deg, #2276d2, #21833b);
-        border: 0;
-        border-radius: 999px;
-        color: #fff;
-        font-weight: 800;
-        padding: 10px 18px;
-    }
-    @media (max-width: 767.98px) {
-        .consultant-services-heading {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-        .consultant-services-heading__copy {
-            text-align: left;
-        }
-        .consultant-service-detail-modal__quick-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    .consultant-service-enquiry-modal .form-label {
-        color: #0f2b4d;
-        font-weight: 750;
-    }
-    .consultant-service-enquiry-modal .form-control {
-        border-color: rgba(15, 43, 77, 0.14);
-        border-radius: 12px;
-        padding: 10px 12px;
-    }
-    .consultant-login-required-card {
-        align-items: flex-start;
-        background: #f7fbff;
-        border: 1px solid #cfe0ff;
-        border-radius: 16px;
-        display: flex;
-        gap: 18px;
-        padding: 22px;
-    }
-    .consultant-login-required-card__icon {
-        align-items: center;
-        background: #e8f0ff;
-        border-radius: 50%;
-        color: #2563d8;
-        display: flex;
-        flex: 0 0 52px;
-        font-size: 22px;
-        height: 52px;
-        justify-content: center;
-        width: 52px;
-    }
-    .consultant-login-required-card h4 {
-        color: #18345f;
-        font-size: 24px;
-        font-weight: 850;
-        margin-bottom: 8px;
-    }
-    .consultant-login-required-card p {
-        color: #607188;
-        font-size: 20px;
-        margin-bottom: 18px;
-    }
-    .consultant-login-required-card__btn {
-        border-radius: 6px;
-        display: inline-flex;
-        font-size: 20px;
-        padding: 10px 14px;
-    }
-    @media (max-width: 767.98px) {
-        .consultant-services-heading {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-        .consultant-services-heading__copy {
-            text-align: left;
-        }
-        .consultant-service-detail-modal__quick-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-</style>
 
 @if($consultant->bannerSlides->count() > 1)
 <script>
