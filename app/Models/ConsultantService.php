@@ -53,8 +53,22 @@ class ConsultantService extends Model
         ];
 
         $charges = collect($this->consultation_charges ?: [])
-            ->filter(fn ($amount): bool => $amount !== null && $amount !== '')
-            ->map(fn ($amount, $key): string => ($labels[$key] ?? ucfirst((string) $key)).': ₹'.number_format((float) $amount, 2))
+            ->map(function ($charge, $key) use ($labels): ?string {
+                if (is_array($charge)) {
+                    $duration = (string) ($charge['duration'] ?? '');
+                    $price = $charge['price'] ?? null;
+                } else {
+                    $duration = (string) $key;
+                    $price = $charge;
+                }
+
+                if ($duration === '' || $price === null || $price === '') {
+                    return null;
+                }
+
+                return ($labels[$duration] ?? ucfirst($duration)).': ₹'.number_format((float) $price, 2);
+            })
+            ->filter()
             ->values();
 
         if ($charges->isNotEmpty()) {
