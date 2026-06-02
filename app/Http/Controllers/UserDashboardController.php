@@ -6,6 +6,7 @@ use App\Services\VendorRegistrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
@@ -79,18 +80,57 @@ class UserDashboardController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone_number' => ['nullable', 'string', 'max:30'],
+            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
+            'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
+            'address' => ['required', 'string', 'max:500'],
+            'city' => ['required', 'string', 'max:120'],
+            'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
+            'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+        ], [
+            'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+            'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
+            'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
+            'date_of_birth.before_or_equal' => 'You must be at least 18 years old.',
         ]);
 
+        $phoneChanged = $user->phone_number !== $validated['phone_number'];
+
         $user->name = $validated['name'];
-        $user->phone_number = $validated['phone_number'] ?? null;
+        $user->full_name = $validated['name'];
+        $user->phone_number = $validated['phone_number'];
+        $user->whatsapp_number = $validated['whatsapp_number'];
+        $user->address = $validated['address'];
+        $user->city = $validated['city'];
+        $user->pincode = $validated['pincode'];
+        $user->date_of_birth = $validated['date_of_birth'];
+
+        if ($phoneChanged) {
+            $user->phone_verified_at = null;
+        }
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
         }
 
         $user->save();
+
+        if ($phoneChanged) {
+            $message = 'You need to verify the number before continuing. Please login again to verify your phone number.';
+
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'redirect' => route('login'),
+                ]);
+            }
+
+            return redirect()->route('login')->with('status', $message);
+        }
 
         if ($request->expectsJson()) {
             return response()->json([
