@@ -37,6 +37,26 @@ class ConsultantStoreController extends Controller
     }
 
 
+
+    public function services(string $slug): View
+    {
+        $consultant = $this->resolveConsultant($slug);
+
+        $approvedServices = ConsultantService::query()
+            ->with(['categoryModel:id,name', 'subcategoryModel:id,name'])
+            ->where('consultant_id', $consultant->id)
+            ->where('status', 'approved')
+            ->latest('updated_at')
+            ->get();
+
+        return view('frontend.consultant.services', [
+            'consultant' => $consultant,
+            'preview' => false,
+            'activeNav' => 'services',
+            'approvedServices' => $approvedServices,
+        ]);
+    }
+
     public function sendServiceInquiry(Request $request, string $slug, ConsultantService $service): JsonResponse
     {
         $consultant = $this->resolveConsultant($slug);

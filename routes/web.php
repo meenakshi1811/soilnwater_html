@@ -350,5 +350,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::get('/consultant/{slug}', [ConsultantStoreController::class, 'show'])->name('consultant.show');
+Route::get('/consultant/{slug}/services', [ConsultantStoreController::class, 'services'])->name('consultant.public-services.index');
 Route::get('/consultant/{slug}/about', [ConsultantStoreController::class, 'about'])->name('consultant.about');
 Route::get('/consultant/{slug}/contact', [ConsultantStoreController::class, 'contact'])->name('consultant.contact');
