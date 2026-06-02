@@ -2,6 +2,29 @@
 @section('title','Manage Consultation Services')
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<style>
+  #consultantServicesTable {
+    min-width: 1120px;
+  }
+
+  #consultantServicesTable th,
+  #consultantServicesTable td {
+    vertical-align: middle;
+  }
+
+  #consultantServicesTable .consultant-services-actions {
+    min-width: 220px;
+    white-space: nowrap;
+  }
+
+  #consultantServicesTable .consultant-services-actions__group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    flex-wrap: nowrap;
+  }
+</style>
 @endpush
 @section('content')
 <div class="admin-panel ems-page">
@@ -10,20 +33,22 @@
   <div class="chart-card p-3 p-lg-4">
     <div class="table-responsive">
       <table id="consultantServicesTable" class="table table-hover align-middle">
-        <thead><tr><th>Service</th><th>Category</th><th>Charges</th><th>Consultation Type</th><th>Business Type</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+        <thead><tr><th>Service</th><th>Category</th><th>Charges</th><th>Consultation Type</th><th>Business Type</th><th>Status</th><th class="text-end consultant-services-actions">Actions</th></tr></thead>
         <tbody>
           @foreach($services as $service)
             <tr>
-              <td><div class="fw-semibold">{{ $service->name }}</div><div class="small text-muted">{{ $service->duration ?: 'Duration not set' }}</div></td>
+              <td><div class="fw-semibold">{{ $service->name }}</div></td>
               <td>{{ $service->categoryModel?->name ?? $service->category ?? '-' }}<div class="small text-muted">{{ $service->subcategoryModel?->name ?? '-' }}</div></td>
               <td>{{ $service->formattedConsultationCharges() }}</td>
               <td>{{ ucfirst($service->consultation_type ?: ($service->is_online ? 'online' : 'offline')) }}</td>
               <td>{{ $service->business_type ?: '-' }}</td>
               <td><span class="badge bg-{{ $service->status === 'approved' ? 'success' : ($service->status === 'rejected' ? 'danger' : 'warning') }}">{{ ucfirst($service->status ?? 'pending') }}</span></td>
-              <td class="text-end">
-                <a href="{{ route('consultant.services.show', $service) }}" class="btn btn-sm btn-outline-secondary">View</a>
-                <a href="{{ route('consultant.services.edit', $service) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                <button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="{{ $service->id }}">Delete</button>
+              <td class="text-end consultant-services-actions">
+                <div class="consultant-services-actions__group">
+                  <a href="{{ route('consultant.services.show', $service) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                  <a href="{{ route('consultant.services.edit', $service) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                  <button type="button" class="btn btn-sm btn-outline-danger js-delete" data-id="{{ $service->id }}">Delete</button>
+                </div>
               </td>
             </tr>
           @endforeach
@@ -39,7 +64,13 @@
 <script>
 var consultantServicesDataTable = null;
 if (window.jQuery && document.getElementById('consultantServicesTable')) {
-  consultantServicesDataTable = window.jQuery('#consultantServicesTable').DataTable({ pageLength: 10, language: { emptyTable: 'No consultation services found.' } });
+  consultantServicesDataTable = window.jQuery('#consultantServicesTable').DataTable({
+    pageLength: 10,
+    order: [],
+    scrollX: true,
+    autoWidth: false,
+    language: { emptyTable: 'No consultation services found.' }
+  });
 }
 document.querySelectorAll('.js-delete').forEach(function (button) {
   button.addEventListener('click', function () {
