@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ConsultantStatusMail;
 use App\Mail\OtpMail;
+use App\Mail\VendorStatusMail;
 use App\Models\User;
 use App\Services\VendorRegistrationService;
 use App\Services\ConsultantRegistrationService;
@@ -87,8 +89,9 @@ class RegisterController extends Controller
 
         $user = $this->create($request->all());
 
+        $vendor = null;
         if ($user->isVendor()) {
-            VendorRegistrationService::createProfileForUser($user, $request->only([
+            $vendor = VendorRegistrationService::createProfileForUser($user, $request->only([
                 'whatsapp_number',
                 'address',
                 'city',
@@ -96,8 +99,9 @@ class RegisterController extends Controller
             ]));
         }
 
+        $consultant = null;
         if ($user->isConsultant()) {
-            ConsultantRegistrationService::createProfileForUser($user, $request->only([
+            $consultant = ConsultantRegistrationService::createProfileForUser($user, $request->only([
                 'whatsapp_number',
                 'address',
                 'city',
@@ -121,6 +125,27 @@ class RegisterController extends Controller
             }
 
             return redirect()->route('register.contact.verify.form')->with('status', $message);
+        }
+
+        if ($vendor || $consultant) {
+            $user->markEmailAsVerified();
+
+            if ($vendor) {
+                Mail::to($user->email)->send(VendorStatusMail::forVendor($vendor, 'pending'));
+                $message = 'Thank you for registering. Your vendor profile is under observation. Admin will check and approve it soon.';
+            } else {
+                Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($consultant, 'pending'));
+                $message = 'Thank you for registering. Your consultant profile is under observation. Admin will check and approve it soon.';
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'redirect' => route('login'),
+                ]);
+            }
+
+            return redirect()->route('login')->with('status', $message);
         }
 
         $user->sendEmailVerificationNotification();
