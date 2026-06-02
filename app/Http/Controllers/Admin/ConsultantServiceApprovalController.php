@@ -85,19 +85,15 @@ class ConsultantServiceApprovalController extends Controller
         return DataTables::of($query)
             ->addColumn('consultant_name', fn (ConsultantService $service): string => e($service->consultant?->display_name ?: $service->consultant?->company_name ?: '—'))
             ->addColumn('category_display', function (ConsultantService $service): string {
-                $category = html_entity_decode((string) ($service->categoryModel?->name ?? (is_string($service->category) ? $service->category : '-')));
-                $subcategory = html_entity_decode((string) ($service->subcategoryModel?->name ?? '-'));
+                $category = $this->decodeHtmlEntities($service->categoryModel?->name ?? (is_string($service->category) ? $service->category : '-'));
+                $subcategory = $this->decodeHtmlEntities($service->subcategoryModel?->name ?? '-');
 
-                return e($category.' / '.$subcategory);
+                return $category.' / '.$subcategory;
             })
             ->addColumn('price_display', function (ConsultantService $service): string {
                 return collect($service->consultationChargeRows())
                     ->map(function (array $row): string {
-                        $charge = e($row['duration'].': '.$row['price']);
-
-                        return $row['note'] !== ''
-                            ? '<div>'.$charge.' <span class="text-muted">('.e($row['note']).')</span></div>'
-                            : '<div>'.$charge.'</div>';
+                        return '<div>'.e($row['duration'].': '.$row['price']).'</div>';
                     })
                     ->implode('');
             })
@@ -126,5 +122,20 @@ class ConsultantServiceApprovalController extends Controller
             })
             ->rawColumns(['price_display', 'status_badge', 'actions'])
             ->make(true);
+    }
+
+    private function decodeHtmlEntities(?string $value): string
+    {
+        $decoded = (string) $value;
+
+        for ($i = 0; $i < 3; $i++) {
+            $next = html_entity_decode($decoded, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            if ($next === $decoded) {
+                break;
+            }
+            $decoded = $next;
+        }
+
+        return $decoded;
     }
 }

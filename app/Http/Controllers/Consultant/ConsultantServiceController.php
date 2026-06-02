@@ -121,8 +121,6 @@ class ConsultantServiceController extends Controller
             'charge_duration.*' => ['nullable', Rule::in(['minute', 'hour', 'day', 'month', 'contractual'])],
             'charge_price' => ['nullable', 'array'],
             'charge_price.*' => ['nullable', 'numeric', 'min:0'],
-            'charge_note' => ['nullable', 'array'],
-            'charge_note.*' => ['nullable', 'string', 'max:500'],
             'location' => ['required', 'string', 'max:255'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
@@ -136,7 +134,6 @@ class ConsultantServiceController extends Controller
             ->map(fn ($duration, $idx) => [
                 'duration' => (string) $duration,
                 'price' => $request->input('charge_price.'.$idx),
-                'note' => trim((string) $request->input('charge_note.'.$idx)),
             ]);
 
         if ($chargeRows->contains(fn (array $row): bool => ($row['duration'] === '' && $row['price'] !== null && $row['price'] !== '') || ($row['duration'] !== '' && ($row['price'] === null || $row['price'] === '')))) {
@@ -155,9 +152,7 @@ class ConsultantServiceController extends Controller
                 'price' => (float) $row['price'],
             ])
             ->all();
-        $validated['consultation_charge_notes'] = $validChargeRows
-            ->map(fn (array $row): string => $row['note'] ?? '')
-            ->all();
+        $validated['consultation_charge_notes'] = [];
 
         if (empty($validated['consultation_charges'])) {
             throw ValidationException::withMessages([
@@ -172,7 +167,7 @@ class ConsultantServiceController extends Controller
             ->map(fn (string $unit): string => $unit === 'contractual' ? 'contractual' : Str::plural($unit))
             ->implode(', ');
         $validated['is_online'] = in_array($validated['consultation_type'], ['online', 'both'], true);
-        unset($validated['charge_duration'], $validated['charge_price'], $validated['charge_note']);
+        unset($validated['charge_duration'], $validated['charge_price']);
 
         if ($request->hasFile('image')) {
             $directory = public_path('uploads/consultant-services/images');
