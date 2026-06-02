@@ -113,8 +113,16 @@ class ConsultantServiceController extends Controller
             'subcategory_id' => ['nullable', Rule::exists('categories', 'id')->where(fn ($q) => $q->where('parent_id', $request->input('category_id')))],
             'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'duration' => ['nullable', 'string', 'max:120'],
+            'consultation_type' => ['required', Rule::in(['online', 'offline', 'both'])],
+            'business_type' => ['required', Rule::in(['Architect', 'Lawyer', 'Landscaper', 'Software Consultant', 'Business'])],
+            'service_area' => ['nullable', 'string', 'max:1000'],
+            'consultation_charges' => ['required', 'array'],
+            'consultation_charges.minute' => ['nullable', 'numeric', 'min:0', 'required_without_all:consultation_charges.hour,consultation_charges.day,consultation_charges.month,consultation_charges.contractual'],
+            'consultation_charges.hour' => ['nullable', 'numeric', 'min:0'],
+            'consultation_charges.day' => ['nullable', 'numeric', 'min:0'],
+            'consultation_charges.month' => ['nullable', 'numeric', 'min:0'],
+            'consultation_charges.contractual' => ['nullable', 'numeric', 'min:0'],
+            'charges_detail' => ['nullable', 'string', 'max:2000'],
             'location' => ['required', 'string', 'max:255'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
@@ -124,7 +132,16 @@ class ConsultantServiceController extends Controller
         ]);
 
         $validated['category'] = Category::find($validated['category_id'])?->name;
-        $validated['is_online'] = $request->boolean('is_online');
+        $validated['consultation_charges'] = collect($validated['consultation_charges'])
+            ->only(['minute', 'hour', 'day', 'month', 'contractual'])
+            ->filter(fn ($amount): bool => $amount !== null && $amount !== '')
+            ->map(fn ($amount): float => (float) $amount)
+            ->all();
+        $validated['price'] = collect($validated['consultation_charges'])->first() ?? 0;
+        $validated['duration'] = collect(array_keys($validated['consultation_charges']))
+            ->map(fn (string $unit): string => $unit === 'contractual' ? 'contractual' : Str::plural($unit))
+            ->implode(', ');
+        $validated['is_online'] = in_array($validated['consultation_type'], ['online', 'both'], true);
 
         if ($request->hasFile('image')) {
             $directory = public_path('uploads/consultant-services/images');

@@ -16,7 +16,12 @@ class ConsultantService extends Model
         'category',
         'short_description',
         'description',
+        'consultation_type',
+        'business_type',
+        'service_area',
         'price',
+        'consultation_charges',
+        'charges_detail',
         'duration',
         'location',
         'latitude',
@@ -32,8 +37,32 @@ class ConsultantService extends Model
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
         'is_online' => 'boolean',
+        'consultation_charges' => 'array',
         'approved_at' => 'datetime',
     ];
+
+
+    public function formattedConsultationCharges(): string
+    {
+        $labels = [
+            'minute' => 'Per Minute',
+            'hour' => 'Per Hour',
+            'day' => 'Per Day',
+            'month' => 'Per Month',
+            'contractual' => 'Contractual',
+        ];
+
+        $charges = collect($this->consultation_charges ?: [])
+            ->filter(fn ($amount): bool => $amount !== null && $amount !== '')
+            ->map(fn ($amount, $key): string => ($labels[$key] ?? ucfirst((string) $key)).': ₹'.number_format((float) $amount, 2))
+            ->values();
+
+        if ($charges->isNotEmpty()) {
+            return $charges->implode(', ');
+        }
+
+        return '₹'.number_format((float) $this->price, 2);
+    }
 
     public function consultant(): BelongsTo
     {
