@@ -137,6 +137,12 @@ $(function () {
     return String($('#latitude').val() || '').trim() !== '' && String($('#longitude').val() || '').trim() !== '';
   }, 'Please select a location from the suggestions list.');
 
+  $.validator.addMethod('requireChargeRow', function () {
+    return $('.charge-row').filter(function () {
+      return String($(this).find('.charge-duration-select').val() || '').trim() !== '' && String($(this).find('.charge-price-input').val() || '').trim() !== '';
+    }).length > 0;
+  }, 'Please add at least one consultation duration and price.');
+
   function setSubmitLoading(isLoading) {
     if (isLoading) { originalBtnHtml = $submitBtn.html(); $submitBtn.prop('disabled', true).html('Saving...'); return; }
     $submitBtn.prop('disabled', false).html(originalBtnHtml);
