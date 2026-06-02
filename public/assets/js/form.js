@@ -444,8 +444,46 @@
             });
         },
 
+        initRegisterBusinessFields: function () {
+            var $role = $('#role');
+            var $businessFields = $('#businessRegistrationFields');
+            var $pan = $('#pan_number');
+            var $gstWrap = $('#gstNumberWrap');
+            var $gst = $('#gst_number');
+            var $certificate = $('#government_certificate_number');
+            var isBusinessRole = function () {
+                var role = $role.val();
+                return role === 'vendor' || role === 'consultant';
+            };
+            var toggleGst = function () {
+                var showGst = isBusinessRole() && $('input[name="has_gst"]:checked').val() === '1';
+                $gstWrap.toggleClass('d-none', !showGst);
+                $gst.prop('required', showGst);
+                if (!showGst) {
+                    $gst.val('');
+                }
+            };
+            var toggleBusinessFields = function () {
+                var showBusinessFields = isBusinessRole();
+                $businessFields.toggleClass('d-none', !showBusinessFields);
+                $pan.prop('required', showBusinessFields);
+                $('input[name="has_gst"]').prop('required', showBusinessFields);
+                if (!showBusinessFields) {
+                    $pan.val('');
+                    $certificate.val('');
+                    $('#has_gst_no').prop('checked', true);
+                }
+                toggleGst();
+            };
+
+            $role.off('change.businessFields').on('change.businessFields', toggleBusinessFields);
+            $('input[name="has_gst"]').off('change.businessFields').on('change.businessFields', toggleGst);
+            toggleBusinessFields();
+        },
+
         initRegisterForm: function () {
             this.initRegisterPlaceAutocomplete();
+            this.initRegisterBusinessFields();
             this.attachAjaxForm({
                 formSelector: '#registerForm',
                 buttonSelector: '#registerSubmitBtn',
@@ -461,6 +499,26 @@
                     city: { required: true, maxlength: 120 },
                     pincode: { required: true, digits: true, minlength: 4, maxlength: 10 },
                     role: { required: true },
+                    pan_number: {
+                        required: function () {
+                            var role = $('#role').val();
+                            return role === 'vendor' || role === 'consultant';
+                        },
+                        maxlength: 20
+                    },
+                    has_gst: {
+                        required: function () {
+                            var role = $('#role').val();
+                            return role === 'vendor' || role === 'consultant';
+                        }
+                    },
+                    gst_number: {
+                        required: function () {
+                            return $('input[name="has_gst"]:checked').val() === '1';
+                        },
+                        maxlength: 20
+                    },
+                    government_certificate_number: { maxlength: 100 },
                     date_of_birth: { required: true, date: true },
                     password: { required: true, minlength: 8 },
                     password_confirmation: { required: true, equalTo: '#password' },
@@ -502,6 +560,20 @@
                     },
                     role: {
                         required: 'Please select your role.'
+                    },
+                    pan_number: {
+                        required: 'Please enter your PAN number.',
+                        maxlength: 'PAN number cannot exceed 20 characters.'
+                    },
+                    has_gst: {
+                        required: 'Please select whether you have a GST number.'
+                    },
+                    gst_number: {
+                        required: 'Please enter your GST number.',
+                        maxlength: 'GST number cannot exceed 20 characters.'
+                    },
+                    government_certificate_number: {
+                        maxlength: 'Government certificate number cannot exceed 100 characters.'
                     },
                     date_of_birth: {
                         required: 'Please enter your date of birth.',

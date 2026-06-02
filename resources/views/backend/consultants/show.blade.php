@@ -27,6 +27,8 @@
                     <dt class="col-sm-4">Phone / WhatsApp</dt><dd class="col-sm-8">{{ $consultant->phone ?? '—' }} / {{ $consultant->whatsapp ?? '—' }}</dd>
                     <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ $consultant->email ?? '—' }}</dd>
                     <dt class="col-sm-4">Address</dt><dd class="col-sm-8">{{ $consultant->address }}, {{ $consultant->city }}, {{ $consultant->state }} {{ $consultant->pincode }}</dd>
+                    <dt class="col-sm-4">PAN / GST</dt><dd class="col-sm-8">{{ $consultant->pan_number ?? '—' }} / {{ $consultant->gst_number ?? '—' }}</dd>
+                    <dt class="col-sm-4">Other Government Certificate</dt><dd class="col-sm-8">{{ $consultant->government_certificate_number ?? '—' }}</dd>
                     <dt class="col-sm-4">Consultant URL</dt><dd class="col-sm-8"><a href="{{ route('consultant.show', $consultant->slug) }}" target="_blank" rel="noopener noreferrer">{{ route('consultant.show', $consultant->slug) }}</a></dd>
                 </dl>
             </div>

@@ -48,6 +48,10 @@ class RegisterController extends Controller
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
             'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,consultant', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,consultant', 'in:0,1'],
+            'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
+            'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'accept_terms' => ['accepted'],
@@ -55,6 +59,9 @@ class RegisterController extends Controller
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
+            'pan_number.required_if' => 'PAN number is required for vendor and consultant registrations.',
+            'has_gst.required_if' => 'Please select whether you have a GST number.',
+            'gst_number.required_if' => 'GST number is required when you select yes for GST.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
             'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
         ]);
@@ -96,6 +103,10 @@ class RegisterController extends Controller
                 'address',
                 'city',
                 'pincode',
+                'pan_number',
+                'has_gst',
+                'gst_number',
+                'government_certificate_number',
             ]));
         }
 
@@ -106,6 +117,10 @@ class RegisterController extends Controller
                 'address',
                 'city',
                 'pincode',
+                'pan_number',
+                'has_gst',
+                'gst_number',
+                'government_certificate_number',
             ]));
         }
 

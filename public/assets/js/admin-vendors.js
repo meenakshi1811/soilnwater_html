@@ -49,7 +49,10 @@
                     $('#vendorPincode').val(v.pincode || '');
                     $('#vendorAddress').val(v.address || '');
                     $('#vendorPan').val(v.pan_number || '');
+                    $('input[name="has_gst"][value="' + (v.has_gst || '0') + '"]').prop('checked', true);
                     $('#vendorGst').val(v.gst_number || '');
+                    $('#vendorGovernmentCertificate').val(v.government_certificate_number || '');
+                    self.toggleGstField();
                     $('#vendorForm').attr('action', '/admin/vendors/' + id);
                     self.modal.show();
                 }).fail(function () {
@@ -59,6 +62,10 @@
 
             $('#vendorSlug').on('input', function () {
                 $('#slugPreview').text($(this).val() || 'slug');
+            });
+
+            $(document).on('change', '.js-vendor-has-gst', function () {
+                self.toggleGstField();
             });
 
             $(document).on('click', '.js-approve-vendor', function () {
@@ -115,6 +122,15 @@
             });
         },
 
+        toggleGstField: function () {
+            var hasGst = $('input[name="has_gst"]:checked').val() === '1';
+            $('#vendorGstWrap').toggleClass('d-none', !hasGst);
+            $('#vendorGst').prop('required', hasGst);
+            if (!hasGst) {
+                $('#vendorGst').val('');
+            }
+        },
+
         initForm: function () {
             var self = this;
             FormHelper.attachAjaxForm({
@@ -122,7 +138,14 @@
                 buttonSelector: '#vendorSubmitBtn',
                 rules: {
                     company_name: { required: true },
-                    slug: { required: true }
+                    slug: { required: true },
+                    pan_number: { required: true },
+                    has_gst: { required: true },
+                    gst_number: {
+                        required: function () {
+                            return $('input[name="has_gst"]:checked').val() === '1';
+                        }
+                    }
                 },
                 beforeSubmit: function () {
                     $('#vendorForm').find('input[name="_method"]').remove();

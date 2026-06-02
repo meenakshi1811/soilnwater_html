@@ -108,6 +108,47 @@
                             @enderror
                         </div>
 
+                        <div id="businessRegistrationFields" class="d-none">
+                            <div class="mb-3">
+                                <label for="pan_number" class="form-label">PAN Number</label>
+                                <input id="pan_number" type="text" class="form-control @error('pan_number') is-invalid @enderror" name="pan_number" value="{{ old('pan_number') }}">
+                                @error('pan_number')
+                                    <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label d-block">Do you have a GST number?</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="has_gst" id="has_gst_no" value="0" {{ old('has_gst', '0') !== '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="has_gst_no">No</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="has_gst" id="has_gst_yes" value="1" {{ old('has_gst') === '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="has_gst_yes">Yes</label>
+                                </div>
+                                @error('has_gst')
+                                    <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3 d-none" id="gstNumberWrap">
+                                <label for="gst_number" class="form-label">GST Number</label>
+                                <input id="gst_number" type="text" class="form-control @error('gst_number') is-invalid @enderror" name="gst_number" value="{{ old('gst_number') }}">
+                                @error('gst_number')
+                                    <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="government_certificate_number" class="form-label">Any Other Government Certificate Number</label>
+                                <input id="government_certificate_number" type="text" class="form-control @error('government_certificate_number') is-invalid @enderror" name="government_certificate_number" value="{{ old('government_certificate_number') }}">
+                                @error('government_certificate_number')
+                                    <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                                @enderror
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label for="date_of_birth" class="form-label">Date of Birth</label>
                             <input id="date_of_birth" type="date" class="form-control @error('date_of_birth') is-invalid @enderror" name="date_of_birth" value="{{ old('date_of_birth') }}" max="{{ now()->subYears(18)->toDateString() }}" required>

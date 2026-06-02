@@ -49,7 +49,10 @@
                     $('#consultantPincode').val(v.pincode || '');
                     $('#consultantAddress').val(v.address || '');
                     $('#consultantPan').val(v.pan_number || '');
+                    $('input[name="has_gst"][value="' + (v.has_gst || '0') + '"]').prop('checked', true);
                     $('#consultantGst').val(v.gst_number || '');
+                    $('#consultantGovernmentCertificate').val(v.government_certificate_number || '');
+                    self.toggleGstField();
                     $('#consultantForm').attr('action', '/admin/consultants/' + id);
                     self.modal.show();
                 }).fail(function () {
@@ -59,6 +62,10 @@
 
             $('#consultantSlug').on('input', function () {
                 $('#slugPreview').text($(this).val() || 'slug');
+            });
+
+            $(document).on('change', '.js-consultant-has-gst', function () {
+                self.toggleGstField();
             });
 
             $(document).on('click', '.js-approve-consultant', function () {
@@ -115,6 +122,15 @@
             });
         },
 
+        toggleGstField: function () {
+            var hasGst = $('input[name="has_gst"]:checked').val() === '1';
+            $('#consultantGstWrap').toggleClass('d-none', !hasGst);
+            $('#consultantGst').prop('required', hasGst);
+            if (!hasGst) {
+                $('#consultantGst').val('');
+            }
+        },
+
         initForm: function () {
             var self = this;
             FormHelper.attachAjaxForm({
@@ -122,7 +138,14 @@
                 buttonSelector: '#consultantSubmitBtn',
                 rules: {
                     company_name: { required: true },
-                    slug: { required: true }
+                    slug: { required: true },
+                    pan_number: { required: true },
+                    has_gst: { required: true },
+                    gst_number: {
+                        required: function () {
+                            return $('input[name="has_gst"]:checked').val() === '1';
+                        }
+                    }
                 },
                 beforeSubmit: function () {
                     $('#consultantForm').find('input[name="_method"]').remove();

@@ -27,6 +27,8 @@
                     <dt class="col-sm-4">Phone / WhatsApp</dt><dd class="col-sm-8">{{ $vendor->phone ?? '—' }} / {{ $vendor->whatsapp ?? '—' }}</dd>
                     <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ $vendor->email ?? '—' }}</dd>
                     <dt class="col-sm-4">Address</dt><dd class="col-sm-8">{{ $vendor->address }}, {{ $vendor->city }}, {{ $vendor->state }} {{ $vendor->pincode }}</dd>
+                    <dt class="col-sm-4">PAN / GST</dt><dd class="col-sm-8">{{ $vendor->pan_number ?? '—' }} / {{ $vendor->gst_number ?? '—' }}</dd>
+                    <dt class="col-sm-4">Other Government Certificate</dt><dd class="col-sm-8">{{ $vendor->government_certificate_number ?? '—' }}</dd>
                     <dt class="col-sm-4">Store URL</dt><dd class="col-sm-8"><a href="{{ route('store.show', $vendor->slug) }}" target="_blank" rel="noopener noreferrer">{{ route('store.show', $vendor->slug) }}</a></dd>
                 </dl>
             </div>
