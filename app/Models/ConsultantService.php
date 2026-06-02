@@ -21,7 +21,6 @@ class ConsultantService extends Model
         'service_area',
         'price',
         'consultation_charges',
-        'charges_detail',
         'duration',
         'location',
         'latitude',
@@ -57,16 +56,20 @@ class ConsultantService extends Model
                 if (is_array($charge)) {
                     $duration = (string) ($charge['duration'] ?? '');
                     $price = $charge['price'] ?? null;
+                    $note = trim((string) ($charge['note'] ?? ''));
                 } else {
                     $duration = (string) $key;
                     $price = $charge;
+                    $note = '';
                 }
 
                 if ($duration === '' || $price === null || $price === '') {
                     return null;
                 }
 
-                return ($labels[$duration] ?? ucfirst($duration)).': ₹'.number_format((float) $price, 2);
+                $formatted = ($labels[$duration] ?? ucfirst($duration)).': ₹'.number_format((float) $price, 2);
+
+                return $note !== '' ? $formatted.' ('.$note.')' : $formatted;
             })
             ->filter()
             ->values();

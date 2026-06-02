@@ -15,10 +15,6 @@ return new class extends Migration {
             if (! Schema::hasColumn('consultant_services', 'consultation_charges')) {
                 $table->json('consultation_charges')->nullable()->after('price');
             }
-
-            if (! Schema::hasColumn('consultant_services', 'charges_detail')) {
-                $table->text('charges_detail')->nullable()->after('consultation_charges');
-            }
         });
     }
 
@@ -29,7 +25,7 @@ return new class extends Migration {
         }
 
         Schema::table('consultant_services', function (Blueprint $table) {
-            foreach (['charges_detail', 'consultation_charges'] as $column) {
+            foreach (['consultation_charges'] as $column) {
                 if (Schema::hasColumn('consultant_services', $column)) {
                     $table->dropColumn($column);
                 }

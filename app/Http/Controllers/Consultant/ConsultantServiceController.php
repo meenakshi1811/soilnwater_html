@@ -121,7 +121,8 @@ class ConsultantServiceController extends Controller
             'charge_duration.*' => ['nullable', Rule::in(['minute', 'hour', 'day', 'month', 'contractual'])],
             'charge_price' => ['nullable', 'array'],
             'charge_price.*' => ['nullable', 'numeric', 'min:0'],
-            'charges_detail' => ['nullable', 'string', 'max:2000'],
+            'charge_note' => ['nullable', 'array'],
+            'charge_note.*' => ['nullable', 'string', 'max:500'],
             'location' => ['required', 'string', 'max:255'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
@@ -135,6 +136,7 @@ class ConsultantServiceController extends Controller
             ->map(fn ($duration, $idx) => [
                 'duration' => (string) $duration,
                 'price' => $request->input('charge_price.'.$idx),
+                'note' => trim((string) $request->input('charge_note.'.$idx)),
             ]);
 
         if ($chargeRows->contains(fn (array $row): bool => ($row['duration'] === '' && $row['price'] !== null && $row['price'] !== '') || ($row['duration'] !== '' && ($row['price'] === null || $row['price'] === '')))) {
@@ -145,7 +147,11 @@ class ConsultantServiceController extends Controller
 
         $validated['consultation_charges'] = $chargeRows
             ->filter(fn (array $row): bool => $row['duration'] !== '' && $row['price'] !== null && $row['price'] !== '')
-            ->map(fn (array $row): array => ['duration' => $row['duration'], 'price' => (float) $row['price']])
+            ->map(fn (array $row): array => array_filter([
+                'duration' => $row['duration'],
+                'price' => (float) $row['price'],
+                'note' => $row['note'] ?? '',
+            ], fn ($value): bool => $value !== ''))
             ->values()
             ->all();
 
@@ -162,7 +168,7 @@ class ConsultantServiceController extends Controller
             ->map(fn (string $unit): string => $unit === 'contractual' ? 'contractual' : Str::plural($unit))
             ->implode(', ');
         $validated['is_online'] = in_array($validated['consultation_type'], ['online', 'both'], true);
-        unset($validated['charge_duration'], $validated['charge_price']);
+        unset($validated['charge_duration'], $validated['charge_price'], $validated['charge_note']);
 
         if ($request->hasFile('image')) {
             $directory = public_path('uploads/consultant-services/images');
