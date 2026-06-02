@@ -16,9 +16,6 @@
         <p style="margin: 0 0 16px; color: #374151; font-size: 15px; line-height: 1.7;">
             Welcome to {{ config('app.name', 'SoilNWater') }}. Your vendor profile is under observation. The admin team will check your details and approve it soon.
         </p>
-        <p style="margin: 0 0 16px; color: #374151; font-size: 15px; line-height: 1.7;">
-            No email verification link is required at this stage. We will notify you by email once your profile review is complete.
-        </p>
     @elseif ($isApproved)
         <p style="margin: 0 0 16px; color: #374151; font-size: 15px; line-height: 1.7;">
             Good news! Your vendor account has been approved by the {{ config('app.name', 'SoilNWater') }} team. You can now access the vendor portal and manage your company profile, products, and enquiries.

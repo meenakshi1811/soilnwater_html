@@ -27,7 +27,7 @@
                     <!-- <div id="loginAlert" class="alert d-none" role="alert"></div> -->
                     <div id="loginAlert" class="login-alert-floating d-none"></div>
                     @if (session('status'))
-                        <div class="login-alert-floating alert-success" >{{ session('status') }}</div>
+                        <div class="alert alert-success" role="alert">{{ session('status') }}</div>
                     @endif
 
                     @if ($errors->has('email'))
