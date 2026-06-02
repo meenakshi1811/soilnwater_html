@@ -971,55 +971,159 @@
             });
         },
 
-        initUserProfileForm: function () {
+        profileValidationRules: function (includeMarketplaceFields) {
+            var rules = {
+                name: { required: true, minlength: 3, maxlength: 255 },
+                phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                address: { required: true, minlength: 5, maxlength: 500 },
+                city: { required: true, maxlength: 120 },
+                pincode: { required: true, digits: true, minlength: 4, maxlength: 10 },
+                date_of_birth: { required: true, date: true },
+                password: { minlength: 8 },
+                password_confirmation: {
+                    required: function () {
+                        return $.trim($('#password').val()).length > 0;
+                    },
+                    equalTo: '#password'
+                }
+            };
+
+            if (includeMarketplaceFields) {
+                rules.pan_number = { required: true, maxlength: 20 };
+                rules.has_gst = { required: true };
+                rules.gst_number = {
+                    required: function () {
+                        return $('input[name="has_gst"]:checked').val() === '1';
+                    },
+                    maxlength: 20
+                };
+                rules.government_certificate_number = { maxlength: 100 };
+            }
+
+            return rules;
+        },
+
+        profileValidationMessages: function (includeMarketplaceFields) {
+            var messages = {
+                name: {
+                    required: 'Please enter your full name.',
+                    minlength: 'Full name must be at least 3 characters.'
+                },
+                phone_number: {
+                    required: 'Please enter your phone number.',
+                    digits: 'Phone number should contain only digits.',
+                    minlength: 'Phone number must be at least 10 digits.',
+                    maxlength: 'Phone number cannot exceed 15 digits.'
+                },
+                whatsapp_number: {
+                    required: 'Please enter your WhatsApp number.',
+                    digits: 'WhatsApp number should contain only digits.',
+                    minlength: 'WhatsApp number must be at least 10 digits.',
+                    maxlength: 'WhatsApp number cannot exceed 15 digits.'
+                },
+                address: {
+                    required: 'Please enter your address.',
+                    minlength: 'Address must be at least 5 characters.'
+                },
+                city: {
+                    required: 'Please enter your city.'
+                },
+                pincode: {
+                    required: 'Please enter your pincode.',
+                    digits: 'Pincode should contain only digits.',
+                    minlength: 'Pincode must be at least 4 digits.',
+                    maxlength: 'Pincode cannot exceed 10 digits.'
+                },
+                date_of_birth: {
+                    required: 'Please enter your date of birth.',
+                    date: 'Please enter a valid date of birth.'
+                },
+                password: {
+                    minlength: 'Password must be at least 8 characters long.'
+                },
+                password_confirmation: {
+                    required: 'Please confirm your password.',
+                    equalTo: 'Password confirmation does not match.'
+                }
+            };
+
+            if (includeMarketplaceFields) {
+                messages.pan_number = {
+                    required: 'Please enter your PAN number.',
+                    maxlength: 'PAN number cannot exceed 20 characters.'
+                };
+                messages.has_gst = {
+                    required: 'Please select whether you have a GST number.'
+                };
+                messages.gst_number = {
+                    required: 'Please enter your GST number.',
+                    maxlength: 'GST number cannot exceed 20 characters.'
+                };
+                messages.government_certificate_number = {
+                    maxlength: 'Government certificate number cannot exceed 100 characters.'
+                };
+            }
+
+            return messages;
+        },
+
+        toggleGstProfileField: function () {
+            var hasGst = $('input[name="has_gst"]:checked').val() === '1';
+            $('.js-gst-number-field').toggleClass('d-none', !hasGst);
+            if (!hasGst) {
+                $('#gst_number').val('').removeClass('is-invalid');
+            }
+        },
+
+        attachProfileUpdateForm: function (formSelector, buttonSelector, alertSelector, includeMarketplaceFields) {
             this.attachAjaxForm({
-                formSelector: '#userProfileForm',
-                buttonSelector: '#userProfileSubmitBtn',
-                alertSelector: '#userProfileAlert',
+                formSelector: formSelector,
+                buttonSelector: buttonSelector,
+                alertSelector: alertSelector,
                 defaultText: 'Save Changes',
                 loadingText: 'Saving...',
-                rules: {
-                    name: { required: true, minlength: 3, maxlength: 255 },
-                    phone_number: { digits: true, minlength: 10, maxlength: 15 },
-                    password: { minlength: 8 },
-                    password_confirmation: {
-                        required: function () {
-                            return $.trim($('#password').val()).length > 0;
-                        },
-                        equalTo: '#password'
-                    }
-                },
-                messages: {
-                    name: {
-                        required: 'Please enter your full name.',
-                        minlength: 'Full name must be at least 3 characters.'
-                    },
-                    phone_number: {
-                        digits: 'Phone number should contain only digits.',
-                        minlength: 'Phone number must be at least 10 digits.',
-                        maxlength: 'Phone number cannot exceed 15 digits.'
-                    },
-                    password: {
-                        minlength: 'Password must be at least 8 characters long.'
-                    },
-                    password_confirmation: {
-                        required: 'Please confirm your password.',
-                        equalTo: 'Password confirmation does not match.'
-                    }
-                },
+                rules: this.profileValidationRules(includeMarketplaceFields),
+                messages: this.profileValidationMessages(includeMarketplaceFields),
                 fallbackErrorMessage: 'Unable to update profile right now. Please try again.',
+                beforeSubmit: function (ctx) {
+                    ctx.form.find('[name="phone_number"], [name="whatsapp_number"], [name="pincode"]').each(function () {
+                        $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
+                    });
+                },
                 onSuccess: function (response, ctx) {
+                    var message = response.message || 'Profile updated successfully.';
+
                     if (ctx && ctx.form && ctx.form.length) {
                         ctx.form.find('input[name="password"], input[name="password_confirmation"]').val('');
                     }
 
-                    FormHelper.showAlert(
-                        $('#userProfileAlert'),
-                        'success',
-                        response.message || 'Profile updated successfully.'
-                    );
+                    if (response.redirect) {
+                        FormHelper.showToast('warning', message);
+                        window.setTimeout(function () {
+                            window.location.href = response.redirect;
+                        }, 1500);
+                        return;
+                    }
+
+                    FormHelper.showToast('success', message);
+                    FormHelper.showAlert($(alertSelector), 'success', message);
                 }
             });
+        },
+
+        initUserProfileForm: function () {
+            this.attachProfileUpdateForm('#userProfileForm', '#userProfileSubmitBtn', '#userProfileAlert', false);
+        },
+
+        initMarketplaceProfileForms: function () {
+            this.toggleGstProfileField();
+            $(document).off('change.profileGst', 'input[name="has_gst"]').on('change.profileGst', 'input[name="has_gst"]', function () {
+                FormHelper.toggleGstProfileField();
+            });
+
+            this.attachProfileUpdateForm('#vendorProfileForm', '#vendorProfileSubmitBtn', '#vendorProfileAlert', true);
+            this.attachProfileUpdateForm('#consultantProfileForm', '#consultantProfileSubmitBtn', '#consultantProfileAlert', true);
         },
 
         init: function () {
@@ -1029,6 +1133,7 @@
             this.initPhoneVerificationForm();
             this.initAdminProfileForm();
             this.initUserProfileForm();
+            this.initMarketplaceProfileForms();
             this.initOtpTimer('#otp-timer');
         }
     };

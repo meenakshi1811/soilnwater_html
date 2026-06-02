@@ -18,42 +18,7 @@
                 @csrf
                 @method('PUT')
 
-                <div class="col-md-6">
-                    <label for="name" class="form-label">Full Name</label>
-                    <input id="name" name="name" type="text" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $user->name) }}" required>
-                    @error('name')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="col-md-6">
-                    <label for="phone_number" class="form-label">Phone Number</label>
-                    <input id="phone_number" name="phone_number" type="text" class="form-control @error('phone_number') is-invalid @enderror" value="{{ old('phone_number', $user->phone_number) }}" required>
-                    @error('phone_number')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="col-12">
-                    <label for="email" class="form-label">Email</label>
-                    <input id="email" name="email" type="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" required>
-                    @error('email')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="col-md-6">
-                    <label for="password" class="form-label">Password</label>
-                    <input id="password" name="password" type="password" class="form-control @error('password') is-invalid @enderror" autocomplete="new-password">
-                    @error('password')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="col-md-6">
-                    <label for="password_confirmation" class="form-label">Confirm Password</label>
-                    <input id="password_confirmation" name="password_confirmation" type="password" class="form-control" autocomplete="new-password">
-                </div>
+                @include('backend.partials.registration-profile-fields', ['profile' => $consultant, 'showMarketplaceFields' => true])
 
                 <div class="col-12 d-flex justify-content-end gap-2">
                     <a href="{{ route('consultant.dashboard') }}" class="btn btn-outline-secondary">Back</a>
@@ -65,8 +30,13 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+@endpush
+
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
