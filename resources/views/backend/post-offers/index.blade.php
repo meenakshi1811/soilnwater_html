@@ -359,13 +359,13 @@
                         name="short_description"
                         id="shortDescription"
                         class="form-control @error('short_description') is-invalid @enderror"
-                        rows="3"
-                        placeholder="Write a brief, enticing description of this offer (max 300 characters)..."
-                        maxlength="300"
+                        rows="8"
+                        placeholder="Write a brief, enticing description of this offer. Line breaks and emoji are supported..."
                     >{{ old('short_description', $offer?->short_description) }}</textarea>
-                    <div class="d-flex justify-content-end mt-1">
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <small class="text-secondary">Line breaks and emoji will be saved.</small>
                         <small class="text-secondary">
-                            <span id="descCharCount">0</span>/300
+                            <span id="descCharCount">0</span> characters
                         </small>
                     </div>
                     @error('short_description')

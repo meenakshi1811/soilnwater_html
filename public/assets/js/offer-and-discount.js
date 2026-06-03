@@ -8,7 +8,6 @@
             title: 120,
             discount: 100,
             coupon: 50,
-            description: 300,
             layerText: 120
         },
         designer: {
@@ -57,7 +56,7 @@
         updateCounter: function (selector, countSelector, limit) {
             var $field = $(selector);
             var value = $field.val() || '';
-            var normalized = this.truncateValue(value, limit);
+            var normalized = Number.isFinite(limit) ? this.truncateValue(value, limit) : value;
             if (normalized !== value) {
                 $field.val(normalized);
             }
@@ -980,11 +979,11 @@
             this.updateCounter('#offerTitle', '#titleCharCount', this.FIELD_LIMITS.title);
             this.updateCounter('#discountTag', '#discountCharCount', this.FIELD_LIMITS.discount);
             this.updateCounter('#couponCode', '#couponCharCount', this.FIELD_LIMITS.coupon);
-            this.updateCounter('#shortDescription', '#descCharCount', this.FIELD_LIMITS.description);
+            this.updateCounter('#shortDescription', '#descCharCount');
             this.updateCounter('#layerTextInput', '#layerTextCharCount', this.FIELD_LIMITS.layerText);
 
             $('#shortDescription').on('input', function () {
-                self.updateCounter('#shortDescription', '#descCharCount', self.FIELD_LIMITS.description);
+                self.updateCounter('#shortDescription', '#descCharCount');
             });
         },
         /* ── 5. Form (Ajax + Validation) ─────────────────────── */
@@ -1040,9 +1039,6 @@
                             return self.currentBannerMode === 'customize';
                         }
                     },
-                    short_description: {
-                        maxlength: 300
-                    },
                     location: {
                         required: true,
                         locationPicked: true,
@@ -1068,9 +1064,6 @@
                     },
                     generated_banner_data: {
                         required: 'Please customize and generate a banner.'
-                    },
-                    short_description: {
-                        maxlength: 'Description must not exceed 300 characters.'
                     },
                     location: {
                         required: 'Please enter a location.',

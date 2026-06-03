@@ -168,6 +168,10 @@
     .offers-market-page #offersGrid .offer-coupon-card .card-body {
         padding: .75rem .9rem .85rem;
     }
+
+    #offerDetailsModalDescription {
+        white-space: pre-line;
+    }
 </style>
 @endpush
 

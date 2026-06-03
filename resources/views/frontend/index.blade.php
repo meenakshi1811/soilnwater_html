@@ -614,7 +614,7 @@
                             <div class="card-body d-flex flex-column gap-2">
                               <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
                               <h4 class="h6 mb-1 offer-coupon-title">{{ $offer->title }}</h4>
-                              <p class="small text-muted mb-2 offer-coupon-description">{{ $offer->short_description ?: 'Special marketplace offer available now.' }}</p>
+                              <p class="small text-muted mb-2 offer-coupon-description">{!! nl2br(e($offer->short_description ?: 'Special marketplace offer available now.')) !!}</p>
                             
                             </div>
                           </article>
