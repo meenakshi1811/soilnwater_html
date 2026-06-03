@@ -57,11 +57,19 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Send Enquiry To <span class="text-danger">*</span></label>
+                        <label class="form-label">Send Vendor Enquiry To <span class="text-danger">*</span></label>
                         <select name="vendor_enquiry_send_to" class="form-select" required>
                             <option value="all" {{ ($setting->vendor_enquiry_send_to ?? 'all') === 'all' ? 'selected' : '' }}>All</option>
                             <option value="non_premium" {{ ($setting->vendor_enquiry_send_to ?? 'all') === 'non_premium' ? 'selected' : '' }}>Non Premium</option>
                             <option value="premium" {{ ($setting->vendor_enquiry_send_to ?? 'all') === 'premium' ? 'selected' : '' }}>Premium</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Send Consultant Enquiry To <span class="text-danger">*</span></label>
+                        <select name="consultant_enquiry_send_to" class="form-select" required>
+                            <option value="all" {{ ($setting->consultant_enquiry_send_to ?? 'all') === 'all' ? 'selected' : '' }}>All</option>
+                            <option value="non_premium" {{ ($setting->consultant_enquiry_send_to ?? 'all') === 'non_premium' ? 'selected' : '' }}>Non Premium</option>
+                            <option value="premium" {{ ($setting->consultant_enquiry_send_to ?? 'all') === 'premium' ? 'selected' : '' }}>Premium</option>
                         </select>
                     </div>
                     <div class="col-12 d-flex justify-content-end">

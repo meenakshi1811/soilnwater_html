@@ -100,6 +100,12 @@ class OfferPageController extends Controller
                 ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
                 ->orderBy('name')
                 ->get(['id', 'name']),
+            'consultantEnquiryCategories' => Category::query()
+                ->whereNull('parent_id')
+                ->whereJsonContains('modules', 'consultants')
+                ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'hasLocation' => is_numeric($lat) && is_numeric($lng),
             'homepageSetting' => $homepageSetting,
         ]);
