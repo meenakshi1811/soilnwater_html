@@ -103,6 +103,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Consultant::class);
     }
 
+    public function isServiceProvider(): bool
+    {
+        return $this->role === 'service_provider';
+    }
+
+    public function serviceProvider(): HasOne
+    {
+        return $this->hasOne(ServiceProvider::class);
+    }
+
     public function isStaff(): bool
     {
         return $this->isAdmin() || $this->isEmployee();

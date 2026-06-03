@@ -66,6 +66,7 @@ class UserAd extends Model
         $module = strtolower(trim($module));
         $moduleVariants = collect([$module, ModulePermissions::modules()[$module] ?? null])
             ->when($module === 'vendors', fn ($variants) => $variants->merge(['vendor', 'Vendor', 'Vendors']))
+            ->when($module === 'service_providers', fn ($variants) => $variants->merge(['service_provider', 'service providers', 'Service Providers', 'ServiceProvider']))
             ->filter(fn ($variant) => is_string($variant) && $variant !== '')
             ->unique()
             ->values();

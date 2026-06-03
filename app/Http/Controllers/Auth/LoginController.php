@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\ConsultantStatusMail;
+use App\Mail\ServiceProviderStatusMail;
 use App\Mail\OtpMail;
 use App\Mail\VendorStatusMail;
 use App\Models\User;
@@ -76,6 +77,14 @@ class LoginController extends Controller
             return route('consultant.pending');
         }
 
+        if ($user && $user->isServiceProvider()) {
+            if ($user->serviceProvider?->isApproved()) {
+                return route('service_provider.dashboard');
+            }
+
+            return route('service_provider.pending');
+        }
+
         return '/home';
     }
 
@@ -135,6 +144,26 @@ class LoginController extends Controller
                 Auth::logout();
 
                 $message = 'Your consultant account is pending admin approval. You will be able to log in once approved.';
+
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 403);
+                }
+
+                return redirect()->route('login')->withErrors(['email' => $message]);
+            }
+        }
+
+
+        if ($user->isServiceProvider()) {
+            if (! $user->serviceProvider) {
+                \App\Services\ServiceProviderRegistrationService::createProfileForUser($user);
+                $user->load('serviceProvider');
+            }
+
+            if (! $user->serviceProvider?->isApproved()) {
+                Auth::logout();
+
+                $message = 'Your service provider account is pending admin approval. You will be able to log in once approved.';
 
                 if ($request->expectsJson()) {
                     return response()->json(['message' => $message], 403);
@@ -367,6 +396,25 @@ class LoginController extends Controller
             }
         }
 
+        if ($user->isServiceProvider()) {
+            if (! $user->serviceProvider) {
+                \App\Services\ServiceProviderRegistrationService::createProfileForUser($user);
+                $user->load('serviceProvider');
+            }
+
+            if (! $user->serviceProvider?->isApproved()) {
+                Cache::forget($this->otpCacheKey($userId));
+                $request->session()->forget('otp_login_user_id');
+                $message = 'Your service provider account is pending admin approval.';
+
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 403);
+                }
+
+                return redirect()->route('login')->withErrors(['email' => $message]);
+            }
+        }
+
         Cache::forget($this->otpCacheKey($userId));
         $request->session()->forget('otp_login_user_id');
 
@@ -426,7 +474,7 @@ class LoginController extends Controller
 
         $user = User::where('email', $email)->first();
 
-        if ($intent === 'register' && ! $user && ! in_array($roleFromRegisterFlow, ['user', 'vendor', 'builder', 'developer', 'consultant'], true)) {
+        if ($intent === 'register' && ! $user && ! in_array($roleFromRegisterFlow, ['user', 'vendor', 'builder', 'developer', 'consultant', 'service_provider'], true)) {
             return redirect()->route('register')->withErrors([
                 'role' => 'Please select a role before continuing with Google.',
             ]);
@@ -501,6 +549,26 @@ class LoginController extends Controller
 
                 return redirect()->route('login')->withErrors([
                     'email' => 'Your consultant account is pending admin approval.',
+                ]);
+            }
+        }
+
+
+        if ($user->isServiceProvider()) {
+            if (! $user->serviceProvider) {
+                \App\Services\ServiceProviderRegistrationService::createProfileForUser($user);
+                $user->load('serviceProvider');
+            }
+
+            if ($createdUser && $intent === 'register' && $user->serviceProvider) {
+                Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($user->serviceProvider, 'pending'));
+            }
+
+            if (! $user->serviceProvider?->isApproved()) {
+                Auth::logout();
+
+                return redirect()->route('login')->withErrors([
+                    'email' => 'Your service provider account is pending admin approval.',
                 ]);
             }
         }

@@ -21,6 +21,7 @@ final class ModulePermissions
             'properties' => 'Properties',
             'builders' => 'Builders',
             'consultants' => 'Consultants',
+            'service_providers' => 'Service Providers',
             'enquiry' => 'Enquiry',
             'products' => 'Products',
             'offers' => 'Offers',

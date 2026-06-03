@@ -1,0 +1,272 @@
+@extends('backend.layouts.app')
+
+@section('title', 'Manage Website')
+
+@php
+    $service_providerStoreCssVersion = file_exists(public_path('assets/css/vendor-store.css')) ? filemtime(public_path('assets/css/vendor-store.css')) : now()->timestamp;
+    $service_providerPortalCssVersion = file_exists(public_path('assets/css/vendor-portal.css')) ? filemtime(public_path('assets/css/vendor-portal.css')) : now()->timestamp;
+    $service_providerPublicPageJsVersion = file_exists(public_path('assets/js/vendor-public-page.js')) ? filemtime(public_path('assets/js/vendor-public-page.js')) : now()->timestamp;
+@endphp
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/vendor-store.css') }}?v={{ $service_providerStoreCssVersion }}">
+<link rel="stylesheet" href="{{ asset('assets/css/vendor-portal.css') }}?v={{ $service_providerPortalCssVersion }}">
+@endpush
+
+@section('content')
+@php
+    $heroMainColor = old('hero_main_style.color', $service_provider->hero_main_style['color'] ?? '#ffffff');
+    $heroSubColor = old('hero_sub_style.color', $service_provider->hero_sub_style['color'] ?? '#ffffff');
+@endphp
+<div class="admin-panel ems-page service_provider-public-live-editor">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <p class="ems-kicker mb-1">Service Provider Panel</p>
+            <h2 class="admin-title mb-0">{{ $service_provider->publicDisplayName() }}</h2>
+            <p class="text-muted small mb-0">Edit your service_provider below, click <strong>Save Changes</strong>, then open <strong>Live Preview</strong> to see the published look.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('service_provider.public-page.preview') }}" target="_blank" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-up-right-from-square me-1"></i> Live Preview
+            </a>
+            <button type="submit" form="publicPageForm" class="btn btn-primary ems-btn-primary" id="publicPageSaveBtn">
+                <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+            </button>
+        </div>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    <form id="publicPageForm" method="POST" action="{{ route('service_provider.public-page.update') }}" enctype="multipart/form-data" class="vendor-store-page service_provider-preview-edit-mode" data-banner-delete-url="{{ url('service-provider/banner-slides') }}/" data-card-placeholder-url="{{ asset('assets/images/vendor-card-placeholder.svg') }}">
+        @csrf
+        @method('PUT')
+
+        <input type="text" name="hero_main_heading" value="{{ old('hero_main_heading', $service_provider->hero_main_heading) }}" data-sync-input="hero-main" hidden>
+        <input type="text" name="hero_sub_heading" value="{{ old('hero_sub_heading', $service_provider->hero_sub_heading) }}" data-sync-input="hero-sub" hidden>
+        <input type="text" name="display_name" value="{{ old('display_name', $service_provider->display_name) }}" data-sync-input="display-name" hidden>
+        <input type="text" name="phone" value="{{ old('phone', $service_provider->phone) }}" data-sync-input="phone" hidden>
+        <input type="email" name="email" value="{{ old('email', $service_provider->email) }}" data-sync-input="email" hidden>
+        <input type="text" name="city" value="{{ old('city', $service_provider->city) }}" data-sync-input="city" hidden>
+        <input type="text" name="address" value="{{ old('address', $service_provider->address) }}" data-sync-input="address" hidden>
+        <input type="url" name="facebook_url" value="{{ old('facebook_url', $service_provider->facebook_url) }}" hidden>
+        <input type="url" name="instagram_url" value="{{ old('instagram_url', $service_provider->instagram_url) }}" hidden>
+        <input type="hidden" name="hero_main_style[color]" data-style-input="hero-main" data-style-prop="color" value="{{ $heroMainColor }}">
+        <input type="hidden" name="hero_main_style[fontSize]" data-style-input="hero-main" data-style-prop="fontSize" value="{{ old('hero_main_style.fontSize', $service_provider->hero_main_style['fontSize'] ?? '') }}">
+        <input type="hidden" name="hero_main_style[fontFamily]" data-style-input="hero-main" data-style-prop="fontFamily" value="{{ old('hero_main_style.fontFamily', $service_provider->hero_main_style['fontFamily'] ?? '') }}">
+        <input type="hidden" name="hero_main_style[fontWeight]" data-style-input="hero-main" data-style-prop="fontWeight" value="{{ old('hero_main_style.fontWeight', $service_provider->hero_main_style['fontWeight'] ?? '') }}">
+        <input type="hidden" name="hero_sub_style[color]" data-style-input="hero-sub" data-style-prop="color" value="{{ $heroSubColor }}">
+        <input type="hidden" name="hero_sub_style[fontSize]" data-style-input="hero-sub" data-style-prop="fontSize" value="{{ old('hero_sub_style.fontSize', $service_provider->hero_sub_style['fontSize'] ?? '') }}">
+        <input type="hidden" name="hero_sub_style[fontFamily]" data-style-input="hero-sub" data-style-prop="fontFamily" value="{{ old('hero_sub_style.fontFamily', $service_provider->hero_sub_style['fontFamily'] ?? '') }}">
+        <input type="hidden" name="hero_sub_style[fontWeight]" data-style-input="hero-sub" data-style-prop="fontWeight" value="{{ old('hero_sub_style.fontWeight', $service_provider->hero_sub_style['fontWeight'] ?? '') }}">
+
+        <div class="service_provider-editor-panel mb-3">
+            <div class="service_provider-editor-panel-head">
+                <i class="fa-solid fa-user-tie text-primary"></i>
+                <div>
+                    <strong>Service Provider header</strong>
+                    <p class="mb-0 small text-muted">This matches your live service_provider. Click the logo box to upload or change your logo.</p>
+                </div>
+            </div>
+            <header class="vendor-store-header service_provider-header-preview">
+                <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3 py-3">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <label class="vendor-logo-dropzone mb-0" for="logoInput" title="Click to upload your service_provider logo">
+                            <span class="vendor-logo-dropzone-inner" id="logoPreviewWrap">
+                                @if($service_provider->logo)
+                                    <img src="{{ asset($service_provider->logo) }}" alt="Service Provider logo" class="vendor-logo-dropzone-img" id="logoPreviewImg">
+                                @else
+                                    <span class="vendor-logo-dropzone-placeholder" id="logoPlaceholder">
+                                        <i class="fa-solid fa-image"></i>
+                                        <span>Add logo</span>
+                                    </span>
+                                @endif
+                                <span class="vendor-logo-dropzone-hint"><i class="fa-solid fa-camera"></i> {{ $service_provider->logo ? 'Change' : 'Upload' }}</span>
+                            </span>
+                            <input type="file" name="logo" id="logoInput" class="d-none" accept="image/*">
+                        </label>
+                        <strong class="fs-4 mb-0 vendor-store-name-fallback {{ $service_provider->logo ? 'd-none' : '' }}" id="storeNamePreview">{{ $service_provider->publicDisplayName() }}</strong>
+                    </div>
+                    <nav class="vendor-store-nav d-none d-md-flex text-muted small">
+                        <span>Home</span>
+                        <span>About</span>
+                        <span>Contact</span>
+                    </nav>
+                </div>
+            </header>
+            <div class="vendor-store-url-row px-3 pb-3">
+                <label class="form-label small text-muted mb-1">Your service_provider link</label>
+                <div class="input-group input-group-sm" style="max-width:560px; width:100%;">
+                    <span class="input-group-text">{{ url('/service-provider') }}/</span>
+                    <input type="text" name="slug" class="form-control" value="{{ old('slug', $service_provider->slug) }}" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="your-service_provider-name">
+                </div>
+            </div>
+        </div>
+
+        <div class="service_provider-editor-panel mb-4">
+            <div class="service_provider-editor-panel-head">
+                <i class="fa-solid fa-panorama text-primary"></i>
+                <div>
+                    <strong>Hero banner</strong>
+                    <p class="mb-0 small text-muted">Upload banner images and customize the main heading text below.</p>
+                </div>
+            </div>
+            <section class="vendor-store-hero">
+                @if($service_provider->bannerSlides->count())
+                    <div id="service_providerHeroCarousel" class="carousel slide h-100" data-bs-ride="carousel">
+                        <div class="carousel-inner h-100" id="bannerSlidesList">
+                            @foreach($service_provider->bannerSlides as $i => $slide)
+                                <div class="carousel-item {{ $i === 0 ? 'active' : '' }} vendor-banner-slide" data-id="{{ $slide->id }}" style="background-image:url('{{ asset($slide->image_path) }}')">
+                                    <button type="button" class="btn btn-danger btn-sm vendor-slide-remove js-remove-slide" data-id="{{ $slide->id }}"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @else
+                    <div class="carousel-inner h-100" id="bannerSlidesList"></div>
+                @endif
+
+                <div class="hero-overlay">
+                    <div class="container">
+                        <label class="btn btn-warning btn-sm fw-bold mb-0">
+                            <i class="fa-solid fa-upload me-1"></i> Upload banner images
+                            <input type="file" name="banner_slides[]" class="d-none" accept="image/*" multiple id="bannerSlidesInput">
+                        </label>
+                        <small class="text-white ms-2" id="bannerUploadStatus">No new files selected</small>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="vendor-banner-thumbs-wrap mb-4">
+            <div class="small text-muted mb-2"><i class="fa-solid fa-images me-1"></i> Banner thumbnails — click to preview, × to remove</div>
+            <div class="vendor-banner-thumbs" id="bannerThumbs"></div>
+        </div>
+
+        <div class="service_provider-form-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="mb-0">Hero heading text</h5>
+                    <p class="text-muted small mb-0">This text will appear below the banner thumbnails and on the frontend as a separate section.</p>
+                </div>
+            </div>
+            <div class="vendor-section-style-panel mb-3">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                    <p class="small fw-semibold mb-0 text-primary"><i class="fa-solid fa-palette me-1"></i> Styling tools</p>
+                    <span class="badge bg-primary-subtle text-primary border" data-hero-active-label>Click heading or subheading below</span>
+                </div>
+                <p class="small text-muted mb-2">Click the <strong>heading</strong> or <strong>subheading</strong> below — styles apply to whichever you clicked last.</p>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3 col-6">
+                        <label class="form-label small mb-1">Text color</label>
+                        <input type="color" class="form-control form-control-color form-control-sm w-100" data-hero-style="color" value="{{ $heroMainColor }}">
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <label class="form-label small mb-1">Font size</label>
+                        <select class="form-select form-select-sm" data-hero-style="fontSize">
+                            <option value="">Default</option>
+                            <option value="16px">16px</option>
+                            <option value="20px">20px</option>
+                            <option value="24px">24px</option>
+                            <option value="32px">32px</option>
+                            <option value="42px">42px</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-sm btn-outline-dark" data-hero-toggle="fontWeight" data-hero-toggle-value="700" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                    </div>
+                </div>
+            </div>
+            <p class="text-muted small mb-1">Click text to edit</p>
+            <h1 class="vendor-live-editable" contenteditable="true" data-sync-target="hero-main" data-hero-editable="main" data-word-limit="500" style="@if(!empty($service_provider->hero_main_style)){{ collect($service_provider->hero_main_style)->filter(fn($v) => filled($v))->map(fn($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)->implode(';') }}@endif">{{ old('hero_main_heading', $service_provider->hero_main_heading ?: 'Your Main Heading') }}</h1>
+            <div class="d-flex justify-content-end small text-muted mb-2" data-hero-word-counter="hero-main">0 / 500 words</div>
+            <div id="heroSubHeadingEditor" class="vendor-live-editable vendor-lite-html-editor mt-2" contenteditable="true" data-sync-target="hero-sub" data-sync-html="1" data-hero-editable="sub" role="textbox" aria-label="Hero subheading" style="@if(!empty($service_provider->hero_sub_style)){{ collect($service_provider->hero_sub_style)->filter(fn($v) => filled($v))->map(fn($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)->implode(';') }}@endif">{!! old('hero_sub_heading', $service_provider->hero_sub_heading ?: 'Your sub heading appears here') !!}</div>
+        </div>
+
+        <div class="service_provider-form-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="mb-0">About Us page content</h5>
+                    <p class="text-muted small mb-0">This content is for a <strong>separate About Us page</strong>, not your service_provider home page sections.</p>
+                </div>
+            </div>
+            <div class="alert alert-warning small mb-3">
+                <i class="fa-solid fa-circle-info me-1"></i>
+                Visitors open this from Service Provider Header <strong>About Us</strong> and it opens in a new page.
+            </div>
+            <div class="service_provider-lite-editor" data-lite-editor="about-us">
+                <div class="service_provider-lite-editor-toolbar" aria-label="About Us formatting tools">
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-lite-command="bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-lite-command="italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-lite-command="insertUnorderedList" title="Bullet list"><i class="fa-solid fa-list-ul"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-lite-command="insertOrderedList" title="Numbered list"><i class="fa-solid fa-list-ol"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-lite-command="createLink" title="Add link"><i class="fa-solid fa-link"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-lite-command="removeFormat" title="Remove formatting"><i class="fa-solid fa-eraser"></i></button>
+                </div>
+                <div id="service_providerAboutUsEditor" class="vendor-lite-html-editor" contenteditable="true" data-lite-editor-target="description" role="textbox" aria-label="About Us page content">{!! old('description', $service_provider->description) ?: '<p>Write your About Us content here...</p>' !!}</div>
+                <textarea name="description" id="service_providerAboutUsInput" class="d-none" rows="10">{{ old('description', $service_provider->description) }}</textarea>
+            </div>
+        </div>
+
+        <div class="service_provider-form-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="mb-0">Social media links</h5>
+                    <p class="text-muted small mb-0">Add your social URLs and see how they will appear on your public service_provider page.</p>
+                </div>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Facebook URL</label>
+                    <input type="url" class="form-control" data-social-input="facebook" value="{{ old('facebook_url', $service_provider->facebook_url) }}" placeholder="https://facebook.com/yourpage">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Instagram URL</label>
+                    <input type="url" class="form-control" data-social-input="instagram" value="{{ old('instagram_url', $service_provider->instagram_url) }}" placeholder="https://instagram.com/yourhandle">
+                </div>
+            </div>
+            <div class="p-3 rounded border bg-light">
+                <p class="small text-muted mb-2">Frontend preview</p>
+                <div id="socialLinksPreview" class="d-flex flex-column gap-1">
+                    <a href="#" target="_blank" class="small d-none" data-social-preview="facebook">Facebook</a>
+                    <a href="#" target="_blank" class="small d-none" data-social-preview="instagram">Instagram</a>
+                    <span class="small text-muted" data-social-empty>Social links will appear here when URLs are added.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="service_provider-form-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="mb-0">Custom page sections</h5>
+                    <p class="text-muted small mb-0">Add sections with images and styled text. Drag the <strong>Reorder</strong> button or use the arrow buttons to change the display order.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <select class="form-select form-select-sm" id="sectionTypeSelect" style="min-width: 220px;">
+                        <option value="image_text">Image + Text card</option>
+                        <option value="image_grid">Image grid (8 images)</option>
+                        <option value="text_only">Only text section</option>
+                        <option value="brochure">Brochure section</option>
+                        <option value="video">Video section</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addSectionBtn"><i class="fa-solid fa-plus me-1"></i> Add section</button>
+                </div>
+            </div>
+            <div id="sectionsContainer">
+                @foreach($service_provider->pageSections as $i => $section)
+                    @include('backend.service_provider.public-page._section', ['index' => $i, 'section' => $section])
+                @endforeach
+            </div>
+        </div>
+    </form>
+</div>
+<template id="sectionTemplate">
+    @include('backend.service_provider.public-page._section', ['index' => '__INDEX__', 'section' => null])
+</template>
+@endsection
+
+@push('scripts')
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js" defer></script>
+<script src="{{ asset('assets/js/vendor-public-page.js') }}?v={{ $service_providerPublicPageJsVersion }}" defer></script>
+@endpush

@@ -180,8 +180,7 @@
           <span>CONSULTANTS</span>
         </div>
       </a>
-      {{--
-      <a href="">
+      <a href="{{ route('frontend.service_providers.index') }}">
         <div class="cat-item">
           <div class="cat-icon">
             <i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i>
@@ -189,6 +188,7 @@
           <span>SERVICE PROVIDERS</span>
         </div>
       </a>
+      {{--
       <a href="">
         <div class="cat-item">
           <div class="cat-icon">

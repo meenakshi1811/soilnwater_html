@@ -15,6 +15,7 @@ class HomepageSetting extends Model
         'section_toggles',
         'vendor_enquiry_send_to',
         'consultant_enquiry_send_to',
+        'service_provider_enquiry_send_to',
     ];
 
     protected $casts = [

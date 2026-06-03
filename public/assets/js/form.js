@@ -453,7 +453,7 @@
             var $certificate = $('#government_certificate_number');
             var isBusinessRole = function () {
                 var role = $role.val();
-                return role === 'vendor' || role === 'consultant';
+                return role === 'vendor' || role === 'consultant' || role === 'service_provider';
             };
             var toggleGst = function () {
                 var showGst = isBusinessRole() && $('input[name="has_gst"]:checked').val() === '1';
@@ -502,14 +502,14 @@
                     pan_number: {
                         required: function () {
                             var role = $('#role').val();
-                            return role === 'vendor' || role === 'consultant';
+                            return role === 'vendor' || role === 'consultant' || role === 'service_provider';
                         },
                         maxlength: 20
                     },
                     has_gst: {
                         required: function () {
                             var role = $('#role').val();
-                            return role === 'vendor' || role === 'consultant';
+                            return role === 'vendor' || role === 'consultant' || role === 'service_provider';
                         }
                     },
                     gst_number: {
