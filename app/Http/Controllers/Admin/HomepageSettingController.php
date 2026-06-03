@@ -39,6 +39,7 @@ class HomepageSettingController extends Controller
                 'hero_button_link' => 'required|string|max:255',
                 'sections' => 'nullable|array',
                 'vendor_enquiry_send_to' => 'required|in:all,non_premium,premium',
+                'consultant_enquiry_send_to' => 'required|in:all,non_premium,premium',
             ]),
         };
 
