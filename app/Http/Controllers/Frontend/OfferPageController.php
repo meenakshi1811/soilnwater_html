@@ -93,6 +93,7 @@ class OfferPageController extends Controller
             'buildersDevelopersAds' => $frontPageAds->where('size_type', 'builders_developers_ad')->values(),
             'belowBuildersAds' => $frontPageAds->where('size_type', 'below_builders_ad')->values(),
             'topVendors' => $this->topVendorsQuery($lat, $lng)->limit(12)->get(),
+            'topConsultants' => $this->topConsultantsQuery($lat, $lng)->limit(15)->get(),
             'vendorEnquiryCategories' => Category::query()
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'enquiry')
@@ -277,8 +278,7 @@ class OfferPageController extends Controller
                     AND consultant_services.latitude IS NOT NULL
                     AND consultant_services.longitude IS NOT NULL
                 ) as nearest_distance_km', [$lat, $lng, $lat, 'approved'])
-                ->orderByRaw('CASE WHEN nearest_distance_km IS NULL THEN 1 ELSE 0 END')
-                ->orderByDesc('is_premium')
+                ->orderByRaw('CASE WHEN nearest_distance_km IS NOT NULL AND is_premium = 1 THEN 0 WHEN nearest_distance_km IS NOT NULL THEN 1 ELSE 2 END')
                 ->orderBy('nearest_distance_km')
                 ->latest('id');
         } else {
