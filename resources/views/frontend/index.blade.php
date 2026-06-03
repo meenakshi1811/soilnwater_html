@@ -1471,7 +1471,7 @@
           <div class="consultant-enquiry-cta__copy">
             <span class="consultant-enquiry-cta__pill"><i class="fa-solid fa-briefcase"></i> Consultant Enquiry</span>
             <h3>Need help from a consultant?</h3>
-            <p>Share your question and we will notify matching verified consultants by category and subcategory.</p>
+            <p>Submit your requirement to matching verified consultants.</p>
           </div>
           <button type="button" class="consultant-enquiry-cta__btn" data-bs-toggle="modal" data-bs-target="#consultantEnquiryModal">
             Submit Enquiry
@@ -1612,16 +1612,15 @@
   .vendor-enquiry-pill{display:inline-flex;align-items:center;gap:.35rem;background:#e8f2ff;color:#1e4b8f;border-radius:999px;padding:.3rem .7rem;font-size:.78rem;font-weight:700;margin-bottom:.55rem}
   .vendor-enquiry-btn{white-space:nowrap}
   .vendor-enquiry-modal-content{border-radius:14px;border:0;box-shadow:0 18px 44px rgba(26,58,92,.2)}
-  .consultant-enquiry-cta{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;margin-top:1.45rem;padding:2rem 2rem;background:linear-gradient(135deg,#f7fff9 0%,#fcfffd 100%);border:1px solid #cef0d9;border-radius:24px;box-shadow:0 18px 36px rgba(31,122,58,.06)}
+  .consultant-enquiry-cta{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:1rem;padding:1rem 1.1rem;background:#fbfffc;border:1px solid #d8f0df;border-radius:14px}
   .consultant-enquiry-cta__copy{min-width:0}
-  .consultant-enquiry-cta__pill{display:inline-flex;align-items:center;gap:.45rem;margin-bottom:.8rem;padding:.45rem .95rem;border-radius:999px;background:#e8f7ed;color:#047235;font-size:.95rem;font-weight:800}
-  .consultant-enquiry-cta__pill i{font-size:.95rem}
-  .consultant-enquiry-cta h3{margin:0 0 .7rem;color:#0b3768;font-size:2rem;line-height:1.15;font-weight:900;letter-spacing:-.02em}
-  .consultant-enquiry-cta p{margin:0;color:#5b6f91;font-size:1.35rem;line-height:1.4}
-  .consultant-enquiry-cta__btn{display:inline-flex;align-items:center;justify-content:center;min-width:285px;padding:1.05rem 2rem;border:0;border-radius:14px;background:#2478d4;color:#fff;font-size:1.18rem;font-weight:800;box-shadow:0 18px 35px rgba(36,120,212,.24);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
-  .consultant-enquiry-cta__btn:hover,.consultant-enquiry-cta__btn:focus{color:#fff;filter:brightness(.97);transform:translateY(-1px);box-shadow:0 22px 40px rgba(36,120,212,.3)}
-  @media (max-width: 991px){.consultant-enquiry-cta{align-items:flex-start;flex-direction:column}.consultant-enquiry-cta__btn{width:100%;min-width:0}.consultant-enquiry-cta h3{font-size:1.55rem}.consultant-enquiry-cta p{font-size:1rem}}
-  @media (max-width: 767px){.vendor-enquiry-card{flex-direction:column;align-items:flex-start}.vendor-enquiry-btn{width:100%}.consultant-enquiry-cta{padding:1.35rem;border-radius:18px}}
+  .consultant-enquiry-cta__pill{display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.45rem;padding:.28rem .65rem;border-radius:999px;background:#edf8f0;color:#047235;font-size:.8rem;font-weight:800}
+  .consultant-enquiry-cta__pill i{font-size:.8rem}
+  .consultant-enquiry-cta h3{margin:0 0 .25rem;color:#0b3768;font-size:1.25rem;line-height:1.25;font-weight:800}
+  .consultant-enquiry-cta p{margin:0;color:#5b6f91;font-size:.95rem;line-height:1.4}
+  .consultant-enquiry-cta__btn{display:inline-flex;align-items:center;justify-content:center;min-width:150px;padding:.65rem 1.15rem;border:0;border-radius:10px;background:#2478d4;color:#fff;font-size:.95rem;font-weight:800;box-shadow:0 8px 18px rgba(36,120,212,.16);transition:filter .18s ease,box-shadow .18s ease}
+  .consultant-enquiry-cta__btn:hover,.consultant-enquiry-cta__btn:focus{color:#fff;filter:brightness(.96);box-shadow:0 10px 22px rgba(36,120,212,.22)}
+  @media (max-width: 767px){.vendor-enquiry-card{flex-direction:column;align-items:flex-start}.vendor-enquiry-btn{width:100%}.consultant-enquiry-cta{align-items:flex-start;flex-direction:column}.consultant-enquiry-cta__btn{width:100%;min-width:0}}
 
 </style>
 
