@@ -37,6 +37,24 @@
                     <label class="form-label">Profile Image</label>
                     <input type="file" name="profile_image" id="profileImageInput" class="form-control" accept="image/*">
                     <div class="form-text">Upload JPG, PNG, JPEG, or WebP up to 4 MB.</div>
+                    <div class="profile-image-preview-inline mt-3" id="profileImagePreviewCard">
+                        <div class="profile-image-preview-shell">
+                            @if($branch->logo)
+                                <img src="{{ asset($branch->logo) }}" alt="{{ $branch->branch_name }} profile image" id="profileImagePreview" class="profile-image-preview-img">
+                            @else
+                                <img src="" alt="Profile image preview" id="profileImagePreview" class="profile-image-preview-img d-none">
+                                <div class="profile-image-preview-placeholder" id="profileImagePreviewPlaceholder">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                </div>
+                            @endif
+                        </div>
+                        <div>
+                            <p class="small fw-semibold mb-1">Image Preview</p>
+                            <p class="small text-secondary mb-0" id="profileImagePreviewHelp">
+                                {{ $branch->logo ? 'Current profile image. Choose a new file above to update the preview.' : 'Selected profile image will appear here before saving.' }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-6 d-flex align-items-end">
                     <div class="form-check">
@@ -113,24 +131,6 @@
             </div>
         </div>
 
-        <div class="consultant-form-card mb-4" id="profileImagePreviewCard">
-            <h5 class="consultant-form-card-title"><span>4</span> Profile Image Preview</h5>
-            <div class="d-flex flex-column align-items-center text-center py-2">
-                <div class="profile-image-preview-shell mb-3">
-                    @if($branch->logo)
-                        <img src="{{ asset($branch->logo) }}" alt="{{ $branch->branch_name }} profile image" id="profileImagePreview" class="profile-image-preview-img">
-                    @else
-                        <img src="" alt="Profile image preview" id="profileImagePreview" class="profile-image-preview-img d-none">
-                        <div class="profile-image-preview-placeholder" id="profileImagePreviewPlaceholder">
-                            <i class="fa-solid fa-user-tie"></i>
-                        </div>
-                    @endif
-                </div>
-                <p class="small text-secondary mb-0" id="profileImagePreviewHelp">
-                    {{ $branch->logo ? 'Current profile image. Choose a new file above to update the preview.' : 'Selected profile image will appear here at the bottom before saving.' }}
-                </p>
-            </div>
-        </div>
 
         <button type="submit" class="btn btn-dark w-100 py-3">{{ $branch->exists ? 'Update Branch Details' : 'Create Branch' }}</button>
     </form>
@@ -141,16 +141,26 @@
 <link rel="stylesheet" href="{{ asset('assets/css/vendor-portal.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
-.profile-image-preview-shell {
+.profile-image-preview-inline {
     align-items: center;
     background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+}
+.profile-image-preview-shell {
+    align-items: center;
+    background: #ffffff;
     border: 1px dashed #cbd5e1;
     border-radius: 999px;
     display: flex;
-    height: 132px;
+    flex: 0 0 76px;
+    height: 76px;
     justify-content: center;
     overflow: hidden;
-    width: 132px;
+    width: 76px;
 }
 .profile-image-preview-img {
     height: 100%;
@@ -161,7 +171,7 @@
     align-items: center;
     color: #94a3b8;
     display: flex;
-    font-size: 3rem;
+    font-size: 1.8rem;
     height: 100%;
     justify-content: center;
     width: 100%;
