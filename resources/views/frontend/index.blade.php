@@ -1422,7 +1422,10 @@
       <div class="sec">
         <div class="sec-head">
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Consultants &amp; Enquiry</div>
-          <a class="view-all" href="<?= e(route('frontend.consultants.index')) ?>">VIEW ALL ▶</a>
+          <div class="consultant-section-actions">
+            <button type="button" class="consultant-enquiry-link" data-bs-toggle="modal" data-bs-target="#consultantEnquiryModal">Enquiry</button>
+            <a class="view-all" href="<?= e(route('frontend.consultants.index')) ?>">VIEW ALL ▶</a>
+          </div>
         </div>
         <div class="ad-slider auto-ad-slider consultants-home-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured consultants slider">
           <?php if ($homepageConsultantSlides->isNotEmpty()): ?>
@@ -1467,16 +1470,6 @@
           <?php endif; ?>
         </div>
 
-        <div class="consultant-enquiry-cta">
-          <div class="consultant-enquiry-cta__copy">
-            <span class="consultant-enquiry-cta__pill"><i class="fa-solid fa-briefcase"></i> Consultant Enquiry</span>
-            <h3>Need help from a consultant?</h3>
-            <p>Submit your requirement to matching verified consultants.</p>
-          </div>
-          <button type="button" class="consultant-enquiry-cta__btn" data-bs-toggle="modal" data-bs-target="#consultantEnquiryModal">
-            Submit Enquiry
-          </button>
-        </div>
       </div>
     <?php endif; ?>
 
@@ -1612,15 +1605,10 @@
   .vendor-enquiry-pill{display:inline-flex;align-items:center;gap:.35rem;background:#e8f2ff;color:#1e4b8f;border-radius:999px;padding:.3rem .7rem;font-size:.78rem;font-weight:700;margin-bottom:.55rem}
   .vendor-enquiry-btn{white-space:nowrap}
   .vendor-enquiry-modal-content{border-radius:14px;border:0;box-shadow:0 18px 44px rgba(26,58,92,.2)}
-  .consultant-enquiry-cta{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:1rem;padding:1rem 1.1rem;background:#fbfffc;border:1px solid #d8f0df;border-radius:14px}
-  .consultant-enquiry-cta__copy{min-width:0}
-  .consultant-enquiry-cta__pill{display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.45rem;padding:.28rem .65rem;border-radius:999px;background:#edf8f0;color:#047235;font-size:.8rem;font-weight:800}
-  .consultant-enquiry-cta__pill i{font-size:.8rem}
-  .consultant-enquiry-cta h3{margin:0 0 .25rem;color:#0b3768;font-size:1.25rem;line-height:1.25;font-weight:800}
-  .consultant-enquiry-cta p{margin:0;color:#5b6f91;font-size:.95rem;line-height:1.4}
-  .consultant-enquiry-cta__btn{display:inline-flex;align-items:center;justify-content:center;min-width:150px;padding:.65rem 1.15rem;border:0;border-radius:10px;background:#2478d4;color:#fff;font-size:.95rem;font-weight:800;box-shadow:0 8px 18px rgba(36,120,212,.16);transition:filter .18s ease,box-shadow .18s ease}
-  .consultant-enquiry-cta__btn:hover,.consultant-enquiry-cta__btn:focus{color:#fff;filter:brightness(.96);box-shadow:0 10px 22px rgba(36,120,212,.22)}
-  @media (max-width: 767px){.vendor-enquiry-card{flex-direction:column;align-items:flex-start}.vendor-enquiry-btn{width:100%}.consultant-enquiry-cta{align-items:flex-start;flex-direction:column}.consultant-enquiry-cta__btn{width:100%;min-width:0}}
+  .consultant-section-actions{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+  .consultant-enquiry-link{border:1px solid #cfe7ff;background:#f5fbff;color:#1769bd;border-radius:999px;padding:.35rem .85rem;font-size:.85rem;font-weight:800;line-height:1.2}
+  .consultant-enquiry-link:hover,.consultant-enquiry-link:focus{background:#eaf5ff;color:#0b5cab}
+  @media (max-width: 767px){.vendor-enquiry-card{flex-direction:column;align-items:flex-start}.vendor-enquiry-btn{width:100%}.consultant-section-actions{width:100%;justify-content:space-between}}
 
 </style>
 
