@@ -8,6 +8,9 @@ use App\Models\Category;
 use App\Models\AdSize;
 use App\Models\UserAd;
 use App\Models\ContactSupport;
+use App\Models\Consultant;
+use App\Models\ConsultantService;
+use App\Models\ConsultantServiceInquiry;
 use App\Models\HomepageSetting;
 use App\Models\Vendor;
 use App\Models\VendorProductInquiry;
@@ -187,6 +190,104 @@ class UserAdController extends Controller
         }
 
         return response()->json(['message' => 'Thanks! Your vendor enquiry has been submitted successfully.']);
+    }
+
+
+    public function consultantEnquiry(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'client_name' => ['required', 'string', 'max:120'],
+            'phone_number' => ['required', 'string', 'max:30'],
+            'email' => ['required', 'email', 'max:150'],
+            'occupation' => ['nullable', 'string', 'max:150'],
+            'date_of_birth' => ['nullable', 'date', 'before:today'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'subcategory_id' => ['required', 'exists:categories,id'],
+            'question' => ['required', 'string', 'max:2000'],
+            'image' => ['nullable', 'image', 'max:4096'],
+        ]);
+
+        $category = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'consultants')
+            ->find($validated['category_id']);
+        $subcategory = Category::query()
+            ->where('parent_id', $validated['category_id'])
+            ->find($validated['subcategory_id']);
+
+        if (! $category || ! $subcategory) {
+            return response()->json(['message' => 'Please select a valid consultant category and subcategory combination.'], 422);
+        }
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('uploads/consultant-inquiries', 'public');
+            $validated['image_path'] = 'storage/'.$path;
+        }
+
+        $sendTo = HomepageSetting::query()->find(1)?->consultant_enquiry_send_to ?? 'all';
+        $matchingServiceQuery = fn ($query) => $query
+            ->where('status', 'approved')
+            ->where('category_id', $category->id)
+            ->where('subcategory_id', $subcategory->id);
+
+        $consultantsQuery = Consultant::query()
+            ->with(['services' => $matchingServiceQuery])
+            ->where('status', 'approved')
+            ->whereNotNull('email')
+            ->where('email', '!=', '')
+            ->whereHas('services', $matchingServiceQuery);
+
+        if ($sendTo === 'premium') {
+            $consultantsQuery->where('is_premium', true);
+        } elseif ($sendTo === 'non_premium') {
+            $consultantsQuery->where('is_premium', false);
+        }
+
+        $consultants = $consultantsQuery->get();
+
+        foreach ($consultants as $consultant) {
+            $service = $consultant->services->first();
+            if (! $service instanceof ConsultantService) {
+                continue;
+            }
+
+            $inquiry = ConsultantServiceInquiry::query()->create([
+                'consultant_id' => $consultant->id,
+                'consultant_service_id' => $service->id,
+                'user_id' => $request->user()?->id,
+                'client_name' => $validated['client_name'],
+                'phone_number' => $validated['phone_number'],
+                'email' => $validated['email'],
+                'occupation' => $validated['occupation'] ?? null,
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
+                'question' => $validated['question'],
+                'image_path' => $validated['image_path'] ?? null,
+            ]);
+
+            $body = view('emails.consultant.new-inquiry', compact('inquiry', 'consultant', 'service', 'category', 'subcategory'))->render();
+            Mail::send([], [], function ($email) use ($consultant, $category, $subcategory, $body) {
+                $email->to($consultant->email)
+                    ->subject('New consultant enquiry: '.$category->name.' - '.$subcategory->name)
+                    ->html($body);
+            });
+        }
+
+        ContactSupport::query()->create([
+            'user_id' => $request->user()?->id,
+            'subject' => '[Consultant Enquiry] '.$category->name.' - '.$subcategory->name,
+            'message' => implode("\n", [
+                'Client Name: '.$validated['client_name'],
+                'Email: '.$validated['email'],
+                'Phone Number: '.$validated['phone_number'],
+                'Occupation: '.($validated['occupation'] ?? '—'),
+                'Date of Birth: '.($validated['date_of_birth'] ?? '—'),
+                'Category: '.$category->name,
+                'Sub Category: '.$subcategory->name,
+                'Question: '.$validated['question'],
+            ]),
+        ]);
+
+        return response()->json(['message' => 'Thanks! Your consultant enquiry has been submitted successfully.']);
     }
 
     public function contactSupport(Request $request): JsonResponse

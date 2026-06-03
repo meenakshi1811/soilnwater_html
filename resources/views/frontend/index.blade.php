@@ -19,6 +19,19 @@
         })->values()->all(),
       ];
     })->values()->all();
+  $consultantEnquiryCategoryTree = ($consultantEnquiryCategories ?? collect())
+    ->map(function ($category) {
+      return [
+        'id' => $category->id,
+        'name' => $category->name,
+        'children' => $category->children->map(function ($child) {
+          return [
+            'id' => $child->id,
+            'name' => $child->name,
+          ];
+        })->values()->all(),
+      ];
+    })->values()->all();
 @endphp
 
 <div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
@@ -793,6 +806,73 @@
       </div>
     </div>
 
+
+    <div class="modal fade" id="consultantEnquiryModal" tabindex="-1" aria-labelledby="consultantEnquiryModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content vendor-enquiry-modal-content">
+          <div class="modal-header border-0 pb-2">
+            <h2 class="modal-title fs-5" id="consultantEnquiryModalLabel">Consultant Enquiry</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body pt-0">
+            <form id="consultantEnquiryForm" enctype="multipart/form-data">
+              @csrf
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="consultantEnquiryName">Name *</label>
+                  <input type="text" class="form-control" id="consultantEnquiryName" name="client_name" value="{{ auth()->user()?->full_name ?: auth()->user()?->name }}" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="consultantEnquiryPhone">Phone Number *</label>
+                  <input type="text" class="form-control" id="consultantEnquiryPhone" name="phone_number" value="{{ auth()->user()?->phone_number }}" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="consultantEnquiryEmail">Email *</label>
+                  <input type="email" class="form-control" id="consultantEnquiryEmail" name="email" value="{{ auth()->user()?->email }}" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="consultantEnquiryOccupation">Occupation</label>
+                  <input type="text" class="form-control" id="consultantEnquiryOccupation" name="occupation" placeholder="Your occupation">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="consultantEnquiryDob">DOB</label>
+                  <input type="date" class="form-control" id="consultantEnquiryDob" name="date_of_birth" value="{{ auth()->user()?->date_of_birth?->format('Y-m-d') }}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="consultantEnquiryImage">Upload image</label>
+                  <input type="file" class="form-control" id="consultantEnquiryImage" name="image" accept="image/*">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="consultantEnquiryCategory">Consultant Category *</label>
+                  <select class="form-select" id="consultantEnquiryCategory" name="category_id" required>
+                    <option value="">Select category</option>
+                    @foreach(($consultantEnquiryCategories ?? collect()) as $category)
+                      <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    @endforeach
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="consultantEnquirySubCategory">Sub Category *</label>
+                  <select class="form-select" id="consultantEnquirySubCategory" name="subcategory_id" required disabled>
+                    <option value="">Select sub category</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="consultantEnquiryQuestion">Question *</label>
+                  <textarea class="form-control" id="consultantEnquiryQuestion" name="question" rows="4" maxlength="2000" placeholder="Write your question for the consultant." required></textarea>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 mt-3" id="consultantEnquirySubmitBtn">
+                <span class="js-consultant-enquiry-btn-text">Send Enquiry</span>
+                <span class="spinner-border spinner-border-sm ms-2 d-none js-consultant-enquiry-btn-loader" role="status" aria-hidden="true"></span>
+                <span class="ms-1 d-none js-consultant-enquiry-btn-sending">Sending...</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -1389,6 +1469,22 @@
       </div>
     <?php endif; ?>
 
+    @if($showConsultantsSection)
+
+      <div class="sec vendor-enquiry-section">
+        <div class="vendor-enquiry-card consultant-enquiry-card">
+          <div class="vendor-enquiry-copy">
+            <span class="vendor-enquiry-pill"><i class="fa-solid fa-briefcase"></i> Consultant Enquiry</span>
+            <h3>Need help from a consultant?</h3>
+            <p>Share your question and we will notify matching verified consultants by category and subcategory.</p>
+          </div>
+          <button type="button" class="btn-yellow vendor-enquiry-btn" data-bs-toggle="modal" data-bs-target="#consultantEnquiryModal">
+            Submit Enquiry
+          </button>
+        </div>
+      </div>
+    @endif
+
     @if(data_get($sectionToggles, 'vendor_enquiry', true))
       <div class="sec vendor-enquiry-section">
         <div class="vendor-enquiry-card">
@@ -1505,6 +1601,8 @@
   .vendor-enquiry-pill{display:inline-flex;align-items:center;gap:.35rem;background:#e8f2ff;color:#1e4b8f;border-radius:999px;padding:.3rem .7rem;font-size:.78rem;font-weight:700;margin-bottom:.55rem}
   .vendor-enquiry-btn{white-space:nowrap}
   .vendor-enquiry-modal-content{border-radius:14px;border:0;box-shadow:0 18px 44px rgba(26,58,92,.2)}
+  .consultant-enquiry-card{background:linear-gradient(135deg,#effaf3,#ffffff);border-color:#d6f0dc}
+  .consultant-enquiry-card .vendor-enquiry-pill{background:#e7f7ed;color:#1f7a3a}
   @media (max-width: 767px){.vendor-enquiry-card{flex-direction:column;align-items:flex-start}.vendor-enquiry-btn{width:100%}}
 
 </style>
@@ -1515,6 +1613,85 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+
+    const consultantForm = document.getElementById('consultantEnquiryForm');
+    if (consultantForm) {
+      const consultantCategories = @json($consultantEnquiryCategoryTree);
+      const consultantCategorySelect = consultantForm.querySelector('#consultantEnquiryCategory');
+      const consultantSubcategorySelect = consultantForm.querySelector('#consultantEnquirySubCategory');
+
+      consultantCategorySelect?.addEventListener('change', function () {
+        const selected = consultantCategories.find((category) => String(category.id) === this.value);
+        consultantSubcategorySelect.innerHTML = '<option value="">Select sub category</option>';
+        if (!selected || !selected.children || !selected.children.length) {
+          consultantSubcategorySelect.setAttribute('disabled', 'disabled');
+          return;
+        }
+        selected.children.forEach(function (child) {
+          const option = document.createElement('option');
+          option.value = child.id;
+          option.textContent = child.name;
+          consultantSubcategorySelect.appendChild(option);
+        });
+        consultantSubcategorySelect.removeAttribute('disabled');
+      });
+
+      consultantForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const submitBtn = document.getElementById('consultantEnquirySubmitBtn');
+        const loader = submitBtn?.querySelector('.js-consultant-enquiry-btn-loader');
+        const sending = submitBtn?.querySelector('.js-consultant-enquiry-btn-sending');
+        const btnText = submitBtn?.querySelector('.js-consultant-enquiry-btn-text');
+        const showToast = (type, message) => {
+          try {
+            if (window.toastr && window.jQuery && typeof window.toastr[type] === 'function') {
+              window.toastr.options = { closeButton: true, progressBar: true, timeOut: 3500 };
+              window.toastr[type](message);
+              return;
+            }
+          } catch (toastError) {
+            console.warn('Toastr unavailable, using alert fallback.', toastError);
+          }
+          alert(message);
+        };
+
+        submitBtn?.setAttribute('disabled', 'disabled');
+        loader?.classList.remove('d-none');
+        sending?.classList.remove('d-none');
+        btnText?.classList.add('d-none');
+
+        try {
+          const response = await fetch("{{ route('frontend.consultant-enquiry') }}", {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': consultantForm.querySelector('input[name="_token"]').value,
+            },
+            body: new FormData(consultantForm),
+          });
+          const data = await response.json();
+          showToast(response.ok ? 'success' : 'error', data.message || (response.ok ? 'Enquiry sent successfully.' : 'Unable to send enquiry.'));
+
+          if (response.ok) {
+            consultantForm.reset();
+            consultantSubcategorySelect.innerHTML = '<option value="">Select sub category</option>';
+            consultantSubcategorySelect.setAttribute('disabled', 'disabled');
+            const modalEl = document.getElementById('consultantEnquiryModal');
+            if (window.bootstrap?.Modal && modalEl) {
+              window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            }
+          }
+        } catch (error) {
+          showToast('error', 'Unable to send enquiry. Please try again.');
+        } finally {
+          submitBtn?.removeAttribute('disabled');
+          loader?.classList.add('d-none');
+          sending?.classList.add('d-none');
+          btnText?.classList.remove('d-none');
+        }
+      });
+    }
+
     const form = document.getElementById('vendorEnquiryForm');
     if (!form) return;
     const categories = @json($vendorEnquiryCategoryTree);
