@@ -1333,52 +1333,61 @@
     @endif
 
     <!-- Consultants & Enquiry -->
-    @if(!empty($sectionToggles['consultants_enquiry']) && $sectionToggles['consultants_enquiry'])
-
+    <?php
+      $showConsultantsSection = ! empty($sectionToggles['consultants_enquiry']) && $sectionToggles['consultants_enquiry'];
+      $homepageConsultants = $topConsultants ?? collect();
+      $homepageConsultantSlides = $homepageConsultants->chunk(5);
+    ?>
+    <?php if ($showConsultantsSection): ?>
       <div class="sec">
         <div class="sec-head">
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Consultants &amp; Enquiry</div>
-          <a class="view-all" href="#">POST YOUR QUERY ▶</a>
+          <a class="view-all" href="<?= e(route('frontend.consultants.index')) ?>">VIEW ALL ▶</a>
         </div>
-        <div class="consult-grid consult-grid-professional">
-          <div class="con-card">
-            <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=480&q=75" alt="Dr. Anil Sharma portrait">
-            <div class="con-card-body">
-              <p class="con-name">Dr. Anil Sharma</p>
-              <span class="con-role">Medical Consultant</span>
+        <div class="ad-slider auto-ad-slider consultants-home-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured consultants slider">
+          <?php if ($homepageConsultantSlides->isNotEmpty()): ?>
+            <?php foreach ($homepageConsultantSlides as $consultantChunk): ?>
+              <div class="ad-slide">
+                <div class="consult-grid consult-grid-professional">
+                  <?php foreach ($consultantChunk as $consultant): ?>
+                    <?php
+                      $primaryBranch = $consultant->branches->first();
+                      $firstService = $consultant->services->firstWhere('status', 'approved') ?: $consultant->services->first();
+                      $serviceImage = $firstService?->image_path ? asset($firstService->image_path) : null;
+                      $bannerImage = $consultant->bannerSlides->first()?->image_path ? asset($consultant->bannerSlides->first()->image_path) : null;
+                      $logoImage = $consultant->logo ? asset($consultant->logo) : null;
+                      $consultantCardImage = $serviceImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=480&q=75';
+                      $consultantCity = $primaryBranch?->city ?: ($consultant->city ?: 'Local Area');
+                      $consultantDistance = $hasLocation && $consultant->nearest_distance_km !== null
+                        ? ' • '.number_format($consultant->nearest_distance_km, 1).' km'
+                        : '';
+                    ?>
+                    <a class="con-card text-decoration-none" href="<?= e(route('consultant.show', $consultant->slug)) ?>" aria-label="View <?= e($consultant->publicDisplayName()) ?> consultant page">
+                      <img src="<?= e($consultantCardImage) ?>" alt="<?= e($consultant->publicDisplayName()) ?>">
+                      <div class="con-card-body">
+                        <p class="con-name"><?= e($consultant->publicDisplayName()) ?><?php if ($consultant->is_premium): ?> ⭐<?php endif; ?></p>
+                        <span class="con-role"><?= e($consultantCity) ?> • <?= e($consultant->services_count) ?> Services<?= e($consultantDistance) ?></span>
+                      </div>
+                    </a>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <div class="ad-slide">
+              <div class="consult-grid consult-grid-professional">
+                <div class="con-card consultant-empty-card">
+                  <div class="con-card-body">
+                    <p class="con-name">No consultants available</p>
+                    <span class="con-role">Please check back later.</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="con-card">
-            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=480&q=75" alt="Legal advisor portrait">
-            <div class="con-card-body">
-              <p class="con-name">Neha Verma</p>
-              <span class="con-role">Legal Advisor</span>
-            </div>
-          </div>
-          <div class="con-card">
-            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=480&q=75" alt="Career consultant portrait">
-            <div class="con-card-body">
-              <p class="con-name">Riya Malhotra</p>
-              <span class="con-role">Career Consultant</span>
-            </div>
-          </div>
-          <div class="con-card">
-            <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=480&q=75" alt="Business consultant portrait">
-            <div class="con-card-body">
-              <p class="con-name">Arjun Mehta</p>
-              <span class="con-role">Business Consultant</span>
-            </div>
-          </div>
-          <div class="con-card">
-            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=480&q=75" alt="Financial consultant portrait">
-            <div class="con-card-body">
-              <p class="con-name">Sana Iqbal</p>
-              <span class="con-role">Financial Consultant</span>
-            </div>
-          </div>
+          <?php endif; ?>
         </div>
       </div>
-    @endif
+    <?php endif; ?>
 
     @if(data_get($sectionToggles, 'vendor_enquiry', true))
       <div class="sec vendor-enquiry-section">
