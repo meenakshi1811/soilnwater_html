@@ -21,7 +21,7 @@
         <div class="card-body">
             <span class="badge text-bg-primary">{{ $offer->discount_tag }}</span>
             <h1 class="h3 mt-2">{{ $offer->title }}</h1>
-            <p class="text-muted mb-3">{{ $offer->short_description ?: 'Special limited-time offer available now.' }}</p>
+            <p class="text-muted mb-3">{!! nl2br(e($offer->short_description ?: 'Special limited-time offer available now.')) !!}</p>
 
             @if ($offer->coupon_code)
                 <div class="coupon-code mb-3">{{ strtoupper($offer->coupon_code) }}</div>
