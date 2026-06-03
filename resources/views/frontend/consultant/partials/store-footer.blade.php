@@ -23,7 +23,7 @@
     </div>
 </footer>
 
-@if($consultant->whatsapp)
+@if(($activeNav ?? '') !== 'contact' && $consultant->whatsapp)
     <a href="https://wa.me/91{{ preg_replace('/\D/', '', $consultant->whatsapp) }}" class="vendor-whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
         <i class="fa-brands fa-whatsapp"></i>
     </a>

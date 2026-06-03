@@ -3,6 +3,10 @@
 @section('title', 'Contact '. $consultant->publicDisplayName())
 
 @section('consultant_content')
+@php
+    $approvedServices = $approvedServices ?? collect();
+    $contactEnquiryModalId = 'consultantContactEnquiryModal';
+@endphp
 <section class="consultant-contact-page py-5 py-lg-6">
     <div class="container">
         <div class="contact-hero shadow-sm overflow-hidden mb-4 mb-lg-5">
@@ -56,16 +60,20 @@
                     <div class="card-body p-4 p-lg-4 d-flex flex-column">
                         <div class="enquiry-badge mb-3">Quick Contact</div>
                         <h3 class="h5 fw-bold mb-2">Share your requirement</h3>
-                        <p class="text-muted mb-4">Use the contact details to connect directly with this consultant.</p>
+                        <p class="text-muted mb-4">Submit an enquiry and this consultant will be notified by email and SMS.</p>
 
-                        @if($consultant->whatsapp)
-                            <a class="btn enquiry-btn w-100 mt-auto" href="https://wa.me/91{{ preg_replace('/\D/', '', $consultant->whatsapp) }}" target="_blank" rel="noopener">
-                                <i class="fa-brands fa-whatsapp me-2"></i>WhatsApp Consultant
-                            </a>
-                        @elseif($consultant->email)
-                            <a class="btn enquiry-btn w-100 mt-auto" href="mailto:{{ $consultant->email }}">
-                                <i class="fa-regular fa-paper-plane me-2"></i>Email Consultant
-                            </a>
+                        @if($approvedServices->isNotEmpty())
+                            @auth
+                                <button type="button" class="btn enquiry-btn w-100 mt-auto" data-bs-toggle="modal" data-bs-target="#{{ $contactEnquiryModalId }}">
+                                    <i class="fa-regular fa-paper-plane me-2"></i>Enquiry
+                                </button>
+                            @else
+                                <button type="button" class="btn enquiry-btn w-100 mt-auto" data-bs-toggle="modal" data-bs-target="#consultantLoginRequiredModal">
+                                    <i class="fa-regular fa-paper-plane me-2"></i>Enquiry
+                                </button>
+                            @endauth
+                        @else
+                            <button type="button" class="btn btn-secondary w-100 mt-auto" disabled>No services available for enquiry</button>
                         @endif
                     </div>
                 </div>
@@ -73,6 +81,91 @@
         </div>
     </div>
 </section>
+
+@auth
+    <div class="modal fade consultant-service-enquiry-modal" id="{{ $contactEnquiryModalId }}" tabindex="-1" aria-labelledby="{{ $contactEnquiryModalId }}Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <p class="consultant-service-detail-modal__eyebrow mb-1">Consultant enquiry</p>
+                        <h3 class="modal-title" id="{{ $contactEnquiryModalId }}Label">Share your requirement</h3>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form class="consultant-service-enquiry-form" action="{{ route('consultant.enquiry', $consultant->slug) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Select consultant service *</label>
+                                <select name="consultant_service_id" class="form-select" required>
+                                    <option value="">Choose a service</option>
+                                    @foreach($approvedServices as $service)
+                                        <option value="{{ $service->id }}">{{ $service->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Client name *</label>
+                                <input type="text" name="client_name" class="form-control" value="{{ auth()->user()?->full_name ?: auth()->user()?->name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Number *</label>
+                                <input type="text" name="phone_number" class="form-control" value="{{ auth()->user()?->phone_number }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email *</label>
+                                <input type="email" name="email" class="form-control" value="{{ auth()->user()?->email }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="occupation" class="form-control" placeholder="Your occupation">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">DOB</label>
+                                <input type="date" name="date_of_birth" class="form-control" value="{{ auth()->user()?->date_of_birth?->format('Y-m-d') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Upload image</label>
+                                <input type="file" name="image" class="form-control" accept="image/*">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Question *</label>
+                                <textarea name="question" class="form-control" rows="4" placeholder="Write your question for this consultant" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn consultant-service-detail-modal__contact-btn">Submit enquiry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endauth
+
+<div class="modal fade consultant-login-required-modal" id="consultantLoginRequiredModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h3 class="modal-title">You are not logged in</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="consultant-login-required-card">
+                    <div class="consultant-login-required-card__icon"><i class="fa-solid fa-lock"></i></div>
+                    <div>
+                        <h4>You are not logged in</h4>
+                        <p>Please log in to submit an enquiry for this consultant.</p>
+                        <a href="{{ route('login') }}" class="consultant-login-required-card__btn">Login to continue</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')

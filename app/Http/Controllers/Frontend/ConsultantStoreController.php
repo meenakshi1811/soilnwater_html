@@ -105,6 +105,57 @@ class ConsultantStoreController extends Controller
         return response()->json(['message' => 'Enquiry submitted successfully.']);
     }
 
+    public function sendGeneralInquiry(Request $request, string $slug): JsonResponse
+    {
+        $consultant = $this->resolveConsultant($slug);
+
+        if (! $request->user()) {
+            return response()->json(['message' => 'Please login to send an enquiry.'], 403);
+        }
+
+        $data = $request->validate([
+            'consultant_service_id' => ['required', 'integer'],
+            'client_name' => ['required', 'string', 'max:120'],
+            'phone_number' => ['required', 'string', 'max:30'],
+            'email' => ['required', 'email', 'max:150'],
+            'occupation' => ['nullable', 'string', 'max:150'],
+            'date_of_birth' => ['nullable', 'date', 'before:today'],
+            'question' => ['required', 'string', 'max:2000'],
+            'image' => ['nullable', 'image', 'max:4096'],
+        ]);
+
+        $service = ConsultantService::query()
+            ->where('id', $data['consultant_service_id'])
+            ->where('consultant_id', $consultant->id)
+            ->where('status', 'approved')
+            ->firstOrFail();
+
+        unset($data['consultant_service_id']);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('uploads/consultant-inquiries', 'public');
+            $data['image_path'] = 'storage/'.$path;
+        }
+
+        $inquiry = ConsultantServiceInquiry::query()->create([
+            'consultant_id' => $consultant->id,
+            'consultant_service_id' => $service->id,
+            'user_id' => $request->user()->id,
+            ...$data,
+        ]);
+
+        if ($consultant->email) {
+            $body = view('emails.consultant.new-inquiry', compact('inquiry', 'consultant', 'service'))->render();
+            Mail::send([], [], function ($message) use ($consultant, $service, $body) {
+                $message->to($consultant->email)->subject('New consultation enquiry: '.$service->name)->html($body);
+            });
+        }
+
+        $this->sendConsultantInquirySms($consultant, $service);
+
+        return response()->json(['message' => 'Enquiry submitted successfully.']);
+    }
+
     public function about(string $slug): View
     {
         return view('frontend.consultant.about', [
@@ -115,9 +166,17 @@ class ConsultantStoreController extends Controller
 
     public function contact(string $slug): View
     {
+        $consultant = $this->resolveConsultant($slug);
+        $approvedServices = ConsultantService::query()
+            ->where('consultant_id', $consultant->id)
+            ->where('status', 'approved')
+            ->latest('updated_at')
+            ->get(['id', 'name']);
+
         return view('frontend.consultant.contact', [
-            'consultant' => $this->resolveConsultant($slug),
+            'consultant' => $consultant,
             'activeNav' => 'contact',
+            'approvedServices' => $approvedServices,
         ]);
     }
 
