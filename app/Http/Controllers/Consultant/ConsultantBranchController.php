@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Consultant;
 
 use App\Http\Controllers\Controller;
 use App\Models\ConsultantBranch;
+use App\Support\ConsultantFileUploader;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -31,6 +31,10 @@ class ConsultantBranchController extends Controller
     {
         $consultant = auth()->user()->consultant;
         $validated = $this->validateBranch($request);
+
+        if ($request->hasFile('profile_image')) {
+            $validated['logo'] = ConsultantFileUploader::storeImage($request->file('profile_image'), 'branch-profiles');
+        }
 
         $validated['is_primary'] = $request->boolean('is_primary');
         if ($validated['is_primary']) {
@@ -60,6 +64,11 @@ class ConsultantBranchController extends Controller
         $this->authorizeBranch($branch);
         $validated = $this->validateBranch($request);
 
+        if ($request->hasFile('profile_image')) {
+            ConsultantFileUploader::deleteIfExists($branch->logo);
+            $validated['logo'] = ConsultantFileUploader::storeImage($request->file('profile_image'), 'branch-profiles');
+        }
+
         $validated['is_primary'] = $request->boolean('is_primary');
         if ($validated['is_primary']) {
             auth()->user()->consultant->branches()->where('id', '!=', $branch->id)->update(['is_primary' => false]);
@@ -77,6 +86,8 @@ class ConsultantBranchController extends Controller
     {
         $this->authorizeBranch($branch);
 
+        ConsultantFileUploader::deleteIfExists($branch->logo);
+
         $branch->delete();
 
         return response()->json(['message' => 'Branch deleted permanently.']);
@@ -87,6 +98,8 @@ class ConsultantBranchController extends Controller
         $validated = $request->validate([
             'branch_name' => ['required', 'string', 'max:255'],
             'contact_person' => ['nullable', 'string', 'max:255'],
+            'occupation' => ['nullable', 'string', 'max:255'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'phone' => ['nullable', 'string', 'max:20'],
             'alt_mobile_number' => ['nullable', 'string', 'max:20'],
             'whatsapp' => ['nullable', 'string', 'max:20'],
@@ -105,7 +118,7 @@ class ConsultantBranchController extends Controller
             $validated['gst_number'] = null;
         }
 
-        unset($validated['has_gst']);
+        unset($validated['has_gst'], $validated['profile_image']);
 
         return $validated;
     }
