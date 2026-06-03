@@ -1386,6 +1386,7 @@
             </div>
           <?php endif; ?>
         </div>
+
       </div>
     <?php endif; ?>
 
@@ -1515,6 +1516,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+
     const form = document.getElementById('vendorEnquiryForm');
     if (!form) return;
     const categories = @json($vendorEnquiryCategoryTree);
