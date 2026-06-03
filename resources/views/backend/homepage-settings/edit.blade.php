@@ -72,6 +72,15 @@
                             <option value="premium" {{ ($setting->consultant_enquiry_send_to ?? 'all') === 'premium' ? 'selected' : '' }}>Premium</option>
                         </select>
                     </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Send Service Provider Enquiry To <span class="text-danger">*</span></label>
+                        <select name="service_provider_enquiry_send_to" class="form-select" required>
+                            <option value="all" {{ ($setting->service_provider_enquiry_send_to ?? 'all') === 'all' ? 'selected' : '' }}>All</option>
+                            <option value="non_premium" {{ ($setting->service_provider_enquiry_send_to ?? 'all') === 'non_premium' ? 'selected' : '' }}>Non Premium</option>
+                            <option value="premium" {{ ($setting->service_provider_enquiry_send_to ?? 'all') === 'premium' ? 'selected' : '' }}>Premium</option>
+                        </select>
+                    </div>
                     <div class="col-12 d-flex justify-content-end">
                         <button class="btn btn-primary" type="submit">Save Homepage Settings</button>
                     </div>
@@ -90,6 +99,15 @@
                             <img src="{{ asset($setting->offers_market_banner_image) }}" alt="Offers market banner" style="max-width:320px;margin-top:10px;border-radius:8px;">
                         @endif
                     </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Send Service Provider Enquiry To <span class="text-danger">*</span></label>
+                        <select name="service_provider_enquiry_send_to" class="form-select" required>
+                            <option value="all" {{ ($setting->service_provider_enquiry_send_to ?? 'all') === 'all' ? 'selected' : '' }}>All</option>
+                            <option value="non_premium" {{ ($setting->service_provider_enquiry_send_to ?? 'all') === 'non_premium' ? 'selected' : '' }}>Non Premium</option>
+                            <option value="premium" {{ ($setting->service_provider_enquiry_send_to ?? 'all') === 'premium' ? 'selected' : '' }}>Premium</option>
+                        </select>
+                    </div>
                     <div class="col-12 d-flex justify-content-end">
                         <button class="btn btn-primary" type="submit">Save Offer Settings</button>
                     </div>
@@ -107,6 +125,15 @@
                         @if($setting->ads_market_banner_image)
                             <img src="{{ asset($setting->ads_market_banner_image) }}" alt="Ads market banner" style="max-width:320px;margin-top:10px;border-radius:8px;">
                         @endif
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Send Service Provider Enquiry To <span class="text-danger">*</span></label>
+                        <select name="service_provider_enquiry_send_to" class="form-select" required>
+                            <option value="all" {{ ($setting->service_provider_enquiry_send_to ?? 'all') === 'all' ? 'selected' : '' }}>All</option>
+                            <option value="non_premium" {{ ($setting->service_provider_enquiry_send_to ?? 'all') === 'non_premium' ? 'selected' : '' }}>Non Premium</option>
+                            <option value="premium" {{ ($setting->service_provider_enquiry_send_to ?? 'all') === 'premium' ? 'selected' : '' }}>Premium</option>
+                        </select>
                     </div>
                     <div class="col-12 d-flex justify-content-end">
                         <button class="btn btn-primary" type="submit">Save Ads Settings</button>

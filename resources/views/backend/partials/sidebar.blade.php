@@ -5,15 +5,19 @@
     $isEmployee = auth()->user()->isEmployee();
     $isVendor = auth()->user()->isVendor();
     $isConsultant = auth()->user()->isConsultant();
+    $isServiceProvider = auth()->user()->isServiceProvider();
     $vendorApproved = $isVendor && auth()->user()->vendor?->isApproved();
     $consultantApproved = $isConsultant && auth()->user()->consultant?->isApproved();
+    $serviceProviderApproved = $isServiceProvider && auth()->user()->serviceProvider?->isApproved();
     $canAccessOffers = $isAdmin || $isGeneralUser || auth()->user()->canModule('vendors', 'read');
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
     $consultantsMenuActive = request()->routeIs('admin.consultants.*') || request()->routeIs('admin.consultant-services.*');
+    $serviceProvidersMenuActive = request()->routeIs('admin.service_providers.*') || request()->routeIs('admin.service-provider-services.*');
     $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
+    $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -24,6 +28,9 @@
     } elseif ($isConsultant && $consultantApproved) {
         $dashboardUrl = route('consultant.dashboard');
         $dashboardActive = request()->routeIs('consultant.dashboard');
+    } elseif ($isServiceProvider && $serviceProviderApproved) {
+        $dashboardUrl = route('service_provider.dashboard');
+        $dashboardActive = request()->routeIs('service_provider.dashboard');
     } elseif ($isAdmin) {
         $dashboardUrl = route('admin.dashboard');
         $dashboardActive = request()->routeIs('admin.dashboard');
@@ -244,6 +251,38 @@
                     </ul>
                 </details>
             </li>
+
+            <li class="admin-sidebar-group">
+                <details {{ $serviceProvidersMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $serviceProvidersMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                            <span>Service Providers</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('admin.service_providers.*') ? 'active' : '' }}" href="{{ route('admin.service_providers.index') }}">
+                                <i class="fa-solid fa-list"></i>
+                                <span>All Service Providers</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.service-provider-services.*') && ! request()->routeIs('admin.service-provider-services.all.*') ? 'active' : '' }}" href="{{ route('admin.service-provider-services.index') }}">
+                                <i class="fa-solid fa-clipboard-check"></i>
+                                <span>Services Approval</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.service-provider-services.all.*') ? 'active' : '' }}" href="{{ route('admin.service-provider-services.all.index') }}">
+                                <i class="fa-solid fa-rectangle-list"></i>
+                                <span>All Services</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
         @endif
 
          @foreach($emsModules as $slug => $label)
@@ -378,6 +417,57 @@
                         </li>
                         <li>
                             <a class="{{ request()->routeIs('consultant.inquiries.*') ? 'active' : '' }}" href="{{ route('consultant.inquiries.index') }}">
+                                <i class="fa-solid fa-envelope-open-text"></i>
+                                <span>Inquiries</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+
+        @elseif($isServiceProvider && $serviceProviderApproved)
+            <li>
+                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>My Offers</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-ad"></i>
+                    <span>My Ads</span>
+                </a>
+            </li>
+            <li class="admin-sidebar-group">
+                <details {{ $serviceProviderPagesMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $serviceProviderPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                            <span>Service Provider Pages</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('service_provider.public-page.*') ? 'active' : '' }}" href="{{ route('service_provider.public-page.edit') }}">
+                                <i class="fa-solid fa-globe"></i>
+                                <span>Public Page</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('service_provider.branches.*') ? 'active' : '' }}" href="{{ route('service_provider.branches.index') }}">
+                                <i class="fa-solid fa-code-branch"></i>
+                                <span>My Branches</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('service_provider.services.*') ? 'active' : '' }}" href="{{ route('service_provider.services.index') }}">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                                <span>Services</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('service_provider.inquiries.*') ? 'active' : '' }}" href="{{ route('service_provider.inquiries.index') }}">
                                 <i class="fa-solid fa-envelope-open-text"></i>
                                 <span>Inquiries</span>
                             </a>

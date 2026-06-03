@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\ConsultantStatusMail;
+use App\Mail\ServiceProviderStatusMail;
 use App\Mail\OtpMail;
 use App\Mail\VendorStatusMail;
 use App\Models\User;
 use App\Services\VendorRegistrationService;
 use App\Services\ConsultantRegistrationService;
+use App\Services\ServiceProviderRegistrationService;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -47,9 +49,9 @@ class RegisterController extends Controller
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
-            'pan_number' => ['nullable', 'required_if:role,vendor,consultant', 'string', 'max:20'],
-            'has_gst' => ['nullable', 'required_if:role,vendor,consultant', 'in:0,1'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
@@ -59,7 +61,7 @@ class RegisterController extends Controller
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
-            'pan_number.required_if' => 'PAN number is required for vendor and consultant registrations.',
+            'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service provider registrations.',
             'has_gst.required_if' => 'Please select whether you have a GST number.',
             'gst_number.required_if' => 'GST number is required when you select yes for GST.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
@@ -124,6 +126,21 @@ class RegisterController extends Controller
             ]));
         }
 
+
+        $serviceProvider = null;
+        if ($user->isServiceProvider()) {
+            $serviceProvider = ServiceProviderRegistrationService::createProfileForUser($user, $request->only([
+                'whatsapp_number',
+                'address',
+                'city',
+                'pincode',
+                'pan_number',
+                'has_gst',
+                'gst_number',
+                'government_certificate_number',
+            ]));
+        }
+
         if ($user->isGeneralUser()) {
             $otpPayload = $this->sendContactVerificationOtp($user);
             $request->session()->put('contact_verification_user_id', $user->id);
@@ -142,15 +159,18 @@ class RegisterController extends Controller
             return redirect()->route('register.contact.verify.form')->with('status', $message);
         }
 
-        if ($vendor || $consultant) {
+        if ($vendor || $consultant || $serviceProvider) {
             $user->markEmailAsVerified();
 
             if ($vendor) {
                 Mail::to($user->email)->send(VendorStatusMail::forVendor($vendor, 'pending'));
                 $message = 'Thank you for registering. Your vendor profile is under observation. Admin will check and approve it soon.';
-            } else {
+            } elseif ($consultant) {
                 Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($consultant, 'pending'));
                 $message = 'Thank you for registering. Your consultant profile is under observation. Admin will check and approve it soon.';
+            } else {
+                Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($serviceProvider, 'pending'));
+                $message = 'Thank you for registering. Your service provider profile is under observation. Admin will check and approve it soon.';
             }
 
             if ($request->expectsJson()) {

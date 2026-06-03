@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Consultant;
 use App\Models\HomepageSetting;
 use App\Models\Offer;
+use App\Models\ServiceProvider;
 use App\Models\UserAd;
 use App\Models\Vendor;
 use Illuminate\Contracts\View\View;
@@ -94,6 +95,7 @@ class OfferPageController extends Controller
             'belowBuildersAds' => $frontPageAds->where('size_type', 'below_builders_ad')->values(),
             'topVendors' => $this->topVendorsQuery($lat, $lng)->limit(12)->get(),
             'topConsultants' => $this->topConsultantsQuery($lat, $lng)->limit(15)->get(),
+            'topServiceProviders' => $this->topServiceProvidersQuery($lat, $lng)->limit(15)->get(),
             'vendorEnquiryCategories' => Category::query()
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'enquiry')
@@ -103,6 +105,12 @@ class OfferPageController extends Controller
             'consultantEnquiryCategories' => Category::query()
                 ->whereNull('parent_id')
                 ->whereJsonContains('modules', 'consultants')
+                ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'service_providerCategories' => Category::query()
+                ->whereNull('parent_id')
+                ->whereJsonContains('modules', 'service_providers')
                 ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
                 ->orderBy('name')
                 ->get(['id', 'name']),
@@ -133,6 +141,20 @@ class OfferPageController extends Controller
 
         return view('frontend/consultants/index', [
             'consultants' => $consultants,
+            'hasLocation' => is_numeric($lat) && is_numeric($lng),
+        ]);
+    }
+
+
+    public function serviceProviders(Request $request): View
+    {
+        $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
+        $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
+
+        $service_providers = $this->topServiceProvidersQuery($lat, $lng)->paginate(24)->appends($request->query());
+
+        return view('frontend/service_providers/index', [
+            'service_providers' => $service_providers,
             'hasLocation' => is_numeric($lat) && is_numeric($lng),
         ]);
     }
@@ -283,6 +305,34 @@ class OfferPageController extends Controller
                     AND consultant_services.status = ?
                     AND consultant_services.latitude IS NOT NULL
                     AND consultant_services.longitude IS NOT NULL
+                ) as nearest_distance_km', [$lat, $lng, $lat, 'approved'])
+                ->orderByRaw('CASE WHEN nearest_distance_km IS NOT NULL AND is_premium = 1 THEN 0 WHEN nearest_distance_km IS NOT NULL THEN 1 ELSE 2 END')
+                ->orderBy('nearest_distance_km')
+                ->latest('id');
+        } else {
+            $query->orderByDesc('is_premium')->latest('created_at')->latest('id');
+        }
+
+        return $query;
+    }
+
+
+    private function topServiceProvidersQuery(?float $lat, ?float $lng): Builder
+    {
+        $query = ServiceProvider::query()
+            ->where('status', 'approved')
+            ->with(['services:id,service_provider_id,name,image_path,latitude,longitude,status', 'branches:id,service_provider_id,address,city,state,is_primary', 'bannerSlides:id,service_provider_id,image_path,sort_order'])
+            ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')]);
+
+        if (is_numeric($lat) && is_numeric($lng)) {
+            $query->select('service_providers.*')
+                ->selectRaw('(
+                    SELECT MIN(6371 * acos(cos(radians(?)) * cos(radians(service_provider_services.latitude)) * cos(radians(service_provider_services.longitude) - radians(?)) + sin(radians(?)) * sin(radians(service_provider_services.latitude))))
+                    FROM service_provider_services
+                    WHERE service_provider_services.service_provider_id = service_providers.id
+                    AND service_provider_services.status = ?
+                    AND service_provider_services.latitude IS NOT NULL
+                    AND service_provider_services.longitude IS NOT NULL
                 ) as nearest_distance_km', [$lat, $lng, $lat, 'approved'])
                 ->orderByRaw('CASE WHEN nearest_distance_km IS NOT NULL AND is_premium = 1 THEN 0 WHEN nearest_distance_km IS NOT NULL THEN 1 ELSE 2 END')
                 ->orderBy('nearest_distance_km')

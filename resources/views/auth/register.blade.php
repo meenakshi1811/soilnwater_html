@@ -102,6 +102,7 @@
                                 <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
                                 <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
                                 <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
+                                <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service Provider</option>
                             </select>
                             @error('role')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
@@ -225,6 +226,7 @@
                         <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
                         <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
                         <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
+                                <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service Provider</option>
                     </select>
 
                     <div class="d-flex gap-2 mt-4">
