@@ -13,7 +13,7 @@
         <a href="{{ route('consultant.branches.index') }}" class="btn btn-light">Back to list</a>
     </div>
 
-    <form id="consultant-branch-form" method="POST" action="{{ $branch->exists ? route('consultant.branches.update', $branch) : route('consultant.branches.store') }}">
+    <form id="consultant-branch-form" method="POST" action="{{ $branch->exists ? route('consultant.branches.update', $branch) : route('consultant.branches.store') }}" enctype="multipart/form-data">
         @csrf
         @if($branch->exists) @method('PUT') @endif
 
@@ -27,6 +27,16 @@
                 <div class="col-md-6">
                     <label class="form-label">Contact Person</label>
                     <input type="text" name="contact_person" class="form-control" value="{{ old('contact_person', $branch->contact_person) }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Occupation</label>
+                    <input type="text" name="occupation" class="form-control" value="{{ old('occupation', $branch->occupation) }}" placeholder="Enter occupation">
+                    <div class="form-text">Enter the branch occupation manually, such as Legal Advisor or Business Consultant.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Profile Image</label>
+                    <input type="file" name="profile_image" id="profileImageInput" class="form-control" accept="image/*">
+                    <div class="form-text">Upload JPG, PNG, JPEG, or WebP up to 4 MB.</div>
                 </div>
                 <div class="col-md-6 d-flex align-items-end">
                     <div class="form-check">
@@ -103,6 +113,25 @@
             </div>
         </div>
 
+        <div class="consultant-form-card mb-4" id="profileImagePreviewCard">
+            <h5 class="consultant-form-card-title"><span>4</span> Profile Image Preview</h5>
+            <div class="d-flex flex-column align-items-center text-center py-2">
+                <div class="profile-image-preview-shell mb-3">
+                    @if($branch->logo)
+                        <img src="{{ asset($branch->logo) }}" alt="{{ $branch->branch_name }} profile image" id="profileImagePreview" class="profile-image-preview-img">
+                    @else
+                        <img src="" alt="Profile image preview" id="profileImagePreview" class="profile-image-preview-img d-none">
+                        <div class="profile-image-preview-placeholder" id="profileImagePreviewPlaceholder">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                    @endif
+                </div>
+                <p class="small text-secondary mb-0" id="profileImagePreviewHelp">
+                    {{ $branch->logo ? 'Current profile image. Choose a new file above to update the preview.' : 'Selected profile image will appear here at the bottom before saving.' }}
+                </p>
+            </div>
+        </div>
+
         <button type="submit" class="btn btn-dark w-100 py-3">{{ $branch->exists ? 'Update Branch Details' : 'Create Branch' }}</button>
     </form>
 </div>
@@ -111,6 +140,33 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/vendor-portal.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<style>
+.profile-image-preview-shell {
+    align-items: center;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 999px;
+    display: flex;
+    height: 132px;
+    justify-content: center;
+    overflow: hidden;
+    width: 132px;
+}
+.profile-image-preview-img {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+}
+.profile-image-preview-placeholder {
+    align-items: center;
+    color: #94a3b8;
+    display: flex;
+    font-size: 3rem;
+    height: 100%;
+    justify-content: center;
+    width: 100%;
+}
+</style>
 @endpush
 
 @push('scripts')
@@ -144,6 +200,10 @@ $(function () {
     const $form = $('#consultant-branch-form');
     const $gstField = $('#gstNumberField');
     const $gstInput = $('#gstNumber');
+    const $profileImageInput = $('#profileImageInput');
+    const $profileImagePreview = $('#profileImagePreview');
+    const $profileImagePreviewPlaceholder = $('#profileImagePreviewPlaceholder');
+    const $profileImagePreviewHelp = $('#profileImagePreviewHelp');
 
     function toggleGstField() {
         const hasGst = $('input[name="has_gst"]:checked').val() === '1';
@@ -156,16 +216,33 @@ $(function () {
 
     $('input[name="has_gst"]').on('change', toggleGstField);
     toggleGstField();
+
+    $profileImageInput.on('change', function () {
+        const file = this.files && this.files[0] ? this.files[0] : null;
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            $profileImagePreview.attr('src', event.target.result).removeClass('d-none');
+            $profileImagePreviewPlaceholder.addClass('d-none');
+            $profileImagePreviewHelp.text('New profile image preview. Save the branch to keep this image.');
+        };
+        reader.readAsDataURL(file);
+    });
     $form.on('submit', function (e) {
         e.preventDefault();
         const $btn = $form.find('button[type="submit"]');
         const original = $btn.text();
         $btn.prop('disabled', true).text('Saving...');
 
+        const formData = new FormData($form[0]);
+
         $.ajax({
             url: $form.attr('action'),
-            method: '{{ $branch->exists ? 'PUT' : 'POST' }}',
-            data: $form.serialize(),
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             success: function (resp) {
                 toastr.success(resp.message || 'Saved successfully.');
