@@ -1333,53 +1333,47 @@
     @endif
 
     <!-- Consultants & Enquiry -->
-    @if(!empty($sectionToggles['consultants_enquiry']) && $sectionToggles['consultants_enquiry'])
-
+    <?php
+      $showConsultantsSection = ! empty($sectionToggles['consultants_enquiry']) && $sectionToggles['consultants_enquiry'];
+      $homepageConsultants = $topConsultants ?? collect();
+      $homepageConsultantSlides = $homepageConsultants->chunk(5);
+    ?>
+    <?php if ($showConsultantsSection): ?>
       <div class="sec">
         <div class="sec-head">
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Consultants &amp; Enquiry</div>
-          <a class="view-all" href="{{ route('frontend.consultants.index') }}">VIEW ALL ▶</a>
+          <a class="view-all" href="<?= e(route('frontend.consultants.index')) ?>">VIEW ALL ▶</a>
         </div>
         <div class="ad-slider auto-ad-slider consultants-home-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured consultants slider">
-          @php
-            $homepageConsultants = $topConsultants ?? collect();
-            $homepageConsultantSlides = $homepageConsultants->chunk(5);
-          @endphp
-          @if($homepageConsultantSlides->isNotEmpty())
-            @foreach($homepageConsultantSlides as $consultantChunk)
+          <?php if ($homepageConsultantSlides->isNotEmpty()): ?>
+            <?php foreach ($homepageConsultantSlides as $consultantChunk): ?>
               <div class="ad-slide">
                 <div class="consult-grid consult-grid-professional">
-                  @foreach($consultantChunk as $consultant)
-                    @php
+                  <?php foreach ($consultantChunk as $consultant): ?>
+                    <?php
                       $primaryBranch = $consultant->branches->first();
                       $firstService = $consultant->services->firstWhere('status', 'approved') ?: $consultant->services->first();
                       $serviceImage = $firstService?->image_path ? asset($firstService->image_path) : null;
                       $bannerImage = $consultant->bannerSlides->first()?->image_path ? asset($consultant->bannerSlides->first()->image_path) : null;
                       $logoImage = $consultant->logo ? asset($consultant->logo) : null;
                       $consultantCardImage = $serviceImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=480&q=75';
-                    @endphp
-                    <a class="con-card text-decoration-none" href="{{ route('consultant.show', $consultant->slug) }}" aria-label="View {{ $consultant->publicDisplayName() }} consultant page">
-                      <img src="{{ $consultantCardImage }}" alt="{{ $consultant->publicDisplayName() }}">
+                      $consultantCity = $primaryBranch?->city ?: ($consultant->city ?: 'Local Area');
+                      $consultantDistance = $hasLocation && $consultant->nearest_distance_km !== null
+                        ? ' • '.number_format($consultant->nearest_distance_km, 1).' km'
+                        : '';
+                    ?>
+                    <a class="con-card text-decoration-none" href="<?= e(route('consultant.show', $consultant->slug)) ?>" aria-label="View <?= e($consultant->publicDisplayName()) ?> consultant page">
+                      <img src="<?= e($consultantCardImage) ?>" alt="<?= e($consultant->publicDisplayName()) ?>">
                       <div class="con-card-body">
-                        <p class="con-name">
-                          {{ $consultant->publicDisplayName() }}
-                          @if($consultant->is_premium)
-                            ⭐
-                          @endif
-                        </p>
-                        <span class="con-role">
-                          {{ $primaryBranch?->city ?: ($consultant->city ?: 'Local Area') }} • {{ $consultant->services_count }} Services
-                          @if($hasLocation && $consultant->nearest_distance_km !== null)
-                            • {{ number_format($consultant->nearest_distance_km, 1) }} km
-                          @endif
-                        </span>
+                        <p class="con-name"><?= e($consultant->publicDisplayName()) ?><?php if ($consultant->is_premium): ?> ⭐<?php endif; ?></p>
+                        <span class="con-role"><?= e($consultantCity) ?> • <?= e($consultant->services_count) ?> Services<?= e($consultantDistance) ?></span>
                       </div>
                     </a>
-                  @endforeach
+                  <?php endforeach; ?>
                 </div>
               </div>
-            @endforeach
-          @else
+            <?php endforeach; ?>
+          <?php else: ?>
             <div class="ad-slide">
               <div class="consult-grid consult-grid-professional">
                 <div class="con-card consultant-empty-card">
@@ -1390,10 +1384,10 @@
                 </div>
               </div>
             </div>
-          @endif
+          <?php endif; ?>
         </div>
       </div>
-    @endif
+    <?php endif; ?>
 
     @if(data_get($sectionToggles, 'vendor_enquiry', true))
       <div class="sec vendor-enquiry-section">
