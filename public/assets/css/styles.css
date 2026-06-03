@@ -769,6 +769,10 @@
     background: var(--white);
   }
   .con-card:hover { box-shadow: 0 6px 18px rgba(15,47,82,.16); transform: translateY(-2px); }
+  a.con-card { color: inherit; display: block; text-decoration: none; }
+  .consultants-home-slider { border-radius: 12px; }
+  .consultants-home-slider > .ad-slide.is-active { display: block !important; }
+  .consultant-empty-card { min-height: 120px; display: flex; align-items: center; justify-content: center; }
   .con-card img {
     width: 100%;
     aspect-ratio: 4 / 3;
