@@ -23,6 +23,7 @@
           <li><a href="{{ route('frontend.offers.index') }}"><i class="fa-solid fa-chevron-right"></i> Offers</a></li>
           <li><a href="{{ route('frontend.vendors.index') }}"><i class="fa-solid fa-chevron-right"></i> Vendors</a></li>
           <li><a href="{{ route('frontend.consultants.index') }}"><i class="fa-solid fa-chevron-right"></i> Consultants</a></li>
+          <li><a href="{{ route('frontend.service_providers.index') }}"><i class="fa-solid fa-chevron-right"></i> Service Providers</a></li>
           {{--
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> E-Commerce</a></li>
           <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Properties</a></li>

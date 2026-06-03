@@ -59,6 +59,14 @@ class HomeController extends Controller
             return redirect()->route('consultant.pending');
         }
 
+        if ($user?->isServiceProvider()) {
+            if ($user->serviceProvider?->isApproved()) {
+                return redirect()->route('service_provider.dashboard');
+            }
+
+            return redirect()->route('service_provider.pending');
+        }
+
         return view('home');
     }
 }

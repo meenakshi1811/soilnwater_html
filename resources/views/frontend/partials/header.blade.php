@@ -77,6 +77,8 @@
           $dashboardUrl = route('vendor.dashboard');
         } elseif ($user->isConsultant()) {
           $dashboardUrl = route('consultant.dashboard');
+        } elseif ($user->isServiceProvider()) {
+          $dashboardUrl = route('service_provider.dashboard');
         } elseif ($user->isStaff()) {
           $dashboardUrl = route('admin.dashboard');
         } else {

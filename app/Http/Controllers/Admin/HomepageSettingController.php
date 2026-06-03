@@ -40,6 +40,7 @@ class HomepageSettingController extends Controller
                 'sections' => 'nullable|array',
                 'vendor_enquiry_send_to' => 'required|in:all,non_premium,premium',
                 'consultant_enquiry_send_to' => 'required|in:all,non_premium,premium',
+                'service_provider_enquiry_send_to' => 'required|in:all,non_premium,premium',
             ]),
         };
 
