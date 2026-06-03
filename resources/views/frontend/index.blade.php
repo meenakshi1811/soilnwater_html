@@ -1338,44 +1338,56 @@
       <div class="sec">
         <div class="sec-head">
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Consultants &amp; Enquiry</div>
-          <a class="view-all" href="#">POST YOUR QUERY ▶</a>
+          <a class="view-all" href="{{ route('frontend.consultants.index') }}">VIEW ALL ▶</a>
         </div>
-        <div class="consult-grid consult-grid-professional">
-          <div class="con-card">
-            <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=480&q=75" alt="Dr. Anil Sharma portrait">
-            <div class="con-card-body">
-              <p class="con-name">Dr. Anil Sharma</p>
-              <span class="con-role">Medical Consultant</span>
+        <div class="ad-slider auto-ad-slider consultants-home-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured consultants slider">
+          @php($homepageConsultants = $topConsultants ?? collect())
+          @if($homepageConsultants->isNotEmpty())
+            @foreach($homepageConsultants->chunk(5) as $consultantChunk)
+              <div class="ad-slide">
+                <div class="consult-grid consult-grid-professional">
+                  @foreach($consultantChunk as $consultant)
+                    @php
+                      $primaryBranch = $consultant->branches->first();
+                      $firstService = $consultant->services->firstWhere('status', 'approved') ?: $consultant->services->first();
+                      $serviceImage = $firstService?->image_path ? asset($firstService->image_path) : null;
+                      $bannerImage = $consultant->bannerSlides->first()?->image_path ? asset($consultant->bannerSlides->first()->image_path) : null;
+                      $logoImage = $consultant->logo ? asset($consultant->logo) : null;
+                      $consultantCardImage = $serviceImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=480&q=75';
+                    @endphp
+                    <a class="con-card text-decoration-none" href="{{ route('consultant.show', $consultant->slug) }}" aria-label="View {{ $consultant->publicDisplayName() }} consultant page">
+                      <img src="{{ $consultantCardImage }}" alt="{{ $consultant->publicDisplayName() }}">
+                      <div class="con-card-body">
+                        <p class="con-name">
+                          {{ $consultant->publicDisplayName() }}
+                          @if($consultant->is_premium)
+                            ⭐
+                          @endif
+                        </p>
+                        <span class="con-role">
+                          {{ $primaryBranch?->city ?: ($consultant->city ?: 'Local Area') }} • {{ $consultant->services_count }} Services
+                          @if($hasLocation && $consultant->nearest_distance_km !== null)
+                            • {{ number_format($consultant->nearest_distance_km, 1) }} km
+                          @endif
+                        </span>
+                      </div>
+                    </a>
+                  @endforeach
+                </div>
+              </div>
+            @endforeach
+          @else
+            <div class="ad-slide">
+              <div class="consult-grid consult-grid-professional">
+                <div class="con-card consultant-empty-card">
+                  <div class="con-card-body">
+                    <p class="con-name">No consultants available</p>
+                    <span class="con-role">Please check back later.</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="con-card">
-            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=480&q=75" alt="Legal advisor portrait">
-            <div class="con-card-body">
-              <p class="con-name">Neha Verma</p>
-              <span class="con-role">Legal Advisor</span>
-            </div>
-          </div>
-          <div class="con-card">
-            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=480&q=75" alt="Career consultant portrait">
-            <div class="con-card-body">
-              <p class="con-name">Riya Malhotra</p>
-              <span class="con-role">Career Consultant</span>
-            </div>
-          </div>
-          <div class="con-card">
-            <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=480&q=75" alt="Business consultant portrait">
-            <div class="con-card-body">
-              <p class="con-name">Arjun Mehta</p>
-              <span class="con-role">Business Consultant</span>
-            </div>
-          </div>
-          <div class="con-card">
-            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=480&q=75" alt="Financial consultant portrait">
-            <div class="con-card-body">
-              <p class="con-name">Sana Iqbal</p>
-              <span class="con-role">Financial Consultant</span>
-            </div>
-          </div>
+          @endif
         </div>
       </div>
     @endif
