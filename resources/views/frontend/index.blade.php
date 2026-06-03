@@ -1341,9 +1341,12 @@
           <a class="view-all" href="{{ route('frontend.consultants.index') }}">VIEW ALL ▶</a>
         </div>
         <div class="ad-slider auto-ad-slider consultants-home-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured consultants slider">
-          @php($homepageConsultants = $topConsultants ?? collect())
-          @if($homepageConsultants->isNotEmpty())
-            @foreach($homepageConsultants->chunk(5) as $consultantChunk)
+          @php
+            $homepageConsultants = $topConsultants ?? collect();
+            $homepageConsultantSlides = $homepageConsultants->chunk(5);
+          @endphp
+          @if($homepageConsultantSlides->isNotEmpty())
+            @foreach($homepageConsultantSlides as $consultantChunk)
               <div class="ad-slide">
                 <div class="consult-grid consult-grid-professional">
                   @foreach($consultantChunk as $consultant)
