@@ -11,6 +11,8 @@ class ConsultantBranch extends Model
         'consultant_id',
         'branch_name',
         'contact_person',
+        'occupation',
+        'logo',
         'phone',
         'alt_mobile_number',
         'whatsapp',

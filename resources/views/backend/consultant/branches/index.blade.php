@@ -28,6 +28,9 @@
                     <h5>{{ $branch->branch_name }}
                         @if($branch->is_primary)<span class="badge text-bg-primary">Primary</span>@endif
                     </h5>
+                    @if($branch->occupation)
+                        <p class="small fw-semibold text-primary mb-1">{{ $branch->occupation }}</p>
+                    @endif
                     <p class="small text-secondary mb-2">{{ $branch->city }}, {{ $branch->state }}</p>
                     <p class="small mb-3">{{ $branch->phone }}</p>
                     <div class="d-flex gap-2">
