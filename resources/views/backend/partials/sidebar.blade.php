@@ -336,6 +336,18 @@
             </li>
 
         @elseif($isConsultant && $consultantApproved)
+            <li>
+                <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>My Offers</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
+                    <i class="fa-solid fa-rectangle-ad"></i>
+                    <span>My Ads</span>
+                </a>
+            </li>
             <li class="admin-sidebar-group">
                 <details {{ $consultantPagesMenuActive ? 'open' : '' }}>
                     <summary class="{{ $consultantPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
