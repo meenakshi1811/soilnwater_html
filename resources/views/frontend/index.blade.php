@@ -1480,6 +1480,22 @@
       </div>
     <?php endif; ?>
 
+    @if($showConsultantsSection)
+
+      <div class="sec vendor-enquiry-section">
+        <div class="vendor-enquiry-card consultant-enquiry-card">
+          <div class="vendor-enquiry-copy">
+            <span class="vendor-enquiry-pill"><i class="fa-solid fa-briefcase"></i> Consultant Enquiry</span>
+            <h3>Need help from a consultant?</h3>
+            <p>Share your question and we will notify matching verified consultants by category and subcategory.</p>
+          </div>
+          <button type="button" class="btn-yellow vendor-enquiry-btn" data-bs-toggle="modal" data-bs-target="#consultantEnquiryModal">
+            Submit Enquiry
+          </button>
+        </div>
+      </div>
+    @endif
+
     @if(data_get($sectionToggles, 'vendor_enquiry', true))
       <div class="sec vendor-enquiry-section">
         <div class="vendor-enquiry-card">
