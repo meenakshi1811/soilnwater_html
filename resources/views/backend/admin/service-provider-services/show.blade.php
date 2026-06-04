@@ -57,8 +57,21 @@
         </div>
       </dd>
 
-      <dt class="col-sm-3">Service Provider Location</dt>
+      <dt class="col-sm-3">Address</dt>
       <dd class="col-sm-9">{{ $service->location ?: '-' }}</dd>
+
+
+      <dt class="col-sm-3">Postal Code</dt>
+      <dd class="col-sm-9">{{ $service->postal_code ?: '-' }}</dd>
+
+      <dt class="col-sm-3">City</dt>
+      <dd class="col-sm-9">{{ $service->city ?: '-' }}</dd>
+
+      <dt class="col-sm-3">Service Radius</dt>
+      <dd class="col-sm-9">{{ filled($service->service_radius) ? $service->service_radius.' km' : '-' }}</dd>
+
+      <dt class="col-sm-3">Working Hours</dt>
+      <dd class="col-sm-9" style="white-space:pre-line;">{{ $service->working_hours ?: '-' }}</dd>
 
       <dt class="col-sm-3">Geographical Service Area</dt>
       <dd class="col-sm-9" style="white-space:pre-line;">{{ $service->service_area ?: '-' }}</dd>
@@ -66,7 +79,7 @@
       <dt class="col-sm-3">Short Description</dt>
       <dd class="col-sm-9">{{ $service->short_description ?: '-' }}</dd>
 
-      <dt class="col-sm-3">Detailed Description</dt>
+      <dt class="col-sm-3">Description</dt>
       <dd class="col-sm-9" style="white-space:pre-line;">{{ $service->description ?: '-' }}</dd>
     </dl>
   </div>
