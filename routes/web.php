@@ -98,6 +98,8 @@ Route::post('/vendor-enquiry', [UserAdController::class, 'vendorEnquiry'])->name
 Route::post('/consultant-enquiry', [UserAdController::class, 'consultantEnquiry'])->name('frontend.consultant-enquiry');
 Route::post('/consultant/{slug}/services/{service}/enquiry', [ConsultantStoreController::class, 'sendServiceInquiry'])->name('consultant.services.enquiry');
 Route::post('/consultant/{slug}/enquiry', [ConsultantStoreController::class, 'sendGeneralInquiry'])->name('consultant.enquiry');
+Route::post('/service-provider/{slug}/services/{service}/enquiry', [ServiceProviderStoreController::class, 'sendServiceInquiry'])->name('service_provider.services.enquiry');
+Route::post('/service-provider/{slug}/enquiry', [ServiceProviderStoreController::class, 'sendGeneralInquiry'])->name('service_provider.enquiry');
 
 Auth::routes(['verify' => true]);
 
