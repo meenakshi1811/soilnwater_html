@@ -1,5 +1,5 @@
 @extends('backend.layouts.app')
-@section('title','Consultation Inquiries')
+@section('title','Service Inquiries')
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 @endpush
@@ -7,7 +7,7 @@
 @section('content')
 <div class="container-fluid">
     <div class="card"><div class="card-body">
-        <h4 class="mb-3">Consultation Inquiries</h4>
+        <h4 class="mb-3">Service Inquiries</h4>
         <div class="table-responsive"><table id="service_providerInquiriesTable" class="table table-striped align-middle"><thead><tr><th>Date</th><th>Service</th><th>Category</th><th>Client</th><th>Phone</th><th>Email</th><th>Occupation</th><th>DOB</th><th>Question</th><th>Image</th></tr></thead><tbody>
             @forelse($inquiries as $inquiry)
                 <tr>
@@ -23,7 +23,7 @@
                     <td>@if($inquiry->image_path)<a href="{{ asset($inquiry->image_path) }}" target="_blank" rel="noopener">View</a>@else — @endif</td>
                 </tr>
             @empty
-                <tr><td colspan="10" class="text-center text-muted">No consultation inquiries yet.</td></tr>
+                <tr><td colspan="10" class="text-center text-muted">No service inquiries yet.</td></tr>
             @endforelse
         </tbody></table></div>
     </div></div>

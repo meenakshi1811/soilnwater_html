@@ -32,7 +32,7 @@
 
             @if($approvedServices->count() === 0)
                 <div class="vendor-store-empty-products">
-                    <p class="mb-0">No consultation services found in this category yet.</p>
+                    <p class="mb-0">No services found in this category yet.</p>
                 </div>
             @endif
 

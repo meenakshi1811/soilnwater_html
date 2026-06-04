@@ -14,7 +14,7 @@
             <div class="contact-hero__content p-4 p-lg-5">
                 <p class="text-uppercase fw-semibold mb-2 contact-eyebrow">Let’s Connect</p>
                 <h1 class="display-5 fw-bold mb-3 text-white">{{ $service_provider->publicDisplayName() }}</h1>
-                <p class="mb-0 contact-subtitle">Reach out for consultation details, availability, pricing, and support.</p>
+                <p class="mb-0 contact-subtitle">Reach out for service details, availability, pricing, and support.</p>
             </div>
         </div>
 

@@ -63,21 +63,21 @@ class ServiceProviderServiceApprovalController extends Controller
     {
         $service->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => $request->user()->id]);
 
-        return response()->json(['message' => 'Consultation service approved.']);
+        return response()->json(['message' => 'Service approved.']);
     }
 
     public function reject(ServiceProviderService $service): JsonResponse
     {
         $service->update(['status' => 'rejected', 'approved_at' => null, 'approved_by' => null]);
 
-        return response()->json(['message' => 'Consultation service rejected.']);
+        return response()->json(['message' => 'Service rejected.']);
     }
 
     public function destroy(ServiceProviderService $service): JsonResponse
     {
         $service->delete();
 
-        return response()->json(['message' => 'Consultation service deleted successfully.']);
+        return response()->json(['message' => 'Service deleted successfully.']);
     }
 
     private function datatable($query, bool $withApprovalActions): JsonResponse

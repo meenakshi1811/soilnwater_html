@@ -1,5 +1,5 @@
 @extends('backend.layouts.app')
-@section('title','Manage Consultation Services')
+@section('title','Manage Services')
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 <style>
@@ -28,12 +28,12 @@
 @endpush
 @section('content')
 <div class="admin-panel ems-page">
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><div><p class="ems-kicker mb-1">Service Provider Portal</p><h2 class="admin-title mb-0">Manage Consultation Services</h2></div><a href="{{ route('service_provider.services.create') }}" class="btn btn-primary ems-btn-primary"><i class="fa-solid fa-plus me-1"></i>Create Service</a></div>
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><div><p class="ems-kicker mb-1">Service Provider Portal</p><h2 class="admin-title mb-0">Manage Services</h2></div><a href="{{ route('service_provider.services.create') }}" class="btn btn-primary ems-btn-primary"><i class="fa-solid fa-plus me-1"></i>Create Service</a></div>
   @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
   <div class="chart-card p-3 p-lg-4">
     <div class="table-responsive">
       <table id="service_providerServicesTable" class="table table-hover align-middle">
-        <thead><tr><th>Service</th><th>Category</th><th>Charges</th><th>Consultation Type</th><th>Business Type</th><th>Status</th><th class="text-end service-provider-services-actions">Actions</th></tr></thead>
+        <thead><tr><th>Service</th><th>Category</th><th>Charges</th><th>Service Type</th><th>Business Type</th><th>Status</th><th class="text-end service-provider-services-actions">Actions</th></tr></thead>
         <tbody>
           @foreach($services as $service)
             <tr>
@@ -69,7 +69,7 @@ if (window.jQuery && document.getElementById('service_providerServicesTable')) {
     order: [],
     scrollX: true,
     autoWidth: false,
-    language: { emptyTable: 'No consultation services found.' }
+    language: { emptyTable: 'No services found.' }
   });
 }
 document.querySelectorAll('.js-delete').forEach(function (button) {
@@ -77,11 +77,11 @@ document.querySelectorAll('.js-delete').forEach(function (button) {
     var row = button.closest('tr');
     var onConfirmDelete = function () {
       fetch('/service-provider/services/' + button.dataset.id, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content, 'Accept': 'application/json' } })
-        .then(function (response) { if (!response.ok) throw new Error(); if (service_providerServicesDataTable && row) service_providerServicesDataTable.row(row).remove().draw(false); else row?.remove(); window.toastr?.success?.('Consultation service deleted successfully.'); })
-        .catch(function () { window.toastr?.error?.('Unable to delete consultation service.'); });
+        .then(function (response) { if (!response.ok) throw new Error(); if (service_providerServicesDataTable && row) service_providerServicesDataTable.row(row).remove().draw(false); else row?.remove(); window.toastr?.success?.('Service deleted successfully.'); })
+        .catch(function () { window.toastr?.error?.('Unable to delete service.'); });
     };
     if (window.Swal?.fire) { window.Swal.fire({ title: 'Delete service?', text: 'This action cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes', cancelButtonText: 'No' }).then(function (result) { if (result.isConfirmed) onConfirmDelete(); }); return; }
-    if (confirm('Delete this consultation service permanently?')) onConfirmDelete();
+    if (confirm('Delete this service permanently?')) onConfirmDelete();
   });
 });
 </script>

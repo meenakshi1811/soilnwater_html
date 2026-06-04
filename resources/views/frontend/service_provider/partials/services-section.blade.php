@@ -16,8 +16,8 @@
         @if($showServicesHeading)
         <div class="service-provider-services-heading mb-4">
             <div>
-                <p class="service-provider-services-heading__eyebrow mb-1">Consultation Services</p>
-                <h2 class="vendor-section-title-display mb-0">Available consultations</h2>
+                <p class="service-provider-services-heading__eyebrow mb-1">Services</p>
+                <h2 class="vendor-section-title-display mb-0">Available services</h2>
             </div>
             @if($showViewAllServicesButton ?? true)
                 <a href="{{ route('service_provider.public-services.index', $service_provider->slug) }}" class="service-provider-services-heading__btn">View all services</a>
@@ -35,7 +35,7 @@
                     $serviceInfoRows = collect([
                         ['Category', $service->categoryModel?->name ?? $service->category],
                         ['Subcategory', $service->subcategoryModel?->name],
-                        ['Consultation type', $serviceType],
+                        ['Service type', $serviceType],
                         ['Business type', $service->business_type],
                         ['Geographical area', $service->service_area],
                         ['Location', $service->location],
@@ -52,7 +52,7 @@
                             <span class="service_provider-service-card__type-badge">{{ $serviceType }}</span>
                         </div>
                         <div class="service_provider-service-card__body">
-                            <p class="service_provider-service-card__category">{{ $service->categoryModel?->name ?? $service->category ?? 'Consultation' }}</p>
+                            <p class="service_provider-service-card__category">{{ $service->categoryModel?->name ?? $service->category ?? 'Service' }}</p>
                             <h3>{{ $service->name }}</h3>
                             @if($service->service_area)
                                 <p class="service_provider-service-card__area mb-0"><i class="fa-solid fa-location-dot"></i> {{ \Illuminate\Support\Str::limit($service->service_area, 34) }}</p>
@@ -72,7 +72,7 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <div>
-                                        <p class="service_provider-service-detail-modal__eyebrow mb-1">{{ $service->categoryModel?->name ?? $service->category ?? 'Consultation' }}</p>
+                                        <p class="service_provider-service-detail-modal__eyebrow mb-1">{{ $service->categoryModel?->name ?? $service->category ?? 'Service' }}</p>
                                         <h3 class="modal-title" id="{{ $modalId }}Label">{{ $service->name }}</h3>
                                     </div>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -223,7 +223,7 @@
                     <div class="service_provider-login-required-card__icon"><i class="fa-solid fa-lock"></i></div>
                     <div>
                         <h4>You are not logged in</h4>
-                        <p>Please log in to view this consultation details and share options.</p>
+                        <p>Please log in to view these service details and share options.</p>
                         <a href="{{ route('login') }}" class="service_provider-login-required-card__btn">Login to continue</a>
                     </div>
                 </div>
