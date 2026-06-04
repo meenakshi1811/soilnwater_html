@@ -40,6 +40,20 @@ class EnsureMarketplacePostingAccountApproved
             return redirect()->route('consultant.pending')->with('status', $message);
         }
 
+        if ($user?->isServiceProvider()) {
+            if ($user->serviceProvider?->isApproved()) {
+                return $next($request);
+            }
+
+            $message = 'Your service provider account must be approved by admin before you can post ads or offers.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => $message], 403);
+            }
+
+            return redirect()->route('service_provider.pending')->with('status', $message);
+        }
+
         return $next($request);
     }
 }
