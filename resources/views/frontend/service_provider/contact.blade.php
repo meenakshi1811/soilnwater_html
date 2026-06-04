@@ -83,12 +83,12 @@
 </section>
 
 @auth
-    <div class="modal fade service_provider-service-enquiry-modal" id="{{ $contactEnquiryModalId }}" tabindex="-1" aria-labelledby="{{ $contactEnquiryModalId }}Label" aria-hidden="true">
+    <div class="modal fade consultant-service-enquiry-modal" id="{{ $contactEnquiryModalId }}" tabindex="-1" aria-labelledby="{{ $contactEnquiryModalId }}Label" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
-                        <p class="service_provider-service-detail-modal__eyebrow mb-1">Service Provider enquiry</p>
+                        <p class="consultant-service-detail-modal__eyebrow mb-1">Service Provider enquiry</p>
                         <h3 class="modal-title" id="{{ $contactEnquiryModalId }}Label">Share your requirement</h3>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -138,7 +138,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn service_provider-service-detail-modal__contact-btn">Submit enquiry</button>
+                        <button type="submit" class="btn consultant-service-detail-modal__contact-btn">Submit enquiry</button>
                     </div>
                 </form>
             </div>
@@ -146,7 +146,7 @@
     </div>
 @endauth
 
-<div class="modal fade service_provider-login-required-modal" id="service_providerLoginRequiredModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade consultant-login-required-modal" id="service_providerLoginRequiredModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -154,12 +154,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="service_provider-login-required-card">
-                    <div class="service_provider-login-required-card__icon"><i class="fa-solid fa-lock"></i></div>
+                <div class="consultant-login-required-card">
+                    <div class="consultant-login-required-card__icon"><i class="fa-solid fa-lock"></i></div>
                     <div>
                         <h4>You are not logged in</h4>
                         <p>Please log in to submit an enquiry for this service_provider.</p>
-                        <a href="{{ route('login') }}" class="service_provider-login-required-card__btn">Login to continue</a>
+                        <a href="{{ route('login') }}" class="consultant-login-required-card__btn">Login to continue</a>
                     </div>
                 </div>
             </div>
