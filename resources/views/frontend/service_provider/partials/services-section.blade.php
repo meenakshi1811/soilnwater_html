@@ -37,8 +37,12 @@
                         ['Subcategory', $service->subcategoryModel?->name],
                         ['Service type', $serviceType],
                         ['Business type', $service->business_type],
-                        ['Geographical area', $service->service_area],
-                        ['Location', $service->location],
+                        ['Service area', $service->service_area],
+                        ['Address', $service->location],
+                        ['Postal code', $service->postal_code],
+                        ['City', $service->city],
+                        ['Service radius', filled($service->service_radius) ? $service->service_radius.' km' : null],
+                        ['Working hours', $service->working_hours],
                     ])->filter(fn ($row) => filled($row[1]))->values();
                 @endphp
                 <div class="{{ $serviceColumnClass }}">
