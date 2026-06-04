@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('pincode', 10)->nullable();
             $table->string('pan_number', 20)->nullable();
             $table->string('gst_number', 20)->nullable();
+            $table->string('government_certificate_number', 100)->nullable();
             $table->longText('description')->nullable();
             $table->json('gallery')->nullable();
             $table->text('hero_main_heading')->nullable();
