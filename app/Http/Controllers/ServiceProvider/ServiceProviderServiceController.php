@@ -45,13 +45,13 @@ class ServiceProviderServiceController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'ok' => true,
-                'message' => 'Consultation service submitted successfully and sent for admin approval.',
+                'message' => 'Service submitted successfully and sent for admin approval.',
                 'redirect' => route('service_provider.services.index'),
             ]);
         }
 
         return redirect()->route('service_provider.services.index')
-            ->with('success', 'Consultation service submitted successfully and sent for admin approval.');
+            ->with('success', 'Service submitted successfully and sent for admin approval.');
     }
 
     public function show(ServiceProviderService $service): View
@@ -80,7 +80,7 @@ class ServiceProviderServiceController extends Controller
 
         $service->update($data);
 
-        return redirect()->route('service_provider.services.index')->with('success', 'Consultation service updated successfully.');
+        return redirect()->route('service_provider.services.index')->with('success', 'Service updated successfully.');
     }
 
     public function destroy(ServiceProviderService $service): JsonResponse
@@ -138,7 +138,7 @@ class ServiceProviderServiceController extends Controller
 
         if ($chargeRows->contains(fn (array $row): bool => ($row['duration'] === '' && $row['price'] !== null && $row['price'] !== '') || ($row['duration'] !== '' && ($row['price'] === null || $row['price'] === '')))) {
             throw ValidationException::withMessages([
-                'charge_duration.0' => 'Each consultation charge row must include both duration and price.',
+                'charge_duration.0' => 'Each charge row must include both duration and price.',
             ]);
         }
 
@@ -156,7 +156,7 @@ class ServiceProviderServiceController extends Controller
 
         if (empty($validated['consultation_charges'])) {
             throw ValidationException::withMessages([
-                'charge_duration.0' => 'Please add at least one consultation duration and price.',
+                'charge_duration.0' => 'Please add at least one service duration and price.',
             ]);
         }
 

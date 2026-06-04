@@ -78,7 +78,7 @@
                     <div class="service_provider-login-required-card__icon"><i class="fa-solid fa-lock"></i></div>
                     <div>
                         <h4>You are not logged in</h4>
-                        <p>Please log in to view this consultation details and share options.</p>
+                        <p>Please log in to view these service details and share options.</p>
                         <a href="{{ route('login') }}" class="service_provider-login-required-card__btn">Login to continue</a>
                     </div>
                 </div>

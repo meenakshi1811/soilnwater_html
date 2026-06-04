@@ -1,8 +1,8 @@
 @extends('backend.layouts.app')
-@section('title', $service->exists ? 'Edit Consultation Service' : 'Create Consultation Service')
+@section('title', $service->exists ? 'Edit Service' : 'Create Service')
 @section('content')
 <div class="admin-panel ems-page">
-  <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">Service Provider Portal</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Consultation Service' : 'Add Consultation Service' }}</h2></div><a href="{{ route('service_provider.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
+  <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">Service Provider Portal</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Service' : 'Add Service' }}</h2></div><a href="{{ route('service_provider.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
   @php
     $visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten();
     $chargeDurationLabels = ['minute' => 'Minutes', 'hour' => 'Hours', 'day' => 'Days', 'month' => 'Months', 'contractual' => 'Contractual'];
@@ -17,12 +17,12 @@
   @if ($visibleErrors->isNotEmpty())<div class="alert alert-danger"><ul class="mb-0">@foreach ($visibleErrors as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
   <form id="service_provider-service-form" data-ajax-create="{{ $service->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $service->exists ? route('service_provider.services.update', $service) : route('service_provider.services.store') }}" class="row g-3">@csrf @if($service->exists) @method('PUT') @endif
     <div class="col-lg-8"><div class="chart-card p-4"><h5 class="mb-3">Service Information</h5><div class="row g-3">
-      <div class="col-12"><label class="form-label">Consultation Service Name *</label><input class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $service->name) }}" required>@error('name')<div id="name-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
+      <div class="col-12"><label class="form-label">Service Name *</label><input class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $service->name) }}" required>@error('name')<div id="name-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">Category *</label><select id="category_id" class="form-select @error('category_id') is-invalid @enderror" name="category_id" required><option value="">Select category</option>@foreach($categories as $cat)<option value="{{ $cat->id }}" @selected(old('category_id', $service->category_id)==$cat->id)>{{ $cat->name }}</option>@endforeach</select>@error('category_id')<div id="category_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">Subcategory</label><select id="subcategory_id" class="form-select @error('subcategory_id') is-invalid @enderror" name="subcategory_id" data-current="{{ old('subcategory_id', $service->subcategory_id) }}"><option value="">Select subcategory</option></select>@error('subcategory_id')<div id="subcategory_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
-      <div class="col-md-6"><label class="form-label">Consultation Type *</label><select class="form-select @error('consultation_type') is-invalid @enderror" name="consultation_type" required><option value="">Select type</option><option value="online" @selected($consultationType === 'online')>Online</option><option value="offline" @selected($consultationType === 'offline')>Offline</option><option value="both" @selected($consultationType === 'both')>Both</option></select>@error('consultation_type')<div id="consultation_type-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
+      <div class="col-md-6"><label class="form-label">Service Type *</label><select class="form-select @error('consultation_type') is-invalid @enderror" name="consultation_type" required><option value="">Select type</option><option value="online" @selected($consultationType === 'online')>Online</option><option value="offline" @selected($consultationType === 'offline')>Offline</option><option value="both" @selected($consultationType === 'both')>Both</option></select>@error('consultation_type')<div id="consultation_type-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">Business Type *</label><select class="form-select @error('business_type') is-invalid @enderror" name="business_type" required><option value="">Select business type</option>@foreach($businessTypes as $type)<option value="{{ $type }}" @selected(old('business_type', $service->business_type) === $type)>{{ $type }}</option>@endforeach</select>@error('business_type')<div id="business_type-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
-      <div class="col-12"><div class="chart-card p-4" style="background:#f1f5ff;border:1px solid #c9d8ff;"><div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0 text-primary"><i class="fa-solid fa-clock me-2"></i>Consultation Charges * / Time for Consultation</h5><button type="button" class="btn btn-primary btn-sm" id="add-charge-tier">+ Add Duration</button></div><div id="charges-wrap" class="row g-2">@foreach($oldCharges as $charge)<div class="col-12 charge-row"><div class="row g-2 align-items-end"><div class="col-md-5"><label class="form-label">Duration</label><select class="form-select charge-duration-select @error('charge_duration.*') is-invalid @enderror" name="charge_duration[]"><option value="">Select duration</option>@foreach($chargeDurationLabels as $durationKey => $durationLabel)<option value="{{ $durationKey }}" @selected(($charge['duration'] ?? '') === $durationKey)>{{ $durationLabel }}</option>@endforeach</select></div><div class="col-md-5"><label class="form-label">Price ₹</label><input type="number" step="0.01" min="0" class="form-control charge-price-input @error('charge_price.*') is-invalid @enderror" name="charge_price[]" value="{{ $charge['price'] ?? '' }}" placeholder="Price"></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm remove-charge-tier">Remove</button></div></div></div>@endforeach</div><div id="charge-row-error" class="invalid-feedback d-block @if(!$errors->has('charge_duration.0') && !$errors->has('charge_price.*')) d-none @endif">{{ $errors->first('charge_duration.0') ?: $errors->first('charge_price.*') }}</div><small class="text-primary d-block mt-2">Example: Select Hours @ ₹500, Months @ ₹15000, or Contractual @ ₹50000. Use + Add Duration for more pricing rows.</small></div></div>
+      <div class="col-12"><div class="chart-card p-4" style="background:#f1f5ff;border:1px solid #c9d8ff;"><div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0 text-primary"><i class="fa-solid fa-clock me-2"></i>Charges * / Service Time</h5><button type="button" class="btn btn-primary btn-sm" id="add-charge-tier">+ Add Duration</button></div><div id="charges-wrap" class="row g-2">@foreach($oldCharges as $charge)<div class="col-12 charge-row"><div class="row g-2 align-items-end"><div class="col-md-5"><label class="form-label">Duration</label><select class="form-select charge-duration-select @error('charge_duration.*') is-invalid @enderror" name="charge_duration[]"><option value="">Select duration</option>@foreach($chargeDurationLabels as $durationKey => $durationLabel)<option value="{{ $durationKey }}" @selected(($charge['duration'] ?? '') === $durationKey)>{{ $durationLabel }}</option>@endforeach</select></div><div class="col-md-5"><label class="form-label">Price ₹</label><input type="number" step="0.01" min="0" class="form-control charge-price-input @error('charge_price.*') is-invalid @enderror" name="charge_price[]" value="{{ $charge['price'] ?? '' }}" placeholder="Price"></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm remove-charge-tier">Remove</button></div></div></div>@endforeach</div><div id="charge-row-error" class="invalid-feedback d-block @if(!$errors->has('charge_duration.0') && !$errors->has('charge_price.*')) d-none @endif">{{ $errors->first('charge_duration.0') ?: $errors->first('charge_price.*') }}</div><small class="text-primary d-block mt-2">Example: Select Hours @ ₹500, Months @ ₹15000, or Contractual @ ₹50000. Use + Add Duration for more pricing rows.</small></div></div>
       <div class="col-12"><label class="form-label">Short / Brief Description</label><input class="form-control @error('short_description') is-invalid @enderror" name="short_description" maxlength="500" value="{{ old('short_description', $service->short_description) }}" placeholder="Brief description">@error('short_description')<div id="short_description-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-12"><label class="form-label">Detailed Description</label><textarea class="form-control @error('description') is-invalid @enderror" rows="5" name="description" placeholder="Detailed description">{{ old('description', $service->description) }}</textarea>@error('description')<div id="description-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-12"><label class="form-label">Geographical Service Area</label><textarea class="form-control @error('service_area') is-invalid @enderror" rows="3" name="service_area" placeholder="Example: Dehradun, Mussoorie, Haridwar">{{ old('service_area', $service->service_area) }}</textarea>@error('service_area')<div id="service_area-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Enter offline service cities or areas separated by commas.</small></div>
@@ -140,7 +140,7 @@ $(function () {
     return $('.charge-row').filter(function () {
       return String($(this).find('.charge-duration-select').val() || '').trim() !== '' && String($(this).find('.charge-price-input').val() || '').trim() !== '';
     }).length > 0;
-  }, 'Please add at least one consultation duration and price.');
+  }, 'Please add at least one service duration and price.');
 
   function setSubmitLoading(isLoading) {
     if (isLoading) { originalBtnHtml = $submitBtn.html(); $submitBtn.prop('disabled', true).html('Saving...'); return; }
@@ -172,11 +172,11 @@ $(function () {
     const hasCompleteRow = rows.some(function (item) { return item.duration !== '' && item.price !== ''; });
     const hasIncompleteRow = rows.some(function (item) { return (item.duration !== '' && item.price === '') || (item.duration === '' && item.price !== ''); });
     if (!hasCompleteRow) {
-      if (showErrors) showChargeError('Please add at least one consultation duration and price.');
+      if (showErrors) showChargeError('Please add at least one service duration and price.');
       return false;
     }
     if (hasIncompleteRow) {
-      if (showErrors) showChargeError('Each consultation charge row must include both duration and price.');
+      if (showErrors) showChargeError('Each charge row must include both duration and price.');
       return false;
     }
     clearChargeError();
@@ -213,7 +213,7 @@ $(function () {
     messages: {
       name: { required: 'Please enter the service name.' },
       category_id: { required: 'Please select a category.' },
-      consultation_type: { required: 'Please select a consultation type.' },
+      consultation_type: { required: 'Please select a service type.' },
       business_type: { required: 'Please select a business type.' },
       location: { required: 'Please enter a location.' },
       accept_terms: { required: 'Please accept the terms and conditions.' }
@@ -242,13 +242,13 @@ $(function () {
           const payload = await res.json();
           if (!res.ok) {
             applyServerErrors(payload.errors || {});
-            notify('error', res.status === 422 ? 'Please fix the highlighted fields and try again.' : (payload.message || 'Unable to save consultation service.'));
+            notify('error', res.status === 422 ? 'Please fix the highlighted fields and try again.' : (payload.message || 'Unable to save service.'));
             return;
           }
-          notify('success', payload.message || 'Consultation service submitted successfully.');
+          notify('success', payload.message || 'Service submitted successfully.');
           setTimeout(function () { window.location.href = payload.redirect || '{{ route('service_provider.services.index') }}'; }, 800);
         })
-        .catch(function () { notify('error', 'Network error while saving consultation service.'); })
+        .catch(function () { notify('error', 'Network error while saving service.'); })
         .finally(function () { setSubmitLoading(false); });
     }
   });

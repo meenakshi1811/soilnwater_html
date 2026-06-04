@@ -1,5 +1,5 @@
 @extends('backend.layouts.app')
-@section('title','Consultation Service Details')
+@section('title','Service Details')
 @section('content')
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -22,13 +22,13 @@
       <dt class="col-sm-3">Category</dt>
       <dd class="col-sm-9">{{ $service->categoryModel?->name ?? $service->category ?? '-' }} / {{ $service->subcategoryModel?->name ?? '-' }}</dd>
 
-      <dt class="col-sm-3">Consultation Type</dt>
+      <dt class="col-sm-3">Service Type</dt>
       <dd class="col-sm-9">{{ ucfirst($service->consultation_type ?: ($service->is_online ? 'online' : 'offline')) }}</dd>
 
       <dt class="col-sm-3">Business Type</dt>
       <dd class="col-sm-9">{{ $service->business_type ?: '-' }}</dd>
 
-      <dt class="col-sm-3">Consultation Charges</dt>
+      <dt class="col-sm-3">Charges</dt>
       <dd class="col-sm-9">
         <div class="table-responsive">
           <table class="table table-bordered table-sm align-middle mb-0">
