@@ -93,13 +93,38 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user): RedirectResponse|JsonResponse|null
     {
-        if (! $user->hasVerifiedEmail()) {
+        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+            Auth::logout();
+
+            return $this->contactVerificationRequiredResponse(
+                $request,
+                $user,
+                'Your email and phone number are not verified yet. Please verify your account before signing in.'
+            );
+        }
+
+        $approvalResponse = $this->ensureApprovedMarketplaceAccount($request, $user, true);
+        if ($approvalResponse) {
+            return $approvalResponse;
+        }
+
+        if ($this->isMarketplaceUser($user) && ! $user->hasVerifiedContact()) {
+            Auth::logout();
+
+            return $this->contactVerificationRequiredResponse(
+                $request,
+                $user,
+                'Your account is approved. Please verify your email and phone number before signing in.'
+            );
+        }
+
+        if (! $this->isMarketplaceUser($user) && ! $user->isGeneralUser() && ! $user->hasVerifiedEmail()) {
             Auth::logout();
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Your account is not verified yet. Please verify your email before signing in.',
-                     'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
+                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
                 ], 403);
             }
 
@@ -113,64 +138,6 @@ class LoginController extends Controller
                 ->withErrors([
                     'email' => 'Your account is not verified yet. Please verify your email before signing in.',
                 ]);
-        }
-
-        if ($user->isVendor()) {
-            if (! $user->vendor) {
-                \App\Services\VendorRegistrationService::createProfileForUser($user);
-                $user->load('vendor');
-            }
-
-            if (! $user->vendor?->isApproved()) {
-                Auth::logout();
-
-                $message = 'Your vendor account is pending admin approval. You will be able to log in once approved.';
-
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => $message], 403);
-                }
-
-                return redirect()->route('login')->withErrors(['email' => $message]);
-            }
-        }
-
-        if ($user->isConsultant()) {
-            if (! $user->consultant) {
-                \App\Services\ConsultantRegistrationService::createProfileForUser($user);
-                $user->load('consultant');
-            }
-
-            if (! $user->consultant?->isApproved()) {
-                Auth::logout();
-
-                $message = 'Your consultant account is pending admin approval. You will be able to log in once approved.';
-
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => $message], 403);
-                }
-
-                return redirect()->route('login')->withErrors(['email' => $message]);
-            }
-        }
-
-
-        if ($user->isServiceProvider()) {
-            if (! $user->serviceProvider) {
-                \App\Services\ServiceProviderRegistrationService::createProfileForUser($user);
-                $user->load('serviceProvider');
-            }
-
-            if (! $user->serviceProvider?->isApproved()) {
-                Auth::logout();
-
-                $message = 'Your service provider account is pending admin approval. You will be able to log in once approved.';
-
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => $message], 403);
-                }
-
-                return redirect()->route('login')->withErrors(['email' => $message]);
-            }
         }
 
         if ($request->expectsJson()) {
@@ -196,26 +163,27 @@ class LoginController extends Controller
                 'login_contact' => 'No account found with this email address or phone number.',
             ]);
         }
-        if ($user->isGeneralUser() && ! $user->hasVerifiedEmail()) {    
-        
-            $message = 'Your email and phone number are not verified yet. Please verify your account first.';
+        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+            return $this->contactVerificationRequiredResponse(
+                $request,
+                $user,
+                'Your email and phone number are not verified yet. Please verify your account first.',
+                $credentials['login_contact']
+            );
+        }
 
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => $message,
-                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
-                ], 403);
-            }
+        $approvalResponse = $this->ensureApprovedMarketplaceAccount($request, $user);
+        if ($approvalResponse) {
+            return $approvalResponse;
+        }
 
-            return redirect()
-                ->route('login')
-                ->withInput([
-                    'login' => $credentials['login_contact'],
-                    'verification_email' => $user->email,
-                ])
-                ->withErrors([
-                    'contact_verification' => $message,
-                ]);
+        if ($this->isMarketplaceUser($user) && ! $user->hasVerifiedContact()) {
+            return $this->contactVerificationRequiredResponse(
+                $request,
+                $user,
+                'Your account is approved. Please verify your email and phone number before signing in.',
+                $credentials['login_contact']
+            );
         }
 
         $otpCode = (string) random_int(100000, 999999);
@@ -341,7 +309,28 @@ class LoginController extends Controller
             ]);
         }
 
-        if (! $user->hasVerifiedEmail()) {
+        $approvalResponse = $this->ensureApprovedMarketplaceAccount($request, $user);
+        if ($approvalResponse) {
+            Cache::forget($this->otpCacheKey($userId));
+            $request->session()->forget('otp_login_user_id');
+
+            return $approvalResponse;
+        }
+
+        if (($user->isGeneralUser() || $this->isMarketplaceUser($user)) && ! $user->hasVerifiedContact()) {
+            Cache::forget($this->otpCacheKey($userId));
+            $request->session()->forget('otp_login_user_id');
+
+            return $this->contactVerificationRequiredResponse(
+                $request,
+                $user,
+                $this->isMarketplaceUser($user)
+                    ? 'Your account is approved. Please verify your email and phone number before signing in.'
+                    : 'Your email and phone number are not verified yet. Please verify your account first.'
+            );
+        }
+
+        if (! $this->isMarketplaceUser($user) && ! $user->isGeneralUser() && ! $user->hasVerifiedEmail()) {
             Cache::forget($this->otpCacheKey($userId));
             $request->session()->forget('otp_login_user_id');
             $message = 'Your account is not verified yet. Please verify your email before signing in.';
@@ -349,70 +338,15 @@ class LoginController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $message,
-                    'verification_email' => $user->email,
+                    'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
                 ], 403);
             }
 
-            return redirect()->route('login')->withErrors([
+            return redirect()->route('login')->withInput([
+                'verification_email' => $user->email,
+            ])->withErrors([
                 'email' => $message,
             ]);
-        }
-
-        if ($user->isVendor()) {
-            if (! $user->vendor) {
-                \App\Services\VendorRegistrationService::createProfileForUser($user);
-                $user->load('vendor');
-            }
-
-            if (! $user->vendor?->isApproved()) {
-                Cache::forget($this->otpCacheKey($userId));
-                $request->session()->forget('otp_login_user_id');
-                $message = 'Your vendor account is pending admin approval.';
-
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => $message], 403);
-                }
-
-                return redirect()->route('login')->withErrors(['email' => $message]);
-            }
-        }
-
-        if ($user->isConsultant()) {
-            if (! $user->consultant) {
-                \App\Services\ConsultantRegistrationService::createProfileForUser($user);
-                $user->load('consultant');
-            }
-
-            if (! $user->consultant?->isApproved()) {
-                Cache::forget($this->otpCacheKey($userId));
-                $request->session()->forget('otp_login_user_id');
-                $message = 'Your consultant account is pending admin approval.';
-
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => $message], 403);
-                }
-
-                return redirect()->route('login')->withErrors(['email' => $message]);
-            }
-        }
-
-        if ($user->isServiceProvider()) {
-            if (! $user->serviceProvider) {
-                \App\Services\ServiceProviderRegistrationService::createProfileForUser($user);
-                $user->load('serviceProvider');
-            }
-
-            if (! $user->serviceProvider?->isApproved()) {
-                Cache::forget($this->otpCacheKey($userId));
-                $request->session()->forget('otp_login_user_id');
-                $message = 'Your service provider account is pending admin approval.';
-
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => $message], 403);
-                }
-
-                return redirect()->route('login')->withErrors(['email' => $message]);
-            }
         }
 
         Cache::forget($this->otpCacheKey($userId));
@@ -515,61 +449,30 @@ class LoginController extends Controller
                 ->with('status', 'Email is verified via Google. Please add and verify your mobile number to complete registration.');
         }
 
-        if ($user->isVendor()) {
-            if (! $user->vendor) {
-                \App\Services\VendorRegistrationService::createProfileForUser($user);
-                $user->load('vendor');
+        if ($this->isMarketplaceUser($user)) {
+            $this->ensureMarketplaceProfile($user);
+
+            if ($createdUser && $intent === 'register') {
+                if ($user->isVendor() && $user->vendor) {
+                    Mail::to($user->email)->send(VendorStatusMail::forVendor($user->vendor, 'pending'));
+                } elseif ($user->isConsultant() && $user->consultant) {
+                    Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($user->consultant, 'pending'));
+                } elseif ($user->isServiceProvider() && $user->serviceProvider) {
+                    Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($user->serviceProvider, 'pending'));
+                }
             }
 
-            if ($createdUser && $intent === 'register' && $user->vendor) {
-                Mail::to($user->email)->send(VendorStatusMail::forVendor($user->vendor, 'pending'));
+            $approvalResponse = $this->ensureApprovedMarketplaceAccount($request, $user, true);
+            if ($approvalResponse) {
+                return $approvalResponse;
             }
 
-            if (! $user->vendor?->isApproved()) {
-                Auth::logout();
-
-                return redirect()->route('login')->withErrors([
-                    'email' => 'Your vendor account is pending admin approval.',
-                ]);
-            }
-        }
-
-        if ($user->isConsultant()) {
-            if (! $user->consultant) {
-                \App\Services\ConsultantRegistrationService::createProfileForUser($user);
-                $user->load('consultant');
-            }
-
-            if ($createdUser && $intent === 'register' && $user->consultant) {
-                Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($user->consultant, 'pending'));
-            }
-
-            if (! $user->consultant?->isApproved()) {
-                Auth::logout();
-
-                return redirect()->route('login')->withErrors([
-                    'email' => 'Your consultant account is pending admin approval.',
-                ]);
-            }
-        }
-
-
-        if ($user->isServiceProvider()) {
-            if (! $user->serviceProvider) {
-                \App\Services\ServiceProviderRegistrationService::createProfileForUser($user);
-                $user->load('serviceProvider');
-            }
-
-            if ($createdUser && $intent === 'register' && $user->serviceProvider) {
-                Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($user->serviceProvider, 'pending'));
-            }
-
-            if (! $user->serviceProvider?->isApproved()) {
-                Auth::logout();
-
-                return redirect()->route('login')->withErrors([
-                    'email' => 'Your service provider account is pending admin approval.',
-                ]);
+            if (! $user->hasVerifiedContact()) {
+                return $this->contactVerificationRequiredResponse(
+                    $request,
+                    $user,
+                    'Your account is approved. Please verify your email and phone number before signing in.'
+                );
             }
         }
 
@@ -713,6 +616,79 @@ class LoginController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    private function contactVerificationRequiredResponse(Request $request, User $user, string $message, ?string $login = null): RedirectResponse|JsonResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'verification_redirect' => route('register.contact.verify.start', ['email' => $user->email]),
+            ], 403);
+        }
+
+        return redirect()
+            ->route('register.contact.verify.start', ['email' => $user->email])
+            ->withInput([
+                'login' => $login ?? $user->email,
+                'verification_email' => $user->email,
+            ])
+            ->with('status', $message);
+    }
+
+    private function ensureApprovedMarketplaceAccount(Request $request, User $user, bool $logout = false): RedirectResponse|JsonResponse|null
+    {
+        if (! $this->isMarketplaceUser($user)) {
+            return null;
+        }
+
+        $this->ensureMarketplaceProfile($user);
+
+        $message = null;
+        if ($user->isVendor() && ! $user->vendor?->isApproved()) {
+            $message = 'Your vendor account is pending admin approval. You will be able to log in once approved.';
+        } elseif ($user->isConsultant() && ! $user->consultant?->isApproved()) {
+            $message = 'Your consultant account is pending admin approval. You will be able to log in once approved.';
+        } elseif ($user->isServiceProvider() && ! $user->serviceProvider?->isApproved()) {
+            $message = 'Your service provider account is pending admin approval. You will be able to log in once approved.';
+        }
+
+        if (! $message) {
+            return null;
+        }
+
+        if ($logout) {
+            Auth::logout();
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message], 403);
+        }
+
+        return redirect()->route('login')->withErrors(['email' => $message]);
+    }
+
+    private function ensureMarketplaceProfile(User $user): void
+    {
+        if ($user->isVendor() && ! $user->vendor) {
+            \App\Services\VendorRegistrationService::createProfileForUser($user);
+            $user->load('vendor');
+        }
+
+        if ($user->isConsultant() && ! $user->consultant) {
+            \App\Services\ConsultantRegistrationService::createProfileForUser($user);
+            $user->load('consultant');
+        }
+
+        if ($user->isServiceProvider() && ! $user->serviceProvider) {
+            \App\Services\ServiceProviderRegistrationService::createProfileForUser($user);
+            $user->load('serviceProvider');
+        }
+    }
+
+    private function isMarketplaceUser(User $user): bool
+    {
+        return $user->isVendor() || $user->isConsultant() || $user->isServiceProvider();
     }
 
     private function otpCacheKey(int $userId): string
