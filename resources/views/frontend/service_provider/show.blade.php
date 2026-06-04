@@ -66,7 +66,7 @@
     @include('frontend.service_provider.partials.recent-ads-slider', ['ads' => $service_providerRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByServiceProviderAdId])
 @endif
 
-<div class="modal fade service_provider-login-required-modal" id="service_providerLoginRequiredModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade consultant-login-required-modal" id="service_providerLoginRequiredModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -74,12 +74,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="service_provider-login-required-card">
-                    <div class="service_provider-login-required-card__icon"><i class="fa-solid fa-lock"></i></div>
+                <div class="consultant-login-required-card">
+                    <div class="consultant-login-required-card__icon"><i class="fa-solid fa-lock"></i></div>
                     <div>
                         <h4>You are not logged in</h4>
                         <p>Please log in to view these service details and share options.</p>
-                        <a href="{{ route('login') }}" class="service_provider-login-required-card__btn">Login to continue</a>
+                        <a href="{{ route('login') }}" class="consultant-login-required-card__btn">Login to continue</a>
                     </div>
                 </div>
             </div>
