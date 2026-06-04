@@ -401,22 +401,22 @@ class PostOfferController extends Controller
 
     private function canRead($user): bool
     {
-        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->canModule('vendors', 'read');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->isServiceProvider() || $user->canModule('vendors', 'read');
     }
 
     private function canCreate($user): bool
     {
-        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->canModule('vendors', 'add');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->isServiceProvider() || $user->canModule('vendors', 'add');
     }
 
     private function canWrite($user): bool
     {
-        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->canModule('vendors', 'write');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->isServiceProvider() || $user->canModule('vendors', 'write');
     }
 
     private function canDelete($user): bool
     {
-        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->canModule('vendors', 'delete');
+        return $user->isAdmin() || $user->isGeneralUser() || $user->isVendor() || $user->isConsultant() || $user->isServiceProvider() || $user->canModule('vendors', 'delete');
     }
 
     private function canApprove($user): bool
