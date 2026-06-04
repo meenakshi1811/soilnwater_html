@@ -241,7 +241,7 @@ class ServiceProviderStoreController extends Controller
         if ($categoryIds->isEmpty()) {
             return Category::query()
                 ->whereNull('parent_id')
-                ->whereJsonContains('modules', 'service_providers')
+                ->forModule('service_providers')
                 ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
                 ->orderBy('name')
                 ->get(['id', 'name']);
@@ -250,7 +250,7 @@ class ServiceProviderStoreController extends Controller
         return Category::query()
             ->whereIn('id', $categoryIds)
             ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'service_providers')
+            ->forModule('service_providers')
             ->with(['children' => function ($query) use ($service_provider) {
                 $subcategoryIds = ServiceProviderService::query()
                     ->where('service_provider_id', $service_provider->id)
@@ -348,7 +348,7 @@ class ServiceProviderStoreController extends Controller
 
     private function assertServiceProviderCategory(Category $category, bool $isSubcategory = false): void
     {
-        abort_unless(in_array('service_providers', $category->modules ?? [], true), 404);
+        abort_unless($category->hasModule('service_providers'), 404);
 
         if (! $isSubcategory) {
             abort_unless($category->parent_id === null, 404);

@@ -110,7 +110,7 @@ class OfferPageController extends Controller
                 ->get(['id', 'name']),
             'service_providerCategories' => Category::query()
                 ->whereNull('parent_id')
-                ->whereJsonContains('modules', 'service_providers')
+                ->forModule('service_providers')
                 ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
                 ->orderBy('name')
                 ->get(['id', 'name']),
