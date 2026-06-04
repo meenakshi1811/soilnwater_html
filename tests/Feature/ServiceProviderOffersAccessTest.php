@@ -30,6 +30,31 @@ class ServiceProviderOffersAccessTest extends TestCase
             ->assertOk();
     }
 
+    public function test_approved_service_provider_dashboard_shows_posting_actions(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'service_provider',
+        ]);
+
+        ServiceProvider::query()->create([
+            'user_id' => $user->id,
+            'company_name' => 'Action Service Provider',
+            'slug' => 'action-service-provider',
+            'status' => 'approved',
+            'approved_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get('/service-provider/dashboard')
+            ->assertOk()
+            ->assertSee('Service Provider Dashboard')
+            ->assertSee('Post Offer')
+            ->assertSee('Post Ad')
+            ->assertSee(route('post-offer'), false)
+            ->assertSee(route('ads.create.size'), false)
+            ->assertSee(route('service_provider.profile.edit'), false);
+    }
+
     public function test_pending_service_provider_cannot_post_marketplace_content(): void
     {
         $user = User::factory()->create([
