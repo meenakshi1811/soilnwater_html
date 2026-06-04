@@ -160,8 +160,6 @@ class RegisterController extends Controller
         }
 
         if ($vendor || $consultant || $serviceProvider) {
-            $user->markEmailAsVerified();
-
             if ($vendor) {
                 Mail::to($user->email)->send(VendorStatusMail::forVendor($vendor, 'pending'));
                 $message = 'Thank you for registering. Your vendor profile is under observation. Admin will check and approve it soon.';
