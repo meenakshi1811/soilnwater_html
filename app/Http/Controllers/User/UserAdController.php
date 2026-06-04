@@ -645,6 +645,7 @@ class UserAdController extends Controller
 
         $selectedModules = collect($request->input('modules', []))
             ->filter(fn ($module) => is_string($module) && $module !== '')
+            ->flatMap(fn (string $module) => Category::moduleAliases($module))
             ->map(fn (string $module) => $normalize($module))
             ->filter()
             ->unique()

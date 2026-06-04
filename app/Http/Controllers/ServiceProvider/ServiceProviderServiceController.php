@@ -100,7 +100,7 @@ class ServiceProviderServiceController extends Controller
     {
         return Category::query()
             ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'service_providers')
+            ->forModule('service_providers')
             ->with(['children' => fn ($q) => $q->orderBy('name')->select(['id', 'name', 'parent_id'])])
             ->orderBy('name')
             ->get(['id', 'name']);
