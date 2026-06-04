@@ -127,9 +127,14 @@ class ServiceProvider extends Model
         return implode(', ', $uniqueParts);
     }
 
-    public function service_providerUrl(): string
+    public function serviceProviderUrl(): string
     {
         return url('/service-provider/'.$this->slug);
+    }
+
+    public function service_providerUrl(): string
+    {
+        return $this->serviceProviderUrl();
     }
 
     public static function generateUniqueSlug(string $name, ?int $exceptId = null): string
