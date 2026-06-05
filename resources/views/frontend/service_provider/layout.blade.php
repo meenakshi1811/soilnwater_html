@@ -31,6 +31,8 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>window.jQuery||document.write('<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"><\/script>');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>if(window.toastr){window.toastr.options={closeButton:true,progressBar:true,positionClass:'toast-top-right',timeOut:4000,extendedTimeOut:2000};}</script>
 
@@ -72,10 +74,26 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 })
                 .then(function (payload) {
-                    notify('success', payload.message || 'Enquiry submitted successfully.');
+                    const successMessage = payload.message || 'Enquiry submitted successfully.';
+                    const modalEl = form.closest('.modal');
+
                     form.reset();
-                    const modal = bootstrap.Modal.getInstance(form.closest('.modal'));
-                    if (modal) modal.hide();
+
+                    if (modalEl && window.bootstrap && window.bootstrap.Modal) {
+                        let toastShown = false;
+                        const showSuccessToast = function () {
+                            if (toastShown) return;
+                            toastShown = true;
+                            modalEl.removeEventListener('hidden.bs.modal', showSuccessToast);
+                            notify('success', successMessage);
+                        };
+
+                        modalEl.addEventListener('hidden.bs.modal', showSuccessToast);
+                        window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                        window.setTimeout(showSuccessToast, 700);
+                    } else {
+                        notify('success', successMessage);
+                    }
                 })
                 .catch(function (error) {
                     notify('error', error.message || 'Unable to submit enquiry.');
