@@ -612,6 +612,7 @@
                   <div class="ad-slide">
                     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-6 g-1 offer-coupon-grid">
                       @foreach ($offerChunk as $offer)
+                        @php($offerCardDescription = trim(preg_replace('/\s+/', ' ', $offer->short_description ?: 'Special marketplace offer available now.')))
                         <div class="col">
                           <article
                             class="card h-100 shadow-sm border-0 offer-coupon-card js-offer-modal-trigger"
@@ -640,8 +641,7 @@
                             <div class="card-body d-flex flex-column gap-2">
                               <span class="badge text-bg-primary w-fit">{{ $offer->discount_tag }}</span>
                               <h4 class="h6 mb-1 offer-coupon-title">{{ $offer->title }}</h4>
-                              <p class="small text-muted mb-2 offer-coupon-description">{!! nl2br(e($offer->short_description ?: 'Special marketplace offer available now.')) !!}</p>
-                            
+                              <p class="small text-muted mb-2 offer-coupon-description">{{ $offerCardDescription }}</p>
                             </div>
                           </article>
                         </div>

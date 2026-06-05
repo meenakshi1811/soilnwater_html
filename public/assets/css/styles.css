@@ -2600,6 +2600,9 @@
   overflow: hidden;
   margin-bottom: 0 !important;
 }
+.offer-coupon-description br {
+  display: none;
+}
 .coupon-code {
   font-weight: 800;
   letter-spacing: 1px;
