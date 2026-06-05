@@ -223,8 +223,7 @@ class UserAdController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('uploads/consultant-inquiries', 'public');
-            $validated['image_path'] = 'storage/'.$path;
+            $validated['image_path'] = $this->storeConsultantInquiryImage($request->file('image'));
         }
 
         $sendTo = HomepageSetting::query()->find(1)?->consultant_enquiry_send_to ?? 'all';
@@ -291,6 +290,17 @@ class UserAdController extends Controller
         ]);
 
         return response()->json(['message' => 'Thanks! Your consultant enquiry has been submitted successfully.']);
+    }
+
+    private function storeConsultantInquiryImage(UploadedFile $image): string
+    {
+        $directory = 'uploads/consultant-inquiries';
+        File::ensureDirectoryExists(public_path($directory));
+
+        $filename = $image->hashName();
+        $image->move(public_path($directory), $filename);
+
+        return $directory.'/'.$filename;
     }
 
     public function serviceProviderEnquiry(Request $request): JsonResponse

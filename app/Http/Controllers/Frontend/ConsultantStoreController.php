@@ -12,7 +12,9 @@ use App\Models\UserAd;
 use App\Services\MarketplaceAdsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
@@ -88,8 +90,7 @@ class ConsultantStoreController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('uploads/consultant-inquiries', 'public');
-            $data['image_path'] = 'storage/'.$path;
+            $data['image_path'] = $this->storeConsultantInquiryImage($request->file('image'));
         }
 
         $inquiry = ConsultantServiceInquiry::query()->create([
@@ -139,8 +140,7 @@ class ConsultantStoreController extends Controller
         unset($data['consultant_service_id']);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('uploads/consultant-inquiries', 'public');
-            $data['image_path'] = 'storage/'.$path;
+            $data['image_path'] = $this->storeConsultantInquiryImage($request->file('image'));
         }
 
         $inquiry = ConsultantServiceInquiry::query()->create([
@@ -411,13 +411,34 @@ class ConsultantStoreController extends Controller
         }
     }
 
+    private function storeConsultantInquiryImage(UploadedFile $image): string
+    {
+        $directory = 'uploads/consultant-inquiries';
+        File::ensureDirectoryExists(public_path($directory));
+
+        $filename = $image->hashName();
+        $image->move(public_path($directory), $filename);
+
+        return $directory.'/'.$filename;
+    }
+
     private function sendConsultantInquirySms(Consultant $consultant, ConsultantService $service): void
     {
         try {
-            $user = User::select('phone_number')->where('id', $consultant->user_id)->first();
-            $phoneNumber = $consultant->phone ?: $user?->phone_number;
+            $user = User::select('phone_number', 'whatsapp_number')->where('id', $consultant->user_id)->first();
+            $phoneNumber = $this->normalizeSmsNumber(
+                $consultant->phone
+                    ?: $consultant->whatsapp
+                    ?: $user?->phone_number
+                    ?: $user?->whatsapp_number
+            );
 
             if (! $phoneNumber) {
+                Log::warning('Consultant inquiry SMS skipped because no consultant phone number is available', [
+                    'consultant_id' => $consultant->id,
+                    'service_id' => $service->id,
+                ]);
+
                 return;
             }
 
@@ -426,6 +447,15 @@ class ConsultantStoreController extends Controller
             $sender = config('services.message.sender', 'ANNUVE');
             $smstype = config('services.message.smstype');
             $peid = config('services.message.peid');
+
+            if (! $apikey || ! $username || ! $sender || ! $smstype || ! $peid) {
+                Log::warning('Consultant inquiry SMS skipped because SMS gateway settings are incomplete', [
+                    'consultant_id' => $consultant->id,
+                    'service_id' => $service->id,
+                ]);
+
+                return;
+            }
 
             $message = sprintf(
                 'Hello %s, A new inquiry has been submitted for %s. Please log in to your consultant account to check and respond to the inquiry. Thank you – Annuvedant Team',
@@ -481,6 +511,17 @@ class ConsultantStoreController extends Controller
                 'error' => $exception->getMessage(),
             ]);
         }
+    }
+
+    private function normalizeSmsNumber(?string $phoneNumber): ?string
+    {
+        if (! $phoneNumber) {
+            return null;
+        }
+
+        $normalized = preg_replace('/\D+/', '', $phoneNumber);
+
+        return $normalized !== '' ? $normalized : null;
     }
 
     private function resolveConsultant(string $slug): Consultant
