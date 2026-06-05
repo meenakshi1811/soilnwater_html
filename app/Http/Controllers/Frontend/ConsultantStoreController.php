@@ -9,6 +9,7 @@ use App\Models\ConsultantService;
 use App\Models\ConsultantServiceInquiry;
 use App\Models\User;
 use App\Models\UserAd;
+use App\Services\MarketplaceAdsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -29,13 +30,18 @@ class ConsultantStoreController extends Controller
             ->latest('updated_at')
             ->get();
 
+        $adsContext = $this->loadStoreAds($consultant, $consultant->pageSections->count());
+        $consultantRecentAds = $this->nearestConsultantModuleAds();
+
         return view('frontend.consultant.show', [
             'consultant' => $consultant,
             'preview' => false,
             'activeNav' => 'home',
             'approvedServices' => $approvedServices,
-            'consultantRecentAds' => collect(),
-            'selectedCategoryNamesByConsultantAdId' => [],
+            'consultantRecentAds' => $consultantRecentAds,
+            'selectedCategoryNamesByConsultantAdId' => $this->resolveSelectedCategoryNamesByAdId($consultantRecentAds),
+            'randomFullPagePlacements' => $adsContext['randomFullPagePlacements'],
+            'sponsoredFillers' => $adsContext['sponsoredFillers'],
         ]);
     }
 
@@ -296,6 +302,56 @@ class ConsultantStoreController extends Controller
             ->latest('id')
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * @return array{sponsoredFillers: array, sidebarAds: Collection, sectionAdRails: array<int, Collection>, randomFullPagePlacements: array}
+     */
+    private function loadStoreAds(Consultant $consultant, int $sectionCount, ?Category $category = null, ?Category $subcategory = null): array
+    {
+        if ($consultant->is_premium) {
+            return [
+                'sponsoredFillers' => [],
+                'sidebarAds' => collect(),
+                'sectionAdRails' => [],
+                'randomFullPagePlacements' => [],
+            ];
+        }
+
+        [$lat, $lng] = $this->frontendCoordinates();
+
+        $adsService = app(MarketplaceAdsService::class);
+        $storeAds = $adsService->getDisplayAds(24, $lat, $lng, ['consultants']);
+
+        $requestedCategoryIds = collect([
+            $category?->id,
+            $subcategory?->id,
+        ])->filter()->map(fn ($id) => (int) $id)->values();
+
+        $consultantModuleAds = $storeAds->values();
+        $categoryMatchedAds = $consultantModuleAds;
+
+        if ($requestedCategoryIds->isNotEmpty()) {
+            $categoryMatchedAds = $consultantModuleAds
+                ->filter(function (UserAd $ad) use ($requestedCategoryIds): bool {
+                    $selectedCategoryIds = collect($ad->selected_category_ids ?? [])->map(fn ($id) => (int) $id);
+                    $selectedSubcategoryIds = collect($ad->selected_subcategory_ids ?? [])->map(fn ($id) => (int) $id);
+
+                    return $selectedCategoryIds->intersect($requestedCategoryIds)->isNotEmpty()
+                        || $selectedSubcategoryIds->intersect($requestedCategoryIds)->isNotEmpty();
+                })
+                ->values();
+        }
+
+        $effectiveAds = ($categoryMatchedAds->isNotEmpty() ? $categoryMatchedAds : $consultantModuleAds)->values();
+        $split = $adsService->splitAdsForStoreLayout($effectiveAds, $sectionCount);
+
+        return [
+            'sponsoredFillers' => $adsService->getSponsoredFillers($lat, $lng),
+            'sidebarAds' => $split['sidebar'],
+            'sectionAdRails' => $split['section_rails'],
+            'randomFullPagePlacements' => $adsService->buildRandomPlacements($effectiveAds, $sectionCount),
+        ];
     }
 
     private function resolveSelectedCategoryNamesByAdId(Collection $ads): array
