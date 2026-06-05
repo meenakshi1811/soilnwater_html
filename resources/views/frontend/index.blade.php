@@ -5,6 +5,9 @@
   $sectionToggles = data_get($homepageSetting ?? null, 'section_toggles', []);
   $showTopVendors = !empty($sectionToggles['top_vendors']) && $sectionToggles['top_vendors'];
   $showPopularPropertiesNearGreenwood = !empty($sectionToggles['popular_properties_near_greenwood']) && $sectionToggles['popular_properties_near_greenwood'];
+  $topVendorsHeaderAdsList = collect($topVendorsHeaderAds ?? []);
+  $topVendorsList = collect($topVendors ?? []);
+  $topVendorsSideAdsList = collect($topVendorsSideAds ?? []);
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
@@ -1088,11 +1091,13 @@
               <a class="view-all" href="{{ route('frontend.vendors.index') }}">VIEW ALL ▶</a>
             </div>
             <div class="ad-slider auto-ad-slider top-ad-slider top-vendors-featured-slider" aria-label="Top vendor featured ads slider">
-              @forelse(($topVendorsHeaderAds ?? collect()) as $ad)
-                <div class="vendor-top-ad ad-slide top-vendor-image-slide">
-                  <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
-                </div>
-              @empty
+              @if($topVendorsHeaderAdsList->isNotEmpty())
+                @foreach($topVendorsHeaderAdsList as $ad)
+                  <div class="vendor-top-ad ad-slide top-vendor-image-slide">
+                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                  </div>
+                @endforeach
+              @else
                 <div class="vendor-top-ad ad-slide">
                   <div>
                     <div class="vendor-top-ad-title">Boost Vendor Reach</div>
@@ -1100,45 +1105,49 @@
                   </div>
                   <button class="vendor-top-ad-btn">Featured</button>
                 </div>
-              @endforelse
+              @endif
             </div>
             <div class="row g-3 align-items-start">
               <div class="col-12 col-lg-9">
                 <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3">
-                  @forelse(($topVendors ?? collect()) as $vendor)
-                    <div class="col">
-                      <div class="vendor-card card h-100">
-                        @php
-                          $firstProduct = $vendor->products->first();
-                          $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
-                          $productImage = !empty($productImages) ? asset($productImages[0]) : null;
-                          $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
-                          $logoImage = $vendor->logo ? asset($vendor->logo) : null;
-                          $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
-                          $vendorDisplayName = $vendor->publicDisplayName() . ($vendor->is_premium ? ' ⭐' : '');
-                        @endphp
-                        <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
-                        <div class="vendor-card-body card-body d-flex flex-column">
-                          <p>{{ $vendorDisplayName }}</p>
-                          @php($primaryBranch = $vendor->branches->first())
-                          <div class="vendor-card-sub">{{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products</div>
-                          <a href="{{ route('store.show', $vendor->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
+                  @if($topVendorsList->isNotEmpty())
+                    @foreach($topVendorsList as $vendor)
+                      <div class="col">
+                        <div class="vendor-card card h-100">
+                          @php
+                            $firstProduct = $vendor->products->first();
+                            $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
+                            $productImage = !empty($productImages) ? asset($productImages[0]) : null;
+                            $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
+                            $logoImage = $vendor->logo ? asset($vendor->logo) : null;
+                            $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
+                            $vendorDisplayName = $vendor->publicDisplayName() . ($vendor->is_premium ? ' ⭐' : '');
+                          @endphp
+                          <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
+                          <div class="vendor-card-body card-body d-flex flex-column">
+                            <p>{{ $vendorDisplayName }}</p>
+                            @php($primaryBranch = $vendor->branches->first())
+                            <div class="vendor-card-sub">{{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products</div>
+                            <a href="{{ route('store.show', $vendor->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  @empty
+                    @endforeach
+                  @else
                     <div class="col">
                       <div class="view-all-card ad-slot-card h-100" style="min-height:130px;"><h4>No vendors available</h4><p>Please check back later.</p></div>
                     </div>
-                  @endforelse
+                  @endif
                 </div>
               </div>
               <aside class="col-12 col-lg-3 section-side-ad ad-slider auto-ad-slider top-vendor-side-slider" aria-label="Top vendor side ads slider">
-                @forelse(($topVendorsSideAds ?? collect()) as $ad)
-                  <div class="side-card ad-slide top-vendor-side-image-card" aria-label="{{ $ad->title }}">
-                    <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
-                  </div>
-                @empty
+                @if($topVendorsSideAdsList->isNotEmpty())
+                  @foreach($topVendorsSideAdsList as $ad)
+                    <div class="side-card ad-slide top-vendor-side-image-card" aria-label="{{ $ad->title }}">
+                      <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                    </div>
+                  @endforeach
+                @else
                   <div class="side-card ad-slide">
                     <img class="side-card-img" src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&q=70" alt="Top vendor ad">
                     <div class="side-card-body">
@@ -1147,7 +1156,7 @@
                       <button class="btn-learn">Get Placement</button>
                     </div>
                   </div>
-                @endforelse
+                @endif
               </aside>
             </div>
           </div>
