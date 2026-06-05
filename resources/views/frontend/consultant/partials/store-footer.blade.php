@@ -22,9 +22,3 @@
         <p class="small text-center mb-0">&copy; {{ date('Y') }} {{ $consultant->publicDisplayName() }} · Powered by SoilNWater</p>
     </div>
 </footer>
-
-@if(($activeNav ?? '') !== 'contact' && $consultant->whatsapp)
-    <a href="https://wa.me/91{{ preg_replace('/\D/', '', $consultant->whatsapp) }}" class="vendor-whatsapp-float" target="_blank" rel="noopener" aria-label="WhatsApp">
-        <i class="fa-brands fa-whatsapp"></i>
-    </a>
-@endif
