@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\ModulePermissions;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -198,5 +199,15 @@ class UserAd extends Model
     public function reports(): HasMany
     {
         return $this->hasMany(AdReport::class, 'user_ad_id');
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->valid_until !== null && $this->valid_until->lt(Carbon::today());
+    }
+
+    public function isCurrentlyActive(): bool
+    {
+        return $this->status === 'approved' && ! $this->isExpired();
     }
 }
