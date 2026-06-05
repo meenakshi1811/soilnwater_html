@@ -1160,7 +1160,7 @@
               </aside>
             </div>
           </div>
-          @endif
+          <?php endif; ?>
 
 
           <!-- Popular Properties Near Greenwood (Bootstrap redesign with large imagery + ads slider) -->
@@ -1256,10 +1256,10 @@
                 </div>
               </div>
             </section>
-          @endif
+          <?php endif; ?>
         </div><!-- /content-main-stack -->
       </div><!-- /content-with-ad-rail -->
-      @endif
+      <?php endif; ?>
 
     <!-- Popular Properties redesign (single right-side ad with equal height) -->
     @if(!empty($sectionToggles['popular_properties']) && $sectionToggles['popular_properties'])
