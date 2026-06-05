@@ -13,7 +13,8 @@ class MarketplaceAdsService
         int $limit = 12,
         ?float $lat = null,
         ?float $lng = null,
-        array $preferredModules = []
+        array $preferredModules = [],
+        bool $strictModules = false
     ): Collection
     {
         $adsQuery = UserAd::query()
@@ -26,9 +27,17 @@ class MarketplaceAdsService
             });
 
         if ($preferredModules !== []) {
-            $adsQuery->where(function (Builder $query) use ($preferredModules) {
+            $adsQuery->where(function (Builder $query) use ($preferredModules, $strictModules) {
                 foreach ($preferredModules as $module) {
-                    $query->orWhere(fn (Builder $moduleQuery) => $moduleQuery->assignedToModule((string) $module));
+                    $query->orWhere(function (Builder $moduleQuery) use ($module, $strictModules): void {
+                        if ($strictModules) {
+                            $moduleQuery->selectedForModule((string) $module);
+
+                            return;
+                        }
+
+                        $moduleQuery->assignedToModule((string) $module);
+                    });
                 }
             });
         }
@@ -50,19 +59,37 @@ class MarketplaceAdsService
     /**
      * @return array<int, array{w:int, h:int, label:string, title:?string, image:?string, url:?string}>
      */
-    public function getSponsoredFillers(?float $lat, ?float $lng): array
+    public function getSponsoredFillers(?float $lat, ?float $lng, array $preferredModules = [], bool $strictModules = false): array
     {
         $requiredSizes = collect([
             [458, 458], [458, 229], [229, 458], [229, 229], [520, 360], [520, 300], [458, 300], [360, 360], [320, 300],
         ])->mapWithKeys(fn (array $size) => [$size[0].'x'.$size[1] => ['w' => $size[0], 'h' => $size[1]]]);
 
-        $sponsoredAds = UserAd::query()
+        $sponsoredAdsQuery = UserAd::query()
             ->where('status', 'approved')
             ->where('is_sponsored', true)
             ->whereNotNull('final_image')
             ->where(function (Builder $query) {
                 $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
-            })
+            });
+
+        if ($preferredModules !== []) {
+            $sponsoredAdsQuery->where(function (Builder $query) use ($preferredModules, $strictModules) {
+                foreach ($preferredModules as $module) {
+                    $query->orWhere(function (Builder $moduleQuery) use ($module, $strictModules): void {
+                        if ($strictModules) {
+                            $moduleQuery->selectedForModule((string) $module);
+
+                            return;
+                        }
+
+                        $moduleQuery->assignedToModule((string) $module);
+                    });
+                }
+            });
+        }
+
+        $sponsoredAds = $sponsoredAdsQuery
             ->get(['id', 'title', 'size_type', 'final_image', 'reviewed_at', 'location_lat', 'location_lng']);
 
         $normalizedSizes = collect(AdSizes::all())->mapWithKeys(function ($size, $key) {

@@ -282,7 +282,7 @@ class ConsultantStoreController extends Controller
         $adsQuery = UserAd::query()
             ->with(['category:id,name'])
             ->where('status', 'approved')
-            ->assignedToModule('consultants')
+            ->selectedForModule('consultants')
             ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
             ->whereNotNull('final_image')
             ->where(function ($query) {
@@ -321,7 +321,7 @@ class ConsultantStoreController extends Controller
         [$lat, $lng] = $this->frontendCoordinates();
 
         $adsService = app(MarketplaceAdsService::class);
-        $storeAds = $adsService->getDisplayAds(24, $lat, $lng, ['consultants']);
+        $storeAds = $adsService->getDisplayAds(24, $lat, $lng, ['consultants'], true);
 
         $requestedCategoryIds = collect([
             $category?->id,
@@ -347,7 +347,7 @@ class ConsultantStoreController extends Controller
         $split = $adsService->splitAdsForStoreLayout($effectiveAds, $sectionCount);
 
         return [
-            'sponsoredFillers' => $adsService->getSponsoredFillers($lat, $lng),
+            'sponsoredFillers' => $adsService->getSponsoredFillers($lat, $lng, ['consultants'], true),
             'sidebarAds' => $split['sidebar'],
             'sectionAdRails' => $split['section_rails'],
             'randomFullPagePlacements' => $adsService->buildRandomPlacements($effectiveAds, $sectionCount),
