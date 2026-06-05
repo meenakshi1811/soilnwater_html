@@ -12,7 +12,9 @@ use App\Models\UserAd;
 use App\Services\MarketplaceAdsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
@@ -88,8 +90,7 @@ class ConsultantStoreController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('uploads/consultant-inquiries', 'public');
-            $data['image_path'] = 'storage/'.$path;
+            $data['image_path'] = $this->storeConsultantInquiryImage($request->file('image'));
         }
 
         $inquiry = ConsultantServiceInquiry::query()->create([
@@ -139,8 +140,7 @@ class ConsultantStoreController extends Controller
         unset($data['consultant_service_id']);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('uploads/consultant-inquiries', 'public');
-            $data['image_path'] = 'storage/'.$path;
+            $data['image_path'] = $this->storeConsultantInquiryImage($request->file('image'));
         }
 
         $inquiry = ConsultantServiceInquiry::query()->create([
@@ -409,6 +409,17 @@ class ConsultantStoreController extends Controller
         if (! $isSubcategory) {
             abort_unless($category->parent_id === null, 404);
         }
+    }
+
+    private function storeConsultantInquiryImage(UploadedFile $image): string
+    {
+        $directory = 'uploads/consultant-inquiries';
+        File::ensureDirectoryExists(public_path($directory));
+
+        $filename = $image->hashName();
+        $image->move(public_path($directory), $filename);
+
+        return $directory.'/'.$filename;
     }
 
     private function sendConsultantInquirySms(Consultant $consultant, ConsultantService $service): void
