@@ -61,11 +61,31 @@ class UserAd extends Model
         'grand_total' => 'decimal:2',
     ];
 
+
+    public function scopeSelectedForModule(Builder $query, string $module): Builder
+    {
+        $module = strtolower(trim($module));
+        $moduleVariants = collect([$module, ModulePermissions::modules()[$module] ?? null])
+            ->when($module === 'vendors', fn ($variants) => $variants->merge(['vendor', 'Vendor', 'Vendors']))
+            ->when($module === 'consultants', fn ($variants) => $variants->merge(['consultant', 'Consultant', 'Consultants']))
+            ->when($module === 'service_providers', fn ($variants) => $variants->merge(['services', 'Services', 'service_provider', 'service providers', 'Service Providers', 'ServiceProvider']))
+            ->filter(fn ($variant) => is_string($variant) && $variant !== '')
+            ->unique()
+            ->values();
+
+        return $query->where(function (Builder $moduleQuery) use ($moduleVariants): void {
+            foreach ($moduleVariants as $variant) {
+                $moduleQuery->orWhereJsonContains('selected_modules', $variant);
+            }
+        });
+    }
+
     public function scopeAssignedToModule(Builder $query, string $module): Builder
     {
         $module = strtolower(trim($module));
         $moduleVariants = collect([$module, ModulePermissions::modules()[$module] ?? null])
             ->when($module === 'vendors', fn ($variants) => $variants->merge(['vendor', 'Vendor', 'Vendors']))
+            ->when($module === 'consultants', fn ($variants) => $variants->merge(['consultant', 'Consultant', 'Consultants']))
             ->when($module === 'service_providers', fn ($variants) => $variants->merge(['services', 'Services', 'service_provider', 'service providers', 'Service Providers', 'ServiceProvider']))
             ->filter(fn ($variant) => is_string($variant) && $variant !== '')
             ->unique()

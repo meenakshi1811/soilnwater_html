@@ -35,7 +35,11 @@
     </div>
 </section>
 
+@include('frontend.consultant.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_hero'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
+
 @include('frontend.consultant.partials.services-section', ['showViewAllServicesButton' => true])
+
+@include('frontend.consultant.partials.ads-zone', ['placement' => $randomFullPagePlacements['before_products'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 
 @foreach($consultant->pageSections as $section)
     @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
