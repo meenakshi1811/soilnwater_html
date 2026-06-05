@@ -96,6 +96,7 @@ Route::post('/store/{slug}/enquiry', [VendorStoreController::class, 'sendGeneral
 Route::post('/store/{slug}/products/{product}/enquiry', [VendorStoreController::class, 'sendInquiry'])->name('store.products.enquiry');
 Route::post('/vendor-enquiry', [UserAdController::class, 'vendorEnquiry'])->name('frontend.vendor-enquiry');
 Route::post('/consultant-enquiry', [UserAdController::class, 'consultantEnquiry'])->name('frontend.consultant-enquiry');
+Route::post('/service-provider-enquiry', [UserAdController::class, 'serviceProviderEnquiry'])->name('frontend.service-provider-enquiry');
 Route::post('/consultant/{slug}/services/{service}/enquiry', [ConsultantStoreController::class, 'sendServiceInquiry'])->name('consultant.services.enquiry');
 Route::post('/consultant/{slug}/enquiry', [ConsultantStoreController::class, 'sendGeneralInquiry'])->name('consultant.enquiry');
 Route::post('/service-provider/{slug}/services/{service}/enquiry', [ServiceProviderStoreController::class, 'sendServiceInquiry'])->name('service_provider.services.enquiry');

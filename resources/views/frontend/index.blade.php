@@ -32,6 +32,19 @@
         })->values()->all(),
       ];
     })->values()->all();
+  $serviceProviderEnquiryCategoryTree = ($service_providerCategories ?? collect())
+    ->map(function ($category) {
+      return [
+        'id' => $category->id,
+        'name' => $category->name,
+        'children' => $category->children->map(function ($child) {
+          return [
+            'id' => $child->id,
+            'name' => $child->name,
+          ];
+        })->values()->all(),
+      ];
+    })->values()->all();
 @endphp
 
 <div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
@@ -873,6 +886,72 @@
       </div>
     </div>
 
+    <div class="modal fade" id="serviceProviderEnquiryModal" tabindex="-1" aria-labelledby="serviceProviderEnquiryModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content vendor-enquiry-modal-content">
+          <div class="modal-header border-0 pb-2">
+            <h2 class="modal-title fs-5" id="serviceProviderEnquiryModalLabel">Service Provider Enquiry</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body pt-0">
+            <form id="serviceProviderEnquiryForm" enctype="multipart/form-data">
+              @csrf
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="serviceProviderEnquiryName">Name *</label>
+                  <input type="text" class="form-control" id="serviceProviderEnquiryName" name="client_name" value="{{ auth()->user()?->full_name ?: auth()->user()?->name }}" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="serviceProviderEnquiryPhone">Phone Number *</label>
+                  <input type="text" class="form-control" id="serviceProviderEnquiryPhone" name="phone_number" value="{{ auth()->user()?->phone_number }}" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="serviceProviderEnquiryEmail">Email *</label>
+                  <input type="email" class="form-control" id="serviceProviderEnquiryEmail" name="email" value="{{ auth()->user()?->email }}" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="serviceProviderEnquiryOccupation">Occupation</label>
+                  <input type="text" class="form-control" id="serviceProviderEnquiryOccupation" name="occupation" placeholder="Your occupation">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="serviceProviderEnquiryDob">DOB</label>
+                  <input type="date" class="form-control" id="serviceProviderEnquiryDob" name="date_of_birth" value="{{ auth()->user()?->date_of_birth?->format('Y-m-d') }}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="serviceProviderEnquiryImage">Upload image</label>
+                  <input type="file" class="form-control" id="serviceProviderEnquiryImage" name="image" accept="image/*">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="serviceProviderEnquiryCategory">Service Provider Category *</label>
+                  <select class="form-select" id="serviceProviderEnquiryCategory" name="category_id" required>
+                    <option value="">Select category</option>
+                    @foreach(($service_providerCategories ?? collect()) as $category)
+                      <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    @endforeach
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="serviceProviderEnquirySubCategory">Sub Category *</label>
+                  <select class="form-select" id="serviceProviderEnquirySubCategory" name="subcategory_id" required disabled>
+                    <option value="">Select sub category</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="serviceProviderEnquiryQuestion">Question *</label>
+                  <textarea class="form-control" id="serviceProviderEnquiryQuestion" name="question" rows="4" maxlength="2000" placeholder="Write your question for the service provider." required></textarea>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 mt-3" id="serviceProviderEnquirySubmitBtn">
+                <span class="js-service-provider-enquiry-btn-text">Send Enquiry</span>
+                <span class="spinner-border spinner-border-sm ms-2 d-none js-service-provider-enquiry-btn-loader" role="status" aria-hidden="true"></span>
+                <span class="ms-1 d-none js-service-provider-enquiry-btn-sending">Sending...</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade offer-details-modal" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -1364,50 +1443,76 @@
       </div>
     @endif
 
-    <!-- Popular Services / Properties -->
+    <!-- Popular Service Providers -->
     @if(!empty($sectionToggles['popular_services']) && $sectionToggles['popular_services'])
-
+      @php
+        $homepageServiceProviders = $topServiceProviders ?? collect();
+        $homepageServiceProviderSlides = $homepageServiceProviders->chunk(5);
+      @endphp
       <div class="sec">
         <div class="sec-head">
-          <div class="sec-title"><span class="icon"><i class="fa-solid fa-house"></i></span> Popular Services</div>
-          <a class="view-all" href="#">VIEW ALL ▶</a>
+          <div class="sec-title"><span class="icon"><i class="fa-solid fa-house"></i></span> Popular Service Providers</div>
+          <div class="consultant-section-actions">
+            <button type="button" class="consultant-enquiry-link" data-bs-toggle="modal" data-bs-target="#serviceProviderEnquiryModal">Enquiry</button>
+            <a class="view-all" href="{{ route('frontend.service_providers.index') }}">VIEW ALL ▶</a>
+          </div>
         </div>
-        <div class="product-grid-4 popular-services-grid">
-          <div class="prod-card popular-service-card">
-            <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=900&q=80" alt="2 BHK apartment interior">
-            <div class="prod-card-body">
-              <p>2 BHK Apartment</p>
-              <span class="popular-service-meta"><i class="fa-solid fa-location-dot"></i> South Delhi • Ready to Move</span>
+        <div class="ad-slider auto-ad-slider consultants-home-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured service providers slider">
+          @if($homepageServiceProviderSlides->isNotEmpty())
+            @foreach($homepageServiceProviderSlides as $serviceProviderChunk)
+              <div class="ad-slide">
+                <div class="consult-grid consult-grid-professional">
+                  @foreach($serviceProviderChunk as $serviceProvider)
+                    @php
+                      $primaryBranch = $serviceProvider->branches->first();
+                      $firstService = $serviceProvider->services->firstWhere('status', 'approved') ?: $serviceProvider->services->first();
+                      $serviceImage = $firstService?->image_path ? asset($firstService->image_path) : null;
+                      $bannerImage = $serviceProvider->bannerSlides->first()?->image_path ? asset($serviceProvider->bannerSlides->first()->image_path) : null;
+                      $logoImage = $serviceProvider->logo ? asset($serviceProvider->logo) : null;
+                      $serviceProviderCardImage = $serviceImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=480&q=75';
+                      $serviceProviderCity = $primaryBranch?->city ?: ($serviceProvider->city ?: 'Local Area');
+                      $serviceProviderDistance = $hasLocation && $serviceProvider->nearest_distance_km !== null
+                        ? ' • '.number_format($serviceProvider->nearest_distance_km, 1).' km'
+                        : '';
+                    @endphp
+                    <a class="con-card text-decoration-none" href="{{ route('service_provider.show', $serviceProvider->slug) }}" aria-label="View {{ $serviceProvider->publicDisplayName() }} service provider page">
+                      <img src="{{ $serviceProviderCardImage }}" alt="{{ $serviceProvider->publicDisplayName() }}">
+                      <div class="con-card-body">
+                        <p class="con-name">{{ $serviceProvider->publicDisplayName() }}@if($serviceProvider->is_premium) ⭐@endif</p>
+                        <span class="con-role">{{ $serviceProviderCity }} • {{ $serviceProvider->services_count }} Services{{ $serviceProviderDistance }}</span>
+                      </div>
+                    </a>
+                  @endforeach
+                </div>
+              </div>
+            @endforeach
+          @else
+            <div class="ad-slide">
+              <div class="consult-grid consult-grid-professional">
+                <div class="con-card consultant-empty-card">
+                  <div class="con-card-body">
+                    <p class="con-name">No service providers available</p>
+                    <span class="con-role">Please check back later.</span>
+                  </div>
+                </div>
+              </div>
             </div>
+          @endif
+        </div>
+      </div>
+    @endif
+
+    @if(!empty($sectionToggles['popular_services']) && $sectionToggles['popular_services'])
+      <div class="sec vendor-enquiry-section">
+        <div class="vendor-enquiry-card consultant-enquiry-card">
+          <div class="vendor-enquiry-copy">
+            <span class="vendor-enquiry-pill"><i class="fa-solid fa-house-user"></i> Service Provider Enquiry</span>
+            <h3>Need help from a service provider?</h3>
+            <p>Share your requirement and we will notify matching verified service providers by category and subcategory.</p>
           </div>
-          <div class="prod-card popular-service-card">
-            <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=900&q=80" alt="Luxury villa with pool">
-            <div class="prod-card-body">
-              <p>Luxury Villa</p>
-              <span class="popular-service-meta"><i class="fa-solid fa-star"></i> Premium Listing • Verified Builder</span>
-            </div>
-          </div>
-          <div class="prod-card popular-service-card">
-            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&q=80" alt="Modern office space">
-            <div class="prod-card-body">
-              <p>Office Space</p>
-              <span class="popular-service-meta"><i class="fa-solid fa-briefcase"></i> Business District • Furnished</span>
-            </div>
-          </div>
-          <div class="prod-card popular-service-card">
-            <img src="https://images.unsplash.com/photo-1484154218962-a197022b5858?w=900&q=80" alt="Modern kitchen renovation">
-            <div class="prod-card-body">
-              <p>Interior Design</p>
-              <span class="popular-service-meta"><i class="fa-solid fa-paint-roller"></i> Home Makeover • 4.9 Rating</span>
-            </div>
-          </div>
-          <div class="prod-card popular-service-card">
-            <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=900&q=80" alt="Comfortable rental home bedroom">
-            <div class="prod-card-body">
-              <p>Rental Homes</p>
-              <span class="popular-service-meta"><i class="fa-solid fa-key"></i> Flexible Lease • Instant Visit</span>
-            </div>
-          </div>
+          <button type="button" class="btn-yellow vendor-enquiry-btn" data-bs-toggle="modal" data-bs-target="#serviceProviderEnquiryModal">
+            Submit Enquiry
+          </button>
         </div>
       </div>
     @endif
@@ -1618,49 +1723,53 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-
-    const form = document.getElementById('vendorEnquiryForm');
-    if (!form) return;
-    const categories = @json($vendorEnquiryCategoryTree);
-    const categorySelect = form.querySelector('#vendorEnquiryCategory');
-    const subcategorySelect = form.querySelector('#vendorEnquirySubCategory');
-
-    categorySelect?.addEventListener('change', function () {
-      const selected = categories.find((category) => String(category.id) === this.value);
-      subcategorySelect.innerHTML = '<option value="">Select sub category</option>';
-      if (!selected || !selected.children || !selected.children.length) {
-        subcategorySelect.setAttribute('disabled', 'disabled');
-        return;
+    const showToast = (type, message) => {
+      try {
+        if (window.toastr && window.jQuery && typeof window.toastr[type] === 'function') {
+          window.toastr.options = { closeButton: true, progressBar: true, timeOut: 3500 };
+          window.toastr[type](message);
+          return;
+        }
+      } catch (toastError) {
+        console.warn('Toastr unavailable, using alert fallback.', toastError);
       }
-      selected.children.forEach(function (child) {
-        const option = document.createElement('option');
-        option.value = child.id;
-        option.textContent = child.name;
-        subcategorySelect.appendChild(option);
-      });
-      subcategorySelect.removeAttribute('disabled');
-    });
 
-    form.addEventListener('submit', async function (event) {
+      alert(message);
+    };
+
+    const bindCategorySelect = (form, categories, categorySelector, subcategorySelector) => {
+      if (!form) return null;
+      const categorySelect = form.querySelector(categorySelector);
+      const subcategorySelect = form.querySelector(subcategorySelector);
+
+      categorySelect?.addEventListener('change', function () {
+        const selected = categories.find((category) => String(category.id) === this.value);
+        subcategorySelect.innerHTML = '<option value="">Select sub category</option>';
+        if (!selected || !selected.children || !selected.children.length) {
+          subcategorySelect.setAttribute('disabled', 'disabled');
+          return;
+        }
+        selected.children.forEach(function (child) {
+          const option = document.createElement('option');
+          option.value = child.id;
+          option.textContent = child.name;
+          subcategorySelect.appendChild(option);
+        });
+        subcategorySelect.removeAttribute('disabled');
+      });
+
+      return subcategorySelect;
+    };
+
+    const vendorForm = document.getElementById('vendorEnquiryForm');
+    const vendorSubcategorySelect = bindCategorySelect(vendorForm, @json($vendorEnquiryCategoryTree), '#vendorEnquiryCategory', '#vendorEnquirySubCategory');
+
+    vendorForm?.addEventListener('submit', async function (event) {
       event.preventDefault();
       const submitBtn = document.getElementById('vendorEnquirySubmitBtn');
       const loader = submitBtn?.querySelector('.js-vendor-enquiry-btn-loader');
       const sending = submitBtn?.querySelector('.js-vendor-enquiry-btn-sending');
       const btnText = submitBtn?.querySelector('.js-vendor-enquiry-btn-text');
-
-      const showToast = (type, message) => {
-        try {
-          if (window.toastr && window.jQuery && typeof window.toastr[type] === 'function') {
-            window.toastr.options = { closeButton: true, progressBar: true, timeOut: 3500 };
-            window.toastr[type](message);
-            return;
-          }
-        } catch (toastError) {
-          console.warn('Toastr unavailable, using alert fallback.', toastError);
-        }
-
-        alert(message);
-      };
 
       submitBtn?.setAttribute('disabled', 'disabled');
       loader?.classList.remove('d-none');
@@ -1673,15 +1782,15 @@
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
+            'X-CSRF-TOKEN': vendorForm.querySelector('input[name="_token"]').value,
           },
           body: JSON.stringify({
-            email: form.querySelector('#vendorEnquiryEmail').value,
-            phone_number: form.querySelector('#vendorEnquiryPhone').value,
-            preferred_contact: form.querySelector('#vendorEnquiryPreferredContact').value,
-            category_id: form.querySelector('#vendorEnquiryCategory').value,
-            subcategory_id: form.querySelector('#vendorEnquirySubCategory').value,
-            reason: form.querySelector('#vendorEnquiryReason').value,
+            email: vendorForm.querySelector('#vendorEnquiryEmail').value,
+            phone_number: vendorForm.querySelector('#vendorEnquiryPhone').value,
+            preferred_contact: vendorForm.querySelector('#vendorEnquiryPreferredContact').value,
+            category_id: vendorForm.querySelector('#vendorEnquiryCategory').value,
+            subcategory_id: vendorForm.querySelector('#vendorEnquirySubCategory').value,
+            reason: vendorForm.querySelector('#vendorEnquiryReason').value,
           }),
         });
 
@@ -1689,9 +1798,9 @@
         showToast(response.ok ? 'success' : 'error', data.message || (response.ok ? 'Enquiry sent successfully.' : 'Unable to send enquiry.'));
 
         if (response.ok) {
-          form.reset();
-          subcategorySelect.innerHTML = '<option value="">Select sub category</option>';
-          subcategorySelect.setAttribute('disabled', 'disabled');
+          vendorForm.reset();
+          vendorSubcategorySelect.innerHTML = '<option value="">Select sub category</option>';
+          vendorSubcategorySelect.setAttribute('disabled', 'disabled');
           const modalEl = document.getElementById('vendorEnquiryModal');
           if (window.bootstrap?.Modal && modalEl) {
             window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
@@ -1705,6 +1814,88 @@
         sending?.classList.add('d-none');
         btnText?.classList.remove('d-none');
       }
+    });
+
+    const bindProfileEnquiryForm = ({ formId, categories, categorySelector, subcategorySelector, submitBtnId, loaderClass, sendingClass, textClass, endpoint, modalId, successMessage, failureMessage }) => {
+      const form = document.getElementById(formId);
+      if (!form) return;
+      const subcategorySelect = bindCategorySelect(form, categories, categorySelector, subcategorySelector);
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const submitBtn = document.getElementById(submitBtnId);
+        const loader = submitBtn?.querySelector(loaderClass);
+        const sending = submitBtn?.querySelector(sendingClass);
+        const btnText = submitBtn?.querySelector(textClass);
+
+        submitBtn?.setAttribute('disabled', 'disabled');
+        loader?.classList.remove('d-none');
+        sending?.classList.remove('d-none');
+        btnText?.classList.add('d-none');
+
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
+            },
+            body: new FormData(form),
+          });
+
+          const data = await response.json();
+          showToast(response.ok ? 'success' : 'error', data.message || (response.ok ? successMessage : failureMessage));
+
+          if (response.ok) {
+            form.reset();
+            if (subcategorySelect) {
+              subcategorySelect.innerHTML = '<option value="">Select sub category</option>';
+              subcategorySelect.setAttribute('disabled', 'disabled');
+            }
+            const modalEl = document.getElementById(modalId);
+            if (window.bootstrap?.Modal && modalEl) {
+              window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            }
+          }
+        } catch (error) {
+          showToast('error', failureMessage);
+        } finally {
+          submitBtn?.removeAttribute('disabled');
+          loader?.classList.add('d-none');
+          sending?.classList.add('d-none');
+          btnText?.classList.remove('d-none');
+        }
+      });
+    };
+
+    bindProfileEnquiryForm({
+      formId: 'consultantEnquiryForm',
+      categories: @json($consultantEnquiryCategoryTree),
+      categorySelector: '#consultantEnquiryCategory',
+      subcategorySelector: '#consultantEnquirySubCategory',
+      submitBtnId: 'consultantEnquirySubmitBtn',
+      loaderClass: '.js-consultant-enquiry-btn-loader',
+      sendingClass: '.js-consultant-enquiry-btn-sending',
+      textClass: '.js-consultant-enquiry-btn-text',
+      endpoint: "{{ route('frontend.consultant-enquiry') }}",
+      modalId: 'consultantEnquiryModal',
+      successMessage: 'Consultant enquiry sent successfully.',
+      failureMessage: 'Unable to send consultant enquiry. Please try again.',
+    });
+
+    bindProfileEnquiryForm({
+      formId: 'serviceProviderEnquiryForm',
+      categories: @json($serviceProviderEnquiryCategoryTree),
+      categorySelector: '#serviceProviderEnquiryCategory',
+      subcategorySelector: '#serviceProviderEnquirySubCategory',
+      submitBtnId: 'serviceProviderEnquirySubmitBtn',
+      loaderClass: '.js-service-provider-enquiry-btn-loader',
+      sendingClass: '.js-service-provider-enquiry-btn-sending',
+      textClass: '.js-service-provider-enquiry-btn-text',
+      endpoint: "{{ route('frontend.service-provider-enquiry') }}",
+      modalId: 'serviceProviderEnquiryModal',
+      successMessage: 'Service provider enquiry sent successfully.',
+      failureMessage: 'Unable to send service provider enquiry. Please try again.',
     });
   });
 </script>
@@ -1730,7 +1921,7 @@
     if (adModal) {
       document.addEventListener('click', function (event) {
         const adImage = event.target.closest('.ad-slider img, .recent-ad-card img');
-        if (!adImage || adImage.closest('.offer-coupon-card')) return;
+        if (!adImage || adImage.closest('.offer-coupon-card, .con-card')) return;
 
         event.preventDefault();
 
