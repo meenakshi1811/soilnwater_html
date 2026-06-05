@@ -54,9 +54,7 @@
 
 <div id="post-ad" class="visually-hidden" aria-hidden="true"></div>
 <div id="post-offer" class="visually-hidden" aria-hidden="true"></div>
-<!-- ══════════════════════════════════════════════════
-     HERO BANNER
-══════════════════════════════════════════════════ -->
+
 <section class="hero">
   <div class="hero-stars">✦ ✦<br>✦</div>
   <div class="hero-content">
@@ -1512,7 +1510,7 @@
         </div>
       </div>
 
-      <div class="sec vendor-enquiry-section">
+      <!-- <div class="sec vendor-enquiry-section">
         <div class="vendor-enquiry-card consultant-enquiry-card">
           <div class="vendor-enquiry-copy">
             <span class="vendor-enquiry-pill"><i class="fa-solid fa-house-user"></i> Service Provider Enquiry</span>
@@ -1523,7 +1521,7 @@
             Submit Enquiry
           </button>
         </div>
-      </div>
+      </div> -->
     <?php endif; ?>
 
     <!-- Consultants & Enquiry -->
@@ -1587,7 +1585,7 @@
       </div>
     <?php endif; ?>
 
-    @if($showConsultantsSection)
+    <!-- @if($showConsultantsSection)
 
       <div class="sec vendor-enquiry-section">
         <div class="vendor-enquiry-card consultant-enquiry-card">
@@ -1601,7 +1599,7 @@
           </button>
         </div>
       </div>
-    @endif
+    @endif -->
 
     @if(data_get($sectionToggles, 'vendor_enquiry', true))
       <div class="sec vendor-enquiry-section">

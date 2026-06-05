@@ -385,7 +385,7 @@ class ServiceProviderStoreController extends Controller
                 'numbers' => $phoneNumber,
                 'apikey' => $apikey,
                 'peid' => $peid,
-                'templateid' => 1707177936224680013,
+                'templateid' => 1707178066078642986,
             ]);
 
             $curl = curl_init();

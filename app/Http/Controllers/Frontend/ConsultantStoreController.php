@@ -432,7 +432,7 @@ class ConsultantStoreController extends Controller
                     ?: $user?->phone_number
                     ?: $user?->whatsapp_number
             );
-
+          
             if (! $phoneNumber) {
                 Log::warning('Consultant inquiry SMS skipped because no consultant phone number is available', [
                     'consultant_id' => $consultant->id,
@@ -458,7 +458,7 @@ class ConsultantStoreController extends Controller
             }
 
             $message = sprintf(
-                'Hello %s, A new inquiry has been submitted for %s. Please log in to your consultant account to check and respond to the inquiry. Thank you – Annuvedant Team',
+                'Hello %s, A new inquiry has been submitted for %s. Please log in to your consultant account to check and respond to the inquiry. Thank you - Annuvedant Team',
                 $consultant->publicDisplayName(),
                 $service->name
             );
@@ -471,7 +471,7 @@ class ConsultantStoreController extends Controller
                 'numbers' => $phoneNumber,
                 'apikey' => $apikey,
                 'peid' => $peid,
-                'templateid' => 1707177936224680013,
+                'templateid' => 1707178066059044620,
             ]);
 
             $curl = curl_init();
@@ -487,6 +487,7 @@ class ConsultantStoreController extends Controller
             ]);
 
             $response = curl_exec($curl);
+            // echo'<pre>';print_r($response);exit();
             if (curl_errno($curl)) {
                 Log::error('Consultant inquiry SMS failed', [
                     'phone' => $phoneNumber,
