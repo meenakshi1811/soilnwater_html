@@ -1102,33 +1102,34 @@
             </div>
             <div class="row g-3 align-items-start">
               <div class="col-12 col-lg-9">
-            <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3 ad-slider auto-ad-slider" data-show-arrows="true" data-pause-on-hover="false">
-              @forelse(($topVendors ?? collect()) as $vendor)
-                <div class="col ad-slide">
-                  <div class="vendor-card card h-100">
-                    @php
-                      $firstProduct = $vendor->products->first();
-                      $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
-                      $productImage = !empty($productImages) ? asset($productImages[0]) : null;
-                      $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
-                      $logoImage = $vendor->logo ? asset($vendor->logo) : null;
-                      $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
-                    @endphp
-                    <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
-                    <div class="vendor-card-body card-body d-flex flex-column">
-                      <p>{{ $vendor->publicDisplayName() }} @if($vendor->is_premium)⭐@endif</p>
-                      @php($primaryBranch = $vendor->branches->first())
-                      <div class="vendor-card-sub">{{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products</div>
-                      <a href="{{ route('store.show', $vendor->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
+                <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3">
+                  @forelse(($topVendors ?? collect()) as $vendor)
+                    <div class="col">
+                      <div class="vendor-card card h-100">
+                        @php
+                          $firstProduct = $vendor->products->first();
+                          $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
+                          $productImage = !empty($productImages) ? asset($productImages[0]) : null;
+                          $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
+                          $logoImage = $vendor->logo ? asset($vendor->logo) : null;
+                          $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
+                        @endphp
+                        <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
+                        <div class="vendor-card-body card-body d-flex flex-column">
+                          <p>{{ $vendor->publicDisplayName() }} @if($vendor->is_premium)⭐@endif</p>
+                          @php($primaryBranch = $vendor->branches->first())
+                          <div class="vendor-card-sub">{{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products</div>
+                          <a href="{{ route('store.show', $vendor->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  @empty
+                    <div class="col">
+                      <div class="view-all-card ad-slot-card h-100" style="min-height:130px;"><h4>No vendors available</h4><p>Please check back later.</p></div>
+                    </div>
+                  @endforelse
                 </div>
-              @empty
-                <div class="col">
-                  <div class="view-all-card ad-slot-card h-100" style="min-height:130px;"><h4>No vendors available</h4><p>Please check back later.</p></div>
-                </div>
-              @endforelse
-            </div></div>
+              </div>
               <aside class="col-12 col-lg-3 section-side-ad ad-slider auto-ad-slider top-vendor-side-slider" aria-label="Top vendor side ads slider">
                 @forelse(($topVendorsSideAds ?? collect()) as $ad)
                   <div class="side-card ad-slide top-vendor-side-image-card" aria-label="{{ $ad->title }}">
