@@ -1075,12 +1075,12 @@
       </div>
     @endif
     <!-- Top Vendors + Properties with Right Ad Rail -->
-    <?php if ($showTopVendors || $showPopularPropertiesNearGreenwood): ?>
+    @if($showTopVendors || $showPopularPropertiesNearGreenwood)
 
       <div class="content-with-ad-rail">
         <div class="content-main-stack">
           <!-- Top Vendors -->
-          <?php if ($showTopVendors): ?>
+          @if($showTopVendors)
 
           <div class="sec">
             <div class="sec-head">
@@ -1115,10 +1115,11 @@
                           $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
                           $logoImage = $vendor->logo ? asset($vendor->logo) : null;
                           $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
+                          $vendorDisplayName = $vendor->publicDisplayName() . ($vendor->is_premium ? ' ⭐' : '');
                         @endphp
                         <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
                         <div class="vendor-card-body card-body d-flex flex-column">
-                          <p>{{ $vendor->publicDisplayName() }} @if($vendor->is_premium)⭐@endif</p>
+                          <p>{{ $vendorDisplayName }}</p>
                           @php($primaryBranch = $vendor->branches->first())
                           <div class="vendor-card-sub">{{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products</div>
                           <a href="{{ route('store.show', $vendor->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
@@ -1154,7 +1155,7 @@
 
 
           <!-- Popular Properties Near Greenwood (Bootstrap redesign with large imagery + ads slider) -->
-          <?php if ($showPopularPropertiesNearGreenwood): ?>
+          @if($showPopularPropertiesNearGreenwood)
 
             <section class="sec ppng-bootstrap-section">
               <div class="sec-head">
