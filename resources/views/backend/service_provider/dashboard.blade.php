@@ -11,7 +11,7 @@
             <p class="mb-0 text-white-50">Welcome, {{ $service_provider->publicDisplayName() }}. Manage your branches and public service provider profile.</p>
         </div>
         <a href="{{ route('service_provider.show', $service_provider->slug) }}" target="_blank" class="btn btn-light service_provider-hero-btn">
-            <i class="fa-solid fa-external-link-alt me-1"></i> View live service_provider
+            <i class="fa-solid fa-external-link-alt me-1"></i> View live Service Provider
         </a>
     </div>
 
