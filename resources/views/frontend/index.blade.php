@@ -1091,13 +1091,12 @@
               <a class="view-all" href="{{ route('frontend.vendors.index') }}">VIEW ALL ▶</a>
             </div>
             <div class="ad-slider auto-ad-slider top-ad-slider top-vendors-featured-slider" aria-label="Top vendor featured ads slider">
-              @if($topVendorsHeaderAdsList->isNotEmpty())
-                @foreach($topVendorsHeaderAdsList as $ad)
-                  <div class="vendor-top-ad ad-slide top-vendor-image-slide">
-                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
-                  </div>
-                @endforeach
-              @else
+              @foreach($topVendorsHeaderAdsList as $ad)
+                <div class="vendor-top-ad ad-slide top-vendor-image-slide">
+                  <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                </div>
+              @endforeach
+              @if($topVendorsHeaderAdsList->isEmpty())
                 <div class="vendor-top-ad ad-slide">
                   <div>
                     <div class="vendor-top-ad-title">Boost Vendor Reach</div>
@@ -1110,30 +1109,29 @@
             <div class="row g-3 align-items-start">
               <div class="col-12 col-lg-9">
                 <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3">
-                  @if($topVendorsList->isNotEmpty())
-                    @foreach($topVendorsList as $vendor)
-                      <div class="col">
-                        <div class="vendor-card card h-100">
-                          @php
-                            $firstProduct = $vendor->products->first();
-                            $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
-                            $productImage = !empty($productImages) ? asset($productImages[0]) : null;
-                            $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
-                            $logoImage = $vendor->logo ? asset($vendor->logo) : null;
-                            $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
-                            $vendorDisplayName = $vendor->publicDisplayName() . ($vendor->is_premium ? ' ⭐' : '');
-                          @endphp
-                          <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
-                          <div class="vendor-card-body card-body d-flex flex-column">
-                            <p>{{ $vendorDisplayName }}</p>
-                            @php($primaryBranch = $vendor->branches->first())
-                            <div class="vendor-card-sub">{{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products</div>
-                            <a href="{{ route('store.show', $vendor->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
-                          </div>
+                  @foreach($topVendorsList as $vendor)
+                    <div class="col">
+                      <div class="vendor-card card h-100">
+                        @php
+                          $firstProduct = $vendor->products->first();
+                          $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
+                          $productImage = !empty($productImages) ? asset($productImages[0]) : null;
+                          $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
+                          $logoImage = $vendor->logo ? asset($vendor->logo) : null;
+                          $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
+                          $vendorDisplayName = $vendor->publicDisplayName() . ($vendor->is_premium ? ' ⭐' : '');
+                        @endphp
+                        <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
+                        <div class="vendor-card-body card-body d-flex flex-column">
+                          <p>{{ $vendorDisplayName }}</p>
+                          @php($primaryBranch = $vendor->branches->first())
+                          <div class="vendor-card-sub">{{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products</div>
+                          <a href="{{ route('store.show', $vendor->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
                         </div>
                       </div>
-                    @endforeach
-                  @else
+                    </div>
+                  @endforeach
+                  @if($topVendorsList->isEmpty())
                     <div class="col">
                       <div class="view-all-card ad-slot-card h-100" style="min-height:130px;"><h4>No vendors available</h4><p>Please check back later.</p></div>
                     </div>
@@ -1141,13 +1139,12 @@
                 </div>
               </div>
               <aside class="col-12 col-lg-3 section-side-ad ad-slider auto-ad-slider top-vendor-side-slider" aria-label="Top vendor side ads slider">
-                @if($topVendorsSideAdsList->isNotEmpty())
-                  @foreach($topVendorsSideAdsList as $ad)
-                    <div class="side-card ad-slide top-vendor-side-image-card" aria-label="{{ $ad->title }}">
-                      <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
-                    </div>
-                  @endforeach
-                @else
+                @foreach($topVendorsSideAdsList as $ad)
+                  <div class="side-card ad-slide top-vendor-side-image-card" aria-label="{{ $ad->title }}">
+                    <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                  </div>
+                @endforeach
+                @if($topVendorsSideAdsList->isEmpty())
                   <div class="side-card ad-slide">
                     <img class="side-card-img" src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&q=70" alt="Top vendor ad">
                     <div class="side-card-body">
