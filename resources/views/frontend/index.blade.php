@@ -1444,26 +1444,27 @@
     @endif
 
     <!-- Popular Service Providers -->
-    @if(!empty($sectionToggles['popular_services']) && $sectionToggles['popular_services'])
-      @php
-        $homepageServiceProviders = $topServiceProviders ?? collect();
-        $homepageServiceProviderSlides = $homepageServiceProviders->chunk(5);
-      @endphp
+    <?php
+      $showServiceProvidersSection = ! empty($sectionToggles['popular_services']) && $sectionToggles['popular_services'];
+      $homepageServiceProviders = $topServiceProviders ?? collect();
+      $homepageServiceProviderSlides = $homepageServiceProviders->chunk(5);
+    ?>
+    <?php if ($showServiceProvidersSection): ?>
       <div class="sec">
         <div class="sec-head">
           <div class="sec-title"><span class="icon"><i class="fa-solid fa-house"></i></span> Popular Service Providers</div>
           <div class="consultant-section-actions">
             <button type="button" class="consultant-enquiry-link" data-bs-toggle="modal" data-bs-target="#serviceProviderEnquiryModal">Enquiry</button>
-            <a class="view-all" href="{{ route('frontend.service_providers.index') }}">VIEW ALL ▶</a>
+            <a class="view-all" href="<?= e(route('frontend.service_providers.index')) ?>">VIEW ALL ▶</a>
           </div>
         </div>
         <div class="ad-slider auto-ad-slider consultants-home-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured service providers slider">
-          @if($homepageServiceProviderSlides->isNotEmpty())
-            @foreach($homepageServiceProviderSlides as $serviceProviderChunk)
+          <?php if ($homepageServiceProviderSlides->isNotEmpty()): ?>
+            <?php foreach ($homepageServiceProviderSlides as $serviceProviderChunk): ?>
               <div class="ad-slide">
                 <div class="consult-grid consult-grid-professional">
-                  @foreach($serviceProviderChunk as $serviceProvider)
-                    @php
+                  <?php foreach ($serviceProviderChunk as $serviceProvider): ?>
+                    <?php
                       $primaryBranch = $serviceProvider->branches->first();
                       $firstService = $serviceProvider->services->firstWhere('status', 'approved') ?: $serviceProvider->services->first();
                       $serviceImage = $firstService?->image_path ? asset($firstService->image_path) : null;
@@ -1474,19 +1475,19 @@
                       $serviceProviderDistance = $hasLocation && $serviceProvider->nearest_distance_km !== null
                         ? ' • '.number_format($serviceProvider->nearest_distance_km, 1).' km'
                         : '';
-                    @endphp
-                    <a class="con-card text-decoration-none" href="{{ route('service_provider.show', $serviceProvider->slug) }}" aria-label="View {{ $serviceProvider->publicDisplayName() }} service provider page">
-                      <img src="{{ $serviceProviderCardImage }}" alt="{{ $serviceProvider->publicDisplayName() }}">
+                    ?>
+                    <a class="con-card text-decoration-none" href="<?= e(route('service_provider.show', $serviceProvider->slug)) ?>" aria-label="View <?= e($serviceProvider->publicDisplayName()) ?> service provider page">
+                      <img src="<?= e($serviceProviderCardImage) ?>" alt="<?= e($serviceProvider->publicDisplayName()) ?>">
                       <div class="con-card-body">
-                        <p class="con-name">{{ $serviceProvider->publicDisplayName() }}@if($serviceProvider->is_premium) ⭐@endif</p>
-                        <span class="con-role">{{ $serviceProviderCity }} • {{ $serviceProvider->services_count }} Services{{ $serviceProviderDistance }}</span>
+                        <p class="con-name"><?= e($serviceProvider->publicDisplayName()) ?><?php if ($serviceProvider->is_premium): ?> ⭐<?php endif; ?></p>
+                        <span class="con-role"><?= e($serviceProviderCity) ?> • <?= e($serviceProvider->services_count) ?> Services<?= e($serviceProviderDistance) ?></span>
                       </div>
                     </a>
-                  @endforeach
+                  <?php endforeach; ?>
                 </div>
               </div>
-            @endforeach
-          @else
+            <?php endforeach; ?>
+          <?php else: ?>
             <div class="ad-slide">
               <div class="consult-grid consult-grid-professional">
                 <div class="con-card consultant-empty-card">
@@ -1497,12 +1498,10 @@
                 </div>
               </div>
             </div>
-          @endif
+          <?php endif; ?>
         </div>
       </div>
-    @endif
 
-    @if(!empty($sectionToggles['popular_services']) && $sectionToggles['popular_services'])
       <div class="sec vendor-enquiry-section">
         <div class="vendor-enquiry-card consultant-enquiry-card">
           <div class="vendor-enquiry-copy">
@@ -1515,7 +1514,7 @@
           </button>
         </div>
       </div>
-    @endif
+    <?php endif; ?>
 
     <!-- Consultants & Enquiry -->
     <?php
