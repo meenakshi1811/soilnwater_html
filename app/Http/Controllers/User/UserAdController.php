@@ -499,8 +499,14 @@ class UserAdController extends Controller
             ->addColumn('subcategory_name', fn (UserAd $ad) => $ad->subcategory?->name ?? '-')
             ->addColumn('location_name', fn (UserAd $ad) => $ad->location ?? '-')
             ->addColumn('status_badge', function (UserAd $ad) {
+                if ($ad->status === 'approved') {
+                    $badge = $ad->isCurrentlyActive() ? 'success' : 'danger';
+                    $label = $ad->isCurrentlyActive() ? 'Active' : 'Expired';
+
+                    return '<span class="badge bg-'.$badge.'">'.$label.'</span>';
+                }
+
                 $badge = match ($ad->status) {
-                    'approved' => 'success',
                     'rejected' => 'danger',
                     'pending' => 'warning',
                     default => 'secondary',
