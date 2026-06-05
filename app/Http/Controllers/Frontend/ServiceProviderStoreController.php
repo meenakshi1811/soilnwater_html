@@ -100,9 +100,10 @@ class ServiceProviderStoreController extends Controller
         ]);
 
         if ($service_provider->email) {
-            $body = view('emails.service_provider.new-inquiry', compact('inquiry', 'service_provider', 'service'))->render();
-            Mail::send([], [], function ($message) use ($service_provider, $service, $body) {
-                $message->to($service_provider->email)->subject('New consultation enquiry: '.$service->name)->html($body);
+            $subjectLine = 'New services enquiry: '.$service->name;
+            $body = view('emails.service_provider.new-inquiry', compact('inquiry', 'service_provider', 'service', 'subjectLine'))->render();
+            Mail::send([], [], function ($message) use ($service_provider, $subjectLine, $body) {
+                $message->to($service_provider->email)->subject($subjectLine)->html($body);
             });
         }
 
@@ -151,9 +152,10 @@ class ServiceProviderStoreController extends Controller
         ]);
 
         if ($service_provider->email) {
-            $body = view('emails.service_provider.new-inquiry', compact('inquiry', 'service_provider', 'service'))->render();
-            Mail::send([], [], function ($message) use ($service_provider, $service, $body) {
-                $message->to($service_provider->email)->subject('New consultation enquiry: '.$service->name)->html($body);
+            $subjectLine = 'New services enquiry: '.$service->name;
+            $body = view('emails.service_provider.new-inquiry', compact('inquiry', 'service_provider', 'service', 'subjectLine'))->render();
+            Mail::send([], [], function ($message) use ($service_provider, $subjectLine, $body) {
+                $message->to($service_provider->email)->subject($subjectLine)->html($body);
             });
         }
 
@@ -428,7 +430,7 @@ class ServiceProviderStoreController extends Controller
             $peid = config('services.message.peid');
 
             $message = sprintf(
-                'Hello %s, A new inquiry has been submitted for %s. Please log in to your service_provider account to check and respond to the inquiry. Thank you – Annuvedant Team',
+                'Hello %s, A new inquiry has been submitted for %s. Please log in to your Services account to check and respond to the inquiry. Thank you - Annuvedant Team',
                 $service_provider->publicDisplayName(),
                 $service->name
             );
