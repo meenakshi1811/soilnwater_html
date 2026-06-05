@@ -3,6 +3,8 @@
 @section('content')
 @php
   $sectionToggles = data_get($homepageSetting ?? null, 'section_toggles', []);
+  $showTopVendors = !empty($sectionToggles['top_vendors']) && $sectionToggles['top_vendors'];
+  $showPopularPropertiesNearGreenwood = !empty($sectionToggles['popular_properties_near_greenwood']) && $sectionToggles['popular_properties_near_greenwood'];
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
@@ -1073,12 +1075,12 @@
       </div>
     @endif
     <!-- Top Vendors + Properties with Right Ad Rail -->
-    @if(!empty($sectionToggles['top_vendors']) && $sectionToggles['top_vendors'] ||(!empty($sectionToggles['popular_properties_near_greenwood']) && $sectionToggles['popular_properties_near_greenwood']))
+    <?php if ($showTopVendors || $showPopularPropertiesNearGreenwood): ?>
 
       <div class="content-with-ad-rail">
         <div class="content-main-stack">
           <!-- Top Vendors -->
-          @if(!empty($sectionToggles['top_vendors']) && $sectionToggles['top_vendors'])
+          <?php if ($showTopVendors): ?>
 
           <div class="sec">
             <div class="sec-head">
@@ -1148,11 +1150,11 @@
               </aside>
             </div>
           </div>
-          @endif
+          <?php endif; ?>
 
 
           <!-- Popular Properties Near Greenwood (Bootstrap redesign with large imagery + ads slider) -->
-          @if(!empty($sectionToggles['popular_properties_near_greenwood']) && $sectionToggles['popular_properties_near_greenwood'])
+          <?php if ($showPopularPropertiesNearGreenwood): ?>
 
             <section class="sec ppng-bootstrap-section">
               <div class="sec-head">
@@ -1244,10 +1246,10 @@
                 </div>
               </div>
             </section>
-          @endif
+          <?php endif; ?>
         </div><!-- /content-main-stack -->
       </div><!-- /content-with-ad-rail -->
-      @endif
+      <?php endif; ?>
 
     <!-- Popular Properties redesign (single right-side ad with equal height) -->
     @if(!empty($sectionToggles['popular_properties']) && $sectionToggles['popular_properties'])
