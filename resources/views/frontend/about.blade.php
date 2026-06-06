@@ -40,7 +40,7 @@
           <h4>Marketplace &amp; Listings</h4>
           <ul class="about-list">
             <li>Buy, sell, and explore products across multiple categories</li>
-            <li>Vendor and service provider directories</li>
+            <li>Vendor and service directories</li>
             <li>Classified ads and business listings</li>
           </ul>
         </div>
@@ -55,7 +55,7 @@
         <div class="about-box">
           <h4>Services &amp; Consultants</h4>
           <ul class="about-list">
-            <li>Find local service providers</li>
+            <li>Find local services</li>
             <li>Connect with industry experts and consultants</li>
             <li>Request quotations and compare options</li>
           </ul>
@@ -149,7 +149,7 @@
     <section class="about-cta">
       <h2>Get in Touch</h2>
       <p>We are constantly evolving and improving to serve you better.</p>
-      <p>Whether you are a buyer, seller, service provider, or business - SoilnWater is built for you.</p>
+      <p>Whether you are a buyer, seller, service, or business - SoilnWater is built for you.</p>
     </section>
   </div>
 </div>

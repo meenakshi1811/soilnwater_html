@@ -13,20 +13,20 @@ class EnsureUserIsServiceProvider
         $user = $request->user();
 
         if (! $user || $user->role !== 'service_provider') {
-            abort(403, 'Service Provider access only.');
+            abort(403, 'Service access only.');
         }
 
         $service_provider = $user->serviceProvider;
 
         if (! $service_provider) {
-            abort(403, 'Service Provider profile not found.');
+            abort(403, 'Service profile not found.');
         }
 
         if (! $service_provider->isApproved()) {
             auth()->logout();
 
             return redirect()->route('login')->withErrors([
-                'email' => 'Your service provider account is pending admin approval. You will be notified once approved.',
+                'email' => 'Your service account is pending admin approval. You will be notified once approved.',
             ]);
         }
 

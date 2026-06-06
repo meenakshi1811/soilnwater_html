@@ -6,7 +6,7 @@
 <div class="admin-panel ems-page">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <p class="ems-kicker mb-1">Service Provider Panel</p>
+            <p class="ems-kicker mb-1">Service Panel</p>
             <h2 class="admin-title mb-0">My Branches</h2>
         </div>
         <a href="{{ route('service_provider.branches.create') }}" class="btn btn-primary ems-btn-primary">
@@ -53,7 +53,7 @@
 document.querySelectorAll('.js-delete-branch').forEach(function(btn) {
     btn.addEventListener('click', function() {
         if (!confirm('Delete this branch permanently?')) return;
-        fetch('/service-provider/branches/' + btn.dataset.id, {
+        fetch('/service/branches/' + btn.dataset.id, {
             method: 'DELETE',
             headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }
         }).then(r => r.json()).then(() => location.reload());

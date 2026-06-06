@@ -192,7 +192,7 @@ class ServiceProviderController extends Controller
             $this->sendServiceProviderStatusMail($service_provider, $service_provider->status);
         }
 
-        return response()->json(['message' => 'ServiceProvider updated successfully.']);
+        return response()->json(['message' => 'Service updated successfully.']);
     }
 
     public function approve(Request $request, ServiceProvider $service_provider): JsonResponse
@@ -205,7 +205,7 @@ class ServiceProviderController extends Controller
 
         $emailSent = $this->sendServiceProviderStatusMail($service_provider, 'approved');
         return response()->json([
-            'message' => 'ServiceProvider approved. They can now log in to the service_provider portal.'.($emailSent ? ' Email notification sent.' : ''),
+            'message' => 'Service approved. They can now log in to the service portal.'.($emailSent ? ' Email notification sent.' : ''),
         ]);
     }
 
@@ -220,7 +220,7 @@ class ServiceProviderController extends Controller
         $emailSent = $this->sendServiceProviderStatusMail($service_provider, 'rejected');
 
         return response()->json([
-            'message' => 'ServiceProvider application rejected.'.($emailSent ? ' Email notification sent.' : ''),
+            'message' => 'Service application rejected.'.($emailSent ? ' Email notification sent.' : ''),
         ]);
     }
 
@@ -253,7 +253,7 @@ class ServiceProviderController extends Controller
         }
 
         return response()->json([
-            'message' => 'ServiceProvider deleted successfully.'.($recipient && $mail ? ' Email notification sent.' : ''),
+            'message' => 'Service deleted successfully.'.($recipient && $mail ? ' Email notification sent.' : ''),
         ]);
     }
 
@@ -283,7 +283,7 @@ class ServiceProviderController extends Controller
         ]);
 
         return response()->json([
-            'message' => $service_provider->is_premium ? 'ServiceProvider marked as premium.' : 'ServiceProvider removed from premium.',
+            'message' => $service_provider->is_premium ? 'Service marked as premium.' : 'Service removed from premium.',
             'is_premium' => $service_provider->is_premium,
         ]);
     }

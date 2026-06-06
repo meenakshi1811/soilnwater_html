@@ -13,13 +13,13 @@
 
     <div class="chart-card text-center py-5">
         <i class="fa-solid {{ $isRejected ? 'fa-circle-xmark text-danger' : 'fa-hourglass-half text-warning' }} fa-3x mb-3"></i>
-        <h2 class="admin-title">{{ $isRejected ? 'Service Provider application rejected' : 'Account pending approval' }}</h2>
+        <h2 class="admin-title">{{ $isRejected ? 'Service application rejected' : 'Account pending approval' }}</h2>
         <p class="text-secondary col-lg-8 mx-auto">
             @if ($isRejected)
-                Your service provider application was rejected by the admin team. Please contact support for the next steps.
+                Your service application was rejected by the admin team. Please contact support for the next steps.
             @else
-                Thank you for applying as a service_provider on SoilNWater. Our team is reviewing your application.
-                You will be able to access the service provider portal once an administrator approves your account.
+                Thank you for applying as a service on SoilNWater. Our team is reviewing your application.
+                You will be able to access the service portal once an administrator approves your account.
             @endif
         </p>
         @if($service_provider)

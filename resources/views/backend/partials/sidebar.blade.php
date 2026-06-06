@@ -257,7 +257,7 @@
                     <summary class="{{ $serviceProvidersMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
                         <span class="d-inline-flex align-items-center gap-2">
                             <i class="fa-solid fa-screwdriver-wrench"></i>
-                            <span>Service Providers</span>
+                            <span>Services</span>
                         </span>
                         <i class="fa-solid fa-chevron-down small"></i>
                     </summary>
@@ -265,7 +265,7 @@
                         <li>
                             <a class="{{ request()->routeIs('admin.service_providers.*') ? 'active' : '' }}" href="{{ route('admin.service_providers.index') }}">
                                 <i class="fa-solid fa-list"></i>
-                                <span>All Service Providers</span>
+                                <span>All Services</span>
                             </a>
                         </li>
                         <li>
@@ -443,7 +443,7 @@
                     <summary class="{{ $serviceProviderPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
                         <span class="d-inline-flex align-items-center gap-2">
                             <i class="fa-solid fa-screwdriver-wrench"></i>
-                            <span>Service Provider Pages</span>
+                            <span>Service Pages</span>
                         </span>
                         <i class="fa-solid fa-chevron-down small"></i>
                     </summary>

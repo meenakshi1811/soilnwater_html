@@ -65,7 +65,7 @@ Route::get('/offers-market/{offer}', [OfferPageController::class, 'show'])->name
 Route::post('/offers-market/{offer}/report', [OfferReportController::class, 'store'])->middleware(['auth', 'verified'])->name('frontend.offers.report');
 Route::get('/vendors', [OfferPageController::class, 'vendors'])->name('frontend.vendors.index');
 Route::get('/consultants', [OfferPageController::class, 'consultants'])->name('frontend.consultants.index');
-Route::get('/service-providers', [OfferPageController::class, 'serviceProviders'])->name('frontend.service_providers.index');
+Route::get('/services', [OfferPageController::class, 'serviceProviders'])->name('frontend.service_providers.index');
 Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
 Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');
 Route::post('/ads-market/{ad}/report', [AdReportController::class, 'store'])->middleware(['auth', 'verified'])->name('frontend.ads.report');
@@ -96,11 +96,11 @@ Route::post('/store/{slug}/enquiry', [VendorStoreController::class, 'sendGeneral
 Route::post('/store/{slug}/products/{product}/enquiry', [VendorStoreController::class, 'sendInquiry'])->name('store.products.enquiry');
 Route::post('/vendor-enquiry', [UserAdController::class, 'vendorEnquiry'])->name('frontend.vendor-enquiry');
 Route::post('/consultant-enquiry', [UserAdController::class, 'consultantEnquiry'])->name('frontend.consultant-enquiry');
-Route::post('/service-provider-enquiry', [UserAdController::class, 'serviceProviderEnquiry'])->name('frontend.service-provider-enquiry');
+Route::post('/service-enquiry', [UserAdController::class, 'serviceProviderEnquiry'])->name('frontend.service-provider-enquiry');
 Route::post('/consultant/{slug}/services/{service}/enquiry', [ConsultantStoreController::class, 'sendServiceInquiry'])->name('consultant.services.enquiry');
 Route::post('/consultant/{slug}/enquiry', [ConsultantStoreController::class, 'sendGeneralInquiry'])->name('consultant.enquiry');
-Route::post('/service-provider/{slug}/services/{service}/enquiry', [ServiceProviderStoreController::class, 'sendServiceInquiry'])->name('service_provider.services.enquiry');
-Route::post('/service-provider/{slug}/enquiry', [ServiceProviderStoreController::class, 'sendGeneralInquiry'])->name('service_provider.enquiry');
+Route::post('/service/{slug}/services/{service}/enquiry', [ServiceProviderStoreController::class, 'sendServiceInquiry'])->name('service_provider.services.enquiry');
+Route::post('/service/{slug}/enquiry', [ServiceProviderStoreController::class, 'sendGeneralInquiry'])->name('service_provider.enquiry');
 
 Auth::routes(['verify' => true]);
 
@@ -187,9 +187,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
 
-    Route::get('/service-provider/pending', [ServiceProviderPendingController::class, 'show'])->name('service_provider.pending');
+    Route::get('/service/pending', [ServiceProviderPendingController::class, 'show'])->name('service_provider.pending');
 
-    Route::prefix('service-provider')->name('service_provider.')->middleware(['service_provider.account'])->group(function () {
+    Route::prefix('service')->name('service_provider.')->middleware(['service_provider.account'])->group(function () {
         Route::get('/dashboard', [ServiceProviderDashboardController::class, 'dashboard'])->middleware('service_provider')->name('dashboard');
         Route::get('/branches', [ServiceProviderBranchController::class, 'index'])->middleware('service_provider')->name('branches.index');
         Route::get('/branches/create', [ServiceProviderBranchController::class, 'create'])->middleware('service_provider')->name('branches.create');
@@ -375,7 +375,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
 
-        Route::prefix('service-provider-services')->name('service-provider-services.')->group(function () {
+        Route::prefix('service-approvals')->name('service-provider-services.')->group(function () {
             Route::get('/', [ServiceProviderServiceApprovalController::class, 'index'])->name('index');
             Route::get('/data', [ServiceProviderServiceApprovalController::class, 'data'])->name('data');
             Route::get('/all-services', [ServiceProviderServiceApprovalController::class, 'allServicesIndex'])->name('all.index');
@@ -386,7 +386,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{service}', [ServiceProviderServiceApprovalController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('service-providers')->name('service_providers.')->group(function () {
+        Route::prefix('services')->name('service_providers.')->group(function () {
             Route::get('/', [ServiceProviderController::class, 'index'])->name('index');
             Route::get('/data', [ServiceProviderController::class, 'data'])->name('data');
             Route::get('/{service_provider}', [ServiceProviderController::class, 'show'])->name('show');
@@ -417,9 +417,9 @@ Route::get('/consultant/{slug}/services/category/{category}/{subcategory}', [Con
 Route::get('/consultant/{slug}/about', [ConsultantStoreController::class, 'about'])->name('consultant.about');
 Route::get('/consultant/{slug}/contact', [ConsultantStoreController::class, 'contact'])->name('consultant.contact');
 
-Route::get('/service-provider/{slug}', [ServiceProviderStoreController::class, 'show'])->name('service_provider.show');
-Route::get('/service-provider/{slug}/services', [ServiceProviderStoreController::class, 'services'])->name('service_provider.public-services.index');
-Route::get('/service-provider/{slug}/services/category/{category}', [ServiceProviderStoreController::class, 'categoryServices'])->name('service_provider.public-services.category');
-Route::get('/service-provider/{slug}/services/category/{category}/{subcategory}', [ServiceProviderStoreController::class, 'subcategoryServices'])->name('service_provider.public-services.subcategory');
-Route::get('/service-provider/{slug}/about', [ServiceProviderStoreController::class, 'about'])->name('service_provider.about');
-Route::get('/service-provider/{slug}/contact', [ServiceProviderStoreController::class, 'contact'])->name('service_provider.contact');
+Route::get('/service/{slug}', [ServiceProviderStoreController::class, 'show'])->name('service_provider.show');
+Route::get('/service/{slug}/services', [ServiceProviderStoreController::class, 'services'])->name('service_provider.public-services.index');
+Route::get('/service/{slug}/services/category/{category}', [ServiceProviderStoreController::class, 'categoryServices'])->name('service_provider.public-services.category');
+Route::get('/service/{slug}/services/category/{category}/{subcategory}', [ServiceProviderStoreController::class, 'subcategoryServices'])->name('service_provider.public-services.subcategory');
+Route::get('/service/{slug}/about', [ServiceProviderStoreController::class, 'about'])->name('service_provider.about');
+Route::get('/service/{slug}/contact', [ServiceProviderStoreController::class, 'contact'])->name('service_provider.contact');

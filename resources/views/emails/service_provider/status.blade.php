@@ -14,19 +14,19 @@
 
     @if ($isPending)
         <p style="margin: 0 0 16px; color: #374151; font-size: 15px; line-height: 1.7;">
-            Welcome to {{ config('app.name', 'SoilNWater') }}. Your service provider profile is under observation. The admin team will check your details and approve it soon.
+            Welcome to {{ config('app.name', 'SoilNWater') }}. Your service profile is under observation. The admin team will check your details and approve it soon.
         </p>
     @elseif ($isApproved)
         <p style="margin: 0 0 16px; color: #374151; font-size: 15px; line-height: 1.7;">
-            Good news! Your service provider account has been approved by the {{ config('app.name', 'SoilNWater') }} team. You can now access the service provider portal and manage your service provider profile, branches, and enquiries.
+            Good news! Your service account has been approved by the {{ config('app.name', 'SoilNWater') }} team. You can now access the service portal and manage your service profile, branches, and enquiries.
         </p>
     @elseif ($isRejected)
         <p style="margin: 0 0 16px; color: #374151; font-size: 15px; line-height: 1.7;">
-            Thank you for registering as a service_provider with {{ config('app.name', 'SoilNWater') }}. After reviewing your application, our team is unable to approve it at this time.
+            Thank you for registering as a service with {{ config('app.name', 'SoilNWater') }}. After reviewing your application, our team is unable to approve it at this time.
         </p>
     @else
         <p style="margin: 0 0 16px; color: #374151; font-size: 15px; line-height: 1.7;">
-            This email confirms that your service provider account has been removed from {{ config('app.name', 'SoilNWater') }} by the admin team.
+            This email confirms that your service account has been removed from {{ config('app.name', 'SoilNWater') }} by the admin team.
         </p>
     @endif
 
@@ -47,22 +47,22 @@
 
     @if ($isPending)
         <p style="margin: 0 0 12px; color: #374151; font-size: 14px; line-height: 1.7;">
-            Please wait for admin approval before trying to access the service provider portal.
+            Please wait for admin approval before trying to access the service portal.
         </p>
     @elseif ($isApproved)
         <p style="margin: 0 0 18px; color: #374151; font-size: 14px; line-height: 1.7;">
-            Please login with your registered credentials to continue setting up your service provider profile.
+            Please login with your registered credentials to continue setting up your service profile.
         </p>
         <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 0 18px;">
             <tr>
                 <td style="border-radius: 8px; background-color: #12824e;">
-                    <a href="{{ url('/login') }}" style="display: inline-block; padding: 11px 18px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700;">Login to Service Provider Portal</a>
+                    <a href="{{ url('/login') }}" style="display: inline-block; padding: 11px 18px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700;">Login to Service Portal</a>
                 </td>
             </tr>
         </table>
         @if (! empty($service_providerDetails['service_provider_url']))
             <p style="margin: 0 0 12px; color: #4b5563; font-size: 13px; line-height: 1.7;">
-                Your public service_provider link: <a href="{{ $service_providerDetails['service_provider_url'] }}" style="color: #12824e;">{{ $service_providerDetails['service_provider_url'] }}</a>
+                Your public service link: <a href="{{ $service_providerDetails['service_provider_url'] }}" style="color: #12824e;">{{ $service_providerDetails['service_provider_url'] }}</a>
             </p>
         @endif
     @elseif ($isRejected)

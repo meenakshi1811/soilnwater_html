@@ -5,13 +5,13 @@
   <div class="main-col">
     <section class="sec">
       <div class="sec-head">
-        <div class="sec-title"><span class="icon"><i class="fa-solid fa-user-tie"></i></span> All Service Providers</div>
+        <div class="sec-title"><span class="icon"><i class="fa-solid fa-user-tie"></i></span> All Services</div>
       </div>
       <p class="small text-muted mb-3">
         @if($hasLocation)
-          Showing nearby premium service providers first, then nearby normal service_providers.
+          Showing nearby premium services first, then nearby normal services.
         @else
-          Showing latest premium service providers first, followed by latest normal service_providers.
+          Showing latest premium services first, followed by latest normal services.
         @endif
       </p>
 
@@ -33,12 +33,12 @@
                     • {{ number_format($service_provider->nearest_distance_km, 1) }} km
                   @endif
                 </div>
-                <a href="{{ route('service_provider.show', $service_provider->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Service Provider</a>
+                <a href="{{ route('service_provider.show', $service_provider->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Service</a>
               </div>
             </div>
           </div>
         @empty
-          <div class="col-12"><p class="text-muted">No service providers found.</p></div>
+          <div class="col-12"><p class="text-muted">No services found.</p></div>
         @endforelse
       </div>
 
