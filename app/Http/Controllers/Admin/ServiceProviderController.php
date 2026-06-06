@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ServiceProviderPublicPageApprovedMail;
 use App\Mail\ServiceProviderStatusMail;
 use App\Models\User;
 use App\Models\ServiceProvider;
@@ -41,6 +42,8 @@ class ServiceProviderController extends Controller
                 'pincode',
                 'is_premium',
                 'status',
+                'public_page_status',
+                'public_page_submitted_at',
                 'approved_at',
                 'created_at',
             ]);
@@ -71,6 +74,15 @@ class ServiceProviderController extends Controller
 
                 return '<span class="badge text-bg-'.$badge.'">'.ucfirst($service_provider->status).'</span>';
             })
+            ->addColumn('public_page_badge', function (ServiceProvider $service_provider): string {
+                $badge = match ($service_provider->public_page_status) {
+                    'approved' => 'success',
+                    'pending' => 'warning',
+                    default => 'secondary',
+                };
+
+                return '<span class="badge text-bg-'.$badge.'">'.ucfirst($service_provider->public_page_status ?: 'draft').'</span>';
+            })
             ->addColumn('premium_toggle', function (ServiceProvider $service_provider): string {
                 $checked = $service_provider->is_premium ? 'checked' : '';
 
@@ -87,8 +99,13 @@ class ServiceProviderController extends Controller
                     ? '<button type="button" class="btn btn-sm btn-outline-warning js-reject-service_provider" data-id="'.$service_provider->id.'" title="Reject"><i class="fa-solid fa-ban"></i></button>'
                     : '';
 
+                $pageApproveBtn = $service_provider->public_page_status === 'pending'
+                    ? '<button type="button" class="btn btn-sm btn-primary js-approve-service-provider-page" data-id="'.$service_provider->id.'" title="Approve public page"><i class="fa-solid fa-globe"></i></button>'
+                    : '';
+
                 return '<div class="d-flex gap-2 justify-content-end">'
                     .'<a href="'.route('admin.service_providers.show', $service_provider).'" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>'
+                    .$pageApproveBtn
                     .'<button type="button" class="btn btn-sm btn-outline-primary js-edit-service_provider" data-id="'.$service_provider->id.'" title="Edit"><i class="fa-solid fa-pen"></i></button>'
                     .$approveBtn
                     .$rejectBtn
@@ -206,6 +223,28 @@ class ServiceProviderController extends Controller
         $emailSent = $this->sendServiceProviderStatusMail($service_provider, 'approved');
         return response()->json([
             'message' => 'Service approved. They can now log in to the service portal.'.($emailSent ? ' Email notification sent.' : ''),
+        ]);
+    }
+
+    public function approvePublicPage(Request $request, ServiceProvider $service_provider): JsonResponse
+    {
+        abort_unless($service_provider->public_page_status === 'pending' && is_array($service_provider->pending_page_data), 422, 'There is no public page submission awaiting approval.');
+
+        $service_provider->update([
+            'published_page_data' => $service_provider->pending_page_data,
+            'pending_page_data' => null,
+            'public_page_status' => 'approved',
+            'public_page_approved_at' => now(),
+            'public_page_approved_by' => $request->user()->id,
+        ]);
+
+        $recipient = $service_provider->user?->email ?: $service_provider->email;
+        if ($recipient) {
+            Mail::to($recipient)->send(new ServiceProviderPublicPageApprovedMail($service_provider->fresh('user')));
+        }
+
+        return response()->json([
+            'message' => 'Public page approved and published.'.($recipient ? ' Email notification sent.' : ''),
         ]);
     }
 

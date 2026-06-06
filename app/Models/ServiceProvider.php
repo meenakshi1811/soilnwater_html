@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class ServiceProvider extends Model
@@ -37,6 +39,12 @@ class ServiceProvider extends Model
         'instagram_url',
         'is_premium',
         'status',
+        'public_page_status',
+        'pending_page_data',
+        'published_page_data',
+        'public_page_submitted_at',
+        'public_page_approved_at',
+        'public_page_approved_by',
         'approved_at',
         'approved_by',
     ];
@@ -56,6 +64,10 @@ class ServiceProvider extends Model
             'hero_sub_style' => 'array',
             'is_premium' => 'boolean',
             'approved_at' => 'datetime',
+            'pending_page_data' => 'array',
+            'published_page_data' => 'array',
+            'public_page_submitted_at' => 'datetime',
+            'public_page_approved_at' => 'datetime',
         ];
     }
 
@@ -92,6 +104,64 @@ class ServiceProvider extends Model
     public function services(): HasMany
     {
         return $this->hasMany(ServiceProviderService::class)->latest('updated_at');
+    }
+
+    public function scopePubliclyVisible(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query): void {
+            $query->whereNotNull('published_page_data')
+                ->orWhere('public_page_status', 'approved');
+        });
+    }
+
+    public function publicPageSnapshot(): array
+    {
+        $this->loadMissing(['bannerSlides', 'pageSections']);
+
+        return [
+            'profile' => collect($this->only([
+                'slug', 'display_name', 'logo', 'phone', 'email', 'city', 'address',
+                'facebook_url', 'instagram_url', 'description', 'hero_main_heading',
+                'hero_main_style', 'hero_sub_heading', 'hero_sub_style',
+            ]))->all(),
+            'banner_slides' => $this->bannerSlides->map->only([
+                'id', 'image_path', 'sort_order',
+            ])->values()->all(),
+            'page_sections' => $this->pageSections->map->only([
+                'id', 'title', 'content', 'image_path', 'sort_order',
+            ])->values()->all(),
+        ];
+    }
+
+    public function usePublishedPage(): self
+    {
+        $snapshot = $this->published_page_data;
+        if (! is_array($snapshot)) {
+            return $this;
+        }
+
+        $this->forceFill($snapshot['profile'] ?? []);
+        $this->setRelation('bannerSlides', $this->snapshotModels(
+            $snapshot['banner_slides'] ?? [],
+            ServiceProviderBannerSlide::class
+        ));
+        $this->setRelation('pageSections', $this->snapshotModels(
+            $snapshot['page_sections'] ?? [],
+            ServiceProviderPageSection::class
+        ));
+
+        return $this;
+    }
+
+    private function snapshotModels(array $items, string $modelClass): Collection
+    {
+        return collect($items)->map(function (array $attributes) use ($modelClass) {
+            $model = new $modelClass;
+            $model->setRawAttributes($attributes, true);
+            $model->exists = true;
+
+            return $model;
+        });
     }
 
     public function isApproved(): bool

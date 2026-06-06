@@ -26,7 +26,8 @@
                     <th>Email</th>
                     <th>Phone / WhatsApp</th>
                     <th>Location</th>
-                    <th>Status</th>
+                    <th>Account Status</th>
+                    <th>Public Page</th>
                     <th>Premium</th>
                     <th>Registered</th>
                     <th class="text-end">Actions</th>

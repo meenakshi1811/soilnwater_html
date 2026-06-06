@@ -28,6 +28,10 @@ class ServiceProviderPublicPageController extends Controller
     {
         $service_provider = auth()->user()->serviceProvider;
 
+        if ($service_provider->public_page_status === 'approved' && ! is_array($service_provider->published_page_data)) {
+            $service_provider->update(['published_page_data' => $service_provider->publicPageSnapshot()]);
+        }
+
         $validated = $request->validate([
             'hero_main_heading' => ['nullable', 'string', $this->maxWordsRule('main heading', 500)],
             'hero_sub_heading' => ['nullable', 'string'],
@@ -61,6 +65,7 @@ class ServiceProviderPublicPageController extends Controller
             'sections.*.video_file' => ['nullable', 'mimetypes:video/mp4,video/webm,video/ogg', 'max:51200'],
             'sections.*.youtube_url' => ['nullable', 'url', 'max:1000'],
             'sections.*._delete' => ['nullable', 'boolean'],
+            'submission_action' => ['required', 'in:draft,submit'],
         ]);
 
         if (array_key_exists('hero_sub_heading_encoded', $validated)) {
@@ -72,7 +77,6 @@ class ServiceProviderPublicPageController extends Controller
         }
 
         if ($request->hasFile('logo')) {
-            ServiceProviderFileUploader::deleteIfExists($service_provider->logo);
             $validated['logo'] = ServiceProviderFileUploader::storeImage($request->file('logo'), 'logos');
         }
 
@@ -111,11 +115,22 @@ class ServiceProviderPublicPageController extends Controller
 
         $this->syncSections($service_provider, $request->input('sections', []), $request);
 
-        if ($request->ajax() || $request->wantsJson()) {
-            $service_provider = $service_provider->fresh()->load(['bannerSlides', 'pageSections']);
+        $service_provider = $service_provider->fresh()->load(['bannerSlides', 'pageSections']);
+        $isSubmission = $validated['submission_action'] === 'submit';
+        $service_provider->update([
+            'public_page_status' => $isSubmission ? 'pending' : 'draft',
+            'pending_page_data' => $isSubmission ? $service_provider->publicPageSnapshot() : null,
+            'public_page_submitted_at' => $isSubmission ? now() : null,
+        ]);
 
+        $message = $isSubmission
+            ? 'Public page saved and sent to admin for approval.'
+            : 'Draft saved. Your changes are available only in Live Preview.';
+
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
-                'message' => 'Public page saved successfully.',
+                'message' => $message,
+                'public_page_status' => $service_provider->public_page_status,
                 'preview_url' => route('service_provider.public-page.preview'),
                 'logo_url' => $service_provider->logo ? asset($service_provider->logo) : null,
                 'sections' => $service_provider->pageSections->map(fn ($section) => [
@@ -131,13 +146,12 @@ class ServiceProviderPublicPageController extends Controller
             ]);
         }
 
-        return redirect()->route('service_provider.public-page.edit')->with('success', 'Public page saved successfully.');
+        return redirect()->route('service_provider.public-page.edit')->with('success', $message);
     }
 
     public function deleteBannerSlide(ServiceProviderBannerSlide $slide): JsonResponse
     {
         abort_unless($slide->service_provider_id === auth()->user()->serviceProvider?->id, 403);
-        ServiceProviderFileUploader::deleteIfExists($slide->image_path);
         $slide->delete();
 
         return response()->json(['message' => 'Banner slide removed.']);
@@ -165,8 +179,6 @@ class ServiceProviderPublicPageController extends Controller
             if (! empty($sectionData['_delete']) && ! empty($sectionData['id'])) {
                 $section = ServiceProviderPageSection::where('service_provider_id', $service_provider->id)->find($sectionData['id']);
                 if ($section) {
-                    ServiceProviderFileUploader::deleteIfExists($section->image_path);
-                    $this->deleteManagedMediaFromContent((string) $section->content);
                     $section->delete();
                 }
 
@@ -188,10 +200,8 @@ class ServiceProviderPublicPageController extends Controller
                 $section = new ServiceProviderPageSection(['service_provider_id' => $service_provider->id]);
             }
 
-            $oldContent = (string) ($section->content ?? '');
             $imageFile = $request->file("sections.{$index}.image");
             if ($imageFile) {
-                ServiceProviderFileUploader::deleteIfExists($section->image_path);
                 $section->image_path = ServiceProviderFileUploader::storeImage($imageFile, 'sections');
             }
 
@@ -222,7 +232,6 @@ class ServiceProviderPublicPageController extends Controller
             ]);
             $section->service_provider_id = $service_provider->id;
             $section->save();
-            $this->deleteOrphanManagedMedia($oldContent, (string) $section->content);
         }
     }
 

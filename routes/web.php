@@ -407,6 +407,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{service_provider}/edit', [ServiceProviderController::class, 'edit'])->name('edit');
             Route::put('/{service_provider}', [ServiceProviderController::class, 'update'])->name('update');
             Route::post('/{service_provider}/approve', [ServiceProviderController::class, 'approve'])->name('approve');
+            Route::post('/{service_provider}/approve-public-page', [ServiceProviderController::class, 'approvePublicPage'])->name('approve-public-page');
             Route::post('/{service_provider}/reject', [ServiceProviderController::class, 'reject'])->name('reject');
             Route::post('/{service_provider}/toggle-premium', [ServiceProviderController::class, 'togglePremium'])->name('toggle-premium');
             Route::delete('/{service_provider}', [ServiceProviderController::class, 'destroy'])->name('destroy');
