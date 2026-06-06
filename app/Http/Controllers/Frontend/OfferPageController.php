@@ -309,7 +309,7 @@ class OfferPageController extends Controller
     {
         $query = Consultant::query()
             ->where('status', 'approved')
-            ->with('branches:id,consultant_id,address,city,state,logo,is_primary')
+            ->with('branches:id,consultant_id,address,city,state,logo,is_primary,professional_experience,services_offered')
             ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')])
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $searchQuery) use ($search): void {
@@ -347,7 +347,7 @@ class OfferPageController extends Controller
     {
         $query = ServiceProvider::query()
             ->where('status', 'approved')
-            ->with('branches:id,service_provider_id,address,city,state,logo,is_primary')
+            ->with('branches:id,service_provider_id,address,city,state,logo,is_primary,professional_experience,services_offered')
             ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')])
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $searchQuery) use ($search): void {

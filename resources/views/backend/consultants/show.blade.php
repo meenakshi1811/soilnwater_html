@@ -46,6 +46,8 @@
                         </summary>
                         <dl class="row small mb-0 mt-3">
                             <dt class="col-sm-4">Contact person</dt><dd class="col-sm-8">{{ $branch->contact_person ?? '—' }}</dd>
+                            <dt class="col-sm-4">Professional experience</dt><dd class="col-sm-8" style="white-space:pre-line">{{ $branch->professional_experience ?? '—' }}</dd>
+                            <dt class="col-sm-4">Services offered</dt><dd class="col-sm-8" style="white-space:pre-line">{{ $branch->services_offered ?? '—' }}</dd>
                             <dt class="col-sm-4">Phone</dt><dd class="col-sm-8">{{ $branch->phone ?? '—' }}</dd>
                             <dt class="col-sm-4">Alternative mobile</dt><dd class="col-sm-8">{{ $branch->alt_mobile_number ?? '—' }}</dd>
                             <dt class="col-sm-4">WhatsApp</dt><dd class="col-sm-8">{{ $branch->whatsapp ?? '—' }}</dd>

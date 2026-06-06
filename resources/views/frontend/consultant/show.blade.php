@@ -35,6 +35,46 @@
     </div>
 </section>
 
+@php($professionalBranches = $consultant->branches->filter(fn ($branch) => filled($branch->professional_experience) || filled($branch->services_offered)))
+@if($professionalBranches->isNotEmpty())
+    <section class="vendor-store-professional-details">
+        <div class="container">
+            <div class="vendor-store-professional-details__heading">
+                <span>Expertise</span>
+                <h2>Professional Experience &amp; Services Offered</h2>
+            </div>
+            <div class="row g-4">
+                @foreach($professionalBranches as $branch)
+                    <div class="col-12 {{ $professionalBranches->count() > 1 ? 'col-lg-6' : '' }}">
+                        <article class="vendor-store-professional-card h-100">
+                            <div class="vendor-store-professional-card__header">
+                                <h3>{{ $branch->branch_name }}</h3>
+                                @if($branch->is_primary)
+                                    <span>Primary branch</span>
+                                @endif
+                            </div>
+                            <div class="row g-4">
+                                @if(filled($branch->professional_experience))
+                                    <div class="col-md-6">
+                                        <h4><i class="fa-solid fa-award"></i> Professional Experience</h4>
+                                        <p>{{ $branch->professional_experience }}</p>
+                                    </div>
+                                @endif
+                                @if(filled($branch->services_offered))
+                                    <div class="col-md-6">
+                                        <h4><i class="fa-solid fa-list-check"></i> Services Offered</h4>
+                                        <p>{{ $branch->services_offered }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </article>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
 @include('frontend.consultant.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_hero'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 
 @include('frontend.consultant.partials.services-section', ['showViewAllServicesButton' => true])
