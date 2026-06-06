@@ -794,6 +794,18 @@
     color: #5c6f82;
     font-weight: 500;
   }
+  .con-professional-detail {
+    color: #52667a;
+    display: -webkit-box;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-top: 7px;
+    overflow: hidden;
+    text-align: left;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .con-professional-detail strong { color: #243b53; font-weight: 700; }
 
   /* ── ENQUIRY CTA ── */
   .enquiry-cta { background: linear-gradient(135deg, #1a3a5c 0%, #1565c0 100%); border-radius: 8px; padding: 18px 16px; color: #fff; text-align: center; }

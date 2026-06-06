@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Consultant;
+use App\Models\HomepageSetting;
 use App\Models\ServiceProvider;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,6 +49,24 @@ class BranchProfessionalDetailsTest extends TestCase
             ->assertSee('Twelve years advising agricultural businesses.')
             ->assertSee('Soil planning')
             ->assertSee('Water management');
+
+        $this->get(route('consultant.show', $consultant->slug))
+            ->assertOk()
+            ->assertSee('Professional Experience &amp; Services Offered', false)
+            ->assertSee('Twelve years advising agricultural businesses.')
+            ->assertSee('Soil planning')
+            ->assertSee('Water management');
+
+        HomepageSetting::query()->create([
+            'section_toggles' => ['consultants_enquiry' => true],
+        ]);
+
+        $this->get(route('frontend.index'))
+            ->assertOk()
+            ->assertSee('Experience:')
+            ->assertSee('Twelve years advising agricultural businesses.')
+            ->assertSee('Services:')
+            ->assertSee('Soil planning');
 
         $admin = User::factory()->create(['role' => 'admin']);
         $this->actingAs($admin)
@@ -95,6 +114,24 @@ class BranchProfessionalDetailsTest extends TestCase
             ->assertSee('Eight years delivering field services.')
             ->assertSee('Irrigation setup')
             ->assertSee('Equipment maintenance');
+
+        $this->get(route('service_provider.show', $serviceProvider->slug))
+            ->assertOk()
+            ->assertSee('Professional Experience &amp; Services Offered', false)
+            ->assertSee('Eight years delivering field services.')
+            ->assertSee('Irrigation setup')
+            ->assertSee('Equipment maintenance');
+
+        HomepageSetting::query()->create([
+            'section_toggles' => ['popular_services' => true],
+        ]);
+
+        $this->get(route('frontend.index'))
+            ->assertOk()
+            ->assertSee('Experience:')
+            ->assertSee('Eight years delivering field services.')
+            ->assertSee('Services:')
+            ->assertSee('Irrigation setup');
 
         $admin = User::factory()->create(['role' => 'admin']);
         $this->actingAs($admin)

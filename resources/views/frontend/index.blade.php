@@ -1486,6 +1486,12 @@
                       <div class="con-card-body">
                         <p class="con-name"><?= e($serviceProvider->publicDisplayName()) ?><?php if ($serviceProvider->is_premium): ?> ⭐<?php endif; ?></p>
                         <span class="con-role"><?= e($serviceProviderCity) ?> • <?= e($serviceProvider->services_count) ?> Services<?= e($serviceProviderDistance) ?></span>
+                        <?php if (filled($primaryBranch?->professional_experience)): ?>
+                          <span class="con-professional-detail"><strong>Experience:</strong> <?= e(\Illuminate\Support\Str::limit($primaryBranch->professional_experience, 72)) ?></span>
+                        <?php endif; ?>
+                        <?php if (filled($primaryBranch?->services_offered)): ?>
+                          <span class="con-professional-detail"><strong>Services:</strong> <?= e(\Illuminate\Support\Str::limit($primaryBranch->services_offered, 72)) ?></span>
+                        <?php endif; ?>
                       </div>
                     </a>
                   <?php endforeach; ?>
@@ -1558,6 +1564,12 @@
                       <div class="con-card-body">
                         <p class="con-name"><?= e($consultant->publicDisplayName()) ?><?php if ($consultant->is_premium): ?> ⭐<?php endif; ?></p>
                         <span class="con-role"><?= e($consultantCity) ?> • <?= e($consultant->services_count) ?> Services<?= e($consultantDistance) ?></span>
+                        <?php if (filled($primaryBranch?->professional_experience)): ?>
+                          <span class="con-professional-detail"><strong>Experience:</strong> <?= e(\Illuminate\Support\Str::limit($primaryBranch->professional_experience, 72)) ?></span>
+                        <?php endif; ?>
+                        <?php if (filled($primaryBranch?->services_offered)): ?>
+                          <span class="con-professional-detail"><strong>Services:</strong> <?= e(\Illuminate\Support\Str::limit($primaryBranch->services_offered, 72)) ?></span>
+                        <?php endif; ?>
                       </div>
                     </a>
                   <?php endforeach; ?>
