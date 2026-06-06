@@ -23,6 +23,18 @@
 
                 <a href="{{ route('consultant.contact', $consultant->slug) }}" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'contact' ? 'is-active' : '' }}">Contact</a>
 
+                @auth
+                    <button type="button" class="vendor-share-trigger vendor-store-nav-share" data-bs-toggle="modal" data-bs-target="#consultantReportModal">
+                        <i class="fa-regular fa-flag"></i>
+                        <span>Report</span>
+                    </button>
+                @else
+                    <a href="{{ route('login') }}" class="vendor-store-nav-link" title="Log in to report this consultant">
+                        <i class="fa-regular fa-flag"></i>
+                        <span>Report</span>
+                    </a>
+                @endauth
+
                 <button type="button" class="vendor-share-trigger vendor-store-nav-share" data-bs-toggle="modal" data-bs-target="#consultantShareModal">
                     <i class="fa-solid fa-qrcode"></i>
                     <span>Scan &amp; Share</span>

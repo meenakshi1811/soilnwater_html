@@ -26,6 +26,15 @@
 
     @yield('consultant_content')
 
+    @auth
+        @include('frontend.partials.profile-report-modal', [
+            'reportModalId' => 'consultantReportModal',
+            'reportFormId' => 'consultantReportForm',
+            'reportLabel' => 'Consultant',
+            'reportAction' => route('consultant.report', $consultant->slug),
+        ])
+    @endauth
+
     @include('frontend.consultant.partials.store-footer', ['consultant' => $consultant])
 </div>
 @endsection
@@ -45,6 +54,55 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         alert(message);
     }
+
+    document.querySelectorAll('.profile-report-form').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn ? submitBtn.textContent : '';
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+            }
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': form.querySelector('input[name="_token"]')?.value || document.querySelector('meta[name="csrf-token"]')?.content || '',
+                },
+                body: new FormData(form),
+            })
+                .then(function (response) {
+                    return response.json().catch(function () { return {}; }).then(function (payload) {
+                        if (!response.ok) {
+                            const errors = payload.errors ? Object.values(payload.errors).flat().join(' ') : '';
+                            throw new Error(errors || payload.message || 'Unable to submit report.');
+                        }
+                        return payload;
+                    });
+                })
+                .then(function (payload) {
+                    const modalEl = form.closest('.modal');
+                    form.reset();
+                    if (modalEl && window.bootstrap && window.bootstrap.Modal) {
+                        window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                    }
+                    notify('success', payload.message || 'Report submitted successfully.');
+                })
+                .catch(function (error) {
+                    notify('error', error.message || 'Unable to submit report.');
+                })
+                .finally(function () {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }
+                });
+        });
+    });
 
     document.querySelectorAll('.consultant-service-enquiry-form').forEach(function (form) {
         form.addEventListener('submit', function (event) {
