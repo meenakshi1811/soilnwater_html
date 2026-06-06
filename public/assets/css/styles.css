@@ -93,7 +93,7 @@
     background: transparent;
   }
   .search-module-select {
-    width: 102px;
+    width: 118px;
     font-weight: 600;
     border-right: 1px solid #dde3ec;
     color: #344054;
@@ -1906,7 +1906,7 @@
     max-width: none;
   }
   .search-module-select {
-    width: 100px;
+    width: 112px;
   }
   .main-wrap {
     padding: 20px 16px;
@@ -2027,7 +2027,7 @@
     padding: 8px 10px;
   }
   .search-module-select {
-    width: 92px;
+    width: 104px;
     padding: 8px 8px;
   }
   .search-submit-btn {
@@ -2254,7 +2254,7 @@
     width: 84px;
   }
   .search-module-select {
-    width: 82px;
+    width: 100px;
     padding: 8px 6px;
   }
 }

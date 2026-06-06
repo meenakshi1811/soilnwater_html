@@ -124,7 +124,9 @@ class OfferPageController extends Controller
         $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
         $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
 
-        $vendors = $this->topVendorsQuery($lat, $lng)->paginate(24)->appends($request->query());
+        $vendors = $this->topVendorsQuery($lat, $lng, $request->string('search')->trim()->toString())
+            ->paginate(24)
+            ->appends($request->query());
 
         return view('frontend/vendors/index', [
             'vendors' => $vendors,
@@ -137,7 +139,9 @@ class OfferPageController extends Controller
         $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
         $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
 
-        $consultants = $this->topConsultantsQuery($lat, $lng)->paginate(24)->appends($request->query());
+        $consultants = $this->topConsultantsQuery($lat, $lng, $request->string('search')->trim()->toString())
+            ->paginate(24)
+            ->appends($request->query());
 
         return view('frontend/consultants/index', [
             'consultants' => $consultants,
@@ -151,7 +155,9 @@ class OfferPageController extends Controller
         $lat = $request->filled('lat') ? (float) $request->input('lat') : session('frontend_lat');
         $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
 
-        $service_providers = $this->topServiceProvidersQuery($lat, $lng)->paginate(24)->appends($request->query());
+        $service_providers = $this->topServiceProvidersQuery($lat, $lng, $request->string('search')->trim()->toString())
+            ->paginate(24)
+            ->appends($request->query());
 
         return view('frontend/service_providers/index', [
             'service_providers' => $service_providers,
@@ -262,12 +268,22 @@ class OfferPageController extends Controller
         return $offer->valid_until === null || $offer->valid_until->isToday() || $offer->valid_until->isFuture();
     }
 
-    private function topVendorsQuery(?float $lat, ?float $lng): Builder
+    private function topVendorsQuery(?float $lat, ?float $lng, string $search = ''): Builder
     {
         $query = Vendor::query()
             ->where('status', 'approved')
             ->with(['products:id,vendor_id,name,images,latitude,longitude', 'branches:id,vendor_id,address,city,state,is_primary', 'bannerSlides:id,vendor_id,image_path,sort_order'])
-            ->withCount('products');
+            ->withCount('products')
+            ->when($search !== '', function (Builder $query) use ($search): void {
+                $query->where(function (Builder $searchQuery) use ($search): void {
+                    $searchQuery
+                        ->where('company_name', 'like', '%'.$search.'%')
+                        ->orWhere('display_name', 'like', '%'.$search.'%')
+                        ->orWhereHas('products', fn (Builder $productQuery) => $productQuery
+                            ->where('status', 'approved')
+                            ->where('name', 'like', '%'.$search.'%'));
+                });
+            });
 
         if (is_numeric($lat) && is_numeric($lng)) {
             $query->select('vendors.*')
@@ -289,12 +305,22 @@ class OfferPageController extends Controller
         return $query;
     }
 
-    private function topConsultantsQuery(?float $lat, ?float $lng): Builder
+    private function topConsultantsQuery(?float $lat, ?float $lng, string $search = ''): Builder
     {
         $query = Consultant::query()
             ->where('status', 'approved')
             ->with('branches:id,consultant_id,address,city,state,logo,is_primary')
-            ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')]);
+            ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')])
+            ->when($search !== '', function (Builder $query) use ($search): void {
+                $query->where(function (Builder $searchQuery) use ($search): void {
+                    $searchQuery
+                        ->where('company_name', 'like', '%'.$search.'%')
+                        ->orWhere('display_name', 'like', '%'.$search.'%')
+                        ->orWhereHas('services', fn (Builder $serviceQuery) => $serviceQuery
+                            ->where('status', 'approved')
+                            ->where('name', 'like', '%'.$search.'%'));
+                });
+            });
 
         if (is_numeric($lat) && is_numeric($lng)) {
             $query->select('consultants.*')
@@ -317,12 +343,22 @@ class OfferPageController extends Controller
     }
 
 
-    private function topServiceProvidersQuery(?float $lat, ?float $lng): Builder
+    private function topServiceProvidersQuery(?float $lat, ?float $lng, string $search = ''): Builder
     {
         $query = ServiceProvider::query()
             ->where('status', 'approved')
             ->with('branches:id,service_provider_id,address,city,state,logo,is_primary')
-            ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')]);
+            ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')])
+            ->when($search !== '', function (Builder $query) use ($search): void {
+                $query->where(function (Builder $searchQuery) use ($search): void {
+                    $searchQuery
+                        ->where('company_name', 'like', '%'.$search.'%')
+                        ->orWhere('display_name', 'like', '%'.$search.'%')
+                        ->orWhereHas('services', fn (Builder $serviceQuery) => $serviceQuery
+                            ->where('status', 'approved')
+                            ->where('name', 'like', '%'.$search.'%'));
+                });
+            });
 
         if (is_numeric($lat) && is_numeric($lng)) {
             $query->select('service_providers.*')
