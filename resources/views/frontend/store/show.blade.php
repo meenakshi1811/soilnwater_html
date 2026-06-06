@@ -7,8 +7,11 @@
     $featuredProducts = $featuredProducts ?? collect();
     $vendorRecentAds = $vendorRecentAds ?? collect();
     $selectedCategoryNamesByVendorAdId = $selectedCategoryNamesByVendorAdId ?? [];
-    $randomFullPagePlacements = $randomFullPagePlacements ?? [];
-    $sponsoredFillers = $sponsoredFillers ?? [];
+    $fullPageAds = $fullPageAds ?? collect();
+    $supportingAds = collect($supportingAds ?? [])->values();
+    $productSectionAds = $featuredProducts->isNotEmpty() ? $supportingAds->take(2)->values() : collect();
+    $distributedAds = $supportingAds->slice($productSectionAds->count())->values();
+    $adsPerContentSection = 2;
     $recentAdsShown = false;
 @endphp
 
@@ -26,7 +29,6 @@
     @endif
 </section>
 
-
 <section class="vendor-hero-text-section">
     <div class="container">
         <h1 style="@if(!empty($vendor->hero_main_style)){{ collect($vendor->hero_main_style)->filter(fn($v) => filled($v))->map(fn($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)->implode(';') }}@endif">{{ $vendor->hero_main_heading ?: $vendor->publicDisplayName() }}</h1>
@@ -35,6 +37,38 @@
         @endif
     </div>
 </section>
+
+@include('frontend.store.partials.ads-zone', ['ads' => $fullPageAds])
+
+@if($featuredProducts->isNotEmpty())
+    <section class="vendor-store-section vendor-store-featured">
+        <div class="container">
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+                <div>
+                    <p class="vendor-store-eyebrow mb-1">Featured</p>
+                    <h2 class="vendor-store-section-title mb-0">Popular products</h2>
+                </div>
+                <a href="{{ route('store.products.index', $vendor->slug) }}" class="btn btn-store-primary">View all products</a>
+            </div>
+            <div class="row g-3 g-md-4">
+                @include('frontend.store.partials.product-cards', [
+                    'products' => $featuredProducts,
+                    'storeSlug' => $vendor->slug,
+                    'cardStyle' => 'featured',
+                ])
+
+                @foreach($productSectionAds as $ad)
+                    <div class="col-6 col-md-4 col-lg-3 col-xl-2-4">
+                        @include('frontend.store.partials.compact-ad-card', [
+                            'ad' => $ad,
+                            'variant' => 'service',
+                        ])
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
 
 @foreach($vendor->pageSections as $section)
     @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
@@ -53,38 +87,25 @@
             </div>
         </div>
     </section>
+
+    @include('frontend.store.partials.supporting-ads', [
+        'ads' => $distributedAds->slice($loop->index * $adsPerContentSection, $adsPerContentSection),
+        'placementId' => 'vendorContentAds'.$loop->index,
+    ])
+
     @if(str_contains((string) $section->content, 'data-card-image-slot') && ! $recentAdsShown)
         @include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
         @php($recentAdsShown = true)
-    @else
-        @include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_section_'.$loop->index] ?? null, 'sponsoredFillers' => $sponsoredFillers])
     @endif
 @endforeach
 
+@include('frontend.store.partials.supporting-ads', [
+    'ads' => $distributedAds->slice($vendor->pageSections->count() * $adsPerContentSection),
+    'placementId' => 'vendorRemainingAds',
+])
+
 @if(! $recentAdsShown)
     @include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
-@endif
-
-@if($featuredProducts->isNotEmpty())
-    <section class="vendor-store-section vendor-store-featured">
-        <div class="container">
-            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
-                <div>
-                    <p class="vendor-store-eyebrow mb-1">Featured</p>
-                    <h2 class="vendor-store-section-title mb-0">Popular products</h2>
-                </div>
-                <a href="{{ route('store.products.index', $vendor->slug) }}" class="btn btn-store-primary">View all products</a>
-            </div>
-            <div class="row g-3 g-md-4">
-                @include('frontend.store.partials.product-cards', [
-                    'products' => $featuredProducts,
-                    'storeSlug' => $vendor->slug,
-                    'cardStyle' => 'featured',
-                ])
-            </div>
-        </div>
-    </section>
-    @include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['before_products'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 @endif
 
 @include('frontend.store.partials.similar-vendors', ['similarVendors' => $similarVendors ?? collect()])
