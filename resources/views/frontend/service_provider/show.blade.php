@@ -7,7 +7,10 @@
     $service_providerRecentAds = $service_providerRecentAds ?? collect();
     $selectedCategoryNamesByServiceProviderAdId = $selectedCategoryNamesByServiceProviderAdId ?? [];
     $fullPageAds = $fullPageAds ?? collect();
-    $supportingAds = $supportingAds ?? collect();
+    $supportingAds = collect($supportingAds ?? [])->values();
+    $serviceSectionAds = $approvedServices->isNotEmpty() ? $supportingAds->take(2)->values() : collect();
+    $distributedAds = $supportingAds->slice($serviceSectionAds->count())->values();
+    $adsPerContentSection = 2;
     $recentAdsShown = false;
 @endphp
 
@@ -77,9 +80,10 @@
 
 @include('frontend.service_provider.partials.ads-zone', ['ads' => $fullPageAds])
 
-@include('frontend.service_provider.partials.services-section', ['showViewAllServicesButton' => true])
-
-@include('frontend.service_provider.partials.supporting-ads', ['ads' => $supportingAds])
+@include('frontend.service_provider.partials.services-section', [
+    'showViewAllServicesButton' => true,
+    'inlineAds' => $serviceSectionAds,
+])
 
 @foreach($service_provider->pageSections as $section)
     @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
@@ -98,11 +102,22 @@
             </div>
         </div>
     </section>
+
+    @include('frontend.service_provider.partials.supporting-ads', [
+        'ads' => $distributedAds->slice($loop->index * $adsPerContentSection, $adsPerContentSection),
+        'placementId' => 'serviceProviderContentAds'.$loop->index,
+    ])
+
     @if(str_contains((string) $section->content, 'data-card-image-slot') && ! $recentAdsShown)
         @include('frontend.service_provider.partials.recent-ads-slider', ['ads' => $service_providerRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByServiceProviderAdId])
         @php($recentAdsShown = true)
     @endif
 @endforeach
+
+@include('frontend.service_provider.partials.supporting-ads', [
+    'ads' => $distributedAds->slice($service_provider->pageSections->count() * $adsPerContentSection),
+    'placementId' => 'serviceProviderRemainingAds',
+])
 
 @if(! $recentAdsShown)
     @include('frontend.service_provider.partials.recent-ads-slider', ['ads' => $service_providerRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByServiceProviderAdId])
