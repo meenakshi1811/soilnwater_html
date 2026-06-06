@@ -32,7 +32,7 @@ class ConsultantStoreController extends Controller
             ->latest('updated_at')
             ->get();
 
-        $adsContext = $this->loadStoreAds($consultant, $consultant->pageSections->count());
+        $adsContext = $this->loadStoreAds($consultant);
         $consultantRecentAds = $this->nearestConsultantModuleAds();
 
         return view('frontend.consultant.show', [
@@ -42,8 +42,8 @@ class ConsultantStoreController extends Controller
             'approvedServices' => $approvedServices,
             'consultantRecentAds' => $consultantRecentAds,
             'selectedCategoryNamesByConsultantAdId' => $this->resolveSelectedCategoryNamesByAdId($consultantRecentAds),
-            'randomFullPagePlacements' => $adsContext['randomFullPagePlacements'],
-            'sponsoredFillers' => $adsContext['sponsoredFillers'],
+            'fullPageAds' => $adsContext['fullPageAds'],
+            'supportingAds' => $adsContext['supportingAds'],
         ]);
     }
 
@@ -284,6 +284,7 @@ class ConsultantStoreController extends Controller
             ->where('status', 'approved')
             ->selectedForModule('consultants')
             ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
+            ->where('size_type', '!=', 'square')
             ->whereNotNull('final_image')
             ->where(function ($query) {
                 $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
@@ -305,16 +306,14 @@ class ConsultantStoreController extends Controller
     }
 
     /**
-     * @return array{sponsoredFillers: array, sidebarAds: Collection, sectionAdRails: array<int, Collection>, randomFullPagePlacements: array}
+     * @return array{fullPageAds: Collection, supportingAds: Collection}
      */
-    private function loadStoreAds(Consultant $consultant, int $sectionCount, ?Category $category = null, ?Category $subcategory = null): array
+    private function loadStoreAds(Consultant $consultant, ?Category $category = null, ?Category $subcategory = null): array
     {
         if ($consultant->is_premium) {
             return [
-                'sponsoredFillers' => [],
-                'sidebarAds' => collect(),
-                'sectionAdRails' => [],
-                'randomFullPagePlacements' => [],
+                'fullPageAds' => collect(),
+                'supportingAds' => collect(),
             ];
         }
 
@@ -344,13 +343,11 @@ class ConsultantStoreController extends Controller
         }
 
         $effectiveAds = ($categoryMatchedAds->isNotEmpty() ? $categoryMatchedAds : $consultantModuleAds)->values();
-        $split = $adsService->splitAdsForStoreLayout($effectiveAds, $sectionCount);
+        $placements = $adsService->splitProfileAds($effectiveAds);
 
         return [
-            'sponsoredFillers' => $adsService->getSponsoredFillers($lat, $lng, ['consultants'], true),
-            'sidebarAds' => $split['sidebar'],
-            'sectionAdRails' => $split['section_rails'],
-            'randomFullPagePlacements' => $adsService->buildRandomPlacements($effectiveAds, $sectionCount),
+            'fullPageAds' => $placements['full_page'],
+            'supportingAds' => $placements['supporting'],
         ];
     }
 

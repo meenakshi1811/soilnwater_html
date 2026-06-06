@@ -6,8 +6,11 @@
 @php
     $consultantRecentAds = $consultantRecentAds ?? collect();
     $selectedCategoryNamesByConsultantAdId = $selectedCategoryNamesByConsultantAdId ?? [];
-    $randomFullPagePlacements = $randomFullPagePlacements ?? [];
-    $sponsoredFillers = $sponsoredFillers ?? [];
+    $fullPageAds = $fullPageAds ?? collect();
+    $supportingAds = collect($supportingAds ?? [])->values();
+    $serviceSectionAds = $approvedServices->isNotEmpty() ? $supportingAds->take(2)->values() : collect();
+    $distributedAds = $supportingAds->slice($serviceSectionAds->count())->values();
+    $adsPerContentSection = 2;
     $recentAdsShown = false;
 @endphp
 
@@ -75,11 +78,12 @@
     </section>
 @endif
 
-@include('frontend.consultant.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_hero'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
+@include('frontend.consultant.partials.ads-zone', ['ads' => $fullPageAds])
 
-@include('frontend.consultant.partials.services-section', ['showViewAllServicesButton' => true])
-
-@include('frontend.consultant.partials.ads-zone', ['placement' => $randomFullPagePlacements['before_products'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
+@include('frontend.consultant.partials.services-section', [
+    'showViewAllServicesButton' => true,
+    'inlineAds' => $serviceSectionAds,
+])
 
 @foreach($consultant->pageSections as $section)
     @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
@@ -98,12 +102,23 @@
             </div>
         </div>
     </section>
+
+    @include('frontend.partials.profile-inline-ads', [
+        'ads' => $distributedAds->slice($loop->index * $adsPerContentSection, $adsPerContentSection),
+        'placementId' => 'consultantContentAds'.$loop->index,
+    ])
+
     @if(str_contains((string) $section->content, 'data-card-image-slot') && ! $recentAdsShown)
         @include('frontend.consultant.partials.recent-ads-slider', ['ads' => $consultantRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByConsultantAdId])
         @php($recentAdsShown = true)
-    @else
-        @include('frontend.consultant.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_section_'.$loop->index] ?? null, 'sponsoredFillers' => $sponsoredFillers])
     @endif
+@endforeach
+
+@foreach($distributedAds->slice($consultant->pageSections->count() * $adsPerContentSection)->chunk($adsPerContentSection) as $remainingAdGroup)
+    @include('frontend.partials.profile-inline-ads', [
+        'ads' => $remainingAdGroup,
+        'placementId' => 'consultantRemainingAds'.$loop->index,
+    ])
 @endforeach
 
 @if(! $recentAdsShown)

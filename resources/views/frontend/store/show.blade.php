@@ -7,8 +7,11 @@
     $featuredProducts = $featuredProducts ?? collect();
     $vendorRecentAds = $vendorRecentAds ?? collect();
     $selectedCategoryNamesByVendorAdId = $selectedCategoryNamesByVendorAdId ?? [];
-    $randomFullPagePlacements = $randomFullPagePlacements ?? [];
-    $sponsoredFillers = $sponsoredFillers ?? [];
+    $fullPageAds = $fullPageAds ?? collect();
+    $supportingAds = collect($supportingAds ?? [])->values();
+    $productSectionAds = $featuredProducts->isNotEmpty() ? $supportingAds->take(2)->values() : collect();
+    $distributedAds = $supportingAds->slice($productSectionAds->count())->values();
+    $adsPerContentSection = 2;
     $recentAdsShown = false;
 @endphp
 
@@ -36,6 +39,8 @@
     </div>
 </section>
 
+@include('frontend.store.partials.ads-zone', ['ads' => $fullPageAds])
+
 @foreach($vendor->pageSections as $section)
     @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
     <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section {{ $sectionHasVideo ? 'has-video-section' : '' }}">
@@ -53,11 +58,15 @@
             </div>
         </div>
     </section>
+
+    @include('frontend.partials.profile-inline-ads', [
+        'ads' => $distributedAds->slice($loop->index * $adsPerContentSection, $adsPerContentSection),
+        'placementId' => 'vendorContentAds'.$loop->index,
+    ])
+
     @if(str_contains((string) $section->content, 'data-card-image-slot') && ! $recentAdsShown)
         @include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])
         @php($recentAdsShown = true)
-    @else
-        @include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_section_'.$loop->index] ?? null, 'sponsoredFillers' => $sponsoredFillers])
     @endif
 @endforeach
 
@@ -81,11 +90,26 @@
                     'storeSlug' => $vendor->slug,
                     'cardStyle' => 'featured',
                 ])
+
+                @foreach($productSectionAds as $ad)
+                    <div class="col-6 col-md-4 col-lg-3 col-xl-2-4">
+                        @include('frontend.partials.profile-ad-card', [
+                            'ad' => $ad,
+                            'variant' => 'product',
+                        ])
+                    </div>
+                @endforeach
             </div>
         </div>
     </section>
-    @include('frontend.store.partials.ads-zone', ['placement' => $randomFullPagePlacements['before_products'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
 @endif
+
+@foreach($distributedAds->slice($vendor->pageSections->count() * $adsPerContentSection)->chunk($adsPerContentSection) as $remainingAdGroup)
+    @include('frontend.partials.profile-inline-ads', [
+        'ads' => $remainingAdGroup,
+        'placementId' => 'vendorRemainingAds'.$loop->index,
+    ])
+@endforeach
 
 @include('frontend.store.partials.similar-vendors', ['similarVendors' => $similarVendors ?? collect()])
 

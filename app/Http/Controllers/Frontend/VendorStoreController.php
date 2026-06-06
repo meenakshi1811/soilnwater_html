@@ -32,7 +32,7 @@ class VendorStoreController extends Controller
             ->get();
 
         $vendorCategories = $this->vendorCategories($vendor);
-        $adsContext = $this->loadStoreAds($vendor, $vendor->pageSections->count());
+        $adsContext = $this->loadStoreAds($vendor);
         $vendorRecentAds = $this->nearestVendorModuleAds();
 
         return view('frontend.store.show', [
@@ -41,8 +41,8 @@ class VendorStoreController extends Controller
             'activeNav' => 'home',
             'featuredProducts' => $featuredProducts,
             'vendorCategories' => $vendorCategories,
-            'randomFullPagePlacements' => $adsContext['randomFullPagePlacements'],
-            'sponsoredFillers' => $adsContext['sponsoredFillers'],
+            'fullPageAds' => $adsContext['fullPageAds'],
+            'supportingAds' => $adsContext['supportingAds'],
             'vendorRecentAds' => $vendorRecentAds,
             'similarVendors' => $this->similarVendors($vendor),
             'selectedCategoryNamesByVendorAdId' => $this->resolveSelectedCategoryNamesByAdId($vendorRecentAds),
@@ -547,6 +547,7 @@ class VendorStoreController extends Controller
             ->where('status', 'approved')
             ->assignedToModule('vendors')
             ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
+            ->where('size_type', '!=', 'square')
             ->whereNotNull('final_image')
             ->where(function ($query) {
                 $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
@@ -602,16 +603,14 @@ class VendorStoreController extends Controller
     }
 
     /**
-     * @return array{sponsoredFillers: array, sidebarAds: Collection, sectionAdRails: array<int, Collection>}
+     * @return array{fullPageAds: Collection, supportingAds: Collection}
      */
-    private function loadStoreAds(Vendor $vendor, int $sectionCount, ?Category $category = null, ?Category $subcategory = null): array
+    private function loadStoreAds(Vendor $vendor, ?Category $category = null, ?Category $subcategory = null): array
     {
         if ($vendor->is_premium) {
             return [
-                'sponsoredFillers' => [],
-                'sidebarAds' => collect(),
-                'sectionAdRails' => [],
-                'randomFullPagePlacements' => [],
+                'fullPageAds' => collect(),
+                'supportingAds' => collect(),
             ];
         }
 
@@ -644,14 +643,11 @@ class VendorStoreController extends Controller
         $effectiveAds = $categoryMatchedAds->isNotEmpty() ? $categoryMatchedAds : $vendorModuleAds;
 
         $effectiveAds = $effectiveAds->values();
-        $split = $adsService->splitAdsForStoreLayout($effectiveAds, $sectionCount);
-        $randomFullPagePlacements = $adsService->buildRandomPlacements($effectiveAds, $sectionCount);
+        $placements = $adsService->splitProfileAds($effectiveAds);
 
         return [
-            'sponsoredFillers' => $adsService->getSponsoredFillers($lat, $lng),
-            'sidebarAds' => $split['sidebar'],
-            'sectionAdRails' => $split['section_rails'],
-            'randomFullPagePlacements' => $randomFullPagePlacements,
+            'fullPageAds' => $placements['full_page'],
+            'supportingAds' => $placements['supporting'],
         ];
     }
 
