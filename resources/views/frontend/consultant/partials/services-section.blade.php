@@ -4,6 +4,7 @@
     $wrapContainer = $wrapContainer ?? true;
     $showServicesHeading = $showServicesHeading ?? true;
     $serviceColumnClass = $serviceColumnClass ?? 'col-sm-6 col-xl-3';
+    $inlineAds = collect($inlineAds ?? [])->filter()->values();
 @endphp
 
 @if($approvedServices->count() > 0)
@@ -200,6 +201,15 @@
                         </div>
                     </div>
                 @endauth
+            @endforeach
+
+            @foreach($inlineAds as $ad)
+                <div class="{{ $serviceColumnClass }}">
+                    @include('frontend.consultant.partials.compact-ad-card', [
+                        'ad' => $ad,
+                        'variant' => 'service',
+                    ])
+                </div>
             @endforeach
         </div>
     @if($wrapContainer)
