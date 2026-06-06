@@ -21,7 +21,7 @@
 <div class="admin-panel ems-page service_provider-public-live-editor">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <p class="ems-kicker mb-1">Service Provider Panel</p>
+            <p class="ems-kicker mb-1">Service Panel</p>
             <h2 class="admin-title mb-0">{{ $service_provider->publicDisplayName() }}</h2>
             <p class="text-muted small mb-0">Edit your service_provider below, click <strong>Save Changes</strong>, then open <strong>Live Preview</strong> to see the published look.</p>
         </div>
@@ -39,7 +39,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <form id="publicPageForm" method="POST" action="{{ route('service_provider.public-page.update') }}" enctype="multipart/form-data" class="vendor-store-page service_provider-preview-edit-mode" data-banner-delete-url="{{ url('service-provider/banner-slides') }}/" data-card-placeholder-url="{{ asset('assets/images/vendor-card-placeholder.svg') }}">
+    <form id="publicPageForm" method="POST" action="{{ route('service_provider.public-page.update') }}" enctype="multipart/form-data" class="vendor-store-page service_provider-preview-edit-mode" data-banner-delete-url="{{ url('service/banner-slides') }}/" data-card-placeholder-url="{{ asset('assets/images/vendor-card-placeholder.svg') }}">
         @csrf
         @method('PUT')
 
@@ -65,8 +65,8 @@
             <div class="service_provider-editor-panel-head">
                 <i class="fa-solid fa-user-tie text-primary"></i>
                 <div>
-                    <strong>Service Provider header</strong>
-                    <p class="mb-0 small text-muted">This matches your live service_provider. Click the logo box to upload or change your logo.</p>
+                    <strong>Service header</strong>
+                    <p class="mb-0 small text-muted">This matches your live service. Click the logo box to upload or change your logo.</p>
                 </div>
             </div>
             <header class="vendor-store-header service_provider-header-preview">
@@ -75,7 +75,7 @@
                         <label class="vendor-logo-dropzone mb-0" for="logoInput" title="Click to upload your service_provider logo">
                             <span class="vendor-logo-dropzone-inner" id="logoPreviewWrap">
                                 @if($service_provider->logo)
-                                    <img src="{{ asset($service_provider->logo) }}" alt="Service Provider logo" class="vendor-logo-dropzone-img" id="logoPreviewImg">
+                                    <img src="{{ asset($service_provider->logo) }}" alt="Service logo" class="vendor-logo-dropzone-img" id="logoPreviewImg">
                                 @else
                                     <span class="vendor-logo-dropzone-placeholder" id="logoPlaceholder">
                                         <i class="fa-solid fa-image"></i>
@@ -98,7 +98,7 @@
             <div class="vendor-store-url-row px-3 pb-3">
                 <label class="form-label small text-muted mb-1">Your service_provider link</label>
                 <div class="input-group input-group-sm" style="max-width:560px; width:100%;">
-                    <span class="input-group-text">{{ url('/service-provider') }}/</span>
+                    <span class="input-group-text">{{ url('/service') }}/</span>
                     <input type="text" name="slug" class="form-control" value="{{ old('slug', $service_provider->slug) }}" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="your-service_provider-name">
                 </div>
             </div>
@@ -193,7 +193,7 @@
             </div>
             <div class="alert alert-warning small mb-3">
                 <i class="fa-solid fa-circle-info me-1"></i>
-                Visitors open this from Service Provider Header <strong>About Us</strong> and it opens in a new page.
+                Visitors open this from Service Header <strong>About Us</strong> and it opens in a new page.
             </div>
             <div class="service_provider-lite-editor" data-lite-editor="about-us">
                 <div class="service_provider-lite-editor-toolbar" aria-label="About Us formatting tools">
@@ -213,7 +213,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
                     <h5 class="mb-0">Social media links</h5>
-                    <p class="text-muted small mb-0">Add your social URLs and see how they will appear on your public service_provider page.</p>
+                    <p class="text-muted small mb-0">Add your social URLs and see how they will appear on your public service page.</p>
                 </div>
             </div>
             <div class="row g-3 mb-3">

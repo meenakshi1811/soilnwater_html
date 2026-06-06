@@ -201,7 +201,7 @@
           <div class="cat-icon">
             <i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i>
           </div>
-          <span>SERVICE PROVIDERS</span>
+          <span>SERVICES</span>
         </div>
       </a>
       {{--
@@ -893,7 +893,7 @@
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content vendor-enquiry-modal-content">
           <div class="modal-header border-0 pb-2">
-            <h2 class="modal-title fs-5" id="serviceProviderEnquiryModalLabel">Service Provider Enquiry</h2>
+            <h2 class="modal-title fs-5" id="serviceProviderEnquiryModalLabel">Service Enquiry</h2>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body pt-0">
@@ -925,7 +925,7 @@
                   <input type="file" class="form-control" id="serviceProviderEnquiryImage" name="image" accept="image/*">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label" for="serviceProviderEnquiryCategory">Service Provider Category *</label>
+                  <label class="form-label" for="serviceProviderEnquiryCategory">Service Category *</label>
                   <select class="form-select" id="serviceProviderEnquiryCategory" name="category_id" required>
                     <option value="">Select category</option>
                     @foreach(($service_providerCategories ?? collect()) as $category)
@@ -941,7 +941,7 @@
                 </div>
                 <div class="col-12">
                   <label class="form-label" for="serviceProviderEnquiryQuestion">Question *</label>
-                  <textarea class="form-control" id="serviceProviderEnquiryQuestion" name="question" rows="4" maxlength="2000" placeholder="Write your question for the service provider." required></textarea>
+                  <textarea class="form-control" id="serviceProviderEnquiryQuestion" name="question" rows="4" maxlength="2000" placeholder="Write your question for the service." required></textarea>
                 </div>
               </div>
               <button type="submit" class="btn btn-primary w-100 mt-3" id="serviceProviderEnquirySubmitBtn">
@@ -1451,7 +1451,7 @@
       </div>
     @endif
 
-    <!-- Popular Service Providers -->
+    <!-- Popular Services -->
     <?php
       $showServiceProvidersSection = ! empty($sectionToggles['popular_services']) && $sectionToggles['popular_services'];
       $homepageServiceProviders = $topServiceProviders ?? collect();
@@ -1460,13 +1460,13 @@
     <?php if ($showServiceProvidersSection): ?>
       <div class="sec">
         <div class="sec-head">
-          <div class="sec-title"><span class="icon"><i class="fa-solid fa-house"></i></span> Popular Service Providers</div>
+          <div class="sec-title"><span class="icon"><i class="fa-solid fa-house"></i></span> Popular Services</div>
           <div class="consultant-section-actions">
             <button type="button" class="consultant-enquiry-link" data-bs-toggle="modal" data-bs-target="#serviceProviderEnquiryModal">Enquiry</button>
             <a class="view-all" href="<?= e(route('frontend.service_providers.index')) ?>">VIEW ALL ▶</a>
           </div>
         </div>
-        <div class="ad-slider auto-ad-slider consultants-home-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured service providers slider">
+        <div class="ad-slider auto-ad-slider consultants-home-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Featured services slider">
           <?php if ($homepageServiceProviderSlides->isNotEmpty()): ?>
             <?php foreach ($homepageServiceProviderSlides as $serviceProviderChunk): ?>
               <div class="ad-slide">
@@ -1481,7 +1481,7 @@
                         ? ' • '.number_format($serviceProvider->nearest_distance_km, 1).' km'
                         : '';
                     ?>
-                    <a class="con-card text-decoration-none" href="<?= e(route('service_provider.show', $serviceProvider->slug)) ?>" aria-label="View <?= e($serviceProvider->publicDisplayName()) ?> service provider page">
+                    <a class="con-card text-decoration-none" href="<?= e(route('service_provider.show', $serviceProvider->slug)) ?>" aria-label="View <?= e($serviceProvider->publicDisplayName()) ?> service page">
                       <img src="<?= e($serviceProviderCardImage) ?>" alt="<?= e($serviceProvider->publicDisplayName()) ?>" onerror="this.onerror=null;this.src='<?= e($profilePlaceholder) ?>';">
                       <div class="con-card-body">
                         <p class="con-name"><?= e($serviceProvider->publicDisplayName()) ?><?php if ($serviceProvider->is_premium): ?> ⭐<?php endif; ?></p>
@@ -1497,7 +1497,7 @@
               <div class="consult-grid consult-grid-professional">
                 <div class="con-card consultant-empty-card">
                   <div class="con-card-body">
-                    <p class="con-name">No service providers available</p>
+                    <p class="con-name">No services available</p>
                     <span class="con-role">Please check back later.</span>
                   </div>
                 </div>
@@ -1510,9 +1510,9 @@
       <!-- <div class="sec vendor-enquiry-section">
         <div class="vendor-enquiry-card consultant-enquiry-card">
           <div class="vendor-enquiry-copy">
-            <span class="vendor-enquiry-pill"><i class="fa-solid fa-house-user"></i> Service Provider Enquiry</span>
-            <h3>Need help from a service provider?</h3>
-            <p>Share your requirement and we will notify matching verified service providers by category and subcategory.</p>
+            <span class="vendor-enquiry-pill"><i class="fa-solid fa-house-user"></i> Service Enquiry</span>
+            <h3>Need help from a service?</h3>
+            <p>Share your requirement and we will notify matching verified services by category and subcategory.</p>
           </div>
           <button type="button" class="btn-yellow vendor-enquiry-btn" data-bs-toggle="modal" data-bs-target="#serviceProviderEnquiryModal">
             Submit Enquiry
@@ -1897,8 +1897,8 @@
       textClass: '.js-service-provider-enquiry-btn-text',
       endpoint: "{{ route('frontend.service-provider-enquiry') }}",
       modalId: 'serviceProviderEnquiryModal',
-      successMessage: 'Service provider enquiry sent successfully.',
-      failureMessage: 'Unable to send service provider enquiry. Please try again.',
+      successMessage: 'Service enquiry sent successfully.',
+      failureMessage: 'Unable to send service enquiry. Please try again.',
     });
   });
 </script>

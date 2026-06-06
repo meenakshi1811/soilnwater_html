@@ -45,7 +45,7 @@ class EnsureMarketplacePostingAccountApproved
                 return $next($request);
             }
 
-            $message = 'Your service provider account must be approved by admin before you can post ads or offers.';
+            $message = 'Your service account must be approved by admin before you can post ads or offers.';
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['message' => $message], 403);

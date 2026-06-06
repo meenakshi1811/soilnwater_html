@@ -49,7 +49,7 @@
     'ads' => $service_providerRecentAds,
     'selectedCategoryNamesByAdId' => $selectedCategoryNamesByServiceProviderAdId,
     'sectionTitle' => 'Sponsored Ads',
-    'sliderLabel' => 'Sponsored service_provider ads slider',
-    'defaultCategoryLabel' => 'Service Providers',
+    'sliderLabel' => 'Sponsored service ads slider',
+    'defaultCategoryLabel' => 'Services',
 ])
 @endsection

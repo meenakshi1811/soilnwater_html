@@ -650,7 +650,7 @@ class LoginController extends Controller
         } elseif ($user->isConsultant() && ! $user->consultant?->isApproved()) {
             $message = 'Your consultant account is pending admin approval. You will be able to log in once approved.';
         } elseif ($user->isServiceProvider() && ! $user->serviceProvider?->isApproved()) {
-            $message = 'Your service provider account is pending admin approval. You will be able to log in once approved.';
+            $message = 'Your service account is pending admin approval. You will be able to log in once approved.';
         }
 
         if (! $message) {

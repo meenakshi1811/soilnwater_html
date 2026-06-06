@@ -21,7 +21,7 @@
     @endif
 
     <dl class="row">
-      <dt class="col-sm-3">Service Provider</dt>
+      <dt class="col-sm-3">Service Account</dt>
       <dd class="col-sm-9">{{ $service->service_provider?->display_name ?: $service->service_provider?->company_name ?: '-' }}</dd>
 
       <dt class="col-sm-3">Category</dt>

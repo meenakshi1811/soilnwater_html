@@ -1,6 +1,6 @@
 @extends('frontend.service_provider.layout')
 
-@section('title', $service_provider->publicDisplayName().' – Service Provider')
+@section('title', $service_provider->publicDisplayName().' – Service')
 
 @section('service_provider_content')
 @php

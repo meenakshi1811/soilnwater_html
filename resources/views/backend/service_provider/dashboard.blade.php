@@ -1,17 +1,17 @@
 @extends('backend.layouts.app')
 
-@section('title', 'Service Provider Dashboard')
+@section('title', 'Service Dashboard')
 
 @section('content')
 <div class="admin-panel ems-page service_provider-dashboard-redesign">
     <div class="service_provider-hero mb-4">
         <div>
-            <p class="service_provider-kicker mb-2">Service Provider Panel</p>
+            <p class="service_provider-kicker mb-2">Service Panel</p>
             <h2 class="admin-title mb-2 text-white">Overview</h2>
-            <p class="mb-0 text-white-50">Welcome, {{ $service_provider->publicDisplayName() }}. Manage your branches and public service provider profile.</p>
+            <p class="mb-0 text-white-50">Welcome, {{ $service_provider->publicDisplayName() }}. Manage your branches and public service profile.</p>
         </div>
         <a href="{{ route('service_provider.show', $service_provider->slug) }}" target="_blank" class="btn btn-light service_provider-hero-btn">
-            <i class="fa-solid fa-external-link-alt me-1"></i> View live Service Provider
+            <i class="fa-solid fa-external-link-alt me-1"></i> View live Service
         </a>
     </div>
 
@@ -32,7 +32,7 @@
             <a href="{{ route('service_provider.public-page.edit') }}" class="action-card d-block text-decoration-none h-100">
                 <span class="icon-wrap bg-purple"><i class="fa-solid fa-globe"></i></span>
                 <h5 class="mt-3">Public Page</h5>
-                <p class="small mb-0">Edit hero banner, headings, and custom sections for your India service provider profile.</p>
+                <p class="small mb-0">Edit hero banner, headings, and custom sections for your India service profile.</p>
             </a>
         </div>
         <div class="col-md-4">
@@ -45,7 +45,7 @@
         <div class="col-md-4">
             <div class="action-card h-100">
                 <span class="icon-wrap bg-amber"><i class="fa-solid fa-link"></i></span>
-                <h5 class="mt-3">Service Provider link</h5>
+                <h5 class="mt-3">Service link</h5>
                 <p class="small">Share your public page:</p>
                 <code class="d-block p-2 rounded vendor-store-code">{{ route('service_provider.show', $service_provider->slug) }}</code>
             </div>

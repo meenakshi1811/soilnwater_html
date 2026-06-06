@@ -17,7 +17,7 @@
         : ($isVendor ? request()->routeIs('vendor.profile.*') : ($isConsultant ? request()->routeIs('consultant.profile.*') : ($isServiceProvider ? request()->routeIs('service_provider.profile.*') : request()->routeIs('admin.profile.*'))));
     $panelTitle = $isGeneralUser
         ? 'User Dashboard'
-        : ($isVendor ? 'Vendor Dashboard' : ($isConsultant ? 'Consultant Dashboard' : ($isServiceProvider ? 'Service Provider Dashboard' : 'Admin Control Panel')));
+        : ($isVendor ? 'Vendor Dashboard' : ($isConsultant ? 'Consultant Dashboard' : ($isServiceProvider ? 'Service Dashboard' : 'Admin Control Panel')));
 @endphp
 <header class="admin-header">
     <div class="container-fluid d-flex align-items-center justify-content-between gap-3 flex-wrap">

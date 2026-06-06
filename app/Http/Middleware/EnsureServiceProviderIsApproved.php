@@ -16,11 +16,11 @@ class EnsureServiceProviderIsApproved
         $user = $request->user();
 
         if (! $user || $user->role !== 'service_provider') {
-            abort(403, 'Service Provider access only.');
+            abort(403, 'Service access only.');
         }
 
         if (! $user->serviceProvider) {
-            abort(403, 'Service Provider profile not found.');
+            abort(403, 'Service profile not found.');
         }
 
         return $next($request);

@@ -129,7 +129,7 @@ class ServiceProvider extends Model
 
     public function serviceProviderUrl(): string
     {
-        return url('/service-provider/'.$this->slug);
+        return url('/service/'.$this->slug);
     }
 
     public function service_providerUrl(): string

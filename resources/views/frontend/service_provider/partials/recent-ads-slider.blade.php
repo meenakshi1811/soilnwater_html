@@ -42,7 +42,7 @@
                                         <h6 class="mb-1 offer-coupon-title">{{ $ad->title }}</h6>
                                         <span class="recent-ad-meta">
                                             <i class="fa-solid fa-layer-group"></i>
-                                            {{ ($selectedCategoryNames !== [] ? implode(', ', $selectedCategoryNames) : 'Service Providers') }} • {{ $ad->created_at?->format('d M Y') ?? 'N/A' }}
+                                            {{ ($selectedCategoryNames !== [] ? implode(', ', $selectedCategoryNames) : 'Services') }} • {{ $ad->created_at?->format('d M Y') ?? 'N/A' }}
                                         </span>
                                     </div>
                                 </a>

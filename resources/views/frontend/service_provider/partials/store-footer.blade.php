@@ -14,7 +14,7 @@
             </div>
             <div class="col-md-3">
                 <h6 class="text-white">Quick links</h6>
-                <a href="{{ route('service_provider.show', $service_provider->slug) }}" class="small d-block mb-1">Service Provider home</a>
+                <a href="{{ route('service_provider.show', $service_provider->slug) }}" class="small d-block mb-1">Service home</a>
                 <a href="{{ route('service_provider.about', $service_provider->slug) }}" class="small d-block mb-1">About Us</a>
             </div>
         </div>

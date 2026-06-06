@@ -326,7 +326,7 @@ class UserAdController extends Controller
             ->find($validated['subcategory_id']);
 
         if (! $category || ! $subcategory) {
-            return response()->json(['message' => 'Please select a valid service provider category and subcategory combination.'], 422);
+            return response()->json(['message' => 'Please select a valid service category and subcategory combination.'], 422);
         }
 
         if ($request->hasFile('image')) {
@@ -377,14 +377,14 @@ class UserAdController extends Controller
             $body = view('emails.service_provider.new-inquiry', compact('inquiry', 'service_provider', 'service', 'category', 'subcategory'))->render();
             Mail::send([], [], function ($email) use ($service_provider, $category, $subcategory, $body) {
                 $email->to($service_provider->email)
-                    ->subject('New service provider enquiry: '.$category->name.' - '.$subcategory->name)
+                    ->subject('New service enquiry: '.$category->name.' - '.$subcategory->name)
                     ->html($body);
             });
         }
 
         ContactSupport::query()->create([
             'user_id' => $request->user()?->id,
-            'subject' => '[Service Provider Enquiry] '.$category->name.' - '.$subcategory->name,
+            'subject' => '[Service Enquiry] '.$category->name.' - '.$subcategory->name,
             'message' => implode("\n", [
                 'Client Name: '.$validated['client_name'],
                 'Email: '.$validated['email'],
@@ -397,7 +397,7 @@ class UserAdController extends Controller
             ]),
         ]);
 
-        return response()->json(['message' => 'Thanks! Your service provider enquiry has been submitted successfully.']);
+        return response()->json(['message' => 'Thanks! Your service enquiry has been submitted successfully.']);
     }
 
 

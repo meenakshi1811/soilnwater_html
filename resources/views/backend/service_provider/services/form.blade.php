@@ -2,7 +2,7 @@
 @section('title', $service->exists ? 'Edit Service' : 'Create Service')
 @section('content')
 <div class="admin-panel ems-page">
-  <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">Service Provider Portal</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Service' : 'Add Service' }}</h2></div><a href="{{ route('service_provider.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
+  <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">Service Portal</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Service' : 'Add Service' }}</h2></div><a href="{{ route('service_provider.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
   @php
     $visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten();
     $chargeDurationLabels = ['minute' => 'Minutes', 'hour' => 'Hours', 'day' => 'Days', 'month' => 'Months', 'contractual' => 'Contractual'];
@@ -12,7 +12,7 @@
     $oldCharges = old('charge_duration') ? collect(old('charge_duration'))->map(fn($duration, $idx) => ['duration' => $duration, 'price' => old('charge_price')[$idx] ?? ''])->values()->all() : $storedCharges;
     if (empty($oldCharges)) { $oldCharges = [['duration' => 'hour', 'price' => $service->price ?? '']]; }
     $consultationType = old('consultation_type', $service->consultation_type ?: ($service->is_online ? 'online' : 'offline'));
-    $businessTypes = ['Architect', 'Lawyer', 'Landscaper', 'Software Service Provider', 'Business'];
+    $businessTypes = ['Architect', 'Lawyer', 'Landscaper', 'Software Service', 'Business'];
   @endphp
   @if ($visibleErrors->isNotEmpty())<div class="alert alert-danger"><ul class="mb-0">@foreach ($visibleErrors as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
   <form id="service_provider-service-form" data-ajax-create="{{ $service->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $service->exists ? route('service_provider.services.update', $service) : route('service_provider.services.store') }}" class="row g-3">@csrf @if($service->exists) @method('PUT') @endif

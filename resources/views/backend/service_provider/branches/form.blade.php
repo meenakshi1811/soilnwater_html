@@ -6,7 +6,7 @@
 <div class="admin-panel ems-page service_provider-branch-form">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <p class="ems-kicker mb-1">Service Provider Panel</p>
+            <p class="ems-kicker mb-1">Service Panel</p>
             <h2 class="admin-title mb-0">{{ $branch->exists ? 'Manage Branch' : 'Add Branch' }}</h2>
             <p class="text-secondary small mb-0">Update details for your branch / company location</p>
         </div>
@@ -31,7 +31,7 @@
                 <div class="col-md-6">
                     <label class="form-label">Occupation</label>
                     <input type="text" name="occupation" class="form-control" value="{{ old('occupation', $branch->occupation) }}" placeholder="Enter occupation">
-                    <div class="form-text">Enter the branch occupation manually, such as Legal Advisor or Business Service Provider.</div>
+                    <div class="form-text">Enter the branch occupation manually, such as Legal Advisor or Business Service.</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Profile Image</label>

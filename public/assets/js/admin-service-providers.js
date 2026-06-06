@@ -12,7 +12,7 @@
             this.table = $('#service_providersTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: { url: '/admin/service-providers/data' },
+                ajax: { url: '/admin/services/data' },
                 columns: [
                     { data: 'company_name', name: 'company_name' },
                     { data: 'owner_name', name: 'user.name', orderable: false },
@@ -35,7 +35,7 @@
             $(document).on('click', '.js-edit-service_provider', function () {
                 var id = $(this).data('id');
                 self.service_providerId = id;
-                $.get('/admin/service-providers/' + id + '/edit').done(function (response) {
+                $.get('/admin/services/' + id + '/edit').done(function (response) {
                     var v = response.service_provider || {};
                     $('#service_providerCompany').val(v.company_name || '');
                     $('#service_providerContact').val(v.contact_person || '');
@@ -53,10 +53,10 @@
                     $('#service_providerGst').val(v.gst_number || '');
                     $('#service_providerGovernmentCertificate').val(v.government_certificate_number || '');
                     self.toggleGstField();
-                    $('#service_providerForm').attr('action', '/admin/service-providers/' + id);
+                    $('#service_providerForm').attr('action', '/admin/services/' + id);
                     self.modal.show();
                 }).fail(function () {
-                    FormHelper.showToast('danger', 'Unable to load service provider.');
+                    FormHelper.showToast('danger', 'Unable to load service.');
                 });
             });
 
@@ -70,7 +70,7 @@
 
             $(document).on('click', '.js-approve-service_provider', function () {
                 var id = $(this).data('id');
-                $.post('/admin/service-providers/' + id + '/approve', { _token: $('meta[name="csrf-token"]').attr('content') })
+                $.post('/admin/services/' + id + '/approve', { _token: $('meta[name="csrf-token"]').attr('content') })
                     .done(function (r) {
                         FormHelper.showToast('success', r.message);
                         self.table.ajax.reload(null, false);
@@ -78,9 +78,9 @@
             });
 
             $(document).on('click', '.js-reject-service_provider', function () {
-                if (!confirm('Reject this service provider?')) return;
+                if (!confirm('Reject this service?')) return;
                 var id = $(this).data('id');
-                $.post('/admin/service-providers/' + id + '/reject', { _token: $('meta[name="csrf-token"]').attr('content') })
+                $.post('/admin/services/' + id + '/reject', { _token: $('meta[name="csrf-token"]').attr('content') })
                     .done(function (r) {
                         FormHelper.showToast('success', r.message);
                         self.table.ajax.reload(null, false);
@@ -88,10 +88,10 @@
             });
 
             $(document).on('click', '.js-delete-service_provider', function () {
-                if (!confirm('Delete this service provider permanently?')) return;
+                if (!confirm('Delete this service permanently?')) return;
                 var id = $(this).data('id');
                 $.ajax({
-                    url: '/admin/service-providers/' + id,
+                    url: '/admin/services/' + id,
                     method: 'DELETE',
                     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
                 }).done(function (r) {
@@ -107,7 +107,7 @@
 
                 checkbox.prop('disabled', true);
 
-                $.post('/admin/service-providers/' + id + '/toggle-premium', { _token: $('meta[name="csrf-token"]').attr('content') })
+                $.post('/admin/services/' + id + '/toggle-premium', { _token: $('meta[name="csrf-token"]').attr('content') })
                     .done(function (r) {
                         checkbox.prop('checked', !!r.is_premium);
                         FormHelper.showToast('success', r.message);

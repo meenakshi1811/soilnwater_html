@@ -26,7 +26,7 @@ class ServiceProviderStatusMail extends Mailable
     {
         $service_provider->loadMissing('user');
 
-        $companyName = $service_provider->company_name ?: $service_provider->user?->name ?: 'ServiceProvider';
+        $companyName = $service_provider->company_name ?: $service_provider->user?->name ?: 'Service';
         $status = match ($action) {
             'pending' => 'Under observation',
             'approved' => 'Approved',
@@ -45,11 +45,11 @@ class ServiceProviderStatusMail extends Mailable
             ],
             action: $action,
             subjectLine: match ($action) {
-                'pending' => 'Welcome to SoilNWater - Your ServiceProvider Profile Is Under Observation',
-                'approved' => 'Your ServiceProvider Account Has Been Approved',
-                'rejected' => 'ServiceProvider Application Update',
-                'deleted' => 'ServiceProvider Account Removed',
-                default => 'ServiceProvider Account Update',
+                'pending' => 'Welcome to SoilNWater - Your Service Profile Is Under Observation',
+                'approved' => 'Your Service Account Has Been Approved',
+                'rejected' => 'Service Application Update',
+                'deleted' => 'Service Account Removed',
+                default => 'Service Account Update',
             },
         );
     }

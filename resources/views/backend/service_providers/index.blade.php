@@ -1,6 +1,6 @@
 @extends('backend.layouts.app')
 
-@section('title', 'Service Providers')
+@section('title', 'Services')
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -10,9 +10,9 @@
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div>
-            <p class="ems-kicker mb-1">Service Provider Management</p>
-            <h2 class="admin-title mb-1">Service Providers</h2>
-            <p class="mb-0 text-secondary">Review service provider registrations, approve accounts, and manage company profiles.</p>
+            <p class="ems-kicker mb-1">Service Management</p>
+            <h2 class="admin-title mb-1">Services</h2>
+            <p class="mb-0 text-secondary">Review service registrations, approve accounts, and manage company profiles.</p>
         </div>
     </div>
 
@@ -41,7 +41,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content ems-modal">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Service Provider</h5>
+                <h5 class="modal-title">Edit Service</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="service_providerForm" method="POST" action="#" novalidate>
@@ -57,9 +57,9 @@
                             <input type="text" name="contact_person" id="service_providerContact" class="form-control">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Service Provider slug</label>
+                            <label class="form-label">Service slug</label>
                             <input type="text" name="slug" id="service_providerSlug" class="form-control" required>
-                            <small class="text-muted">/service-provider/<span id="slugPreview">slug</span></small>
+                            <small class="text-muted">/service/<span id="slugPreview">slug</span></small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Status</label>

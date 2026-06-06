@@ -1,19 +1,19 @@
 @extends('backend.layouts.app')
 
-@section('title', 'Service Provider Details')
+@section('title', 'Service Details')
 
 @section('content')
 <div class="admin-panel ems-page">
     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
         <div>
-            <p class="ems-kicker mb-1">Service Provider</p>
+            <p class="ems-kicker mb-1">Service</p>
             <h2 class="admin-title mb-1">{{ $service_provider->company_name }}</h2>
             <span class="badge text-bg-{{ $service_provider->status === 'approved' ? 'success' : ($service_provider->status === 'rejected' ? 'danger' : 'warning') }}">{{ ucfirst($service_provider->status) }}</span>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.service_providers.index') }}" class="btn btn-light">Back to list</a>
             @if($service_provider->isApproved())
-                <a href="{{ route('service_provider.show', $service_provider->slug) }}" target="_blank" class="btn btn-outline-primary">View service_provider</a>
+                <a href="{{ route('service_provider.show', $service_provider->slug) }}" target="_blank" class="btn btn-outline-primary">View Service</a>
             @endif
         </div>
     </div>
@@ -29,7 +29,7 @@
                     <dt class="col-sm-4">Address</dt><dd class="col-sm-8">{{ $service_provider->address }}, {{ $service_provider->city }}, {{ $service_provider->state }} {{ $service_provider->pincode }}</dd>
                     <dt class="col-sm-4">PAN / GST</dt><dd class="col-sm-8">{{ $service_provider->pan_number ?? '—' }} / {{ $service_provider->gst_number ?? '—' }}</dd>
                     <dt class="col-sm-4">Other Government Certificate</dt><dd class="col-sm-8">{{ $service_provider->government_certificate_number ?? '—' }}</dd>
-                    <dt class="col-sm-4">Service Provider URL</dt><dd class="col-sm-8"><a href="{{ route('service_provider.show', $service_provider->slug) }}" target="_blank" rel="noopener noreferrer">{{ route('service_provider.show', $service_provider->slug) }}</a></dd>
+                    <dt class="col-sm-4">Service URL</dt><dd class="col-sm-8"><a href="{{ route('service_provider.show', $service_provider->slug) }}" target="_blank" rel="noopener noreferrer">{{ route('service_provider.show', $service_provider->slug) }}</a></dd>
                 </dl>
             </div>
             <div class="chart-card">

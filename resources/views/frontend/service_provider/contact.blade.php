@@ -22,7 +22,7 @@
             <div class="col-lg-8">
                 <div class="contact-panel card border-0 shadow-sm h-100">
                     <div class="card-body p-4 p-lg-5">
-                        <h2 class="h3 fw-bold mb-4">Service Provider Details</h2>
+                        <h2 class="h3 fw-bold mb-4">Service Details</h2>
 
                         <div class="d-flex align-items-start gap-3 mb-4">
                             <span class="contact-icon"><i class="fa-solid fa-location-dot"></i></span>
@@ -60,7 +60,7 @@
                     <div class="card-body p-4 p-lg-4 d-flex flex-column">
                         <div class="enquiry-badge mb-3">Quick Contact</div>
                         <h3 class="h5 fw-bold mb-2">Share your requirement</h3>
-                        <p class="text-muted mb-4">Submit an enquiry and this service_provider will be notified by email and SMS.</p>
+                        <p class="text-muted mb-4">Submit an enquiry and this service will be notified by email and SMS.</p>
 
                         @if($approvedServices->isNotEmpty())
                             @auth
@@ -88,7 +88,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
-                        <p class="consultant-service-detail-modal__eyebrow mb-1">Service Provider enquiry</p>
+                        <p class="consultant-service-detail-modal__eyebrow mb-1">Service enquiry</p>
                         <h3 class="modal-title" id="{{ $contactEnquiryModalId }}Label">Share your requirement</h3>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -98,7 +98,7 @@
                     <div class="modal-body">
                         <div class="row g-3">
                             <div class="col-12">
-                                <label class="form-label">Select service_provider service *</label>
+                                <label class="form-label">Select service *</label>
                                 <select name="service_provider_service_id" class="form-select" required>
                                     <option value="">Choose a service</option>
                                     @foreach($approvedServices as $service)
@@ -132,7 +132,7 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Question *</label>
-                                <textarea name="question" class="form-control" rows="4" placeholder="Write your question for this service_provider" required></textarea>
+                                <textarea name="question" class="form-control" rows="4" placeholder="Write your question for this service" required></textarea>
                             </div>
                         </div>
                     </div>
@@ -158,7 +158,7 @@
                     <div class="consultant-login-required-card__icon"><i class="fa-solid fa-lock"></i></div>
                     <div>
                         <h4>You are not logged in</h4>
-                        <p>Please log in to submit an enquiry for this service_provider.</p>
+                        <p>Please log in to submit an enquiry for this service.</p>
                         <a href="{{ route('login') }}" class="consultant-login-required-card__btn">Login to continue</a>
                     </div>
                 </div>

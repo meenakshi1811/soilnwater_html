@@ -11,6 +11,16 @@ class ServiceProviderOffersAccessTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_service_routes_use_service_urls_while_internal_names_remain_compatible(): void
+    {
+        $this->assertSame(url('/services'), route('frontend.service_providers.index'));
+        $this->assertSame(url('/service-enquiry'), route('frontend.service-provider-enquiry'));
+        $this->assertSame(url('/service/example-service'), route('service_provider.show', 'example-service'));
+        $this->assertSame(url('/service/dashboard'), route('service_provider.dashboard'));
+        $this->assertSame(url('/admin/services'), route('admin.service_providers.index'));
+        $this->assertSame(url('/admin/service-approvals'), route('admin.service-provider-services.index'));
+    }
+
     public function test_approved_service_provider_can_view_offer_dashboard(): void
     {
         $user = User::factory()->create([
@@ -19,7 +29,7 @@ class ServiceProviderOffersAccessTest extends TestCase
 
         ServiceProvider::query()->create([
             'user_id' => $user->id,
-            'company_name' => 'Test Service Provider',
+            'company_name' => 'Test Service',
             'slug' => 'test-service-provider',
             'status' => 'approved',
             'approved_at' => now(),
@@ -38,19 +48,19 @@ class ServiceProviderOffersAccessTest extends TestCase
 
         ServiceProvider::query()->create([
             'user_id' => $user->id,
-            'company_name' => 'Action Service Provider',
+            'company_name' => 'Action Service',
             'slug' => 'action-service-provider',
             'status' => 'approved',
             'approved_at' => now(),
         ]);
 
         $this->actingAs($user)
-            ->get('/service-provider/dashboard')
+            ->get('/service/dashboard')
             ->assertOk()
-            ->assertSee('Service Provider Dashboard')
-            ->assertSee('Manage every active service provider location')
-            ->assertSee('Slides shown on your public service provider page')
-            ->assertSee('Custom content blocks on your service provider profile')
+            ->assertSee('Service Dashboard')
+            ->assertSee('Manage every active service location')
+            ->assertSee('Slides shown on your public service page')
+            ->assertSee('Custom content blocks on your service profile')
             ->assertDontSee('active service_provider location')
             ->assertDontSee('public service_provider page')
             ->assertDontSee('service_provider profile')
@@ -69,7 +79,7 @@ class ServiceProviderOffersAccessTest extends TestCase
 
         ServiceProvider::query()->create([
             'user_id' => $user->id,
-            'company_name' => 'Pending Service Provider',
+            'company_name' => 'Pending Service',
             'slug' => 'pending-service-provider',
             'status' => 'pending',
         ]);

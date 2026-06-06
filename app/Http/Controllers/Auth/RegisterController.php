@@ -61,7 +61,7 @@ class RegisterController extends Controller
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
-            'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service provider registrations.',
+            'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service registrations.',
             'has_gst.required_if' => 'Please select whether you have a GST number.',
             'gst_number.required_if' => 'GST number is required when you select yes for GST.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
@@ -168,7 +168,7 @@ class RegisterController extends Controller
                 $message = 'Thank you for registering. Your consultant profile is under observation. Admin will check and approve it soon.';
             } else {
                 Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($serviceProvider, 'pending'));
-                $message = 'Thank you for registering. Your service provider profile is under observation. Admin will check and approve it soon.';
+                $message = 'Thank you for registering. Your service profile is under observation. Admin will check and approve it soon.';
             }
 
             if ($request->expectsJson()) {

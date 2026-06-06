@@ -4,7 +4,7 @@
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <p class="ems-kicker mb-1">Service Provider Portal</p>
+      <p class="ems-kicker mb-1">Service Portal</p>
       <h2 class="admin-title mb-0">{{ $service->name }}</h2>
     </div>
     <a href="{{ route('service_provider.services.index') }}" class="btn btn-outline-secondary">Back</a>

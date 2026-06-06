@@ -1,6 +1,6 @@
 <aside class="vendor-store-category-sidebar">
     <div class="vendor-store-category-sidebar__head">
-        <h2 class="vendor-store-category-sidebar__title">Service Provider categories</h2>
+        <h2 class="vendor-store-category-sidebar__title">Service categories</h2>
         <span class="vendor-store-category-sidebar__count">{{ $service_providerCategories->count() }} total</span>
     </div>
     <ul class="vendor-store-category-list">

@@ -28,7 +28,7 @@
 @endpush
 @section('content')
 <div class="admin-panel ems-page">
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><div><p class="ems-kicker mb-1">Service Provider Portal</p><h2 class="admin-title mb-0">Manage Services</h2></div><a href="{{ route('service_provider.services.create') }}" class="btn btn-primary ems-btn-primary"><i class="fa-solid fa-plus me-1"></i>Create Service</a></div>
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><div><p class="ems-kicker mb-1">Service Portal</p><h2 class="admin-title mb-0">Manage Services</h2></div><a href="{{ route('service_provider.services.create') }}" class="btn btn-primary ems-btn-primary"><i class="fa-solid fa-plus me-1"></i>Create Service</a></div>
   @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
   <div class="chart-card p-3 p-lg-4">
     <div class="table-responsive">
@@ -76,7 +76,7 @@ document.querySelectorAll('.js-delete').forEach(function (button) {
   button.addEventListener('click', function () {
     var row = button.closest('tr');
     var onConfirmDelete = function () {
-      fetch('/service-provider/services/' + button.dataset.id, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content, 'Accept': 'application/json' } })
+      fetch('/service/services/' + button.dataset.id, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content, 'Accept': 'application/json' } })
         .then(function (response) { if (!response.ok) throw new Error(); if (service_providerServicesDataTable && row) service_providerServicesDataTable.row(row).remove().draw(false); else row?.remove(); window.toastr?.success?.('Service deleted successfully.'); })
         .catch(function () { window.toastr?.error?.('Unable to delete service.'); });
     };
