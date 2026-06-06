@@ -1545,14 +1545,16 @@
                     <?php
                       $primaryBranch = $consultant->branches->first();
                       $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
-                      $consultantCardImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : $profilePlaceholder;
+                      $consultantProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null;
+                      $consultantCardImage = $consultant->logo ? asset($consultant->logo) : ($consultantProfileImage ?? $profilePlaceholder);
+                      $consultantCardFallback = $consultant->logo && $consultantProfileImage ? $consultantProfileImage : $profilePlaceholder;
                       $consultantCity = $primaryBranch?->city ?: ($consultant->city ?: 'Local Area');
                       $consultantDistance = $hasLocation && $consultant->nearest_distance_km !== null
                         ? ' • '.number_format($consultant->nearest_distance_km, 1).' km'
                         : '';
                     ?>
                     <a class="con-card text-decoration-none" href="<?= e(route('consultant.show', $consultant->slug)) ?>" aria-label="View <?= e($consultant->publicDisplayName()) ?> consultant page">
-                      <img src="<?= e($consultantCardImage) ?>" alt="<?= e($consultant->publicDisplayName()) ?>" onerror="this.onerror=null;this.src='<?= e($profilePlaceholder) ?>';">
+                      <img src="<?= e($consultantCardImage) ?>" alt="<?= e($consultant->publicDisplayName()) ?>" onerror="this.onerror=function(){this.onerror=null;this.src='<?= e($profilePlaceholder) ?>';};this.src='<?= e($consultantCardFallback) ?>';">
                       <div class="con-card-body">
                         <p class="con-name"><?= e($consultant->publicDisplayName()) ?><?php if ($consultant->is_premium): ?> ⭐<?php endif; ?></p>
                         <span class="con-role"><?= e($consultantCity) ?> • <?= e($consultant->services_count) ?> Services<?= e($consultantDistance) ?></span>

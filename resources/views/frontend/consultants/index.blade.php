@@ -20,11 +20,13 @@
           @php
             $primaryBranch = $consultant->branches->first();
             $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
-            $consultantCardImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : $profilePlaceholder;
+            $consultantProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null;
+            $consultantCardImage = $consultant->logo ? asset($consultant->logo) : ($consultantProfileImage ?? $profilePlaceholder);
+            $consultantCardFallback = $consultant->logo && $consultantProfileImage ? $consultantProfileImage : $profilePlaceholder;
           @endphp
           <div class="col">
             <div class="vendor-card card h-100">
-              <img src="{{ $consultantCardImage }}" alt="{{ $consultant->publicDisplayName() }}" onerror="this.onerror=null;this.src='{{ $profilePlaceholder }}';">
+              <img src="{{ $consultantCardImage }}" alt="{{ $consultant->publicDisplayName() }}" onerror="this.onerror=function(){this.onerror=null;this.src='{{ $profilePlaceholder }}';};this.src='{{ $consultantCardFallback }}';">
               <div class="vendor-card-body card-body d-flex flex-column">
                 <p>{{ $consultant->publicDisplayName() }} @if($consultant->is_premium)⭐@endif</p>
                 <div class="vendor-card-sub">
