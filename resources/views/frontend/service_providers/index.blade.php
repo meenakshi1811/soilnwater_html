@@ -19,15 +19,12 @@
         @forelse($service_providers as $service_provider)
           @php
             $primaryBranch = $service_provider->branches->first();
-            $firstService = $service_provider->services->firstWhere('status', 'approved') ?: $service_provider->services->first();
-            $serviceImage = $firstService?->image_path ? asset($firstService->image_path) : null;
-            $bannerImage = $service_provider->bannerSlides->first()?->image_path ? asset($service_provider->bannerSlides->first()->image_path) : null;
-            $logoImage = $service_provider->logo ? asset($service_provider->logo) : null;
-            $service_providerCardImage = $serviceImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=300&q=70';
+            $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
+            $service_providerCardImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : $profilePlaceholder;
           @endphp
           <div class="col">
             <div class="vendor-card card h-100">
-              <img src="{{ $service_providerCardImage }}" alt="{{ $service_provider->publicDisplayName() }}">
+              <img src="{{ $service_providerCardImage }}" alt="{{ $service_provider->publicDisplayName() }}" onerror="this.onerror=null;this.src='{{ $profilePlaceholder }}';">
               <div class="vendor-card-body card-body d-flex flex-column">
                 <p>{{ $service_provider->publicDisplayName() }} @if($service_provider->is_premium)⭐@endif</p>
                 <div class="vendor-card-sub">
