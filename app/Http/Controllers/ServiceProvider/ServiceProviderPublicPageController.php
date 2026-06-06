@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ServiceProviderBannerSlide;
 use App\Models\ServiceProvider;
 use App\Models\ServiceProviderPageSection;
+use App\Models\ServiceProviderService;
 use App\Support\ServiceProviderFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -163,10 +164,17 @@ class ServiceProviderPublicPageController extends Controller
         $this->normalizeServiceProviderSectionContentImages($service_provider);
         $service_provider->load(['bannerSlides', 'pageSections']);
 
+        $approvedServices = ServiceProviderService::query()
+            ->where('service_provider_id', $service_provider->id)
+            ->where('status', 'approved')
+            ->latest('updated_at')
+            ->get();
+
         return view('frontend.service_provider.show', [
             'service_provider' => $service_provider,
             'preview' => true,
             'activeNav' => 'home',
+            'approvedServices' => $approvedServices,
             'service_providerRecentAds' => collect(),
             'selectedCategoryNamesByServiceProviderAdId' => [],
         ]);

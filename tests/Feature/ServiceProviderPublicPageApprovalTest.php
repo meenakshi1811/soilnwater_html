@@ -98,6 +98,36 @@ class ServiceProviderPublicPageApprovalTest extends TestCase
             ->assertDontSee('New unapproved draft');
     }
 
+
+    public function test_admin_table_keeps_public_page_review_out_of_the_actions_column(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $owner = User::factory()->create(['role' => 'service_provider']);
+        ServiceProvider::query()->create([
+            'user_id' => $owner->id,
+            'company_name' => 'Review Link Services',
+            'slug' => 'review-link-services',
+            'status' => 'approved',
+            'public_page_status' => 'pending',
+            'pending_page_data' => [
+                'profile' => ['slug' => 'review-link-services'],
+                'banner_slides' => [],
+                'page_sections' => [],
+            ],
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->getJson(route('admin.service_providers.data'), [
+                'X-Requested-With' => 'XMLHttpRequest',
+            ])
+            ->assertOk();
+
+        $row = $response->json('data.0');
+        $this->assertStringContainsString('Review page', $row['public_page_link']);
+        $this->assertStringNotContainsString('approve-public-page', $row['actions']);
+        $this->assertStringNotContainsString('fa-globe', $row['actions']);
+    }
+
     public function test_admin_can_decline_a_pending_public_page_with_an_ajax_response(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
