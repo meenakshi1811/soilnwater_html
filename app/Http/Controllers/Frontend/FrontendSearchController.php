@@ -11,6 +11,9 @@ class FrontendSearchController extends Controller
     private const SEARCH_MODULES = [
         'offers' => 'frontend.offers.index',
         'ads' => 'frontend.ads.index',
+        'vendors' => 'frontend.vendors.index',
+        'consultants' => 'frontend.consultants.index',
+        'services' => 'frontend.service_providers.index',
     ];
 
     public function index(Request $request): RedirectResponse

@@ -46,18 +46,34 @@
 
   <form class="search-wrap" method="GET" action="{{ route('frontend.search') }}">
     @php
-      $activeSearchModule = request('module')
-        ?? (request()->routeIs('frontend.ads.*') ? 'ads' : 'offers');
+      $activeSearchModule = request('module') ?? match (true) {
+        request()->routeIs('frontend.ads.*') => 'ads',
+        request()->routeIs('frontend.vendors.*') => 'vendors',
+        request()->routeIs('frontend.consultants.*') => 'consultants',
+        request()->routeIs('frontend.service_providers.*') => 'services',
+        default => 'offers',
+      };
+      $searchPlaceholders = [
+        'offers' => 'Search offers...',
+        'ads' => 'Search ads...',
+        'vendors' => 'Search vendor name or product...',
+        'consultants' => 'Search consultant name or service...',
+        'services' => 'Search provider name or service...',
+      ];
     @endphp
     <select name="module" class="search-module-select" aria-label="Search module">
       <option value="offers" @selected($activeSearchModule === 'offers')>Offers</option>
       <option value="ads" @selected($activeSearchModule === 'ads')>Ads</option>
+      <option value="vendors" @selected($activeSearchModule === 'vendors')>Vendors</option>
+      <option value="consultants" @selected($activeSearchModule === 'consultants')>Consultants</option>
+      <option value="services" @selected($activeSearchModule === 'services')>Services</option>
     </select>
     <input
       class="search-query-input"
       type="text"
       name="q"
-      placeholder="Search offers or ads..."
+      placeholder="{{ $searchPlaceholders[$activeSearchModule] ?? 'Search...' }}"
+      data-search-placeholders='@json($searchPlaceholders)'
       value="{{ request('q', request('search')) }}"
       aria-label="Search query"
     >
@@ -137,6 +153,15 @@
   document.addEventListener('DOMContentLoaded', function () {
     const header = document.getElementById('frontendHeader');
     const menu = document.getElementById('mobileHeaderMenu');
+    const moduleSelect = header?.querySelector('.search-module-select');
+    const searchInput = header?.querySelector('.search-query-input');
+
+    if (moduleSelect && searchInput) {
+      const placeholders = JSON.parse(searchInput.dataset.searchPlaceholders || '{}');
+      moduleSelect.addEventListener('change', function () {
+        searchInput.placeholder = placeholders[moduleSelect.value] || 'Search...';
+      });
+    }
 
     if (!header || !menu || typeof bootstrap === 'undefined') {
       return;
