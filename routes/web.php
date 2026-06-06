@@ -13,6 +13,7 @@ use App\Http\Controllers\Frontend\OfferPageController;
 use App\Http\Controllers\Frontend\AdsMarketController;
 use App\Http\Controllers\Frontend\AdReportController;
 use App\Http\Controllers\Frontend\OfferReportController;
+use App\Http\Controllers\Frontend\ProfileReportController;
 use App\Http\Controllers\Frontend\FrontendSearchController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\AdSizeController;
 use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
 use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
+use App\Http\Controllers\Admin\ProfileReportController as AdminProfileReportController;
 use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\ConsultantController;
@@ -69,6 +71,8 @@ Route::get('/services', [OfferPageController::class, 'serviceProviders'])->name(
 Route::get('/ads-market', [AdsMarketController::class, 'index'])->name('frontend.ads.index');
 Route::get('/ads-market/{ad}', [AdsMarketController::class, 'show'])->name('frontend.ads.show');
 Route::post('/ads-market/{ad}/report', [AdReportController::class, 'store'])->middleware(['auth', 'verified'])->name('frontend.ads.report');
+Route::post('/consultant/{consultant:slug}/report', [ProfileReportController::class, 'consultant'])->middleware(['auth', 'verified'])->name('consultant.report');
+Route::post('/service/{service_provider:slug}/report', [ProfileReportController::class, 'serviceProvider'])->middleware(['auth', 'verified'])->name('service_provider.report');
 Route::get('/search', [FrontendSearchController::class, 'index'])->name('frontend.search');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
@@ -363,6 +367,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         Route::prefix('consultants')->name('consultants.')->group(function () {
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::get('/', [AdminProfileReportController::class, 'consultants'])->name('index');
+                Route::get('/data', [AdminProfileReportController::class, 'consultantData'])->name('data');
+                Route::delete('/{consultant}', [AdminProfileReportController::class, 'deleteConsultant'])->name('delete-consultant');
+            });
             Route::get('/', [ConsultantController::class, 'index'])->name('index');
             Route::get('/data', [ConsultantController::class, 'data'])->name('data');
             Route::get('/{consultant}', [ConsultantController::class, 'show'])->name('show');
@@ -387,6 +396,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         Route::prefix('services')->name('service_providers.')->group(function () {
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::get('/', [AdminProfileReportController::class, 'serviceProviders'])->name('index');
+                Route::get('/data', [AdminProfileReportController::class, 'serviceProviderData'])->name('data');
+                Route::delete('/{service_provider}', [AdminProfileReportController::class, 'deleteServiceProvider'])->name('delete-service-provider');
+            });
             Route::get('/', [ServiceProviderController::class, 'index'])->name('index');
             Route::get('/data', [ServiceProviderController::class, 'data'])->name('data');
             Route::get('/{service_provider}', [ServiceProviderController::class, 'show'])->name('show');

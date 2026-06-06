@@ -23,6 +23,15 @@
 
                 <a href="{{ route('service_provider.contact', $service_provider->slug) }}" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'contact' ? 'is-active' : '' }}">Contact</a>
 
+                @auth
+                    @if((int) auth()->id() !== (int) $service_provider->user_id)
+                        <button type="button" class="vendor-share-trigger vendor-store-nav-share" data-bs-toggle="modal" data-bs-target="#serviceProviderReportModal">
+                            <i class="fa-regular fa-flag"></i>
+                            <span>Report</span>
+                        </button>
+                    @endif
+                @endauth
+
                 <button type="button" class="vendor-share-trigger vendor-store-nav-share" data-bs-toggle="modal" data-bs-target="#service_providerShareModal">
                     <i class="fa-solid fa-qrcode"></i>
                     <span>Scan &amp; Share</span>

@@ -231,7 +231,7 @@
                     </summary>
                     <ul class="list-unstyled ps-4">
                         <li>
-                            <a class="{{ request()->routeIs('admin.consultants.*') ? 'active' : '' }}" href="{{ route('admin.consultants.index') }}">
+                            <a class="{{ request()->routeIs('admin.consultants.*') && ! request()->routeIs('admin.consultants.reports.*') ? 'active' : '' }}" href="{{ route('admin.consultants.index') }}">
                                 <i class="fa-solid fa-list"></i>
                                 <span>All Consultants</span>
                             </a>
@@ -246,6 +246,12 @@
                             <a class="{{ request()->routeIs('admin.consultant-services.all.*') ? 'active' : '' }}" href="{{ route('admin.consultant-services.all.index') }}">
                                 <i class="fa-solid fa-rectangle-list"></i>
                                 <span>All Services</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.consultants.reports.*') ? 'active' : '' }}" href="{{ route('admin.consultants.reports.index') }}">
+                                <i class="fa-regular fa-flag"></i>
+                                <span>Report Consultants</span>
                             </a>
                         </li>
                     </ul>
@@ -263,7 +269,7 @@
                     </summary>
                     <ul class="list-unstyled ps-4">
                         <li>
-                            <a class="{{ request()->routeIs('admin.service_providers.*') ? 'active' : '' }}" href="{{ route('admin.service_providers.index') }}">
+                            <a class="{{ request()->routeIs('admin.service_providers.*') && ! request()->routeIs('admin.service_providers.reports.*') ? 'active' : '' }}" href="{{ route('admin.service_providers.index') }}">
                                 <i class="fa-solid fa-list"></i>
                                 <span>All Services</span>
                             </a>
@@ -278,6 +284,12 @@
                             <a class="{{ request()->routeIs('admin.service-provider-services.all.*') ? 'active' : '' }}" href="{{ route('admin.service-provider-services.all.index') }}">
                                 <i class="fa-solid fa-rectangle-list"></i>
                                 <span>All Services</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.service_providers.reports.*') ? 'active' : '' }}" href="{{ route('admin.service_providers.reports.index') }}">
+                                <i class="fa-regular fa-flag"></i>
+                                <span>Report Services</span>
                             </a>
                         </li>
                     </ul>
