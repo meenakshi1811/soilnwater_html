@@ -104,8 +104,13 @@ class ServiceProviderController extends Controller
                     ? '<button type="button" class="btn btn-sm btn-outline-warning js-reject-service_provider" data-id="'.$service_provider->id.'" title="Reject"><i class="fa-solid fa-ban"></i></button>'
                     : '';
 
+                $pageApproveBtn = $service_provider->public_page_status === 'pending'
+                    ? '<button type="button" class="btn btn-sm btn-primary js-approve-service-provider-page" data-id="'.$service_provider->id.'" title="Approve public page"><i class="fa-solid fa-globe"></i></button>'
+                    : '';
+
                 return '<div class="d-flex gap-2 justify-content-end">'
                     .'<a href="'.route('admin.service_providers.show', $service_provider).'" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>'
+                    .$pageApproveBtn
                     .'<button type="button" class="btn btn-sm btn-outline-primary js-edit-service_provider" data-id="'.$service_provider->id.'" title="Edit"><i class="fa-solid fa-pen"></i></button>'
                     .$approveBtn
                     .$rejectBtn
