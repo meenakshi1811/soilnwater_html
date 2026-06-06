@@ -158,6 +158,7 @@ class OfferPageController extends Controller
         $service_providers = $this->topServiceProvidersQuery($lat, $lng, $request->string('search')->trim()->toString())
             ->paginate(24)
             ->appends($request->query());
+        $service_providers->getCollection()->each->usePublishedPage();
 
         return view('frontend/service_providers/index', [
             'service_providers' => $service_providers,
@@ -347,6 +348,7 @@ class OfferPageController extends Controller
     {
         $query = ServiceProvider::query()
             ->where('status', 'approved')
+            ->publiclyVisible()
             ->with('branches:id,service_provider_id,address,city,state,logo,is_primary,professional_experience,services_offered')
             ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')])
             ->when($search !== '', function (Builder $query) use ($search): void {

@@ -1778,7 +1778,9 @@
         });
         syncLiteEditors();
 
-        var saveBtn = document.getElementById('publicPageSaveBtn');
+        var submitter = e.submitter || document.getElementById('publicPageDraftBtn');
+        var submissionAction = submitter?.value || 'draft';
+        var saveBtn = submitter;
         var oldHtml = saveBtn ? saveBtn.innerHTML : '';
         if (saveBtn) {
             saveBtn.disabled = true;
@@ -1792,7 +1794,11 @@
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
             },
-            body: buildPublicPageFormData()
+            body: (function () {
+                var formData = buildPublicPageFormData();
+                formData.set('submission_action', submissionAction);
+                return formData;
+            })()
         })
             .then(function (res) {
                 return parseJsonResponse(res).then(function (data) {
