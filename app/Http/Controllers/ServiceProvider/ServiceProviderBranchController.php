@@ -99,6 +99,8 @@ class ServiceProviderBranchController extends Controller
             'branch_name' => ['required', 'string', 'max:255'],
             'contact_person' => ['nullable', 'string', 'max:255'],
             'occupation' => ['nullable', 'string', 'max:255'],
+            'professional_experience' => ['nullable', 'string', 'max:5000'],
+            'services_offered' => ['nullable', 'string', 'max:5000'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'phone' => ['nullable', 'string', 'max:20'],
             'alt_mobile_number' => ['nullable', 'string', 'max:20'],
