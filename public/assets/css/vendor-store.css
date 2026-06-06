@@ -1889,3 +1889,185 @@
         min-height: 220px;
     }
 }
+
+/* Service profile ad placements */
+.vendor-store-ads-zone--full-page .vendor-store-ad-card.is-slider {
+    aspect-ratio: 16 / 7;
+    max-height: 460px;
+    background: linear-gradient(135deg, #eef6f5 0%, #f8fafc 100%);
+}
+
+.vendor-store-ads-zone--full-page .vendor-store-ad-card.is-slider img {
+    object-fit: contain;
+}
+
+.service-provider-inline-ads {
+    padding: 1.25rem 0;
+    background: linear-gradient(180deg, rgba(245, 249, 255, 0.74), rgba(255, 255, 255, 0.96));
+    border-block: 1px solid #e7eef6;
+}
+
+.service-provider-inline-ads__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.7rem;
+    color: #52657d;
+}
+
+.service-provider-inline-ads__head span {
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.service-provider-inline-ads__head i {
+    margin-right: 0.35rem;
+    color: var(--store-teal);
+}
+
+.service-provider-inline-ads__head small {
+    font-size: 0.72rem;
+    color: #8290a2;
+}
+
+.service-provider-compact-ad {
+    display: flex;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba(15, 43, 77, 0.1);
+    border-radius: 16px;
+    background: #fff;
+    color: inherit;
+    box-shadow: 0 10px 28px rgba(15, 43, 77, 0.07);
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.service-provider-compact-ad:hover {
+    transform: translateY(-2px);
+    border-color: rgba(34, 118, 210, 0.25);
+    box-shadow: 0 16px 34px rgba(15, 43, 77, 0.12);
+    color: inherit;
+}
+
+.service-provider-compact-ad__media {
+    position: relative;
+    flex: 0 0 38%;
+    min-height: 150px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #edf5fb, #f5faf8);
+}
+
+.service-provider-compact-ad__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.service-provider-compact-ad__badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 999px;
+    background: rgba(15, 43, 77, 0.84);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    backdrop-filter: blur(6px);
+}
+
+.service-provider-compact-ad__body {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    padding: 1rem 1.1rem;
+}
+
+.service-provider-compact-ad__category {
+    margin: 0 0 0.35rem;
+    color: var(--store-teal);
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.service-provider-compact-ad h3 {
+    margin: 0 0 0.45rem;
+    color: #0f2b4d;
+    font-size: 1rem;
+    font-weight: 850;
+    line-height: 1.28;
+}
+
+.service-provider-compact-ad__description {
+    margin: 0 0 0.65rem;
+    color: #607188;
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.service-provider-compact-ad__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: auto;
+    color: #2276d2;
+    font-size: 0.74rem;
+    font-weight: 850;
+}
+
+.service-provider-compact-ad--service {
+    flex-direction: column;
+    border-radius: 22px;
+}
+
+.service-provider-compact-ad--service .service-provider-compact-ad__media {
+    flex-basis: auto;
+    height: 172px;
+    min-height: 172px;
+}
+
+.service-provider-compact-ad--service .service-provider-compact-ad__body {
+    padding: 18px 20px 20px;
+}
+
+.service-provider-compact-ad--service h3 {
+    font-size: 1.05rem;
+}
+
+@media (max-width: 767.98px) {
+    .vendor-store-ads-zone--full-page .vendor-store-ad-card.is-slider {
+        aspect-ratio: 4 / 3;
+        max-height: 360px;
+    }
+
+    .service-provider-inline-ads {
+        padding: 1rem 0;
+    }
+
+    .service-provider-inline-ads__head small {
+        display: none;
+    }
+
+    .service-provider-compact-ad__media {
+        flex-basis: 34%;
+        min-height: 132px;
+    }
+
+    .service-provider-compact-ad__body {
+        padding: 0.8rem;
+    }
+
+    .service-provider-compact-ad__description {
+        display: none;
+    }
+}

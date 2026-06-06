@@ -30,7 +30,7 @@ class ServiceProviderStoreController extends Controller
             ->latest('updated_at')
             ->get();
 
-        $adsContext = $this->loadStoreAds($service_provider, $service_provider->pageSections->count());
+        $adsContext = $this->loadStoreAds($service_provider);
         $service_providerRecentAds = $this->nearestServiceProviderModuleAds();
 
         return view('frontend.service_provider.show', [
@@ -40,8 +40,8 @@ class ServiceProviderStoreController extends Controller
             'approvedServices' => $approvedServices,
             'service_providerRecentAds' => $service_providerRecentAds,
             'selectedCategoryNamesByServiceProviderAdId' => $this->resolveSelectedCategoryNamesByAdId($service_providerRecentAds),
-            'randomFullPagePlacements' => $adsContext['randomFullPagePlacements'],
-            'sponsoredFillers' => $adsContext['sponsoredFillers'],
+            'fullPageAds' => $adsContext['fullPageAds'],
+            'supportingAds' => $adsContext['supportingAds'],
         ]);
     }
 
@@ -286,6 +286,7 @@ class ServiceProviderStoreController extends Controller
             ->where('status', 'approved')
             ->selectedForModule('service_providers')
             ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
+            ->where('size_type', '!=', 'square')
             ->whereNotNull('final_image')
             ->where(function ($query) {
                 $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
@@ -307,16 +308,14 @@ class ServiceProviderStoreController extends Controller
     }
 
     /**
-     * @return array{sponsoredFillers: array, sidebarAds: Collection, sectionAdRails: array<int, Collection>, randomFullPagePlacements: array}
+     * @return array{fullPageAds: Collection, supportingAds: Collection}
      */
-    private function loadStoreAds(ServiceProvider $service_provider, int $sectionCount, ?Category $category = null, ?Category $subcategory = null): array
+    private function loadStoreAds(ServiceProvider $service_provider, ?Category $category = null, ?Category $subcategory = null): array
     {
         if ($service_provider->is_premium) {
             return [
-                'sponsoredFillers' => [],
-                'sidebarAds' => collect(),
-                'sectionAdRails' => [],
-                'randomFullPagePlacements' => [],
+                'fullPageAds' => collect(),
+                'supportingAds' => collect(),
             ];
         }
 
@@ -346,13 +345,11 @@ class ServiceProviderStoreController extends Controller
         }
 
         $effectiveAds = ($categoryMatchedAds->isNotEmpty() ? $categoryMatchedAds : $serviceProviderModuleAds)->values();
-        $split = $adsService->splitAdsForStoreLayout($effectiveAds, $sectionCount);
+        $placements = $adsService->splitServicePageAds($effectiveAds);
 
         return [
-            'sponsoredFillers' => $adsService->getSponsoredFillers($lat, $lng, ['service_providers'], true),
-            'sidebarAds' => $split['sidebar'],
-            'sectionAdRails' => $split['section_rails'],
-            'randomFullPagePlacements' => $adsService->buildRandomPlacements($effectiveAds, $sectionCount),
+            'fullPageAds' => $placements['full_page'],
+            'supportingAds' => $placements['supporting'],
         ];
     }
 
