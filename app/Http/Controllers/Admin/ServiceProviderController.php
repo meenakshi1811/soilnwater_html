@@ -45,6 +45,7 @@ class ServiceProviderController extends Controller
                 'status',
                 'public_page_status',
                 'public_page_submitted_at',
+                'published_page_data',
                 'approved_at',
                 'created_at',
             ]);
@@ -81,8 +82,10 @@ class ServiceProviderController extends Controller
                         .'<i class="fa-solid fa-up-right-from-square"></i><span>Review page</span></a>';
                 }
 
-                if ($service_provider->public_page_status === 'approved') {
-                    return '<a class="service-page-link" href="'.route('service_provider.show', $service_provider->slug).'" target="_blank" rel="noopener">'
+                if (is_array($service_provider->published_page_data) || $service_provider->public_page_status === 'approved') {
+                    $slug = data_get($service_provider->published_page_data, 'profile.slug', $service_provider->slug);
+
+                    return '<a class="service-page-link" href="'.route('service_provider.show', $slug).'" target="_blank" rel="noopener">'
                         .'<i class="fa-solid fa-arrow-up-right-from-square"></i><span>View page</span></a>';
                 }
 

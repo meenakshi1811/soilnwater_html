@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ConsultantBannerSlide;
 use App\Models\Consultant;
 use App\Models\ConsultantPageSection;
+use App\Models\ConsultantService;
 use App\Support\ConsultantFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -27,6 +28,10 @@ class ConsultantPublicPageController extends Controller
     public function update(Request $request): RedirectResponse|JsonResponse
     {
         $consultant = auth()->user()->consultant;
+
+        if ($consultant->public_page_status === 'approved' && ! is_array($consultant->published_page_data)) {
+            $consultant->update(['published_page_data' => $consultant->publicPageSnapshot()]);
+        }
 
         $validated = $request->validate([
             'hero_main_heading' => ['nullable', 'string', $this->maxWordsRule('main heading', 500)],
@@ -61,6 +66,7 @@ class ConsultantPublicPageController extends Controller
             'sections.*.video_file' => ['nullable', 'mimetypes:video/mp4,video/webm,video/ogg', 'max:51200'],
             'sections.*.youtube_url' => ['nullable', 'url', 'max:1000'],
             'sections.*._delete' => ['nullable', 'boolean'],
+            'submission_action' => ['required', 'in:draft,submit'],
         ]);
 
         if (array_key_exists('hero_sub_heading_encoded', $validated)) {
@@ -72,7 +78,6 @@ class ConsultantPublicPageController extends Controller
         }
 
         if ($request->hasFile('logo')) {
-            ConsultantFileUploader::deleteIfExists($consultant->logo);
             $validated['logo'] = ConsultantFileUploader::storeImage($request->file('logo'), 'logos');
         }
 
@@ -111,11 +116,22 @@ class ConsultantPublicPageController extends Controller
 
         $this->syncSections($consultant, $request->input('sections', []), $request);
 
-        if ($request->ajax() || $request->wantsJson()) {
-            $consultant = $consultant->fresh()->load(['bannerSlides', 'pageSections']);
+        $consultant = $consultant->fresh()->load(['bannerSlides', 'pageSections']);
+        $isSubmission = $validated['submission_action'] === 'submit';
+        $consultant->update([
+            'public_page_status' => $isSubmission ? 'pending' : 'draft',
+            'pending_page_data' => $isSubmission ? $consultant->publicPageSnapshot() : null,
+            'public_page_submitted_at' => $isSubmission ? now() : null,
+        ]);
 
+        $message = $isSubmission
+            ? 'Public page saved and sent to admin for approval.'
+            : 'Draft saved. Your changes are available only in Live Preview.';
+
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
-                'message' => 'Public page saved successfully.',
+                'message' => $message,
+                'public_page_status' => $consultant->public_page_status,
                 'preview_url' => route('consultant.public-page.preview'),
                 'logo_url' => $consultant->logo ? asset($consultant->logo) : null,
                 'sections' => $consultant->pageSections->map(fn ($section) => [
@@ -131,13 +147,12 @@ class ConsultantPublicPageController extends Controller
             ]);
         }
 
-        return redirect()->route('consultant.public-page.edit')->with('success', 'Public page saved successfully.');
+        return redirect()->route('consultant.public-page.edit')->with('success', $message);
     }
 
     public function deleteBannerSlide(ConsultantBannerSlide $slide): JsonResponse
     {
         abort_unless($slide->consultant_id === auth()->user()->consultant?->id, 403);
-        ConsultantFileUploader::deleteIfExists($slide->image_path);
         $slide->delete();
 
         return response()->json(['message' => 'Banner slide removed.']);
@@ -149,10 +164,17 @@ class ConsultantPublicPageController extends Controller
         $this->normalizeConsultantSectionContentImages($consultant);
         $consultant->load(['bannerSlides', 'pageSections']);
 
+        $approvedServices = ConsultantService::query()
+            ->where('consultant_id', $consultant->id)
+            ->where('status', 'approved')
+            ->latest('updated_at')
+            ->get();
+
         return view('frontend.consultant.show', [
             'consultant' => $consultant,
             'preview' => true,
             'activeNav' => 'home',
+            'approvedServices' => $approvedServices,
             'consultantRecentAds' => collect(),
             'selectedCategoryNamesByConsultantAdId' => [],
         ]);
@@ -165,8 +187,6 @@ class ConsultantPublicPageController extends Controller
             if (! empty($sectionData['_delete']) && ! empty($sectionData['id'])) {
                 $section = ConsultantPageSection::where('consultant_id', $consultant->id)->find($sectionData['id']);
                 if ($section) {
-                    ConsultantFileUploader::deleteIfExists($section->image_path);
-                    $this->deleteManagedMediaFromContent((string) $section->content);
                     $section->delete();
                 }
 
@@ -188,10 +208,8 @@ class ConsultantPublicPageController extends Controller
                 $section = new ConsultantPageSection(['consultant_id' => $consultant->id]);
             }
 
-            $oldContent = (string) ($section->content ?? '');
             $imageFile = $request->file("sections.{$index}.image");
             if ($imageFile) {
-                ConsultantFileUploader::deleteIfExists($section->image_path);
                 $section->image_path = ConsultantFileUploader::storeImage($imageFile, 'sections');
             }
 
@@ -222,7 +240,6 @@ class ConsultantPublicPageController extends Controller
             ]);
             $section->consultant_id = $consultant->id;
             $section->save();
-            $this->deleteOrphanManagedMedia($oldContent, (string) $section->content);
         }
     }
 

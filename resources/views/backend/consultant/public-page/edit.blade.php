@@ -23,16 +23,33 @@
         <div>
             <p class="ems-kicker mb-1">Consultant Panel</p>
             <h2 class="admin-title mb-0">{{ $consultant->publicDisplayName() }}</h2>
-            <p class="text-muted small mb-0">Edit your consultant below, click <strong>Save Changes</strong>, then open <strong>Live Preview</strong> to see the published look.</p>
+            <p class="text-muted small mb-0">Save a private draft for Live Preview, or send your changes to admin for approval before they appear on the main site.</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('consultant.public-page.preview') }}" target="_blank" class="btn btn-outline-secondary">
                 <i class="fa-solid fa-up-right-from-square me-1"></i> Live Preview
             </a>
-            <button type="submit" form="publicPageForm" class="btn btn-primary ems-btn-primary" id="publicPageSaveBtn">
-                <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+            <button type="submit" form="publicPageForm" name="submission_action" value="draft" class="btn btn-outline-primary" id="publicPageDraftBtn">
+                <i class="fa-solid fa-floppy-disk me-1"></i> Save as Draft
+            </button>
+            <button type="submit" form="publicPageForm" name="submission_action" value="submit" class="btn btn-primary ems-btn-primary" id="publicPageSubmitBtn">
+                <i class="fa-solid fa-paper-plane me-1"></i> Save &amp; Send for Approval
             </button>
         </div>
+    </div>
+
+
+    <div class="alert {{ $consultant->public_page_status === 'pending' ? 'alert-warning' : ($consultant->public_page_status === 'approved' ? 'alert-success' : ($consultant->public_page_status === 'declined' ? 'alert-danger' : 'alert-info')) }} py-2">
+        <strong>Page status:</strong> {{ ucfirst($consultant->public_page_status ?? 'draft') }}.
+        @if($consultant->public_page_status === 'pending')
+            Admin review is pending. Your submitted changes are not live yet.
+        @elseif($consultant->public_page_status === 'declined')
+            Admin declined the submitted changes. Update the draft and send it for approval again.
+        @elseif($consultant->public_page_status === 'draft')
+            Draft changes are visible only through Live Preview.
+        @else
+            The latest approved version is visible on the main site.
+        @endif
     </div>
 
     @if(session('success'))

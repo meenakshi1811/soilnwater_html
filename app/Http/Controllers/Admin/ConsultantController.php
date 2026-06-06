@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ConsultantPublicPageApprovedMail;
 use App\Mail\ConsultantStatusMail;
 use App\Models\User;
 use App\Models\Consultant;
+use App\Models\ConsultantService;
 use App\Support\ConsultantFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,6 +43,9 @@ class ConsultantController extends Controller
                 'pincode',
                 'is_premium',
                 'status',
+                'public_page_status',
+                'public_page_submitted_at',
+                'published_page_data',
                 'approved_at',
                 'created_at',
             ]);
@@ -70,6 +75,19 @@ class ConsultantController extends Controller
                 };
 
                 return '<span class="badge text-bg-'.$badge.'">'.ucfirst($consultant->status).'</span>';
+            })
+            ->addColumn('public_page_link', function (Consultant $consultant): string {
+                if ($consultant->public_page_status === 'pending') {
+                    return '<a class="service-page-link service-page-link--review" href="'.route('admin.consultants.public-page.review', $consultant).'" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i><span>Review page</span></a>';
+                }
+
+                if (is_array($consultant->published_page_data) || $consultant->public_page_status === 'approved') {
+                    $slug = data_get($consultant->published_page_data, 'profile.slug', $consultant->slug);
+
+                    return '<a class="service-page-link" href="'.route('consultant.show', $slug).'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>View page</span></a>';
+                }
+
+                return '<span class="text-muted">—</span>';
             })
             ->addColumn('premium_toggle', function (Consultant $consultant): string {
                 $checked = $consultant->is_premium ? 'checked' : '';
@@ -105,7 +123,7 @@ class ConsultantController extends Controller
                     $query->where('status', 'pending');
                 }
             })
-            ->rawColumns(['contact_numbers', 'status_badge', 'premium_toggle', 'actions'])
+            ->rawColumns(['contact_numbers', 'status_badge', 'public_page_link', 'premium_toggle', 'actions'])
             ->make(true);
     }
 
@@ -206,6 +224,77 @@ class ConsultantController extends Controller
         $emailSent = $this->sendConsultantStatusMail($consultant, 'approved');
         return response()->json([
             'message' => 'Consultant approved. They can now log in to the consultant portal.'.($emailSent ? ' Email notification sent.' : ''),
+        ]);
+    }
+
+    public function reviewPublicPage(Consultant $consultant): View
+    {
+        abort_unless($consultant->public_page_status === 'pending' && is_array($consultant->pending_page_data), 404);
+
+        return view('backend.consultants.public-page-review', compact('consultant'));
+    }
+
+    public function previewPublicPage(Consultant $consultant): View
+    {
+        abort_unless($consultant->public_page_status === 'pending' && is_array($consultant->pending_page_data), 404);
+
+        $consultant->load(['branches', 'bannerSlides', 'pageSections'])->usePendingPage();
+        $approvedServices = ConsultantService::query()
+            ->where('consultant_id', $consultant->id)
+            ->where('status', 'approved')
+            ->latest('updated_at')
+            ->get();
+
+        return view('frontend.consultant.show', [
+            'consultant' => $consultant,
+            'preview' => true,
+            'activeNav' => 'home',
+            'approvedServices' => $approvedServices,
+            'consultantRecentAds' => collect(),
+            'selectedCategoryNamesByConsultantAdId' => [],
+            'fullPageAds' => collect(),
+            'supportingAds' => collect(),
+
+
+        ]);
+    }
+
+    public function approvePublicPage(Request $request, Consultant $consultant): JsonResponse
+    {
+        abort_unless($consultant->public_page_status === 'pending' && is_array($consultant->pending_page_data), 422, 'There is no public page submission awaiting approval.');
+
+        $consultant->update([
+            'published_page_data' => $consultant->pending_page_data,
+            'pending_page_data' => null,
+            'public_page_status' => 'approved',
+            'public_page_approved_at' => now(),
+            'public_page_approved_by' => $request->user()->id,
+        ]);
+
+        $recipient = $consultant->user?->email ?: $consultant->email;
+        if ($recipient) {
+            Mail::to($recipient)->send(new ConsultantPublicPageApprovedMail($consultant->fresh('user')));
+        }
+
+        return response()->json([
+            'message' => 'Public page approved and published.'.($recipient ? ' Email notification sent.' : ''),
+            'redirect_url' => route('admin.consultants.index'),
+        ]);
+    }
+
+    public function declinePublicPage(Consultant $consultant): JsonResponse
+    {
+        abort_unless($consultant->public_page_status === 'pending' && is_array($consultant->pending_page_data), 422, 'There is no public page submission awaiting review.');
+
+        $consultant->update([
+            'pending_page_data' => null,
+            'public_page_status' => 'declined',
+            'public_page_submitted_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Public page changes declined. The previous approved page remains live.',
+            'redirect_url' => route('admin.consultants.index'),
         ]);
     }
 

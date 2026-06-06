@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class Vendor extends Model
@@ -36,6 +38,12 @@ class Vendor extends Model
         'instagram_url',
         'is_premium',
         'status',
+        'public_page_status',
+        'pending_page_data',
+        'published_page_data',
+        'public_page_submitted_at',
+        'public_page_approved_at',
+        'public_page_approved_by',
         'approved_at',
         'approved_by',
     ];
@@ -48,6 +56,10 @@ class Vendor extends Model
             'hero_sub_style' => 'array',
             'is_premium' => 'boolean',
             'approved_at' => 'datetime',
+            'pending_page_data' => 'array',
+            'published_page_data' => 'array',
+            'public_page_submitted_at' => 'datetime',
+            'public_page_approved_at' => 'datetime',
         ];
     }
 
@@ -79,6 +91,63 @@ class Vendor extends Model
     public function pageSections(): HasMany
     {
         return $this->hasMany(VendorPageSection::class)->orderBy('sort_order');
+    }
+
+    public function scopePubliclyVisible(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query): void {
+            $query->whereNotNull('published_page_data')
+                ->orWhere('public_page_status', 'approved');
+        });
+    }
+
+    public function publicPageSnapshot(): array
+    {
+        $this->loadMissing(['bannerSlides', 'pageSections']);
+
+        return [
+            'profile' => $this->only([
+                'slug', 'display_name', 'logo', 'phone', 'email', 'city', 'address',
+                'facebook_url', 'instagram_url', 'description', 'hero_main_heading',
+                'hero_main_style', 'hero_sub_heading', 'hero_sub_style',
+            ]),
+            'banner_slides' => $this->bannerSlides->map->only(['id', 'image_path', 'sort_order'])->values()->all(),
+            'page_sections' => $this->pageSections->map->only(['id', 'title', 'content', 'image_path', 'sort_order'])->values()->all(),
+        ];
+    }
+
+    public function usePublishedPage(): self
+    {
+        return $this->applyPageSnapshot($this->published_page_data);
+    }
+
+    public function usePendingPage(): self
+    {
+        return $this->applyPageSnapshot($this->pending_page_data);
+    }
+
+    private function applyPageSnapshot(mixed $snapshot): self
+    {
+        if (! is_array($snapshot)) {
+            return $this;
+        }
+
+        $this->forceFill($snapshot['profile'] ?? []);
+        $this->setRelation('bannerSlides', $this->snapshotModels($snapshot['banner_slides'] ?? [], VendorBannerSlide::class));
+        $this->setRelation('pageSections', $this->snapshotModels($snapshot['page_sections'] ?? [], VendorPageSection::class));
+
+        return $this;
+    }
+
+    private function snapshotModels(array $items, string $modelClass): Collection
+    {
+        return collect($items)->map(function (array $attributes) use ($modelClass) {
+            $model = new $modelClass;
+            $model->setRawAttributes($attributes, true);
+            $model->exists = true;
+
+            return $model;
+        });
     }
 
     public function isApproved(): bool

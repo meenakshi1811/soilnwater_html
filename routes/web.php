@@ -350,6 +350,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{vendor}/edit', [VendorController::class, 'edit'])->name('edit');
             Route::put('/{vendor}', [VendorController::class, 'update'])->name('update');
             Route::post('/{vendor}/approve', [VendorController::class, 'approve'])->name('approve');
+            Route::get('/{vendor}/public-page-review', [VendorController::class, 'reviewPublicPage'])->name('public-page.review');
+            Route::get('/{vendor}/public-page-preview', [VendorController::class, 'previewPublicPage'])->name('public-page.preview');
+            Route::post('/{vendor}/approve-public-page', [VendorController::class, 'approvePublicPage'])->name('approve-public-page');
+            Route::post('/{vendor}/decline-public-page', [VendorController::class, 'declinePublicPage'])->name('decline-public-page');
             Route::post('/{vendor}/reject', [VendorController::class, 'reject'])->name('reject');
             Route::post('/{vendor}/toggle-premium', [VendorController::class, 'togglePremium'])->name('toggle-premium');
             Route::delete('/{vendor}', [VendorController::class, 'destroy'])->name('destroy');
@@ -378,6 +382,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{consultant}/edit', [ConsultantController::class, 'edit'])->name('edit');
             Route::put('/{consultant}', [ConsultantController::class, 'update'])->name('update');
             Route::post('/{consultant}/approve', [ConsultantController::class, 'approve'])->name('approve');
+            Route::get('/{consultant}/public-page-review', [ConsultantController::class, 'reviewPublicPage'])->name('public-page.review');
+            Route::get('/{consultant}/public-page-preview', [ConsultantController::class, 'previewPublicPage'])->name('public-page.preview');
+            Route::post('/{consultant}/approve-public-page', [ConsultantController::class, 'approvePublicPage'])->name('approve-public-page');
+            Route::post('/{consultant}/decline-public-page', [ConsultantController::class, 'declinePublicPage'])->name('decline-public-page');
             Route::post('/{consultant}/reject', [ConsultantController::class, 'reject'])->name('reject');
             Route::post('/{consultant}/toggle-premium', [ConsultantController::class, 'togglePremium'])->name('toggle-premium');
             Route::delete('/{consultant}', [ConsultantController::class, 'destroy'])->name('destroy');

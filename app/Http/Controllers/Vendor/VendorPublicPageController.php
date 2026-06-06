@@ -30,6 +30,10 @@ class VendorPublicPageController extends Controller
     {
         $vendor = auth()->user()->vendor;
 
+        if ($vendor->public_page_status === 'approved' && ! is_array($vendor->published_page_data)) {
+            $vendor->update(['published_page_data' => $vendor->publicPageSnapshot()]);
+        }
+
         $validated = $request->validate([
             'hero_main_heading' => ['nullable', 'string', $this->maxWordsRule('main heading', 500)],
             'hero_sub_heading' => ['nullable', 'string'],
@@ -63,6 +67,7 @@ class VendorPublicPageController extends Controller
             'sections.*.video_file' => ['nullable', 'mimetypes:video/mp4,video/webm,video/ogg', 'max:51200'],
             'sections.*.youtube_url' => ['nullable', 'url', 'max:1000'],
             'sections.*._delete' => ['nullable', 'boolean'],
+            'submission_action' => ['required', 'in:draft,submit'],
         ]);
 
         if (array_key_exists('hero_sub_heading_encoded', $validated)) {
@@ -74,7 +79,6 @@ class VendorPublicPageController extends Controller
         }
 
         if ($request->hasFile('logo')) {
-            VendorFileUploader::deleteIfExists($vendor->logo);
             $validated['logo'] = VendorFileUploader::storeImage($request->file('logo'), 'logos');
         }
 
@@ -113,11 +117,22 @@ class VendorPublicPageController extends Controller
 
         $this->syncSections($vendor, $request->input('sections', []), $request);
 
-        if ($request->ajax() || $request->wantsJson()) {
-            $vendor = $vendor->fresh()->load(['bannerSlides', 'pageSections']);
+        $vendor = $vendor->fresh()->load(['bannerSlides', 'pageSections']);
+        $isSubmission = $validated['submission_action'] === 'submit';
+        $vendor->update([
+            'public_page_status' => $isSubmission ? 'pending' : 'draft',
+            'pending_page_data' => $isSubmission ? $vendor->publicPageSnapshot() : null,
+            'public_page_submitted_at' => $isSubmission ? now() : null,
+        ]);
 
+        $message = $isSubmission
+            ? 'Public page saved and sent to admin for approval.'
+            : 'Draft saved. Your changes are available only in Live Preview.';
+
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
-                'message' => 'Public page saved successfully.',
+                'message' => $message,
+                'public_page_status' => $vendor->public_page_status,
                 'preview_url' => route('vendor.public-page.preview'),
                 'logo_url' => $vendor->logo ? asset($vendor->logo) : null,
                 'sections' => $vendor->pageSections->map(fn ($section) => [
@@ -133,13 +148,12 @@ class VendorPublicPageController extends Controller
             ]);
         }
 
-        return redirect()->route('vendor.public-page.edit')->with('success', 'Public page saved successfully.');
+        return redirect()->route('vendor.public-page.edit')->with('success', $message);
     }
 
     public function deleteBannerSlide(VendorBannerSlide $slide): JsonResponse
     {
         abort_unless($slide->vendor_id === auth()->user()->vendor?->id, 403);
-        VendorFileUploader::deleteIfExists($slide->image_path);
         $slide->delete();
 
         return response()->json(['message' => 'Banner slide removed.']);
@@ -182,8 +196,6 @@ class VendorPublicPageController extends Controller
             if (! empty($sectionData['_delete']) && ! empty($sectionData['id'])) {
                 $section = VendorPageSection::where('vendor_id', $vendor->id)->find($sectionData['id']);
                 if ($section) {
-                    VendorFileUploader::deleteIfExists($section->image_path);
-                    $this->deleteManagedMediaFromContent((string) $section->content);
                     $section->delete();
                 }
 
@@ -205,10 +217,8 @@ class VendorPublicPageController extends Controller
                 $section = new VendorPageSection(['vendor_id' => $vendor->id]);
             }
 
-            $oldContent = (string) ($section->content ?? '');
             $imageFile = $request->file("sections.{$index}.image");
             if ($imageFile) {
-                VendorFileUploader::deleteIfExists($section->image_path);
                 $section->image_path = VendorFileUploader::storeImage($imageFile, 'sections');
             }
 
@@ -239,7 +249,6 @@ class VendorPublicPageController extends Controller
             ]);
             $section->vendor_id = $vendor->id;
             $section->save();
-            $this->deleteOrphanManagedMedia($oldContent, (string) $section->content);
         }
     }
 
