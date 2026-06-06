@@ -160,6 +160,42 @@ class MarketplaceAdsService
     }
 
     /**
+     * Split service-page ads into their intended placements. Square formats are
+     * intentionally omitted, full-page formats are reserved for the main
+     * slider, and every other format is available to the supporting ad grid.
+     *
+     * @return array{full_page: Collection, supporting: Collection}
+     */
+    public function splitServicePageAds(Collection $ads): array
+    {
+        $visibleAds = $ads
+            ->filter(fn (UserAd $ad): bool => ! $this->isSquareAd($ad))
+            ->values();
+
+        return [
+            'full_page' => $visibleAds->filter(fn (UserAd $ad): bool => $this->isFullPageAd($ad))->values(),
+            'supporting' => $visibleAds->reject(fn (UserAd $ad): bool => $this->isFullPageAd($ad))->values(),
+        ];
+    }
+
+    private function normalizedAdSizeKey(UserAd $ad): string
+    {
+        $sizeKey = (string) ($ad->adSize?->size_key ?: $ad->size_type);
+
+        return strtolower(str_replace([' ', '-'], '_', trim($sizeKey)));
+    }
+
+    private function isSquareAd(UserAd $ad): bool
+    {
+        return str_starts_with($this->normalizedAdSizeKey($ad), 'square');
+    }
+
+    private function isFullPageAd(UserAd $ad): bool
+    {
+        return in_array($this->normalizedAdSizeKey($ad), ['full_page', 'full_size'], true);
+    }
+
+    /**
      * @return array<string, array{ads: \Illuminate\Support\Collection, grid_id: string}>
      */
     public function buildRandomPlacements(Collection $ads, int $sectionCount): array
