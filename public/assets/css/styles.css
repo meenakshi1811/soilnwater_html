@@ -769,7 +769,7 @@
     background: var(--white);
   }
   .con-card:hover { box-shadow: 0 6px 18px rgba(15,47,82,.16); transform: translateY(-2px); }
-  a.con-card { color: inherit; display: block; text-decoration: none; }
+  a.con-card { color: inherit; display: flex; flex-direction: column; height: 100%; text-decoration: none; }
   .consultants-home-slider { border-radius: 12px; }
   .consultants-home-slider > .ad-slide.is-active { display: block !important; }
   .consultant-empty-card { min-height: 120px; display: flex; align-items: center; justify-content: center; }
@@ -781,7 +781,7 @@
     object-position: center;
     display: block;
   }
-  .con-card-body { padding: 12px 10px; }
+  .con-card-body { display: flex; flex: 1; flex-direction: column; padding: 12px 10px; }
   .con-name {
     font-size: 14px;
     font-weight: 700;

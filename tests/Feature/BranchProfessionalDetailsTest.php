@@ -57,6 +57,12 @@ class BranchProfessionalDetailsTest extends TestCase
             ->assertSee('Soil planning')
             ->assertSee('Water management');
 
+        $branch->update(['is_primary' => false]);
+        $consultant->branches()->create($this->branchData([
+            'branch_name' => 'Primary Branch Without Professional Details',
+            'is_primary' => true,
+        ]));
+
         HomepageSetting::query()->create([
             'section_toggles' => ['consultants_enquiry' => true],
         ]);
@@ -121,6 +127,12 @@ class BranchProfessionalDetailsTest extends TestCase
             ->assertSee('Eight years delivering field services.')
             ->assertSee('Irrigation setup')
             ->assertSee('Equipment maintenance');
+
+        $branch->update(['is_primary' => false]);
+        $serviceProvider->branches()->create($this->branchData([
+            'branch_name' => 'Primary Branch Without Professional Details',
+            'is_primary' => true,
+        ]));
 
         HomepageSetting::query()->create([
             'section_toggles' => ['popular_services' => true],

@@ -1474,6 +1474,12 @@
                   <?php foreach ($serviceProviderChunk as $serviceProvider): ?>
                     <?php
                       $primaryBranch = $serviceProvider->branches->first();
+                      $professionalExperience = $serviceProvider->branches->first(
+                        fn ($branch) => filled($branch->professional_experience)
+                      )?->professional_experience;
+                      $servicesOffered = $serviceProvider->branches->first(
+                        fn ($branch) => filled($branch->services_offered)
+                      )?->services_offered;
                       $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
                       $serviceProviderCardImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : $profilePlaceholder;
                       $serviceProviderCity = $primaryBranch?->city ?: ($serviceProvider->city ?: 'Local Area');
@@ -1486,11 +1492,11 @@
                       <div class="con-card-body">
                         <p class="con-name"><?= e($serviceProvider->publicDisplayName()) ?><?php if ($serviceProvider->is_premium): ?> ⭐<?php endif; ?></p>
                         <span class="con-role"><?= e($serviceProviderCity) ?> • <?= e($serviceProvider->services_count) ?> Services<?= e($serviceProviderDistance) ?></span>
-                        <?php if (filled($primaryBranch?->professional_experience)): ?>
-                          <span class="con-professional-detail"><strong>Experience:</strong> <?= e(\Illuminate\Support\Str::limit($primaryBranch->professional_experience, 72)) ?></span>
+                        <?php if (filled($professionalExperience)): ?>
+                          <span class="con-professional-detail"><strong>Experience:</strong> <?= e(\Illuminate\Support\Str::limit($professionalExperience, 72)) ?></span>
                         <?php endif; ?>
-                        <?php if (filled($primaryBranch?->services_offered)): ?>
-                          <span class="con-professional-detail"><strong>Services:</strong> <?= e(\Illuminate\Support\Str::limit($primaryBranch->services_offered, 72)) ?></span>
+                        <?php if (filled($servicesOffered)): ?>
+                          <span class="con-professional-detail"><strong>Services:</strong> <?= e(\Illuminate\Support\Str::limit($servicesOffered, 72)) ?></span>
                         <?php endif; ?>
                       </div>
                     </a>
@@ -1550,6 +1556,12 @@
                   <?php foreach ($consultantChunk as $consultant): ?>
                     <?php
                       $primaryBranch = $consultant->branches->first();
+                      $professionalExperience = $consultant->branches->first(
+                        fn ($branch) => filled($branch->professional_experience)
+                      )?->professional_experience;
+                      $servicesOffered = $consultant->branches->first(
+                        fn ($branch) => filled($branch->services_offered)
+                      )?->services_offered;
                       $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
                       $consultantProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null;
                       $consultantCardImage = $consultant->logo ? asset($consultant->logo) : ($consultantProfileImage ?? $profilePlaceholder);
@@ -1564,11 +1576,11 @@
                       <div class="con-card-body">
                         <p class="con-name"><?= e($consultant->publicDisplayName()) ?><?php if ($consultant->is_premium): ?> ⭐<?php endif; ?></p>
                         <span class="con-role"><?= e($consultantCity) ?> • <?= e($consultant->services_count) ?> Services<?= e($consultantDistance) ?></span>
-                        <?php if (filled($primaryBranch?->professional_experience)): ?>
-                          <span class="con-professional-detail"><strong>Experience:</strong> <?= e(\Illuminate\Support\Str::limit($primaryBranch->professional_experience, 72)) ?></span>
+                        <?php if (filled($professionalExperience)): ?>
+                          <span class="con-professional-detail"><strong>Experience:</strong> <?= e(\Illuminate\Support\Str::limit($professionalExperience, 72)) ?></span>
                         <?php endif; ?>
-                        <?php if (filled($primaryBranch?->services_offered)): ?>
-                          <span class="con-professional-detail"><strong>Services:</strong> <?= e(\Illuminate\Support\Str::limit($primaryBranch->services_offered, 72)) ?></span>
+                        <?php if (filled($servicesOffered)): ?>
+                          <span class="con-professional-detail"><strong>Services:</strong> <?= e(\Illuminate\Support\Str::limit($servicesOffered, 72)) ?></span>
                         <?php endif; ?>
                       </div>
                     </a>
