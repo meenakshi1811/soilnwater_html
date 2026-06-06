@@ -78,6 +78,19 @@
                     });
             });
 
+            $(document).on('click', '.js-approve-service-provider-page', function () {
+                if (!confirm('Approve and publish this public page submission?')) return;
+                var id = $(this).data('id');
+                $.post('/admin/services/' + id + '/approve-public-page', { _token: $('meta[name="csrf-token"]').attr('content') })
+                    .done(function (r) {
+                        FormHelper.showToast('success', r.message);
+                        self.table.ajax.reload(null, false);
+                    })
+                    .fail(function (xhr) {
+                        FormHelper.showToast('danger', xhr.responseJSON?.message || 'Unable to approve the public page.');
+                    });
+            });
+
             $(document).on('click', '.js-reject-service_provider', function () {
                 if (!confirm('Reject this service?')) return;
                 var id = $(this).data('id');
