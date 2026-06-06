@@ -109,6 +109,9 @@
           data-bs-toggle="dropdown"
           aria-expanded="false"
         >
+          @if($user->profile_image)
+            <img src="{{ asset($user->profile_image) }}" alt="" width="28" height="28" class="rounded-circle object-fit-cover me-1">
+          @endif
           My Account
         </button>
         <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerUserMenu">

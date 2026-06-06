@@ -27,9 +27,23 @@
         <div class="card-body">
             <div id="userProfileAlert" class="alert d-none" role="alert"></div>
 
-            <form id="userProfileForm" method="POST" action="{{ route('user.profile.update') }}" class="row g-3">
+            <form id="userProfileForm" method="POST" action="{{ route('user.profile.update') }}" class="row g-3" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
+
+                <div class="col-12">
+                    <label for="profile_image" class="form-label">Profile Image</label>
+                    <input id="profile_image" type="file" name="profile_image" class="form-control @error('profile_image') is-invalid @enderror" accept="image/jpeg,image/png,image/webp">
+                    <small class="text-muted">Upload a JPG, PNG, or WebP image up to 2 MB.</small>
+                    @if($user->profile_image)
+                        <div class="mt-2">
+                            <img src="{{ asset($user->profile_image) }}" alt="{{ $user->name }}" width="80" height="80" class="rounded-circle object-fit-cover">
+                        </div>
+                    @endif
+                    @error('profile_image')
+                        <span class="invalid-feedback d-block"><strong>{{ $message }}</strong></span>
+                    @enderror
+                </div>
 
                 @include('backend.partials.registration-profile-fields', ['showMarketplaceFields' => false])
 

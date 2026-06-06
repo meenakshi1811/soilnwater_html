@@ -468,7 +468,7 @@
             var toggleBusinessFields = function () {
                 var role = $role.val();
                 var showBusinessFields = isBusinessRole();
-                var showProfileImage = role === 'consultant' || role === 'service_provider';
+                var showProfileImage = role === 'user' || role === 'vendor' || role === 'consultant' || role === 'service_provider';
                 $businessFields.toggleClass('d-none', !showBusinessFields);
                 $profileImageWrap.toggleClass('d-none', !showProfileImage);
                 $profileImage.prop('required', showProfileImage);
@@ -531,7 +531,7 @@
                     profile_image: {
                         required: function () {
                             var role = $('#role').val();
-                            return role === 'consultant' || role === 'service_provider';
+                            return role === 'user' || role === 'vendor' || role === 'consultant' || role === 'service_provider';
                         }
                     },
                     date_of_birth: { required: true, date: true },

@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Consultant;
 use App\Models\ServiceProvider;
+use App\Models\User;
+use App\Models\Vendor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
@@ -14,9 +16,9 @@ class RegistrationProfileImageTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * @dataProvider professionalRoles
+     * @dataProvider imageRegistrationRoles
      */
-    public function test_professional_registration_stores_the_profile_image(string $role, string $modelClass, string $uploadDirectory): void
+    public function test_registration_stores_the_profile_image(string $role, string $modelClass, string $uploadDirectory): void
     {
         Mail::fake();
         $email = str_replace('_', '.', $role).'@gmail.com';
@@ -25,8 +27,13 @@ class RegistrationProfileImageTest extends TestCase
         $response = $this->post(route('register'), [
             'fullname' => 'Profile Image Test',
             'email' => $email,
-            'phone_number' => $role === 'consultant' ? '9876543210' : '9876543211',
-            'whatsapp_number' => '9876543212',
+            'phone_number' => match ($role) {
+                'user' => '9876543210',
+                'vendor' => '9876543211',
+                'consultant' => '9876543212',
+                default => '9876543213',
+            },
+            'whatsapp_number' => '9876543299',
             'address' => '123 Test Street',
             'city' => 'Test City',
             'pincode' => '123456',
@@ -41,28 +48,37 @@ class RegistrationProfileImageTest extends TestCase
             'accept_terms' => '1',
         ]);
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect($role === 'user'
+            ? route('register.contact.verify.form')
+            : route('login'));
 
         $profile = $modelClass::query()->where('email', $email)->firstOrFail();
+        $imagePath = $profile instanceof User ? $profile->profile_image : $profile->logo;
+        $user = User::query()->where('email', $email)->firstOrFail();
 
-        $this->assertNotNull($profile->logo);
-        $this->assertStringStartsWith($uploadDirectory, $profile->logo);
-        $this->assertFileExists(public_path($profile->logo));
+        $this->assertNotNull($imagePath);
+        $this->assertSame($imagePath, $user->profile_image);
+        $this->assertStringStartsWith($uploadDirectory, $imagePath);
+        $this->assertFileExists(public_path($imagePath));
 
-        @unlink(public_path($profile->logo));
+        @unlink(public_path($imagePath));
     }
 
-    public function test_professional_registration_requires_a_profile_image(): void
+    /**
+     * @dataProvider requiredImageRoles
+     */
+    public function test_registration_requires_a_profile_image(string $role, string $phoneNumber): void
     {
+        $email = 'missing.'.str_replace('_', '.', $role).'@gmail.com';
         $response = $this->from(route('register'))->post(route('register'), [
             'fullname' => 'Missing Image',
-            'email' => 'missing.image@gmail.com',
-            'phone_number' => '9876543213',
-            'whatsapp_number' => '9876543214',
+            'email' => $email,
+            'phone_number' => $phoneNumber,
+            'whatsapp_number' => '9876543298',
             'address' => '123 Test Street',
             'city' => 'Test City',
             'pincode' => '123456',
-            'role' => 'consultant',
+            'role' => $role,
             'pan_number' => 'ABCDE1234F',
             'has_gst' => '0',
             'date_of_birth' => now()->subYears(25)->toDateString(),
@@ -73,14 +89,26 @@ class RegistrationProfileImageTest extends TestCase
 
         $response->assertRedirect(route('register'));
         $response->assertSessionHasErrors('profile_image');
-        $this->assertDatabaseMissing('users', ['email' => 'missing.image@gmail.com']);
+        $this->assertDatabaseMissing('users', ['email' => $email]);
     }
 
-    public static function professionalRoles(): array
+    public static function imageRegistrationRoles(): array
     {
         return [
+            'user' => ['user', User::class, 'uploads/users/profiles/'],
+            'vendor' => ['vendor', Vendor::class, 'uploads/vendors/logos/'],
             'consultant' => ['consultant', Consultant::class, 'uploads/consultants/logos/'],
             'service provider' => ['service_provider', ServiceProvider::class, 'uploads/service_providers/logos/'],
+        ];
+    }
+
+    public static function requiredImageRoles(): array
+    {
+        return [
+            'user' => ['user', '9876543280'],
+            'vendor' => ['vendor', '9876543281'],
+            'consultant' => ['consultant', '9876543282'],
+            'service provider' => ['service_provider', '9876543283'],
         ];
     }
 

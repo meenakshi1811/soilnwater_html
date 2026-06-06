@@ -109,10 +109,10 @@
                             @enderror
                         </div>
 
-                        <div id="profileImageWrap" class="mb-3 d-none">
+                        <div id="profileImageWrap" class="mb-3 {{ in_array(old('role'), ['user', 'vendor', 'consultant', 'service_provider'], true) ? '' : 'd-none' }}">
                             <label for="profile_image" class="form-label">Profile Image</label>
                             <input id="profile_image" type="file" class="form-control @error('profile_image') is-invalid @enderror" name="profile_image" accept="image/jpeg,image/png,image/webp">
-                            <small class="text-muted">Upload a JPG, PNG, or WebP image up to 2 MB. This image will appear on your public profile and listing card.</small>
+                            <small class="text-muted">Upload a JPG, PNG, or WebP image up to 2 MB. For vendors, consultants, and services, this image will also appear on the public profile and listing card.</small>
                             @error('profile_image')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror

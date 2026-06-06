@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\VendorRegistrationService;
+use App\Support\UserFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -54,7 +55,9 @@ class UserDashboardController extends Controller
         DB::transaction(function () use ($user): void {
             $user->forceFill(['role' => 'vendor'])->save();
 
-            $vendor = VendorRegistrationService::createProfileForUser($user->fresh());
+            $vendor = VendorRegistrationService::createProfileForUser($user->fresh(), [
+                'profile_image_path' => $user->profile_image,
+            ]);
             $vendor->forceFill([
                 'status' => 'pending',
                 'approved_at' => null,
@@ -86,6 +89,7 @@ class UserDashboardController extends Controller
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ], [
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
@@ -107,6 +111,11 @@ class UserDashboardController extends Controller
 
         if ($phoneChanged) {
             $user->phone_verified_at = null;
+        }
+
+        if ($request->hasFile('profile_image')) {
+            UserFileUploader::deleteIfExists($user->profile_image);
+            $user->profile_image = UserFileUploader::storeImage($request->file('profile_image'), 'profiles');
         }
 
         if (!empty($validated['password'])) {
