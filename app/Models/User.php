@@ -32,6 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'pincode',
         'role',
         'date_of_birth',
+        'profile_image',
         'is_active',
         'created_by',
         'password',

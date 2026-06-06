@@ -21,9 +21,14 @@
 @endphp
 <header class="admin-header">
     <div class="container-fluid d-flex align-items-center justify-content-between gap-3 flex-wrap">
-        <div class="admin-header-title-wrap">
+        <div class="admin-header-title-wrap d-flex align-items-center gap-2">
+            @if(auth()->user()->profile_image)
+                <img src="{{ asset(auth()->user()->profile_image) }}" alt="{{ auth()->user()->name }}" width="44" height="44" class="rounded-circle object-fit-cover">
+            @endif
+            <div>
             <h1 class="admin-header-title mb-0">{{ $panelTitle }}</h1>
             <p class="mb-0">Welcome, {{ auth()->user()->name }}</p>
+            </div>
         </div>
 
         <nav class="admin-nav d-flex align-items-center gap-2 flex-wrap justify-content-end">

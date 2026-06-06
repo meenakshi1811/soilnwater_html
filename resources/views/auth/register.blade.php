@@ -28,7 +28,7 @@
 
                     <div id="registerAlert" class="alert d-none" role="alert"></div>
 
-                    <form id="registerForm" method="POST" action="{{ route('register') }}" novalidate>
+                    <form id="registerForm" method="POST" action="{{ route('register') }}" enctype="multipart/form-data" novalidate>
                         @csrf
 
                         <div class="mb-3">
@@ -105,6 +105,15 @@
                                 <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
                             </select>
                             @error('role')
+                                <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                            @enderror
+                        </div>
+
+                        <div id="profileImageWrap" class="mb-3 {{ in_array(old('role'), ['user', 'vendor', 'consultant', 'service_provider'], true) ? '' : 'd-none' }}">
+                            <label for="profile_image" class="form-label">Profile Image</label>
+                            <input id="profile_image" type="file" class="form-control @error('profile_image') is-invalid @enderror" name="profile_image" accept="image/jpeg,image/png,image/webp">
+                            <small class="text-muted">Upload a JPG, PNG, or WebP image up to 2 MB. For vendors, consultants, and services, this image will also appear on the public profile and listing card.</small>
+                            @error('profile_image')
                                 <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror
                         </div>

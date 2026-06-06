@@ -20,7 +20,8 @@
           @php
             $primaryBranch = $service_provider->branches->first();
             $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
-            $service_providerCardImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : $profilePlaceholder;
+            $serviceProviderProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null;
+            $service_providerCardImage = $service_provider->logo ? asset($service_provider->logo) : ($serviceProviderProfileImage ?? $profilePlaceholder);
           @endphp
           <div class="col">
             <div class="vendor-card card h-100">
