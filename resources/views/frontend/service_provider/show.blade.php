@@ -6,8 +6,8 @@
 @php
     $service_providerRecentAds = $service_providerRecentAds ?? collect();
     $selectedCategoryNamesByServiceProviderAdId = $selectedCategoryNamesByServiceProviderAdId ?? [];
-    $randomFullPagePlacements = $randomFullPagePlacements ?? [];
-    $sponsoredFillers = $sponsoredFillers ?? [];
+    $fullPageAds = $fullPageAds ?? collect();
+    $supportingAds = $supportingAds ?? collect();
     $recentAdsShown = false;
 @endphp
 
@@ -75,11 +75,11 @@
     </section>
 @endif
 
-@include('frontend.service_provider.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_hero'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
+@include('frontend.service_provider.partials.ads-zone', ['ads' => $fullPageAds])
 
 @include('frontend.service_provider.partials.services-section', ['showViewAllServicesButton' => true])
 
-@include('frontend.service_provider.partials.ads-zone', ['placement' => $randomFullPagePlacements['before_products'] ?? null, 'sponsoredFillers' => $sponsoredFillers])
+@include('frontend.service_provider.partials.supporting-ads', ['ads' => $supportingAds])
 
 @foreach($service_provider->pageSections as $section)
     @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
@@ -101,8 +101,6 @@
     @if(str_contains((string) $section->content, 'data-card-image-slot') && ! $recentAdsShown)
         @include('frontend.service_provider.partials.recent-ads-slider', ['ads' => $service_providerRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByServiceProviderAdId])
         @php($recentAdsShown = true)
-    @else
-        @include('frontend.service_provider.partials.ads-zone', ['placement' => $randomFullPagePlacements['after_section_'.$loop->index] ?? null, 'sponsoredFillers' => $sponsoredFillers])
     @endif
 @endforeach
 
