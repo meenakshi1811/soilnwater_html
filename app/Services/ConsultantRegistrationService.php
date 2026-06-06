@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Consultant;
 use App\Models\ConsultantBranch;
+use App\Support\ConsultantFileUploader;
+use Illuminate\Http\UploadedFile;
 
 class ConsultantRegistrationService
 {
@@ -23,6 +25,10 @@ class ConsultantRegistrationService
         $panNumber = $registrationData['pan_number'] ?? null;
         $gstNumber = ($registrationData['has_gst'] ?? '0') === '1' ? ($registrationData['gst_number'] ?? null) : null;
         $governmentCertificateNumber = $registrationData['government_certificate_number'] ?? null;
+        $profileImage = $registrationData['profile_image'] ?? null;
+        $profileImagePath = $profileImage instanceof UploadedFile
+            ? ConsultantFileUploader::storeImage($profileImage, 'logos')
+            : null;
 
         $consultant = Consultant::create([
             'user_id' => $user->id,
@@ -30,6 +36,7 @@ class ConsultantRegistrationService
             'contact_person' => $user->name,
             'display_name' => $companyName,
             'slug' => $slug,
+            'logo' => $profileImagePath,
             'phone' => $user->phone_number,
             'whatsapp' => $whatsapp,
             'email' => $user->email,

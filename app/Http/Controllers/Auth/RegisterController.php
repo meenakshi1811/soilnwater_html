@@ -54,6 +54,7 @@ class RegisterController extends Controller
             'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
+            'profile_image' => ['nullable', 'required_if:role,consultant,service_provider', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'accept_terms' => ['accepted'],
@@ -64,6 +65,7 @@ class RegisterController extends Controller
             'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service registrations.',
             'has_gst.required_if' => 'Please select whether you have a GST number.',
             'gst_number.required_if' => 'GST number is required when you select yes for GST.',
+            'profile_image.required_if' => 'A profile image is required for consultant and service registrations.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
             'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
         ]);
@@ -123,6 +125,7 @@ class RegisterController extends Controller
                 'has_gst',
                 'gst_number',
                 'government_certificate_number',
+                'profile_image',
             ]));
         }
 
@@ -138,6 +141,7 @@ class RegisterController extends Controller
                 'has_gst',
                 'gst_number',
                 'government_certificate_number',
+                'profile_image',
             ]));
         }
 

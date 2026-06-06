@@ -1481,7 +1481,8 @@
                         fn ($branch) => filled($branch->services_offered)
                       )?->services_offered;
                       $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
-                      $serviceProviderCardImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : $profilePlaceholder;
+                      $serviceProviderProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null;
+                      $serviceProviderCardImage = $serviceProvider->logo ? asset($serviceProvider->logo) : ($serviceProviderProfileImage ?? $profilePlaceholder);
                       $serviceProviderCity = $primaryBranch?->city ?: ($serviceProvider->city ?: 'Local Area');
                       $serviceProviderDistance = $hasLocation && $serviceProvider->nearest_distance_km !== null
                         ? ' • '.number_format($serviceProvider->nearest_distance_km, 1).' km'
