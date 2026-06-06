@@ -127,6 +127,7 @@ class OfferPageController extends Controller
         $vendors = $this->topVendorsQuery($lat, $lng, $request->string('search')->trim()->toString())
             ->paginate(24)
             ->appends($request->query());
+        $vendors->getCollection()->each->usePublishedPage();
 
         return view('frontend/vendors/index', [
             'vendors' => $vendors,
@@ -142,6 +143,7 @@ class OfferPageController extends Controller
         $consultants = $this->topConsultantsQuery($lat, $lng, $request->string('search')->trim()->toString())
             ->paginate(24)
             ->appends($request->query());
+        $consultants->getCollection()->each->usePublishedPage();
 
         return view('frontend/consultants/index', [
             'consultants' => $consultants,
@@ -158,6 +160,7 @@ class OfferPageController extends Controller
         $service_providers = $this->topServiceProvidersQuery($lat, $lng, $request->string('search')->trim()->toString())
             ->paginate(24)
             ->appends($request->query());
+        $service_providers->getCollection()->each->usePublishedPage();
 
         return view('frontend/service_providers/index', [
             'service_providers' => $service_providers,
@@ -272,6 +275,7 @@ class OfferPageController extends Controller
     {
         $query = Vendor::query()
             ->where('status', 'approved')
+            ->publiclyVisible()
             ->with(['products:id,vendor_id,name,images,latitude,longitude', 'branches:id,vendor_id,address,city,state,is_primary', 'bannerSlides:id,vendor_id,image_path,sort_order'])
             ->withCount('products')
             ->when($search !== '', function (Builder $query) use ($search): void {
@@ -309,6 +313,7 @@ class OfferPageController extends Controller
     {
         $query = Consultant::query()
             ->where('status', 'approved')
+            ->publiclyVisible()
             ->with('branches:id,consultant_id,address,city,state,logo,is_primary,professional_experience,services_offered')
             ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')])
             ->when($search !== '', function (Builder $query) use ($search): void {
@@ -347,6 +352,7 @@ class OfferPageController extends Controller
     {
         $query = ServiceProvider::query()
             ->where('status', 'approved')
+            ->publiclyVisible()
             ->with('branches:id,service_provider_id,address,city,state,logo,is_primary,professional_experience,services_offered')
             ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')])
             ->when($search !== '', function (Builder $query) use ($search): void {

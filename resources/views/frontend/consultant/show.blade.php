@@ -4,6 +4,7 @@
 
 @section('consultant_content')
 @php
+    $approvedServices = collect($approvedServices ?? []);
     $consultantRecentAds = $consultantRecentAds ?? collect();
     $selectedCategoryNamesByConsultantAdId = $selectedCategoryNamesByConsultantAdId ?? [];
     $fullPageAds = $fullPageAds ?? collect();

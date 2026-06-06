@@ -463,6 +463,7 @@ class VendorStoreController extends Controller
 
         return Vendor::query()
             ->where('status', 'approved')
+            ->publiclyVisible()
             ->whereKeyNot($vendor->id)
             ->whereHas('products', function ($query) use ($categoryIds): void {
                 $query
@@ -485,16 +486,22 @@ class VendorStoreController extends Controller
             ->latest('updated_at')
             ->latest('id')
             ->limit($limit)
-            ->get();
+            ->get()
+            ->each->usePublishedPage();
     }
 
     private function resolveVendor(string $slug): Vendor
     {
         return Vendor::query()
-            ->where('slug', $slug)
+            ->where(function ($query) use ($slug): void {
+                $query->where('slug', $slug)
+                    ->orWhere('published_page_data->profile->slug', $slug);
+            })
             ->where('status', 'approved')
+            ->publiclyVisible()
             ->with(['bannerSlides', 'pageSections', 'branches', 'user'])
-            ->firstOrFail();
+            ->firstOrFail()
+            ->usePublishedPage();
     }
 
     private function vendorCategories(Vendor $vendor): Collection

@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\VendorPublicPageApprovedMail;
 use App\Mail\VendorStatusMail;
+use App\Models\Category;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Models\VendorProduct;
 use App\Support\VendorFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,6 +44,9 @@ class VendorController extends Controller
                 'pincode',
                 'is_premium',
                 'status',
+                'public_page_status',
+                'public_page_submitted_at',
+                'published_page_data',
                 'approved_at',
                 'created_at',
             ]);
@@ -70,6 +76,19 @@ class VendorController extends Controller
                 };
 
                 return '<span class="badge text-bg-'.$badge.'">'.ucfirst($vendor->status).'</span>';
+            })
+            ->addColumn('public_page_link', function (Vendor $vendor): string {
+                if ($vendor->public_page_status === 'pending') {
+                    return '<a class="service-page-link service-page-link--review" href="'.route('admin.vendors.public-page.review', $vendor).'" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i><span>Review page</span></a>';
+                }
+
+                if (is_array($vendor->published_page_data) || $vendor->public_page_status === 'approved') {
+                    $slug = data_get($vendor->published_page_data, 'profile.slug', $vendor->slug);
+
+                    return '<a class="service-page-link" href="'.route('store.show', $slug).'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>View page</span></a>';
+                }
+
+                return '<span class="text-muted">—</span>';
             })
             ->addColumn('premium_toggle', function (Vendor $vendor): string {
                 $checked = $vendor->is_premium ? 'checked' : '';
@@ -105,7 +124,7 @@ class VendorController extends Controller
                     $query->where('status', 'pending');
                 }
             })
-            ->rawColumns(['contact_numbers', 'status_badge', 'premium_toggle', 'actions'])
+            ->rawColumns(['contact_numbers', 'status_badge', 'public_page_link', 'premium_toggle', 'actions'])
             ->make(true);
     }
 
@@ -207,6 +226,84 @@ class VendorController extends Controller
         // print_r($emailSent);exit();
         return response()->json([
             'message' => 'Vendor approved. They can now log in to the vendor portal.'.($emailSent ? ' Email notification sent.' : ''),
+        ]);
+    }
+
+    public function reviewPublicPage(Vendor $vendor): View
+    {
+        abort_unless($vendor->public_page_status === 'pending' && is_array($vendor->pending_page_data), 404);
+
+        return view('backend.vendors.public-page-review', compact('vendor'));
+    }
+
+    public function previewPublicPage(Vendor $vendor): View
+    {
+        abort_unless($vendor->public_page_status === 'pending' && is_array($vendor->pending_page_data), 404);
+
+        $vendor->load(['branches', 'bannerSlides', 'pageSections'])->usePendingPage();
+        $featuredProducts = VendorProduct::query()
+            ->where('vendor_id', $vendor->id)
+            ->where('status', 'approved')
+            ->latest('updated_at')
+            ->limit(4)
+            ->get();
+        $vendorCategories = Category::query()
+            ->whereNull('parent_id')
+            ->forModule('vendors')
+            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('frontend.store.show', [
+            'vendor' => $vendor,
+            'preview' => true,
+            'activeNav' => 'home',
+            'featuredProducts' => $featuredProducts,
+            'vendorRecentAds' => collect(),
+            'selectedCategoryNamesByVendorAdId' => [],
+            'fullPageAds' => collect(),
+            'supportingAds' => collect(),
+            'vendorCategories' => $vendorCategories,
+            'similarVendors' => collect(),
+        ]);
+    }
+
+    public function approvePublicPage(Request $request, Vendor $vendor): JsonResponse
+    {
+        abort_unless($vendor->public_page_status === 'pending' && is_array($vendor->pending_page_data), 422, 'There is no public page submission awaiting approval.');
+
+        $vendor->update([
+            'published_page_data' => $vendor->pending_page_data,
+            'pending_page_data' => null,
+            'public_page_status' => 'approved',
+            'public_page_approved_at' => now(),
+            'public_page_approved_by' => $request->user()->id,
+        ]);
+
+        $recipient = $vendor->user?->email ?: $vendor->email;
+        if ($recipient) {
+            Mail::to($recipient)->send(new VendorPublicPageApprovedMail($vendor->fresh('user')));
+        }
+
+        return response()->json([
+            'message' => 'Public page approved and published.'.($recipient ? ' Email notification sent.' : ''),
+            'redirect_url' => route('admin.vendors.index'),
+        ]);
+    }
+
+    public function declinePublicPage(Vendor $vendor): JsonResponse
+    {
+        abort_unless($vendor->public_page_status === 'pending' && is_array($vendor->pending_page_data), 422, 'There is no public page submission awaiting review.');
+
+        $vendor->update([
+            'pending_page_data' => null,
+            'public_page_status' => 'declined',
+            'public_page_submitted_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Public page changes declined. The previous approved page remains live.',
+            'redirect_url' => route('admin.vendors.index'),
         ]);
     }
 

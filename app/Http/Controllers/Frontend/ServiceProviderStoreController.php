@@ -485,9 +485,14 @@ class ServiceProviderStoreController extends Controller
     private function resolveServiceProvider(string $slug): ServiceProvider
     {
         return ServiceProvider::query()
-            ->where('slug', $slug)
+            ->where(function ($query) use ($slug): void {
+                $query->where('slug', $slug)
+                    ->orWhere('published_page_data->profile->slug', $slug);
+            })
             ->where('status', 'approved')
+            ->publiclyVisible()
             ->with(['branches', 'bannerSlides', 'pageSections'])
-            ->firstOrFail();
+            ->firstOrFail()
+            ->usePublishedPage();
     }
 }

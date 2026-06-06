@@ -4,6 +4,7 @@
 
 @section('service_provider_content')
 @php
+    $approvedServices = collect($approvedServices ?? []);
     $service_providerRecentAds = $service_providerRecentAds ?? collect();
     $selectedCategoryNamesByServiceProviderAdId = $selectedCategoryNamesByServiceProviderAdId ?? [];
     $fullPageAds = $fullPageAds ?? collect();
