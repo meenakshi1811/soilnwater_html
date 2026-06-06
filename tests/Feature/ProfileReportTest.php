@@ -82,4 +82,90 @@ class ProfileReportTest extends TestCase
 
         $this->assertSame(0, ProfileReport::count());
     }
+
+    public function test_consultant_cannot_report_their_own_profile(): void
+    {
+        $owner = User::factory()->create(['email_verified_at' => now()]);
+        $consultant = Consultant::create([
+            'user_id' => $owner->id,
+            'company_name' => 'Owner Consultant',
+            'slug' => 'owner-consultant',
+            'status' => 'approved',
+        ]);
+
+        $this->actingAs($owner)
+            ->postJson(route('consultant.report', $consultant->slug), [
+                'reason' => 'Self report attempt.',
+            ])
+            ->assertForbidden();
+
+        $this->assertSame(0, ProfileReport::count());
+    }
+
+    public function test_service_provider_cannot_report_their_own_profile(): void
+    {
+        $owner = User::factory()->create(['email_verified_at' => now()]);
+        $serviceProvider = ServiceProvider::create([
+            'user_id' => $owner->id,
+            'company_name' => 'Owner Services',
+            'slug' => 'owner-services',
+            'status' => 'approved',
+        ]);
+
+        $this->actingAs($owner)
+            ->postJson(route('service_provider.report', $serviceProvider->slug), [
+                'reason' => 'Self report attempt.',
+            ])
+            ->assertForbidden();
+
+        $this->assertSame(0, ProfileReport::count());
+    }
+
+    public function test_consultant_report_action_is_only_visible_to_logged_in_non_owners(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $consultant = Consultant::create([
+            'user_id' => $owner->id,
+            'company_name' => 'Visible Consultant',
+            'slug' => 'visible-consultant',
+            'status' => 'approved',
+        ]);
+        $viewData = ['consultant' => $consultant, 'activeNav' => 'home'];
+
+        $this->view('frontend.consultant.partials.store-header', $viewData)
+            ->assertDontSee('data-bs-target="#consultantReportModal"', false);
+
+        $this->actingAs($owner)
+            ->view('frontend.consultant.partials.store-header', $viewData)
+            ->assertDontSee('data-bs-target="#consultantReportModal"', false);
+
+        $this->actingAs($otherUser)
+            ->view('frontend.consultant.partials.store-header', $viewData)
+            ->assertSee('data-bs-target="#consultantReportModal"', false);
+    }
+
+    public function test_service_report_action_is_only_visible_to_logged_in_non_owners(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $serviceProvider = ServiceProvider::create([
+            'user_id' => $owner->id,
+            'company_name' => 'Visible Services',
+            'slug' => 'visible-services',
+            'status' => 'approved',
+        ]);
+        $viewData = ['service_provider' => $serviceProvider, 'activeNav' => 'home'];
+
+        $this->view('frontend.service_provider.partials.store-header', $viewData)
+            ->assertDontSee('data-bs-target="#serviceProviderReportModal"', false);
+
+        $this->actingAs($owner)
+            ->view('frontend.service_provider.partials.store-header', $viewData)
+            ->assertDontSee('data-bs-target="#serviceProviderReportModal"', false);
+
+        $this->actingAs($otherUser)
+            ->view('frontend.service_provider.partials.store-header', $viewData)
+            ->assertSee('data-bs-target="#serviceProviderReportModal"', false);
+    }
 }

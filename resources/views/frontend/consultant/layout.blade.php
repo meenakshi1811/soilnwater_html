@@ -27,12 +27,14 @@
     @yield('consultant_content')
 
     @auth
-        @include('frontend.partials.profile-report-modal', [
-            'reportModalId' => 'consultantReportModal',
-            'reportFormId' => 'consultantReportForm',
-            'reportLabel' => 'Consultant',
-            'reportAction' => route('consultant.report', $consultant->slug),
-        ])
+        @if((int) auth()->id() !== (int) $consultant->user_id)
+            @include('frontend.partials.profile-report-modal', [
+                'reportModalId' => 'consultantReportModal',
+                'reportFormId' => 'consultantReportForm',
+                'reportLabel' => 'Consultant',
+                'reportAction' => route('consultant.report', $consultant->slug),
+            ])
+        @endif
     @endauth
 
     @include('frontend.consultant.partials.store-footer', ['consultant' => $consultant])

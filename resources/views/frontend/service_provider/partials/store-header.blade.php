@@ -24,15 +24,12 @@
                 <a href="{{ route('service_provider.contact', $service_provider->slug) }}" class="vendor-store-nav-link {{ ($activeNav ?? '') === 'contact' ? 'is-active' : '' }}">Contact</a>
 
                 @auth
-                    <button type="button" class="vendor-share-trigger vendor-store-nav-share" data-bs-toggle="modal" data-bs-target="#serviceProviderReportModal">
-                        <i class="fa-regular fa-flag"></i>
-                        <span>Report</span>
-                    </button>
-                @else
-                    <a href="{{ route('login') }}" class="vendor-store-nav-link" title="Log in to report this service">
-                        <i class="fa-regular fa-flag"></i>
-                        <span>Report</span>
-                    </a>
+                    @if((int) auth()->id() !== (int) $service_provider->user_id)
+                        <button type="button" class="vendor-share-trigger vendor-store-nav-share" data-bs-toggle="modal" data-bs-target="#serviceProviderReportModal">
+                            <i class="fa-regular fa-flag"></i>
+                            <span>Report</span>
+                        </button>
+                    @endif
                 @endauth
 
                 <button type="button" class="vendor-share-trigger vendor-store-nav-share" data-bs-toggle="modal" data-bs-target="#service_providerShareModal">

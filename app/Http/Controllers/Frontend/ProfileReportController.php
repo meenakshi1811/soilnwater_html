@@ -28,6 +28,8 @@ class ProfileReportController extends Controller
 
     private function store(Request $request, Model $reportable, string $label): JsonResponse
     {
+        abort_if((int) $request->user()->id === (int) $reportable->user_id, 403, 'You cannot report your own profile.');
+
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:1000'],
         ]);

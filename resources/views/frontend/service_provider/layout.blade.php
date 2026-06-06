@@ -27,12 +27,14 @@
     @yield('service_provider_content')
 
     @auth
-        @include('frontend.partials.profile-report-modal', [
-            'reportModalId' => 'serviceProviderReportModal',
-            'reportFormId' => 'serviceProviderReportForm',
-            'reportLabel' => 'Service',
-            'reportAction' => route('service_provider.report', $service_provider->slug),
-        ])
+        @if((int) auth()->id() !== (int) $service_provider->user_id)
+            @include('frontend.partials.profile-report-modal', [
+                'reportModalId' => 'serviceProviderReportModal',
+                'reportFormId' => 'serviceProviderReportForm',
+                'reportLabel' => 'Service',
+                'reportAction' => route('service_provider.report', $service_provider->slug),
+            ])
+        @endif
     @endauth
 
     @include('frontend.service_provider.partials.store-footer', ['service_provider' => $service_provider])
