@@ -15,8 +15,8 @@
 
 @section('content')
 @php
-    $heroMainColor = old('hero_main_style.color', $service_provider->hero_main_style['color'] ?? '#ffffff');
-    $heroSubColor = old('hero_sub_style.color', $service_provider->hero_sub_style['color'] ?? '#ffffff');
+    $heroMainColor = old('hero_main_style.color', $service_provider->hero_main_style['color'] ?? '#1b2b44');
+    $heroSubColor = old('hero_sub_style.color', $service_provider->hero_sub_style['color'] ?? '#1b2b44');
 @endphp
 <div class="admin-panel ems-page service_provider-public-live-editor">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
