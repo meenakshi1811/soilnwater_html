@@ -160,8 +160,8 @@ class MarketplaceAdsService
     }
 
     /**
-     * Split service-page ads into their intended placements. Square formats are
-     * intentionally omitted, full-page formats are reserved for the main
+     * Split service-page ads into their intended placements. The standard
+     * square format is intentionally omitted, full-page formats are reserved for the main
      * slider, and every other format is available to the supporting ad grid.
      *
      * @return array{full_page: Collection, supporting: Collection}
@@ -169,7 +169,7 @@ class MarketplaceAdsService
     public function splitServicePageAds(Collection $ads): array
     {
         $visibleAds = $ads
-            ->filter(fn (UserAd $ad): bool => ! $this->isSquareAd($ad))
+            ->filter(fn (UserAd $ad): bool => ! $this->isStandardSquareAd($ad))
             ->values();
 
         return [
@@ -185,9 +185,9 @@ class MarketplaceAdsService
         return strtolower(str_replace([' ', '-'], '_', trim($sizeKey)));
     }
 
-    private function isSquareAd(UserAd $ad): bool
+    private function isStandardSquareAd(UserAd $ad): bool
     {
-        return str_starts_with($this->normalizedAdSizeKey($ad), 'square');
+        return $this->normalizedAdSizeKey($ad) === 'square';
     }
 
     private function isFullPageAd(UserAd $ad): bool

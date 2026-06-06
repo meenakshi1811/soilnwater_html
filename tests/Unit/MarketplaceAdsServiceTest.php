@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 class MarketplaceAdsServiceTest extends TestCase
 {
-    public function test_service_page_ads_are_split_by_format_and_square_ads_are_removed(): void
+    public function test_service_page_ads_hide_standard_square_but_keep_large_square(): void
     {
         $fullPage = $this->makeAd('full_page', 900, 1200);
         $horizontal = $this->makeAd('horizontal', 900, 600);
@@ -26,7 +26,7 @@ class MarketplaceAdsServiceTest extends TestCase
         ]));
 
         $this->assertSame([$fullPage], $placements['full_page']->all());
-        $this->assertSame([$horizontal, $vertical], $placements['supporting']->all());
+        $this->assertSame([$horizontal, $largeSquare, $vertical], $placements['supporting']->all());
     }
 
     public function test_service_page_ad_split_supports_legacy_full_size_key_without_a_loaded_relation(): void

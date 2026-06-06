@@ -286,7 +286,7 @@ class ServiceProviderStoreController extends Controller
             ->where('status', 'approved')
             ->selectedForModule('service_providers')
             ->whereDoesntHave('adSize', fn ($query) => $query->where('admin_only', true))
-            ->whereNotIn('size_type', ['square', 'square_large'])
+            ->where('size_type', '!=', 'square')
             ->whereNotNull('final_image')
             ->where(function ($query) {
                 $query->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()->toDateString());
