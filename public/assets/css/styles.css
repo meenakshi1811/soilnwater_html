@@ -769,7 +769,7 @@
     background: var(--white);
   }
   .con-card:hover { box-shadow: 0 6px 18px rgba(15,47,82,.16); transform: translateY(-2px); }
-  a.con-card { color: inherit; display: block; text-decoration: none; }
+  a.con-card { color: inherit; display: flex; flex-direction: column; height: 100%; text-decoration: none; }
   .consultants-home-slider { border-radius: 12px; }
   .consultants-home-slider > .ad-slide.is-active { display: block !important; }
   .consultant-empty-card { min-height: 120px; display: flex; align-items: center; justify-content: center; }
@@ -781,7 +781,7 @@
     object-position: center;
     display: block;
   }
-  .con-card-body { padding: 12px 10px; }
+  .con-card-body { align-items: flex-start; display: flex; flex: 1; flex-direction: column; padding: 12px 14px; text-align: left; width: 100%; }
   .con-name {
     font-size: 14px;
     font-weight: 700;
@@ -794,6 +794,18 @@
     color: #5c6f82;
     font-weight: 500;
   }
+  .con-professional-detail {
+    color: #52667a;
+    display: -webkit-box;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-top: 7px;
+    overflow: hidden;
+    text-align: left;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .con-professional-detail strong { color: #243b53; font-weight: 700; }
 
   /* ── ENQUIRY CTA ── */
   .enquiry-cta { background: linear-gradient(135deg, #1a3a5c 0%, #1565c0 100%); border-radius: 8px; padding: 18px 16px; color: #fff; text-align: center; }

@@ -34,6 +34,14 @@
                     <div class="form-text">Enter the branch occupation manually, such as Legal Advisor or Business Service.</div>
                 </div>
                 <div class="col-md-6">
+                    <label class="form-label">Professional Experience</label>
+                    <textarea name="professional_experience" class="form-control" rows="4" maxlength="5000" placeholder="Describe professional background and experience">{{ old('professional_experience', $branch->professional_experience) }}</textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Services Offered</label>
+                    <textarea name="services_offered" class="form-control" rows="4" maxlength="5000" placeholder="List the services offered by this branch">{{ old('services_offered', $branch->services_offered) }}</textarea>
+                </div>
+                <div class="col-md-6">
                     <label class="form-label">Profile Image</label>
                     <input type="file" name="profile_image" id="profileImageInput" class="form-control" accept="image/*">
                     <div class="form-text">Upload JPG, PNG, JPEG, or WebP up to 4 MB.</div>

@@ -12,6 +12,8 @@ class ServiceProviderBranch extends Model
         'branch_name',
         'contact_person',
         'occupation',
+        'professional_experience',
+        'services_offered',
         'logo',
         'phone',
         'alt_mobile_number',
