@@ -293,7 +293,7 @@ class OfferPageController extends Controller
     {
         $query = Consultant::query()
             ->where('status', 'approved')
-            ->with(['services:id,consultant_id,name,image_path,latitude,longitude,status', 'branches:id,consultant_id,address,city,state,is_primary', 'bannerSlides:id,consultant_id,image_path,sort_order'])
+            ->with('branches:id,consultant_id,address,city,state,logo,is_primary')
             ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')]);
 
         if (is_numeric($lat) && is_numeric($lng)) {
@@ -321,7 +321,7 @@ class OfferPageController extends Controller
     {
         $query = ServiceProvider::query()
             ->where('status', 'approved')
-            ->with(['services:id,service_provider_id,name,image_path,latitude,longitude,status', 'branches:id,service_provider_id,address,city,state,is_primary', 'bannerSlides:id,service_provider_id,image_path,sort_order'])
+            ->with('branches:id,service_provider_id,address,city,state,logo,is_primary')
             ->withCount(['services' => fn (Builder $query) => $query->where('status', 'approved')]);
 
         if (is_numeric($lat) && is_numeric($lng)) {

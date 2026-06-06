@@ -1474,18 +1474,15 @@
                   <?php foreach ($serviceProviderChunk as $serviceProvider): ?>
                     <?php
                       $primaryBranch = $serviceProvider->branches->first();
-                      $firstService = $serviceProvider->services->firstWhere('status', 'approved') ?: $serviceProvider->services->first();
-                      $serviceImage = $firstService?->image_path ? asset($firstService->image_path) : null;
-                      $bannerImage = $serviceProvider->bannerSlides->first()?->image_path ? asset($serviceProvider->bannerSlides->first()->image_path) : null;
-                      $logoImage = $serviceProvider->logo ? asset($serviceProvider->logo) : null;
-                      $serviceProviderCardImage = $serviceImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=480&q=75';
+                      $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
+                      $serviceProviderCardImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : $profilePlaceholder;
                       $serviceProviderCity = $primaryBranch?->city ?: ($serviceProvider->city ?: 'Local Area');
                       $serviceProviderDistance = $hasLocation && $serviceProvider->nearest_distance_km !== null
                         ? ' • '.number_format($serviceProvider->nearest_distance_km, 1).' km'
                         : '';
                     ?>
                     <a class="con-card text-decoration-none" href="<?= e(route('service_provider.show', $serviceProvider->slug)) ?>" aria-label="View <?= e($serviceProvider->publicDisplayName()) ?> service provider page">
-                      <img src="<?= e($serviceProviderCardImage) ?>" alt="<?= e($serviceProvider->publicDisplayName()) ?>">
+                      <img src="<?= e($serviceProviderCardImage) ?>" alt="<?= e($serviceProvider->publicDisplayName()) ?>" onerror="this.onerror=null;this.src='<?= e($profilePlaceholder) ?>';">
                       <div class="con-card-body">
                         <p class="con-name"><?= e($serviceProvider->publicDisplayName()) ?><?php if ($serviceProvider->is_premium): ?> ⭐<?php endif; ?></p>
                         <span class="con-role"><?= e($serviceProviderCity) ?> • <?= e($serviceProvider->services_count) ?> Services<?= e($serviceProviderDistance) ?></span>
@@ -1547,18 +1544,17 @@
                   <?php foreach ($consultantChunk as $consultant): ?>
                     <?php
                       $primaryBranch = $consultant->branches->first();
-                      $firstService = $consultant->services->firstWhere('status', 'approved') ?: $consultant->services->first();
-                      $serviceImage = $firstService?->image_path ? asset($firstService->image_path) : null;
-                      $bannerImage = $consultant->bannerSlides->first()?->image_path ? asset($consultant->bannerSlides->first()->image_path) : null;
-                      $logoImage = $consultant->logo ? asset($consultant->logo) : null;
-                      $consultantCardImage = $serviceImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=480&q=75';
+                      $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
+                      $consultantProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null;
+                      $consultantCardImage = $consultant->logo ? asset($consultant->logo) : ($consultantProfileImage ?? $profilePlaceholder);
+                      $consultantCardFallback = $consultant->logo && $consultantProfileImage ? $consultantProfileImage : $profilePlaceholder;
                       $consultantCity = $primaryBranch?->city ?: ($consultant->city ?: 'Local Area');
                       $consultantDistance = $hasLocation && $consultant->nearest_distance_km !== null
                         ? ' • '.number_format($consultant->nearest_distance_km, 1).' km'
                         : '';
                     ?>
                     <a class="con-card text-decoration-none" href="<?= e(route('consultant.show', $consultant->slug)) ?>" aria-label="View <?= e($consultant->publicDisplayName()) ?> consultant page">
-                      <img src="<?= e($consultantCardImage) ?>" alt="<?= e($consultant->publicDisplayName()) ?>">
+                      <img src="<?= e($consultantCardImage) ?>" alt="<?= e($consultant->publicDisplayName()) ?>" onerror="this.onerror=function(){this.onerror=null;this.src='<?= e($profilePlaceholder) ?>';};this.src='<?= e($consultantCardFallback) ?>';">
                       <div class="con-card-body">
                         <p class="con-name"><?= e($consultant->publicDisplayName()) ?><?php if ($consultant->is_premium): ?> ⭐<?php endif; ?></p>
                         <span class="con-role"><?= e($consultantCity) ?> • <?= e($consultant->services_count) ?> Services<?= e($consultantDistance) ?></span>

@@ -19,15 +19,14 @@
         @forelse($consultants as $consultant)
           @php
             $primaryBranch = $consultant->branches->first();
-            $firstService = $consultant->services->firstWhere('status', 'approved') ?: $consultant->services->first();
-            $serviceImage = $firstService?->image_path ? asset($firstService->image_path) : null;
-            $bannerImage = $consultant->bannerSlides->first()?->image_path ? asset($consultant->bannerSlides->first()->image_path) : null;
-            $logoImage = $consultant->logo ? asset($consultant->logo) : null;
-            $consultantCardImage = $serviceImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=300&q=70';
+            $profilePlaceholder = asset('assets/images/profile-placeholder.svg');
+            $consultantProfileImage = $primaryBranch?->logo ? asset($primaryBranch->logo) : null;
+            $consultantCardImage = $consultant->logo ? asset($consultant->logo) : ($consultantProfileImage ?? $profilePlaceholder);
+            $consultantCardFallback = $consultant->logo && $consultantProfileImage ? $consultantProfileImage : $profilePlaceholder;
           @endphp
           <div class="col">
             <div class="vendor-card card h-100">
-              <img src="{{ $consultantCardImage }}" alt="{{ $consultant->publicDisplayName() }}">
+              <img src="{{ $consultantCardImage }}" alt="{{ $consultant->publicDisplayName() }}" onerror="this.onerror=function(){this.onerror=null;this.src='{{ $profilePlaceholder }}';};this.src='{{ $consultantCardFallback }}';">
               <div class="vendor-card-body card-body d-flex flex-column">
                 <p>{{ $consultant->publicDisplayName() }} @if($consultant->is_premium)⭐@endif</p>
                 <div class="vendor-card-sub">
