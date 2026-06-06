@@ -135,7 +135,16 @@ class ServiceProvider extends Model
 
     public function usePublishedPage(): self
     {
-        $snapshot = $this->published_page_data;
+        return $this->applyPageSnapshot($this->published_page_data);
+    }
+
+    public function usePendingPage(): self
+    {
+        return $this->applyPageSnapshot($this->pending_page_data);
+    }
+
+    private function applyPageSnapshot(mixed $snapshot): self
+    {
         if (! is_array($snapshot)) {
             return $this;
         }

@@ -4,6 +4,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="{{ asset('assets/css/admin-service-page-review.css') }}?v={{ now()->timestamp }}">
 @endpush
 
 @section('content')
@@ -27,7 +28,7 @@
                     <th>Phone / WhatsApp</th>
                     <th>Location</th>
                     <th>Account Status</th>
-                    <th>Public Page</th>
+                    <th>Page Link</th>
                     <th>Premium</th>
                     <th>Registered</th>
                     <th class="text-end">Actions</th>

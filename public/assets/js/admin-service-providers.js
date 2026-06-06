@@ -20,7 +20,7 @@
                     { data: 'contact_numbers', name: 'phone', orderable: false },
                     { data: 'location', name: 'city', orderable: false },
                     { data: 'status_badge', name: 'status', orderable: false },
-                    { data: 'public_page_badge', name: 'public_page_status', orderable: false },
+                    { data: 'public_page_link', name: 'public_page_status', orderable: false, searchable: false },
                     { data: 'premium_toggle', name: 'is_premium', orderable: false, searchable: false },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }

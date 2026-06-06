@@ -7,6 +7,7 @@ use App\Mail\ServiceProviderPublicPageApprovedMail;
 use App\Mail\ServiceProviderStatusMail;
 use App\Models\User;
 use App\Models\ServiceProvider;
+use App\Models\ServiceProviderService;
 use App\Support\ServiceProviderFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -74,14 +75,18 @@ class ServiceProviderController extends Controller
 
                 return '<span class="badge text-bg-'.$badge.'">'.ucfirst($service_provider->status).'</span>';
             })
-            ->addColumn('public_page_badge', function (ServiceProvider $service_provider): string {
-                $badge = match ($service_provider->public_page_status) {
-                    'approved' => 'success',
-                    'pending' => 'warning',
-                    default => 'secondary',
-                };
+            ->addColumn('public_page_link', function (ServiceProvider $service_provider): string {
+                if ($service_provider->public_page_status === 'pending') {
+                    return '<a class="service-page-link service-page-link--review" href="'.route('admin.service_providers.public-page.review', $service_provider).'" target="_blank" rel="noopener">'
+                        .'<i class="fa-solid fa-up-right-from-square"></i><span>Review page</span></a>';
+                }
 
-                return '<span class="badge text-bg-'.$badge.'">'.ucfirst($service_provider->public_page_status ?: 'draft').'</span>';
+                if ($service_provider->public_page_status === 'approved') {
+                    return '<a class="service-page-link" href="'.route('service_provider.show', $service_provider->slug).'" target="_blank" rel="noopener">'
+                        .'<i class="fa-solid fa-arrow-up-right-from-square"></i><span>View page</span></a>';
+                }
+
+                return '<span class="text-muted">—</span>';
             })
             ->addColumn('premium_toggle', function (ServiceProvider $service_provider): string {
                 $checked = $service_provider->is_premium ? 'checked' : '';
@@ -122,7 +127,7 @@ class ServiceProviderController extends Controller
                     $query->where('status', 'pending');
                 }
             })
-            ->rawColumns(['contact_numbers', 'status_badge', 'premium_toggle', 'actions'])
+            ->rawColumns(['contact_numbers', 'status_badge', 'public_page_link', 'premium_toggle', 'actions'])
             ->make(true);
     }
 
@@ -226,6 +231,36 @@ class ServiceProviderController extends Controller
         ]);
     }
 
+    public function reviewPublicPage(ServiceProvider $service_provider): View
+    {
+        abort_unless($service_provider->public_page_status === 'pending' && is_array($service_provider->pending_page_data), 404);
+
+        return view('backend.service_providers.public-page-review', compact('service_provider'));
+    }
+
+    public function previewPublicPage(ServiceProvider $service_provider): View
+    {
+        abort_unless($service_provider->public_page_status === 'pending' && is_array($service_provider->pending_page_data), 404);
+
+        $service_provider->load(['branches', 'bannerSlides', 'pageSections'])->usePendingPage();
+        $approvedServices = ServiceProviderService::query()
+            ->where('service_provider_id', $service_provider->id)
+            ->where('status', 'approved')
+            ->latest('updated_at')
+            ->get();
+
+        return view('frontend.service_provider.show', [
+            'service_provider' => $service_provider,
+            'preview' => true,
+            'activeNav' => 'home',
+            'approvedServices' => $approvedServices,
+            'service_providerRecentAds' => collect(),
+            'selectedCategoryNamesByServiceProviderAdId' => [],
+            'fullPageAds' => collect(),
+            'supportingAds' => collect(),
+        ]);
+    }
+
     public function approvePublicPage(Request $request, ServiceProvider $service_provider): JsonResponse
     {
         abort_unless($service_provider->public_page_status === 'pending' && is_array($service_provider->pending_page_data), 422, 'There is no public page submission awaiting approval.');
@@ -245,6 +280,23 @@ class ServiceProviderController extends Controller
 
         return response()->json([
             'message' => 'Public page approved and published.'.($recipient ? ' Email notification sent.' : ''),
+            'redirect_url' => route('admin.service_providers.index'),
+        ]);
+    }
+
+    public function declinePublicPage(ServiceProvider $service_provider): JsonResponse
+    {
+        abort_unless($service_provider->public_page_status === 'pending' && is_array($service_provider->pending_page_data), 422, 'There is no public page submission awaiting review.');
+
+        $service_provider->update([
+            'pending_page_data' => null,
+            'public_page_status' => 'declined',
+            'public_page_submitted_at' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Public page changes declined. The previous approved page remains live.',
+            'redirect_url' => route('admin.service_providers.index'),
         ]);
     }
 

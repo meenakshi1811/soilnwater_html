@@ -39,10 +39,12 @@
     </div>
 
 
-    <div class="alert {{ $service_provider->public_page_status === 'pending' ? 'alert-warning' : ($service_provider->public_page_status === 'approved' ? 'alert-success' : 'alert-info') }} py-2">
+    <div class="alert {{ $service_provider->public_page_status === 'pending' ? 'alert-warning' : ($service_provider->public_page_status === 'approved' ? 'alert-success' : ($service_provider->public_page_status === 'declined' ? 'alert-danger' : 'alert-info')) }} py-2">
         <strong>Page status:</strong> {{ ucfirst($service_provider->public_page_status ?? 'draft') }}.
         @if($service_provider->public_page_status === 'pending')
             Admin review is pending. Your submitted changes are not live yet.
+        @elseif($service_provider->public_page_status === 'declined')
+            Admin declined the submitted changes. Update the draft and send it for approval again.
         @elseif($service_provider->public_page_status === 'draft')
             Draft changes are visible only through Live Preview.
         @else
