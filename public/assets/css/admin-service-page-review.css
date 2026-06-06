@@ -1,0 +1,129 @@
+.service-page-link {
+    align-items: center;
+    color: #155eef;
+    display: inline-flex;
+    font-weight: 700;
+    gap: .45rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.service-page-link:hover {
+    color: #0b4dcc;
+    text-decoration: underline;
+}
+
+.service-page-link--review {
+    color: #8a4b08;
+}
+
+.service-page-link--review:hover {
+    color: #713b05;
+}
+
+.service-page-review {
+    margin: 0 auto;
+    max-width: 1680px;
+}
+
+.service-page-review__toolbar {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #dfe5ec;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, .07);
+    display: flex;
+    gap: 2rem;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding: 1.25rem 1.5rem;
+}
+
+.service-page-review__back {
+    color: #475467;
+    display: inline-flex;
+    font-size: .875rem;
+    gap: .4rem;
+    margin-bottom: .8rem;
+    text-decoration: none;
+}
+
+.service-page-review__actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: .75rem;
+}
+
+.service-page-review__actions .btn {
+    font-weight: 700;
+    min-width: 135px;
+}
+
+.service-page-review__frame-wrap {
+    background: #fff;
+    border: 1px solid #d7dee8;
+    border-radius: 18px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, .1);
+    overflow: hidden;
+}
+
+.service-page-review__browser-bar {
+    align-items: center;
+    background: #f2f4f7;
+    border-bottom: 1px solid #d7dee8;
+    display: flex;
+    gap: .45rem;
+    padding: .75rem 1rem;
+}
+
+.service-page-review__browser-bar > span {
+    background: #98a2b3;
+    border-radius: 50%;
+    display: block;
+    height: 10px;
+    width: 10px;
+}
+
+.service-page-review__browser-bar > span:first-child { background: #f97066; }
+.service-page-review__browser-bar > span:nth-child(2) { background: #fdb022; }
+.service-page-review__browser-bar > span:nth-child(3) { background: #32d583; }
+
+.service-page-review__browser-bar > div {
+    background: #fff;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    color: #667085;
+    flex: 1;
+    font-size: .8rem;
+    margin-left: .5rem;
+    overflow: hidden;
+    padding: .4rem .75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.service-page-review__frame {
+    background: #fff;
+    border: 0;
+    display: block;
+    height: calc(100vh - 275px);
+    min-height: 680px;
+    width: 100%;
+}
+
+@media (max-width: 767.98px) {
+    .service-page-review__toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .service-page-review__actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .service-page-review__frame {
+        height: 720px;
+        min-height: 0;
+    }
+}
