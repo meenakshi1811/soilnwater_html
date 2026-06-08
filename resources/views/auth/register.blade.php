@@ -196,18 +196,12 @@
                             <span class="btn-loader d-none" aria-hidden="true"></span>
                         </button>
 
-                        <!-- <div class="auth-divider"><span>or</span></div>
-
-                        <button type="button" class="btn btn-google w-100" id="googleRegisterTrigger">
-                            <i class="fa-brands fa-google me-2"></i> Continue with Google
-                        </button> -->
-
                         <p class="signin-copy">Already have an account? <a href="{{ route('login') }}">Sign in</a></p>
                     </form>
                     <div class="auth-divider"><span>or</span></div>
-                    <a href="{{ route('register.google') }}" class="btn btn-google d-flex justify-content-center align-items-center gap-2">
-                        <span class="fw-semibold">Continue with Google</span>
-                    </a>
+                    <button type="button" class="btn btn-google w-100" id="googleRegisterTrigger">
+                        <i class="fa-brands fa-google me-2"></i> Continue with Google
+                    </button>
                 </div>
             </div>
         </div>
@@ -215,7 +209,7 @@
 </section>
 
 
-{{-- <div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true">
+<div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true" data-open-on-error="{{ old('google_registration') === '1' && ($errors->has('role') || $errors->has('address') || $errors->has('city') || $errors->has('pincode') || $errors->has('date_of_birth')) ? 'true' : 'false' }}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -223,20 +217,62 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body pt-2">
-                <p class="role-picker-subtitle">Choose your role to continue. This step is required.</p>
+                <p class="role-picker-subtitle">Choose your role and add the required details before continuing with Google.</p>
 
-                <form id="googleRegisterRoleForm" method="POST" action="{{ route('register.google') }}">
-                    @csrf
-                    <label for="google_role" class="form-label">Select Role</label>
-                    <select id="google_role" class="form-select" name="role" required>
-                        <option value="">Choose your role</option>
-                        <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
-                        <option value="vendor" {{ old('role') === 'vendor' ? 'selected' : '' }}>Vendor</option>
-                        <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
-                        <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
-                        <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
-                                <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
-                    </select>
+                <form id="googleRegisterRoleForm" method="GET" action="{{ route('register.google') }}">
+                    <input type="hidden" name="google_registration" value="1">
+                    <div class="mb-3">
+                        <label for="google_role" class="form-label">Select Role</label>
+                        <select id="google_role" class="form-select @error('role') is-invalid @enderror" name="role" required>
+                            <option value="">Choose your role</option>
+                            <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
+                            <option value="vendor" {{ old('role') === 'vendor' ? 'selected' : '' }}>Vendor</option>
+                            <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
+                            <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
+                            <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
+                            <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
+                        </select>
+                        @error('role')
+                            <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="google_address" class="form-label">Address</label>
+                        <input id="google_address" type="text" class="form-control @error('address') is-invalid @enderror" name="address" value="{{ old('address') }}" required autocomplete="street-address" placeholder="Search and select your address">
+                        @error('address')
+                            <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                        @enderror
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="google_city" class="form-label">City</label>
+                                <input id="google_city" type="text" class="form-control @error('city') is-invalid @enderror" name="city" value="{{ old('city') }}" required autocomplete="address-level2">
+                                @error('city')
+                                    <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="google_pincode" class="form-label">Pincode</label>
+                                <input id="google_pincode" type="text" class="form-control @error('pincode') is-invalid @enderror" name="pincode" value="{{ old('pincode') }}" required autocomplete="postal-code">
+                                @error('pincode')
+                                    <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="google_date_of_birth" class="form-label">Date of Birth</label>
+                        <input id="google_date_of_birth" type="date" class="form-control @error('date_of_birth') is-invalid @enderror" name="date_of_birth" value="{{ old('date_of_birth') }}" max="{{ now()->subYears(18)->toDateString() }}" required>
+                        @error('date_of_birth')
+                            <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                        @enderror
+                    </div>
 
                     <div class="d-flex gap-2 mt-4">
                         <button type="button" class="btn btn-auth-secondary flex-fill" data-bs-dismiss="modal">Cancel</button>
@@ -248,7 +284,7 @@
             </div>
         </div>
     </div>
-</div> --}}
+</div>
 
 @endsection
 
