@@ -4,6 +4,144 @@
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<style>
+    .admin-user-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        object-fit: cover;
+        flex: 0 0 42px;
+        border: 1px solid rgba(15, 23, 42, .08);
+        box-shadow: 0 8px 22px rgba(15, 23, 42, .08);
+    }
+    .admin-user-avatar-placeholder {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #e0f2fe, #ecfeff);
+        color: #0f766e;
+        font-weight: 800;
+    }
+    .text-bg-purple { background-color: #7c3aed; color: #fff; }
+    .text-bg-teal { background-color: #0f766e; color: #fff; }
+    .user-detail-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 48%, #0f766e 100%);
+        border-radius: 22px;
+        color: #fff;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    .user-detail-hero::after {
+        content: '';
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        right: -70px;
+        top: -80px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, .13);
+    }
+    .user-detail-photo {
+        width: 96px;
+        height: 96px;
+        border-radius: 24px;
+        object-fit: cover;
+        border: 4px solid rgba(255, 255, 255, .45);
+        background: rgba(255, 255, 255, .18);
+    }
+    .user-detail-photo-placeholder {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 800;
+    }
+    .detail-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 7px 12px;
+        background: rgba(255, 255, 255, .14);
+        color: #fff;
+        font-size: .82rem;
+        backdrop-filter: blur(10px);
+    }
+    .detail-section-card {
+        border: 1px solid rgba(148, 163, 184, .22);
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, .06);
+        padding: 18px;
+    }
+    .detail-section-title {
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .detail-section-title i { color: #2563eb; }
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 12px;
+    }
+    .detail-field {
+        border-radius: 14px;
+        background: #f8fafc;
+        padding: 12px 14px;
+        min-height: 74px;
+    }
+    .detail-field-label {
+        font-size: .72rem;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #64748b;
+        font-weight: 800;
+        margin-bottom: 5px;
+    }
+    .detail-field-value {
+        color: #0f172a;
+        font-weight: 600;
+        word-break: break-word;
+    }
+    .detail-image-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+        gap: 12px;
+    }
+    .detail-image-tile {
+        display: block;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, .24);
+        background: #f8fafc;
+        aspect-ratio: 4 / 3;
+    }
+    .detail-image-tile img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .2s ease;
+    }
+    .detail-image-tile:hover img { transform: scale(1.04); }
+    .role-detail-item {
+        border: 1px solid rgba(148, 163, 184, .22);
+        border-radius: 16px;
+        padding: 14px;
+        background: linear-gradient(180deg, #fff, #f8fafc);
+    }
+    .role-detail-thumb {
+        width: 82px;
+        height: 68px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, .25);
+    }
+</style>
 @endpush
 
 @section('content')
@@ -12,13 +150,16 @@
         <div>
             <p class="ems-kicker mb-1">Employee Management System</p>
             <h2 class="admin-title mb-1">Users</h2>
-            <p class="mb-0 text-secondary">View, edit and delete registered users with live verification status for email and phone.</p>
+            <p class="mb-0 text-secondary">View every registered account with role-specific vendor, consultant and service provider profile details.</p>
         </div>
     </div>
 
     <div class="chart-card">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h5 class="mb-0">User listing</h5>
+            <div>
+                <h5 class="mb-1">All users table entries</h5>
+                <p class="text-secondary small mb-0">Use View to inspect full user, business profile, branch, media and service/product records.</p>
+            </div>
         </div>
         <div id="userAlert" class="alert d-none" role="alert"></div>
         <div class="table-responsive">
@@ -26,6 +167,7 @@
                 <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Role</th>
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Location</th>
@@ -100,6 +242,23 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="userViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content ems-modal">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <p class="ems-kicker mb-1">Complete account profile</p>
+                    <h5 class="modal-title">User Details</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3" id="userViewContent">
+                <div class="text-center py-5 text-secondary">Loading details...</div>
+            </div>
         </div>
     </div>
 </div>
