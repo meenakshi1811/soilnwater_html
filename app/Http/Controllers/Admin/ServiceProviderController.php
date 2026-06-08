@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Mail\ServiceProviderPublicPageApprovedMail;
 use App\Mail\ServiceProviderStatusMail;
 use App\Models\User;
@@ -215,6 +216,7 @@ class ServiceProviderController extends Controller
 
         if ($service_provider->status !== $originalStatus && in_array($service_provider->status, ['approved', 'rejected'], true)) {
             $this->sendServiceProviderStatusMail($service_provider, $service_provider->status);
+            PortalNotificationService::notifyOwnerOfReview($service_provider->user, 'Service account', $service_provider->company_name, $service_provider->status, route('service_provider.dashboard'));
         }
 
         return response()->json(['message' => 'Service updated successfully.']);
@@ -229,6 +231,7 @@ class ServiceProviderController extends Controller
         ]);
 
         $emailSent = $this->sendServiceProviderStatusMail($service_provider, 'approved');
+        PortalNotificationService::notifyOwnerOfReview($service_provider->user, 'Service account', $service_provider->company_name, 'approved', route('service_provider.dashboard'));
         return response()->json([
             'message' => 'Service approved. They can now log in to the service portal.'.($emailSent ? ' Email notification sent.' : ''),
         ]);
@@ -281,6 +284,8 @@ class ServiceProviderController extends Controller
             Mail::to($recipient)->send(new ServiceProviderPublicPageApprovedMail($service_provider->fresh('user')));
         }
 
+        PortalNotificationService::notifyOwnerOfReview($service_provider->user, 'Public page', $service_provider->display_name ?: $service_provider->company_name, 'approved', route('service_provider.public-page.edit'));
+
         return response()->json([
             'message' => 'Public page approved and published.'.($recipient ? ' Email notification sent.' : ''),
             'redirect_url' => route('admin.service_providers.index'),
@@ -297,6 +302,8 @@ class ServiceProviderController extends Controller
             'public_page_submitted_at' => null,
         ]);
 
+        PortalNotificationService::notifyOwnerOfReview($service_provider->user, 'Public page', $service_provider->display_name ?: $service_provider->company_name, 'declined', route('service_provider.public-page.edit'));
+
         return response()->json([
             'message' => 'Public page changes declined. The previous approved page remains live.',
             'redirect_url' => route('admin.service_providers.index'),
@@ -312,6 +319,7 @@ class ServiceProviderController extends Controller
         ]);
 
         $emailSent = $this->sendServiceProviderStatusMail($service_provider, 'rejected');
+        PortalNotificationService::notifyOwnerOfReview($service_provider->user, 'Service account', $service_provider->company_name, 'rejected', route('login'));
 
         return response()->json([
             'message' => 'Service application rejected.'.($emailSent ? ' Email notification sent.' : ''),

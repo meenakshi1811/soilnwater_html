@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Models\ServiceProviderBannerSlide;
 use App\Models\ServiceProvider;
 use App\Models\ServiceProviderPageSection;
@@ -123,6 +124,10 @@ class ServiceProviderPublicPageController extends Controller
             'pending_page_data' => $isSubmission ? $service_provider->publicPageSnapshot() : null,
             'public_page_submitted_at' => $isSubmission ? now() : null,
         ]);
+
+        if ($isSubmission) {
+            PortalNotificationService::notifyAdminsOfApprovalRequest('Service public page', $service_provider->display_name ?: $service_provider->company_name, route('admin.service_providers.public-page.review', $service_provider));
+        }
 
         $message = $isSubmission
             ? 'Public page saved and sent to admin for approval.'

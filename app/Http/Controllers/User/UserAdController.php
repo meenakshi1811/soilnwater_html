@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Models\AdTemplate;
 use App\Models\Category;
 use App\Models\AdSize;
@@ -616,6 +617,8 @@ class UserAdController extends Controller
 
         $ad->save();
 
+        PortalNotificationService::notifyAdminsOfApprovalRequest('Updated ad', $ad->title, route('admin.ads.submissions.show', $ad));
+
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'message' => 'Ad updated and submitted for admin approval.',
@@ -915,6 +918,8 @@ class UserAdController extends Controller
                 'grand_total' => $pricing['grand_total'],
             ]);
         });
+
+        PortalNotificationService::notifyAdminsOfApprovalRequest('Ad', $ad->title, route('admin.ads.submissions.show', $ad));
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([

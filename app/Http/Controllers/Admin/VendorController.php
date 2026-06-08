@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Mail\VendorPublicPageApprovedMail;
 use App\Mail\VendorStatusMail;
 use App\Models\Category;
@@ -209,6 +210,7 @@ class VendorController extends Controller
 
         if ($vendor->status !== $originalStatus && in_array($vendor->status, ['approved', 'rejected'], true)) {
             $this->sendVendorStatusMail($vendor, $vendor->status);
+            PortalNotificationService::notifyOwnerOfReview($vendor->user, 'Vendor account', $vendor->company_name, $vendor->status, route('vendor.dashboard'));
         }
 
         return response()->json(['message' => 'Vendor updated successfully.']);
@@ -223,6 +225,7 @@ class VendorController extends Controller
         ]);
 
         $emailSent = $this->sendVendorStatusMail($vendor, 'approved');
+        PortalNotificationService::notifyOwnerOfReview($vendor->user, 'Vendor account', $vendor->company_name, 'approved', route('vendor.dashboard'));
         // print_r($emailSent);exit();
         return response()->json([
             'message' => 'Vendor approved. They can now log in to the vendor portal.'.($emailSent ? ' Email notification sent.' : ''),
@@ -285,6 +288,8 @@ class VendorController extends Controller
             Mail::to($recipient)->send(new VendorPublicPageApprovedMail($vendor->fresh('user')));
         }
 
+        PortalNotificationService::notifyOwnerOfReview($vendor->user, 'Public page', $vendor->display_name ?: $vendor->company_name, 'approved', route('vendor.public-page.edit'));
+
         return response()->json([
             'message' => 'Public page approved and published.'.($recipient ? ' Email notification sent.' : ''),
             'redirect_url' => route('admin.vendors.index'),
@@ -301,6 +306,8 @@ class VendorController extends Controller
             'public_page_submitted_at' => null,
         ]);
 
+        PortalNotificationService::notifyOwnerOfReview($vendor->user, 'Public page', $vendor->display_name ?: $vendor->company_name, 'declined', route('vendor.public-page.edit'));
+
         return response()->json([
             'message' => 'Public page changes declined. The previous approved page remains live.',
             'redirect_url' => route('admin.vendors.index'),
@@ -316,6 +323,7 @@ class VendorController extends Controller
         ]);
 
         $emailSent = $this->sendVendorStatusMail($vendor, 'rejected');
+        PortalNotificationService::notifyOwnerOfReview($vendor->user, 'Vendor account', $vendor->company_name, 'rejected', route('login'));
 
         return response()->json([
             'message' => 'Vendor application rejected.'.($emailSent ? ' Email notification sent.' : ''),

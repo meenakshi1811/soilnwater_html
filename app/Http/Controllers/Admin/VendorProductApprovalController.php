@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Models\VendorProduct;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -118,6 +119,9 @@ class VendorProductApprovalController extends Controller
     {
         // echo'<pre>';print_r($product);echo'</pre>';exit();
         $product->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => $request->user()->id]);
+        $product->loadMissing('vendor.user');
+
+        PortalNotificationService::notifyOwnerOfReview($product->vendor?->user, 'Product', $product->name, 'approved', route('vendor.products.show', $product));
 
         return response()->json(['message' => 'Product approved.']);
     }
@@ -125,6 +129,9 @@ class VendorProductApprovalController extends Controller
     public function reject(VendorProduct $product): JsonResponse
     {
         $product->update(['status' => 'rejected', 'approved_at' => null, 'approved_by' => null]);
+        $product->loadMissing('vendor.user');
+
+        PortalNotificationService::notifyOwnerOfReview($product->vendor?->user, 'Product', $product->name, 'rejected', route('vendor.products.show', $product));
 
         return response()->json(['message' => 'Product rejected.']);
     }

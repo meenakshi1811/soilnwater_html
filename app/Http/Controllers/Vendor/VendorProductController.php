@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Models\Category;
 use App\Models\VendorProduct;
 use Illuminate\Http\JsonResponse;
@@ -38,7 +39,9 @@ class VendorProductController extends Controller
         $data = $this->validated($request);
         $data['vendor_id'] = auth()->user()->vendor->id;
         $data['sku'] = $data['sku'] ?: 'SKU-'.Str::upper(Str::random(8));
-        VendorProduct::create($data);
+        $product = VendorProduct::create($data);
+
+        PortalNotificationService::notifyAdminsOfApprovalRequest('Vendor product', $product->name, route('admin.vendor-products.show', $product));
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -68,6 +71,9 @@ class VendorProductController extends Controller
     {
         abort_unless($product->vendor_id === auth()->user()->vendor?->id, 403);
         $product->update($this->validated($request));
+
+        PortalNotificationService::notifyAdminsOfApprovalRequest('Updated vendor product', $product->name, route('admin.vendor-products.show', $product));
+
         return redirect()->route('vendor.products.index')->with('success', 'Product updated successfully.');
     }
 

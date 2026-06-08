@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Models\Category;
 use App\Models\UserAd;
 use App\Support\AdSizes;
@@ -132,6 +133,8 @@ class AdSubmissionController extends Controller
             'review_note' => $request->string('review_note')->toString() ?: null,
         ]);
 
+        PortalNotificationService::notifyOwnerOfReview($ad->user, 'Ad', $ad->title, 'approved', route('ads.show', $ad));
+
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json(['message' => 'Ad approved.']);
         }
@@ -151,6 +154,8 @@ class AdSubmissionController extends Controller
             'reviewed_at' => now(),
             'review_note' => $request->string('review_note')->toString(),
         ]);
+
+        PortalNotificationService::notifyOwnerOfReview($ad->user, 'Ad', $ad->title, 'rejected', route('ads.show', $ad));
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json(['message' => 'Ad rejected.']);
