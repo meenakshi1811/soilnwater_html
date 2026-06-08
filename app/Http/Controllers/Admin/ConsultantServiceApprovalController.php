@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Models\ConsultantService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,6 +63,9 @@ class ConsultantServiceApprovalController extends Controller
     public function approve(ConsultantService $service, Request $request): JsonResponse
     {
         $service->update(['status' => 'approved', 'approved_at' => now(), 'approved_by' => $request->user()->id]);
+        $service->loadMissing('consultant.user');
+
+        PortalNotificationService::notifyOwnerOfReview($service->consultant?->user, 'Consultation service', $service->name, 'approved', route('consultant.services.show', $service));
 
         return response()->json(['message' => 'Consultation service approved.']);
     }
@@ -69,6 +73,9 @@ class ConsultantServiceApprovalController extends Controller
     public function reject(ConsultantService $service): JsonResponse
     {
         $service->update(['status' => 'rejected', 'approved_at' => null, 'approved_by' => null]);
+        $service->loadMissing('consultant.user');
+
+        PortalNotificationService::notifyOwnerOfReview($service->consultant?->user, 'Consultation service', $service->name, 'rejected', route('consultant.services.show', $service));
 
         return response()->json(['message' => 'Consultation service rejected.']);
     }

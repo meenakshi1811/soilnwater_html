@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Mail\ConsultantPublicPageApprovedMail;
 use App\Mail\ConsultantStatusMail;
 use App\Models\User;
@@ -208,6 +209,7 @@ class ConsultantController extends Controller
 
         if ($consultant->status !== $originalStatus && in_array($consultant->status, ['approved', 'rejected'], true)) {
             $this->sendConsultantStatusMail($consultant, $consultant->status);
+            PortalNotificationService::notifyOwnerOfReview($consultant->user, 'Consultant account', $consultant->company_name, $consultant->status, route('consultant.dashboard'));
         }
 
         return response()->json(['message' => 'Consultant updated successfully.']);
@@ -222,6 +224,7 @@ class ConsultantController extends Controller
         ]);
 
         $emailSent = $this->sendConsultantStatusMail($consultant, 'approved');
+        PortalNotificationService::notifyOwnerOfReview($consultant->user, 'Consultant account', $consultant->company_name, 'approved', route('consultant.dashboard'));
         return response()->json([
             'message' => 'Consultant approved. They can now log in to the consultant portal.'.($emailSent ? ' Email notification sent.' : ''),
         ]);
@@ -276,6 +279,8 @@ class ConsultantController extends Controller
             Mail::to($recipient)->send(new ConsultantPublicPageApprovedMail($consultant->fresh('user')));
         }
 
+        PortalNotificationService::notifyOwnerOfReview($consultant->user, 'Public page', $consultant->display_name ?: $consultant->company_name, 'approved', route('consultant.public-page.edit'));
+
         return response()->json([
             'message' => 'Public page approved and published.'.($recipient ? ' Email notification sent.' : ''),
             'redirect_url' => route('admin.consultants.index'),
@@ -292,6 +297,8 @@ class ConsultantController extends Controller
             'public_page_submitted_at' => null,
         ]);
 
+        PortalNotificationService::notifyOwnerOfReview($consultant->user, 'Public page', $consultant->display_name ?: $consultant->company_name, 'declined', route('consultant.public-page.edit'));
+
         return response()->json([
             'message' => 'Public page changes declined. The previous approved page remains live.',
             'redirect_url' => route('admin.consultants.index'),
@@ -307,6 +314,7 @@ class ConsultantController extends Controller
         ]);
 
         $emailSent = $this->sendConsultantStatusMail($consultant, 'rejected');
+        PortalNotificationService::notifyOwnerOfReview($consultant->user, 'Consultant account', $consultant->company_name, 'rejected', route('login'));
 
         return response()->json([
             'message' => 'Consultant application rejected.'.($emailSent ? ' Email notification sent.' : ''),

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Models\Category;
 use App\Models\Offer;
 use Carbon\Carbon;
@@ -130,7 +131,11 @@ class PostOfferController extends Controller
             ], 422);
         }
 
-        Offer::create($validated);
+        $offer = Offer::create($validated);
+
+        if (! $this->isStaff($request->user())) {
+            PortalNotificationService::notifyAdminsOfApprovalRequest('Offer', $offer->title, route('offers.index'));
+        }
 
         return response()->json(['message' => 'Offer posted successfully!']);
     }
@@ -323,6 +328,16 @@ class PostOfferController extends Controller
                 'status' => $validated['status'] ?? $offer->status,
             ]);
 
+            if (isset($validated['status'])) {
+                PortalNotificationService::notifyOwnerOfReview(
+                    $offer->user,
+                    'Offer',
+                    $offer->title,
+                    $validated['status'] === 'active' ? 'approved' : 'declined',
+                    route('offers.index')
+                );
+            }
+
             return response()->json(['message' => 'Offer status updated successfully.']);
         }
 
@@ -358,6 +373,8 @@ class PostOfferController extends Controller
         $offer->update($validated);
 
         if ($canWrite && ! $this->isStaff($user)) {
+            PortalNotificationService::notifyAdminsOfApprovalRequest('Updated offer', $offer->title, route('offers.index'));
+
             return response()->json(['message' => 'Offer updated and sent to admin for approval.']);
         }
 
@@ -379,6 +396,14 @@ class PostOfferController extends Controller
         $offer->update([
             'status' => $validated['status'],
         ]);
+
+        PortalNotificationService::notifyOwnerOfReview(
+            $offer->user,
+            'Offer',
+            $offer->title,
+            $validated['status'] === 'active' ? 'approved' : 'declined',
+            route('offers.index')
+        );
 
         return response()->json(['message' => 'Offer status updated successfully.']);
     }

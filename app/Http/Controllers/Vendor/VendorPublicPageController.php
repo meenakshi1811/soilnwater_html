@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Models\Category;
 use App\Models\VendorBannerSlide;
 use App\Models\Vendor;
@@ -124,6 +125,10 @@ class VendorPublicPageController extends Controller
             'pending_page_data' => $isSubmission ? $vendor->publicPageSnapshot() : null,
             'public_page_submitted_at' => $isSubmission ? now() : null,
         ]);
+
+        if ($isSubmission) {
+            PortalNotificationService::notifyAdminsOfApprovalRequest('Vendor public page', $vendor->display_name ?: $vendor->company_name, route('admin.vendors.public-page.review', $vendor));
+        }
 
         $message = $isSubmission
             ? 'Public page saved and sent to admin for approval.'

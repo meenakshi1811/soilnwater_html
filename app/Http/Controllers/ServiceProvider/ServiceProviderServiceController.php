@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Models\Category;
 use App\Models\ServiceProviderService;
 use Illuminate\Http\JsonResponse;
@@ -40,7 +41,9 @@ class ServiceProviderServiceController extends Controller
         $data['service_provider_id'] = auth()->user()->serviceProvider->id;
         $data['slug'] = $this->uniqueSlug($data['service_provider_id'], $data['name']);
 
-        ServiceProviderService::create($data);
+        $service = ServiceProviderService::create($data);
+
+        PortalNotificationService::notifyAdminsOfApprovalRequest('Service provider service', $service->name, route('admin.service-provider-services.show', $service));
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -79,6 +82,8 @@ class ServiceProviderServiceController extends Controller
         $data['slug'] = $this->uniqueSlug($service->service_provider_id, $data['name'], $service->id);
 
         $service->update($data);
+
+        PortalNotificationService::notifyAdminsOfApprovalRequest('Updated service provider service', $service->name, route('admin.service-provider-services.show', $service));
 
         return redirect()->route('service_provider.services.index')->with('success', 'Service updated successfully.');
     }

@@ -18,6 +18,7 @@ use App\Http\Controllers\Frontend\FrontendSearchController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ModuleAccessController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\Admin\PostOfferController;
 use App\Http\Controllers\User\UserAdController;
@@ -129,6 +130,8 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
     Route::prefix('dashboard/offers')->name('offers.')->group(function () {
         Route::get('/', [PostOfferController::class, 'offersIndex'])->name('index');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Consultant;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Models\Category;
 use App\Models\ConsultantService;
 use Illuminate\Http\JsonResponse;
@@ -40,7 +41,9 @@ class ConsultantServiceController extends Controller
         $data['consultant_id'] = auth()->user()->consultant->id;
         $data['slug'] = $this->uniqueSlug($data['consultant_id'], $data['name']);
 
-        ConsultantService::create($data);
+        $service = ConsultantService::create($data);
+
+        PortalNotificationService::notifyAdminsOfApprovalRequest('Consultant service', $service->name, route('admin.consultant-services.show', $service));
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -79,6 +82,8 @@ class ConsultantServiceController extends Controller
         $data['slug'] = $this->uniqueSlug($service->consultant_id, $data['name'], $service->id);
 
         $service->update($data);
+
+        PortalNotificationService::notifyAdminsOfApprovalRequest('Updated consultant service', $service->name, route('admin.consultant-services.show', $service));
 
         return redirect()->route('consultant.services.index')->with('success', 'Consultation service updated successfully.');
     }
