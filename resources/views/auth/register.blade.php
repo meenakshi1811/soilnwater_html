@@ -100,12 +100,16 @@
 
                         <div class="auth-divider"><span>or</span></div>
 
-                        <button type="button" class="btn btn-google w-100" id="googleRegisterTrigger" data-bs-toggle="modal" data-bs-target="#googleProfileModal">
+                        <button type="button" class="btn btn-google w-100" id="googleRegisterTrigger">
                             <i class="fa-brands fa-google me-2"></i> Continue with Google
                         </button>
 
                         <p class="signin-copy">Already have an account? <a href="{{ route('login') }}">Sign in</a></p>
                     </form>
+                    <div class="auth-divider"><span>or</span></div>
+                    <a href="{{ route('register.google') }}" class="btn btn-google d-flex justify-content-center align-items-center gap-2">
+                        <span class="fw-semibold">Continue with Google</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -113,70 +117,31 @@
 </section>
 
 
-<div class="modal fade role-picker-modal" id="googleProfileModal" tabindex="-1" aria-labelledby="googleProfileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+{{-- <div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title" id="googleProfileModalLabel">Continue with Google</h5>
+                <h5 class="modal-title" id="googleRoleModalLabel">Continue with Google</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body pt-2">
-                <p class="role-picker-subtitle text-muted mb-3">Select your role and complete these profile details before Google signup.</p>
+                <p class="role-picker-subtitle">Choose your role to continue. This step is required.</p>
 
-                <form id="googleRegisterProfileForm" method="POST" action="{{ route('register.google') }}">
+                <form id="googleRegisterRoleForm" method="POST" action="{{ route('register.google') }}">
                     @csrf
-                    <div class="mb-3">
-                        <label for="google_role" class="form-label">Select Role</label>
-                        <select id="google_role" class="form-select @error('role') is-invalid @enderror" name="role" required>
-                            <option value="">Choose your role</option>
-                            <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
-                            <option value="vendor" {{ old('role') === 'vendor' ? 'selected' : '' }}>Vendor</option>
-                            <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
-                            <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
-                            <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
-                        </select>
-                        @error('role')
-                            <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
-                        @enderror
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="google_address" class="form-label">Address</label>
-                        <textarea id="google_address" class="form-control @error('address') is-invalid @enderror" name="address" rows="2" required>{{ old('address') }}</textarea>
-                        @error('address')
-                            <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
-                        @enderror
-                    </div>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="google_city" class="form-label">City</label>
-                            <input id="google_city" type="text" class="form-control @error('city') is-invalid @enderror" name="city" value="{{ old('city') }}" required autocomplete="address-level2">
-                            @error('city')
-                                <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="google_pincode" class="form-label">Pincode</label>
-                            <input id="google_pincode" type="text" class="form-control @error('pincode') is-invalid @enderror" name="pincode" value="{{ old('pincode') }}" required maxlength="10" autocomplete="postal-code">
-                            @error('pincode')
-                                <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="mb-3 mt-3">
-                        <label for="google_date_of_birth" class="form-label">Date of Birth</label>
-                        <input id="google_date_of_birth" type="date" class="form-control @error('date_of_birth') is-invalid @enderror" name="date_of_birth" value="{{ old('date_of_birth') }}" required max="{{ now()->subDay()->toDateString() }}">
-                        @error('date_of_birth')
-                            <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
-                        @enderror
-                    </div>
+                    <label for="google_role" class="form-label">Select Role</label>
+                    <select id="google_role" class="form-select" name="role" required>
+                        <option value="">Choose your role</option>
+                        <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
+                        <option value="vendor" {{ old('role') === 'vendor' ? 'selected' : '' }}>Vendor</option>
+                        <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
+                        <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
+                        <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
+                    </select>
 
                     <div class="d-flex gap-2 mt-4">
                         <button type="button" class="btn btn-auth-secondary flex-fill" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" id="googleProfileContinueBtn" class="btn btn-google role-continue-btn flex-fill">
+                        <button type="submit" id="googleRoleContinueBtn" class="btn btn-google role-continue-btn flex-fill" disabled>
                             <i class="fa-brands fa-google me-2"></i> Continue
                         </button>
                     </div>
@@ -184,7 +149,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 
 @endsection
 
@@ -192,15 +157,4 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var shouldOpenGoogleModal = @json($errors->has('role') || $errors->has('address') || $errors->has('city') || $errors->has('pincode') || $errors->has('date_of_birth'));
-        var modalElement = document.getElementById('googleProfileModal');
-
-        if (shouldOpenGoogleModal && modalElement && window.bootstrap) {
-            window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
-        }
-    });
-</script>
 @endpush

@@ -291,23 +291,19 @@ class LoginController extends Controller
     public function googleLogin(Request $request): RedirectResponse
     {
         $request->session()->put('google_auth.intent', 'login');
-        $request->session()->forget('google_auth.profile');
+        $request->session()->forget('google_auth.role');
 
         return Socialite::driver('google')->redirect();
     }
 
     public function googleRegister(Request $request): RedirectResponse
     {
-        $data = $request->validate([
-            'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
-            'address' => ['required', 'string', 'max:1000'],
-            'city' => ['required', 'string', 'max:255'],
-            'pincode' => ['required', 'string', 'max:10'],
-            'date_of_birth' => ['required', 'date', 'before:today'],
-        ]);
+        // $data = $request->validate([
+        //     'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
+        // ]);
 
         $request->session()->put('google_auth.intent', 'register');
-        $request->session()->put('google_auth.profile', $data);
+        $request->session()->forget('google_auth.role');
 
         return Socialite::driver('google')->redirect();
     }
@@ -323,8 +319,7 @@ class LoginController extends Controller
         }
 
         $intent = (string) $request->session()->pull('google_auth.intent', 'login');
-        $profileFromRegisterFlow = $request->session()->pull('google_auth.profile', []);
-        $roleFromRegisterFlow = $profileFromRegisterFlow['role'] ?? null;
+        $roleFromRegisterFlow = $request->session()->pull('google_auth.role');
         $email = strtolower((string) $googleUser->getEmail());
 
         if ($email === '') {
@@ -350,10 +345,6 @@ class LoginController extends Controller
                 'full_name' => $displayName,
                 'email' => $email,
                 'role' => $role,
-                'address' => $profileFromRegisterFlow['address'] ?? null,
-                'city' => $profileFromRegisterFlow['city'] ?? null,
-                'pincode' => $profileFromRegisterFlow['pincode'] ?? null,
-                'date_of_birth' => $profileFromRegisterFlow['date_of_birth'] ?? null,
                 'password' => Hash::make(str()->random(40)),
                 'email_verified_at' => now(),
             ]);
