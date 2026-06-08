@@ -25,12 +25,16 @@ class Offer extends Model
         'location_lat',
         'location_lng',
         'status',
+        'approval_status',
+        'approval_reviewed_at',
+        'approval_reviewed_by',
     ];
 
     protected $casts = [
         'valid_until' => 'date',
         'location_lat' => 'float',
         'location_lng' => 'float',
+        'approval_reviewed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
