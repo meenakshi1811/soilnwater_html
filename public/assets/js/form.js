@@ -404,7 +404,9 @@
                 fallbackErrorMessage: 'Unable to register right now. Please try again.',
                 onSuccess: function (response) {
                     FormHelper.showAlert($('#registerAlert'), 'success', response.message || 'Registration successful. Redirecting...');
-                    window.location.href = response.redirect || '/verification/contact';
+                    setTimeout(function () {
+                        window.location.href = response.redirect || '/login';
+                    }, 1800);
                 }
             });
         },
