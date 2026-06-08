@@ -367,19 +367,33 @@ class LoginController extends Controller
     public function googleLogin(Request $request): RedirectResponse
     {
         $request->session()->put('google_auth.intent', 'login');
-        $request->session()->forget('google_auth.role');
+        $request->session()->forget(['google_auth.role', 'google_auth.registration']);
 
         return Socialite::driver('google')->redirect();
     }
 
     public function googleRegister(Request $request): RedirectResponse
     {
-        // $data = $request->validate([
-        //     'role' => ['required', 'in:user,vendor,builder,developer,consultant'],
-        // ]);
+        $data = $request->validate([
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider'],
+            'address' => ['required', 'string', 'max:500'],
+            'city' => ['required', 'string', 'max:120'],
+            'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
+            'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+        ], [
+            'role.required' => 'Please select a role before continuing with Google.',
+            'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
+            'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
+        ]);
 
         $request->session()->put('google_auth.intent', 'register');
-        $request->session()->forget('google_auth.role');
+        $request->session()->put('google_auth.role', $data['role']);
+        $request->session()->put('google_auth.registration', [
+            'address' => $data['address'],
+            'city' => $data['city'],
+            'pincode' => $data['pincode'],
+            'date_of_birth' => $data['date_of_birth'],
+        ]);
 
         return Socialite::driver('google')->redirect();
     }
@@ -398,6 +412,7 @@ class LoginController extends Controller
 
         $intent = (string) $request->session()->pull('google_auth.intent', 'login');
         $roleFromRegisterFlow = $request->session()->pull('google_auth.role');
+        $registrationFromRegisterFlow = $request->session()->pull('google_auth.registration', []);
         $email = strtolower((string) $googleUser->getEmail());
 
         if ($email === '') {
@@ -408,10 +423,20 @@ class LoginController extends Controller
 
         $user = User::where('email', $email)->first();
 
-        if ($intent === 'register' && ! $user && ! in_array($roleFromRegisterFlow, ['user', 'vendor', 'builder', 'developer', 'consultant', 'service_provider'], true)) {
-            return redirect()->route('register')->withErrors([
-                'role' => 'Please select a role before continuing with Google.',
-            ]);
+        if ($intent === 'register' && ! $user) {
+            $missingRegistrationDetails = ! is_array($registrationFromRegisterFlow)
+                || ! isset(
+                    $registrationFromRegisterFlow['address'],
+                    $registrationFromRegisterFlow['city'],
+                    $registrationFromRegisterFlow['pincode'],
+                    $registrationFromRegisterFlow['date_of_birth']
+                );
+
+            if (! in_array($roleFromRegisterFlow, ['user', 'vendor', 'builder', 'developer', 'consultant', 'service_provider'], true) || $missingRegistrationDetails) {
+                return redirect()->route('register')->withErrors([
+                    'role' => 'Please complete the Google registration popup before continuing.',
+                ]);
+            }
         }
 
         $createdUser = false;
@@ -419,11 +444,17 @@ class LoginController extends Controller
             $displayName = trim((string) ($googleUser->getName() ?: 'Google User'));
             $role = $intent === 'register' ? $roleFromRegisterFlow : 'user';
 
+            $googleRegistrationDetails = is_array($registrationFromRegisterFlow) ? $registrationFromRegisterFlow : [];
+
             $user = User::create([
                 'name' => $displayName,
                 'full_name' => $displayName,
                 'email' => $email,
+                'address' => $googleRegistrationDetails['address'] ?? null,
+                'city' => $googleRegistrationDetails['city'] ?? null,
+                'pincode' => $googleRegistrationDetails['pincode'] ?? null,
                 'role' => $role,
+                'date_of_birth' => $googleRegistrationDetails['date_of_birth'] ?? null,
                 'password' => Hash::make(str()->random(40)),
                 'email_verified_at' => now(),
             ]);
