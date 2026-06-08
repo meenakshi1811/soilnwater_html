@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\PostOfferController;
 use App\Http\Controllers\User\UserAdController;
 use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
+use App\Http\Controllers\Admin\ApprovalCenterController;
 use App\Http\Controllers\Admin\AdSizeController;
 use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
 use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
@@ -248,6 +249,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [AdminController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
+
+        Route::prefix('approvals')->name('approvals.')->group(function () {
+            Route::get('/', [ApprovalCenterController::class, 'index'])->name('index');
+            Route::post('/{type}/{id}/approve', [ApprovalCenterController::class, 'approve'])->name('approve');
+            Route::post('/{type}/{id}/decline', [ApprovalCenterController::class, 'decline'])->name('decline');
+        });
 
         Route::prefix('offers')->name('offers.')->group(function () {
             Route::prefix('reports')->name('reports.')->group(function () {

@@ -133,7 +133,13 @@ class PostOfferController extends Controller
 
         $offer = Offer::create($validated);
 
-        if (! $this->isStaff($request->user())) {
+        if ($this->isStaff($request->user())) {
+            $offer->update([
+                'approval_status' => $offer->status === 'active' ? 'approved' : 'pending',
+                'approval_reviewed_at' => $offer->status === 'active' ? now() : null,
+                'approval_reviewed_by' => $offer->status === 'active' ? $request->user()->id : null,
+            ]);
+        } else {
             PortalNotificationService::notifyAdminsOfApprovalRequest('Offer', $offer->title, route('offers.index'));
         }
 
@@ -324,8 +330,13 @@ class PostOfferController extends Controller
         }
 
         if (! $canWrite) {
+            $reviewedStatus = $validated['status'] ?? $offer->status;
+
             $offer->update([
-                'status' => $validated['status'] ?? $offer->status,
+                'status' => $reviewedStatus,
+                'approval_status' => $reviewedStatus === 'active' ? 'approved' : 'declined',
+                'approval_reviewed_at' => now(),
+                'approval_reviewed_by' => $user->id,
             ]);
 
             if (isset($validated['status'])) {
@@ -366,6 +377,13 @@ class PostOfferController extends Controller
 
         if ($canWrite && ! $this->isStaff($user)) {
             $validated['status'] = 'inactive';
+            $validated['approval_status'] = 'pending';
+            $validated['approval_reviewed_at'] = null;
+            $validated['approval_reviewed_by'] = null;
+        } elseif (isset($validated['status'])) {
+            $validated['approval_status'] = $validated['status'] === 'active' ? 'approved' : 'declined';
+            $validated['approval_reviewed_at'] = now();
+            $validated['approval_reviewed_by'] = $user->id;
         }
 
         unset($validated['accept_terms']);
@@ -395,6 +413,9 @@ class PostOfferController extends Controller
 
         $offer->update([
             'status' => $validated['status'],
+            'approval_status' => $validated['status'] === 'active' ? 'approved' : 'declined',
+            'approval_reviewed_at' => now(),
+            'approval_reviewed_by' => $user->id,
         ]);
 
         PortalNotificationService::notifyOwnerOfReview(
