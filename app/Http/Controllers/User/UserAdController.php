@@ -533,13 +533,16 @@ class UserAdController extends Controller
             ->make(true);
     }
 
+    private function canManageAd(Request $request, UserAd $ad): bool
+    {
+        $user = $request->user();
 
-
-
+        return (bool) $user && ($ad->user_id === $user->id || $user->isStaff());
+    }
 
     public function edit(Request $request, UserAd $ad): View
     {
-        abort_unless($ad->user_id === $request->user()->id, 404);
+        abort_unless($this->canManageAd($request, $ad), 404);
 
         $categories = Category::query()
             ->whereNull('parent_id')
@@ -570,7 +573,7 @@ class UserAdController extends Controller
 
     public function update(Request $request, UserAd $ad): RedirectResponse|JsonResponse
     {
-        abort_unless($ad->user_id === $request->user()->id, 404);
+        abort_unless($this->canManageAd($request, $ad), 404);
 
         $validated = $request->validate([
             'title' => 'required|string|max:140',
@@ -588,7 +591,7 @@ class UserAdController extends Controller
             'is_sponsored' => 'nullable|in:0,1',
             'generated_image_data' => 'nullable|string|starts_with:data:image/png;base64,',
             'accept_terms' => 'accepted',
-]);
+        ]);
 
         $this->validateSquareValidUntil($request, $validated['valid_until'], $ad->size_type);
 
@@ -628,9 +631,10 @@ class UserAdController extends Controller
 
         return redirect()->route('ads.index')->with('success', 'Ad updated and submitted for admin approval.');
     }
+
     public function destroy(Request $request, UserAd $ad): RedirectResponse|JsonResponse
     {
-        abort_unless($ad->user_id === $request->user()->id, 404);
+        abort_unless($this->canManageAd($request, $ad), 404);
 
         if ($ad->final_image) {
             File::delete(public_path($ad->final_image));
