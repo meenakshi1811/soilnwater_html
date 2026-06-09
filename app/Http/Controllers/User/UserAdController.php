@@ -771,13 +771,20 @@ class UserAdController extends Controller
             ->unique()
             ->values();
 
+        $categoryQuery = Category::query()
+            ->whereNull('parent_id')
+            ->orderBy('name');
+
         if ($selectedModules->isEmpty()) {
-            return response()->json([]);
+            return response()->json(
+                $categoryQuery
+                    ->get(['id', 'name'])
+                    ->map(fn (Category $category) => ['id' => $category->id, 'name' => $category->name])
+                    ->values()
+            );
         }
 
-        $categories = Category::query()
-            ->whereNull('parent_id')
-            ->orderBy('name')
+        $categories = $categoryQuery
             ->get(['id', 'name', 'modules'])
             ->filter(function (Category $category) use ($selectedModules, $normalize): bool {
                 $categoryModules = collect($category->modules ?? [])

@@ -48,16 +48,30 @@
                     <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description', $ad->short_description ?? '') }}</textarea>
                 </div>
                 <div class="col-md-6">
-                    <label for="moduleSelect" class="form-label fw-semibold">Select Module(s)</label>
-                    <select name="selected_modules[]" id="moduleSelect" class="form-select" multiple data-module-prices='@json($size["module_prices"] ?? [])'>
+                    <label class="form-label fw-semibold">Select Module(s)</label>
+                    @php $selectedModulesForCheckboxes = old('selected_modules', $ad->selected_modules ?? []); @endphp
+                    <div id="moduleCheckboxGroup" class="row g-2" data-module-prices='@json($size["module_prices"] ?? [])'>
                         @foreach(($moduleOptions ?? []) as $moduleKey => $moduleName)
                             @php $modulePrice = $size['module_prices'][$moduleKey] ?? null; @endphp
-                            <option value="{{ $moduleKey }}" data-module-price="{{ $modulePrice !== null ? (float) $modulePrice : '' }}" {{ in_array($moduleKey, old('selected_modules', $ad->selected_modules ?? []), true) ? 'selected' : '' }}>
-                                {{ $moduleName }}{{ $modulePrice !== null && $modulePrice > 0 ? ' (₹' . number_format((float) $modulePrice, 2) . '/day)' : '' }}
-                            </option>
+                            <div class="col-sm-6">
+                                <div class="form-check border rounded px-3 py-2 h-100">
+                                    <input
+                                        class="form-check-input ms-0 me-2 js-module-checkbox"
+                                        type="checkbox"
+                                        name="selected_modules[]"
+                                        id="moduleCheckbox{{ $moduleKey }}"
+                                        value="{{ $moduleKey }}"
+                                        data-module-price="{{ $modulePrice !== null ? (float) $modulePrice : '' }}"
+                                        {{ in_array($moduleKey, $selectedModulesForCheckboxes, true) ? 'checked' : '' }}
+                                    >
+                                    <label class="form-check-label" for="moduleCheckbox{{ $moduleKey }}">
+                                        {{ $moduleName }}{{ $modulePrice !== null && $modulePrice > 0 ? ' (₹' . number_format((float) $modulePrice, 2) . '/day)' : '' }}
+                                    </label>
+                                </div>
+                            </div>
                         @endforeach
-                    </select>
-                    <div id="adModulePriceNote" class="form-text text-muted">Select one or more modules to include additional paid module charges.</div>
+                    </div>
+                    <div id="adModulePriceNote" class="form-text text-muted">Modules are optional. Leave all unchecked to show all categories, or check modules to filter categories.</div>
                 </div>
                 <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -67,7 +81,7 @@
                             ? (($ad->selected_category_ids ?? []) !== [] ? $ad->selected_category_ids : (($ad->category_id ?? null) ? [$ad->category_id] : []))
                             : []);
                     @endphp
-                    <select name="category_ids[]" id="categorySelect" class="form-select" {{ empty($selectedModules) ? 'disabled' : '' }} required multiple>
+                    <select name="category_ids[]" id="categorySelect" class="form-select" required multiple>
                         @foreach($categories as $category)
                             @php $categoryPrice = $size['category_prices'][$category->id] ?? null; @endphp
                             <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values(array_filter($category->modules ?? [], fn($module) => $module !== 'ads')))) }}" {{ in_array((string) $category->id, array_map('strval', $selectedCategoryIds), true) ? 'selected' : '' }}>{{ $category->name }}</option>
@@ -1305,18 +1319,6 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updateSubmitButtonState();
         }
 
-        function initModuleSelect2() {
-            if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2 || !moduleSelect) return;
-            const $moduleSelect = window.jQuery(moduleSelect);
-            if ($moduleSelect.data('select2')) {
-                $moduleSelect.select2('destroy');
-            }
-            $moduleSelect.select2({
-                width: '100%',
-                placeholder: 'Select module(s)',
-                closeOnSelect: false
-            });
-        }
         function initCategorySubcategorySelect2() {
             if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2) return;
             if (categorySelect) window.jQuery(categorySelect).select2({ width: '100%', placeholder: 'Select category(s)', closeOnSelect: false });
@@ -1330,7 +1332,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
 
         const categoryPriceNote = document.getElementById('adCategoryPriceNote');
         const adCategoryPremiumChip = document.getElementById('adCategoryPremiumChip');
-        const moduleSelect = document.getElementById('moduleSelect');
+        const moduleCheckboxes = Array.from(document.querySelectorAll('.js-module-checkbox[name="selected_modules[]"]'));
         const adModulePriceNote = document.getElementById('adModulePriceNote');
         const pricingCategoryPrice = document.getElementById('pricingCategoryPrice');
         const pricingModulePrice = document.getElementById('pricingModulePrice');
@@ -1362,21 +1364,52 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 .replace(/[^a-z0-9]+/g, '');
         }
 
+        function selectedModuleKeys() {
+            return moduleCheckboxes
+                .filter((checkbox) => checkbox.checked)
+                .map((checkbox) => normalizeModuleKey(checkbox.value))
+                .filter(Boolean);
+        }
+
+        function renderCategoryOptions(allowedIds, currentCategoryValues) {
+            const options = [];
+            allCategoryOptions.forEach((item) => {
+                if (!item.value) return;
+                if (allowedIds && !allowedIds.has(String(item.value))) return;
+                const isSelected = currentCategoryValues.includes(String(item.value));
+                options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
+            });
+
+            categorySelect.innerHTML = options.join('');
+            categorySelect.disabled = false;
+
+            const availableIds = Array.from(categorySelect.options).map((option) => String(option.value));
+            const nextSelected = currentCategoryValues.filter((id) => availableIds.includes(String(id)));
+            Array.from(categorySelect.options).forEach((option) => {
+                option.selected = nextSelected.includes(String(option.value));
+            });
+
+            syncSelect2State(categorySelect);
+
+            return nextSelected;
+        }
+
         async function filterCategoriesByModules() {
-            if (!categorySelect || !moduleSelect) return;
-            const selectedModules = Array.from(moduleSelect.selectedOptions || []).map((option) => normalizeModuleKey(option.value)).filter(Boolean);
+            if (!categorySelect) return;
+            const selectedModules = selectedModuleKeys();
             console.log('[AdsCustomize] filterCategoriesByModules selectedModules:', selectedModules);
             const currentCategoryValues = Array.from(categorySelect.selectedOptions || []).map((opt) => opt.value);
 
             if (selectedModules.length === 0) {
-                categorySelect.innerHTML = '<option value="">— Select module(s) first —</option>';
-                categorySelect.disabled = true;
-                categorySelect.value = '';
-                syncSelect2State(categorySelect);
-                if (subcategorySelect) {
-                    subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
-                    subcategorySelect.disabled = true;
-                    syncSelect2State(subcategorySelect);
+                const nextSelected = renderCategoryOptions(null, currentCategoryValues);
+                if (nextSelected.length === 0) {
+                    if (subcategorySelect) {
+                        subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
+                        subcategorySelect.disabled = true;
+                        syncSelect2State(subcategorySelect);
+                    }
+                } else {
+                    await loadSubcategories(nextSelected);
                 }
                 updateCategoryPriceNote();
                 updateSubmitButtonState();
@@ -1394,23 +1427,8 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 const data = await response.json();
                 console.log('[AdsCustomize] categories response status:', response.status, 'payload:', data);
                 const allowedIds = new Set((Array.isArray(data) ? data : []).map((item) => String(item.id)));
-                const options = [];
+                const nextSelected = renderCategoryOptions(allowedIds, currentCategoryValues);
 
-                allCategoryOptions.forEach((item) => {
-                    if (!item.value || !allowedIds.has(String(item.value))) return;
-                    const isSelected = currentCategoryValues.includes(String(item.value));
-                    options.push(`<option value="${item.value}" data-ad-price="${item.price}" data-modules="${item.modules}" ${isSelected ? 'selected' : ''}>${item.label}</option>`);
-                });
-
-                categorySelect.innerHTML = options.join('');
-                categorySelect.disabled = false;
-                syncSelect2State(categorySelect);
-
-                const availableIds = Array.from(categorySelect.options).map((option) => String(option.value));
-                const nextSelected = currentCategoryValues.filter((id) => availableIds.includes(String(id)));
-                Array.from(categorySelect.options).forEach((option) => {
-                    option.selected = nextSelected.includes(String(option.value));
-                });
                 if (nextSelected.length === 0) {
                     if (subcategorySelect) {
                         subcategorySelect.innerHTML = '<option value="">— Select a category first —</option>';
@@ -1465,9 +1483,9 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         }
 
         function selectedModulePricePerDay() {
-            if (!moduleSelect) return 0;
-            return Array.from(moduleSelect.selectedOptions || []).reduce((total, option) => {
-                const amount = Number(option.dataset.modulePrice || 0);
+            return moduleCheckboxes.reduce((total, checkbox) => {
+                if (!checkbox.checked) return total;
+                const amount = Number(checkbox.dataset.modulePrice || 0);
                 return total + (Number.isFinite(amount) ? amount : 0);
             }, 0);
         }
@@ -1531,7 +1549,6 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updatePricingDetails(selectedOption ? selectedOption.dataset.adPrice : 0, modulePrice);
         }
 
-        initModuleSelect2();
         initCategorySubcategorySelect2();
 
         categorySelect?.addEventListener('change', function () {
@@ -1546,19 +1563,11 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             updateModulePriceNote();
         }
 
-        moduleSelect?.addEventListener('change', function () {
-            handleModuleSelectionChange('native-change');
+        moduleCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener('change', function () {
+                handleModuleSelectionChange('checkbox-change');
+            });
         });
-
-        if (window.jQuery && moduleSelect) {
-            const $moduleSelect = window.jQuery(moduleSelect);
-            $moduleSelect.on('change', function () {
-                handleModuleSelectionChange('jquery-change');
-            });
-            $moduleSelect.on('select2:select select2:unselect select2:clear', function (event) {
-                handleModuleSelectionChange(`select2-${event.type}`);
-            });
-        }
         if (window.jQuery && categorySelect) {
             const $categorySelect = window.jQuery(categorySelect);
             $categorySelect.on('select2:select select2:unselect change', function () {
