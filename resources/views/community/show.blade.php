@@ -19,14 +19,14 @@
     <div class="about-inner">
         <section class="sec">
             @if($post->featured_image_path)
-                <img src="{{ \Illuminate\Support\Facades\Storage::url($post->featured_image_path) }}" alt="{{ $post->title }}" class="img-fluid rounded mb-4" style="max-height:420px;width:100%;object-fit:cover;">
+                <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="img-fluid rounded mb-4" style="max-height:420px;width:100%;object-fit:cover;">
             @endif
 
             @if($post->excerpt)
                 <p class="lead">{{ $post->excerpt }}</p>
             @endif
 
-            <div class="community-post-body" style="white-space: pre-line; line-height:1.8;">{{ $post->body }}</div>
+            <div class="community-post-body" style="line-height:1.8;">{!! $post->body !!}</div>
 
             @if(!empty($post->meta))
                 <div class="about-box mt-4">

@@ -36,7 +36,7 @@
                     <div class="col-md-6 col-lg-4">
                         <article class="about-box h-100">
                             @if($post->featured_image_path)
-                                <img src="{{ \Illuminate\Support\Facades\Storage::url($post->featured_image_path) }}" alt="{{ $post->title }}" class="img-fluid rounded mb-3" style="height:180px;width:100%;object-fit:cover;">
+                                <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="img-fluid rounded mb-3" style="height:180px;width:100%;object-fit:cover;">
                             @endif
                             <div class="d-flex flex-wrap gap-2 mb-2">
                                 <span class="badge bg-success">{{ $post->typeLabel() }}</span>
