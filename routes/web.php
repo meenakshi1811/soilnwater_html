@@ -78,6 +78,7 @@ Route::post('/consultant/{consultant:slug}/report', [ProfileReportController::cl
 Route::post('/service/{service_provider:slug}/report', [ProfileReportController::class, 'serviceProvider'])->middleware(['auth', 'verified'])->name('service_provider.report');
 Route::get('/search', [FrontendSearchController::class, 'index'])->name('frontend.search');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
+Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-policy');
 
 Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
 Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');

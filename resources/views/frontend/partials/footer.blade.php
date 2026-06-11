@@ -65,6 +65,7 @@
       <div class="footer-bottom-links">
         <a href="{{ route('frontend.about-us') }}">About Us</a>
         <a href="{{ route('frontend.privacy-policy') }}">Privacy Policy</a>
+        <a href="{{ route('frontend.refund-policy') }}">Refund Policy</a>
         <a href="{{ route('frontend.terms.show', ['moduleKey' => 'main']) }}">Terms of Service</a>
         <a href="{{ route('frontend.cookie-policy') }}">Cookie Policy</a>
         <a href="#">Help Center</a>
