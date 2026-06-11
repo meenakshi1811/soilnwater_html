@@ -5,7 +5,7 @@
     <section class="about-banner">
         @php($authorName = isset($activeAuthor) ? ($activeAuthor->name ?? $activeAuthor->full_name ?? 'Community author') : null)
         <h1>{{ $authorName ? $authorName . "'s Community Posts" : 'Community' }}</h1>
-        <p>{{ $authorName ? 'Browse all articles, reports, stories, and other community posts shared by '.$authorName.'.' : 'Read and share articles, reports, news, stories, poetry, awareness posts, local voices, discussions, and more.' }}</p>
+        <p>{{ $authorName ? 'Posts by '.$authorName.'.' : 'Read and share community posts.' }}</p>
         @auth
             <a href="{{ route('community.posts.create') }}" class="btn btn-light mt-3"><i class="fa-solid fa-plus me-2"></i>Create a Post</a>
         @else

@@ -27,24 +27,24 @@
     @endif
 
     @php($authorUniqueName = old('author_slug', auth()->user()->authorUniqueName()))
-    <div class="chart-card mb-4">
-        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+    <div class="chart-card mb-3 p-3">
+        <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
             <div>
-                <h5 class="mb-1">Author profile URL</h5>
-                <p class="text-muted mb-2">Edit your unique author name. This public page shows all community posts you publish.</p>
+                <h6 class="mb-1">Author URL</h6>
+                <p class="text-muted small mb-1">Public page for your posts.</p>
                 <a href="{{ route('community.authors.show', auth()->user()->authorUniqueName()) }}" target="_blank" rel="noopener" class="small">
-                    {{ route('community.authors.show', auth()->user()->authorUniqueName()) }}
+                    /auther/{{ auth()->user()->authorUniqueName() }}
                 </a>
             </div>
-            <form method="POST" action="{{ route('community.posts.author-url.update') }}" class="d-flex gap-2 flex-wrap align-items-start">
+            <form method="POST" action="{{ route('community.posts.author-url.update') }}" class="d-flex gap-2 flex-wrap align-items-center">
                 @csrf
                 @method('PATCH')
                 <div>
                     <label class="form-label visually-hidden" for="authorSlug">Unique author name</label>
-                    <input type="text" id="authorSlug" name="author_slug" class="form-control @error('author_slug') is-invalid @enderror" value="{{ $authorUniqueName }}" maxlength="80" pattern="[a-z0-9]+(-[a-z0-9]+)*" required>
-                    <small class="text-muted">Example: john-doe</small>
+                    <input type="text" id="authorSlug" name="author_slug" class="form-control form-control-sm @error('author_slug') is-invalid @enderror" value="{{ $authorUniqueName }}" maxlength="80" pattern="[a-z0-9]+(-[a-z0-9]+)*" required>
+                    <small class="text-muted">e.g. john-doe</small>
                 </div>
-                <button type="submit" class="btn btn-outline-success">Save URL</button>
+                <button type="submit" class="btn btn-sm btn-outline-success">Save</button>
             </form>
         </div>
     </div>
