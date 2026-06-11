@@ -63,6 +63,7 @@
                 <h4>Community engagement</h4>
                 @php
                     $reactionCounts = $post->reactions->groupBy('reaction')->map->count();
+                    $userReactions = auth()->check() ? $post->reactions->where('user_id', auth()->id())->pluck('reaction')->all() : [];
                     $reactionOptions = [
                         'Helpful' => 'fa-solid fa-hand-holding-heart',
                         'Inspiring' => 'fa-solid fa-lightbulb',
@@ -76,7 +77,7 @@
                             <form method="POST" action="{{ route('community.react', $post) }}" class="js-community-reaction-form">
                                 @csrf
                                 <input type="hidden" name="reaction" value="{{ $reaction }}">
-                                <button type="submit" class="btn btn-outline-success btn-sm" data-reaction-button="{{ $reaction }}">
+                                <button type="submit" class="btn {{ in_array($reaction, $userReactions, true) ? 'btn-success' : 'btn-outline-success' }} btn-sm" data-reaction-button="{{ $reaction }}">
                                     <i class="{{ $icon }} me-1" aria-hidden="true"></i><span class="reaction-label">{{ $reaction }}</span> <span class="reaction-count">{{ $reactionCounts[$reaction] ?? 0 }}</span>
                                 </button>
                             </form>
@@ -132,10 +133,22 @@
                     throw new Error(payload.message || 'Unable to add reaction.');
                 }
 
+                document.querySelectorAll('[data-reaction-button] .reaction-count').forEach((countEl) => {
+                    countEl.textContent = '0';
+                });
+
                 Object.entries(payload.counts || {}).forEach(([reaction, count]) => {
                     const countEl = document.querySelector(`[data-reaction-button="${reaction}"] .reaction-count`);
                     if (countEl) countEl.textContent = count;
                 });
+
+                if (payload.reaction) {
+                    const reactionButton = document.querySelector(`[data-reaction-button="${payload.reaction}"]`);
+                    if (reactionButton) {
+                        reactionButton.classList.toggle('btn-success', Boolean(payload.active));
+                        reactionButton.classList.toggle('btn-outline-success', !payload.active);
+                    }
+                }
             } catch (error) {
                 alert(error.message || 'Unable to add reaction.');
                 button.innerHTML = originalHtml;

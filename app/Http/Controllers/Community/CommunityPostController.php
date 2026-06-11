@@ -79,15 +79,31 @@ class CommunityPostController extends Controller
             'reaction' => ['required', Rule::in(['Helpful', 'Inspiring', 'Excellent', 'Informative'])],
         ]);
 
-        CommunityPostReaction::query()->firstOrCreate([
+        $reaction = CommunityPostReaction::query()->where([
             'community_post_id' => $post->id,
             'user_id' => $request->user()->id,
             'reaction' => $data['reaction'],
-        ]);
+        ])->first();
+
+        if ($reaction) {
+            $reaction->delete();
+            $message = 'Reaction removed.';
+            $active = false;
+        } else {
+            CommunityPostReaction::query()->create([
+                'community_post_id' => $post->id,
+                'user_id' => $request->user()->id,
+                'reaction' => $data['reaction'],
+            ]);
+            $message = 'Reaction added.';
+            $active = true;
+        }
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Reaction added.',
+                'message' => $message,
+                'reaction' => $data['reaction'],
+                'active' => $active,
                 'counts' => $post->reactions()
                     ->selectRaw('reaction, count(*) as total')
                     ->groupBy('reaction')
@@ -95,7 +111,7 @@ class CommunityPostController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Reaction added.');
+        return back()->with('success', $message);
     }
 
     public function followAuthor(Request $request, User $author): RedirectResponse
