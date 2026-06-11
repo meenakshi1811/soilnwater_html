@@ -20,7 +20,7 @@
             </div>
             <div class="d-flex flex-wrap gap-2 mb-4">
                 @php($sectionRoute = isset($activeAuthor) ? 'community.authors.show' : 'community.index')
-                @php($sectionRouteParams = isset($activeAuthor) ? ['author' => $activeAuthor] : [])
+                @php($sectionRouteParams = isset($activeAuthor) ? ['uniqueName' => $activeAuthor->authorUniqueName()] : [])
                 <a href="{{ route($sectionRoute, $sectionRouteParams) }}" class="btn btn-sm {{ $activeType ? 'btn-outline-success' : 'btn-success' }}">All</a>
                 @foreach($types as $key => $type)
                     <a href="{{ route($sectionRoute, array_merge($sectionRouteParams, ['type' => $key])) }}" class="btn btn-sm {{ $activeType === $key ? 'btn-success' : 'btn-outline-success' }}">{{ $type['label'] }}</a>
@@ -50,7 +50,7 @@
                             <div class="small text-muted">
                                 By
                                 @if($post->user)
-                                    <a href="{{ route('community.authors.show', $post->user) }}" class="text-muted fw-semibold">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
+                                    <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="text-muted fw-semibold">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
                                 @else
                                     Community author
                                 @endif

@@ -11,7 +11,7 @@
         <p>
             By
             @if($post->user)
-                <a href="{{ route('community.authors.show', $post->user) }}" class="text-white text-decoration-underline">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
+                <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="text-white text-decoration-underline">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
             @else
                 Community author
             @endif
@@ -95,7 +95,7 @@
                     <li>
                         Author profile:
                         @if($post->user)
-                            <a href="{{ route('community.authors.show', $post->user) }}">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
+                            <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
                         @else
                             Community author
                         @endif

@@ -36,8 +36,10 @@ class CommunityPostController extends Controller
     }
 
 
-    public function author(Request $request, User $author): View
+    public function author(Request $request, string $uniqueName): View
     {
+        $author = $this->resolveAuthor($uniqueName);
+
         $posts = CommunityPost::query()
             ->with('user')
             ->published()
@@ -108,6 +110,27 @@ class CommunityPostController extends Controller
         return view('backend.community-posts.index', [
             'posts' => $posts,
         ]);
+    }
+
+
+    public function updateAuthorUrl(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $data = $request->validate([
+            'author_slug' => [
+                'required',
+                'string',
+                'max:80',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('users', 'author_slug')->ignore($user->id),
+            ],
+        ], [
+            'author_slug.regex' => 'Use lowercase letters, numbers, and single hyphens only.',
+        ]);
+
+        $user->forceFill(['author_slug' => Str::slug($data['author_slug'])])->save();
+
+        return back()->with('success', 'Author profile URL updated successfully.');
     }
 
     public function create(): View
@@ -315,6 +338,25 @@ class CommunityPostController extends Controller
         }
 
         Storage::disk('public')->delete($path);
+    }
+
+
+    private function resolveAuthor(string $uniqueName): User
+    {
+        $author = User::query()->where('author_slug', $uniqueName)->first();
+
+        if ($author) {
+            return $author;
+        }
+
+        if (preg_match('/-(\d+)$/', $uniqueName, $matches)) {
+            $author = User::query()->find((int) $matches[1]);
+            if ($author && $author->authorUniqueName() === $uniqueName) {
+                return $author;
+            }
+        }
+
+        abort(404);
     }
 
     private function authorizeOwner(Request $request, CommunityPost $post): void
