@@ -81,6 +81,7 @@ Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-policy');
 
 Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
+Route::get('/community/authors/{author}', [CommunityPostController::class, 'author'])->name('community.authors.show');
 Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
 
 Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
