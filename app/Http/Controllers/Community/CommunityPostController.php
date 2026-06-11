@@ -71,7 +71,7 @@ class CommunityPostController extends Controller
     }
 
 
-    public function react(Request $request, CommunityPost $post): RedirectResponse
+    public function react(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
     {
         abort_unless($post->status === CommunityPost::STATUS_PUBLISHED, 404);
 
@@ -84,6 +84,16 @@ class CommunityPostController extends Controller
             'user_id' => $request->user()->id,
             'reaction' => $data['reaction'],
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Reaction added.',
+                'counts' => $post->reactions()
+                    ->selectRaw('reaction, count(*) as total')
+                    ->groupBy('reaction')
+                    ->pluck('total', 'reaction'),
+            ]);
+        }
 
         return back()->with('success', 'Reaction added.');
     }

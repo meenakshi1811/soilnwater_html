@@ -71,13 +71,13 @@
                     ];
                 @endphp
                 @auth
-                    <div class="d-flex flex-wrap gap-2 mb-3">
+                    <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
                         @foreach($reactionOptions as $reaction => $icon)
-                            <form method="POST" action="{{ route('community.react', $post) }}">
+                            <form method="POST" action="{{ route('community.react', $post) }}" class="js-community-reaction-form">
                                 @csrf
                                 <input type="hidden" name="reaction" value="{{ $reaction }}">
-                                <button type="submit" class="btn btn-outline-success btn-sm">
-                                    <i class="{{ $icon }} me-1" aria-hidden="true"></i>{{ $reaction }} {{ $reactionCounts[$reaction] ?? 0 }}
+                                <button type="submit" class="btn btn-outline-success btn-sm" data-reaction-button="{{ $reaction }}">
+                                    <i class="{{ $icon }} me-1" aria-hidden="true"></i><span class="reaction-label">{{ $reaction }}</span> <span class="reaction-count">{{ $reactionCounts[$reaction] ?? 0 }}</span>
                                 </button>
                             </form>
                         @endforeach
@@ -106,3 +106,43 @@
     </div>
 </div>
 @endsection
+
+
+@push('scripts')
+<script>
+    document.querySelectorAll('.js-community-reaction-form').forEach((form) => {
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const button = form.querySelector('[data-reaction-button]');
+            const originalHtml = button.innerHTML;
+            button.disabled = true;
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: new FormData(form),
+                });
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(payload.message || 'Unable to add reaction.');
+                }
+
+                Object.entries(payload.counts || {}).forEach(([reaction, count]) => {
+                    const countEl = document.querySelector(`[data-reaction-button="${reaction}"] .reaction-count`);
+                    if (countEl) countEl.textContent = count;
+                });
+            } catch (error) {
+                alert(error.message || 'Unable to add reaction.');
+                button.innerHTML = originalHtml;
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
+</script>
+@endpush
