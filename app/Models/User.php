@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -24,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
+        'author_slug',
         'full_name',
         'email',
         'phone_number',
@@ -65,6 +67,22 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+
+    public function authorDisplayName(): string
+    {
+        return $this->name ?? $this->full_name ?? 'Community author';
+    }
+
+    public function authorUniqueName(): string
+    {
+        if (filled($this->author_slug)) {
+            return $this->author_slug;
+        }
+
+        $base = Str::slug($this->authorDisplayName()) ?: 'author';
+
+        return $base.'-'.$this->id;
+    }
 
     public function communityPosts(): HasMany
     {
