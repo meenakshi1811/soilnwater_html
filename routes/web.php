@@ -81,6 +81,7 @@ Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-policy');
 
 Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
+Route::get('/auther/{uniqueName}', [CommunityPostController::class, 'author'])->name('community.authors.show');
 Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
 
 Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
@@ -238,6 +239,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('dashboard/community-posts')->name('community.posts.')->group(function () {
         Route::get('/', [CommunityPostController::class, 'myPosts'])->name('index');
         Route::get('/create', [CommunityPostController::class, 'create'])->name('create');
+        Route::patch('/author-url', [CommunityPostController::class, 'updateAuthorUrl'])->name('author-url.update');
         Route::post('/', [CommunityPostController::class, 'store'])->name('store');
         Route::get('/{post:slug}', [CommunityPostController::class, 'show'])->name('show');
         Route::get('/{post:slug}/edit', [CommunityPostController::class, 'edit'])->name('edit');

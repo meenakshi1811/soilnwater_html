@@ -16,6 +16,39 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
+    @if($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    @php($authorUniqueName = old('author_slug', auth()->user()->authorUniqueName()))
+    <div class="chart-card mb-4">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+            <div>
+                <h5 class="mb-1">Author profile URL</h5>
+                <p class="text-muted mb-2">Edit your unique author name. This public page shows all community posts you publish.</p>
+                <a href="{{ route('community.authors.show', auth()->user()->authorUniqueName()) }}" target="_blank" rel="noopener" class="small">
+                    {{ route('community.authors.show', auth()->user()->authorUniqueName()) }}
+                </a>
+            </div>
+            <form method="POST" action="{{ route('community.posts.author-url.update') }}" class="d-flex gap-2 flex-wrap align-items-start">
+                @csrf
+                @method('PATCH')
+                <div>
+                    <label class="form-label visually-hidden" for="authorSlug">Unique author name</label>
+                    <input type="text" id="authorSlug" name="author_slug" class="form-control @error('author_slug') is-invalid @enderror" value="{{ $authorUniqueName }}" maxlength="80" pattern="[a-z0-9]+(-[a-z0-9]+)*" required>
+                    <small class="text-muted">Example: john-doe</small>
+                </div>
+                <button type="submit" class="btn btn-outline-success">Save URL</button>
+            </form>
+        </div>
+    </div>
+
     <div class="chart-card">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h5 class="mb-0">Post listing</h5>

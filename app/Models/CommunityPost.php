@@ -68,6 +68,23 @@ class CommunityPost extends Model
         return route('community.show', $this);
     }
 
+    public function featuredImageUrl(): ?string
+    {
+        if (! $this->featured_image_path) {
+            return null;
+        }
+
+        if (Str::startsWith($this->featured_image_path, ['http://', 'https://'])) {
+            return $this->featured_image_path;
+        }
+
+        if (Str::startsWith($this->featured_image_path, 'uploads/')) {
+            return asset($this->featured_image_path);
+        }
+
+        return asset('storage/'.$this->featured_image_path);
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
