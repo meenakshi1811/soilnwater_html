@@ -8,7 +8,15 @@
             <span class="badge bg-light text-dark">{{ $post->category }}</span>
         </div>
         <h1>{{ $post->title }}</h1>
-        <p>By {{ $post->user?->name ?? $post->user?->full_name ?? 'Community author' }} · {{ $post->published_at?->format('M d, Y') ?? 'Draft' }}</p>
+        <p>
+            By
+            @if($post->user)
+                <a href="{{ route('community.authors.show', $post->user) }}" class="text-white text-decoration-underline">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
+            @else
+                Community author
+            @endif
+            · {{ $post->published_at?->format('M d, Y') ?? 'Draft' }}
+        </p>
         @auth
             @if(auth()->id() === $post->user_id || auth()->user()->isAdmin())
                 <a href="{{ route('community.posts.edit', $post) }}" class="btn btn-light mt-2"><i class="fa-solid fa-pen me-2"></i>Edit Post</a>
@@ -84,7 +92,14 @@
                     <p><a href="{{ route('login') }}">Login</a> to react or follow this author.</p>
                 @endauth
                 <ul class="about-list mb-0">
-                    <li>Author profile: {{ $post->user?->name ?? $post->user?->full_name ?? 'Community author' }}</li>
+                    <li>
+                        Author profile:
+                        @if($post->user)
+                            <a href="{{ route('community.authors.show', $post->user) }}">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
+                        @else
+                            Community author
+                        @endif
+                    </li>
                 </ul>
             </div>
         </section>

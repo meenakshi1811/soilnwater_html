@@ -35,6 +35,27 @@ class CommunityPostController extends Controller
         ]);
     }
 
+
+    public function author(Request $request, User $author): View
+    {
+        $posts = CommunityPost::query()
+            ->with('user')
+            ->published()
+            ->where('user_id', $author->id)
+            ->when($request->filled('type'), fn ($query) => $query->where('content_type', $request->string('type')->toString()))
+            ->when($request->filled('category'), fn ($query) => $query->where('category', $request->string('category')->toString()))
+            ->latest('published_at')
+            ->paginate(12)
+            ->withQueryString();
+
+        return view('community.index', [
+            'posts' => $posts,
+            'types' => CommunityContentTaxonomy::types(),
+            'activeType' => $request->string('type')->toString(),
+            'activeAuthor' => $author,
+        ]);
+    }
+
     public function show(CommunityPost $post): View
     {
         abort_unless($post->status === CommunityPost::STATUS_PUBLISHED || auth()->id() === $post->user_id || auth()->user()?->isAdmin(), 404);
