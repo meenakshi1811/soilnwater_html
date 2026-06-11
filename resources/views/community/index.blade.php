@@ -1,5 +1,16 @@
 @extends('frontend.layouts.app')
 
+@push('styles')
+<style>
+    .community-post-card-excerpt {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="about-page">
     <section class="about-banner">
@@ -46,7 +57,7 @@
                                 <span class="badge bg-light text-dark border">{{ $post->category }}</span>
                             </div>
                             <h4><a href="{{ route('community.show', $post) }}" class="text-decoration-none text-dark">{{ $post->title }}</a></h4>
-                            <p>{{ $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 140) }}</p>
+                            <p class="community-post-card-excerpt">{{ $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 220) }}</p>
                             <div class="small text-muted">
                                 By
                                 @if($post->user)
