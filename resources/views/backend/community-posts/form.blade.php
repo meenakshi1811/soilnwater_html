@@ -63,7 +63,7 @@
             </div>
             <div class="col-12">
                 <label class="form-label">Body <span class="text-danger">*</span></label>
-                <textarea name="body" id="bodyEditor" class="form-control" rows="12" required>{{ old('body', $post->body) }}</textarea>
+                <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Featured image</label>
@@ -270,6 +270,13 @@
             document.getElementById('bodyEditor').value = window.communityBodyEditor.getData();
         }
         addTagsFromInput();
+
+        const bodyText = document.getElementById('bodyEditor').value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        if (bodyText.length < 20) {
+            notify('error', 'Please enter at least 20 characters in the body field.');
+            window.communityBodyEditor?.editing.view.focus();
+            return;
+        }
 
         if (!document.getElementById('communityLocationLat').value || !document.getElementById('communityLocationLng').value) {
             notify('error', 'Please select a location from the Google Places suggestions.');
