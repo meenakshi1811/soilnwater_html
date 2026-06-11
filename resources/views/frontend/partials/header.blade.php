@@ -83,6 +83,7 @@
   </form>
 
   <div class="header-actions header-actions-desktop">
+    <a class="btn-offer" href="{{ route('community.index') }}">Community</a>
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
@@ -136,6 +137,7 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
+    <a class="btn-offer" href="{{ route('community.index') }}">Community</a>
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
