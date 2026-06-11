@@ -3,8 +3,9 @@
 @section('content')
 <div class="about-page">
     <section class="about-banner">
-        <h1>Community</h1>
-        <p>Read and share articles, reports, news, stories, poetry, awareness posts, local voices, discussions, and more.</p>
+        @php($authorName = isset($activeAuthor) ? ($activeAuthor->name ?? $activeAuthor->full_name ?? 'Community author') : null)
+        <h1>{{ $authorName ? $authorName . "'s Community Posts" : 'Community' }}</h1>
+        <p>{{ $authorName ? 'Posts by '.$authorName.'.' : 'Read and share community posts.' }}</p>
         @auth
             <a href="{{ route('community.posts.create') }}" class="btn btn-light mt-3"><i class="fa-solid fa-plus me-2"></i>Create a Post</a>
         @else
@@ -18,9 +19,11 @@
                 <div class="sec-title"><span class="icon"><i class="fa-solid fa-layer-group"></i></span> Browse sections</div>
             </div>
             <div class="d-flex flex-wrap gap-2 mb-4">
-                <a href="{{ route('community.index') }}" class="btn btn-sm {{ $activeType ? 'btn-outline-success' : 'btn-success' }}">All</a>
+                @php($sectionRoute = isset($activeAuthor) ? 'community.authors.show' : 'community.index')
+                @php($sectionRouteParams = isset($activeAuthor) ? ['uniqueName' => $activeAuthor->authorUniqueName()] : [])
+                <a href="{{ route($sectionRoute, $sectionRouteParams) }}" class="btn btn-sm {{ $activeType ? 'btn-outline-success' : 'btn-success' }}">All</a>
                 @foreach($types as $key => $type)
-                    <a href="{{ route('community.index', ['type' => $key]) }}" class="btn btn-sm {{ $activeType === $key ? 'btn-success' : 'btn-outline-success' }}">{{ $type['label'] }}</a>
+                    <a href="{{ route($sectionRoute, array_merge($sectionRouteParams, ['type' => $key])) }}" class="btn btn-sm {{ $activeType === $key ? 'btn-success' : 'btn-outline-success' }}">{{ $type['label'] }}</a>
                 @endforeach
             </div>
 
@@ -36,7 +39,7 @@
                     <div class="col-md-6 col-lg-4">
                         <article class="about-box h-100">
                             @if($post->featured_image_path)
-                                <img src="{{ \Illuminate\Support\Facades\Storage::url($post->featured_image_path) }}" alt="{{ $post->title }}" class="img-fluid rounded mb-3" style="height:180px;width:100%;object-fit:cover;">
+                                <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="img-fluid rounded mb-3" style="height:180px;width:100%;object-fit:cover;">
                             @endif
                             <div class="d-flex flex-wrap gap-2 mb-2">
                                 <span class="badge bg-success">{{ $post->typeLabel() }}</span>
@@ -44,13 +47,21 @@
                             </div>
                             <h4><a href="{{ route('community.show', $post) }}" class="text-decoration-none text-dark">{{ $post->title }}</a></h4>
                             <p>{{ $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 140) }}</p>
-                            <div class="small text-muted">By {{ $post->user?->name ?? $post->user?->full_name ?? 'Community author' }} · {{ $post->published_at?->format('M d, Y') }}</div>
+                            <div class="small text-muted">
+                                By
+                                @if($post->user)
+                                    <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="text-muted fw-semibold">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
+                                @else
+                                    Community author
+                                @endif
+                                · {{ $post->published_at?->format('M d, Y') }}
+                            </div>
                             <a href="{{ route('community.show', $post) }}" class="btn btn-outline-success btn-sm mt-3">Read more</a>
                         </article>
                     </div>
                 @empty
                     <div class="col-12">
-                        <div class="alert alert-info mb-0">No posts found for this section yet.</div>
+                        <div class="alert alert-info mb-0">{{ isset($activeAuthor) ? 'No posts found for this author yet.' : 'No posts found for this section yet.' }}</div>
                     </div>
                 @endforelse
             </div>

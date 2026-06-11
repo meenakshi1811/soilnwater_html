@@ -23,7 +23,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ $mode === 'edit' ? route('community.posts.update', $post) : route('community.posts.store') }}" enctype="multipart/form-data" class="chart-card">
+    <form id="community-post-form" method="POST" action="{{ $mode === 'edit' ? route('community.posts.update', $post) : route('community.posts.store') }}" enctype="multipart/form-data" class="chart-card">
         @csrf
         @if($mode === 'edit')
             @method('PUT')
@@ -63,7 +63,7 @@
             </div>
             <div class="col-12">
                 <label class="form-label">Body <span class="text-danger">*</span></label>
-                <textarea name="body" class="form-control" rows="12" required>{{ old('body', $post->body) }}</textarea>
+                <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Featured image</label>
@@ -74,15 +74,23 @@
             </div>
             <div class="col-md-6">
                 <label class="form-label">Tags</label>
-                <input type="text" name="tags" class="form-control" value="{{ old('tags', is_array($post->tags) ? implode(', ', $post->tags) : '') }}" placeholder="water, community, education">
+                <div class="tag-input-wrap border rounded p-2">
+                    <div id="tagList" class="d-flex flex-wrap gap-2 mb-2"></div>
+                    <input type="text" id="tagInput" class="form-control border-0 p-0 shadow-none" placeholder="Type a tag and press Enter or comma">
+                </div>
+                <input type="hidden" name="tags" id="tagsHidden" value="{{ old('tags', is_array($post->tags) ? implode(', ', $post->tags) : '') }}">
+                <small class="text-muted">Add each tag separately. Duplicate tags are ignored.</small>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Author bio</label>
                 <input type="text" name="author_bio" class="form-control" value="{{ old('author_bio', data_get($post->meta, 'author_bio')) }}" maxlength="500">
             </div>
             <div class="col-md-6">
-                <label class="form-label">Location / local area</label>
-                <input type="text" name="location" class="form-control" value="{{ old('location', data_get($post->meta, 'location')) }}" maxlength="160">
+                <label class="form-label">Location / local area <span class="text-danger">*</span></label>
+                <input type="text" name="location" id="communityLocation" class="form-control" value="{{ old('location', data_get($post->meta, 'location')) }}" maxlength="160" placeholder="Search and select a location" autocomplete="off" required>
+                <input type="hidden" name="location_lat" id="communityLocationLat" value="{{ old('location_lat', data_get($post->meta, 'location_lat')) }}">
+                <input type="hidden" name="location_lng" id="communityLocationLng" value="{{ old('location_lng', data_get($post->meta, 'location_lng')) }}">
+                <small class="text-muted">Select a Google Places suggestion so latitude and longitude are saved.</small>
             </div>
             <div class="col-md-4 type-extra" data-for="childrens-corner">
                 <div class="form-check mt-4">
@@ -118,9 +126,26 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<style>
+    .tag-input-wrap:focus-within { border-color: #86b7fe !important; box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .15); }
+    .community-tag-pill { align-items: center; background: #e8f5ee; border: 1px solid #badbcc; border-radius: 999px; color: #0f5132; display: inline-flex; font-size: .875rem; font-weight: 600; gap: .35rem; padding: .25rem .55rem; }
+    .community-tag-remove { background: transparent; border: 0; color: inherit; line-height: 1; padding: 0; }
+</style>
+@endpush
+
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script>
     window.communityTypes = @json($types);
+    window.communityBodyEditor = null;
+
+    if (window.toastr) {
+        window.toastr.options = { closeButton: true, progressBar: true, positionClass: 'toast-top-right', timeOut: 4000, extendedTimeOut: 2000 };
+    }
 
     function refreshCommunityCategories() {
         const typeSelect = document.getElementById('contentType');
@@ -153,5 +178,135 @@
     });
 
     refreshCommunityCategories();
+
+    ClassicEditor.create(document.querySelector('#bodyEditor'))
+        .then((editor) => { window.communityBodyEditor = editor; })
+        .catch(() => notify('error', 'Unable to load the body editor.'));
+
+    const tagInput = document.getElementById('tagInput');
+    const tagList = document.getElementById('tagList');
+    const tagsHidden = document.getElementById('tagsHidden');
+    let tags = (tagsHidden.value || '').split(',').map((tag) => tag.trim()).filter(Boolean);
+
+    function notify(type, message) {
+        const toastType = type === 'error' ? 'error' : 'success';
+        if (window.toastr && typeof window.toastr[toastType] === 'function') {
+            window.toastr[toastType](message);
+            return;
+        }
+        alert(message);
+    }
+
+    function syncTags() {
+        tagsHidden.value = tags.join(', ');
+        tagList.innerHTML = '';
+        tags.forEach((tag, index) => {
+            const pill = document.createElement('span');
+            pill.className = 'community-tag-pill';
+            pill.innerHTML = '<span>#' + tag.replace(/[&<>"']/g, function (char) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char]; }) + '</span><button type="button" class="community-tag-remove" aria-label="Remove tag">&times;</button>';
+            pill.querySelector('button').addEventListener('click', () => {
+                tags.splice(index, 1);
+                syncTags();
+            });
+            tagList.appendChild(pill);
+        });
+    }
+
+    function addTagsFromInput() {
+        const nextTags = tagInput.value.split(',').map((tag) => tag.trim()).filter(Boolean);
+        nextTags.forEach((tag) => {
+            if (!tags.map((item) => item.toLowerCase()).includes(tag.toLowerCase())) {
+                tags.push(tag);
+            }
+        });
+        tagInput.value = '';
+        syncTags();
+    }
+
+    tagInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ',') {
+            event.preventDefault();
+            addTagsFromInput();
+        }
+    });
+    tagInput.addEventListener('blur', addTagsFromInput);
+    syncTags();
+
+    window.initCommunityPostLocationAutocomplete = function () {
+        const locationInput = document.getElementById('communityLocation');
+        const latitudeInput = document.getElementById('communityLocationLat');
+        const longitudeInput = document.getElementById('communityLocationLng');
+        if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
+
+        const autocomplete = new google.maps.places.Autocomplete(locationInput, {
+            fields: ['formatted_address', 'geometry', 'place_id'],
+        });
+
+        autocomplete.addListener('place_changed', function () {
+            const place = autocomplete.getPlace();
+            if (!place?.geometry?.location) {
+                latitudeInput.value = '';
+                longitudeInput.value = '';
+                return;
+            }
+            locationInput.value = place.formatted_address || locationInput.value;
+            latitudeInput.value = place.geometry.location.lat().toFixed(7);
+            longitudeInput.value = place.geometry.location.lng().toFixed(7);
+        });
+
+        locationInput.addEventListener('input', function () {
+            latitudeInput.value = '';
+            longitudeInput.value = '';
+        });
+    };
+
+    document.getElementById('community-post-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonHtml = submitButton.innerHTML;
+
+        if (window.communityBodyEditor) {
+            document.getElementById('bodyEditor').value = window.communityBodyEditor.getData();
+        }
+        addTagsFromInput();
+
+        const bodyText = document.getElementById('bodyEditor').value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        if (bodyText.length < 20) {
+            notify('error', 'Please enter at least 20 characters in the body field.');
+            window.communityBodyEditor?.editing.view.focus();
+            return;
+        }
+
+        if (!document.getElementById('communityLocationLat').value || !document.getElementById('communityLocationLng').value) {
+            notify('error', 'Please select a location from the Google Places suggestions.');
+            return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.innerHTML = 'Saving...';
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            body: new FormData(form),
+        })
+            .then(async (response) => {
+                const payload = await response.json();
+                if (!response.ok) {
+                    const firstError = payload.errors ? Object.values(payload.errors).flat()[0] : null;
+                    notify('error', firstError || payload.message || 'Please fix the highlighted fields and try again.');
+                    return;
+                }
+                notify('success', payload.message || 'Community post saved successfully.');
+                setTimeout(() => { window.location.href = payload.redirect || '{{ route('community.posts.index') }}'; }, 800);
+            })
+            .catch(() => notify('error', 'Network error while saving the community post.'))
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonHtml;
+            });
+    });
 </script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initCommunityPostLocationAutocomplete"></script>
 @endpush
