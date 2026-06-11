@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\TermsAndConditionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Community\CommunityPostController;
 use App\Http\Controllers\Frontend\OfferPageController;
 use App\Http\Controllers\Frontend\AdsMarketController;
 use App\Http\Controllers\Frontend\AdReportController;
@@ -77,6 +78,10 @@ Route::post('/consultant/{consultant:slug}/report', [ProfileReportController::cl
 Route::post('/service/{service_provider:slug}/report', [ProfileReportController::class, 'serviceProvider'])->middleware(['auth', 'verified'])->name('service_provider.report');
 Route::get('/search', [FrontendSearchController::class, 'index'])->name('frontend.search');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
+
+Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
+Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
+
 Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
     $data = $request->validate([
         'lat' => ['required', 'numeric', 'between:-90,90'],
@@ -223,6 +228,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/post-ad', function () {
             return redirect()->to(route('frontend.index').'#post-ad');
         })->name('post-ad');
+    });
+
+
+    Route::post('/community/{post:slug}/react', [CommunityPostController::class, 'react'])->name('community.react');
+    Route::post('/community/authors/{author}/follow', [CommunityPostController::class, 'followAuthor'])->name('community.authors.follow');
+
+    Route::prefix('dashboard/community-posts')->name('community.posts.')->group(function () {
+        Route::get('/', [CommunityPostController::class, 'myPosts'])->name('index');
+        Route::get('/create', [CommunityPostController::class, 'create'])->name('create');
+        Route::post('/', [CommunityPostController::class, 'store'])->name('store');
+        Route::get('/{post:slug}', [CommunityPostController::class, 'show'])->name('show');
+        Route::get('/{post:slug}/edit', [CommunityPostController::class, 'edit'])->name('edit');
+        Route::put('/{post:slug}', [CommunityPostController::class, 'update'])->name('update');
+        Route::delete('/{post:slug}', [CommunityPostController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('dashboard/ads')->name('ads.')->group(function () {

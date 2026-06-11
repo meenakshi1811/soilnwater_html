@@ -6,6 +6,7 @@ use App\Support\ModulePermissions;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -62,6 +63,12 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_active' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+
+    public function communityPosts(): HasMany
+    {
+        return $this->hasMany(CommunityPost::class);
     }
 
     public function isGeneralUser(): bool

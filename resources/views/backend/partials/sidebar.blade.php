@@ -12,6 +12,7 @@
     $canAccessOffers = $isAdmin || $isGeneralUser || auth()->user()->canModule('vendors', 'read');
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
+    $communityPostsActive = request()->routeIs('community.posts.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
     $consultantsMenuActive = request()->routeIs('admin.consultants.*') || request()->routeIs('admin.consultant-services.*');
     $serviceProvidersMenuActive = request()->routeIs('admin.service_providers.*') || request()->routeIs('admin.service-provider-services.*');
@@ -119,6 +120,12 @@
                 <a class="{{ request()->routeIs('admin.terms-and-conditions.*') ? 'active' : '' }}" href="{{ route('admin.terms-and-conditions.index') }}">
                     <i class="fa-solid fa-file-contract"></i>
                     <span>Terms &amp; Conditions</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Community Posts</span>
                 </a>
             </li>
             <li>
@@ -337,6 +344,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Community Posts</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('user.profile.*') ? 'active' : '' }}" href="{{ route('user.profile.edit') }}">
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Profile</span>
@@ -353,6 +366,12 @@
                 <a class="{{ request()->routeIs('ads.*') ? 'active' : '' }}" href="{{ route('ads.index') }}">
                     <i class="fa-solid fa-rectangle-ad"></i>
                     <span>My Ads</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Community Posts</span>
                 </a>
             </li>
             <li class="admin-sidebar-group">
@@ -406,6 +425,12 @@
                     <span>My Ads</span>
                 </a>
             </li>
+            <li>
+                <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Community Posts</span>
+                </a>
+            </li>
             <li class="admin-sidebar-group">
                 <details {{ $consultantPagesMenuActive ? 'open' : '' }}>
                     <summary class="{{ $consultantPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
@@ -457,6 +482,12 @@
                     <span>My Ads</span>
                 </a>
             </li>
+            <li>
+                <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Community Posts</span>
+                </a>
+            </li>
             <li class="admin-sidebar-group">
                 <details {{ $serviceProviderPagesMenuActive ? 'open' : '' }}>
                     <summary class="{{ $serviceProviderPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
@@ -503,6 +534,13 @@
                     </a>
                 </li>
             @endif
+
+            <li>
+                <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
+                    <i class="fa-solid fa-pen-nib"></i>
+                    <span>Community Posts</span>
+                </a>
+            </li>
             <li>
                 <a class="{{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
                     <i class="fa-solid fa-house"></i>
