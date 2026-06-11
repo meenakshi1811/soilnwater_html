@@ -28,11 +28,14 @@
 
             <div class="community-post-body" style="line-height:1.8;">{!! $post->body !!}</div>
 
-            @if(!empty($post->meta))
+            @php
+                $visibleMeta = collect($post->meta ?? [])->except(['location_lat', 'location_lng']);
+            @endphp
+            @if($visibleMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Additional details</h4>
                     <ul class="about-list mb-0">
-                        @foreach($post->meta as $key => $value)
+                        @foreach($visibleMeta as $key => $value)
                             @continue(blank($value) || $value === false)
                             <li><strong>{{ \Illuminate\Support\Str::headline($key) }}:</strong> {{ is_bool($value) ? 'Yes' : $value }}</li>
                         @endforeach
@@ -52,16 +55,21 @@
                 <h4>Community engagement</h4>
                 @php
                     $reactionCounts = $post->reactions->groupBy('reaction')->map->count();
-                    $reactionOptions = ['Helpful', 'Inspiring', 'Excellent', 'Informative'];
+                    $reactionOptions = [
+                        'Helpful' => 'fa-solid fa-hand-holding-heart',
+                        'Inspiring' => 'fa-solid fa-lightbulb',
+                        'Excellent' => 'fa-solid fa-star',
+                        'Informative' => 'fa-solid fa-circle-info',
+                    ];
                 @endphp
                 @auth
                     <div class="d-flex flex-wrap gap-2 mb-3">
-                        @foreach($reactionOptions as $reaction)
+                        @foreach($reactionOptions as $reaction => $icon)
                             <form method="POST" action="{{ route('community.react', $post) }}">
                                 @csrf
                                 <input type="hidden" name="reaction" value="{{ $reaction }}">
                                 <button type="submit" class="btn btn-outline-success btn-sm">
-                                    {{ $reaction }} {{ $reactionCounts[$reaction] ?? 0 }}
+                                    <i class="{{ $icon }} me-1" aria-hidden="true"></i>{{ $reaction }} {{ $reactionCounts[$reaction] ?? 0 }}
                                 </button>
                             </form>
                         @endforeach
@@ -77,9 +85,6 @@
                 @endauth
                 <ul class="about-list mb-0">
                     <li>Author profile: {{ $post->user?->name ?? $post->user?->full_name ?? 'Community author' }}</li>
-                    <li>Reactions: Helpful, Inspiring, Excellent, Informative.</li>
-                    <li>Comments/discussions: {{ $post->allow_comments ? 'Allowed' : 'Disabled by author' }}.</li>
-                    <li>Digest-ready for trending articles, top writers, and popular discussions.</li>
                 </ul>
             </div>
         </section>
