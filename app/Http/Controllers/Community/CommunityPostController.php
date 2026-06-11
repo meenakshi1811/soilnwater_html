@@ -7,6 +7,7 @@ use App\Models\CommunityPost;
 use App\Models\CommunityPostReaction;
 use App\Models\User;
 use App\Support\CommunityContentTaxonomy;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -97,7 +98,7 @@ class CommunityPostController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
         $data = $this->validated($request);
         $data['user_id'] = $request->user()->id;
@@ -109,10 +110,17 @@ class CommunityPostController extends Controller
         $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? now() : null;
 
         if ($request->hasFile('featured_image')) {
-            $data['featured_image_path'] = $request->file('featured_image')->store('uploads/community-posts', 'public');
+            $data['featured_image_path'] = $this->storeFeaturedImage($request);
         }
 
         $post = CommunityPost::create($data);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Community post created successfully.',
+                'redirect' => route('community.posts.show', $post),
+            ]);
+        }
 
         return redirect()->route('community.posts.show', $post)->with('success', 'Community post created successfully.');
     }
@@ -128,7 +136,7 @@ class CommunityPostController extends Controller
         ]);
     }
 
-    public function update(Request $request, CommunityPost $post): RedirectResponse
+    public function update(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
     {
         $this->authorizeOwner($request, $post);
 
@@ -140,10 +148,8 @@ class CommunityPostController extends Controller
         $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? ($post->published_at ?? now()) : null;
 
         if ($request->hasFile('featured_image')) {
-            if ($post->featured_image_path) {
-                Storage::disk('public')->delete($post->featured_image_path);
-            }
-            $data['featured_image_path'] = $request->file('featured_image')->store('uploads/community-posts', 'public');
+            $this->deleteFeaturedImage($post->featured_image_path);
+            $data['featured_image_path'] = $this->storeFeaturedImage($request);
         }
 
         if ($post->title !== $data['title']) {
@@ -152,6 +158,13 @@ class CommunityPostController extends Controller
 
         $post->update($data);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Community post updated successfully.',
+                'redirect' => route('community.posts.show', $post),
+            ]);
+        }
+
         return redirect()->route('community.posts.show', $post)->with('success', 'Community post updated successfully.');
     }
 
@@ -159,9 +172,7 @@ class CommunityPostController extends Controller
     {
         $this->authorizeOwner($request, $post);
 
-        if ($post->featured_image_path) {
-            Storage::disk('public')->delete($post->featured_image_path);
-        }
+        $this->deleteFeaturedImage($post->featured_image_path);
 
         $post->delete();
 
@@ -196,7 +207,9 @@ class CommunityPostController extends Controller
             'status' => ['required', Rule::in([CommunityPost::STATUS_DRAFT, CommunityPost::STATUS_PUBLISHED])],
             'allow_comments' => ['nullable', 'boolean'],
             'author_bio' => ['nullable', 'string', 'max:500'],
-            'location' => ['nullable', 'string', 'max:160'],
+            'location' => ['required', 'string', 'max:160'],
+            'location_lat' => ['required', 'numeric', 'between:-90,90'],
+            'location_lng' => ['required', 'numeric', 'between:-180,180'],
             'parent_approved' => ['nullable', 'boolean'],
             'school_name' => ['nullable', 'string', 'max:160'],
             'consultation_fee' => ['nullable', 'string', 'max:120'],
@@ -212,6 +225,8 @@ class CommunityPostController extends Controller
         return array_filter([
             'author_bio' => $request->input('author_bio'),
             'location' => $request->input('location'),
+            'location_lat' => $request->input('location_lat'),
+            'location_lng' => $request->input('location_lng'),
             'parent_approved' => $request->boolean('parent_approved'),
             'school_name' => $request->input('school_name'),
             'consultation_fee' => $request->input('consultation_fee'),
@@ -248,6 +263,37 @@ class CommunityPostController extends Controller
         }
 
         return $slug;
+    }
+
+    private function storeFeaturedImage(Request $request): string
+    {
+        $file = $request->file('featured_image');
+        $directory = public_path('uploads/community-posts');
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filename = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
+        $file->move($directory, $filename);
+
+        return 'uploads/community-posts/'.$filename;
+    }
+
+    private function deleteFeaturedImage(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        $publicPath = public_path($path);
+        if (is_file($publicPath)) {
+            unlink($publicPath);
+
+            return;
+        }
+
+        Storage::disk('public')->delete($path);
     }
 
     private function authorizeOwner(Request $request, CommunityPost $post): void
