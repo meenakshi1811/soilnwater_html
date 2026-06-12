@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Community;
 
 use App\Http\Controllers\Controller;
 use App\Models\CommunityPost;
+use App\Models\CommunityPostComment;
 use App\Models\CommunityPostReaction;
 use App\Models\User;
 use App\Support\CommunityContentTaxonomy;
@@ -35,7 +36,6 @@ class CommunityPostController extends Controller
         ]);
     }
 
-
     public function author(Request $request, string $uniqueName): View
     {
         $author = $this->resolveAuthor($uniqueName);
@@ -62,14 +62,18 @@ class CommunityPostController extends Controller
     {
         abort_unless($post->status === CommunityPost::STATUS_PUBLISHED || auth()->id() === $post->user_id || auth()->user()?->isAdmin(), 404);
 
-        $post->load(['user', 'reactions']);
+        $post->load([
+            'user',
+            'reactions',
+            'discussionComments.user',
+            'discussionComments.replies.user',
+        ]);
 
         return view('community.show', [
             'post' => $post,
             'types' => CommunityContentTaxonomy::types(),
         ]);
     }
-
 
     public function react(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
     {
@@ -114,6 +118,31 @@ class CommunityPostController extends Controller
         return back()->with('success', $message);
     }
 
+    public function comment(Request $request, CommunityPost $post): RedirectResponse
+    {
+        abort_unless($post->status === CommunityPost::STATUS_PUBLISHED, 404);
+        abort_unless($post->allow_comments, 403, 'Discussions are disabled for this post.');
+
+        $data = $request->validate([
+            'body' => ['required', 'string', 'min:3', 'max:2000'],
+            'parent_id' => [
+                'nullable',
+                Rule::exists('community_post_comments', 'id')->where(fn ($query) => $query
+                    ->where('community_post_id', $post->id)
+                    ->whereNull('parent_id')),
+            ],
+        ]);
+
+        CommunityPostComment::query()->create([
+            'community_post_id' => $post->id,
+            'user_id' => $request->user()->id,
+            'parent_id' => $data['parent_id'] ?? null,
+            'body' => $data['body'],
+        ]);
+
+        return back()->with('success', filled($data['parent_id'] ?? null) ? 'Reply added to the discussion.' : 'Comment added to the discussion.');
+    }
+
     public function followAuthor(Request $request, User $author): RedirectResponse
     {
         abort_if($request->user()->id === $author->id, 422, 'You cannot follow yourself.');
@@ -137,7 +166,6 @@ class CommunityPostController extends Controller
             'posts' => $posts,
         ]);
     }
-
 
     public function updateAuthorUrl(Request $request): RedirectResponse
     {
@@ -391,13 +419,8 @@ class CommunityPostController extends Controller
         ], fn ($value) => filled($value) || is_bool($value));
     }
 
-
     private function shouldAllowComments(Request $request): bool
     {
-        if ($request->input('content_type') === 'reports') {
-            return false;
-        }
-
         return $request->boolean('allow_comments');
     }
 

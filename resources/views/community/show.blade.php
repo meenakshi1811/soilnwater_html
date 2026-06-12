@@ -247,6 +247,70 @@
                     </li>
                 </ul>
             </div>
+
+            <div class="about-box mt-4" id="discussion">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+                    <div>
+                        <h4 class="mb-1">Discussion</h4>
+                        <p class="text-muted mb-0">Ask questions, share answers, and reply to other readers on this post.</p>
+                    </div>
+                    <span class="badge {{ $post->allow_comments ? 'bg-success' : 'bg-secondary' }}">{{ $post->allow_comments ? 'Open' : 'Closed' }}</span>
+                </div>
+
+                @if($post->allow_comments)
+                    @auth
+                        <form method="POST" action="{{ route('community.comments.store', $post) }}" class="mb-4">
+                            @csrf
+                            <label class="form-label" for="discussionBody">Start a discussion or add your answer</label>
+                            <textarea name="body" id="discussionBody" class="form-control @error('body') is-invalid @enderror" rows="4" maxlength="2000" required placeholder="Write your question, answer, suggestion, or experience...">{{ old('body') }}</textarea>
+                            @error('body')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <button type="submit" class="btn btn-success mt-2">Post comment</button>
+                        </form>
+                    @else
+                        <p><a href="{{ route('login') }}">Login</a> to join this discussion.</p>
+                    @endauth
+                @else
+                    <p class="text-muted mb-0">The author has disabled public discussion for this post.</p>
+                @endif
+
+                @forelse($post->discussionComments as $comment)
+                    <div class="discussion-comment border rounded-3 p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-2">
+                            <strong>{{ $comment->user->name ?? $comment->user->full_name ?? 'Community member' }}</strong>
+                            <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
+                        </div>
+                        <p class="mb-2">{!! nl2br(e($comment->body)) !!}</p>
+
+                        @if($post->allow_comments)
+                            @auth
+                                <details class="mb-3">
+                                    <summary class="text-success fw-semibold">Reply</summary>
+                                    <form method="POST" action="{{ route('community.comments.store', $post) }}" class="mt-2">
+                                        @csrf
+                                        <input type="hidden" name="parent_id" value="{{ $comment->id }}">
+                                        <textarea name="body" class="form-control" rows="2" maxlength="2000" required placeholder="Reply to this comment..."></textarea>
+                                        <button type="submit" class="btn btn-outline-success btn-sm mt-2">Post reply</button>
+                                    </form>
+                                </details>
+                            @endauth
+                        @endif
+
+                        @foreach($comment->replies as $reply)
+                            <div class="discussion-reply border-start ps-3 ms-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-1">
+                                    <strong>{{ $reply->user->name ?? $reply->user->full_name ?? 'Community member' }}</strong>
+                                    <small class="text-muted">{{ $reply->created_at->diffForHumans() }}</small>
+                                </div>
+                                <p class="mb-0">{!! nl2br(e($reply->body)) !!}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                @empty
+                    <p class="text-muted mb-0">No discussion yet. Be the first to comment.</p>
+                @endforelse
+            </div>
         </section>
     </div>
 </div>
@@ -256,6 +320,8 @@
 @push('styles')
 <style>
     .community-post-body .image { margin: 1rem auto; }
+    .discussion-comment { background: #fff; }
+    .discussion-reply { background: #f8faf9; border-color: #badbcc !important; padding-bottom: .5rem; padding-top: .5rem; }
     .community-post-body .image img { height: auto; max-width: 100%; }
     .community-post-body .image-style-align-left { float: left; margin: .35rem 1.25rem 1rem 0; max-width: 50%; }
     .community-post-body .image-style-align-right,

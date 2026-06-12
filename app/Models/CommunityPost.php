@@ -53,6 +53,16 @@ class CommunityPost extends Model
         return $this->hasMany(CommunityPostReaction::class);
     }
 
+    public function comments(): HasMany
+    {
+        return $this->hasMany(CommunityPostComment::class);
+    }
+
+    public function discussionComments(): HasMany
+    {
+        return $this->comments()->whereNull('parent_id')->oldest();
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_PUBLISHED)->whereNotNull('published_at');

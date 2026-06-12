@@ -234,6 +234,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::post('/community/{post:slug}/react', [CommunityPostController::class, 'react'])->name('community.react');
+    Route::post('/community/{post:slug}/comments', [CommunityPostController::class, 'comment'])->name('community.comments.store');
     Route::post('/community/authors/{author}/follow', [CommunityPostController::class, 'followAuthor'])->name('community.authors.follow');
 
     Route::prefix('dashboard/community-posts')->name('community.posts.')->group(function () {
