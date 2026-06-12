@@ -21,8 +21,8 @@ class CommunityContentTaxonomy
             ],
             'reports' => [
                 'label' => 'Reports',
-                'description' => 'Research and analytical content.',
-                'categories' => ['Industry Reports', 'Market Analysis', 'Survey Reports', 'Economic Reports', 'Infrastructure Reports', 'Local Development Reports', 'Water & Environment Reports'],
+                'description' => 'Research, analytical content, and My Area civic problem reports.',
+                'categories' => ['Industry Reports', 'Market Analysis', 'Survey Reports', 'Economic Reports', 'Infrastructure Reports', 'Local Development Reports', 'Water & Environment Reports', 'Community Problem Report'],
             ],
             'my-area' => [
                 'label' => 'My Area',
@@ -184,6 +184,33 @@ class CommunityContentTaxonomy
                 'description' => 'Thread-based discussions.',
                 'categories' => ['General Discussion', 'Local Issues', 'Education', 'Business', 'Agriculture', 'Real Estate'],
             ],
+        ];
+    }
+
+
+    /**
+     * Post types available in the create/edit form.
+     *
+     * @return array<string, array{label: string, description: string, categories: list<string>, features?: list<string>, monetization?: list<string>, rewards?: list<string>, examples?: list<string>}>
+     */
+    public static function formTypes(): array
+    {
+        return collect(self::types())
+            ->except(['my-area', 'my-voice'])
+            ->all();
+    }
+
+    /**
+     * Legacy report format options kept so stale compiled views or older callers do not fail.
+     *
+     * The create/edit form no longer renders a report format field.
+     *
+     * @return array<string, string>
+     */
+    public static function reportFormats(): array
+    {
+        return [
+            'my_area' => 'My Area problem report',
         ];
     }
 
