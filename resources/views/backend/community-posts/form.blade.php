@@ -46,6 +46,15 @@
                     <option value="">Select category</option>
                 </select>
             </div>
+            <div class="col-md-6 type-extra report-format-field" data-for="reports">
+                <label class="form-label">Report format <span class="text-danger">*</span></label>
+                <select name="report_format" id="reportFormat" class="form-select" data-selected="{{ old('report_format', data_get($post->meta, 'report_format', 'professional')) }}">
+                    @foreach(\App\Support\CommunityContentTaxonomy::reportFormats() as $formatKey => $formatLabel)
+                        <option value="{{ $formatKey }}" @selected(old('report_format', data_get($post->meta, 'report_format', 'professional')) === $formatKey)>{{ $formatLabel }}</option>
+                    @endforeach
+                </select>
+                <small class="text-muted">Choose a standard report or a My Area civic issue report.</small>
+            </div>
             <div class="col-md-8">
                 <label class="form-label">Title <span class="text-danger">*</span></label>
                 <input type="text" name="title" class="form-control" value="{{ old('title', $post->title) }}" maxlength="255" required>
@@ -95,7 +104,7 @@
                 <input type="hidden" name="location_lng" id="communityLocationLng" value="{{ old('location_lng', data_get($post->meta, 'location_lng')) }}">
                 <small class="text-muted" id="locationHelp">Select a Google Places suggestion so latitude and longitude are saved.</small>
             </div>
-            <div class="col-12 type-extra report-flow" data-for="reports">
+            <div class="col-12 type-extra report-flow" data-for="reports" data-report-format="professional">
                 <div class="report-flow-card border rounded-3 p-3 bg-light">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
                         <div>
@@ -197,14 +206,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 type-extra my-area-flow" data-for="my-area">
+            <div class="col-12 type-extra my-area-flow" data-for="reports" data-report-format="my_area">
                 <div class="my-area-flow-card border rounded-3 p-3 bg-light">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
                         <div>
                             <h5 class="mb-1">My Area problem report</h5>
                             <p class="text-muted mb-0 small">Turn local issues into trackable community action with evidence, GPS location, support, comments, and votes.</p>
                         </div>
-                        <span class="badge bg-warning text-dark">My Area</span>
+                        <span class="badge bg-warning text-dark">Reports · My Area</span>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-3">
@@ -253,32 +262,6 @@
                                     @endforeach
                                 </div>
                             @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 type-extra my-voice-flow" data-for="my-voice">
-                <div class="my-voice-flow-card border rounded-3 p-3 bg-light">
-                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
-                        <div>
-                            <h5 class="mb-1">My Voice</h5>
-                            <p class="text-muted mb-0 small">Share personal opinions, lived experiences, suggestions, concerns, and open letters with context.</p>
-                        </div>
-                        <span class="badge bg-info text-dark">My Voice</span>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Topic <span class="text-danger">*</span></label>
-                            <input type="text" name="voice_topic" class="form-control my-voice-required" value="{{ old('voice_topic', data_get($post->meta, 'voice_topic')) }}" maxlength="160" placeholder="What is your opinion or experience about?">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Perspective <span class="text-danger">*</span></label>
-                            <select name="voice_perspective" class="form-select my-voice-required">
-                                <option value="">Select perspective</option>
-                                @foreach(['Personal Experience', 'Opinion', 'Suggestion', 'Concern', 'Open Letter'] as $perspective)
-                                    <option value="{{ $perspective }}" @selected(old('voice_perspective', data_get($post->meta, 'voice_perspective')) === $perspective)>{{ $perspective }}</option>
-                                @endforeach
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -357,13 +340,16 @@
         const typeSelect = document.getElementById('contentType');
         const categorySelect = document.getElementById('categorySelect');
         const categoryWrap = document.getElementById('categoryFieldWrap');
+        const reportFormatSelect = document.getElementById('reportFormat');
         const help = document.getElementById('typeHelp');
         const selected = categorySelect.dataset.selected;
         const type = window.communityTypes[typeSelect.value];
 
         const isReport = typeSelect.value === 'reports';
+        const reportFormat = reportFormatSelect?.value || reportFormatSelect?.dataset.selected || 'professional';
+        const isProfessionalReport = isReport && reportFormat === 'professional';
+        const isMyArea = isReport && reportFormat === 'my_area';
         const isNews = typeSelect.value === 'news';
-        const isMyArea = typeSelect.value === 'my-area';
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
 
@@ -380,20 +366,23 @@
             categoryWrap.style.display = '';
 
             if (type) {
-                type.categories.forEach((category) => {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    option.selected = category === selected;
-                    categorySelect.appendChild(option);
-                });
+                type.categories
+                    .filter((category) => category !== 'Community Problem Report')
+                    .forEach((category) => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        option.selected = category === selected;
+                        categorySelect.appendChild(option);
+                    });
             }
         }
-        const isMyVoice = typeSelect.value === 'my-voice';
-        const isStructuredContent = isReport || isNews || isMyArea || isMyVoice;
+        const isStructuredContent = isReport || isNews;
 
         document.querySelectorAll('.type-extra').forEach((field) => {
-            field.style.display = field.dataset.for === typeSelect.value ? '' : 'none';
+            const matchesType = field.dataset.for === typeSelect.value;
+            const matchesReportFormat = !field.dataset.reportFormat || field.dataset.reportFormat === reportFormat;
+            field.style.display = matchesType && matchesReportFormat ? '' : 'none';
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
@@ -401,7 +390,7 @@
         });
 
         document.querySelectorAll('.report-required').forEach((field) => {
-            field.required = isReport;
+            field.required = isProfessionalReport;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -412,11 +401,19 @@
             field.required = isMyArea;
         });
 
-        document.querySelectorAll('.my-voice-required').forEach((field) => {
-            field.required = isMyVoice;
-        });
+        if (reportFormatSelect) {
+            reportFormatSelect.required = isReport;
+        }
 
-        const fieldCopy = isReport ? {
+        const fieldCopy = isMyArea ? {
+            excerptLabel: 'Issue summary',
+            excerptPlaceholder: 'Briefly explain the problem, affected people, and urgency.',
+            excerptHelp: 'Use a clear problem statement so neighbours can quickly support or vote on it.',
+            bodyLabel: 'Detailed problem description <span class="text-danger">*</span>',
+            bodyHelp: 'Include what happened, when it started, exact location landmarks, risk, and expected solution.',
+            locationLabel: 'GPS issue location <span class="text-danger">*</span>',
+            locationHelp: 'Select the exact issue location from Google Places so the problem can be mapped.',
+        } : (isReport ? {
             excerptLabel: 'Executive summary',
             excerptPlaceholder: 'Summarize objective, scope, main findings, and recommendations.',
             excerptHelp: 'Keep this professional: purpose, coverage, key insight, and action in 2–4 lines.',
@@ -432,22 +429,6 @@
             bodyHelp: 'Recommended flow: lead, nut graph, details, context, quotes, impact, and latest update.',
             locationLabel: 'News location <span class="text-danger">*</span>',
             locationHelp: 'Select the news location from Google Places so the story is location-indexed.',
-        } : (isMyArea ? {
-            excerptLabel: 'Issue summary',
-            excerptPlaceholder: 'Briefly explain the problem, affected people, and urgency.',
-            excerptHelp: 'Use a clear problem statement so neighbours can quickly support or vote on it.',
-            bodyLabel: 'Detailed problem description <span class="text-danger">*</span>',
-            bodyHelp: 'Include what happened, when it started, exact location landmarks, risk, and expected solution.',
-            locationLabel: 'GPS issue location <span class="text-danger">*</span>',
-            locationHelp: 'Select the exact issue location from Google Places so the problem can be mapped.',
-        } : (isMyVoice ? {
-            excerptLabel: 'Opinion / experience summary',
-            excerptPlaceholder: 'Summarize your main viewpoint or personal experience.',
-            excerptHelp: 'Keep this personal and clear so readers understand your voice quickly.',
-            bodyLabel: 'Full opinion / experience <span class="text-danger">*</span>',
-            bodyHelp: 'Share the context, your experience, why it matters, and what change you want to see.',
-            locationLabel: 'Related location <span class="text-danger">*</span>',
-            locationHelp: 'Select the area related to your opinion or experience.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -456,7 +437,7 @@
             bodyHelp: 'Add the main content for this community post.',
             locationLabel: 'Location / local area <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        })));
+        }));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -468,6 +449,11 @@
     }
 
     document.getElementById('contentType').addEventListener('change', function () {
+        document.getElementById('categorySelect').dataset.selected = '';
+        refreshCommunityCategories();
+    });
+
+    document.getElementById('reportFormat')?.addEventListener('change', function () {
         document.getElementById('categorySelect').dataset.selected = '';
         refreshCommunityCategories();
     });

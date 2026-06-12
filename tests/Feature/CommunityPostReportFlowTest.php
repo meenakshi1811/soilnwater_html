@@ -151,13 +151,15 @@ class CommunityPostReportFlowTest extends TestCase
         $this->assertSame('https://example.com/water-schedule', $post->meta['source_url']);
     }
 
-    public function test_my_area_posts_store_issue_details_and_attachments(): void
+    public function test_report_posts_can_store_my_area_issue_details_and_attachments(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
         $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
-            'content_type' => 'my-area',
-            'category' => 'Water Issue',
+            'content_type' => 'reports',
+            'report_format' => 'my_area',
+            'category' => 'Community Problem Report',
+            'report_type' => 'Water Issue',
             'title' => 'Broken water pipeline near market',
             'excerpt' => 'Water has been leaking near the market and affecting nearby shops.',
             'body' => 'The water pipeline has been broken for three days and needs urgent repair from the local department.',
@@ -183,14 +185,16 @@ class CommunityPostReportFlowTest extends TestCase
         $post = CommunityPost::query()->where('title', 'Broken water pipeline near market')->firstOrFail();
 
         $this->assertTrue($post->allow_comments);
-        $this->assertSame('my-area', $post->content_type);
+        $this->assertSame('reports', $post->content_type);
+        $this->assertSame('my_area', $post->meta['report_format']);
+        $this->assertSame('Water Issue', $post->meta['report_type']);
         $this->assertSame('Urgent', $post->meta['issue_priority']);
         $this->assertSame('Open', $post->meta['issue_status']);
         $this->assertSame('Water Department', $post->meta['reported_to']);
         $this->assertCount(2, $post->meta['issue_attachments']);
     }
 
-    public function test_my_voice_posts_require_and_store_voice_context(): void
+    public function test_my_voice_post_type_is_not_accepted_from_the_form_flow(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
@@ -204,33 +208,7 @@ class CommunityPostReportFlowTest extends TestCase
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',
-        ])->assertUnprocessable()->assertJsonValidationErrors(['voice_topic', 'voice_perspective']);
-
-        $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
-            'content_type' => 'my-voice',
-            'category' => 'Personal Opinion',
-            'title' => 'Why local water awareness matters',
-            'excerpt' => 'A personal experience about water conservation awareness.',
-            'body' => 'This opinion explains why local water awareness programs need regular community participation.',
-            'status' => CommunityPost::STATUS_PUBLISHED,
-            'allow_comments' => '1',
-            'location' => 'Jaipur, Rajasthan, India',
-            'location_lat' => '26.9124000',
-            'location_lng' => '75.7873000',
-            'voice_topic' => 'Water conservation awareness',
-            'voice_perspective' => 'Personal Experience',
-        ]);
-
-        $response->assertOk()->assertJson([
-            'message' => 'Community post created successfully.',
-        ]);
-
-        $post = CommunityPost::query()->where('title', 'Why local water awareness matters')->firstOrFail();
-
-        $this->assertTrue($post->allow_comments);
-        $this->assertSame('my-voice', $post->content_type);
-        $this->assertSame('Water conservation awareness', $post->meta['voice_topic']);
-        $this->assertSame('Personal Experience', $post->meta['voice_perspective']);
+        ])->assertUnprocessable()->assertJsonValidationErrors(['content_type']);
     }
 
     public function test_enabled_posts_accept_threaded_discussion_comments(): void
