@@ -64,6 +64,7 @@
                     'location' => 'News location',
                 ];
                 $myAreaMetaLabels = [
+                    'report_type' => 'Report type',
                     'issue_priority' => 'Priority',
                     'issue_status' => 'Status',
                     'reported_to' => 'Reported to',
