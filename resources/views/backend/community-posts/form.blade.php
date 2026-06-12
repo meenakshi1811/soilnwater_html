@@ -46,6 +46,15 @@
                     <option value="">Select category</option>
                 </select>
             </div>
+            <div class="col-md-6 type-extra report-format-field" data-for="reports">
+                <label class="form-label">Report format <span class="text-danger">*</span></label>
+                <select name="report_format" id="reportFormat" class="form-select" data-selected="{{ old('report_format', data_get($post->meta, 'report_format', 'professional')) }}">
+                    @foreach(\App\Support\CommunityContentTaxonomy::reportFormats() as $formatKey => $formatLabel)
+                        <option value="{{ $formatKey }}" @selected(old('report_format', data_get($post->meta, 'report_format', 'professional')) === $formatKey)>{{ $formatLabel }}</option>
+                    @endforeach
+                </select>
+                <small class="text-muted">Choose a standard report or a My Area civic issue report.</small>
+            </div>
             <div class="col-md-8">
                 <label class="form-label">Title <span class="text-danger">*</span></label>
                 <input type="text" name="title" class="form-control" value="{{ old('title', $post->title) }}" maxlength="255" required>
@@ -282,11 +291,15 @@
         const typeSelect = document.getElementById('contentType');
         const categorySelect = document.getElementById('categorySelect');
         const categoryWrap = document.getElementById('categoryFieldWrap');
+        const reportFormatSelect = document.getElementById('reportFormat');
         const help = document.getElementById('typeHelp');
         const selected = categorySelect.dataset.selected;
         const type = window.communityTypes[typeSelect.value];
 
         const isReport = typeSelect.value === 'reports';
+        const reportFormat = reportFormatSelect?.value || reportFormatSelect?.dataset.selected || 'professional';
+        const isProfessionalReport = isReport && reportFormat === 'professional';
+        const isMyArea = isReport && reportFormat === 'my_area';
         const isNews = typeSelect.value === 'news';
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -304,19 +317,23 @@
             categoryWrap.style.display = '';
 
             if (type) {
-                type.categories.forEach((category) => {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    option.selected = category === selected;
-                    categorySelect.appendChild(option);
-                });
+                type.categories
+                    .filter((category) => category !== 'Community Problem Report')
+                    .forEach((category) => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        option.selected = category === selected;
+                        categorySelect.appendChild(option);
+                    });
             }
         }
         const isStructuredContent = isReport || isNews;
 
         document.querySelectorAll('.type-extra').forEach((field) => {
-            field.style.display = field.dataset.for === typeSelect.value ? '' : 'none';
+            const matchesType = field.dataset.for === typeSelect.value;
+            const matchesReportFormat = !field.dataset.reportFormat || field.dataset.reportFormat === reportFormat;
+            field.style.display = matchesType && matchesReportFormat ? '' : 'none';
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
@@ -371,6 +388,11 @@
     }
 
     document.getElementById('contentType').addEventListener('change', function () {
+        document.getElementById('categorySelect').dataset.selected = '';
+        refreshCommunityCategories();
+    });
+
+    document.getElementById('reportFormat')?.addEventListener('change', function () {
         document.getElementById('categorySelect').dataset.selected = '';
         refreshCommunityCategories();
     });

@@ -92,9 +92,9 @@
                 $orderedMyVoiceMeta = collect($myVoiceMetaOrder)
                     ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
                     ->filter(fn ($value) => filled($value) || is_bool($value));
-                $additionalReportMeta = $visibleMeta->except([...$reportMetaOrder, 'author_bio']);
+                $additionalReportMeta = $visibleMeta->except([...$reportMetaOrder, 'report_format', 'author_bio']);
                 $additionalNewsMeta = $visibleMeta->except([...$newsMetaOrder, 'author_bio']);
-                $additionalMyAreaMeta = $visibleMeta->except([...$myAreaMetaOrder, 'issue_attachments', 'author_bio']);
+                $additionalMyAreaMeta = $visibleMeta->except([...$myAreaMetaOrder, 'report_format', 'issue_attachments', 'author_bio']);
                 $additionalMyVoiceMeta = $visibleMeta->except([...$myVoiceMetaOrder, 'author_bio']);
             @endphp
             @if($post->content_type === 'reports' && blank(data_get($post->meta, 'report_type')) && $orderedReportMeta->isNotEmpty())
