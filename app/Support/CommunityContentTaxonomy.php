@@ -24,6 +24,17 @@ class CommunityContentTaxonomy
                 'description' => 'Research and analytical content.',
                 'categories' => ['Industry Reports', 'Market Analysis', 'Survey Reports', 'Economic Reports', 'Infrastructure Reports', 'Local Development Reports', 'Water & Environment Reports'],
             ],
+            'my-area' => [
+                'label' => 'My Area',
+                'description' => 'Report local civic issues with evidence, GPS location, and community support.',
+                'categories' => ['Water Issue', 'Road Damage', 'Garbage Problem', 'Street Light Problem', 'Flooding', 'Illegal Dumping'],
+                'features' => ['Photos', 'Videos', 'Documents', 'GPS Location', 'Support', 'Comments', 'Votes'],
+            ],
+            'my-voice' => [
+                'label' => 'My Voice',
+                'description' => 'Personal opinions, lived experiences, and community perspectives.',
+                'categories' => ['Personal Opinion', 'Local Experience', 'Public Suggestion', 'Community Concern', 'Personal Story', 'Open Letter'],
+            ],
             'news' => [
                 'label' => 'News',
                 'description' => 'Community and local news.',

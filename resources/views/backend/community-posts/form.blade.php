@@ -196,6 +196,82 @@
                     </div>
                 </div>
             </div>
+            <div class="col-12 type-extra my-area-flow" data-for="my-area">
+                <div class="my-area-flow-card border rounded-3 p-3 bg-light">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">My Area problem report</h5>
+                            <p class="text-muted mb-0 small">Turn local issues into trackable community action with evidence, GPS location, support, comments, and votes.</p>
+                        </div>
+                        <span class="badge bg-warning text-dark">My Area</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Priority <span class="text-danger">*</span></label>
+                            <select name="issue_priority" class="form-select my-area-required">
+                                <option value="">Select priority</option>
+                                @foreach(['Low', 'Medium', 'High', 'Urgent'] as $priority)
+                                    <option value="{{ $priority }}" @selected(old('issue_priority', data_get($post->meta, 'issue_priority')) === $priority)>{{ $priority }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Issue status</label>
+                            <select name="issue_status" class="form-select">
+                                @foreach(['Open', 'Under Review', 'Resolved'] as $status)
+                                    <option value="{{ $status }}" @selected(old('issue_status', data_get($post->meta, 'issue_status', 'Open')) === $status)>{{ $status }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Reported to</label>
+                            <input type="text" name="reported_to" class="form-control" value="{{ old('reported_to', data_get($post->meta, 'reported_to')) }}" maxlength="160" placeholder="Department/authority">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Reference / complaint no.</label>
+                            <input type="text" name="issue_reference" class="form-control" value="{{ old('issue_reference', data_get($post->meta, 'issue_reference')) }}" maxlength="160" placeholder="Optional tracking ID">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Evidence files</label>
+                            <input type="file" name="issue_attachments[]" class="form-control" accept="image/*,video/*,.pdf,.doc,.docx" multiple>
+                            <small class="text-muted">Upload up to 6 photos, videos, or documents. Each file can be up to 20 MB.</small>
+                            @if(!empty(data_get($post->meta, 'issue_attachments')))
+                                <div class="mt-2 d-flex flex-wrap gap-2">
+                                    @foreach(data_get($post->meta, 'issue_attachments', []) as $attachment)
+                                        <a href="{{ data_get($attachment, 'url') }}" target="_blank" rel="noopener" class="badge bg-light text-dark border text-decoration-none">{{ data_get($attachment, 'name', 'Attachment') }}</a>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 type-extra my-voice-flow" data-for="my-voice">
+                <div class="my-voice-flow-card border rounded-3 p-3 bg-light">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">My Voice</h5>
+                            <p class="text-muted mb-0 small">Share personal opinions, lived experiences, suggestions, concerns, and open letters with context.</p>
+                        </div>
+                        <span class="badge bg-info text-dark">My Voice</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Topic <span class="text-danger">*</span></label>
+                            <input type="text" name="voice_topic" class="form-control my-voice-required" value="{{ old('voice_topic', data_get($post->meta, 'voice_topic')) }}" maxlength="160" placeholder="What is your opinion or experience about?">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Perspective <span class="text-danger">*</span></label>
+                            <select name="voice_perspective" class="form-select my-voice-required">
+                                <option value="">Select perspective</option>
+                                @foreach(['Personal Experience', 'Opinion', 'Suggestion', 'Concern', 'Open Letter'] as $perspective)
+                                    <option value="{{ $perspective }}" @selected(old('voice_perspective', data_get($post->meta, 'voice_perspective')) === $perspective)>{{ $perspective }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="col-md-4 type-extra" data-for="childrens-corner">
                 <div class="form-check mt-4">
                     <input type="checkbox" name="parent_approved" value="1" class="form-check-input" id="parentApproved" @checked(old('parent_approved', data_get($post->meta, 'parent_approved')))>
@@ -214,7 +290,7 @@
                 <label class="form-label">Competition deadline</label>
                 <input type="date" name="competition_deadline" class="form-control" value="{{ old('competition_deadline', data_get($post->meta, 'competition_deadline')) }}">
             </div>
-            <div class="col-12 general-extra" id="allowCommentsWrap">
+            <div class="col-12" id="allowCommentsWrap">
                 <div class="form-check">
                     <input type="checkbox" name="allow_comments" value="1" class="form-check-input" id="allowComments" @checked(old('allow_comments', $post->allow_comments ?? true))>
                     <label class="form-check-label" for="allowComments">Allow comments / discussions</label>
@@ -278,7 +354,9 @@
 
         const isReport = typeSelect.value === 'reports';
         const isNews = typeSelect.value === 'news';
-        const isStructuredContent = isReport || isNews;
+        const isMyArea = typeSelect.value === 'my-area';
+        const isMyVoice = typeSelect.value === 'my-voice';
+        const isStructuredContent = isReport || isNews || isMyArea || isMyVoice;
 
         document.querySelectorAll('.type-extra').forEach((field) => {
             field.style.display = field.dataset.for === typeSelect.value ? '' : 'none';
@@ -294,6 +372,14 @@
 
         document.querySelectorAll('.news-required').forEach((field) => {
             field.required = isNews;
+        });
+
+        document.querySelectorAll('.my-area-required').forEach((field) => {
+            field.required = isMyArea;
+        });
+
+        document.querySelectorAll('.my-voice-required').forEach((field) => {
+            field.required = isMyVoice;
         });
 
         const fieldCopy = isReport ? {
@@ -312,6 +398,22 @@
             bodyHelp: 'Recommended flow: lead, nut graph, details, context, quotes, impact, and latest update.',
             locationLabel: 'News location <span class="text-danger">*</span>',
             locationHelp: 'Select the news location from Google Places so the story is location-indexed.',
+        } : (isMyArea ? {
+            excerptLabel: 'Issue summary',
+            excerptPlaceholder: 'Briefly explain the problem, affected people, and urgency.',
+            excerptHelp: 'Use a clear problem statement so neighbours can quickly support or vote on it.',
+            bodyLabel: 'Detailed problem description <span class="text-danger">*</span>',
+            bodyHelp: 'Include what happened, when it started, exact location landmarks, risk, and expected solution.',
+            locationLabel: 'GPS issue location <span class="text-danger">*</span>',
+            locationHelp: 'Select the exact issue location from Google Places so the problem can be mapped.',
+        } : (isMyVoice ? {
+            excerptLabel: 'Opinion / experience summary',
+            excerptPlaceholder: 'Summarize your main viewpoint or personal experience.',
+            excerptHelp: 'Keep this personal and clear so readers understand your voice quickly.',
+            bodyLabel: 'Full opinion / experience <span class="text-danger">*</span>',
+            bodyHelp: 'Share the context, your experience, why it matters, and what change you want to see.',
+            locationLabel: 'Related location <span class="text-danger">*</span>',
+            locationHelp: 'Select the area related to your opinion or experience.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -320,7 +422,7 @@
             bodyHelp: 'Add the main content for this community post.',
             locationLabel: 'Location / local area <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        });
+        })));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -329,6 +431,7 @@
         document.getElementById('bodyHelp').textContent = fieldCopy.bodyHelp;
         document.getElementById('locationLabel').innerHTML = fieldCopy.locationLabel;
         document.getElementById('locationHelp').textContent = fieldCopy.locationHelp;
+        document.getElementById('allowCommentsWrap').style.display = isReport ? 'none' : '';
         document.getElementById('allowComments').checked = isReport ? false : document.getElementById('allowComments').checked;
     }
 
@@ -339,7 +442,59 @@
 
     refreshCommunityCategories();
 
-    ClassicEditor.create(document.querySelector('#bodyEditor'))
+    class CommunityUploadAdapter {
+        constructor(loader) {
+            this.loader = loader;
+        }
+
+        upload() {
+            return this.loader.file.then((file) => {
+                const data = new FormData();
+                data.append('upload', file);
+
+                return fetch('{{ route('community.posts.uploads.image') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: data,
+                })
+                    .then(async (response) => {
+                        const payload = await response.json();
+                        if (!response.ok || !payload.url) {
+                            throw new Error(payload.message || 'Unable to upload image.');
+                        }
+
+                        return { default: payload.url };
+                    });
+            });
+        }
+
+        abort() {}
+    }
+
+    function communityUploadAdapterPlugin(editor) {
+        editor.plugins.get('FileRepository').createUploadAdapter = (loader) => new CommunityUploadAdapter(loader);
+    }
+
+    ClassicEditor.create(document.querySelector('#bodyEditor'), {
+        extraPlugins: [communityUploadAdapterPlugin],
+        toolbar: {
+            items: [
+                'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                'insertImage', 'blockQuote', 'insertTable', '|', 'undo', 'redo'
+            ],
+        },
+        image: {
+            toolbar: [
+                'imageTextAlternative', 'toggleImageCaption', '|',
+                'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|',
+                'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight'
+            ],
+        },
+    })
         .then((editor) => { window.communityBodyEditor = editor; })
         .catch(() => notify('error', 'Unable to load the body editor.'));
 

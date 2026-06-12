@@ -76,7 +76,7 @@ class CommunityPostController extends Controller
         abort_unless($post->status === CommunityPost::STATUS_PUBLISHED, 404);
 
         $data = $request->validate([
-            'reaction' => ['required', Rule::in(['Helpful', 'Inspiring', 'Excellent', 'Informative'])],
+            'reaction' => ['required', Rule::in(['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote'])],
         ]);
 
         $reaction = CommunityPostReaction::query()->where([
@@ -175,6 +175,10 @@ class CommunityPostController extends Controller
         $data['slug'] = $this->uniqueSlug($data['title']);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
+
+        if ($request->hasFile('issue_attachments')) {
+            $data['meta']['issue_attachments'] = $this->storeIssueAttachments($request);
+        }
         $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['status'] = $request->input('status', CommunityPost::STATUS_PUBLISHED);
         $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? now() : null;
@@ -213,6 +217,16 @@ class CommunityPostController extends Controller
         $data = $this->validated($request);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
+
+        if ($request->hasFile('issue_attachments')) {
+            $data['meta']['issue_attachments'] = array_values(array_merge(
+                (array) data_get($post->meta, 'issue_attachments', []),
+                $this->storeIssueAttachments($request)
+            ));
+        } elseif (data_get($post->meta, 'issue_attachments')) {
+            $data['meta']['issue_attachments'] = data_get($post->meta, 'issue_attachments');
+        }
+
         $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['status'] = $request->input('status', CommunityPost::STATUS_PUBLISHED);
         $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? ($post->published_at ?? now()) : null;
@@ -247,6 +261,27 @@ class CommunityPostController extends Controller
         $post->delete();
 
         return redirect()->route('community.posts.index')->with('success', 'Community post deleted successfully.');
+    }
+
+    public function uploadInlineImage(Request $request): JsonResponse
+    {
+        $request->validate([
+            'upload' => ['required', 'image', 'max:4096'],
+        ]);
+
+        $file = $request->file('upload');
+        $directory = public_path('uploads/community-posts/inline');
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filename = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
+        $file->move($directory, $filename);
+
+        return response()->json([
+            'url' => asset('uploads/community-posts/inline/'.$filename),
+        ]);
     }
 
     /**
@@ -303,6 +338,14 @@ class CommunityPostController extends Controller
             'verification_notes' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:2000'],
             'impact_area' => ['nullable', 'string', 'max:1000'],
             'quote_attribution' => ['nullable', 'string', 'max:1000'],
+            'issue_priority' => [Rule::requiredIf($contentType === 'my-area'), 'nullable', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
+            'issue_status' => ['nullable', Rule::in(['Open', 'Under Review', 'Resolved'])],
+            'reported_to' => ['nullable', 'string', 'max:160'],
+            'issue_reference' => ['nullable', 'string', 'max:160'],
+            'issue_attachments' => ['nullable', 'array', 'max:6'],
+            'issue_attachments.*' => ['file', 'max:20480', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,pdf,doc,docx'],
+            'voice_topic' => [Rule::requiredIf($contentType === 'my-voice'), 'nullable', 'string', 'max:160'],
+            'voice_perspective' => [Rule::requiredIf($contentType === 'my-voice'), 'nullable', Rule::in(['Personal Experience', 'Opinion', 'Suggestion', 'Concern', 'Open Letter'])],
         ]);
     }
 
@@ -339,6 +382,12 @@ class CommunityPostController extends Controller
             'verification_notes' => $request->input('verification_notes'),
             'impact_area' => $request->input('impact_area'),
             'quote_attribution' => $request->input('quote_attribution'),
+            'issue_priority' => $request->input('issue_priority'),
+            'issue_status' => $request->input('issue_status', 'Open'),
+            'reported_to' => $request->input('reported_to'),
+            'issue_reference' => $request->input('issue_reference'),
+            'voice_topic' => $request->input('voice_topic'),
+            'voice_perspective' => $request->input('voice_perspective'),
         ], fn ($value) => filled($value) || is_bool($value));
     }
 
@@ -381,6 +430,34 @@ class CommunityPostController extends Controller
         }
 
         return $slug;
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeIssueAttachments(Request $request): array
+    {
+        $directory = public_path('uploads/community-posts/issues');
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        return collect($request->file('issue_attachments', []))
+            ->map(function ($file) use ($directory): array {
+                $filename = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
+                $file->move($directory, $filename);
+                $path = 'uploads/community-posts/issues/'.$filename;
+
+                return [
+                    'path' => $path,
+                    'url' => asset($path),
+                    'name' => $file->getClientOriginalName(),
+                    'type' => Str::before($file->getMimeType(), '/'),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     private function storeFeaturedImage(Request $request): string

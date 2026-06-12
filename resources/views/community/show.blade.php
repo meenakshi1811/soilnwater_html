@@ -63,16 +63,38 @@
                     'quote_attribution' => 'Quote / attribution',
                     'location' => 'News location',
                 ];
+                $myAreaMetaLabels = [
+                    'issue_priority' => 'Priority',
+                    'issue_status' => 'Status',
+                    'reported_to' => 'Reported to',
+                    'issue_reference' => 'Reference / complaint no.',
+                    'location' => 'GPS issue location',
+                ];
+                $myVoiceMetaLabels = [
+                    'voice_topic' => 'Topic',
+                    'voice_perspective' => 'Perspective',
+                    'location' => 'Related location',
+                ];
                 $reportMetaOrder = array_keys($reportMetaLabels);
                 $newsMetaOrder = array_keys($newsMetaLabels);
+                $myAreaMetaOrder = array_keys($myAreaMetaLabels);
+                $myVoiceMetaOrder = array_keys($myVoiceMetaLabels);
                 $orderedReportMeta = collect($reportMetaOrder)
                     ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
                     ->filter(fn ($value) => filled($value) || is_bool($value));
                 $orderedNewsMeta = collect($newsMetaOrder)
                     ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
                     ->filter(fn ($value) => filled($value) || is_bool($value));
+                $orderedMyAreaMeta = collect($myAreaMetaOrder)
+                    ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
+                    ->filter(fn ($value) => filled($value) || is_bool($value));
+                $orderedMyVoiceMeta = collect($myVoiceMetaOrder)
+                    ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
+                    ->filter(fn ($value) => filled($value) || is_bool($value));
                 $additionalReportMeta = $visibleMeta->except([...$reportMetaOrder, 'author_bio']);
                 $additionalNewsMeta = $visibleMeta->except([...$newsMetaOrder, 'author_bio']);
+                $additionalMyAreaMeta = $visibleMeta->except([...$myAreaMetaOrder, 'issue_attachments', 'author_bio']);
+                $additionalMyVoiceMeta = $visibleMeta->except([...$myVoiceMetaOrder, 'author_bio']);
             @endphp
             @if($post->content_type === 'reports' && $orderedReportMeta->isNotEmpty())
                 <div class="about-box mt-4">
@@ -110,6 +132,50 @@
                 </div>
                 @php($visibleMeta = $additionalNewsMeta)
             @endif
+            @if($post->content_type === 'my-area' && ($orderedMyAreaMeta->isNotEmpty() || !empty(data_get($post->meta, 'issue_attachments'))))
+                <div class="about-box mt-4">
+                    <h4>My Area issue details</h4>
+                    @if($orderedMyAreaMeta->isNotEmpty())
+                        <div class="row g-3 mb-3">
+                            @foreach($orderedMyAreaMeta as $key => $value)
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <strong class="d-block mb-1">{{ $myAreaMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
+                                        <span>{!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                    @if(!empty(data_get($post->meta, 'issue_attachments')))
+                        <h5 class="h6">Evidence files</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach(data_get($post->meta, 'issue_attachments', []) as $attachment)
+                                <a href="{{ data_get($attachment, 'url') }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fa-solid fa-paperclip me-1"></i>{{ data_get($attachment, 'name', 'Attachment') }}
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                @php($visibleMeta = $additionalMyAreaMeta)
+            @endif
+            @if($post->content_type === 'my-voice' && $orderedMyVoiceMeta->isNotEmpty())
+                <div class="about-box mt-4">
+                    <h4>My Voice details</h4>
+                    <div class="row g-3">
+                        @foreach($orderedMyVoiceMeta as $key => $value)
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100 bg-light">
+                                    <strong class="d-block mb-1">{{ $myVoiceMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
+                                    <span>{!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @php($visibleMeta = $additionalMyVoiceMeta)
+            @endif
             @if($visibleMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Additional details</h4>
@@ -135,12 +201,19 @@
                 @php
                     $reactionCounts = $post->reactions->groupBy('reaction')->map->count();
                     $userReactions = auth()->check() ? $post->reactions->where('user_id', auth()->id())->pluck('reaction')->all() : [];
-                    $reactionOptions = [
-                        'Helpful' => 'fa-solid fa-hand-holding-heart',
-                        'Inspiring' => 'fa-solid fa-lightbulb',
-                        'Excellent' => 'fa-solid fa-star',
-                        'Informative' => 'fa-solid fa-circle-info',
-                    ];
+                    $reactionOptions = $post->content_type === 'my-area'
+                        ? [
+                            'Support' => 'fa-solid fa-hand-holding-heart',
+                            'Vote' => 'fa-solid fa-square-poll-vertical',
+                            'Helpful' => 'fa-solid fa-circle-info',
+                            'Informative' => 'fa-solid fa-lightbulb',
+                        ]
+                        : [
+                            'Helpful' => 'fa-solid fa-hand-holding-heart',
+                            'Inspiring' => 'fa-solid fa-lightbulb',
+                            'Excellent' => 'fa-solid fa-star',
+                            'Informative' => 'fa-solid fa-circle-info',
+                        ];
                 @endphp
                 @auth
                     <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
@@ -179,6 +252,24 @@
 </div>
 @endsection
 
+
+@push('styles')
+<style>
+    .community-post-body .image { margin: 1rem auto; }
+    .community-post-body .image img { height: auto; max-width: 100%; }
+    .community-post-body .image-style-align-left,
+    .community-post-body .image-style-side { float: left; margin: .35rem 1.25rem 1rem 0; max-width: 50%; }
+    .community-post-body .image-style-align-right { float: right; margin: .35rem 0 1rem 1.25rem; max-width: 50%; }
+    .community-post-body .image-style-align-center,
+    .community-post-body .image-style-block { clear: both; display: table; margin-left: auto; margin-right: auto; }
+    .community-post-body::after { clear: both; content: ""; display: table; }
+    @media (max-width: 767.98px) {
+        .community-post-body .image-style-align-left,
+        .community-post-body .image-style-align-right,
+        .community-post-body .image-style-side { float: none; margin: 1rem auto; max-width: 100%; }
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

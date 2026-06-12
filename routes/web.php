@@ -240,6 +240,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [CommunityPostController::class, 'myPosts'])->name('index');
         Route::get('/create', [CommunityPostController::class, 'create'])->name('create');
         Route::patch('/author-url', [CommunityPostController::class, 'updateAuthorUrl'])->name('author-url.update');
+        Route::post('/uploads/image', [CommunityPostController::class, 'uploadInlineImage'])->name('uploads.image');
         Route::post('/', [CommunityPostController::class, 'store'])->name('store');
         Route::get('/{post:slug}', [CommunityPostController::class, 'show'])->name('show');
         Route::get('/{post:slug}/edit', [CommunityPostController::class, 'edit'])->name('edit');

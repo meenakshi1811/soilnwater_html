@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\CommunityPost;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class CommunityPostReportFlowTest extends TestCase
@@ -147,5 +148,88 @@ class CommunityPostReportFlowTest extends TestCase
         $this->assertSame('Community News Desk', $post->meta['reporter_name']);
         $this->assertSame('Municipal water department release', $post->meta['news_source']);
         $this->assertSame('https://example.com/water-schedule', $post->meta['source_url']);
+    }
+
+
+    public function test_my_area_posts_store_issue_details_and_attachments(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
+            'content_type' => 'my-area',
+            'category' => 'Water Issue',
+            'title' => 'Broken water pipeline near market',
+            'excerpt' => 'Water has been leaking near the market and affecting nearby shops.',
+            'body' => 'The water pipeline has been broken for three days and needs urgent repair from the local department.',
+            'status' => CommunityPost::STATUS_PUBLISHED,
+            'allow_comments' => '1',
+            'location' => 'Jaipur, Rajasthan, India',
+            'location_lat' => '26.9124000',
+            'location_lng' => '75.7873000',
+            'issue_priority' => 'Urgent',
+            'issue_status' => 'Open',
+            'reported_to' => 'Water Department',
+            'issue_reference' => 'WD-123',
+            'issue_attachments' => [
+                UploadedFile::fake()->image('leak.jpg'),
+                UploadedFile::fake()->create('complaint.pdf', 64, 'application/pdf'),
+            ],
+        ]);
+
+        $response->assertOk()->assertJson([
+            'message' => 'Community post created successfully.',
+        ]);
+
+        $post = CommunityPost::query()->where('title', 'Broken water pipeline near market')->firstOrFail();
+
+        $this->assertTrue($post->allow_comments);
+        $this->assertSame('my-area', $post->content_type);
+        $this->assertSame('Urgent', $post->meta['issue_priority']);
+        $this->assertSame('Open', $post->meta['issue_status']);
+        $this->assertSame('Water Department', $post->meta['reported_to']);
+        $this->assertCount(2, $post->meta['issue_attachments']);
+    }
+
+    public function test_my_voice_posts_require_and_store_voice_context(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($user)->postJson(route('community.posts.store'), [
+            'content_type' => 'my-voice',
+            'category' => 'Personal Opinion',
+            'title' => 'Why local water awareness matters',
+            'excerpt' => 'A personal experience about water conservation awareness.',
+            'body' => 'This opinion explains why local water awareness programs need regular community participation.',
+            'status' => CommunityPost::STATUS_PUBLISHED,
+            'location' => 'Jaipur, Rajasthan, India',
+            'location_lat' => '26.9124000',
+            'location_lng' => '75.7873000',
+        ])->assertUnprocessable()->assertJsonValidationErrors(['voice_topic', 'voice_perspective']);
+
+        $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
+            'content_type' => 'my-voice',
+            'category' => 'Personal Opinion',
+            'title' => 'Why local water awareness matters',
+            'excerpt' => 'A personal experience about water conservation awareness.',
+            'body' => 'This opinion explains why local water awareness programs need regular community participation.',
+            'status' => CommunityPost::STATUS_PUBLISHED,
+            'allow_comments' => '1',
+            'location' => 'Jaipur, Rajasthan, India',
+            'location_lat' => '26.9124000',
+            'location_lng' => '75.7873000',
+            'voice_topic' => 'Water conservation awareness',
+            'voice_perspective' => 'Personal Experience',
+        ]);
+
+        $response->assertOk()->assertJson([
+            'message' => 'Community post created successfully.',
+        ]);
+
+        $post = CommunityPost::query()->where('title', 'Why local water awareness matters')->firstOrFail();
+
+        $this->assertTrue($post->allow_comments);
+        $this->assertSame('my-voice', $post->content_type);
+        $this->assertSame('Water conservation awareness', $post->meta['voice_topic']);
+        $this->assertSame('Personal Experience', $post->meta['voice_perspective']);
     }
 }
