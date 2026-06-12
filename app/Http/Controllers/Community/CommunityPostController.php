@@ -175,7 +175,7 @@ class CommunityPostController extends Controller
         $data['slug'] = $this->uniqueSlug($data['title']);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
-        $data['allow_comments'] = $request->boolean('allow_comments');
+        $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['status'] = $request->input('status', CommunityPost::STATUS_PUBLISHED);
         $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? now() : null;
 
@@ -213,7 +213,7 @@ class CommunityPostController extends Controller
         $data = $this->validated($request);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
-        $data['allow_comments'] = $request->boolean('allow_comments');
+        $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['status'] = $request->input('status', CommunityPost::STATUS_PUBLISHED);
         $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? ($post->published_at ?? now()) : null;
 
@@ -284,6 +284,25 @@ class CommunityPostController extends Controller
             'school_name' => ['nullable', 'string', 'max:160'],
             'consultation_fee' => ['nullable', 'string', 'max:120'],
             'competition_deadline' => ['nullable', 'date'],
+            'report_subtitle' => ['nullable', 'string', 'max:255'],
+            'reporting_period' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:120'],
+            'report_date' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'date'],
+            'prepared_by' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:160'],
+            'report_scope' => ['nullable', 'string', 'max:1000'],
+            'methodology' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:2000'],
+            'data_sources' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:2000'],
+            'key_findings' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:3000'],
+            'recommendations' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:3000'],
+            'news_subtitle' => ['nullable', 'string', 'max:255'],
+            'news_dateline' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
+            'news_date' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'date'],
+            'reporter_name' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
+            'news_source' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
+            'source_url' => ['nullable', 'url', 'max:255'],
+            'fact_summary' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:2000'],
+            'verification_notes' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:2000'],
+            'impact_area' => ['nullable', 'string', 'max:1000'],
+            'quote_attribution' => ['nullable', 'string', 'max:1000'],
         ]);
     }
 
@@ -301,7 +320,36 @@ class CommunityPostController extends Controller
             'school_name' => $request->input('school_name'),
             'consultation_fee' => $request->input('consultation_fee'),
             'competition_deadline' => $request->input('competition_deadline'),
+            'report_subtitle' => $request->input('report_subtitle'),
+            'reporting_period' => $request->input('reporting_period'),
+            'report_date' => $request->input('report_date'),
+            'prepared_by' => $request->input('prepared_by'),
+            'report_scope' => $request->input('report_scope'),
+            'methodology' => $request->input('methodology'),
+            'data_sources' => $request->input('data_sources'),
+            'key_findings' => $request->input('key_findings'),
+            'recommendations' => $request->input('recommendations'),
+            'news_subtitle' => $request->input('news_subtitle'),
+            'news_dateline' => $request->input('news_dateline'),
+            'news_date' => $request->input('news_date'),
+            'reporter_name' => $request->input('reporter_name'),
+            'news_source' => $request->input('news_source'),
+            'source_url' => $request->input('source_url'),
+            'fact_summary' => $request->input('fact_summary'),
+            'verification_notes' => $request->input('verification_notes'),
+            'impact_area' => $request->input('impact_area'),
+            'quote_attribution' => $request->input('quote_attribution'),
         ], fn ($value) => filled($value) || is_bool($value));
+    }
+
+
+    private function shouldAllowComments(Request $request): bool
+    {
+        if ($request->input('content_type') === 'reports') {
+            return false;
+        }
+
+        return $request->boolean('allow_comments');
     }
 
     /**
