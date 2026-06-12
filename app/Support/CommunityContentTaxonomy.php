@@ -201,6 +201,20 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Legacy report format options kept so stale compiled views or older callers do not fail.
+     *
+     * The create/edit form no longer renders a report format field.
+     *
+     * @return array<string, string>
+     */
+    public static function reportFormats(): array
+    {
+        return [
+            'my_area' => 'My Area problem report',
+        ];
+    }
+
+    /**
      * Report type choices for My Area civic issue posts.
      *
      * @return list<string>
