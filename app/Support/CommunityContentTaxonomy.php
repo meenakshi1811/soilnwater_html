@@ -201,19 +201,6 @@ class CommunityContentTaxonomy
     }
 
     /**
-     * Report form variants shown after selecting the Reports post type.
-     *
-     * @return array<string, string>
-     */
-    public static function reportFormats(): array
-    {
-        return [
-            'professional' => 'Professional report',
-            'my_area' => 'My Area problem report',
-        ];
-    }
-
-    /**
      * Report type choices for My Area civic issue posts.
      *
      * @return list<string>

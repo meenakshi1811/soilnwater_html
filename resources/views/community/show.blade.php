@@ -5,7 +5,7 @@
     <section class="about-banner">
         <div class="mb-2">
             <span class="badge bg-light text-dark">{{ $post->typeLabel() }}</span>
-            <span class="badge bg-light text-dark">{{ data_get($post->meta, 'report_format') === 'my_area' ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</span>
+            <span class="badge bg-light text-dark">{{ filled(data_get($post->meta, 'report_type')) ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</span>
         </div>
         <h1>{{ $post->title }}</h1>
         <p>
@@ -97,7 +97,7 @@
                 $additionalMyAreaMeta = $visibleMeta->except([...$myAreaMetaOrder, 'report_format', 'issue_attachments', 'author_bio']);
                 $additionalMyVoiceMeta = $visibleMeta->except([...$myVoiceMetaOrder, 'author_bio']);
             @endphp
-            @if($post->content_type === 'reports' && data_get($post->meta, 'report_format', 'professional') !== 'my_area' && $orderedReportMeta->isNotEmpty())
+            @if($post->content_type === 'reports' && blank(data_get($post->meta, 'report_type')) && $orderedReportMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Report details</h4>
                     <div class="row g-3">
@@ -133,7 +133,7 @@
                 </div>
                 @php($visibleMeta = $additionalNewsMeta)
             @endif
-            @if(data_get($post->meta, 'report_format') === 'my_area' && ($orderedMyAreaMeta->isNotEmpty() || !empty(data_get($post->meta, 'issue_attachments'))))
+            @if($post->content_type === 'reports' && ($orderedMyAreaMeta->isNotEmpty() || !empty(data_get($post->meta, 'issue_attachments'))))
                 <div class="about-box mt-4">
                     <h4>My Area report details</h4>
                     @if($orderedMyAreaMeta->isNotEmpty())
@@ -202,7 +202,7 @@
                 @php
                     $reactionCounts = $post->reactions->groupBy('reaction')->map->count();
                     $userReactions = auth()->check() ? $post->reactions->where('user_id', auth()->id())->pluck('reaction')->all() : [];
-                    $reactionOptions = data_get($post->meta, 'report_format') === 'my_area'
+                    $reactionOptions = $post->content_type === 'reports' && filled(data_get($post->meta, 'report_type'))
                         ? [
                             'Support' => 'fa-solid fa-hand-holding-heart',
                             'Vote' => 'fa-solid fa-square-poll-vertical',

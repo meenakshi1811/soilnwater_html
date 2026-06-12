@@ -104,55 +104,6 @@
                 <input type="hidden" name="location_lng" id="communityLocationLng" value="{{ old('location_lng', data_get($post->meta, 'location_lng')) }}">
                 <small class="text-muted" id="locationHelp">Select a Google Places suggestion so latitude and longitude are saved.</small>
             </div>
-            <div class="col-12 type-extra report-flow" data-for="reports" data-report-format="professional">
-                <div class="report-flow-card border rounded-3 p-3 bg-light">
-                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
-                        <div>
-                            <h5 class="mb-1">Professional report structure</h5>
-                            <p class="text-muted mb-0 small">Use these fields to make the report review-ready, traceable, and easy for readers to evaluate.</p>
-                        </div>
-                        <span class="badge bg-success text-white">Report only</span>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Report subtitle</label>
-                            <input type="text" name="report_subtitle" class="form-control" value="{{ old('report_subtitle', data_get($post->meta, 'report_subtitle')) }}" maxlength="255" placeholder="Optional supporting title">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Reporting period <span class="text-danger">*</span></label>
-                            <input type="text" name="reporting_period" class="form-control report-required" value="{{ old('reporting_period', data_get($post->meta, 'reporting_period')) }}" maxlength="120" placeholder="e.g. Q1 2026">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Report date <span class="text-danger">*</span></label>
-                            <input type="date" name="report_date" class="form-control report-required" value="{{ old('report_date', data_get($post->meta, 'report_date')) }}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Prepared by / organization <span class="text-danger">*</span></label>
-                            <input type="text" name="prepared_by" class="form-control report-required" value="{{ old('prepared_by', data_get($post->meta, 'prepared_by')) }}" maxlength="160" placeholder="Author, department, or organization">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Scope / objective</label>
-                            <textarea name="report_scope" class="form-control" rows="3" maxlength="1000" placeholder="What this report covers and why it was prepared">{{ old('report_scope', data_get($post->meta, 'report_scope')) }}</textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Methodology <span class="text-danger">*</span></label>
-                            <textarea name="methodology" class="form-control report-required" rows="4" maxlength="2000" placeholder="Methods, sample size, tools, and assumptions">{{ old('methodology', data_get($post->meta, 'methodology')) }}</textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Data sources <span class="text-danger">*</span></label>
-                            <textarea name="data_sources" class="form-control report-required" rows="4" maxlength="2000" placeholder="Primary/secondary data sources, citations, survey sources">{{ old('data_sources', data_get($post->meta, 'data_sources')) }}</textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Key findings <span class="text-danger">*</span></label>
-                            <textarea name="key_findings" class="form-control report-required" rows="5" maxlength="3000" placeholder="Bullet-style findings or concise conclusions">{{ old('key_findings', data_get($post->meta, 'key_findings')) }}</textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Recommendations <span class="text-danger">*</span></label>
-                            <textarea name="recommendations" class="form-control report-required" rows="5" maxlength="3000" placeholder="Actionable recommendations and next steps">{{ old('recommendations', data_get($post->meta, 'recommendations')) }}</textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div class="col-12 type-extra news-flow" data-for="news">
                 <div class="news-flow-card border rounded-3 p-3 bg-light">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -206,7 +157,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 type-extra my-area-flow" data-for="reports" data-report-format="my_area">
+            <div class="col-12 type-extra my-area-flow" data-for="reports">
                 <div class="my-area-flow-card border rounded-3 p-3 bg-light">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
                         <div>
@@ -353,7 +304,7 @@
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
 
-        if (isMyArea) {
+        if (isReport) {
             const option = document.createElement('option');
             option.value = 'Community Problem Report';
             option.textContent = 'Community Problem Report';
@@ -390,7 +341,7 @@
         });
 
         document.querySelectorAll('.report-required').forEach((field) => {
-            field.required = isProfessionalReport;
+            field.required = false;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -398,14 +349,10 @@
         });
 
         document.querySelectorAll('.my-area-required').forEach((field) => {
-            field.required = isMyArea;
+            field.required = isReport;
         });
 
-        if (reportFormatSelect) {
-            reportFormatSelect.required = isReport;
-        }
-
-        const fieldCopy = isMyArea ? {
+        const fieldCopy = isReport ? {
             excerptLabel: 'Issue summary',
             excerptPlaceholder: 'Briefly explain the problem, affected people, and urgency.',
             excerptHelp: 'Use a clear problem statement so neighbours can quickly support or vote on it.',
@@ -413,14 +360,6 @@
             bodyHelp: 'Include what happened, when it started, exact location landmarks, risk, and expected solution.',
             locationLabel: 'GPS issue location <span class="text-danger">*</span>',
             locationHelp: 'Select the exact issue location from Google Places so the problem can be mapped.',
-        } : (isReport ? {
-            excerptLabel: 'Executive summary',
-            excerptPlaceholder: 'Summarize objective, scope, main findings, and recommendations.',
-            excerptHelp: 'Keep this professional: purpose, coverage, key insight, and action in 2–4 lines.',
-            bodyLabel: 'Detailed analysis / full report <span class="text-danger">*</span>',
-            bodyHelp: 'Recommended flow: background, context, analysis, evidence, limitations, conclusion, and appendix notes.',
-            locationLabel: 'Coverage / study area <span class="text-danger">*</span>',
-            locationHelp: 'Select the report coverage area from Google Places so the report is location-indexed.',
         } : (isNews ? {
             excerptLabel: 'News summary / standfirst',
             excerptPlaceholder: 'Summarize the news angle, confirmed facts, and why it matters.',
@@ -437,7 +376,7 @@
             bodyHelp: 'Add the main content for this community post.',
             locationLabel: 'Location / local area <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        }));
+        });
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;

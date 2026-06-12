@@ -13,13 +13,13 @@ class CommunityPostReportFlowTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_report_posts_require_professional_report_fields(): void
+    public function test_report_posts_require_my_area_fields(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
         $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
             'content_type' => 'reports',
-            'category' => 'Industry Reports',
+            'category' => 'Community Problem Report',
             'title' => 'Quarterly Water Market Report',
             'excerpt' => 'A professional overview of water market performance.',
             'body' => 'This report contains detailed analysis for the water market this quarter.',
@@ -31,23 +31,18 @@ class CommunityPostReportFlowTest extends TestCase
 
         $response->assertUnprocessable();
         $response->assertJsonValidationErrors([
-            'reporting_period',
-            'report_date',
-            'prepared_by',
-            'methodology',
-            'data_sources',
-            'key_findings',
-            'recommendations',
+            'report_type',
+            'issue_priority',
         ]);
     }
 
-    public function test_report_posts_store_professional_metadata_and_can_enable_comments(): void
+    public function test_report_posts_store_my_area_and_optional_report_metadata(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
         $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
             'content_type' => 'reports',
-            'category' => 'Water & Environment Reports',
+            'category' => 'Community Problem Report',
             'title' => 'District Water Conservation Report',
             'excerpt' => 'Executive summary covering objective, findings, and action points.',
             'body' => 'Background, context, analysis, evidence, limitations, conclusion, and appendix notes are included here.',
@@ -56,6 +51,10 @@ class CommunityPostReportFlowTest extends TestCase
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',
+            'report_type' => 'Water Issue',
+            'issue_priority' => 'High',
+            'issue_status' => 'Open',
+            'reported_to' => 'Water Department',
             'report_subtitle' => 'Water availability and local action priorities',
             'reporting_period' => 'Q1 2026',
             'report_date' => '2026-04-15',
@@ -75,6 +74,8 @@ class CommunityPostReportFlowTest extends TestCase
 
         $this->assertTrue($post->allow_comments);
         $this->assertSame('reports', $post->content_type);
+        $this->assertSame('Water Issue', $post->meta['report_type']);
+        $this->assertSame('High', $post->meta['issue_priority']);
         $this->assertSame('Q1 2026', $post->meta['reporting_period']);
         $this->assertSame('2026-04-15', $post->meta['report_date']);
         $this->assertSame('Soil & Water Research Desk', $post->meta['prepared_by']);
@@ -157,7 +158,6 @@ class CommunityPostReportFlowTest extends TestCase
 
         $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
             'content_type' => 'reports',
-            'report_format' => 'my_area',
             'category' => 'Community Problem Report',
             'report_type' => 'Water Issue',
             'title' => 'Broken water pipeline near market',
@@ -186,7 +186,6 @@ class CommunityPostReportFlowTest extends TestCase
 
         $this->assertTrue($post->allow_comments);
         $this->assertSame('reports', $post->content_type);
-        $this->assertSame('my_area', $post->meta['report_format']);
         $this->assertSame('Water Issue', $post->meta['report_type']);
         $this->assertSame('Urgent', $post->meta['issue_priority']);
         $this->assertSame('Open', $post->meta['issue_status']);

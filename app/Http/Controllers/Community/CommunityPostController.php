@@ -319,9 +319,7 @@ class CommunityPostController extends Controller
     {
         $typeKeys = array_keys(CommunityContentTaxonomy::formTypes());
         $contentType = $request->input('content_type');
-        $reportFormat = $request->input('report_format', 'professional');
-        $isProfessionalReport = $contentType === 'reports' && $reportFormat === 'professional';
-        $isMyAreaReport = $contentType === 'reports' && $reportFormat === 'my_area';
+        $isReport = $contentType === 'reports';
 
         return $request->validate([
             'content_type' => ['required', Rule::in($typeKeys)],
@@ -352,14 +350,14 @@ class CommunityPostController extends Controller
             'competition_deadline' => ['nullable', 'date'],
             'report_format' => ['nullable', Rule::in(array_keys(CommunityContentTaxonomy::reportFormats()))],
             'report_subtitle' => ['nullable', 'string', 'max:255'],
-            'reporting_period' => [Rule::requiredIf($isProfessionalReport), 'nullable', 'string', 'max:120'],
-            'report_date' => [Rule::requiredIf($isProfessionalReport), 'nullable', 'date'],
-            'prepared_by' => [Rule::requiredIf($isProfessionalReport), 'nullable', 'string', 'max:160'],
+            'reporting_period' => ['nullable', 'string', 'max:120'],
+            'report_date' => ['nullable', 'date'],
+            'prepared_by' => ['nullable', 'string', 'max:160'],
             'report_scope' => ['nullable', 'string', 'max:1000'],
-            'methodology' => [Rule::requiredIf($isProfessionalReport), 'nullable', 'string', 'max:2000'],
-            'data_sources' => [Rule::requiredIf($isProfessionalReport), 'nullable', 'string', 'max:2000'],
-            'key_findings' => [Rule::requiredIf($isProfessionalReport), 'nullable', 'string', 'max:3000'],
-            'recommendations' => [Rule::requiredIf($isProfessionalReport), 'nullable', 'string', 'max:3000'],
+            'methodology' => ['nullable', 'string', 'max:2000'],
+            'data_sources' => ['nullable', 'string', 'max:2000'],
+            'key_findings' => ['nullable', 'string', 'max:3000'],
+            'recommendations' => ['nullable', 'string', 'max:3000'],
             'news_subtitle' => ['nullable', 'string', 'max:255'],
             'news_dateline' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
             'news_date' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'date'],
@@ -370,8 +368,8 @@ class CommunityPostController extends Controller
             'verification_notes' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:2000'],
             'impact_area' => ['nullable', 'string', 'max:1000'],
             'quote_attribution' => ['nullable', 'string', 'max:1000'],
-            'report_type' => [Rule::requiredIf($isMyAreaReport), 'nullable', Rule::in(CommunityContentTaxonomy::myAreaReportTypes())],
-            'issue_priority' => [Rule::requiredIf($isMyAreaReport), 'nullable', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
+            'report_type' => [Rule::requiredIf($isReport), 'nullable', Rule::in(CommunityContentTaxonomy::myAreaReportTypes())],
+            'issue_priority' => [Rule::requiredIf($isReport), 'nullable', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
             'issue_status' => ['nullable', Rule::in(['Open', 'Under Review', 'Resolved'])],
             'reported_to' => ['nullable', 'string', 'max:160'],
             'issue_reference' => ['nullable', 'string', 'max:160'],
@@ -416,7 +414,7 @@ class CommunityPostController extends Controller
             'quote_attribution' => $request->input('quote_attribution'),
             'report_type' => $request->input('report_type'),
             'issue_priority' => $request->input('issue_priority'),
-            'issue_status' => $request->input('report_format') === 'my_area' ? $request->input('issue_status', 'Open') : $request->input('issue_status'),
+            'issue_status' => $request->input('content_type') === 'reports' ? $request->input('issue_status', 'Open') : $request->input('issue_status'),
             'reported_to' => $request->input('reported_to'),
             'issue_reference' => $request->input('issue_reference'),
         ], fn ($value) => filled($value) || is_bool($value));
