@@ -175,7 +175,7 @@ class CommunityPostController extends Controller
         $data['slug'] = $this->uniqueSlug($data['title']);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
-        $data['allow_comments'] = $request->boolean('allow_comments');
+        $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['status'] = $request->input('status', CommunityPost::STATUS_PUBLISHED);
         $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? now() : null;
 
@@ -213,7 +213,7 @@ class CommunityPostController extends Controller
         $data = $this->validated($request);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
-        $data['allow_comments'] = $request->boolean('allow_comments');
+        $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['status'] = $request->input('status', CommunityPost::STATUS_PUBLISHED);
         $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? ($post->published_at ?? now()) : null;
 
@@ -284,6 +284,15 @@ class CommunityPostController extends Controller
             'school_name' => ['nullable', 'string', 'max:160'],
             'consultation_fee' => ['nullable', 'string', 'max:120'],
             'competition_deadline' => ['nullable', 'date'],
+            'report_subtitle' => ['nullable', 'string', 'max:255'],
+            'reporting_period' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:120'],
+            'report_date' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'date'],
+            'prepared_by' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:160'],
+            'report_scope' => ['nullable', 'string', 'max:1000'],
+            'methodology' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:2000'],
+            'data_sources' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:2000'],
+            'key_findings' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:3000'],
+            'recommendations' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:3000'],
         ]);
     }
 
@@ -301,7 +310,26 @@ class CommunityPostController extends Controller
             'school_name' => $request->input('school_name'),
             'consultation_fee' => $request->input('consultation_fee'),
             'competition_deadline' => $request->input('competition_deadline'),
+            'report_subtitle' => $request->input('report_subtitle'),
+            'reporting_period' => $request->input('reporting_period'),
+            'report_date' => $request->input('report_date'),
+            'prepared_by' => $request->input('prepared_by'),
+            'report_scope' => $request->input('report_scope'),
+            'methodology' => $request->input('methodology'),
+            'data_sources' => $request->input('data_sources'),
+            'key_findings' => $request->input('key_findings'),
+            'recommendations' => $request->input('recommendations'),
         ], fn ($value) => filled($value) || is_bool($value));
+    }
+
+
+    private function shouldAllowComments(Request $request): bool
+    {
+        if ($request->input('content_type') === 'reports') {
+            return false;
+        }
+
+        return $request->boolean('allow_comments');
     }
 
     /**

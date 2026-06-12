@@ -38,14 +38,47 @@
 
             @php
                 $visibleMeta = collect($post->meta ?? [])->except(['location_lat', 'location_lng']);
+                $reportMetaLabels = [
+                    'report_subtitle' => 'Subtitle',
+                    'reporting_period' => 'Reporting period',
+                    'report_date' => 'Report date',
+                    'prepared_by' => 'Prepared by',
+                    'report_scope' => 'Scope / objective',
+                    'methodology' => 'Methodology',
+                    'data_sources' => 'Data sources',
+                    'key_findings' => 'Key findings',
+                    'recommendations' => 'Recommendations',
+                    'location' => 'Coverage / study area',
+                ];
+                $reportMetaOrder = array_keys($reportMetaLabels);
+                $orderedReportMeta = collect($reportMetaOrder)
+                    ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
+                    ->filter(fn ($value) => filled($value) || is_bool($value));
+                $additionalReportMeta = $visibleMeta->except([...$reportMetaOrder, 'author_bio']);
             @endphp
+            @if($post->content_type === 'reports' && $orderedReportMeta->isNotEmpty())
+                <div class="about-box mt-4">
+                    <h4>Report details</h4>
+                    <div class="row g-3">
+                        @foreach($orderedReportMeta as $key => $value)
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100 bg-light">
+                                    <strong class="d-block mb-1">{{ $reportMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
+                                    <span>{!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @php($visibleMeta = $additionalReportMeta)
+            @endif
             @if($visibleMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Additional details</h4>
                     <ul class="about-list mb-0">
                         @foreach($visibleMeta as $key => $value)
                             @continue(blank($value) || $value === false)
-                            <li><strong>{{ \Illuminate\Support\Str::headline($key) }}:</strong> {{ is_bool($value) ? 'Yes' : $value }}</li>
+                            <li><strong>{{ \Illuminate\Support\Str::headline($key) }}:</strong> {!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</li>
                         @endforeach
                     </ul>
                 </div>
