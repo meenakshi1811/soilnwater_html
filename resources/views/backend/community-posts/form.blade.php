@@ -58,12 +58,15 @@
                 </select>
             </div>
             <div class="col-12">
-                <label class="form-label">Short excerpt</label>
-                <textarea name="excerpt" class="form-control" rows="2" maxlength="1000">{{ old('excerpt', $post->excerpt) }}</textarea>
+                <label class="form-label" id="excerptLabel">Short excerpt</label>
+                <textarea name="excerpt" id="excerptField" class="form-control" rows="2" maxlength="1000">{{ old('excerpt', $post->excerpt) }}</textarea>
+                <small id="excerptHelp" class="text-muted d-block mt-1">A concise teaser shown in listing cards.</small>
             </div>
             <div class="col-12">
-                <label class="form-label">Body <span class="text-danger">*</span></label>
+                <label class="form-label" id="bodyLabel">Body <span class="text-danger">*</span></label>
                 <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
+                <small id="bodyHelp" class="text-muted d-block mt-1">Add the main content for this community post.</small>
+                <small class="text-muted d-block mt-1">For text beside an image: upload/insert the image, choose left or right alignment from the image toolbar, then click after the image and type. The text will wrap in the open side.</small>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Featured image</label>
@@ -81,16 +84,194 @@
                 <input type="hidden" name="tags" id="tagsHidden" value="{{ old('tags', is_array($post->tags) ? implode(', ', $post->tags) : '') }}">
                 <small class="text-muted">Add each tag separately. Duplicate tags are ignored.</small>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 general-extra">
                 <label class="form-label">Author bio</label>
                 <input type="text" name="author_bio" class="form-control" value="{{ old('author_bio', data_get($post->meta, 'author_bio')) }}" maxlength="500">
             </div>
             <div class="col-md-6">
-                <label class="form-label">Location / local area <span class="text-danger">*</span></label>
+                <label class="form-label" id="locationLabel">Location / local area <span class="text-danger">*</span></label>
                 <input type="text" name="location" id="communityLocation" class="form-control" value="{{ old('location', data_get($post->meta, 'location')) }}" maxlength="160" placeholder="Search and select a location" autocomplete="off" required>
                 <input type="hidden" name="location_lat" id="communityLocationLat" value="{{ old('location_lat', data_get($post->meta, 'location_lat')) }}">
                 <input type="hidden" name="location_lng" id="communityLocationLng" value="{{ old('location_lng', data_get($post->meta, 'location_lng')) }}">
-                <small class="text-muted">Select a Google Places suggestion so latitude and longitude are saved.</small>
+                <small class="text-muted" id="locationHelp">Select a Google Places suggestion so latitude and longitude are saved.</small>
+            </div>
+            <div class="col-12 type-extra report-flow" data-for="reports">
+                <div class="report-flow-card border rounded-3 p-3 bg-light">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Professional report structure</h5>
+                            <p class="text-muted mb-0 small">Use these fields to make the report review-ready, traceable, and easy for readers to evaluate.</p>
+                        </div>
+                        <span class="badge bg-success text-white">Report only</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Report subtitle</label>
+                            <input type="text" name="report_subtitle" class="form-control" value="{{ old('report_subtitle', data_get($post->meta, 'report_subtitle')) }}" maxlength="255" placeholder="Optional supporting title">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Reporting period <span class="text-danger">*</span></label>
+                            <input type="text" name="reporting_period" class="form-control report-required" value="{{ old('reporting_period', data_get($post->meta, 'reporting_period')) }}" maxlength="120" placeholder="e.g. Q1 2026">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Report date <span class="text-danger">*</span></label>
+                            <input type="date" name="report_date" class="form-control report-required" value="{{ old('report_date', data_get($post->meta, 'report_date')) }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Prepared by / organization <span class="text-danger">*</span></label>
+                            <input type="text" name="prepared_by" class="form-control report-required" value="{{ old('prepared_by', data_get($post->meta, 'prepared_by')) }}" maxlength="160" placeholder="Author, department, or organization">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Scope / objective</label>
+                            <textarea name="report_scope" class="form-control" rows="3" maxlength="1000" placeholder="What this report covers and why it was prepared">{{ old('report_scope', data_get($post->meta, 'report_scope')) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Methodology <span class="text-danger">*</span></label>
+                            <textarea name="methodology" class="form-control report-required" rows="4" maxlength="2000" placeholder="Methods, sample size, tools, and assumptions">{{ old('methodology', data_get($post->meta, 'methodology')) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Data sources <span class="text-danger">*</span></label>
+                            <textarea name="data_sources" class="form-control report-required" rows="4" maxlength="2000" placeholder="Primary/secondary data sources, citations, survey sources">{{ old('data_sources', data_get($post->meta, 'data_sources')) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Key findings <span class="text-danger">*</span></label>
+                            <textarea name="key_findings" class="form-control report-required" rows="5" maxlength="3000" placeholder="Bullet-style findings or concise conclusions">{{ old('key_findings', data_get($post->meta, 'key_findings')) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Recommendations <span class="text-danger">*</span></label>
+                            <textarea name="recommendations" class="form-control report-required" rows="5" maxlength="3000" placeholder="Actionable recommendations and next steps">{{ old('recommendations', data_get($post->meta, 'recommendations')) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 type-extra news-flow" data-for="news">
+                <div class="news-flow-card border rounded-3 p-3 bg-light">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Professional news structure</h5>
+                            <p class="text-muted mb-0 small">Capture the who, what, when, where, why, source, and verification details for publish-ready news.</p>
+                        </div>
+                        <span class="badge bg-primary text-white">News only</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">News subtitle / deck</label>
+                            <input type="text" name="news_subtitle" class="form-control" value="{{ old('news_subtitle', data_get($post->meta, 'news_subtitle')) }}" maxlength="255" placeholder="Optional second line below the headline">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Dateline / place <span class="text-danger">*</span></label>
+                            <input type="text" name="news_dateline" class="form-control news-required" value="{{ old('news_dateline', data_get($post->meta, 'news_dateline')) }}" maxlength="160" placeholder="e.g. Jaipur">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">News date <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="news_date" class="form-control news-required" value="{{ old('news_date', data_get($post->meta, 'news_date')) }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Reporter / byline <span class="text-danger">*</span></label>
+                            <input type="text" name="reporter_name" class="form-control news-required" value="{{ old('reporter_name', data_get($post->meta, 'reporter_name')) }}" maxlength="160" placeholder="Reporter or desk name">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Primary source <span class="text-danger">*</span></label>
+                            <input type="text" name="news_source" class="form-control news-required" value="{{ old('news_source', data_get($post->meta, 'news_source')) }}" maxlength="160" placeholder="Official, witness, release, or agency">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Source URL</label>
+                            <input type="url" name="source_url" class="form-control" value="{{ old('source_url', data_get($post->meta, 'source_url')) }}" maxlength="255" placeholder="https://example.com/source">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Verified facts / 5W summary <span class="text-danger">*</span></label>
+                            <textarea name="fact_summary" class="form-control news-required" rows="4" maxlength="2000" placeholder="Who, what, when, where, why, and how confirmed">{{ old('fact_summary', data_get($post->meta, 'fact_summary')) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Verification notes <span class="text-danger">*</span></label>
+                            <textarea name="verification_notes" class="form-control news-required" rows="4" maxlength="2000" placeholder="Cross-checks, documents, official statements, and confirmation status">{{ old('verification_notes', data_get($post->meta, 'verification_notes')) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Impact / affected area</label>
+                            <textarea name="impact_area" class="form-control" rows="3" maxlength="1000" placeholder="Who is affected and what readers should know">{{ old('impact_area', data_get($post->meta, 'impact_area')) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Quote / attribution</label>
+                            <textarea name="quote_attribution" class="form-control" rows="3" maxlength="1000" placeholder="Important quote with speaker attribution">{{ old('quote_attribution', data_get($post->meta, 'quote_attribution')) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 type-extra my-area-flow" data-for="my-area">
+                <div class="my-area-flow-card border rounded-3 p-3 bg-light">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">My Area problem report</h5>
+                            <p class="text-muted mb-0 small">Turn local issues into trackable community action with evidence, GPS location, support, comments, and votes.</p>
+                        </div>
+                        <span class="badge bg-warning text-dark">My Area</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Priority <span class="text-danger">*</span></label>
+                            <select name="issue_priority" class="form-select my-area-required">
+                                <option value="">Select priority</option>
+                                @foreach(['Low', 'Medium', 'High', 'Urgent'] as $priority)
+                                    <option value="{{ $priority }}" @selected(old('issue_priority', data_get($post->meta, 'issue_priority')) === $priority)>{{ $priority }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Issue status</label>
+                            <select name="issue_status" class="form-select">
+                                @foreach(['Open', 'Under Review', 'Resolved'] as $status)
+                                    <option value="{{ $status }}" @selected(old('issue_status', data_get($post->meta, 'issue_status', 'Open')) === $status)>{{ $status }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Reported to</label>
+                            <input type="text" name="reported_to" class="form-control" value="{{ old('reported_to', data_get($post->meta, 'reported_to')) }}" maxlength="160" placeholder="Department/authority">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Reference / complaint no.</label>
+                            <input type="text" name="issue_reference" class="form-control" value="{{ old('issue_reference', data_get($post->meta, 'issue_reference')) }}" maxlength="160" placeholder="Optional tracking ID">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Evidence files</label>
+                            <input type="file" name="issue_attachments[]" class="form-control" accept="image/*,video/*,.pdf,.doc,.docx" multiple>
+                            <small class="text-muted">Upload up to 6 photos, videos, or documents. Each file can be up to 20 MB.</small>
+                            @if(!empty(data_get($post->meta, 'issue_attachments')))
+                                <div class="mt-2 d-flex flex-wrap gap-2">
+                                    @foreach(data_get($post->meta, 'issue_attachments', []) as $attachment)
+                                        <a href="{{ data_get($attachment, 'url') }}" target="_blank" rel="noopener" class="badge bg-light text-dark border text-decoration-none">{{ data_get($attachment, 'name', 'Attachment') }}</a>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 type-extra my-voice-flow" data-for="my-voice">
+                <div class="my-voice-flow-card border rounded-3 p-3 bg-light">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">My Voice</h5>
+                            <p class="text-muted mb-0 small">Share personal opinions, lived experiences, suggestions, concerns, and open letters with context.</p>
+                        </div>
+                        <span class="badge bg-info text-dark">My Voice</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Topic <span class="text-danger">*</span></label>
+                            <input type="text" name="voice_topic" class="form-control my-voice-required" value="{{ old('voice_topic', data_get($post->meta, 'voice_topic')) }}" maxlength="160" placeholder="What is your opinion or experience about?">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Perspective <span class="text-danger">*</span></label>
+                            <select name="voice_perspective" class="form-select my-voice-required">
+                                <option value="">Select perspective</option>
+                                @foreach(['Personal Experience', 'Opinion', 'Suggestion', 'Concern', 'Open Letter'] as $perspective)
+                                    <option value="{{ $perspective }}" @selected(old('voice_perspective', data_get($post->meta, 'voice_perspective')) === $perspective)>{{ $perspective }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-md-4 type-extra" data-for="childrens-corner">
                 <div class="form-check mt-4">
@@ -110,10 +291,15 @@
                 <label class="form-label">Competition deadline</label>
                 <input type="date" name="competition_deadline" class="form-control" value="{{ old('competition_deadline', data_get($post->meta, 'competition_deadline')) }}">
             </div>
-            <div class="col-12">
+            <div class="col-12" id="allowCommentsWrap">
                 <div class="form-check">
                     <input type="checkbox" name="allow_comments" value="1" class="form-check-input" id="allowComments" @checked(old('allow_comments', $post->allow_comments ?? true))>
                     <label class="form-check-label" for="allowComments">Allow comments / discussions</label>
+                </div>
+            </div>
+            <div class="col-12 type-extra" data-for="reports">
+                <div class="alert alert-info mb-0 py-2">
+                    Comments are disabled for reports so the published page remains a formal reference document.
                 </div>
             </div>
         </div>
@@ -132,6 +318,20 @@
     .tag-input-wrap:focus-within { border-color: #86b7fe !important; box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .15); }
     .community-tag-pill { align-items: center; background: #e8f5ee; border: 1px solid #badbcc; border-radius: 999px; color: #0f5132; display: inline-flex; font-size: .875rem; font-weight: 600; gap: .35rem; padding: .25rem .55rem; }
     .community-tag-remove { background: transparent; border: 0; color: inherit; line-height: 1; padding: 0; }
+    .ck-editor__editable_inline { min-height: 360px; }
+    .ck-content .image { margin: 1rem auto; }
+    .ck-content .image img { height: auto; max-width: 100%; }
+    .ck-content .image-style-align-left { clear: none; float: left; margin: .35rem 1.25rem 1rem 0; max-width: 45%; }
+    .ck-content .image-style-align-right,
+    .ck-content .image-style-side { clear: none; float: right; margin: .35rem 0 1rem 1.25rem; max-width: 45%; }
+    .ck-content .image-style-align-center,
+    .ck-content .image-style-block { clear: both; display: table; float: none; margin-left: auto; margin-right: auto; }
+    .ck-content::after { clear: both; content: ""; display: table; }
+    @media (max-width: 767.98px) {
+        .ck-content .image-style-align-left,
+        .ck-content .image-style-align-right,
+        .ck-content .image-style-side { float: none; margin: 1rem auto; max-width: 100%; }
+    }
 </style>
 @endpush
 
@@ -167,9 +367,87 @@
             });
         }
 
+        const isReport = typeSelect.value === 'reports';
+        const isNews = typeSelect.value === 'news';
+        const isMyArea = typeSelect.value === 'my-area';
+        const isMyVoice = typeSelect.value === 'my-voice';
+        const isStructuredContent = isReport || isNews || isMyArea || isMyVoice;
+
         document.querySelectorAll('.type-extra').forEach((field) => {
             field.style.display = field.dataset.for === typeSelect.value ? '' : 'none';
         });
+
+        document.querySelectorAll('.general-extra').forEach((field) => {
+            field.style.display = isStructuredContent ? 'none' : '';
+        });
+
+        document.querySelectorAll('.report-required').forEach((field) => {
+            field.required = isReport;
+        });
+
+        document.querySelectorAll('.news-required').forEach((field) => {
+            field.required = isNews;
+        });
+
+        document.querySelectorAll('.my-area-required').forEach((field) => {
+            field.required = isMyArea;
+        });
+
+        document.querySelectorAll('.my-voice-required').forEach((field) => {
+            field.required = isMyVoice;
+        });
+
+        const fieldCopy = isReport ? {
+            excerptLabel: 'Executive summary',
+            excerptPlaceholder: 'Summarize objective, scope, main findings, and recommendations.',
+            excerptHelp: 'Keep this professional: purpose, coverage, key insight, and action in 2–4 lines.',
+            bodyLabel: 'Detailed analysis / full report <span class="text-danger">*</span>',
+            bodyHelp: 'Recommended flow: background, context, analysis, evidence, limitations, conclusion, and appendix notes.',
+            locationLabel: 'Coverage / study area <span class="text-danger">*</span>',
+            locationHelp: 'Select the report coverage area from Google Places so the report is location-indexed.',
+        } : (isNews ? {
+            excerptLabel: 'News summary / standfirst',
+            excerptPlaceholder: 'Summarize the news angle, confirmed facts, and why it matters.',
+            excerptHelp: 'Use a concise newsroom-style summary with the main verified fact and reader impact.',
+            bodyLabel: 'Full news story <span class="text-danger">*</span>',
+            bodyHelp: 'Recommended flow: lead, nut graph, details, context, quotes, impact, and latest update.',
+            locationLabel: 'News location <span class="text-danger">*</span>',
+            locationHelp: 'Select the news location from Google Places so the story is location-indexed.',
+        } : (isMyArea ? {
+            excerptLabel: 'Issue summary',
+            excerptPlaceholder: 'Briefly explain the problem, affected people, and urgency.',
+            excerptHelp: 'Use a clear problem statement so neighbours can quickly support or vote on it.',
+            bodyLabel: 'Detailed problem description <span class="text-danger">*</span>',
+            bodyHelp: 'Include what happened, when it started, exact location landmarks, risk, and expected solution.',
+            locationLabel: 'GPS issue location <span class="text-danger">*</span>',
+            locationHelp: 'Select the exact issue location from Google Places so the problem can be mapped.',
+        } : (isMyVoice ? {
+            excerptLabel: 'Opinion / experience summary',
+            excerptPlaceholder: 'Summarize your main viewpoint or personal experience.',
+            excerptHelp: 'Keep this personal and clear so readers understand your voice quickly.',
+            bodyLabel: 'Full opinion / experience <span class="text-danger">*</span>',
+            bodyHelp: 'Share the context, your experience, why it matters, and what change you want to see.',
+            locationLabel: 'Related location <span class="text-danger">*</span>',
+            locationHelp: 'Select the area related to your opinion or experience.',
+        } : {
+            excerptLabel: 'Short excerpt',
+            excerptPlaceholder: '',
+            excerptHelp: 'A concise teaser shown in listing cards.',
+            bodyLabel: 'Body <span class="text-danger">*</span>',
+            bodyHelp: 'Add the main content for this community post.',
+            locationLabel: 'Location / local area <span class="text-danger">*</span>',
+            locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
+        })));
+
+        document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
+        document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
+        document.getElementById('excerptHelp').textContent = fieldCopy.excerptHelp;
+        document.getElementById('bodyLabel').innerHTML = fieldCopy.bodyLabel;
+        document.getElementById('bodyHelp').textContent = fieldCopy.bodyHelp;
+        document.getElementById('locationLabel').innerHTML = fieldCopy.locationLabel;
+        document.getElementById('locationHelp').textContent = fieldCopy.locationHelp;
+        document.getElementById('allowCommentsWrap').style.display = isReport ? 'none' : '';
+        document.getElementById('allowComments').checked = isReport ? false : document.getElementById('allowComments').checked;
     }
 
     document.getElementById('contentType').addEventListener('change', function () {
@@ -179,7 +457,59 @@
 
     refreshCommunityCategories();
 
-    ClassicEditor.create(document.querySelector('#bodyEditor'))
+    class CommunityUploadAdapter {
+        constructor(loader) {
+            this.loader = loader;
+        }
+
+        upload() {
+            return this.loader.file.then((file) => {
+                const data = new FormData();
+                data.append('upload', file);
+
+                return fetch('{{ route('community.posts.uploads.image') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: data,
+                })
+                    .then(async (response) => {
+                        const payload = await response.json();
+                        if (!response.ok || !payload.url) {
+                            throw new Error(payload.message || 'Unable to upload image.');
+                        }
+
+                        return { default: payload.url };
+                    });
+            });
+        }
+
+        abort() {}
+    }
+
+    function communityUploadAdapterPlugin(editor) {
+        editor.plugins.get('FileRepository').createUploadAdapter = (loader) => new CommunityUploadAdapter(loader);
+    }
+
+    ClassicEditor.create(document.querySelector('#bodyEditor'), {
+        extraPlugins: [communityUploadAdapterPlugin],
+        toolbar: {
+            items: [
+                'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                'insertImage', 'blockQuote', 'insertTable', '|', 'undo', 'redo'
+            ],
+        },
+        image: {
+            toolbar: [
+                'imageTextAlternative', 'toggleImageCaption', '|',
+                'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|',
+                'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight'
+            ],
+        },
+    })
         .then((editor) => { window.communityBodyEditor = editor; })
         .catch(() => notify('error', 'Unable to load the body editor.'));
 
