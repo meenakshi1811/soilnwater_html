@@ -50,11 +50,29 @@
                     'recommendations' => 'Recommendations',
                     'location' => 'Coverage / study area',
                 ];
+                $newsMetaLabels = [
+                    'news_subtitle' => 'Subtitle / deck',
+                    'news_dateline' => 'Dateline',
+                    'news_date' => 'News date',
+                    'reporter_name' => 'Reporter / byline',
+                    'news_source' => 'Primary source',
+                    'source_url' => 'Source URL',
+                    'fact_summary' => 'Verified facts / 5W summary',
+                    'verification_notes' => 'Verification notes',
+                    'impact_area' => 'Impact / affected area',
+                    'quote_attribution' => 'Quote / attribution',
+                    'location' => 'News location',
+                ];
                 $reportMetaOrder = array_keys($reportMetaLabels);
+                $newsMetaOrder = array_keys($newsMetaLabels);
                 $orderedReportMeta = collect($reportMetaOrder)
                     ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
                     ->filter(fn ($value) => filled($value) || is_bool($value));
+                $orderedNewsMeta = collect($newsMetaOrder)
+                    ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
+                    ->filter(fn ($value) => filled($value) || is_bool($value));
                 $additionalReportMeta = $visibleMeta->except([...$reportMetaOrder, 'author_bio']);
+                $additionalNewsMeta = $visibleMeta->except([...$newsMetaOrder, 'author_bio']);
             @endphp
             @if($post->content_type === 'reports' && $orderedReportMeta->isNotEmpty())
                 <div class="about-box mt-4">
@@ -71,6 +89,26 @@
                     </div>
                 </div>
                 @php($visibleMeta = $additionalReportMeta)
+            @endif
+            @if($post->content_type === 'news' && $orderedNewsMeta->isNotEmpty())
+                <div class="about-box mt-4">
+                    <h4>News details</h4>
+                    <div class="row g-3">
+                        @foreach($orderedNewsMeta as $key => $value)
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100 bg-light">
+                                    <strong class="d-block mb-1">{{ $newsMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
+                                    @if($key === 'source_url')
+                                        <a href="{{ $value }}" target="_blank" rel="noopener">{{ $value }}</a>
+                                    @else
+                                        <span>{!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @php($visibleMeta = $additionalNewsMeta)
             @endif
             @if($visibleMeta->isNotEmpty())
                 <div class="about-box mt-4">

@@ -143,6 +143,59 @@
                     </div>
                 </div>
             </div>
+            <div class="col-12 type-extra news-flow" data-for="news">
+                <div class="news-flow-card border rounded-3 p-3 bg-light">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Professional news structure</h5>
+                            <p class="text-muted mb-0 small">Capture the who, what, when, where, why, source, and verification details for publish-ready news.</p>
+                        </div>
+                        <span class="badge bg-primary text-white">News only</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">News subtitle / deck</label>
+                            <input type="text" name="news_subtitle" class="form-control" value="{{ old('news_subtitle', data_get($post->meta, 'news_subtitle')) }}" maxlength="255" placeholder="Optional second line below the headline">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Dateline / place <span class="text-danger">*</span></label>
+                            <input type="text" name="news_dateline" class="form-control news-required" value="{{ old('news_dateline', data_get($post->meta, 'news_dateline')) }}" maxlength="160" placeholder="e.g. Jaipur">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">News date <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="news_date" class="form-control news-required" value="{{ old('news_date', data_get($post->meta, 'news_date')) }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Reporter / byline <span class="text-danger">*</span></label>
+                            <input type="text" name="reporter_name" class="form-control news-required" value="{{ old('reporter_name', data_get($post->meta, 'reporter_name')) }}" maxlength="160" placeholder="Reporter or desk name">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Primary source <span class="text-danger">*</span></label>
+                            <input type="text" name="news_source" class="form-control news-required" value="{{ old('news_source', data_get($post->meta, 'news_source')) }}" maxlength="160" placeholder="Official, witness, release, or agency">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Source URL</label>
+                            <input type="url" name="source_url" class="form-control" value="{{ old('source_url', data_get($post->meta, 'source_url')) }}" maxlength="255" placeholder="https://example.com/source">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Verified facts / 5W summary <span class="text-danger">*</span></label>
+                            <textarea name="fact_summary" class="form-control news-required" rows="4" maxlength="2000" placeholder="Who, what, when, where, why, and how confirmed">{{ old('fact_summary', data_get($post->meta, 'fact_summary')) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Verification notes <span class="text-danger">*</span></label>
+                            <textarea name="verification_notes" class="form-control news-required" rows="4" maxlength="2000" placeholder="Cross-checks, documents, official statements, and confirmation status">{{ old('verification_notes', data_get($post->meta, 'verification_notes')) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Impact / affected area</label>
+                            <textarea name="impact_area" class="form-control" rows="3" maxlength="1000" placeholder="Who is affected and what readers should know">{{ old('impact_area', data_get($post->meta, 'impact_area')) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Quote / attribution</label>
+                            <textarea name="quote_attribution" class="form-control" rows="3" maxlength="1000" placeholder="Important quote with speaker attribution">{{ old('quote_attribution', data_get($post->meta, 'quote_attribution')) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="col-md-4 type-extra" data-for="childrens-corner">
                 <div class="form-check mt-4">
                     <input type="checkbox" name="parent_approved" value="1" class="form-check-input" id="parentApproved" @checked(old('parent_approved', data_get($post->meta, 'parent_approved')))>
@@ -224,26 +277,58 @@
         }
 
         const isReport = typeSelect.value === 'reports';
+        const isNews = typeSelect.value === 'news';
+        const isStructuredContent = isReport || isNews;
 
         document.querySelectorAll('.type-extra').forEach((field) => {
             field.style.display = field.dataset.for === typeSelect.value ? '' : 'none';
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = isReport ? 'none' : '';
+            field.style.display = isStructuredContent ? 'none' : '';
         });
 
         document.querySelectorAll('.report-required').forEach((field) => {
             field.required = isReport;
         });
 
-        document.getElementById('excerptLabel').textContent = isReport ? 'Executive summary' : 'Short excerpt';
-        document.getElementById('excerptField').placeholder = isReport ? 'Summarize objective, scope, main findings, and recommendations.' : '';
-        document.getElementById('excerptHelp').textContent = isReport ? 'Keep this professional: purpose, coverage, key insight, and action in 2–4 lines.' : 'A concise teaser shown in listing cards.';
-        document.getElementById('bodyLabel').innerHTML = isReport ? 'Detailed analysis / full report <span class="text-danger">*</span>' : 'Body <span class="text-danger">*</span>';
-        document.getElementById('bodyHelp').textContent = isReport ? 'Recommended flow: background, context, analysis, evidence, limitations, conclusion, and appendix notes.' : 'Add the main content for this community post.';
-        document.getElementById('locationLabel').innerHTML = isReport ? 'Coverage / study area <span class="text-danger">*</span>' : 'Location / local area <span class="text-danger">*</span>';
-        document.getElementById('locationHelp').textContent = isReport ? 'Select the report coverage area from Google Places so the report is location-indexed.' : 'Select a Google Places suggestion so latitude and longitude are saved.';
+        document.querySelectorAll('.news-required').forEach((field) => {
+            field.required = isNews;
+        });
+
+        const fieldCopy = isReport ? {
+            excerptLabel: 'Executive summary',
+            excerptPlaceholder: 'Summarize objective, scope, main findings, and recommendations.',
+            excerptHelp: 'Keep this professional: purpose, coverage, key insight, and action in 2–4 lines.',
+            bodyLabel: 'Detailed analysis / full report <span class="text-danger">*</span>',
+            bodyHelp: 'Recommended flow: background, context, analysis, evidence, limitations, conclusion, and appendix notes.',
+            locationLabel: 'Coverage / study area <span class="text-danger">*</span>',
+            locationHelp: 'Select the report coverage area from Google Places so the report is location-indexed.',
+        } : (isNews ? {
+            excerptLabel: 'News summary / standfirst',
+            excerptPlaceholder: 'Summarize the news angle, confirmed facts, and why it matters.',
+            excerptHelp: 'Use a concise newsroom-style summary with the main verified fact and reader impact.',
+            bodyLabel: 'Full news story <span class="text-danger">*</span>',
+            bodyHelp: 'Recommended flow: lead, nut graph, details, context, quotes, impact, and latest update.',
+            locationLabel: 'News location <span class="text-danger">*</span>',
+            locationHelp: 'Select the news location from Google Places so the story is location-indexed.',
+        } : {
+            excerptLabel: 'Short excerpt',
+            excerptPlaceholder: '',
+            excerptHelp: 'A concise teaser shown in listing cards.',
+            bodyLabel: 'Body <span class="text-danger">*</span>',
+            bodyHelp: 'Add the main content for this community post.',
+            locationLabel: 'Location / local area <span class="text-danger">*</span>',
+            locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
+        });
+
+        document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
+        document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
+        document.getElementById('excerptHelp').textContent = fieldCopy.excerptHelp;
+        document.getElementById('bodyLabel').innerHTML = fieldCopy.bodyLabel;
+        document.getElementById('bodyHelp').textContent = fieldCopy.bodyHelp;
+        document.getElementById('locationLabel').innerHTML = fieldCopy.locationLabel;
+        document.getElementById('locationHelp').textContent = fieldCopy.locationHelp;
         document.getElementById('allowComments').checked = isReport ? false : document.getElementById('allowComments').checked;
     }
 

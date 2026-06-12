@@ -293,6 +293,16 @@ class CommunityPostController extends Controller
             'data_sources' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:2000'],
             'key_findings' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:3000'],
             'recommendations' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:3000'],
+            'news_subtitle' => ['nullable', 'string', 'max:255'],
+            'news_dateline' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
+            'news_date' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'date'],
+            'reporter_name' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
+            'news_source' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
+            'source_url' => ['nullable', 'url', 'max:255'],
+            'fact_summary' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:2000'],
+            'verification_notes' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:2000'],
+            'impact_area' => ['nullable', 'string', 'max:1000'],
+            'quote_attribution' => ['nullable', 'string', 'max:1000'],
         ]);
     }
 
@@ -319,6 +329,16 @@ class CommunityPostController extends Controller
             'data_sources' => $request->input('data_sources'),
             'key_findings' => $request->input('key_findings'),
             'recommendations' => $request->input('recommendations'),
+            'news_subtitle' => $request->input('news_subtitle'),
+            'news_dateline' => $request->input('news_dateline'),
+            'news_date' => $request->input('news_date'),
+            'reporter_name' => $request->input('reporter_name'),
+            'news_source' => $request->input('news_source'),
+            'source_url' => $request->input('source_url'),
+            'fact_summary' => $request->input('fact_summary'),
+            'verification_notes' => $request->input('verification_notes'),
+            'impact_area' => $request->input('impact_area'),
+            'quote_attribution' => $request->input('quote_attribution'),
         ], fn ($value) => filled($value) || is_bool($value));
     }
 

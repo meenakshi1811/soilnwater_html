@@ -79,4 +79,73 @@ class CommunityPostReportFlowTest extends TestCase
         $this->assertSame('Field survey, public datasets, and local department notes.', $post->meta['data_sources']);
         $this->assertSame("Prioritize recharge projects.\nPublish monthly progress dashboards.", $post->meta['recommendations']);
     }
+
+    public function test_news_posts_require_professional_news_fields(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
+            'content_type' => 'news',
+            'category' => 'Local News',
+            'title' => 'Canal Repair Work Begins',
+            'excerpt' => 'A concise newsroom summary for the local update.',
+            'body' => 'This news story contains enough details about the local canal repair work.',
+            'status' => CommunityPost::STATUS_PUBLISHED,
+            'location' => 'Jaipur, Rajasthan, India',
+            'location_lat' => '26.9124000',
+            'location_lng' => '75.7873000',
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors([
+            'news_dateline',
+            'news_date',
+            'reporter_name',
+            'news_source',
+            'fact_summary',
+            'verification_notes',
+        ]);
+    }
+
+    public function test_news_posts_store_professional_news_metadata(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
+            'content_type' => 'news',
+            'category' => 'Local News',
+            'title' => 'Water Supply Schedule Updated',
+            'excerpt' => 'Residents will receive updated water supply timings from Monday.',
+            'body' => 'The municipal office announced updated water supply timings after reviewing summer demand.',
+            'status' => CommunityPost::STATUS_PUBLISHED,
+            'allow_comments' => '1',
+            'location' => 'Jaipur, Rajasthan, India',
+            'location_lat' => '26.9124000',
+            'location_lng' => '75.7873000',
+            'news_subtitle' => 'Municipal update for summer demand',
+            'news_dateline' => 'Jaipur',
+            'news_date' => '2026-06-12T10:30',
+            'reporter_name' => 'Community News Desk',
+            'news_source' => 'Municipal water department release',
+            'source_url' => 'https://example.com/water-schedule',
+            'fact_summary' => 'The schedule changes start Monday and apply to three wards.',
+            'verification_notes' => 'Confirmed against the municipal release and ward notice.',
+            'impact_area' => 'Residents in wards 10, 11, and 12.',
+            'quote_attribution' => 'Department spokesperson said supply pressure will be monitored.',
+        ]);
+
+        $response->assertOk()->assertJson([
+            'message' => 'Community post created successfully.',
+        ]);
+
+        $post = CommunityPost::query()->where('title', 'Water Supply Schedule Updated')->firstOrFail();
+
+        $this->assertTrue($post->allow_comments);
+        $this->assertSame('news', $post->content_type);
+        $this->assertSame('Jaipur', $post->meta['news_dateline']);
+        $this->assertSame('2026-06-12T10:30', $post->meta['news_date']);
+        $this->assertSame('Community News Desk', $post->meta['reporter_name']);
+        $this->assertSame('Municipal water department release', $post->meta['news_source']);
+        $this->assertSame('https://example.com/water-schedule', $post->meta['source_url']);
+    }
 }
