@@ -31,7 +31,7 @@ class CommunityPostController extends Controller
 
         return view('community.index', [
             'posts' => $posts,
-            'types' => CommunityContentTaxonomy::types(),
+            'types' => CommunityContentTaxonomy::formTypes(),
             'activeType' => $request->string('type')->toString(),
         ]);
     }
@@ -52,7 +52,7 @@ class CommunityPostController extends Controller
 
         return view('community.index', [
             'posts' => $posts,
-            'types' => CommunityContentTaxonomy::types(),
+            'types' => CommunityContentTaxonomy::formTypes(),
             'activeType' => $request->string('type')->toString(),
             'activeAuthor' => $author,
         ]);
@@ -71,7 +71,7 @@ class CommunityPostController extends Controller
 
         return view('community.show', [
             'post' => $post,
-            'types' => CommunityContentTaxonomy::types(),
+            'types' => CommunityContentTaxonomy::formTypes(),
         ]);
     }
 
@@ -191,7 +191,7 @@ class CommunityPostController extends Controller
     {
         return view('backend.community-posts.form', [
             'post' => new CommunityPost(['status' => CommunityPost::STATUS_PUBLISHED, 'allow_comments' => true]),
-            'types' => CommunityContentTaxonomy::types(),
+            'types' => CommunityContentTaxonomy::formTypes(),
             'mode' => 'create',
         ]);
     }
@@ -233,7 +233,7 @@ class CommunityPostController extends Controller
 
         return view('backend.community-posts.form', [
             'post' => $post,
-            'types' => CommunityContentTaxonomy::types(),
+            'types' => CommunityContentTaxonomy::formTypes(),
             'mode' => 'edit',
         ]);
     }
@@ -317,8 +317,9 @@ class CommunityPostController extends Controller
      */
     private function validated(Request $request): array
     {
-        $typeKeys = array_keys(CommunityContentTaxonomy::types());
+        $typeKeys = array_keys(CommunityContentTaxonomy::formTypes());
         $contentType = $request->input('content_type');
+        $isReport = $contentType === 'reports';
 
         return $request->validate([
             'content_type' => ['required', Rule::in($typeKeys)],
@@ -348,14 +349,14 @@ class CommunityPostController extends Controller
             'consultation_fee' => ['nullable', 'string', 'max:120'],
             'competition_deadline' => ['nullable', 'date'],
             'report_subtitle' => ['nullable', 'string', 'max:255'],
-            'reporting_period' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:120'],
-            'report_date' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'date'],
-            'prepared_by' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:160'],
+            'reporting_period' => ['nullable', 'string', 'max:120'],
+            'report_date' => ['nullable', 'date'],
+            'prepared_by' => ['nullable', 'string', 'max:160'],
             'report_scope' => ['nullable', 'string', 'max:1000'],
-            'methodology' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:2000'],
-            'data_sources' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:2000'],
-            'key_findings' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:3000'],
-            'recommendations' => [Rule::requiredIf($contentType === 'reports'), 'nullable', 'string', 'max:3000'],
+            'methodology' => ['nullable', 'string', 'max:2000'],
+            'data_sources' => ['nullable', 'string', 'max:2000'],
+            'key_findings' => ['nullable', 'string', 'max:3000'],
+            'recommendations' => ['nullable', 'string', 'max:3000'],
             'news_subtitle' => ['nullable', 'string', 'max:255'],
             'news_dateline' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
             'news_date' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'date'],
@@ -366,15 +367,13 @@ class CommunityPostController extends Controller
             'verification_notes' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:2000'],
             'impact_area' => ['nullable', 'string', 'max:1000'],
             'quote_attribution' => ['nullable', 'string', 'max:1000'],
-            'report_type' => [Rule::requiredIf($contentType === 'my-area'), 'nullable', Rule::in(CommunityContentTaxonomy::myAreaReportTypes())],
-            'issue_priority' => [Rule::requiredIf($contentType === 'my-area'), 'nullable', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
+            'report_type' => [Rule::requiredIf($isReport), 'nullable', Rule::in(CommunityContentTaxonomy::myAreaReportTypes())],
+            'issue_priority' => [Rule::requiredIf($isReport), 'nullable', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
             'issue_status' => ['nullable', Rule::in(['Open', 'Under Review', 'Resolved'])],
             'reported_to' => ['nullable', 'string', 'max:160'],
             'issue_reference' => ['nullable', 'string', 'max:160'],
             'issue_attachments' => ['nullable', 'array', 'max:6'],
             'issue_attachments.*' => ['file', 'max:20480', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,pdf,doc,docx'],
-            'voice_topic' => [Rule::requiredIf($contentType === 'my-voice'), 'nullable', 'string', 'max:160'],
-            'voice_perspective' => [Rule::requiredIf($contentType === 'my-voice'), 'nullable', Rule::in(['Personal Experience', 'Opinion', 'Suggestion', 'Concern', 'Open Letter'])],
         ]);
     }
 
@@ -413,11 +412,9 @@ class CommunityPostController extends Controller
             'quote_attribution' => $request->input('quote_attribution'),
             'report_type' => $request->input('report_type'),
             'issue_priority' => $request->input('issue_priority'),
-            'issue_status' => $request->input('issue_status', 'Open'),
+            'issue_status' => $request->input('content_type') === 'reports' ? $request->input('issue_status', 'Open') : $request->input('issue_status'),
             'reported_to' => $request->input('reported_to'),
             'issue_reference' => $request->input('issue_reference'),
-            'voice_topic' => $request->input('voice_topic'),
-            'voice_perspective' => $request->input('voice_perspective'),
         ], fn ($value) => filled($value) || is_bool($value));
     }
 
