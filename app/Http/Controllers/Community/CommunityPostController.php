@@ -366,7 +366,7 @@ class CommunityPostController extends Controller
             'verification_notes' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:2000'],
             'impact_area' => ['nullable', 'string', 'max:1000'],
             'quote_attribution' => ['nullable', 'string', 'max:1000'],
-            'report_type' => [Rule::requiredIf($contentType === 'my-area'), 'nullable', Rule::in(['Water Issue', 'Road Damage', 'Garbage Problem', 'Street Light Problem', 'Flooding', 'Illegal Dumping'])],
+            'report_type' => [Rule::requiredIf($contentType === 'my-area'), 'nullable', Rule::in(CommunityContentTaxonomy::myAreaReportTypes())],
             'issue_priority' => [Rule::requiredIf($contentType === 'my-area'), 'nullable', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
             'issue_status' => ['nullable', Rule::in(['Open', 'Under Review', 'Resolved'])],
             'reported_to' => ['nullable', 'string', 'max:160'],

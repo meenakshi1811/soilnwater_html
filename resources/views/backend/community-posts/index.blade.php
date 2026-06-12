@@ -74,7 +74,7 @@
                         <tr>
                             <td>{{ $post->title }}</td>
                             <td>{{ $post->typeLabel() }}</td>
-                            <td>{{ $post->category }}</td>
+                            <td>{{ $post->content_type === 'my-area' ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</td>
                             <td><span class="badge {{ $post->status === 'published' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($post->status) }}</span></td>
                             <td>{{ $post->published_at?->format('Y-m-d H:i') ?? 'Draft' }}</td>
                             <td class="text-end">
