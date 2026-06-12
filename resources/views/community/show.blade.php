@@ -5,7 +5,7 @@
     <section class="about-banner">
         <div class="mb-2">
             <span class="badge bg-light text-dark">{{ $post->typeLabel() }}</span>
-            <span class="badge bg-light text-dark">{{ $post->category }}</span>
+            <span class="badge bg-light text-dark">{{ $post->content_type === 'my-area' ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</span>
         </div>
         <h1>{{ $post->title }}</h1>
         <p>
@@ -64,6 +64,7 @@
                     'location' => 'News location',
                 ];
                 $myAreaMetaLabels = [
+                    'report_type' => 'Report type',
                     'issue_priority' => 'Priority',
                     'issue_status' => 'Status',
                     'reported_to' => 'Reported to',

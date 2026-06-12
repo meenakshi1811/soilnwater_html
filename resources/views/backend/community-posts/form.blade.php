@@ -40,7 +40,7 @@
                 </select>
                 <small id="typeHelp" class="text-muted d-block mt-1"></small>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6" id="categoryFieldWrap">
                 <label class="form-label">Category <span class="text-danger">*</span></label>
                 <select name="category" id="categorySelect" class="form-select" data-selected="{{ old('category', $post->category) }}" required>
                     <option value="">Select category</option>
@@ -208,6 +208,16 @@
                     </div>
                     <div class="row g-3">
                         <div class="col-md-3">
+                            <label class="form-label">Report type <span class="text-danger">*</span></label>
+                            <select name="report_type" class="form-select my-area-required">
+                                <option value="">Select report type</option>
+                                @foreach(\App\Support\CommunityContentTaxonomy::myAreaReportTypes() as $reportType)
+                                    <option value="{{ $reportType }}" @selected(old('report_type', data_get($post->meta, 'report_type')) === $reportType)>{{ $reportType }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Choose what neighbours should support, comment on, and vote for.</small>
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">Priority <span class="text-danger">*</span></label>
                             <select name="issue_priority" class="form-select my-area-required">
                                 <option value="">Select priority</option>
@@ -346,26 +356,39 @@
     function refreshCommunityCategories() {
         const typeSelect = document.getElementById('contentType');
         const categorySelect = document.getElementById('categorySelect');
+        const categoryWrap = document.getElementById('categoryFieldWrap');
         const help = document.getElementById('typeHelp');
         const selected = categorySelect.dataset.selected;
         const type = window.communityTypes[typeSelect.value];
 
-        categorySelect.innerHTML = '<option value="">Select category</option>';
-        help.textContent = type ? type.description : '';
-
-        if (type) {
-            type.categories.forEach((category) => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                option.selected = category === selected;
-                categorySelect.appendChild(option);
-            });
-        }
-
         const isReport = typeSelect.value === 'reports';
         const isNews = typeSelect.value === 'news';
         const isMyArea = typeSelect.value === 'my-area';
+        categorySelect.innerHTML = '<option value="">Select category</option>';
+        help.textContent = type ? type.description : '';
+
+        if (isMyArea) {
+            const option = document.createElement('option');
+            option.value = 'Community Problem Report';
+            option.textContent = 'Community Problem Report';
+            option.selected = true;
+            categorySelect.appendChild(option);
+            categorySelect.required = false;
+            categoryWrap.style.display = 'none';
+        } else {
+            categorySelect.required = true;
+            categoryWrap.style.display = '';
+
+            if (type) {
+                type.categories.forEach((category) => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    option.selected = category === selected;
+                    categorySelect.appendChild(option);
+                });
+            }
+        }
         const isMyVoice = typeSelect.value === 'my-voice';
         const isStructuredContent = isReport || isNews || isMyArea || isMyVoice;
 

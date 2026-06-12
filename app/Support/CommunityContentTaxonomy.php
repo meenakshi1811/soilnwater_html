@@ -27,7 +27,7 @@ class CommunityContentTaxonomy
             'my-area' => [
                 'label' => 'My Area',
                 'description' => 'Report local civic issues with evidence, GPS location, and community support.',
-                'categories' => ['Water Issue', 'Road Damage', 'Garbage Problem', 'Street Light Problem', 'Flooding', 'Illegal Dumping'],
+                'categories' => ['Community Problem Report'],
                 'features' => ['Photos', 'Videos', 'Documents', 'GPS Location', 'Support', 'Comments', 'Votes'],
             ],
             'my-voice' => [
@@ -185,6 +185,16 @@ class CommunityContentTaxonomy
                 'categories' => ['General Discussion', 'Local Issues', 'Education', 'Business', 'Agriculture', 'Real Estate'],
             ],
         ];
+    }
+
+    /**
+     * Report type choices for My Area civic issue posts.
+     *
+     * @return list<string>
+     */
+    public static function myAreaReportTypes(): array
+    {
+        return ['Water Issue', 'Road Damage', 'Garbage Problem', 'Street Light Problem', 'Flooding', 'Illegal Dumping'];
     }
 
     public static function labels(): array
