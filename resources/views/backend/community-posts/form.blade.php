@@ -208,6 +208,16 @@
                     </div>
                     <div class="row g-3">
                         <div class="col-md-3">
+                            <label class="form-label">Report type <span class="text-danger">*</span></label>
+                            <select name="report_type" class="form-select my-area-required">
+                                <option value="">Select report type</option>
+                                @foreach(['Water Issue', 'Road Damage', 'Garbage Problem', 'Street Light Problem', 'Flooding', 'Illegal Dumping'] as $reportType)
+                                    <option value="{{ $reportType }}" @selected(old('report_type', data_get($post->meta, 'report_type')) === $reportType)>{{ $reportType }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Choose what neighbours should support, comment on, and vote for.</small>
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">Priority <span class="text-danger">*</span></label>
                             <select name="issue_priority" class="form-select my-area-required">
                                 <option value="">Select priority</option>
