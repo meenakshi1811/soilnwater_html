@@ -294,12 +294,8 @@
             <div class="col-12" id="allowCommentsWrap">
                 <div class="form-check">
                     <input type="checkbox" name="allow_comments" value="1" class="form-check-input" id="allowComments" @checked(old('allow_comments', $post->allow_comments ?? true))>
-                    <label class="form-check-label" for="allowComments">Allow comments / discussions</label>
-                </div>
-            </div>
-            <div class="col-12 type-extra" data-for="reports">
-                <div class="alert alert-info mb-0 py-2">
-                    Comments are disabled for reports so the published page remains a formal reference document.
+                    <label class="form-check-label" for="allowComments">Enable public discussion thread</label>
+                    <small class="text-muted d-block">When enabled, logged-in readers can add comments and replies on the public post page like a Quora or Reddit-style discussion.</small>
                 </div>
             </div>
         </div>
@@ -446,8 +442,6 @@
         document.getElementById('bodyHelp').textContent = fieldCopy.bodyHelp;
         document.getElementById('locationLabel').innerHTML = fieldCopy.locationLabel;
         document.getElementById('locationHelp').textContent = fieldCopy.locationHelp;
-        document.getElementById('allowCommentsWrap').style.display = isReport ? 'none' : '';
-        document.getElementById('allowComments').checked = isReport ? false : document.getElementById('allowComments').checked;
     }
 
     document.getElementById('contentType').addEventListener('change', function () {

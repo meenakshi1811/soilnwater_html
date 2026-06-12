@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\CommunityPost;
+use App\Models\CommunityPostComment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -40,7 +41,7 @@ class CommunityPostReportFlowTest extends TestCase
         ]);
     }
 
-    public function test_report_posts_store_professional_metadata_and_disable_comments(): void
+    public function test_report_posts_store_professional_metadata_and_can_enable_comments(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
@@ -72,7 +73,7 @@ class CommunityPostReportFlowTest extends TestCase
 
         $post = CommunityPost::query()->where('title', 'District Water Conservation Report')->firstOrFail();
 
-        $this->assertFalse($post->allow_comments);
+        $this->assertTrue($post->allow_comments);
         $this->assertSame('reports', $post->content_type);
         $this->assertSame('Q1 2026', $post->meta['reporting_period']);
         $this->assertSame('2026-04-15', $post->meta['report_date']);
@@ -149,7 +150,6 @@ class CommunityPostReportFlowTest extends TestCase
         $this->assertSame('Municipal water department release', $post->meta['news_source']);
         $this->assertSame('https://example.com/water-schedule', $post->meta['source_url']);
     }
-
 
     public function test_my_area_posts_store_issue_details_and_attachments(): void
     {
@@ -231,5 +231,73 @@ class CommunityPostReportFlowTest extends TestCase
         $this->assertSame('my-voice', $post->content_type);
         $this->assertSame('Water conservation awareness', $post->meta['voice_topic']);
         $this->assertSame('Personal Experience', $post->meta['voice_perspective']);
+    }
+
+    public function test_enabled_posts_accept_threaded_discussion_comments(): void
+    {
+        $author = User::factory()->create(['email_verified_at' => now()]);
+        $reader = User::factory()->create(['email_verified_at' => now()]);
+
+        $post = CommunityPost::query()->create([
+            'user_id' => $author->id,
+            'content_type' => 'news',
+            'category' => 'Local News',
+            'title' => 'Readers can discuss this post',
+            'slug' => 'readers-can-discuss-this-post',
+            'body' => 'This news post contains enough public information for a discussion thread.',
+            'meta' => ['location' => 'Jaipur'],
+            'allow_comments' => true,
+            'status' => CommunityPost::STATUS_PUBLISHED,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($reader)->post(route('community.comments.store', $post), [
+            'body' => 'Can someone explain how this update affects nearby wards?',
+        ])->assertRedirect();
+
+        $comment = CommunityPostComment::query()->where('community_post_id', $post->id)->firstOrFail();
+
+        $this->assertNull($comment->parent_id);
+        $this->assertSame($reader->id, $comment->user_id);
+        $this->assertSame('Can someone explain how this update affects nearby wards?', $comment->body);
+
+        $this->actingAs($author)->post(route('community.comments.store', $post), [
+            'parent_id' => $comment->id,
+            'body' => 'Yes, the change applies to wards listed in the public notice.',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('community_post_comments', [
+            'community_post_id' => $post->id,
+            'parent_id' => $comment->id,
+            'body' => 'Yes, the change applies to wards listed in the public notice.',
+        ]);
+    }
+
+    public function test_disabled_posts_reject_discussion_comments(): void
+    {
+        $author = User::factory()->create(['email_verified_at' => now()]);
+        $reader = User::factory()->create(['email_verified_at' => now()]);
+
+        $post = CommunityPost::query()->create([
+            'user_id' => $author->id,
+            'content_type' => 'news',
+            'category' => 'Local News',
+            'title' => 'Closed discussion post',
+            'slug' => 'closed-discussion-post',
+            'body' => 'This news post has comments disabled by the author.',
+            'meta' => ['location' => 'Jaipur'],
+            'allow_comments' => false,
+            'status' => CommunityPost::STATUS_PUBLISHED,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($reader)->post(route('community.comments.store', $post), [
+            'body' => 'This should not be stored.',
+        ])->assertForbidden();
+
+        $this->assertDatabaseMissing('community_post_comments', [
+            'community_post_id' => $post->id,
+            'body' => 'This should not be stored.',
+        ]);
     }
 }
