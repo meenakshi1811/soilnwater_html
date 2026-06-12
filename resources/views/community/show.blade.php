@@ -257,9 +257,9 @@
 <style>
     .community-post-body .image { margin: 1rem auto; }
     .community-post-body .image img { height: auto; max-width: 100%; }
-    .community-post-body .image-style-align-left,
-    .community-post-body .image-style-side { float: left; margin: .35rem 1.25rem 1rem 0; max-width: 50%; }
-    .community-post-body .image-style-align-right { float: right; margin: .35rem 0 1rem 1.25rem; max-width: 50%; }
+    .community-post-body .image-style-align-left { float: left; margin: .35rem 1.25rem 1rem 0; max-width: 50%; }
+    .community-post-body .image-style-align-right,
+    .community-post-body .image-style-side { float: right; margin: .35rem 0 1rem 1.25rem; max-width: 50%; }
     .community-post-body .image-style-align-center,
     .community-post-body .image-style-block { clear: both; display: table; margin-left: auto; margin-right: auto; }
     .community-post-body::after { clear: both; content: ""; display: table; }

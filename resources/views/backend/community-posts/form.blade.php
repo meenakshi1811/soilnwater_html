@@ -66,6 +66,7 @@
                 <label class="form-label" id="bodyLabel">Body <span class="text-danger">*</span></label>
                 <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
                 <small id="bodyHelp" class="text-muted d-block mt-1">Add the main content for this community post.</small>
+                <small class="text-muted d-block mt-1">For text beside an image: upload/insert the image, choose left or right alignment from the image toolbar, then click after the image and type. The text will wrap in the open side.</small>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Featured image</label>
@@ -317,6 +318,20 @@
     .tag-input-wrap:focus-within { border-color: #86b7fe !important; box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .15); }
     .community-tag-pill { align-items: center; background: #e8f5ee; border: 1px solid #badbcc; border-radius: 999px; color: #0f5132; display: inline-flex; font-size: .875rem; font-weight: 600; gap: .35rem; padding: .25rem .55rem; }
     .community-tag-remove { background: transparent; border: 0; color: inherit; line-height: 1; padding: 0; }
+    .ck-editor__editable_inline { min-height: 360px; }
+    .ck-content .image { margin: 1rem auto; }
+    .ck-content .image img { height: auto; max-width: 100%; }
+    .ck-content .image-style-align-left { clear: none; float: left; margin: .35rem 1.25rem 1rem 0; max-width: 45%; }
+    .ck-content .image-style-align-right,
+    .ck-content .image-style-side { clear: none; float: right; margin: .35rem 0 1rem 1.25rem; max-width: 45%; }
+    .ck-content .image-style-align-center,
+    .ck-content .image-style-block { clear: both; display: table; float: none; margin-left: auto; margin-right: auto; }
+    .ck-content::after { clear: both; content: ""; display: table; }
+    @media (max-width: 767.98px) {
+        .ck-content .image-style-align-left,
+        .ck-content .image-style-align-right,
+        .ck-content .image-style-side { float: none; margin: 1rem auto; max-width: 100%; }
+    }
 </style>
 @endpush
 
