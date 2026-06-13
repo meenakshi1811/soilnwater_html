@@ -8,6 +8,7 @@ use App\Models\CommunityPostComment;
 use App\Models\CommunityPostReaction;
 use App\Models\User;
 use App\Support\CommunityContentTaxonomy;
+use App\Support\CommunityPostFormFields;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,16 +19,17 @@ use Illuminate\View\View;
 
 class CommunityPostController extends Controller
 {
-    public function index(Request $request): View
+    private const MAX_FEATURED_IMAGES = 5;
+
+    private const MAX_VIDEO_FILE_KB = 51200;
+
+    public function index(Request $request): View|JsonResponse
     {
-        $posts = CommunityPost::query()
-            ->with('user')
-            ->published()
-            ->when($request->filled('type'), fn ($query) => $query->where('content_type', $request->string('type')->toString()))
-            ->when($request->filled('category'), fn ($query) => $query->where('category', $request->string('category')->toString()))
-            ->latest('published_at')
-            ->paginate(12)
-            ->withQueryString();
+        $posts = $this->paginateCommunityPosts($request);
+
+        if ($request->ajax()) {
+            return $this->communityPostsAjaxResponse($posts);
+        }
 
         return view('community.index', [
             'posts' => $posts,
@@ -36,19 +38,14 @@ class CommunityPostController extends Controller
         ]);
     }
 
-    public function author(Request $request, string $uniqueName): View
+    public function author(Request $request, string $uniqueName): View|JsonResponse
     {
         $author = $this->resolveAuthor($uniqueName);
+        $posts = $this->paginateCommunityPosts($request, $author);
 
-        $posts = CommunityPost::query()
-            ->with('user')
-            ->published()
-            ->where('user_id', $author->id)
-            ->when($request->filled('type'), fn ($query) => $query->where('content_type', $request->string('type')->toString()))
-            ->when($request->filled('category'), fn ($query) => $query->where('category', $request->string('category')->toString()))
-            ->latest('published_at')
-            ->paginate(12)
-            ->withQueryString();
+        if ($request->ajax()) {
+            return $this->communityPostsAjaxResponse($posts);
+        }
 
         return view('community.index', [
             'posts' => $posts,
@@ -203,6 +200,7 @@ class CommunityPostController extends Controller
         $data['slug'] = $this->uniqueSlug($data['title']);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
+        unset($data['location'], $data['location_lat'], $data['location_lng']);
 
         if ($request->hasFile('issue_attachments')) {
             $data['meta']['issue_attachments'] = $this->storeIssueAttachments($request);
@@ -210,10 +208,11 @@ class CommunityPostController extends Controller
         $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['status'] = $request->input('status', CommunityPost::STATUS_PUBLISHED);
         $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? now() : null;
-
-        if ($request->hasFile('featured_image')) {
-            $data['featured_image_path'] = $this->storeFeaturedImage($request);
-        }
+        $data['location'] = $request->input('location');
+        $data['location_lat'] = $request->input('location_lat');
+        $data['location_lng'] = $request->input('location_lng');
+        [$data['featured_images'], $data['featured_image_path']] = $this->resolveFeaturedImages($request);
+        $data['video'] = $this->resolveVideo($request);
 
         $post = CommunityPost::create($data);
 
@@ -242,9 +241,10 @@ class CommunityPostController extends Controller
     {
         $this->authorizeOwner($request, $post);
 
-        $data = $this->validated($request);
+        $data = $this->validated($request, $post);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
+        unset($data['location'], $data['location_lat'], $data['location_lng']);
 
         if ($request->hasFile('issue_attachments')) {
             $data['meta']['issue_attachments'] = array_values(array_merge(
@@ -258,11 +258,15 @@ class CommunityPostController extends Controller
         $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['status'] = $request->input('status', CommunityPost::STATUS_PUBLISHED);
         $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? ($post->published_at ?? now()) : null;
+        $data['location'] = $request->input('location');
+        $data['location_lat'] = $request->input('location_lat');
+        $data['location_lng'] = $request->input('location_lng');
 
-        if ($request->hasFile('featured_image')) {
-            $this->deleteFeaturedImage($post->featured_image_path);
-            $data['featured_image_path'] = $this->storeFeaturedImage($request);
-        }
+        [$featuredImages, $featuredImagePath] = $this->resolveFeaturedImages($request, $post);
+        $this->deleteRemovedFeaturedImages($post->featuredImages(), $featuredImages);
+        $data['featured_images'] = $featuredImages;
+        $data['featured_image_path'] = $featuredImagePath;
+        $data['video'] = $this->resolveVideo($request, $post);
 
         if ($post->title !== $data['title']) {
             $data['slug'] = $this->uniqueSlug($data['title'], $post->id);
@@ -284,7 +288,11 @@ class CommunityPostController extends Controller
     {
         $this->authorizeOwner($request, $post);
 
-        $this->deleteFeaturedImage($post->featured_image_path);
+        foreach ($post->featuredImages() as $imagePath) {
+            $this->deleteFeaturedImage($imagePath);
+        }
+
+        $this->deleteVideoFile($post->videoData());
 
         $post->delete();
 
@@ -315,13 +323,13 @@ class CommunityPostController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function validated(Request $request): array
+    private function validated(Request $request, ?CommunityPost $post = null): array
     {
         $typeKeys = array_keys(CommunityContentTaxonomy::formTypes());
         $contentType = $request->input('content_type');
         $isReport = $contentType === 'reports';
 
-        return $request->validate([
+        $rules = [
             'content_type' => ['required', Rule::in($typeKeys)],
             'category' => [
                 'required',
@@ -336,7 +344,10 @@ class CommunityPostController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'excerpt' => ['nullable', 'string', 'max:1000'],
             'body' => ['required', 'string', 'min:20'],
-            'featured_image' => ['nullable', 'image', 'max:4096'],
+            'featured_images' => ['nullable', 'array', 'max:'.self::MAX_FEATURED_IMAGES],
+            'featured_images.*' => ['image', 'max:4096'],
+            'removed_featured_images' => ['nullable', 'array'],
+            'removed_featured_images.*' => ['string', 'max:255'],
             'tags' => ['nullable', 'string', 'max:500'],
             'status' => ['required', Rule::in([CommunityPost::STATUS_DRAFT, CommunityPost::STATUS_PUBLISHED])],
             'allow_comments' => ['nullable', 'boolean'],
@@ -344,11 +355,27 @@ class CommunityPostController extends Controller
             'location' => ['required', 'string', 'max:160'],
             'location_lat' => ['required', 'numeric', 'between:-90,90'],
             'location_lng' => ['required', 'numeric', 'between:-180,180'],
-            'parent_approved' => ['nullable', 'boolean'],
-            'school_name' => ['nullable', 'string', 'max:160'],
-            'consultation_fee' => ['nullable', 'string', 'max:120'],
-            'competition_deadline' => ['nullable', 'date'],
-            'report_format' => ['nullable', Rule::in(array_keys(CommunityContentTaxonomy::reportFormats()))],
+            'video_source_type' => ['nullable', Rule::in(['none', 'youtube', 'upload'])],
+            'video_youtube_url' => [
+                Rule::requiredIf(fn () => $request->input('video_source_type') === 'youtube'),
+                'nullable',
+                'url',
+                'max:500',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! is_string($value) || ! CommunityPost::parseYoutubeVideoId($value)) {
+                        $fail('Please enter a valid YouTube video link.');
+                    }
+                },
+            ],
+            'video_file' => [
+                Rule::requiredIf(fn () => $request->input('video_source_type') === 'upload' && ! $request->boolean('keep_existing_video')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_VIDEO_FILE_KB,
+                'mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-matroska',
+            ],
+            'remove_video' => ['nullable', 'boolean'],
+            'keep_existing_video' => ['nullable', 'boolean'],
             'report_subtitle' => ['nullable', 'string', 'max:255'],
             'reporting_period' => ['nullable', 'string', 'max:120'],
             'report_date' => ['nullable', 'date'],
@@ -358,24 +385,89 @@ class CommunityPostController extends Controller
             'data_sources' => ['nullable', 'string', 'max:2000'],
             'key_findings' => ['nullable', 'string', 'max:3000'],
             'recommendations' => ['nullable', 'string', 'max:3000'],
-            'news_subtitle' => ['nullable', 'string', 'max:255'],
-            'news_dateline' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
-            'news_date' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'date'],
-            'reporter_name' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
-            'news_source' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:160'],
-            'source_url' => ['nullable', 'url', 'max:255'],
-            'fact_summary' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:2000'],
-            'verification_notes' => [Rule::requiredIf($contentType === 'news'), 'nullable', 'string', 'max:2000'],
-            'impact_area' => ['nullable', 'string', 'max:1000'],
-            'quote_attribution' => ['nullable', 'string', 'max:1000'],
-            'report_type' => [Rule::requiredIf($isReport), 'nullable', Rule::in(CommunityContentTaxonomy::myAreaReportTypes())],
-            'issue_priority' => [Rule::requiredIf($isReport), 'nullable', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
-            'issue_status' => ['nullable', Rule::in(['Open', 'Under Review', 'Resolved'])],
-            'reported_to' => ['nullable', 'string', 'max:160'],
-            'issue_reference' => ['nullable', 'string', 'max:160'],
             'issue_attachments' => ['nullable', 'array', 'max:6'],
             'issue_attachments.*' => ['file', 'max:20480', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,pdf,doc,docx'],
-        ]);
+        ];
+
+        if (is_string($contentType)) {
+            $rules = array_merge($rules, CommunityPostFormFields::validationRules($contentType));
+        }
+
+        $validated = $request->validate($rules);
+        $this->assertFeaturedImageLimit($request, $post);
+
+        return $validated;
+    }
+
+    private function assertFeaturedImageLimit(Request $request, ?CommunityPost $post = null): void
+    {
+        $existing = $post ? $post->featuredImages() : [];
+        $removed = (array) $request->input('removed_featured_images', []);
+        $remaining = count(array_values(array_filter(
+            $existing,
+            fn (string $path) => ! in_array($path, $removed, true)
+        )));
+        $incoming = count($request->file('featured_images', []));
+
+        if (($remaining + $incoming) > self::MAX_FEATURED_IMAGES) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'featured_images' => 'You can upload up to '.self::MAX_FEATURED_IMAGES.' featured images.',
+            ]);
+        }
+    }
+
+    /**
+     * @return array{0: list<string>, 1: ?string}
+     */
+    private function resolveFeaturedImages(Request $request, ?CommunityPost $post = null): array
+    {
+        $existing = $post ? $post->featuredImages() : [];
+        $removed = (array) $request->input('removed_featured_images', []);
+        $images = array_values(array_filter(
+            $existing,
+            fn (string $path) => ! in_array($path, $removed, true)
+        ));
+
+        if ($request->hasFile('featured_images')) {
+            $images = array_merge($images, $this->storeFeaturedImages($request));
+        }
+
+        $images = array_values(array_slice($images, 0, self::MAX_FEATURED_IMAGES));
+
+        return [$images, $images[0] ?? null];
+    }
+
+    /**
+     * @param  list<string>  $previous
+     * @param  list<string>  $next
+     */
+    private function deleteRemovedFeaturedImages(array $previous, array $next): void
+    {
+        foreach (array_diff($previous, $next) as $path) {
+            $this->deleteFeaturedImage($path);
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function storeFeaturedImages(Request $request): array
+    {
+        $directory = public_path('uploads/community-posts');
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        return collect($request->file('featured_images', []))
+            ->map(function ($file) use ($directory): string {
+                $filename = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
+                $file->move($directory, $filename);
+
+                return 'uploads/community-posts/'.$filename;
+            })
+            ->values()
+            ->all();
     }
 
     /**
@@ -383,41 +475,23 @@ class CommunityPostController extends Controller
      */
     private function metaPayload(Request $request): array
     {
-        return array_filter([
-            'author_bio' => $request->input('author_bio'),
-            'location' => $request->input('location'),
-            'location_lat' => $request->input('location_lat'),
-            'location_lng' => $request->input('location_lng'),
-            'parent_approved' => $request->boolean('parent_approved'),
-            'school_name' => $request->input('school_name'),
-            'consultation_fee' => $request->input('consultation_fee'),
-            'competition_deadline' => $request->input('competition_deadline'),
-            'report_format' => $request->input('content_type') === 'reports' ? $request->input('report_format', 'professional') : null,
-            'report_subtitle' => $request->input('report_subtitle'),
-            'reporting_period' => $request->input('reporting_period'),
-            'report_date' => $request->input('report_date'),
-            'prepared_by' => $request->input('prepared_by'),
-            'report_scope' => $request->input('report_scope'),
-            'methodology' => $request->input('methodology'),
-            'data_sources' => $request->input('data_sources'),
-            'key_findings' => $request->input('key_findings'),
-            'recommendations' => $request->input('recommendations'),
-            'news_subtitle' => $request->input('news_subtitle'),
-            'news_dateline' => $request->input('news_dateline'),
-            'news_date' => $request->input('news_date'),
-            'reporter_name' => $request->input('reporter_name'),
-            'news_source' => $request->input('news_source'),
-            'source_url' => $request->input('source_url'),
-            'fact_summary' => $request->input('fact_summary'),
-            'verification_notes' => $request->input('verification_notes'),
-            'impact_area' => $request->input('impact_area'),
-            'quote_attribution' => $request->input('quote_attribution'),
-            'report_type' => $request->input('report_type'),
-            'issue_priority' => $request->input('issue_priority'),
-            'issue_status' => $request->input('content_type') === 'reports' ? $request->input('issue_status', 'Open') : $request->input('issue_status'),
-            'reported_to' => $request->input('reported_to'),
-            'issue_reference' => $request->input('issue_reference'),
-        ], fn ($value) => filled($value) || is_bool($value));
+        $contentType = $request->input('content_type');
+        $payload = is_string($contentType)
+            ? CommunityPostFormFields::metaPayloadFromRequest($request, $contentType)
+            : [];
+
+        $payload['author_bio'] = $request->input('author_bio');
+        $payload['report_subtitle'] = $request->input('report_subtitle');
+        $payload['reporting_period'] = $request->input('reporting_period');
+        $payload['report_date'] = $request->input('report_date');
+        $payload['prepared_by'] = $request->input('prepared_by');
+        $payload['report_scope'] = $request->input('report_scope');
+        $payload['methodology'] = $request->input('methodology');
+        $payload['data_sources'] = $request->input('data_sources');
+        $payload['key_findings'] = $request->input('key_findings');
+        $payload['recommendations'] = $request->input('recommendations');
+
+        return array_filter($payload, fn ($value) => filled($value) || is_bool($value));
     }
 
     private function shouldAllowComments(Request $request): bool
@@ -484,10 +558,61 @@ class CommunityPostController extends Controller
             ->all();
     }
 
-    private function storeFeaturedImage(Request $request): string
+    /**
+     * @return array{type: string, url?: string, video_id?: string, path?: string, name?: string}|null
+     */
+    private function resolveVideo(Request $request, ?CommunityPost $post = null): ?array
     {
-        $file = $request->file('featured_image');
-        $directory = public_path('uploads/community-posts');
+        if ($request->boolean('remove_video')) {
+            $this->deleteVideoFile($post?->videoData());
+
+            return null;
+        }
+
+        $sourceType = $request->input('video_source_type', 'none');
+
+        if ($sourceType === 'youtube') {
+            $url = trim((string) $request->input('video_youtube_url'));
+            $videoId = CommunityPost::parseYoutubeVideoId($url);
+
+            if ($post && ($post->videoData()['type'] ?? null) === 'upload') {
+                $this->deleteVideoFile($post->videoData());
+            }
+
+            return [
+                'type' => 'youtube',
+                'url' => $url,
+                'video_id' => $videoId,
+            ];
+        }
+
+        if ($sourceType === 'upload' && $request->hasFile('video_file')) {
+            $this->deleteVideoFile($post?->videoData());
+
+            return $this->storeVideoFile($request->file('video_file'));
+        }
+
+        if ($sourceType === 'upload' && $request->boolean('keep_existing_video') && $post?->videoData()) {
+            return $post->videoData();
+        }
+
+        if ($sourceType === 'none') {
+            if ($post?->videoData()) {
+                $this->deleteVideoFile($post->videoData());
+            }
+
+            return null;
+        }
+
+        return $post?->videoData();
+    }
+
+    /**
+     * @return array{type: string, path: string, name: string}
+     */
+    private function storeVideoFile(\Illuminate\Http\UploadedFile $file): array
+    {
+        $directory = public_path('uploads/community-posts/videos');
 
         if (! is_dir($directory)) {
             mkdir($directory, 0755, true);
@@ -496,7 +621,30 @@ class CommunityPostController extends Controller
         $filename = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
         $file->move($directory, $filename);
 
-        return 'uploads/community-posts/'.$filename;
+        return [
+            'type' => 'upload',
+            'path' => 'uploads/community-posts/videos/'.$filename,
+            'name' => $file->getClientOriginalName(),
+        ];
+    }
+
+    /**
+     * @param  array{type: string, path?: string}|null  $video
+     */
+    private function deleteVideoFile(?array $video): void
+    {
+        if (($video['type'] ?? null) !== 'upload' || blank($video['path'] ?? null)) {
+            return;
+        }
+
+        $publicPath = public_path($video['path']);
+        if (is_file($publicPath)) {
+            unlink($publicPath);
+
+            return;
+        }
+
+        Storage::disk('public')->delete($video['path']);
     }
 
     private function deleteFeaturedImage(?string $path): void
@@ -515,6 +663,30 @@ class CommunityPostController extends Controller
         Storage::disk('public')->delete($path);
     }
 
+
+    private function paginateCommunityPosts(Request $request, ?User $author = null)
+    {
+        return CommunityPost::query()
+            ->with('user')
+            ->withCount(['reactions', 'comments'])
+            ->published()
+            ->when($author, fn ($query) => $query->where('user_id', $author->id))
+            ->when($request->filled('type'), fn ($query) => $query->where('content_type', $request->string('type')->toString()))
+            ->when($request->filled('category'), fn ($query) => $query->where('category', $request->string('category')->toString()))
+            ->latest('published_at')
+            ->paginate(12)
+            ->withQueryString();
+    }
+
+    private function communityPostsAjaxResponse($posts): JsonResponse
+    {
+        return response()->json([
+            'html' => view('community.partials.post-cards', ['posts' => $posts])->render(),
+            'next_page_url' => $posts->nextPageUrl(),
+            'loaded_to' => $posts->lastItem() ?? 0,
+            'total' => $posts->total(),
+        ]);
+    }
 
     private function resolveAuthor(string $uniqueName): User
     {

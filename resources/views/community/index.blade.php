@@ -2,83 +2,657 @@
 
 @push('styles')
 <style>
-    .community-post-card-excerpt {
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
+    .community-hub {
+        background: #eef2f6;
+    }
+
+    .community-hero {
+        background: linear-gradient(135deg, #0f2f55 0%, #1f66b4 42%, #2e7d32 100%);
+        color: #fff;
+        padding: clamp(48px, 6vw, 72px) 24px;
+        position: relative;
         overflow: hidden;
+    }
+
+    .community-hero::before {
+        background: radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.14), transparent 45%);
+        content: "";
+        inset: 0;
+        pointer-events: none;
+        position: absolute;
+    }
+
+    .community-hero__inner {
+        margin: 0 auto;
+        max-width: min(1720px, calc(100vw - 48px));
+        position: relative;
+        z-index: 1;
+    }
+
+    .community-hero__eyebrow {
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .community-hero__title {
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 0.75rem;
+    }
+
+    .community-hero__subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.02rem;
+        line-height: 1.65;
+        margin: 0;
+        max-width: 680px;
+    }
+
+    .community-hero__actions {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .community-hero__stat {
+        backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        color: #fff;
+        font-size: 0.88rem;
+        font-weight: 600;
+        padding: 0.45rem 0.95rem;
+    }
+
+    .community-shell {
+        margin: 0 auto;
+        max-width: min(1720px, calc(100vw - 48px));
+        padding: 1.5rem 1rem 3rem;
+    }
+
+    .community-toolbar {
+        background: #fff;
+        border: 1px solid #dce6f3;
+        border-radius: 16px;
+        box-shadow: 0 10px 28px rgba(18, 57, 95, 0.06);
+        margin-bottom: 1.25rem;
+        padding: 1rem 1.1rem;
+    }
+
+    .community-toolbar__head {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: space-between;
+        margin-bottom: 0.85rem;
+    }
+
+    .community-toolbar__title {
+        color: #12395f;
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .community-toolbar__hint {
+        color: #6c849c;
+        font-size: 0.86rem;
+        margin: 0;
+    }
+
+    .community-filter-scroll {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.55rem;
+        overflow-x: auto;
+        padding-bottom: 0.15rem;
+        scrollbar-width: thin;
+    }
+
+    .community-filter-pill {
+        background: #f4f8fc;
+        border: 1px solid #d7e3f0;
+        border-radius: 999px;
+        color: #24527a;
+        flex: 0 0 auto;
+        font-size: 0.84rem;
+        font-weight: 600;
+        padding: 0.45rem 0.95rem;
+        text-decoration: none;
+        transition: all 0.18s ease;
+        white-space: nowrap;
+    }
+
+    .community-filter-pill:hover {
+        background: #e8f3ea;
+        border-color: #9fd0a8;
+        color: #1f5f2d;
+    }
+
+    .community-filter-pill.is-active {
+        background: linear-gradient(135deg, #2e7d32, #3d9a45);
+        border-color: transparent;
+        box-shadow: 0 8px 18px rgba(46, 125, 50, 0.22);
+        color: #fff;
+    }
+
+    .community-type-panel {
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+        border: 1px solid #d9e7f5;
+        border-left: 4px solid #2e7d32;
+        border-radius: 14px;
+        margin-bottom: 1.25rem;
+        padding: 1rem 1.1rem;
+    }
+
+    .community-type-panel__title {
+        color: #12395f;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.35rem;
+    }
+
+    .community-type-panel__text {
+        color: #4f6780;
+        font-size: 0.92rem;
+        line-height: 1.6;
+        margin-bottom: 0.5rem;
+    }
+
+    .community-type-panel__categories {
+        color: #6c849c;
+        font-size: 0.82rem;
+    }
+
+    .community-post-card {
+        background: #fff;
+        border: 1px solid #dce6f3;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(18, 57, 95, 0.05);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .community-post-card:hover {
+        box-shadow: 0 16px 34px rgba(18, 57, 95, 0.12);
+        transform: translateY(-3px);
+    }
+
+    .community-post-card__media-link {
+        display: block;
+        overflow: hidden;
+        position: relative;
+        text-decoration: none;
+    }
+
+    .community-post-card__image,
+    .community-post-card__placeholder {
+        aspect-ratio: 16 / 9;
+        display: block;
+        width: 100%;
+    }
+
+    .community-post-card__image {
+        object-fit: cover;
+        transition: transform 0.35s ease;
+    }
+
+    .community-post-card:hover .community-post-card__image {
+        transform: scale(1.04);
+    }
+
+    .community-post-card__placeholder {
+        align-items: center;
+        background: linear-gradient(135deg, #e8f0f8, #d8e8f4);
+        color: #5f7f9d;
+        display: flex;
+        font-size: 2rem;
+        justify-content: center;
+    }
+
+    .community-post-card__media-overlay {
+        background: linear-gradient(180deg, transparent 35%, rgba(15, 47, 85, 0.55) 100%);
+        inset: 0;
+        pointer-events: none;
+        position: absolute;
+    }
+
+    .community-post-card__badges {
+        bottom: 0.75rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        left: 0.75rem;
+        position: absolute;
+        right: 0.75rem;
+        z-index: 1;
+    }
+
+    .community-post-card__badge {
+        backdrop-filter: blur(6px);
+        background: rgba(255, 255, 255, 0.92);
+        border-radius: 999px;
+        color: #24527a;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.28rem 0.65rem;
+    }
+
+    .community-post-card__badge--type {
+        background: rgba(46, 125, 50, 0.92);
+        color: #fff;
+    }
+
+    .community-post-card__video-badge {
+        align-items: center;
+        background: rgba(15, 47, 85, 0.78);
+        border-radius: 999px;
+        color: #fff;
+        display: inline-flex;
+        font-size: 0.85rem;
+        height: 2rem;
+        justify-content: center;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.75rem;
+        width: 2rem;
+        z-index: 1;
+    }
+
+    .community-post-card__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 0.65rem;
+        padding: 1rem 1.05rem 1.05rem;
+    }
+
+    .community-post-card__title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        line-height: 1.45;
+        margin: 0;
+    }
+
+    .community-post-card__title a {
+        color: #12395f;
+        text-decoration: none;
+    }
+
+    .community-post-card__title a:hover {
+        color: #2e7d32;
+    }
+
+    .community-post-card__excerpt {
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        color: #4f6780;
+        display: -webkit-box;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .community-post-card__location {
+        align-items: center;
+        color: #6c849c;
+        display: flex;
+        font-size: 0.8rem;
+        gap: 0.35rem;
+        margin: 0;
+    }
+
+    .community-post-card__footer {
+        align-items: center;
+        border-top: 1px solid #edf2f8;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: space-between;
+        margin-top: auto;
+        padding-top: 0.75rem;
+    }
+
+    .community-post-card__author {
+        align-items: center;
+        display: flex;
+        gap: 0.65rem;
+        min-width: 0;
+    }
+
+    .community-post-card__avatar {
+        align-items: center;
+        background: linear-gradient(135deg, #1f66b4, #2e7d32);
+        border-radius: 999px;
+        color: #fff;
+        display: inline-flex;
+        flex: 0 0 auto;
+        font-size: 0.72rem;
+        font-weight: 700;
+        height: 2.2rem;
+        justify-content: center;
+        width: 2.2rem;
+    }
+
+    .community-post-card__author-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        min-width: 0;
+    }
+
+    .community-post-card__author-name {
+        color: #24527a;
+        font-size: 0.84rem;
+        font-weight: 700;
+        overflow: hidden;
+        text-decoration: none;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .community-post-card__author-meta time {
+        color: #8aa0b5;
+        font-size: 0.76rem;
+    }
+
+    .community-post-card__stats {
+        color: #6c849c;
+        display: flex;
+        flex: 0 0 auto;
+        font-size: 0.78rem;
+        gap: 0.65rem;
+    }
+
+    .community-empty-state {
+        align-items: center;
+        background: #fff;
+        border: 1px dashed #c9d9ea;
+        border-radius: 16px;
+        display: flex;
+        gap: 1rem;
+        padding: 2rem 1.25rem;
+        text-align: left;
+    }
+
+    .community-empty-state__icon {
+        align-items: center;
+        background: #eef6ff;
+        border-radius: 14px;
+        color: #1f66b4;
+        display: inline-flex;
+        flex: 0 0 auto;
+        font-size: 1.35rem;
+        height: 3.25rem;
+        justify-content: center;
+        width: 3.25rem;
+    }
+
+    .community-empty-state__title {
+        color: #12395f;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.35rem;
+    }
+
+    .community-empty-state__text {
+        color: #6c849c;
+        font-size: 0.92rem;
+        line-height: 1.6;
+    }
+
+    .community-pagination-wrap {
+        margin-top: 1.5rem;
+        text-align: center;
+    }
+
+    .community-pagination-summary {
+        color: #6c849c;
+        font-size: 0.88rem;
+        margin: 0;
+    }
+
+    .community-pagination-loading {
+        color: #2e7d32;
+        font-size: 0.88rem;
+        font-weight: 600;
+        margin: 0.35rem 0 0;
+    }
+
+    .community-scroll-sentinel {
+        height: 1px;
+        width: 100%;
+    }
+
+    @@media (min-width: 1200px) {
+        .community-post-card__title {
+            font-size: 0.95rem;
+        }
+
+        .community-post-card__excerpt {
+            -webkit-line-clamp: 2;
+            font-size: 0.82rem;
+        }
+
+        .community-post-card__body {
+            padding: 0.85rem 0.9rem 0.95rem;
+        }
+
+        .community-post-card__avatar {
+            height: 2rem;
+            width: 2rem;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .community-shell {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        .community-toolbar,
+        .community-type-panel {
+            border-radius: 12px;
+        }
+
+        .community-empty-state {
+            flex-direction: column;
+            text-align: center;
+        }
     }
 </style>
 @endpush
 
 @section('content')
-<div class="about-page">
-    <section class="about-banner">
-        @php($authorName = isset($activeAuthor) ? ($activeAuthor->name ?? $activeAuthor->full_name ?? 'Community author') : null)
-        <h1>{{ $authorName ? $authorName . "'s Community Posts" : 'Community' }}</h1>
-        <p>{{ $authorName ? 'Posts by '.$authorName.'.' : 'Read and share community posts.' }}</p>
-        @auth
-            <a href="{{ route('community.posts.create') }}" class="btn btn-light mt-3"><i class="fa-solid fa-plus me-2"></i>Create a Post</a>
-        @else
-            <a href="{{ route('login') }}" class="btn btn-light mt-3">Login to Post</a>
-        @endauth
+@php
+    $authorName = isset($activeAuthor) ? ($activeAuthor->name ?? $activeAuthor->full_name ?? 'Community author') : null;
+    $sectionRoute = isset($activeAuthor) ? 'community.authors.show' : 'community.index';
+    $sectionRouteParams = isset($activeAuthor) ? ['uniqueName' => $activeAuthor->authorUniqueName()] : [];
+    $emptyMessage = isset($activeAuthor)
+        ? 'No posts found for this author yet. Try another section or check back later.'
+        : 'No posts found for this section yet. Try another category or create the first post.';
+@endphp
+
+<div class="community-hub">
+    <section class="community-hero">
+        <div class="community-hero__inner">
+            <div class="community-hero__eyebrow">Soil &amp; Water Community</div>
+            <h1 class="community-hero__title">
+                {{ $authorName ? $authorName . "'s Posts" : 'Community Hub' }}
+            </h1>
+            @if ($authorName)
+                <p class="community-hero__subtitle">
+                    Browse published stories, reports, and updates from {{ $authorName }}.
+                </p>
+            @else
+                <p class="community-hero__subtitle">Community Hub, Knowledge Centre, Local Voices Network</p>
+            @endif
+            <div class="community-hero__actions">
+                @auth
+                    <a href="{{ route('community.posts.create') }}" class="btn btn-light">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Create a Post
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="btn btn-light">
+                        <i class="fa-solid fa-right-to-bracket me-2"></i>Login to Post
+                    </a>
+                @endauth
+                @if ($posts->total() > 0)
+                    <span class="community-hero__stat">
+                        <i class="fa-solid fa-layer-group me-1"></i>{{ number_format($posts->total()) }} published {{ \Illuminate\Support\Str::plural('post', $posts->total()) }}
+                    </span>
+                @endif
+            </div>
+        </div>
     </section>
 
-    <div class="about-inner">
-        <section class="sec">
-            <div class="sec-head">
-                <div class="sec-title"><span class="icon"><i class="fa-solid fa-layer-group"></i></span> Browse sections</div>
+    <div class="community-shell">
+        <div class="community-toolbar">
+            <div class="community-toolbar__head">
+                <h2 class="community-toolbar__title">Browse by section</h2>
+                <p class="community-toolbar__hint">Filter posts by content type</p>
             </div>
-            <div class="d-flex flex-wrap gap-2 mb-4">
-                @php($sectionRoute = isset($activeAuthor) ? 'community.authors.show' : 'community.index')
-                @php($sectionRouteParams = isset($activeAuthor) ? ['uniqueName' => $activeAuthor->authorUniqueName()] : [])
-                <a href="{{ route($sectionRoute, $sectionRouteParams) }}" class="btn btn-sm {{ $activeType ? 'btn-outline-success' : 'btn-success' }}">All</a>
-                @foreach($types as $key => $type)
-                    <a href="{{ route($sectionRoute, array_merge($sectionRouteParams, ['type' => $key])) }}" class="btn btn-sm {{ $activeType === $key ? 'btn-success' : 'btn-outline-success' }}">{{ $type['label'] }}</a>
+            <div class="community-filter-scroll">
+                <a
+                    href="{{ route($sectionRoute, $sectionRouteParams) }}"
+                    class="community-filter-pill {{ $activeType ? '' : 'is-active' }}"
+                >All sections</a>
+                @foreach ($types as $key => $type)
+                    <a
+                        href="{{ route($sectionRoute, array_merge($sectionRouteParams, ['type' => $key])) }}"
+                        class="community-filter-pill {{ $activeType === $key ? 'is-active' : '' }}"
+                    >{{ $type['label'] }}</a>
                 @endforeach
             </div>
+        </div>
 
-            @if($activeType && isset($types[$activeType]))
-                <div class="alert alert-success">
-                    <strong>{{ $types[$activeType]['label'] }}:</strong> {{ $types[$activeType]['description'] }}
-                    <div class="mt-2 small">Categories: {{ implode(', ', $types[$activeType]['categories']) }}</div>
+        @if ($activeType && isset($types[$activeType]))
+            <div class="community-type-panel">
+                <div class="community-type-panel__title">{{ $types[$activeType]['label'] }}</div>
+                <p class="community-type-panel__text">{{ $types[$activeType]['description'] }}</p>
+                <div class="community-type-panel__categories">
+                    <strong>Categories:</strong> {{ implode(', ', $types[$activeType]['categories']) }}
                 </div>
-            @endif
-
-            <div class="row g-4">
-                @forelse($posts as $post)
-                    <div class="col-md-6 col-lg-4">
-                        <article class="about-box h-100">
-                            @if($post->featured_image_path)
-                                <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="img-fluid rounded mb-3" style="height:180px;width:100%;object-fit:cover;">
-                            @endif
-                            <div class="d-flex flex-wrap gap-2 mb-2">
-                                <span class="badge bg-success">{{ $post->typeLabel() }}</span>
-                                <span class="badge bg-light text-dark border">{{ filled(data_get($post->meta, 'report_type')) ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</span>
-                            </div>
-                            <h4><a href="{{ route('community.show', $post) }}" class="text-decoration-none text-dark">{{ $post->title }}</a></h4>
-                            <p class="community-post-card-excerpt">{{ $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 220) }}</p>
-                            <div class="small text-muted">
-                                By
-                                @if($post->user)
-                                    <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="text-muted fw-semibold">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
-                                @else
-                                    Community author
-                                @endif
-                                · {{ $post->published_at?->format('M d, Y') }}
-                            </div>
-                            <a href="{{ route('community.show', $post) }}" class="btn btn-outline-success btn-sm mt-3">Read more</a>
-                        </article>
-                    </div>
-                @empty
-                    <div class="col-12">
-                        <div class="alert alert-info mb-0">{{ isset($activeAuthor) ? 'No posts found for this author yet.' : 'No posts found for this section yet.' }}</div>
-                    </div>
-                @endforelse
             </div>
+        @endif
 
-            <div class="mt-4">{{ $posts->links() }}</div>
-        </section>
+        <div
+            id="communityPostsGrid"
+            class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 g-lg-4"
+            data-next-page-url="{{ $posts->nextPageUrl() }}"
+        >
+            @include('community.partials.post-cards', [
+                'posts' => $posts,
+                'emptyMessage' => $emptyMessage,
+            ])
+        </div>
+
+        <div class="community-pagination-wrap" id="communityPaginationState">
+            @if ($posts->total() > 0)
+                <p class="community-pagination-summary" id="communitySummaryText">
+                    Showing 1 to {{ $posts->lastItem() }} of {{ $posts->total() }} results
+                </p>
+            @endif
+            <p class="community-pagination-loading d-none" id="communityLoadingText">Loading more posts…</p>
+        </div>
+
+        <div id="communityScrollSentinel" class="community-scroll-sentinel" aria-hidden="true"></div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        const postsGrid = document.getElementById('communityPostsGrid');
+        const loadingText = document.getElementById('communityLoadingText');
+        const summaryText = document.getElementById('communitySummaryText');
+        const scrollSentinel = document.getElementById('communityScrollSentinel');
+        let nextPageUrl = postsGrid ? (postsGrid.dataset.nextPageUrl || '') : '';
+        let isLoading = false;
+
+        function setLoadingState(show) {
+            if (!loadingText) return;
+            loadingText.classList.toggle('d-none', !show);
+        }
+
+        async function loadNextCommunityPage() {
+            if (!nextPageUrl || isLoading || !postsGrid) return;
+
+            isLoading = true;
+            setLoadingState(true);
+
+            try {
+                const response = await fetch(nextPageUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load more posts');
+                }
+
+                const payload = await response.json();
+                const emptyState = postsGrid.querySelector('.community-empty-state');
+
+                if (emptyState) {
+                    emptyState.closest('.col-12')?.remove();
+                }
+
+                if (payload.html) {
+                    postsGrid.insertAdjacentHTML('beforeend', payload.html);
+                }
+
+                nextPageUrl = payload.next_page_url || '';
+                postsGrid.dataset.nextPageUrl = nextPageUrl;
+
+                if (summaryText && payload.total > 0) {
+                    summaryText.textContent = `Showing 1 to ${payload.loaded_to} of ${payload.total} results`;
+                    summaryText.classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                isLoading = false;
+                setLoadingState(false);
+            }
+        }
+
+        if (scrollSentinel && postsGrid && 'IntersectionObserver' in window) {
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        loadNextCommunityPage();
+                    }
+                });
+            }, {
+                rootMargin: '300px 0px',
+            });
+
+            observer.observe(scrollSentinel);
+        } else {
+            window.addEventListener('scroll', function () {
+                if (!nextPageUrl || isLoading || !scrollSentinel) return;
+
+                const sentinelTop = scrollSentinel.getBoundingClientRect().top;
+                if (sentinelTop <= window.innerHeight + 300) {
+                    loadNextCommunityPage();
+                }
+            }, { passive: true });
+        }
+    })();
+</script>
+@endpush

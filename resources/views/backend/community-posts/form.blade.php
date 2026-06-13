@@ -46,15 +46,6 @@
                     <option value="">Select category</option>
                 </select>
             </div>
-            <div class="col-md-6 type-extra report-format-field" data-for="reports">
-                <label class="form-label">Report format <span class="text-danger">*</span></label>
-                <select name="report_format" id="reportFormat" class="form-select" data-selected="{{ old('report_format', data_get($post->meta, 'report_format', 'professional')) }}">
-                    @foreach(\App\Support\CommunityContentTaxonomy::reportFormats() as $formatKey => $formatLabel)
-                        <option value="{{ $formatKey }}" @selected(old('report_format', data_get($post->meta, 'report_format', 'professional')) === $formatKey)>{{ $formatLabel }}</option>
-                    @endforeach
-                </select>
-                <small class="text-muted">Choose a standard report or a My Area civic issue report.</small>
-            </div>
             <div class="col-md-8">
                 <label class="form-label">Title <span class="text-danger">*</span></label>
                 <input type="text" name="title" class="form-control" value="{{ old('title', $post->title) }}" maxlength="255" required>
@@ -74,15 +65,23 @@
             <div class="col-12">
                 <label class="form-label" id="bodyLabel">Body <span class="text-danger">*</span></label>
                 <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
-                <small id="bodyHelp" class="text-muted d-block mt-1">Add the main content for this community post.</small>
-                <small class="text-muted d-block mt-1">For text beside an image: upload/insert the image, choose left or right alignment from the image toolbar, then click after the image and type. The text will wrap in the open side.</small>
+                <small id="bodyHelp" class="text-muted d-block mt-1">Add text and images together. Select an image to align it, or drag its corner to resize.</small>
+                <small class="text-muted d-block mt-1">Tip: use left/right alignment for text wrapping beside an image. Place the cursor in the open space next to the image before typing.</small>
             </div>
             <div class="col-md-6">
-                <label class="form-label">Featured image</label>
-                <input type="file" name="featured_image" class="form-control" accept="image/*">
-                @if($post->featured_image_path)
-                    <small class="text-muted">Current: {{ $post->featured_image_path }}</small>
-                @endif
+                <label class="form-label d-flex align-items-center justify-content-between gap-2">
+                    <span>Featured images</span>
+                    <small class="text-muted fw-normal" id="featuredImagesCount">0 / 5</small>
+                </label>
+                <div class="featured-images-uploader border rounded-3 p-3">
+                    <input type="file" id="featuredImagesInput" class="d-none" accept="image/*" multiple>
+                    <button type="button" id="featuredImagesAddBtn" class="btn btn-outline-primary btn-sm">
+                        <i class="fa-solid fa-images me-1"></i>Add images
+                    </button>
+                    <small class="text-muted d-block mt-2">Upload up to 5 images. JPG, PNG, or WebP, max 4 MB each.</small>
+                    <div id="featuredImagesPreview" class="featured-images-grid mt-3"></div>
+                    <div id="featuredImagesRemovedWrap"></div>
+                </div>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Tags</label>
@@ -96,13 +95,6 @@
             <div class="col-md-6 general-extra">
                 <label class="form-label">Author bio</label>
                 <input type="text" name="author_bio" class="form-control" value="{{ old('author_bio', data_get($post->meta, 'author_bio')) }}" maxlength="500">
-            </div>
-            <div class="col-md-6">
-                <label class="form-label" id="locationLabel">Location / local area <span class="text-danger">*</span></label>
-                <input type="text" name="location" id="communityLocation" class="form-control" value="{{ old('location', data_get($post->meta, 'location')) }}" maxlength="160" placeholder="Search and select a location" autocomplete="off" required>
-                <input type="hidden" name="location_lat" id="communityLocationLat" value="{{ old('location_lat', data_get($post->meta, 'location_lat')) }}">
-                <input type="hidden" name="location_lng" id="communityLocationLng" value="{{ old('location_lng', data_get($post->meta, 'location_lng')) }}">
-                <small class="text-muted" id="locationHelp">Select a Google Places suggestion so latitude and longitude are saved.</small>
             </div>
             <div class="col-12 type-extra news-flow" data-for="news">
                 <div class="news-flow-card border rounded-3 p-3 bg-light">
@@ -217,29 +209,64 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 type-extra" data-for="childrens-corner">
-                <div class="form-check mt-4">
-                    <input type="checkbox" name="parent_approved" value="1" class="form-check-input" id="parentApproved" @checked(old('parent_approved', data_get($post->meta, 'parent_approved')))>
-                    <label class="form-check-label" for="parentApproved">Parent approved</label>
-                </div>
-            </div>
-            <div class="col-md-4 type-extra" data-for="childrens-corner">
-                <label class="form-label">School name</label>
-                <input type="text" name="school_name" class="form-control" value="{{ old('school_name', data_get($post->meta, 'school_name')) }}" maxlength="160">
-            </div>
-            <div class="col-md-4 type-extra" data-for="astro-consultancy">
-                <label class="form-label">Consultation fee/details</label>
-                <input type="text" name="consultation_fee" class="form-control" value="{{ old('consultation_fee', data_get($post->meta, 'consultation_fee')) }}" maxlength="120">
-            </div>
-            <div class="col-md-4 type-extra" data-for="competitions">
-                <label class="form-label">Competition deadline</label>
-                <input type="date" name="competition_deadline" class="form-control" value="{{ old('competition_deadline', data_get($post->meta, 'competition_deadline')) }}">
-            </div>
-            <div class="col-12" id="allowCommentsWrap">
-                <div class="form-check">
-                    <input type="checkbox" name="allow_comments" value="1" class="form-check-input" id="allowComments" @checked(old('allow_comments', $post->allow_comments ?? true))>
-                    <label class="form-check-label" for="allowComments">Enable public discussion thread</label>
-                    <small class="text-muted d-block">When enabled, logged-in readers can add comments and replies on the public post page like a Quora or Reddit-style discussion.</small>
+            @include('backend.community-posts.partials.type-fields')
+            @php
+                $existingVideo = $post->videoData();
+                $videoSourceType = old('video_source_type', $existingVideo['type'] ?? 'none');
+            @endphp
+            <div class="col-12 common-post-fields">
+                <div class="border rounded-3 p-3 bg-white">
+                    <h5 class="mb-3">Common settings</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" id="locationLabel">Location <span class="text-danger">*</span></label>
+                            <input type="text" name="location" id="communityLocation" class="form-control" value="{{ old('location', $post->location ?? data_get($post->meta, 'location')) }}" maxlength="160" placeholder="Search and select a location" autocomplete="off" required>
+                            <input type="hidden" name="location_lat" id="communityLocationLat" value="{{ old('location_lat', $post->location_lat ?? data_get($post->meta, 'location_lat')) }}">
+                            <input type="hidden" name="location_lng" id="communityLocationLng" value="{{ old('location_lng', $post->location_lng ?? data_get($post->meta, 'location_lng')) }}">
+                            <small class="text-muted" id="locationHelp">Select a Google Places suggestion so latitude and longitude are saved.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Video <span class="text-muted fw-normal">(optional)</span></label>
+                            <div class="community-video-field border rounded-3 p-3">
+                                <div class="btn-group btn-group-sm w-100 mb-3" role="group" aria-label="Video source type">
+                                    <input type="radio" class="btn-check" name="video_source_type" id="videoSourceNone" value="none" @checked($videoSourceType === 'none')>
+                                    <label class="btn btn-outline-secondary" for="videoSourceNone">No video</label>
+                                    <input type="radio" class="btn-check" name="video_source_type" id="videoSourceYoutube" value="youtube" @checked($videoSourceType === 'youtube')>
+                                    <label class="btn btn-outline-secondary" for="videoSourceYoutube">YouTube link</label>
+                                    <input type="radio" class="btn-check" name="video_source_type" id="videoSourceUpload" value="upload" @checked($videoSourceType === 'upload')>
+                                    <label class="btn btn-outline-secondary" for="videoSourceUpload">Upload file</label>
+                                </div>
+
+                                <div id="videoYoutubeWrap" class="video-source-panel">
+                                    <label class="form-label" for="videoYoutubeUrl">YouTube URL</label>
+                                    <input type="url" name="video_youtube_url" id="videoYoutubeUrl" class="form-control" value="{{ old('video_youtube_url', ($existingVideo['type'] ?? null) === 'youtube' ? ($existingVideo['url'] ?? '') : '') }}" placeholder="https://www.youtube.com/watch?v=..." maxlength="500">
+                                    <small class="text-muted d-block mt-2">Paste a public YouTube, YouTube Shorts, or youtu.be link.</small>
+                                </div>
+
+                                <div id="videoUploadWrap" class="video-source-panel">
+                                    <label class="form-label" for="videoFile">Video file</label>
+                                    <input type="file" name="video_file" id="videoFile" class="form-control" accept="video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-matroska,.mp4,.mov,.avi,.webm,.mkv">
+                                    <small class="text-muted d-block mt-2">MP4, MOV, AVI, WebM, or MKV. Maximum size: 50 MB.</small>
+                                    @if(($existingVideo['type'] ?? null) === 'upload')
+                                        <input type="hidden" name="keep_existing_video" id="keepExistingVideo" value="1">
+                                        <div id="existingVideoPreview" class="alert alert-light border mt-3 mb-0 py-2 px-3 d-flex align-items-center justify-content-between gap-2">
+                                            <div class="small">
+                                                <strong>Current video:</strong> {{ $existingVideo['name'] ?? 'Uploaded video' }}
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" id="removeExistingVideoBtn">Remove</button>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12" id="allowCommentsWrap">
+                            <div class="form-check">
+                                <input type="checkbox" name="allow_comments" value="1" class="form-check-input" id="allowComments" @checked(old('allow_comments', $post->allow_comments ?? true))>
+                                <label class="form-check-label" for="allowComments">Enable public discussion thread</label>
+                                <small class="text-muted d-block">When enabled, logged-in readers can add comments and replies on the public post page.</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -258,19 +285,89 @@
     .tag-input-wrap:focus-within { border-color: #86b7fe !important; box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .15); }
     .community-tag-pill { align-items: center; background: #e8f5ee; border: 1px solid #badbcc; border-radius: 999px; color: #0f5132; display: inline-flex; font-size: .875rem; font-weight: 600; gap: .35rem; padding: .25rem .55rem; }
     .community-tag-remove { background: transparent; border: 0; color: inherit; line-height: 1; padding: 0; }
-    .ck-editor__editable_inline { min-height: 360px; }
-    .ck-content .image { margin: 1rem auto; }
-    .ck-content .image img { height: auto; max-width: 100%; }
-    .ck-content .image-style-align-left { clear: none; float: left; margin: .35rem 1.25rem 1rem 0; max-width: 45%; }
-    .ck-content .image-style-align-right,
-    .ck-content .image-style-side { clear: none; float: right; margin: .35rem 0 1rem 1.25rem; max-width: 45%; }
-    .ck-content .image-style-align-center,
-    .ck-content .image-style-block { clear: both; display: table; float: none; margin-left: auto; margin-right: auto; }
-    .ck-content::after { clear: both; content: ""; display: table; }
+    .featured-images-uploader { background: #fafbfc; }
+    .featured-images-grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); }
+    .featured-image-card { aspect-ratio: 1; background: #fff; border: 1px solid #dbe3ea; border-radius: .75rem; box-shadow: 0 1px 2px rgba(16, 24, 40, .06); overflow: hidden; position: relative; }
+    .featured-image-card img { display: block; height: 100%; object-fit: cover; width: 100%; }
+    .featured-image-remove { align-items: center; background: rgba(15, 23, 42, .78); border: 0; border-radius: 999px; color: #fff; display: inline-flex; height: 28px; justify-content: center; position: absolute; right: .45rem; top: .45rem; width: 28px; }
+    .featured-image-remove:hover { background: rgba(185, 28, 28, .92); color: #fff; }
+    .featured-image-badge { background: rgba(15, 23, 42, .72); border-radius: 999px; bottom: .45rem; color: #fff; font-size: .7rem; font-weight: 600; left: .45rem; padding: .15rem .45rem; position: absolute; }
+    .community-video-field { background: #fafbfc; }
+    .video-source-panel { display: none; }
+    .video-source-panel.is-active { display: block; }
+    .ck-editor__editable_inline { min-height: 360px; overflow: auto; }
+    .ck-editor__editable.ck-content > p,
+    .ck-editor__editable.ck-content > h2,
+    .ck-editor__editable.ck-content > h3,
+    .ck-editor__editable.ck-content > h4,
+    .ck-editor__editable.ck-content > blockquote,
+    .ck-editor__editable.ck-content > ul,
+    .ck-editor__editable.ck-content > ol {
+        clear: none !important;
+    }
+    .ck-editor__editable.ck-content .image {
+        clear: none !important;
+        display: block;
+        margin: 0.5em auto;
+        max-width: 100%;
+        min-width: 40px;
+    }
+    .ck-editor__editable.ck-content .image img {
+        display: block;
+        height: auto;
+        max-width: 100%;
+        min-height: 60px;
+        min-width: 60px;
+        overflow: hidden;
+        resize: both;
+    }
+    .ck-editor__editable.ck-content .image.image-style-align-left,
+    .ck-editor__editable.ck-content .image.image-style-side {
+        clear: none !important;
+        display: block !important;
+        float: left !important;
+        margin: 0.35rem 1.25rem 0.75rem 0 !important;
+        max-width: 50%;
+    }
+    .ck-editor__editable.ck-content .image.image-style-align-right {
+        clear: none !important;
+        display: block !important;
+        float: right !important;
+        margin: 0.35rem 0 0.75rem 1.25rem !important;
+        max-width: 50%;
+    }
+    .ck-editor__editable.ck-content .image.image-style-align-center,
+    .ck-editor__editable.ck-content .image.image-style-block {
+        clear: both;
+        display: table;
+        float: none;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 100%;
+    }
+    .ck-editor__editable.ck-content .image.image-style-inline {
+        display: inline-block;
+        float: none;
+        margin: 0.15em 0.35em;
+        max-width: 50%;
+        vertical-align: top;
+    }
+    .ck-editor__editable.ck-content .image.image-inline {
+        display: inline-block;
+        max-width: 50%;
+        vertical-align: top;
+    }
     @media (max-width: 767.98px) {
-        .ck-content .image-style-align-left,
-        .ck-content .image-style-align-right,
-        .ck-content .image-style-side { float: none; margin: 1rem auto; max-width: 100%; }
+        .ck-editor__editable.ck-content .image.image-style-align-left,
+        .ck-editor__editable.ck-content .image.image-style-align-right,
+        .ck-editor__editable.ck-content .image.image-style-side,
+        .ck-editor__editable.ck-content .image.image-style-inline,
+        .ck-editor__editable.ck-content .image.image-inline {
+            display: block;
+            float: none;
+            margin: 1rem auto;
+            max-width: 100%;
+        }
     }
 </style>
 @endpush
@@ -282,6 +379,15 @@
 <script>
     window.communityTypes = @json($types);
     window.communityBodyEditor = null;
+    window.communityFeaturedImages = {
+        max: 5,
+        existing: @json(collect($post->featuredImages())->map(fn ($path) => [
+            'path' => $path,
+            'url' => \App\Models\CommunityPost::resolveImageUrl($path),
+        ])->values()),
+        pending: [],
+        removed: [],
+    };
 
     if (window.toastr) {
         window.toastr.options = { closeButton: true, progressBar: true, positionClass: 'toast-top-right', timeOut: 4000, extendedTimeOut: 2000 };
@@ -291,16 +397,14 @@
         const typeSelect = document.getElementById('contentType');
         const categorySelect = document.getElementById('categorySelect');
         const categoryWrap = document.getElementById('categoryFieldWrap');
-        const reportFormatSelect = document.getElementById('reportFormat');
         const help = document.getElementById('typeHelp');
         const selected = categorySelect.dataset.selected;
         const type = window.communityTypes[typeSelect.value];
+        const selectedType = typeSelect.value;
+        const isReport = selectedType === 'reports';
+        const isNews = selectedType === 'news';
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports'].includes(selectedType);
 
-        const isReport = typeSelect.value === 'reports';
-        const reportFormat = reportFormatSelect?.value || reportFormatSelect?.dataset.selected || 'professional';
-        const isProfessionalReport = isReport && reportFormat === 'professional';
-        const isMyArea = isReport && reportFormat === 'my_area';
-        const isNews = typeSelect.value === 'news';
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
 
@@ -328,20 +432,13 @@
                     });
             }
         }
-        const isStructuredContent = isReport || isNews;
 
         document.querySelectorAll('.type-extra').forEach((field) => {
-            const matchesType = field.dataset.for === typeSelect.value;
-            const matchesReportFormat = !field.dataset.reportFormat || field.dataset.reportFormat === reportFormat;
-            field.style.display = matchesType && matchesReportFormat ? '' : 'none';
+            field.style.display = field.dataset.for === selectedType ? '' : 'none';
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = isStructuredContent ? 'none' : '';
-        });
-
-        document.querySelectorAll('.report-required').forEach((field) => {
-            field.required = false;
+            field.style.display = (isNews || isReport || hasTypeSection) ? 'none' : '';
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -352,13 +449,18 @@
             field.required = isReport;
         });
 
+        document.querySelectorAll('.type-field-required').forEach((field) => {
+            const section = field.closest('.type-fields-flow');
+            field.required = Boolean(section && section.dataset.for === selectedType && section.style.display !== 'none');
+        });
+
         const fieldCopy = isReport ? {
             excerptLabel: 'Issue summary',
             excerptPlaceholder: 'Briefly explain the problem, affected people, and urgency.',
             excerptHelp: 'Use a clear problem statement so neighbours can quickly support or vote on it.',
             bodyLabel: 'Detailed problem description <span class="text-danger">*</span>',
             bodyHelp: 'Include what happened, when it started, exact location landmarks, risk, and expected solution.',
-            locationLabel: 'GPS issue location <span class="text-danger">*</span>',
+            locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select the exact issue location from Google Places so the problem can be mapped.',
         } : (isNews ? {
             excerptLabel: 'News summary / standfirst',
@@ -366,15 +468,15 @@
             excerptHelp: 'Use a concise newsroom-style summary with the main verified fact and reader impact.',
             bodyLabel: 'Full news story <span class="text-danger">*</span>',
             bodyHelp: 'Recommended flow: lead, nut graph, details, context, quotes, impact, and latest update.',
-            locationLabel: 'News location <span class="text-danger">*</span>',
+            locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select the news location from Google Places so the story is location-indexed.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
             excerptHelp: 'A concise teaser shown in listing cards.',
             bodyLabel: 'Body <span class="text-danger">*</span>',
-            bodyHelp: 'Add the main content for this community post.',
-            locationLabel: 'Location / local area <span class="text-danger">*</span>',
+            bodyHelp: 'Add text and images together. Select an image to resize or align it.',
+            locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
         });
 
@@ -388,11 +490,6 @@
     }
 
     document.getElementById('contentType').addEventListener('change', function () {
-        document.getElementById('categorySelect').dataset.selected = '';
-        refreshCommunityCategories();
-    });
-
-    document.getElementById('reportFormat')?.addEventListener('change', function () {
         document.getElementById('categorySelect').dataset.selected = '';
         refreshCommunityCategories();
     });
@@ -436,24 +533,106 @@
         editor.plugins.get('FileRepository').createUploadAdapter = (loader) => new CommunityUploadAdapter(loader);
     }
 
+    function communityImageTextFlowPlugin(editor) {
+        let locking = false;
+
+        editor.model.document.on('change:data', () => {
+            if (locking) {
+                return;
+            }
+
+            const differ = editor.model.document.differ;
+            let imageNode = null;
+
+            for (const change of differ.getChanges()) {
+                if (change.type !== 'insert' || !change.position) {
+                    continue;
+                }
+
+                const insertedNode = change.position.nodeAfter;
+                if (!insertedNode) {
+                    continue;
+                }
+
+                if (insertedNode.is('element', 'imageBlock')) {
+                    imageNode = insertedNode;
+                    break;
+                }
+
+                if (insertedNode.is('element', 'paragraph')) {
+                    const previousSibling = insertedNode.previousSibling;
+                    if (!previousSibling || !previousSibling.is('element', 'imageBlock')) {
+                        continue;
+                    }
+
+                    const text = [...insertedNode.getChildren()]
+                        .filter((child) => child.is('$text'))
+                        .map((child) => child.data)
+                        .join('');
+
+                    if (text.trim() === '') {
+                        imageNode = previousSibling;
+                        break;
+                    }
+                }
+            }
+
+            if (!imageNode) {
+                return;
+            }
+
+            locking = true;
+            editor.model.change({ isUndoable: false }, (writer) => {
+                let targetParagraph = imageNode.nextSibling;
+
+                if (!targetParagraph || !targetParagraph.is('element', 'paragraph')) {
+                    targetParagraph = writer.createElement('paragraph');
+                    writer.insert(targetParagraph, writer.createPositionAfter(imageNode));
+                }
+
+                writer.setSelection(targetParagraph, 'in');
+            });
+            locking = false;
+        });
+    }
+
     ClassicEditor.create(document.querySelector('#bodyEditor'), {
-        extraPlugins: [communityUploadAdapterPlugin],
+        extraPlugins: [communityUploadAdapterPlugin, communityImageTextFlowPlugin],
         toolbar: {
             items: [
                 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
-                'insertImage', 'blockQuote', 'insertTable', '|', 'undo', 'redo'
+                'insertImage', 'blockQuote', 'insertTable', '|', 'undo', 'redo',
             ],
         },
         image: {
             toolbar: [
-                'imageTextAlternative', 'toggleImageCaption', '|',
-                'imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|',
-                'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight'
+                'imageTextAlternative',
+                'toggleImageCaption',
+                '|',
+                'imageStyle:inline',
+                'imageStyle:alignLeft',
+                'imageStyle:alignRight',
+                'imageStyle:alignCenter',
+                'imageStyle:block',
+                'imageStyle:side',
             ],
+            styles: {
+                options: [
+                    'inline',
+                    'alignLeft',
+                    'alignRight',
+                    'alignCenter',
+                    'block',
+                    'side',
+                ],
+            },
         },
     })
         .then((editor) => { window.communityBodyEditor = editor; })
-        .catch(() => notify('error', 'Unable to load the body editor.'));
+        .catch((error) => {
+            console.error(error);
+            notify('error', 'Unable to load the body editor.');
+        });
 
     const tagInput = document.getElementById('tagInput');
     const tagList = document.getElementById('tagList');
@@ -503,6 +682,145 @@
     });
     tagInput.addEventListener('blur', addTagsFromInput);
     syncTags();
+
+    const featuredImagesInput = document.getElementById('featuredImagesInput');
+    const featuredImagesAddBtn = document.getElementById('featuredImagesAddBtn');
+    const featuredImagesPreview = document.getElementById('featuredImagesPreview');
+    const featuredImagesRemovedWrap = document.getElementById('featuredImagesRemovedWrap');
+    const featuredImagesCount = document.getElementById('featuredImagesCount');
+    const featuredImagesState = window.communityFeaturedImages;
+
+    function featuredImagesTotal() {
+        return featuredImagesState.existing.length + featuredImagesState.pending.length;
+    }
+
+    function updateFeaturedImagesUi() {
+        featuredImagesPreview.innerHTML = '';
+        featuredImagesRemovedWrap.innerHTML = '';
+        featuredImagesCount.textContent = featuredImagesTotal() + ' / ' + featuredImagesState.max;
+        featuredImagesAddBtn.disabled = featuredImagesTotal() >= featuredImagesState.max;
+
+        featuredImagesState.existing.forEach((image, index) => {
+            featuredImagesPreview.appendChild(createFeaturedImageCard({
+                src: image.url,
+                label: index === 0 ? 'Cover' : 'Saved',
+                onRemove: () => {
+                    featuredImagesState.removed.push(image.path);
+                    featuredImagesState.existing.splice(index, 1);
+                    syncFeaturedImagesRemovedInputs();
+                    updateFeaturedImagesUi();
+                },
+            }));
+        });
+
+        featuredImagesState.pending.forEach((item, index) => {
+            featuredImagesPreview.appendChild(createFeaturedImageCard({
+                src: item.previewUrl,
+                label: featuredImagesState.existing.length === 0 && index === 0 ? 'Cover' : 'New',
+                onRemove: () => {
+                    URL.revokeObjectURL(item.previewUrl);
+                    featuredImagesState.pending.splice(index, 1);
+                    updateFeaturedImagesUi();
+                },
+            }));
+        });
+    }
+
+    function createFeaturedImageCard({ src, label, onRemove }) {
+        const card = document.createElement('div');
+        card.className = 'featured-image-card';
+        card.innerHTML = '<img alt="Featured image preview"><span class="featured-image-badge"></span><button type="button" class="featured-image-remove" aria-label="Remove image"><i class="fa-solid fa-xmark"></i></button>';
+        card.querySelector('img').src = src;
+        card.querySelector('.featured-image-badge').textContent = label;
+        card.querySelector('.featured-image-remove').addEventListener('click', onRemove);
+        return card;
+    }
+
+    function syncFeaturedImagesRemovedInputs() {
+        featuredImagesRemovedWrap.innerHTML = '';
+        featuredImagesState.removed.forEach((path) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'removed_featured_images[]';
+            input.value = path;
+            featuredImagesRemovedWrap.appendChild(input);
+        });
+    }
+
+    featuredImagesAddBtn.addEventListener('click', () => featuredImagesInput.click());
+
+    featuredImagesInput.addEventListener('change', function () {
+        const files = Array.from(this.files || []);
+        this.value = '';
+
+        files.forEach((file) => {
+            if (featuredImagesTotal() >= featuredImagesState.max) {
+                notify('error', 'You can upload up to 5 featured images.');
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                notify('error', 'Only image files are allowed.');
+                return;
+            }
+
+            featuredImagesState.pending.push({
+                id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+                file,
+                previewUrl: URL.createObjectURL(file),
+            });
+        });
+
+        updateFeaturedImagesUi();
+    });
+
+    updateFeaturedImagesUi();
+
+    const maxVideoFileBytes = 52428800;
+    const videoYoutubeWrap = document.getElementById('videoYoutubeWrap');
+    const videoUploadWrap = document.getElementById('videoUploadWrap');
+    const videoFileInput = document.getElementById('videoFile');
+    const keepExistingVideoInput = document.getElementById('keepExistingVideo');
+    const existingVideoPreview = document.getElementById('existingVideoPreview');
+    const removeExistingVideoBtn = document.getElementById('removeExistingVideoBtn');
+
+    function refreshVideoSourcePanels() {
+        const selected = document.querySelector('input[name="video_source_type"]:checked')?.value || 'none';
+        videoYoutubeWrap?.classList.toggle('is-active', selected === 'youtube');
+        videoUploadWrap?.classList.toggle('is-active', selected === 'upload');
+    }
+
+    document.querySelectorAll('input[name="video_source_type"]').forEach((input) => {
+        input.addEventListener('change', refreshVideoSourcePanels);
+    });
+
+    removeExistingVideoBtn?.addEventListener('click', () => {
+        document.getElementById('videoSourceNone')?.click();
+        existingVideoPreview?.remove();
+        keepExistingVideoInput?.remove();
+        if (videoFileInput) {
+            videoFileInput.value = '';
+        }
+    });
+
+    videoFileInput?.addEventListener('change', function () {
+        const file = this.files?.[0];
+        if (!file) {
+            return;
+        }
+
+        if (file.size > maxVideoFileBytes) {
+            notify('error', 'Video file must be 50 MB or smaller.');
+            this.value = '';
+            return;
+        }
+
+        if (keepExistingVideoInput) {
+            keepExistingVideoInput.value = '0';
+        }
+    });
+
+    refreshVideoSourcePanels();
 
     window.initCommunityPostLocationAutocomplete = function () {
         const locationInput = document.getElementById('communityLocation');
@@ -555,13 +873,42 @@
             return;
         }
 
+        const videoSource = document.querySelector('input[name="video_source_type"]:checked')?.value || 'none';
+        if (videoSource === 'youtube') {
+            const youtubeUrl = document.getElementById('videoYoutubeUrl')?.value.trim();
+            if (!youtubeUrl) {
+                notify('error', 'Please enter a YouTube video link or choose another video option.');
+                return;
+            }
+        }
+
+        if (videoSource === 'upload') {
+            const hasNewFile = (videoFileInput?.files?.length || 0) > 0;
+            const keepingExisting = keepExistingVideoInput?.value === '1';
+            if (!hasNewFile && !keepingExisting) {
+                notify('error', 'Please choose a video file to upload or switch to another video option.');
+                return;
+            }
+
+            if (hasNewFile && videoFileInput.files[0].size > maxVideoFileBytes) {
+                notify('error', 'Video file must be 50 MB or smaller.');
+                return;
+            }
+        }
+
         submitButton.disabled = true;
         submitButton.innerHTML = 'Saving...';
+
+        const formData = new FormData(form);
+        formData.delete('featured_images[]');
+        featuredImagesState.pending.forEach((item) => {
+            formData.append('featured_images[]', item.file);
+        });
 
         fetch(form.action, {
             method: 'POST',
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
-            body: new FormData(form),
+            body: formData,
         })
             .then(async (response) => {
                 const payload = await response.json();

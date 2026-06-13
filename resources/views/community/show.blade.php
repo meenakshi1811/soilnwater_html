@@ -1,5 +1,30 @@
 @extends('frontend.layouts.app')
 
+@push('styles')
+<style>
+    .community-featured-gallery {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .community-featured-gallery--single {
+        grid-template-columns: 1fr;
+    }
+    .community-featured-gallery-item img {
+        display: block;
+        height: 100%;
+        max-height: 420px;
+        object-fit: cover;
+        width: 100%;
+    }
+    @@media (max-width: 767.98px) {
+        .community-featured-gallery {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="about-page">
     <section class="about-banner">
@@ -26,18 +51,52 @@
 
     <div class="about-inner">
         <section class="sec">
-            @if($post->featured_image_path)
-                <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="img-fluid rounded mb-4" style="max-height:420px;width:100%;object-fit:cover;">
+            @php
+                $featuredImageUrls = $post->featuredImageUrls();
+            @endphp
+            @if($featuredImageUrls !== [])
+                <div class="community-featured-gallery mb-4 {{ count($featuredImageUrls) === 1 ? 'community-featured-gallery--single' : '' }}">
+                    @foreach($featuredImageUrls as $index => $imageUrl)
+                        <div class="community-featured-gallery-item">
+                            <img src="{{ $imageUrl }}" alt="{{ $post->title }} — image {{ $index + 1 }}" class="img-fluid rounded">
+                        </div>
+                    @endforeach
+                </div>
             @endif
 
             @if($post->excerpt)
                 <p class="lead">{{ $post->excerpt }}</p>
             @endif
 
-            <div class="community-post-body" style="line-height:1.8;">{!! $post->body !!}</div>
+            @if($post->hasVideo())
+                <div class="community-post-video mb-4">
+                    @if($post->youtubeEmbedUrl())
+                        <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm">
+                            <iframe
+                                src="{{ $post->youtubeEmbedUrl() }}"
+                                title="Video for {{ $post->title }}"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen
+                            ></iframe>
+                        </div>
+                    @elseif($post->videoFileUrl())
+                        <video controls class="w-100 rounded shadow-sm" preload="metadata">
+                            <source src="{{ $post->videoFileUrl() }}">
+                            Your browser does not support embedded video playback.
+                        </video>
+                        @if(filled(data_get($post->videoData(), 'name')))
+                            <small class="text-muted d-block mt-2">{{ data_get($post->videoData(), 'name') }}</small>
+                        @endif
+                    @endif
+                </div>
+            @endif
+
+            <div class="community-post-body">{!! $post->body !!}</div>
 
             @php
-                $visibleMeta = collect($post->meta ?? [])->except(['location_lat', 'location_lng']);
+                $resolvedLocation = $post->location ?? data_get($post->meta, 'location');
+                $formFieldLabels = \App\Support\CommunityPostFormFields::labels();
+                $visibleMeta = collect($post->meta ?? [])->except(['location', 'location_lat', 'location_lng']);
                 $reportMetaLabels = [
                     'report_subtitle' => 'Subtitle',
                     'reporting_period' => 'Reporting period',
@@ -111,7 +170,9 @@
                         @endforeach
                     </div>
                 </div>
-                @php($visibleMeta = $additionalReportMeta)
+                @php
+                    $visibleMeta = $additionalReportMeta;
+                @endphp
             @endif
             @if($post->content_type === 'news' && $orderedNewsMeta->isNotEmpty())
                 <div class="about-box mt-4">
@@ -131,7 +192,9 @@
                         @endforeach
                     </div>
                 </div>
-                @php($visibleMeta = $additionalNewsMeta)
+                @php
+                    $visibleMeta = $additionalNewsMeta;
+                @endphp
             @endif
             @if($post->content_type === 'reports' && ($orderedMyAreaMeta->isNotEmpty() || !empty(data_get($post->meta, 'issue_attachments'))))
                 <div class="about-box mt-4">
@@ -159,7 +222,9 @@
                         </div>
                     @endif
                 </div>
-                @php($visibleMeta = $additionalMyAreaMeta)
+                @php
+                    $visibleMeta = $additionalMyAreaMeta;
+                @endphp
             @endif
             @if($post->content_type === 'my-voice' && $orderedMyVoiceMeta->isNotEmpty())
                 <div class="about-box mt-4">
@@ -175,15 +240,28 @@
                         @endforeach
                     </div>
                 </div>
-                @php($visibleMeta = $additionalMyVoiceMeta)
+                @php
+                    $visibleMeta = $additionalMyVoiceMeta;
+                @endphp
+            @endif
+            @if(filled($resolvedLocation))
+                <div class="about-box mt-4">
+                    <h4>Location</h4>
+                    <p class="mb-0">{{ $resolvedLocation }}</p>
+                    @if(filled($post->location_lat) && filled($post->location_lng))
+                        <small class="text-muted">Coordinates: {{ $post->location_lat }}, {{ $post->location_lng }}</small>
+                    @endif
+                </div>
             @endif
             @if($visibleMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Additional details</h4>
                     <ul class="about-list mb-0">
                         @foreach($visibleMeta as $key => $value)
-                            @continue(blank($value) || $value === false)
-                            <li><strong>{{ \Illuminate\Support\Str::headline($key) }}:</strong> {!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</li>
+                            @if(blank($value) && $value !== false)
+                                @continue
+                            @endif
+                            <li><strong>{{ $formFieldLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}:</strong> {!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -263,7 +341,7 @@
                         <form method="POST" action="{{ route('community.comments.store', $post) }}" class="mb-4">
                             @csrf
                             <label class="form-label" for="discussionBody">Start a discussion or add your answer</label>
-                            <textarea name="body" id="discussionBody" class="form-control @error('body') is-invalid @enderror" rows="4" maxlength="2000" required placeholder="Write your question, answer, suggestion, or experience...">{{ old('body') }}</textarea>
+                            <textarea name="body" id="discussionBody" class="form-control{{ $errors->has('body') ? ' is-invalid' : '' }}" rows="4" maxlength="2000" required placeholder="Write your question, answer, suggestion, or experience...">{{ old('body') }}</textarea>
                             @error('body')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -320,20 +398,78 @@
 
 @push('styles')
 <style>
-    .community-post-body .image { margin: 1rem auto; }
+    .community-post-body {
+        line-height: 1.8;
+        overflow: auto;
+    }
+    .community-post-body > p,
+    .community-post-body > h2,
+    .community-post-body > h3,
+    .community-post-body > h4,
+    .community-post-body > blockquote,
+    .community-post-body > ul,
+    .community-post-body > ol {
+        clear: none !important;
+    }
+    .community-post-body .image {
+        clear: none !important;
+        display: block;
+        margin: 0.75rem auto;
+        max-width: 100%;
+    }
+    .community-post-body .image img {
+        display: block;
+        height: auto;
+        max-width: 100%;
+    }
+    .community-post-body .image img[style*="width"] {
+        max-width: 100%;
+    }
+    .community-post-body .image.image-style-align-left,
+    .community-post-body .image.image-style-side {
+        clear: none !important;
+        display: block !important;
+        float: left !important;
+        margin: 0.35rem 1.25rem 0.75rem 0 !important;
+        max-width: 50%;
+    }
+    .community-post-body .image.image-style-align-right {
+        clear: none !important;
+        display: block !important;
+        float: right !important;
+        margin: 0.35rem 0 0.75rem 1.25rem !important;
+        max-width: 50%;
+    }
+    .community-post-body .image.image-style-align-center,
+    .community-post-body .image.image-style-block {
+        clear: both;
+        display: table;
+        float: none;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 100%;
+    }
+    .community-post-body .image.image-style-inline,
+    .community-post-body .image-inline {
+        display: inline-block;
+        float: none;
+        margin: 0.15em 0.35em;
+        max-width: 50%;
+        vertical-align: top;
+    }
     .discussion-comment { background: #fff; }
     .discussion-reply { background: #f8faf9; border-color: #badbcc !important; padding-bottom: .5rem; padding-top: .5rem; }
-    .community-post-body .image img { height: auto; max-width: 100%; }
-    .community-post-body .image-style-align-left { float: left; margin: .35rem 1.25rem 1rem 0; max-width: 50%; }
-    .community-post-body .image-style-align-right,
-    .community-post-body .image-style-side { float: right; margin: .35rem 0 1rem 1.25rem; max-width: 50%; }
-    .community-post-body .image-style-align-center,
-    .community-post-body .image-style-block { clear: both; display: table; margin-left: auto; margin-right: auto; }
-    .community-post-body::after { clear: both; content: ""; display: table; }
-    @media (max-width: 767.98px) {
-        .community-post-body .image-style-align-left,
-        .community-post-body .image-style-align-right,
-        .community-post-body .image-style-side { float: none; margin: 1rem auto; max-width: 100%; }
+    @@media (max-width: 767.98px) {
+        .community-post-body .image.image-style-align-left,
+        .community-post-body .image.image-style-align-right,
+        .community-post-body .image.image-style-side,
+        .community-post-body .image.image-style-inline,
+        .community-post-body .image-inline {
+            display: block !important;
+            float: none !important;
+            margin: 1rem auto !important;
+            max-width: 100% !important;
+        }
     }
 </style>
 @endpush

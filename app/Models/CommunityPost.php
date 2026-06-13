@@ -26,7 +26,12 @@ class CommunityPost extends Model
         'excerpt',
         'body',
         'featured_image_path',
+        'featured_images',
         'tags',
+        'location',
+        'location_lat',
+        'location_lng',
+        'video',
         'meta',
         'allow_comments',
         'status',
@@ -37,7 +42,11 @@ class CommunityPost extends Model
     {
         return [
             'tags' => 'array',
+            'featured_images' => 'array',
+            'video' => 'array',
             'meta' => 'array',
+            'location_lat' => 'decimal:7',
+            'location_lng' => 'decimal:7',
             'allow_comments' => 'boolean',
             'published_at' => 'datetime',
         ];
@@ -78,21 +87,117 @@ class CommunityPost extends Model
         return route('community.show', $this);
     }
 
+    /**
+     * @return list<string>
+     */
+    public function featuredImages(): array
+    {
+        if (is_array($this->featured_images) && $this->featured_images !== []) {
+            return array_values(array_filter($this->featured_images));
+        }
+
+        if (filled($this->featured_image_path)) {
+            return [$this->featured_image_path];
+        }
+
+        return [];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function featuredImageUrls(): array
+    {
+        return collect($this->featuredImages())
+            ->map(fn (string $path) => self::resolveImageUrl($path))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
     public function featuredImageUrl(): ?string
     {
-        if (! $this->featured_image_path) {
+        $paths = $this->featuredImages();
+
+        return isset($paths[0]) ? self::resolveImageUrl($paths[0]) : null;
+    }
+
+    public static function resolveImageUrl(?string $path): ?string
+    {
+        if (! filled($path)) {
             return null;
         }
 
-        if (Str::startsWith($this->featured_image_path, ['http://', 'https://'])) {
-            return $this->featured_image_path;
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $path;
         }
 
-        if (Str::startsWith($this->featured_image_path, 'uploads/')) {
-            return asset($this->featured_image_path);
+        if (Str::startsWith($path, 'uploads/')) {
+            return asset($path);
         }
 
-        return asset('storage/'.$this->featured_image_path);
+        return asset('storage/'.$path);
+    }
+
+    /**
+     * @return array{type: string, url?: string, video_id?: string, path?: string, name?: string}|null
+     */
+    public function videoData(): ?array
+    {
+        return is_array($this->video) && filled($this->video['type'] ?? null)
+            ? $this->video
+            : null;
+    }
+
+    public function hasVideo(): bool
+    {
+        return $this->videoData() !== null;
+    }
+
+    public function youtubeEmbedUrl(): ?string
+    {
+        $video = $this->videoData();
+
+        if (($video['type'] ?? null) !== 'youtube') {
+            return null;
+        }
+
+        $videoId = $video['video_id'] ?? self::parseYoutubeVideoId($video['url'] ?? null);
+
+        return $videoId ? 'https://www.youtube.com/embed/'.$videoId : null;
+    }
+
+    public function videoFileUrl(): ?string
+    {
+        $video = $this->videoData();
+
+        if (($video['type'] ?? null) !== 'upload') {
+            return null;
+        }
+
+        return self::resolveImageUrl($video['path'] ?? null);
+    }
+
+    public static function parseYoutubeVideoId(?string $url): ?string
+    {
+        if (! filled($url)) {
+            return null;
+        }
+
+        $patterns = [
+            '/^https?:\/\/(?:www\.)?youtube\.com\/watch\?(?:.*&)?v=([\w-]{11})(?:&.*)?$/i',
+            '/^https?:\/\/(?:www\.)?youtu\.be\/([\w-]{11})(?:\?.*)?$/i',
+            '/^https?:\/\/(?:www\.)?youtube\.com\/embed\/([\w-]{11})(?:\?.*)?$/i',
+            '/^https?:\/\/(?:www\.)?youtube\.com\/shorts\/([\w-]{11})(?:\?.*)?$/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, trim($url), $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return null;
     }
 
     public function getRouteKeyName(): string

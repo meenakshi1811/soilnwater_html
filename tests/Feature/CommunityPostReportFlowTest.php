@@ -74,6 +74,9 @@ class CommunityPostReportFlowTest extends TestCase
 
         $this->assertTrue($post->allow_comments);
         $this->assertSame('reports', $post->content_type);
+        $this->assertSame('Jaipur, Rajasthan, India', $post->location);
+        $this->assertSame('26.9124000', (string) $post->location_lat);
+        $this->assertSame('75.7873000', (string) $post->location_lng);
         $this->assertSame('Water Issue', $post->meta['report_type']);
         $this->assertSame('High', $post->meta['issue_priority']);
         $this->assertSame('Q1 2026', $post->meta['reporting_period']);

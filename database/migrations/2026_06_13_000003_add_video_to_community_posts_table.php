@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('vendors', function (Blueprint $table) {
-            $table->boolean('is_premium')->default(false)->after('instagram_url');
+        Schema::table('community_posts', function (Blueprint $table): void {
+            $table->json('video')->nullable()->after('location_lng');
         });
     }
 
     public function down(): void
     {
-        Schema::table('vendors', function (Blueprint $table) {
-            $table->dropColumn('is_premium');
+        Schema::table('community_posts', function (Blueprint $table): void {
+            $table->dropColumn('video');
         });
     }
 };
