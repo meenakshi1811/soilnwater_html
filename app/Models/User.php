@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'name',
         'author_slug',
+        'author_image',
         'full_name',
         'email',
         'phone_number',
@@ -82,6 +83,20 @@ class User extends Authenticatable implements MustVerifyEmail
         $base = Str::slug($this->authorDisplayName()) ?: 'author';
 
         return $base.'-'.$this->id;
+    }
+
+    public function authorImageUrl(): ?string
+    {
+        return filled($this->author_image) ? asset($this->author_image) : null;
+    }
+
+    public function authorInitials(): string
+    {
+        return collect(preg_split('/\s+/', trim($this->authorDisplayName())) ?: [])
+            ->filter()
+            ->take(2)
+            ->map(fn (string $part) => mb_strtoupper(mb_substr($part, 0, 1)))
+            ->implode('') ?: 'CA';
     }
 
     public function communityPosts(): HasMany

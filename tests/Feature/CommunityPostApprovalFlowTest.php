@@ -405,6 +405,7 @@ class CommunityPostApprovalFlowTest extends TestCase
         return [
             'content_type' => 'articles',
             'category' => 'Education',
+            'writing_purpose' => 'Share Knowledge',
             'title' => 'Community Approval Test Post',
             'excerpt' => 'A short summary for the approval workflow test.',
             'body' => 'This article body contains enough content to pass validation for publishing.',
@@ -415,6 +416,8 @@ class CommunityPostApprovalFlowTest extends TestCase
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',
+            'accept_content_responsibility' => '1',
+            'accept_original_work_indemnity' => '1',
         ];
     }
 }

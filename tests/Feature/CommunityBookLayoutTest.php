@@ -18,6 +18,7 @@ class CommunityBookLayoutTest extends TestCase
         $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
             'content_type' => 'stories',
             'category' => 'Inspirational Stories',
+            'writing_purpose' => 'Personal Experience',
             'title' => 'A Story In Pages',
             'excerpt' => 'A short story told page by page.',
             'status' => CommunityPost::STATUS_DRAFT,
@@ -30,6 +31,8 @@ class CommunityBookLayoutTest extends TestCase
                 ['content' => '<p>Once upon a time in a dry village.</p>', 'language' => 'en'],
                 ['content' => '<p>बहुत सालों बाद आखिरकार बारिश आई।</p>', 'language' => 'hi'],
             ],
+            'accept_content_responsibility' => '1',
+            'accept_original_work_indemnity' => '1',
         ]);
 
         $response->assertOk();

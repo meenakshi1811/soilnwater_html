@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Community;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Community\CommunityEngagementController;
 use App\Models\CommunityAuthorQuestion;
 use App\Models\CommunityPost;
 use App\Models\CommunityPostComment;
@@ -11,7 +12,9 @@ use App\Models\CommunityPostReaction;
 use App\Models\User;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
+use App\Support\CommunityPostAuditLogger;
 use App\Support\CommunityPostFormFields;
+use App\Support\UserFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,6 +44,7 @@ class CommunityPostController extends Controller
             'posts' => $posts,
             'types' => CommunityContentTaxonomy::formTypes(),
             'activeType' => $request->string('type')->toString(),
+            'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
         ]);
     }
 
@@ -59,10 +63,11 @@ class CommunityPostController extends Controller
             'activeType' => $request->string('type')->toString(),
             'activeAuthor' => $author,
             'answeredAuthorQuestions' => $this->answeredQuestionsForAuthor($author),
+            'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
         ]);
     }
 
-    public function show(CommunityPost $post): View
+    public function show(Request $request, CommunityPost $post): View
     {
         abort_unless(
             $post->isPubliclyVisible()
@@ -79,12 +84,17 @@ class CommunityPostController extends Controller
             'discussionComments.replies.user',
         ]);
 
+        if ($post->isPubliclyVisible()) {
+            $this->recordPostView($request, $post);
+        }
+
         return view('community.show', [
             'post' => $post,
             'types' => CommunityContentTaxonomy::formTypes(),
             'answeredAuthorQuestions' => $post->user_id
                 ? $this->answeredQuestionsForPost($post)
                 : collect(),
+            'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
         ]);
     }
 
@@ -216,6 +226,7 @@ class CommunityPostController extends Controller
                 'slug',
                 'content_type',
                 'category',
+                'writing_purpose',
                 'meta',
                 'title',
                 'status',
@@ -226,6 +237,7 @@ class CommunityPostController extends Controller
 
         return DataTables::of($query)
             ->addColumn('type_label', fn (CommunityPost $post): string => e($post->typeLabel()))
+            ->addColumn('writing_purpose_display', fn (CommunityPost $post): string => e($post->writingPurposeLabel() ?? '—'))
             ->addColumn('category_display', fn (CommunityPost $post): string => e(
                 filled(data_get($post->meta, 'report_type'))
                     ? data_get($post->meta, 'report_type', $post->category)
@@ -279,13 +291,23 @@ class CommunityPostController extends Controller
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 Rule::unique('users', 'author_slug')->ignore($user->id),
             ],
+            'author_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'remove_author_image' => ['nullable', 'boolean'],
         ], [
             'author_slug.regex' => 'Use lowercase letters, numbers, and single hyphens only.',
         ]);
 
+        if ($request->boolean('remove_author_image')) {
+            UserFileUploader::deleteIfExists($user->author_image);
+            $user->author_image = null;
+        } elseif ($request->hasFile('author_image')) {
+            UserFileUploader::deleteIfExists($user->author_image);
+            $user->author_image = UserFileUploader::storeImage($request->file('author_image'), 'author-profiles');
+        }
+
         $user->forceFill(['author_slug' => Str::slug($data['author_slug'])])->save();
 
-        return back()->with('success', 'Author profile URL updated successfully.');
+        return back()->with('success', 'Author profile updated successfully.');
     }
 
     public function create(): View
@@ -300,6 +322,8 @@ class CommunityPostController extends Controller
     public function store(Request $request): JsonResponse|RedirectResponse
     {
         $data = $this->validated($request);
+        CommunityPostAuditLogger::applySubmissionAcceptance($request, $data, isCreate: true);
+        CommunityPostAuditLogger::stripAcceptanceFields($data);
         $data['user_id'] = $request->user()->id;
         $data['slug'] = $this->uniqueSlug($data['title']);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
@@ -317,6 +341,8 @@ class CommunityPostController extends Controller
         $data['video'] = $this->resolveVideo($request);
 
         $post = CommunityPost::create($data);
+
+        CommunityPostAuditLogger::logCreated($post, $request);
 
         if ($post->isPendingApproval()) {
             $this->notifyAdminsOfPendingPost($post);
@@ -352,6 +378,8 @@ class CommunityPostController extends Controller
         $this->authorizeOwner($request, $post);
 
         $data = $this->validated($request, $post);
+        CommunityPostAuditLogger::applySubmissionAcceptance($request, $data, isCreate: false);
+        CommunityPostAuditLogger::stripAcceptanceFields($data);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
         $this->mergeBookPagesIntoMeta($request, $data);
@@ -381,7 +409,10 @@ class CommunityPostController extends Controller
             $data['slug'] = $this->uniqueSlug($data['title'], $post->id);
         }
 
+        $originalAttributes = $post->getOriginal();
         $post->update($data);
+
+        CommunityPostAuditLogger::logUpdated($post, $request, $originalAttributes);
 
         if ($post->isPendingApproval() && ! $wasPending) {
             $this->notifyAdminsOfPendingPost($post->fresh());
@@ -438,6 +469,7 @@ class CommunityPostController extends Controller
 
         $rules = [
             'content_type' => ['required', Rule::in($typeKeys)],
+            'writing_purpose' => ['required', 'string', 'max:120'],
             'category' => [
                 'required',
                 'string',
@@ -553,6 +585,8 @@ class CommunityPostController extends Controller
             'recommendations' => ['nullable', 'string', 'max:3000'],
             'issue_attachments' => ['nullable', 'array', 'max:6'],
             'issue_attachments.*' => ['file', 'max:20480', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,pdf,doc,docx'],
+            'accept_content_responsibility' => ['accepted'],
+            'accept_original_work_indemnity' => ['accepted'],
         ];
 
         if (is_string($contentType)) {
@@ -717,7 +751,7 @@ class CommunityPostController extends Controller
         }
 
         return collect(explode(',', $tags))
-            ->map(fn (string $tag) => trim($tag))
+            ->map(fn (string $tag) => Str::lower(trim($tag)))
             ->filter()
             ->unique()
             ->take(self::MAX_TAGS)
@@ -875,7 +909,7 @@ class CommunityPostController extends Controller
 
     private function paginateCommunityPosts(Request $request, ?User $author = null)
     {
-        return CommunityPost::query()
+        $query = CommunityPost::query()
             ->with('user')
             ->withCount(['reactions', 'comments'])
             ->publiclyListed()
@@ -886,7 +920,11 @@ class CommunityPostController extends Controller
             ->when($request->filled('category'), fn ($query) => $query->where('category', $request->string('category')->toString()))
             ->orderByDesc('is_featured')
             ->orderByDesc('is_highlighted')
-            ->orderByDesc('is_sponsored')
+            ->orderByDesc('is_sponsored');
+
+        CommunityEngagementController::applySubscriptionPriority($query, auth()->id());
+
+        return $query
             ->latest('published_at')
             ->paginate(12)
             ->withQueryString();
@@ -895,7 +933,10 @@ class CommunityPostController extends Controller
     private function communityPostsAjaxResponse($posts): JsonResponse
     {
         return response()->json([
-            'html' => view('community.partials.post-cards', ['posts' => $posts])->render(),
+            'html' => view('community.partials.post-cards', [
+                'posts' => $posts,
+                'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+            ])->render(),
             'next_page_url' => $posts->nextPageUrl(),
             'loaded_to' => $posts->lastItem() ?? 0,
             'total' => $posts->total(),
@@ -939,6 +980,18 @@ class CommunityPostController extends Controller
             ->with(['asker:id,name,full_name', 'post:id,title,slug'])
             ->latest('answered_at')
             ->get();
+    }
+
+    private function recordPostView(Request $request, CommunityPost $post): void
+    {
+        $sessionKey = 'community_post_viewed_'.$post->id;
+
+        if ($request->session()->has($sessionKey)) {
+            return;
+        }
+
+        $post->increment('views_count');
+        $request->session()->put($sessionKey, true);
     }
 
     private function authorizeOwner(Request $request, CommunityPost $post): void

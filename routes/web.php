@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Community\CommunityAuthorQuestionController;
+use App\Http\Controllers\Community\CommunityEngagementController;
 use App\Http\Controllers\Community\CommunityPostController;
 use App\Http\Controllers\Frontend\OfferPageController;
 use App\Http\Controllers\Frontend\AdsMarketController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\ApprovalCenterController;
 use App\Http\Controllers\Admin\CommunityPostApprovalController;
+use App\Http\Controllers\Admin\CommunityPostReportController;
 use App\Http\Controllers\Admin\AdSizeController;
 use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
 use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
@@ -81,10 +83,12 @@ Route::post('/service/{service_provider:slug}/report', [ProfileReportController:
 Route::get('/search', [FrontendSearchController::class, 'index'])->name('frontend.search');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-policy');
+Route::view('/community-posting-policy', 'frontend.community-posting-policy')->name('frontend.community-posting-policy');
 
 Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
 Route::get('/auther/{uniqueName}', [CommunityPostController::class, 'author'])->name('community.authors.show');
 Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
+Route::post('/community/{post:slug}/share', [CommunityEngagementController::class, 'trackShare'])->name('community.share.track');
 
 Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
     $data = $request->validate([
@@ -238,6 +242,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/community/{post:slug}/react', [CommunityPostController::class, 'react'])->name('community.react');
     Route::post('/community/{post:slug}/poll', [CommunityPostController::class, 'votePoll'])->name('community.poll.vote');
     Route::post('/community/{post:slug}/comments', [CommunityPostController::class, 'comment'])->name('community.comments.store');
+    Route::post('/community/{post:slug}/save', [CommunityEngagementController::class, 'toggleSave'])->name('community.save.toggle');
+    Route::post('/community/{post:slug}/report', [CommunityEngagementController::class, 'report'])->name('community.report');
+    Route::post('/community/subscriptions/category', [CommunityEngagementController::class, 'toggleCategorySubscription'])->name('community.subscriptions.category.toggle');
+    Route::post('/community/subscriptions/topic', [CommunityEngagementController::class, 'toggleTopicFollow'])->name('community.subscriptions.topic.toggle');
     Route::post('/community/{post:slug}/questions', [CommunityAuthorQuestionController::class, 'storeForPost'])->name('community.author-questions.store.post');
     Route::post('/community/authors/{author}/follow', [CommunityPostController::class, 'followAuthor'])->name('community.authors.follow');
     Route::post('/community/authors/{author}/questions', [CommunityAuthorQuestionController::class, 'storeForAuthor'])->name('community.author-questions.store.author');
@@ -259,6 +267,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{post:slug}', [CommunityPostController::class, 'update'])->name('update');
         Route::delete('/{post:slug}', [CommunityPostController::class, 'destroy'])->name('destroy');
     });
+
+    Route::prefix('dashboard/community-saved')->name('community.saved.')->group(function () {
+        Route::get('/', [CommunityEngagementController::class, 'savedPosts'])->name('index');
+        Route::get('/data', [CommunityEngagementController::class, 'savedPostsData'])->name('data');
+    });
+
+    Route::get('/dashboard/community-subscriptions', [CommunityEngagementController::class, 'subscriptions'])->name('community.subscriptions.index');
 
     Route::prefix('dashboard/ads')->name('ads.')->group(function () {
         Route::get('/', [UserAdController::class, 'index'])->name('index');
@@ -294,6 +309,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('community-posts')->name('community-posts.')->group(function () {
             Route::get('/', [CommunityPostApprovalController::class, 'index'])->name('index');
             Route::get('/data', [CommunityPostApprovalController::class, 'data'])->name('data');
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::get('/', [CommunityPostReportController::class, 'index'])->name('index');
+                Route::get('/data', [CommunityPostReportController::class, 'data'])->name('data');
+                Route::delete('/post/{post}', [CommunityPostReportController::class, 'deletePost'])->name('delete-post');
+            });
             Route::get('/all', [CommunityPostApprovalController::class, 'allIndex'])->name('all.index');
             Route::get('/all/data', [CommunityPostApprovalController::class, 'allData'])->name('all.data');
             Route::get('/{post}/preview', [CommunityPostApprovalController::class, 'preview'])->name('preview');
@@ -306,6 +326,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/{post}/feature', [CommunityPostApprovalController::class, 'feature'])->name('feature');
             Route::post('/{post}/sponsor', [CommunityPostApprovalController::class, 'sponsor'])->name('sponsor');
             Route::post('/{post}/highlight', [CommunityPostApprovalController::class, 'highlight'])->name('highlight');
+            Route::post('/{post}/quality-score', [CommunityPostApprovalController::class, 'updateQualityScore'])->name('quality-score');
+            Route::post('/{post}/recalculate-score', [CommunityPostApprovalController::class, 'recalculateScore'])->name('recalculate-score');
+            Route::post('/{post}/article-badge', [CommunityPostApprovalController::class, 'toggleArticleBadge'])->name('article-badge');
         });
 
         Route::prefix('offers')->name('offers.')->group(function () {

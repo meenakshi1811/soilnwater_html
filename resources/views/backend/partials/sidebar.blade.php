@@ -13,8 +13,10 @@
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
     $communityPostsActive = request()->routeIs('community.posts.*');
+    $communitySavedActive = request()->routeIs('community.saved.*');
+    $communitySubscriptionsActive = request()->routeIs('community.subscriptions.*');
     $communityAuthorQuestionsActive = request()->routeIs('community.author-questions.*');
-    $communityMenuActive = request()->routeIs('admin.community-posts.*') || request()->routeIs('community.posts.*') || request()->routeIs('community.author-questions.*');
+    $communityMenuActive = request()->routeIs('admin.community-posts.*') || request()->routeIs('community.posts.*') || request()->routeIs('community.author-questions.*') || request()->routeIs('community.saved.*') || request()->routeIs('community.subscriptions.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
     $consultantsMenuActive = request()->routeIs('admin.consultants.*') || request()->routeIs('admin.consultant-services.*');
     $serviceProvidersMenuActive = request()->routeIs('admin.service_providers.*') || request()->routeIs('admin.service-provider-services.*');
@@ -328,6 +330,18 @@
                             </a>
                         </li>
                         <li>
+                            <a class="{{ $communitySavedActive ? 'active' : '' }}" href="{{ route('community.saved.index') }}">
+                                <i class="fa-solid fa-bookmark"></i>
+                                <span>Saved Posts</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ $communitySubscriptionsActive ? 'active' : '' }}" href="{{ route('community.subscriptions.index') }}">
+                                <i class="fa-solid fa-bell"></i>
+                                <span>Subscriptions</span>
+                            </a>
+                        </li>
+                        <li>
                             <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
                                 <i class="fa-solid fa-circle-question"></i>
                                 <span>Reader Questions</span>
@@ -337,6 +351,12 @@
                             <a class="{{ request()->routeIs('admin.community-posts.all.*') ? 'active' : '' }}" href="{{ route('admin.community-posts.all.index') }}">
                                 <i class="fa-solid fa-rectangle-list"></i>
                                 <span>All Posts</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.community-posts.reports.*') ? 'active' : '' }}" href="{{ route('admin.community-posts.reports.index') }}">
+                                <i class="fa-solid fa-flag"></i>
+                                <span>Reported Posts</span>
                             </a>
                         </li>
                     </ul>
@@ -383,6 +403,18 @@
                 </a>
             </li>
             <li>
+                <a class="{{ $communitySavedActive ? 'active' : '' }}" href="{{ route('community.saved.index') }}">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span>Saved Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communitySubscriptionsActive ? 'active' : '' }}" href="{{ route('community.subscriptions.index') }}">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Subscriptions</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
                     <i class="fa-solid fa-circle-question"></i>
                     <span>Reader Questions</span>
@@ -411,6 +443,18 @@
                 <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
                     <i class="fa-solid fa-pen-nib"></i>
                     <span>Community Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communitySavedActive ? 'active' : '' }}" href="{{ route('community.saved.index') }}">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span>Saved Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communitySubscriptionsActive ? 'active' : '' }}" href="{{ route('community.subscriptions.index') }}">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Subscriptions</span>
                 </a>
             </li>
             <li>
@@ -477,6 +521,18 @@
                 </a>
             </li>
             <li>
+                <a class="{{ $communitySavedActive ? 'active' : '' }}" href="{{ route('community.saved.index') }}">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span>Saved Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communitySubscriptionsActive ? 'active' : '' }}" href="{{ route('community.subscriptions.index') }}">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Subscriptions</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
                     <i class="fa-solid fa-circle-question"></i>
                     <span>Reader Questions</span>
@@ -540,6 +596,18 @@
                 </a>
             </li>
             <li>
+                <a class="{{ $communitySavedActive ? 'active' : '' }}" href="{{ route('community.saved.index') }}">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span>Saved Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communitySubscriptionsActive ? 'active' : '' }}" href="{{ route('community.subscriptions.index') }}">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Subscriptions</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
                     <i class="fa-solid fa-circle-question"></i>
                     <span>Reader Questions</span>
@@ -596,6 +664,18 @@
                 <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
                     <i class="fa-solid fa-pen-nib"></i>
                     <span>Community Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communitySavedActive ? 'active' : '' }}" href="{{ route('community.saved.index') }}">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span>Saved Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communitySubscriptionsActive ? 'active' : '' }}" href="{{ route('community.subscriptions.index') }}">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Subscriptions</span>
                 </a>
             </li>
             <li>

@@ -20,6 +20,7 @@ class CommunityPostReportFlowTest extends TestCase
         $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
             'content_type' => 'reports',
             'category' => 'Community Problem Report',
+            'writing_purpose' => 'Raise Awareness',
             'title' => 'Quarterly Water Market Report',
             'excerpt' => 'A professional overview of water market performance.',
             'body' => 'This report contains detailed analysis for the water market this quarter.',
@@ -28,6 +29,8 @@ class CommunityPostReportFlowTest extends TestCase
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',
+            'accept_content_responsibility' => '1',
+            'accept_original_work_indemnity' => '1',
         ]);
 
         $response->assertUnprocessable();
@@ -44,6 +47,7 @@ class CommunityPostReportFlowTest extends TestCase
         $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
             'content_type' => 'reports',
             'category' => 'Community Problem Report',
+            'writing_purpose' => 'Raise Awareness',
             'title' => 'District Water Conservation Report',
             'excerpt' => 'Executive summary covering objective, findings, and action points.',
             'body' => 'Background, context, analysis, evidence, limitations, conclusion, and appendix notes are included here.',
@@ -66,6 +70,8 @@ class CommunityPostReportFlowTest extends TestCase
             'data_sources' => 'Field survey, public datasets, and local department notes.',
             'key_findings' => "Storage capacity is uneven.\nAwareness programs need stronger follow-up.",
             'recommendations' => "Prioritize recharge projects.\nPublish monthly progress dashboards.",
+            'accept_content_responsibility' => '1',
+            'accept_original_work_indemnity' => '1',
         ]);
 
         $response->assertOk()->assertJson([
@@ -97,6 +103,7 @@ class CommunityPostReportFlowTest extends TestCase
         $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
             'content_type' => 'news',
             'category' => 'Local News',
+            'writing_purpose' => 'Share Knowledge',
             'title' => 'Canal Repair Work Begins',
             'excerpt' => 'A concise newsroom summary for the local update.',
             'body' => 'This news story contains enough details about the local canal repair work.',
@@ -105,6 +112,8 @@ class CommunityPostReportFlowTest extends TestCase
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',
+            'accept_content_responsibility' => '1',
+            'accept_original_work_indemnity' => '1',
         ]);
 
         $response->assertUnprocessable();
@@ -125,6 +134,7 @@ class CommunityPostReportFlowTest extends TestCase
         $response = $this->actingAs($user)->postJson(route('community.posts.store'), [
             'content_type' => 'news',
             'category' => 'Local News',
+            'writing_purpose' => 'Share Knowledge',
             'title' => 'Water Supply Schedule Updated',
             'excerpt' => 'Residents will receive updated water supply timings from Monday.',
             'body' => 'The municipal office announced updated water supply timings after reviewing summer demand.',
@@ -144,6 +154,8 @@ class CommunityPostReportFlowTest extends TestCase
             'verification_notes' => 'Confirmed against the municipal release and ward notice.',
             'impact_area' => 'Residents in wards 10, 11, and 12.',
             'quote_attribution' => 'Department spokesperson said supply pressure will be monitored.',
+            'accept_content_responsibility' => '1',
+            'accept_original_work_indemnity' => '1',
         ]);
 
         $response->assertOk()->assertJson([
@@ -171,6 +183,7 @@ class CommunityPostReportFlowTest extends TestCase
             'content_type' => 'reports',
             'category' => 'Community Problem Report',
             'report_type' => 'Water Issue',
+            'writing_purpose' => 'Help Community',
             'title' => 'Broken water pipeline near market',
             'excerpt' => 'Water has been leaking near the market and affecting nearby shops.',
             'body' => 'The water pipeline has been broken for three days and needs urgent repair from the local department.',
@@ -188,6 +201,8 @@ class CommunityPostReportFlowTest extends TestCase
                 UploadedFile::fake()->image('leak.jpg'),
                 UploadedFile::fake()->create('complaint.pdf', 64, 'application/pdf'),
             ],
+            'accept_content_responsibility' => '1',
+            'accept_original_work_indemnity' => '1',
         ]);
 
         $response->assertOk()->assertJson([
@@ -214,6 +229,7 @@ class CommunityPostReportFlowTest extends TestCase
         $this->actingAs($user)->postJson(route('community.posts.store'), [
             'content_type' => 'my-voice',
             'category' => 'Personal Opinion',
+            'writing_purpose' => 'Personal Experience',
             'title' => 'Why local water awareness matters',
             'excerpt' => 'A personal experience about water conservation awareness.',
             'body' => 'This opinion explains why local water awareness programs need regular community participation.',

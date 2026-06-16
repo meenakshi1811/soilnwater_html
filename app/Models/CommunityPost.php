@@ -71,10 +71,24 @@ class CommunityPost extends Model
         self::POLL_OPTION_NOT_SURE => 'Not Sure',
     ];
 
+    /** @var list<string> */
+    public const WRITING_PURPOSE_OPTIONS = [
+        'Share Knowledge',
+        'Raise Awareness',
+        'Personal Experience',
+        'Help Community',
+        'Promote Discussion',
+        'Research Findings',
+    ];
+
     protected $fillable = [
         'user_id',
+        'submission_ip',
+        'content_responsibility_accepted_at',
+        'original_work_accepted_at',
         'content_type',
         'category',
+        'writing_purpose',
         'title',
         'slug',
         'excerpt',
@@ -94,9 +108,18 @@ class CommunityPost extends Model
         'allow_sharing',
         'allow_poll',
         'poll_subject',
+        'views_count',
+        'shares_count',
+        'quality_score',
+        'article_score',
+        'article_score_calculated_at',
         'is_featured',
         'is_sponsored',
         'is_highlighted',
+        'badge_trending',
+        'badge_editors_choice',
+        'badge_most_read',
+        'badge_community_pick',
         'status',
         'published_at',
         'submitted_at',
@@ -108,6 +131,8 @@ class CommunityPost extends Model
     protected function casts(): array
     {
         return [
+            'content_responsibility_accepted_at' => 'datetime',
+            'original_work_accepted_at' => 'datetime',
             'tags' => 'array',
             'featured_images' => 'array',
             'video' => 'array',
@@ -117,9 +142,16 @@ class CommunityPost extends Model
             'allow_comments' => 'boolean',
             'allow_sharing' => 'boolean',
             'allow_poll' => 'boolean',
+            'quality_score' => 'decimal:2',
+            'article_score' => 'decimal:2',
+            'article_score_calculated_at' => 'datetime',
             'is_featured' => 'boolean',
             'is_sponsored' => 'boolean',
             'is_highlighted' => 'boolean',
+            'badge_trending' => 'boolean',
+            'badge_editors_choice' => 'boolean',
+            'badge_most_read' => 'boolean',
+            'badge_community_pick' => 'boolean',
             'published_at' => 'datetime',
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',
@@ -154,6 +186,21 @@ class CommunityPost extends Model
     public function pollVotes(): HasMany
     {
         return $this->hasMany(CommunityPostPollVote::class);
+    }
+
+    public function saves(): HasMany
+    {
+        return $this->hasMany(CommunityPostSave::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(CommunityPostReport::class);
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(CommunityPostAuditLog::class)->latest('created_at');
     }
 
     public function scopePublished(Builder $query): Builder
@@ -234,9 +281,49 @@ class CommunityPost extends Model
             ->all();
     }
 
+    /**
+     * @return list<array{label: string, class: string}>
+     */
+    public function articleScoreBadges(): array
+    {
+        $badges = [];
+
+        if ($this->badge_trending) {
+            $badges[] = ['label' => 'Trending', 'class' => 'community-score-badge--trending'];
+        }
+
+        if ($this->badge_editors_choice) {
+            $badges[] = ['label' => "Editor's Choice", 'class' => 'community-score-badge--editors-choice'];
+        }
+
+        if ($this->badge_most_read) {
+            $badges[] = ['label' => 'Most Read', 'class' => 'community-score-badge--most-read'];
+        }
+
+        if ($this->is_featured) {
+            $badges[] = ['label' => 'Featured', 'class' => 'community-score-badge--featured'];
+        }
+
+        if ($this->badge_community_pick) {
+            $badges[] = ['label' => 'Community Pick', 'class' => 'community-score-badge--community-pick'];
+        }
+
+        return $badges;
+    }
+
+    public function articleScoreBadgeLabels(): array
+    {
+        return collect($this->articleScoreBadges())->pluck('label')->all();
+    }
+
     public function typeLabel(): string
     {
         return CommunityContentTaxonomy::labels()[$this->content_type] ?? Str::headline($this->content_type);
+    }
+
+    public function writingPurposeLabel(): ?string
+    {
+        return filled($this->writing_purpose) ? (string) $this->writing_purpose : null;
     }
 
     /**
@@ -320,6 +407,15 @@ class CommunityPost extends Model
             ->take(2)
             ->map(fn (string $part) => mb_strtoupper(mb_substr($part, 0, 1)))
             ->implode('') ?: 'CA';
+    }
+
+    public function authorAvatarUrl(): ?string
+    {
+        if (! $this->showsAuthorProfileLink() || ! $this->user) {
+            return null;
+        }
+
+        return $this->user->authorImageUrl();
     }
 
     public function showsAuthorProfileLink(): bool

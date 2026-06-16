@@ -192,6 +192,26 @@
         document.addEventListener('DOMContentLoaded', function () {
             const shareModal = document.getElementById('communityShareModal');
 
+            function trackCommunityShare(trigger) {
+                const trackUrl = trigger?.dataset?.shareTrackUrl;
+
+                if (!trackUrl) {
+                    return;
+                }
+
+                fetch(trackUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    },
+                    body: new URLSearchParams({
+                        _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    }),
+                }).catch(function () {});
+            }
+
             if (shareModal) {
                 shareModal.addEventListener('show.bs.modal', function (event) {
                     const trigger = event.relatedTarget;
@@ -200,12 +220,36 @@
                         return;
                     }
 
+                    trackCommunityShare(trigger);
+
                     window.communitySharePopulate(
                         trigger.dataset.shareUrl || '',
                         trigger.dataset.shareTitle || 'Community post'
                     );
                 });
             }
+
+            document.querySelectorAll('.community-share-btn, [data-copy-community-share-link]').forEach(function (element) {
+                element.addEventListener('click', function () {
+                    const panel = element.closest('#communitySharePanel, .community-share-inline');
+                    const trackUrl = panel?.dataset?.shareTrackUrl
+                        || document.querySelector('.js-community-share-trigger[data-share-track-url]')?.dataset?.shareTrackUrl;
+
+                    if (trackUrl) {
+                        fetch(trackUrl, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                            },
+                            body: new URLSearchParams({
+                                _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                            }),
+                        }).catch(function () {});
+                    }
+                });
+            });
 
             document.querySelectorAll('[data-copy-community-share-link]').forEach(function (button) {
                 button.addEventListener('click', async function () {
@@ -242,6 +286,7 @@
         data-bs-target="#communityShareModal"
         data-share-url="{{ $shareUrl }}"
         data-share-title="{{ $shareLabel }}"
+        data-share-track-url="{{ isset($post) ? route('community.share.track', $post) : '' }}"
     >
         <i class="fa-solid fa-qrcode" aria-hidden="true"></i>
         Scan &amp; Share
@@ -256,6 +301,7 @@
         data-bs-target="#communityShareModal"
         data-share-url="{{ $shareUrl }}"
         data-share-title="{{ $shareLabel }}"
+        data-share-track-url="{{ isset($post) ? route('community.share.track', $post) : '' }}"
         aria-label="Share {{ $shareLabel }}"
         title="Share this post"
     >
@@ -265,7 +311,7 @@
 @endif
 
 @if(!empty($showInline) && filled($shareUrl))
-    <div class="community-share-inline mt-4" id="communitySharePanel">
+    <div class="community-share-inline mt-4" id="communitySharePanel" data-share-track-url="{{ isset($post) ? route('community.share.track', $post) : '' }}">
         <div class="community-share-inline-head">
             <h4 class="community-share-inline-title mb-0">Share this post</h4>
             <p class="text-muted small mb-0">Send this story using QR code or social channels.</p>

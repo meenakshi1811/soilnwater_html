@@ -33,6 +33,24 @@
         @endphp
 
         <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label" for="writingPurpose">Why are you writing this article? <span class="text-danger">*</span></label>
+                <input type="text"
+                    name="writing_purpose"
+                    id="writingPurpose"
+                    class="form-control"
+                    list="writingPurposeOptions"
+                    value="{{ old('writing_purpose', $post->writing_purpose) }}"
+                    maxlength="120"
+                    placeholder="Select a reason or type your own"
+                    required>
+                <datalist id="writingPurposeOptions">
+                    @foreach(\App\Models\CommunityPost::WRITING_PURPOSE_OPTIONS as $purposeOption)
+                        <option value="{{ $purposeOption }}"></option>
+                    @endforeach
+                </datalist>
+                <small class="text-muted d-block mt-1">Pick one of the suggestions or enter your own reason.</small>
+            </div>
             <div class="col-md-6">
                 <label class="form-label">Post type <span class="text-danger">*</span></label>
                 <select name="content_type" id="contentType" class="form-select" required>
@@ -400,6 +418,48 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="border rounded-3 p-3 bg-light mt-4">
+            <h5 class="mb-3">Content responsibility &amp; posting policy</h5>
+            <p class="text-muted small mb-3">
+                You must accept both statements before submitting. Your account ID, IP address, submission time, and acceptance timestamps are stored for every post.
+                <a href="{{ route('frontend.community-posting-policy') }}" target="_blank" rel="noopener">Read the Community Posting Policy</a>.
+            </p>
+
+            <div class="form-check mb-3">
+                <input
+                    class="form-check-input @error('accept_content_responsibility') is-invalid @enderror"
+                    type="checkbox"
+                    name="accept_content_responsibility"
+                    id="acceptContentResponsibility"
+                    value="1"
+                    @checked(old('accept_content_responsibility'))
+                    required>
+                <label class="form-check-label" for="acceptContentResponsibility">
+                    You are solely responsible for the content you publish. Do not post false information, copyrighted material, personal attacks, or unlawful content. SoilnWater reserves the right to remove any content that violates platform policies.
+                </label>
+                @error('accept_content_responsibility')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="form-check">
+                <input
+                    class="form-check-input @error('accept_original_work_indemnity') is-invalid @enderror"
+                    type="checkbox"
+                    name="accept_original_work_indemnity"
+                    id="acceptOriginalWorkIndemnity"
+                    value="1"
+                    @checked(old('accept_original_work_indemnity'))
+                    required>
+                <label class="form-check-label" for="acceptOriginalWorkIndemnity">
+                    I confirm that this content is my original work or that I have the necessary rights and permissions to publish it. I understand and agree that I am solely responsible for the content I submit, including its accuracy, legality, and compliance with applicable laws. I agree to indemnify and hold harmless SoilnWater, its owners, employees, and affiliates from any claims, damages, liabilities, costs, or legal proceedings arising from my submitted content.
+                </label>
+                @error('accept_original_work_indemnity')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
             </div>
         </div>
 
@@ -1465,6 +1525,11 @@
 
         if (document.getElementById('allowPoll')?.checked && !document.getElementById('pollSubjectInput')?.value.trim()) {
             notify('error', 'Please enter the poll subject.');
+            return;
+        }
+
+        if (!document.getElementById('acceptContentResponsibility')?.checked || !document.getElementById('acceptOriginalWorkIndemnity')?.checked) {
+            notify('error', 'Please accept both content responsibility statements before submitting.');
             return;
         }
 

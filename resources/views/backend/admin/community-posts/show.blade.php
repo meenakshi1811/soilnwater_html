@@ -161,6 +161,73 @@
                 </div>
 
                 <div class="col-lg-4">
+                    <div class="chart-card p-3 p-lg-4 mb-4">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                            <div>
+                                <h5 class="mb-1">Article score system</h5>
+                                <p class="text-muted small mb-0">Admin-side score based on views, likes, shares, comments, reading time, and quality score.</p>
+                            </div>
+                            <span class="badge bg-primary fs-6" id="communityArticleScoreValue">{{ number_format((float) $post->article_score, 1) }}</span>
+                        </div>
+
+                        <div class="row g-2 mb-3 small">
+                            <div class="col-6"><strong>Views:</strong> {{ number_format($scoreMetrics['views']) }}</div>
+                            <div class="col-6"><strong>Likes:</strong> {{ number_format($scoreMetrics['likes']) }}</div>
+                            <div class="col-6"><strong>Shares:</strong> {{ number_format($scoreMetrics['shares']) }}</div>
+                            <div class="col-6"><strong>Comments:</strong> {{ number_format($scoreMetrics['comments']) }}</div>
+                            <div class="col-6"><strong>Reading time:</strong> {{ number_format($scoreMetrics['reading_minutes'], 1) }} min</div>
+                            <div class="col-6"><strong>Saves:</strong> {{ number_format($scoreMetrics['saves']) }}</div>
+                        </div>
+
+                        <div class="table-responsive mb-3">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Factor</th>
+                                        <th>Score</th>
+                                        <th>Weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($scoreBreakdown as $factor => $component)
+                                        <tr>
+                                            <td>{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $factor)) }}</td>
+                                            <td>{{ number_format($component['normalized'], 1) }}</td>
+                                            <td>{{ number_format($component['weighted'], 1) }}/{{ number_format($component['max'], 0) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <form id="communityQualityScoreForm" class="mb-3">
+                            @csrf
+                            <label class="form-label" for="communityQualityScore">Quality score (0-100)</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" min="0" max="100" step="0.1" class="form-control" id="communityQualityScore" name="quality_score" value="{{ $post->quality_score }}">
+                                <button type="submit" class="btn btn-outline-primary">Save</button>
+                            </div>
+                        </form>
+
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button type="button" class="btn btn-sm btn-success js-recalculate-score">Recalculate score</button>
+                            <button type="button" class="btn btn-sm btn-outline-success js-recalculate-score" data-auto-badges="0">Recalculate only</button>
+                        </div>
+
+                        <h6 class="mb-2">Article badges</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach(\App\Services\CommunityArticleScoreService::BADGE_LABELS as $field => $label)
+                                @php $enabled = (bool) $post->{$field}; @endphp
+                                <button
+                                    type="button"
+                                    class="btn btn-sm {{ $enabled ? 'btn-dark' : 'btn-outline-dark' }} js-article-badge"
+                                    data-badge="{{ $field }}"
+                                    data-enabled="{{ $enabled ? '1' : '0' }}"
+                                >{{ $label }}</button>
+                            @endforeach
+                        </div>
+                    </div>
+
                     <div class="chart-card p-3 p-lg-4 mb-4 community-review-meta">
                         <h5 class="mb-3">Submission info</h5>
                         <div class="mb-3">
@@ -218,7 +285,63 @@
                                 <div>{{ implode(', ', $post->tags) }}</div>
                             </div>
                         @endif
+                        <div class="mb-3">
+                            <div class="label">Account ID</div>
+                            <div>{{ $post->user_id ?? '—' }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="label">Submission IP</div>
+                            <div>{{ $post->submission_ip ?: '—' }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="label">Submitted at</div>
+                            <div>{{ optional($post->submitted_at)->format('d M Y, h:i A') ?: optional($post->created_at)->format('d M Y, h:i A') ?: '—' }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="label">Content responsibility accepted</div>
+                            <div>{{ optional($post->content_responsibility_accepted_at)->format('d M Y, h:i A') ?: '—' }}</div>
+                        </div>
+                        <div class="mb-0">
+                            <div class="label">Original work / indemnity accepted</div>
+                            <div>{{ optional($post->original_work_accepted_at)->format('d M Y, h:i A') ?: '—' }}</div>
+                        </div>
                     </div>
+
+                    @if($post->auditLogs->isNotEmpty())
+                        <div class="chart-card p-3 p-lg-4 mb-4">
+                            <h5 class="mb-3">Edit audit log</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>When</th>
+                                            <th>Action</th>
+                                            <th>User</th>
+                                            <th>IP</th>
+                                            <th>Changes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($post->auditLogs as $log)
+                                            <tr>
+                                                <td>{{ optional($log->created_at)->format('d M Y, h:i A') }}</td>
+                                                <td>{{ $log->actionLabel() }}</td>
+                                                <td>{{ $log->user?->full_name ?: ($log->user?->name ?? 'System') }}</td>
+                                                <td>{{ $log->ip_address ?: '—' }}</td>
+                                                <td class="small text-muted">
+                                                    @if(is_array($log->changes) && $log->changes !== [])
+                                                        {{ \Illuminate\Support\Str::limit(json_encode($log->changes), 180) }}
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
 
                     @if(is_array($post->meta) && $post->meta !== [])
                         <div class="chart-card p-3 p-lg-4">
@@ -272,6 +395,9 @@
         featureUrl: @json(route('admin.community-posts.feature', $post)),
         sponsorUrl: @json(route('admin.community-posts.sponsor', $post)),
         highlightUrl: @json(route('admin.community-posts.highlight', $post)),
+        qualityScoreUrl: @json(route('admin.community-posts.quality-score', $post)),
+        recalculateScoreUrl: @json(route('admin.community-posts.recalculate-score', $post)),
+        articleBadgeUrl: @json(route('admin.community-posts.article-badge', $post)),
         redirectUrl: @json(route('admin.community-posts.all.index')),
     };
 </script>

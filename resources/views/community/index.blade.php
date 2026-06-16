@@ -60,6 +60,34 @@
         z-index: 1;
     }
 
+    .community-hero__profile {
+        align-items: center;
+        display: flex;
+        gap: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .community-hero__avatar,
+    .community-author-avatar.community-hero__avatar {
+        align-items: center;
+        background: rgba(255, 255, 255, 0.18);
+        border: 3px solid rgba(255, 255, 255, 0.35);
+        border-radius: 999px;
+        color: #fff;
+        display: inline-flex;
+        flex: 0 0 auto;
+        font-size: 1.5rem;
+        font-weight: 700;
+        height: 5rem;
+        justify-content: center;
+        overflow: hidden;
+        width: 5rem;
+    }
+
+    .community-hero__avatar.community-author-avatar--image {
+        background: rgba(255, 255, 255, 0.12);
+    }
+
     .community-hero__eyebrow {
         color: rgba(255, 255, 255, 0.82);
         font-size: 0.82rem;
@@ -361,7 +389,8 @@
         min-width: 0;
     }
 
-    .community-post-card__avatar {
+    .community-post-card__avatar,
+    .community-author-avatar.community-post-card__avatar {
         align-items: center;
         background: linear-gradient(135deg, #1f66b4, #2e7d32);
         border-radius: 999px;
@@ -372,7 +401,13 @@
         font-weight: 700;
         height: 2.2rem;
         justify-content: center;
+        overflow: hidden;
         width: 2.2rem;
+    }
+
+    .community-author-avatar--image {
+        background: #e2e8f0;
+        object-fit: cover;
     }
 
     .community-post-card__author-meta {
@@ -406,6 +441,52 @@
         font-size: 0.78rem;
         gap: 0.45rem;
         justify-content: flex-end;
+    }
+
+    .community-post-card__save {
+        background: transparent;
+        border: 0;
+        color: #475569;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .community-post-card__save.is-saved {
+        color: #12824e;
+    }
+
+    .community-post-card__badge--score {
+        font-weight: 700;
+    }
+
+    .community-score-badge--trending,
+    .community-post-card__badge--score.community-score-badge--trending {
+        background: #fff4e5 !important;
+        color: #b45309 !important;
+    }
+
+    .community-score-badge--editors-choice,
+    .community-post-card__badge--score.community-score-badge--editors-choice {
+        background: #eef2ff !important;
+        color: #4338ca !important;
+    }
+
+    .community-score-badge--most-read,
+    .community-post-card__badge--score.community-score-badge--most-read {
+        background: #ecfeff !important;
+        color: #0e7490 !important;
+    }
+
+    .community-score-badge--featured,
+    .community-post-card__badge--score.community-score-badge--featured {
+        background: #ecfdf3 !important;
+        color: #047857 !important;
+    }
+
+    .community-score-badge--community-pick,
+    .community-post-card__badge--score.community-score-badge--community-pick {
+        background: #fdf2f8 !important;
+        color: #be185d !important;
     }
 
     .community-empty-state {
@@ -482,7 +563,8 @@
             padding: 0.85rem 0.9rem 0.95rem;
         }
 
-        .community-post-card__avatar {
+        .community-post-card__avatar,
+        .community-author-avatar.community-post-card__avatar {
             height: 2rem;
             width: 2rem;
         }
@@ -521,20 +603,43 @@
     <section class="community-hero">
         <div class="community-hero__inner">
             <div class="community-hero__eyebrow">Soil &amp; Water Community</div>
-            <h1 class="community-hero__title">
-                {{ $authorName ? $authorName . "'s Posts" : 'Community Hub' }}
-            </h1>
-            @if ($authorName)
-                <p class="community-hero__subtitle">
-                    Browse published stories, reports, and updates from {{ $authorName }}.
-                </p>
+            @if ($authorName && isset($activeAuthor))
+                <div class="community-hero__profile">
+                    @include('community.partials.author-avatar', [
+                        'avatarUrl' => $activeAuthor->authorImageUrl(),
+                        'initials' => $activeAuthor->authorInitials(),
+                        'alt' => $authorName,
+                        'sizeClass' => 'community-hero__avatar',
+                    ])
+                    <div>
+                        <h1 class="community-hero__title mb-2">{{ $authorName }}&rsquo;s Posts</h1>
+                        <p class="community-hero__subtitle mb-0">
+                            Browse published stories, reports, and updates from {{ $authorName }}.
+                        </p>
+                    </div>
+                </div>
             @else
-                <p class="community-hero__subtitle">Community Hub, Knowledge Centre, Local Voices Network</p>
+                <h1 class="community-hero__title">
+                    {{ $authorName ? $authorName . "'s Posts" : 'Community Hub' }}
+                </h1>
+                @if ($authorName)
+                    <p class="community-hero__subtitle">
+                        Browse published stories, reports, and updates from {{ $authorName }}.
+                    </p>
+                @else
+                    <p class="community-hero__subtitle">Community Hub, Knowledge Centre, Local Voices Network</p>
+                @endif
             @endif
             <div class="community-hero__actions">
                 @auth
                     <a href="{{ route('community.posts.create') }}" class="btn btn-light">
                         <i class="fa-solid fa-pen-to-square me-2"></i>Create a Post
+                    </a>
+                    <a href="{{ route('community.saved.index') }}" class="btn btn-outline-light">
+                        <i class="fa-solid fa-bookmark me-2"></i>Saved Posts
+                    </a>
+                    <a href="{{ route('community.subscriptions.index') }}" class="btn btn-outline-light">
+                        <i class="fa-solid fa-bell me-2"></i>My Subscriptions
                     </a>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-light">
@@ -571,11 +676,34 @@
         </div>
 
         @if ($activeType && isset($types[$activeType]))
+            @php
+                $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
+            @endphp
             <div class="community-type-panel">
                 <div class="community-type-panel__title">{{ $types[$activeType]['label'] }}</div>
                 <p class="community-type-panel__text">{{ $types[$activeType]['description'] }}</p>
                 <div class="community-type-panel__categories">
-                    <strong>Categories:</strong> {{ implode(', ', $types[$activeType]['categories']) }}
+                    <strong>Categories:</strong>
+                    @foreach($types[$activeType]['categories'] as $categoryName)
+                        @php
+                            $isSubscribed = auth()->check() && collect($engagement['subscribed_categories'] ?? [])->contains(
+                                fn (array $subscription): bool => ($subscription['content_type'] ?? null) === $activeType
+                                    && ($subscription['category'] ?? null) === $categoryName
+                            );
+                        @endphp
+                        <span class="d-inline-flex align-items-center gap-1 me-2 mb-1">
+                            <span>{{ $categoryName }}</span>
+                            @auth
+                                <button type="button"
+                                    class="btn btn-sm {{ $isSubscribed ? 'btn-success' : 'btn-outline-success' }} js-community-subscribe-category {{ $isSubscribed ? 'is-subscribed' : '' }}"
+                                    data-url="{{ route('community.subscriptions.category.toggle') }}"
+                                    data-content-type="{{ $activeType }}"
+                                    data-category="{{ $categoryName }}">
+                                    {{ $isSubscribed ? 'Subscribed' : 'Subscribe' }}
+                                </button>
+                            @endauth
+                        </span>
+                    @endforeach
                 </div>
             </div>
         @endif
@@ -595,6 +723,7 @@
             @include('community.partials.post-cards', [
                 'posts' => $posts,
                 'emptyMessage' => $emptyMessage,
+                'engagement' => $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
             ])
         </div>
 
@@ -697,4 +826,5 @@
         }
     })();
 </script>
+<script src="{{ asset('assets/js/community-engagement.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

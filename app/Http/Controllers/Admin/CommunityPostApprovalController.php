@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\CommunityPostReviewMail;
 use App\Models\CommunityPost;
+use App\Services\CommunityArticleScoreService;
+use App\Services\CommunityEngagementNotificationService;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -57,11 +60,18 @@ class CommunityPostApprovalController extends Controller
 
     public function show(CommunityPost $post): View
     {
-        $post->load(['user', 'reviewer:id,name,full_name']);
+        $post->load(['user', 'reviewer:id,name,full_name', 'auditLogs.user:id,name,full_name']);
+        $post->loadCount([
+            'reactions as likes_count' => fn ($query) => $query->where('reaction', '!=', 'Dislike'),
+            'comments',
+            'saves',
+        ]);
 
         return view('backend.admin.community-posts.show', [
             'post' => $post,
             'types' => CommunityContentTaxonomy::formTypes(),
+            'scoreMetrics' => CommunityArticleScoreService::metricSummary($post),
+            'scoreBreakdown' => CommunityArticleScoreService::breakdown($post),
         ]);
     }
 
@@ -98,7 +108,10 @@ class CommunityPostApprovalController extends Controller
         ]);
 
         if ($post->wasChanged('status')) {
-            $this->notifyOwnerOfReview($post->fresh('user'), 'approved');
+            $post = $post->fresh('user');
+            $this->notifyOwnerOfReview($post, 'approved');
+            CommunityEngagementNotificationService::notifySubscribersOfPublishedPost($post);
+            CommunityArticleScoreService::recalculate($post);
         }
 
         return response()->json(['message' => 'Community post approved and published.']);
@@ -173,6 +186,61 @@ class CommunityPostApprovalController extends Controller
         return $this->togglePromotionFlag($request, $post, 'is_highlighted', 'Highlighted');
     }
 
+    public function updateQualityScore(Request $request, CommunityPost $post): JsonResponse
+    {
+        $data = $request->validate([
+            'quality_score' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        $post->update([
+            'quality_score' => $data['quality_score'] ?? null,
+        ]);
+
+        $post = CommunityArticleScoreService::recalculate($post->fresh(), autoAssignBadges: false);
+
+        return response()->json([
+            'message' => 'Quality score updated and article score recalculated.',
+            'article_score' => (float) $post->article_score,
+            'quality_score' => $post->quality_score,
+        ]);
+    }
+
+    public function recalculateScore(Request $request, CommunityPost $post): JsonResponse
+    {
+        $autoAssign = $request->boolean('auto_assign_badges', true);
+        $post = CommunityArticleScoreService::recalculate($post->fresh(), autoAssignBadges: $autoAssign);
+
+        return response()->json([
+            'message' => 'Article score recalculated successfully.',
+            'article_score' => (float) $post->article_score,
+            'badges' => $post->articleScoreBadgeLabels(),
+            'metrics' => CommunityArticleScoreService::metricSummary($post),
+        ]);
+    }
+
+    public function toggleArticleBadge(Request $request, CommunityPost $post): JsonResponse
+    {
+        $data = $request->validate([
+            'badge' => ['required', 'in:badge_trending,badge_editors_choice,badge_most_read,badge_community_pick,is_featured'],
+            'enabled' => ['nullable', 'boolean'],
+        ]);
+
+        $field = $data['badge'];
+        $enabled = array_key_exists('enabled', $data)
+            ? (bool) $data['enabled']
+            : ! (bool) $post->{$field};
+
+        $post->update([$field => $enabled]);
+
+        $label = CommunityArticleScoreService::BADGE_LABELS[$field] ?? Str::headline($field);
+
+        return response()->json([
+            'message' => $enabled ? "{$label} badge enabled." : "{$label} badge removed.",
+            'enabled' => $enabled,
+            'badge' => $field,
+        ]);
+    }
+
     public function allIndex(): View
     {
         return view('backend.admin.community-posts.all-posts');
@@ -198,6 +266,8 @@ class CommunityPostApprovalController extends Controller
                 'is_featured',
                 'is_sponsored',
                 'is_highlighted',
+                'article_score',
+                'views_count',
                 'published_at',
                 'submitted_at',
                 'created_at',
@@ -224,6 +294,7 @@ class CommunityPostApprovalController extends Controller
             ->addColumn('owner_role', fn (CommunityPost $post): string => '<span class="badge bg-light text-dark border">'.e($this->roleLabel($post->user?->role)).'</span>')
             ->addColumn('status_badge', fn (CommunityPost $post): string => '<span class="badge '.$post->statusBadgeClass().'">'.e($post->statusLabel()).'</span>')
             ->addColumn('promotion_badges', fn (CommunityPost $post): string => $this->renderPromotionBadges($post))
+            ->addColumn('article_score_display', fn (CommunityPost $post): string => number_format((float) $post->article_score, 1))
             ->addColumn('published_display', function (CommunityPost $post): string {
                 if ($post->published_at) {
                     return $post->published_at->timezone(config('app.timezone'))->format('d M Y, h:i A');
@@ -263,16 +334,16 @@ class CommunityPostApprovalController extends Controller
     {
         $badges = [];
 
-        if ($post->is_featured) {
-            $badges[] = '<span class="badge bg-primary">Featured</span>';
-        }
-
         if ($post->is_sponsored) {
             $badges[] = '<span class="badge bg-info text-dark">Sponsored</span>';
         }
 
         if ($post->is_highlighted) {
             $badges[] = '<span class="badge bg-warning text-dark">Highlighted</span>';
+        }
+
+        foreach ($post->articleScoreBadges() as $badge) {
+            $badges[] = '<span class="badge bg-light text-dark border">'.e($badge['label']).'</span>';
         }
 
         return $badges === [] ? '<span class="text-muted">—</span>' : implode(' ', $badges);

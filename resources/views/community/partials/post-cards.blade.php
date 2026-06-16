@@ -1,13 +1,17 @@
 @forelse ($posts as $post)
     @php
+        $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
         $authorDisplayName = $post->authorDisplayName();
         $authorInitials = $post->authorInitials();
+        $authorAvatarUrl = $post->authorAvatarUrl();
         $categoryLabel = filled(data_get($post->meta, 'report_type'))
             ? data_get($post->meta, 'report_type', $post->category)
             : $post->category;
         $excerpt = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 160);
         $locationLabel = $post->location ?? data_get($post->meta, 'location');
         $promotionLabels = $post->adminPromotionLabels();
+        $scoreBadges = $post->articleScoreBadges();
+        $isSaved = auth()->check() && in_array($post->id, $engagement['saved_post_ids'] ?? [], true);
     @endphp
     <div class="col">
         <article class="community-post-card h-100 {{ $post->is_highlighted ? 'community-post-card--highlighted' : '' }}">
@@ -20,8 +24,11 @@
                     </div>
                 @endif
                 <div class="community-post-card__media-overlay"></div>
-                @if ($categoryLabel || $promotionLabels !== [])
+                @if ($categoryLabel || $promotionLabels !== [] || $scoreBadges !== [])
                     <div class="community-post-card__badges">
+                        @foreach($scoreBadges as $badge)
+                            <span class="community-post-card__badge community-post-card__badge--score {{ $badge['class'] }}">{{ $badge['label'] }}</span>
+                        @endforeach
                         @foreach($promotionLabels as $promotionLabel)
                             <span class="community-post-card__badge community-post-card__badge--promotion">{{ $promotionLabel }}</span>
                         @endforeach
@@ -55,7 +62,12 @@
 
                 <div class="community-post-card__footer">
                     <div class="community-post-card__author">
-                        <span class="community-post-card__avatar" aria-hidden="true">{{ $authorInitials ?: 'CA' }}</span>
+                        @include('community.partials.author-avatar', [
+                            'avatarUrl' => $authorAvatarUrl,
+                            'initials' => $authorInitials ?: 'CA',
+                            'alt' => $authorDisplayName,
+                            'sizeClass' => 'community-post-card__avatar',
+                        ])
                         <div class="community-post-card__author-meta">
                             @if ($post->showsAuthorProfileLink())
                                 <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="community-post-card__author-name">{{ $authorDisplayName }}</a>
@@ -67,6 +79,14 @@
                     </div>
 
                     <div class="community-post-card__stats">
+                        @auth
+                            <button type="button"
+                                class="community-post-card__save js-community-save-post {{ $isSaved ? 'is-saved' : '' }}"
+                                data-url="{{ route('community.save.toggle', $post) }}"
+                                title="{{ $isSaved ? 'Saved' : 'Save post' }}">
+                                <i class="fa-{{ $isSaved ? 'solid' : 'regular' }} fa-bookmark" aria-hidden="true"></i>
+                            </button>
+                        @endauth
                         @if ($post->allowsSharing())
                             @include('community.partials.share-panel', [
                                 'post' => $post,

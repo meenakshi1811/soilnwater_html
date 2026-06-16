@@ -22,6 +22,7 @@ class CommunityPostFactory extends Factory
             'user_id' => User::factory(),
             'content_type' => 'articles',
             'category' => 'Education',
+            'writing_purpose' => fake()->randomElement(CommunityPost::WRITING_PURPOSE_OPTIONS),
             'title' => $title,
             'slug' => Str::slug($title).'-'.fake()->unique()->numberBetween(1000, 9999),
             'excerpt' => fake()->sentence(12),

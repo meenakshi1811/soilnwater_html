@@ -205,6 +205,43 @@
         togglePromotion($(this), config.highlightUrl || actionUrl(slug, 'highlight'), 'btn-warning', 'btn-outline-warning');
     });
 
+    $(document).on('submit', '#communityQualityScoreForm', function (event) {
+        event.preventDefault();
+
+        postAction(config.qualityScoreUrl, {
+            quality_score: $('#communityQualityScore').val()
+        }, 'Quality score updated.', null);
+
+        setTimeout(function () {
+            window.location.reload();
+        }, 700);
+    });
+
+    $(document).on('click', '.js-recalculate-score', function () {
+        postAction(config.recalculateScoreUrl, {
+            auto_assign_badges: $(this).data('auto-badges') === 0 ? 0 : 1
+        }, 'Article score recalculated.', null);
+
+        setTimeout(function () {
+            window.location.reload();
+        }, 700);
+    });
+
+    $(document).on('click', '.js-article-badge', function () {
+        var button = $(this);
+        var enabled = button.data('enabled') === 1 || button.data('enabled') === '1';
+        var nextEnabled = !enabled;
+
+        postAction(config.articleBadgeUrl, {
+            badge: button.data('badge'),
+            enabled: nextEnabled ? 1 : 0
+        }, 'Article badge updated.', null);
+
+        button.data('enabled', nextEnabled ? '1' : '0');
+        button.toggleClass('btn-dark', nextEnabled);
+        button.toggleClass('btn-outline-dark', !nextEnabled);
+    });
+
     if ($('#communityPostsTable').length) {
         table = $('#communityPostsTable').DataTable({
             processing: true,
@@ -233,7 +270,7 @@
                     payload.status = $('#statusFilter').val() || '';
                 }
             },
-            order: [[7, 'desc']],
+            order: [[8, 'desc']],
             columns: [
                 { data: 'title', name: 'title' },
                 { data: 'type_label', name: 'content_type', orderable: false, searchable: false },
@@ -241,6 +278,7 @@
                 { data: 'owner_name', name: 'user_id', orderable: false },
                 { data: 'owner_role', name: 'user.role', orderable: false, searchable: false },
                 { data: 'status_badge', name: 'status', orderable: false, searchable: false },
+                { data: 'article_score_display', name: 'article_score' },
                 { data: 'promotion_badges', name: 'is_featured', orderable: false, searchable: false },
                 { data: 'published_display', name: 'published_at' },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end' }

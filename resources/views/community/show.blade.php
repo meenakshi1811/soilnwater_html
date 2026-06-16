@@ -98,6 +98,15 @@
 @endpush
 
 @section('content')
+@php
+    $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
+    $isSaved = auth()->check() && in_array($post->id, $engagement['saved_post_ids'] ?? [], true);
+    $isCategorySubscribed = auth()->check() && collect($engagement['subscribed_categories'] ?? [])->contains(
+        fn (array $subscription): bool => ($subscription['content_type'] ?? null) === $post->content_type
+            && ($subscription['category'] ?? null) === $post->category
+    );
+    $followedTopics = collect($engagement['followed_topics'] ?? [])->map(fn ($topic) => \App\Models\CommunityTopicFollow::normalizeTopic((string) $topic))->all();
+@endphp
 <div class="about-page">
     @if(!empty($preview) || $post->isPendingApproval())
         <div class="alert alert-warning text-center rounded-0 mb-0 border-0">
@@ -132,6 +141,9 @@
         </div>
         <div class="community-post-banner-tags">
             <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->typeLabel() }}</span>
+            @foreach($post->articleScoreBadges() as $badge)
+                <span class="badge bg-light text-dark community-post-banner-tag community-score-badge {{ $badge['class'] }}">{{ $badge['label'] }}</span>
+            @endforeach
             @foreach($post->adminPromotionLabels() as $promotionLabel)
                 <span class="badge bg-warning text-dark community-post-banner-tag">{{ $promotionLabel }}</span>
             @endforeach
@@ -155,6 +167,30 @@
                 @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true])
             @endif
             @auth
+                @if($post->isPubliclyVisible())
+                    <button type="button"
+                        class="community-banner-action js-community-save-post {{ $isSaved ? 'is-saved' : '' }}"
+                        data-url="{{ route('community.save.toggle', $post) }}">
+                        <i class="fa-{{ $isSaved ? 'solid' : 'regular' }} fa-bookmark" aria-hidden="true"></i>
+                        {{ $isSaved ? 'Saved' : 'Save' }}
+                    </button>
+                    @if(auth()->id() !== $post->user_id)
+                        <button type="button"
+                            class="community-banner-action js-community-subscribe-category {{ $isCategorySubscribed ? 'is-subscribed' : '' }}"
+                            data-url="{{ route('community.subscriptions.category.toggle') }}"
+                            data-content-type="{{ $post->content_type }}"
+                            data-category="{{ $post->category }}">
+                            {{ $isCategorySubscribed ? 'Subscribed to category' : 'Subscribe to category' }}
+                        </button>
+                        <button type="button"
+                            class="community-banner-action"
+                            data-bs-toggle="modal"
+                            data-bs-target="#communityPostReportModal">
+                            <i class="fa-solid fa-flag" aria-hidden="true"></i>
+                            Report content
+                        </button>
+                    @endif
+                @endif
                 @if(auth()->id() === $post->user_id || auth()->user()->isAdmin())
                     <a href="{{ route('community.posts.edit', $post) }}" class="community-banner-action">
                         <i class="fa-solid fa-pen" aria-hidden="true"></i>
@@ -398,9 +434,23 @@
             @endif
 
             @if(!empty($post->tags))
-                <div class="mt-4 d-flex flex-wrap gap-2">
+                <div class="mt-4 d-flex flex-wrap gap-2 align-items-center">
                     @foreach($post->tags as $tag)
+                        @php
+                            $normalizedTag = \App\Models\CommunityTopicFollow::normalizeTopic((string) $tag);
+                            $isFollowingTopic = auth()->check() && in_array($normalizedTag, $followedTopics, true);
+                        @endphp
                         <span class="badge bg-light text-dark border">#{{ $tag }}</span>
+                        @auth
+                            @if($post->isPubliclyVisible())
+                                <button type="button"
+                                    class="btn btn-sm {{ $isFollowingTopic ? 'btn-success' : 'btn-outline-success' }} js-community-follow-topic {{ $isFollowingTopic ? 'is-following' : '' }}"
+                                    data-url="{{ route('community.subscriptions.topic.toggle') }}"
+                                    data-topic="{{ $tag }}">
+                                    {{ $isFollowingTopic ? 'Following' : 'Follow topic' }}
+                                </button>
+                            @endif
+                        @endauth
                     @endforeach
                 </div>
             @endif
@@ -415,6 +465,13 @@
 
             <div class="about-box mt-4">
                 <h4>Community engagement</h4>
+                <ul class="about-list mb-3">
+                    <li><strong>Views:</strong> {{ number_format($post->views_count) }}</li>
+                    <li><strong>Shares:</strong> {{ number_format($post->shares_count) }}</li>
+                    @if($post->article_score > 0)
+                        <li><strong>Article score:</strong> {{ number_format((float) $post->article_score, 1) }}/100</li>
+                    @endif
+                </ul>
                 @php
                     $reactionCounts = $post->reactions->groupBy('reaction')->map->count();
                     $userReactions = auth()->check() ? $post->reactions->where('user_id', auth()->id())->pluck('reaction')->all() : [];
@@ -544,6 +601,17 @@
     @if($post->allowsSharing())
         @include('community.partials.share-modal')
     @endif
+
+    @auth
+        @if($post->isPubliclyVisible() && auth()->id() !== $post->user_id)
+            @include('frontend.partials.profile-report-modal', [
+                'reportModalId' => 'communityPostReportModal',
+                'reportFormId' => 'communityPostReportForm',
+                'reportLabel' => 'post',
+                'reportAction' => route('community.report', $post),
+            ])
+        @endif
+    @endauth
 </div>
 @endsection
 
@@ -721,4 +789,5 @@
         });
     });
 </script>
+<script src="{{ asset('assets/js/community-engagement.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
