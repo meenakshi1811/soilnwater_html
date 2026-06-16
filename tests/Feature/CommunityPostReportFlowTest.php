@@ -24,6 +24,7 @@ class CommunityPostReportFlowTest extends TestCase
             'excerpt' => 'A professional overview of water market performance.',
             'body' => 'This report contains detailed analysis for the water market this quarter.',
             'status' => CommunityPost::STATUS_PUBLISHED,
+            'location_type' => 'city',
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',
@@ -48,6 +49,7 @@ class CommunityPostReportFlowTest extends TestCase
             'body' => 'Background, context, analysis, evidence, limitations, conclusion, and appendix notes are included here.',
             'status' => CommunityPost::STATUS_PUBLISHED,
             'allow_comments' => '1',
+            'location_type' => 'city',
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',
@@ -67,10 +69,12 @@ class CommunityPostReportFlowTest extends TestCase
         ]);
 
         $response->assertOk()->assertJson([
-            'message' => 'Community post created successfully.',
+            'message' => 'Community post submitted for admin approval.',
         ]);
 
         $post = CommunityPost::query()->where('title', 'District Water Conservation Report')->firstOrFail();
+
+        $this->assertSame(CommunityPost::STATUS_PENDING, $post->status);
 
         $this->assertTrue($post->allow_comments);
         $this->assertSame('reports', $post->content_type);
@@ -97,6 +101,7 @@ class CommunityPostReportFlowTest extends TestCase
             'excerpt' => 'A concise newsroom summary for the local update.',
             'body' => 'This news story contains enough details about the local canal repair work.',
             'status' => CommunityPost::STATUS_PUBLISHED,
+            'location_type' => 'city',
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',
@@ -125,6 +130,7 @@ class CommunityPostReportFlowTest extends TestCase
             'body' => 'The municipal office announced updated water supply timings after reviewing summer demand.',
             'status' => CommunityPost::STATUS_PUBLISHED,
             'allow_comments' => '1',
+            'location_type' => 'city',
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',
@@ -141,10 +147,12 @@ class CommunityPostReportFlowTest extends TestCase
         ]);
 
         $response->assertOk()->assertJson([
-            'message' => 'Community post created successfully.',
+            'message' => 'Community post submitted for admin approval.',
         ]);
 
         $post = CommunityPost::query()->where('title', 'Water Supply Schedule Updated')->firstOrFail();
+
+        $this->assertSame(CommunityPost::STATUS_PENDING, $post->status);
 
         $this->assertTrue($post->allow_comments);
         $this->assertSame('news', $post->content_type);
@@ -168,6 +176,7 @@ class CommunityPostReportFlowTest extends TestCase
             'body' => 'The water pipeline has been broken for three days and needs urgent repair from the local department.',
             'status' => CommunityPost::STATUS_PUBLISHED,
             'allow_comments' => '1',
+            'location_type' => 'city',
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',
@@ -182,10 +191,12 @@ class CommunityPostReportFlowTest extends TestCase
         ]);
 
         $response->assertOk()->assertJson([
-            'message' => 'Community post created successfully.',
+            'message' => 'Community post submitted for admin approval.',
         ]);
 
         $post = CommunityPost::query()->where('title', 'Broken water pipeline near market')->firstOrFail();
+
+        $this->assertSame(CommunityPost::STATUS_PENDING, $post->status);
 
         $this->assertTrue($post->allow_comments);
         $this->assertSame('reports', $post->content_type);
@@ -207,6 +218,7 @@ class CommunityPostReportFlowTest extends TestCase
             'excerpt' => 'A personal experience about water conservation awareness.',
             'body' => 'This opinion explains why local water awareness programs need regular community participation.',
             'status' => CommunityPost::STATUS_PUBLISHED,
+            'location_type' => 'city',
             'location' => 'Jaipur, Rajasthan, India',
             'location_lat' => '26.9124000',
             'location_lng' => '75.7873000',

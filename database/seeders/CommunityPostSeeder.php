@@ -80,6 +80,7 @@ class CommunityPostSeeder extends Seeder
                         'https://picsum.photos/seed/soil-water-'.Str::slug($typeKey).'-2/960/540',
                     ],
                     'tags' => [$type['label'], 'Sample Data', 'Soil & Water', 'Demo'],
+                    'location_type' => CommunityPost::LOCATION_TYPE_CITY,
                     'location' => self::LOCATION,
                     'location_lat' => self::LOCATION_LAT,
                     'location_lng' => self::LOCATION_LNG,

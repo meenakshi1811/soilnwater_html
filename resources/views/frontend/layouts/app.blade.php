@@ -6,7 +6,14 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('meta_title', 'SoilnWater – Local & National Marketplace')</title>
   <meta name="description" content="@yield('meta_description', 'Discover local and national deals on SoilnWater.')">
-  <meta property="og:type" content="website">
+  @hasSection('meta_keywords')
+    <meta name="keywords" content="@yield('meta_keywords')">
+  @endif
+  @hasSection('meta_robots')
+    <meta name="robots" content="@yield('meta_robots')">
+  @endif
+  <link rel="canonical" href="@yield('meta_canonical', url()->current())">
+  <meta property="og:type" content="@yield('meta_type', 'website')">
   <meta property="og:title" content="@yield('meta_title', 'SoilnWater – Local & National Marketplace')">
   <meta property="og:description" content="@yield('meta_description', 'Discover local and national deals on SoilnWater.')">
   <meta property="og:url" content="@yield('meta_url', url()->current())">
@@ -15,6 +22,7 @@
   <meta name="twitter:title" content="@yield('meta_title', 'SoilnWater – Local & National Marketplace')">
   <meta name="twitter:description" content="@yield('meta_description', 'Discover local and national deals on SoilnWater.')">
   <meta name="twitter:image" content="@yield('meta_image', asset('assets/images/logo_soilnwater.webp'))">
+  @stack('head')
   <link rel="icon" type="image/png" href="{{ asset('assets/images/favicon.png') }}">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CommunityPost;
 use App\Models\Consultant;
 use App\Models\ConsultantService;
 use App\Models\Offer;
@@ -73,7 +74,8 @@ class ApprovalCenterController extends Controller
             ->merge($this->pendingServiceProviderServices())
             ->merge($this->pendingVendorPublicPages())
             ->merge($this->pendingConsultantPublicPages())
-            ->merge($this->pendingServiceProviderPublicPages());
+            ->merge($this->pendingServiceProviderPublicPages())
+            ->merge($this->pendingCommunityPosts());
     }
 
     private function pendingAds(): Collection
@@ -217,6 +219,26 @@ class ApprovalCenterController extends Controller
             ));
     }
 
+    private function pendingCommunityPosts(): Collection
+    {
+        return CommunityPost::query()
+            ->with('user:id,name,full_name')
+            ->pendingApproval()
+            ->get()
+            ->map(fn (CommunityPost $post): array => $this->makeItem(
+                'community_post',
+                'community-posts',
+                'Community Post',
+                'fa-pen-nib',
+                $post->id,
+                $post->title,
+                $post->user?->full_name ?: ($post->user?->name ?? 'Unknown user'),
+                $post->typeLabel().' awaiting publish approval',
+                $post->submitted_at ?: $post->created_at,
+                route('admin.community-posts.show', $post)
+            ));
+    }
+
     private function pendingServiceProviderPublicPages(): Collection
     {
         return ServiceProvider::query()
@@ -265,6 +287,7 @@ class ApprovalCenterController extends Controller
             'consultant-services' => 'Consultant services',
             'service-provider-services' => 'Service services',
             'public-pages' => 'Public pages',
+            'community-posts' => 'Community posts',
         ];
     }
 
@@ -295,6 +318,9 @@ class ApprovalCenterController extends Controller
             'service_provider_public_page' => $approved
                 ? app(ServiceProviderController::class)->approvePublicPage($request, ServiceProvider::findOrFail($id))
                 : app(ServiceProviderController::class)->declinePublicPage(ServiceProvider::findOrFail($id)),
+            'community_post' => $approved
+                ? app(CommunityPostApprovalController::class)->approve($request, CommunityPost::findOrFail($id))
+                : app(CommunityPostApprovalController::class)->decline($this->withDefaultReviewNote($request), CommunityPost::findOrFail($id)),
         };
     }
 
@@ -339,6 +365,7 @@ class ApprovalCenterController extends Controller
             'vendor_public_page',
             'consultant_public_page',
             'service_provider_public_page',
+            'community_post',
         ], true);
     }
 }

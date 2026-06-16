@@ -1,5 +1,36 @@
 @extends('frontend.layouts.app')
 
+@php
+    $authorSeoName = isset($activeAuthor) ? ($activeAuthor->name ?? $activeAuthor->full_name ?? 'Community author') : null;
+    $hubSeoTitle = $authorSeoName
+        ? $authorSeoName."'s Posts | SoilnWater Community"
+        : (($activeType && isset($types[$activeType]))
+            ? $types[$activeType]['label'].' | SoilnWater Community'
+            : 'Community Hub | SoilnWater');
+    $hubSeoDescription = $authorSeoName
+        ? 'Browse published stories, reports, news, and community updates from '.$authorSeoName.' on SoilnWater.'
+        : (($activeType && isset($types[$activeType]))
+            ? $types[$activeType]['description'].' Explore '.$types[$activeType]['label'].' posts on SoilnWater Community.'
+            : 'Discover stories, reports, news, poetry, biography, and local voices from the SoilnWater Community Hub.');
+    $hubSeoUrl = isset($activeAuthor)
+        ? ($activeType
+            ? route('community.authors.show', ['uniqueName' => $activeAuthor->authorUniqueName(), 'type' => $activeType])
+            : route('community.authors.show', $activeAuthor->authorUniqueName()))
+        : ($activeType ? route('community.index', ['type' => $activeType]) : route('community.index'));
+    $hubSeoKeywords = $authorSeoName
+        ? 'SoilnWater community, '.$authorSeoName.', community posts, local stories'
+        : (($activeType && isset($types[$activeType]))
+            ? 'SoilnWater community, '.$types[$activeType]['label'].', local stories, community hub'
+            : 'SoilnWater community, community hub, local stories, reports, news, poetry');
+@endphp
+
+@section('meta_title', $hubSeoTitle)
+@section('meta_description', $hubSeoDescription)
+@section('meta_url', $hubSeoUrl)
+@section('meta_canonical', $hubSeoUrl)
+@section('meta_keywords', $hubSeoKeywords)
+@section('meta_image', asset('assets/images/logo_soilnwater.webp'))
+
 @push('styles')
 <style>
     .community-hub {
@@ -111,11 +142,8 @@
 
     .community-filter-scroll {
         display: flex;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         gap: 0.55rem;
-        overflow-x: auto;
-        padding-bottom: 0.15rem;
-        scrollbar-width: thin;
     }
 
     .community-filter-pill {
@@ -123,13 +151,11 @@
         border: 1px solid #d7e3f0;
         border-radius: 999px;
         color: #24527a;
-        flex: 0 0 auto;
         font-size: 0.84rem;
         font-weight: 600;
         padding: 0.45rem 0.95rem;
         text-decoration: none;
         transition: all 0.18s ease;
-        white-space: nowrap;
     }
 
     .community-filter-pill:hover {
@@ -249,9 +275,13 @@
         padding: 0.28rem 0.65rem;
     }
 
-    .community-post-card__badge--type {
-        background: rgba(46, 125, 50, 0.92);
+    .community-post-card__badge--promotion {
+        background: rgba(31, 102, 180, 0.92);
         color: #fff;
+    }
+
+    .community-post-card--highlighted {
+        box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.55), 0 14px 28px rgba(15, 47, 85, 0.12);
     }
 
     .community-post-card__video-badge {
@@ -368,11 +398,14 @@
     }
 
     .community-post-card__stats {
+        align-items: center;
         color: #6c849c;
         display: flex;
         flex: 0 0 auto;
+        flex-wrap: wrap;
         font-size: 0.78rem;
-        gap: 0.65rem;
+        gap: 0.45rem;
+        justify-content: flex-end;
     }
 
     .community-empty-state {
@@ -547,6 +580,13 @@
             </div>
         @endif
 
+        @if(isset($activeAuthor))
+            @include('community.partials.author-questions', [
+                'author' => $activeAuthor,
+                'answeredQuestions' => $answeredAuthorQuestions ?? collect(),
+            ])
+        @endif
+
         <div
             id="communityPostsGrid"
             class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 g-lg-4"
@@ -570,6 +610,8 @@
         <div id="communityScrollSentinel" class="community-scroll-sentinel" aria-hidden="true"></div>
     </div>
 </div>
+
+@include('community.partials.share-modal')
 @endsection
 
 @push('scripts')

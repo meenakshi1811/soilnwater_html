@@ -28,6 +28,9 @@
         @if($mode === 'edit')
             @method('PUT')
         @endif
+        @php
+            $formStatus = old('status', $post->status === \App\Models\CommunityPost::STATUS_PENDING ? 'published' : $post->status);
+        @endphp
 
         <div class="row g-3">
             <div class="col-md-6">
@@ -52,9 +55,9 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label">Status <span class="text-danger">*</span></label>
-                <select name="status" class="form-select" required>
-                    <option value="published" @selected(old('status', $post->status) === 'published')>Publish now</option>
-                    <option value="draft" @selected(old('status', $post->status) === 'draft')>Save as draft</option>
+                <select name="status" id="communityPostStatus" class="form-select" required>
+                    <option value="published" @selected($formStatus === 'published')>Publish now</option>
+                    <option value="draft" @selected($formStatus === 'draft')>Save as draft</option>
                 </select>
             </div>
             <div class="col-12">
@@ -62,11 +65,54 @@
                 <textarea name="excerpt" id="excerptField" class="form-control" rows="2" maxlength="1000">{{ old('excerpt', $post->excerpt) }}</textarea>
                 <small id="excerptHelp" class="text-muted d-block mt-1">A concise teaser shown in listing cards.</small>
             </div>
-            <div class="col-12">
-                <label class="form-label" id="bodyLabel">Body <span class="text-danger">*</span></label>
-                <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
-                <small id="bodyHelp" class="text-muted d-block mt-1">Add text and images together. Select an image to align it, or drag its corner to resize.</small>
-                <small class="text-muted d-block mt-1">Tip: use left/right alignment for text wrapping beside an image. Place the cursor in the open space next to the image before typing.</small>
+            @php
+                $initialBookPages = old('book_pages', $post->usesBookLayout() ? $post->bookPages() : []);
+                if ($initialBookPages === []) {
+                    $initialBookPages = [['content' => old('body', $post->body ?? '')]];
+                }
+            @endphp
+            <div class="col-12" id="bodyContentSection">
+                <div id="standardBodyHeader">
+                    <label class="form-label" id="bodyLabel">Body <span class="text-danger">*</span></label>
+                    <small id="bodyHelp" class="text-muted d-block mb-2">Add text and images together. There is no word limit. Select an image to align it, or drag its corner to resize.</small>
+                </div>
+                <div id="bookBodyHeader" style="display:none;">
+                    <label class="form-label" id="bookBodyLabel">Book pages <span class="text-danger">*</span></label>
+                    <small id="bookBodyHelp" class="text-muted d-block mb-3">Write your story page by page, like a book. Use the CKEditor below for each page.</small>
+                    <div class="community-book-editor border rounded-3 p-3 bg-light mb-3">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                            <div class="d-flex flex-wrap gap-2" id="bookPageTabs" role="tablist" aria-label="Book pages"></div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="addBookPageBtn">
+                                <i class="fa-solid fa-plus me-1"></i>Add another page
+                            </button>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong id="activeBookPageTitle">Page 1</strong>
+                            <button type="button" class="btn btn-sm btn-outline-danger" id="removeBookPageBtn" style="display:none;">
+                                <i class="fa-solid fa-trash me-1"></i>Remove page
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="bodyEditorMount" class="community-body-editor-mount border rounded-3 bg-white p-2">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 px-1" id="editorLanguageWrap">
+                        <div>
+                            <label for="editorLanguageSelect" class="form-label mb-0 small fw-semibold">Editor language</label>
+                            <small class="text-muted d-block">Default is English. Switch to Hindi to write in Devanagari.</small>
+                        </div>
+                        <select id="editorLanguageSelect" class="form-select form-select-sm community-editor-language-select">
+                            <option value="en">English</option>
+                            <option value="hi">Hindi</option>
+                        </select>
+                        <input
+                            type="hidden"
+                            name="editor_language"
+                            id="editorLanguageHidden"
+                            value="{{ old('editor_language', data_get($post->meta, 'editor_language', 'en')) }}"
+                        >
+                    </div>
+                    <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
+                </div>
             </div>
             <div class="col-md-6">
                 <label class="form-label d-flex align-items-center justify-content-between gap-2">
@@ -84,13 +130,16 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <label class="form-label">Tags</label>
+                <label class="form-label d-flex align-items-center justify-content-between gap-2">
+                    <span>Tags</span>
+                    <small class="text-muted fw-normal" id="communityTagsCount">0 / 10</small>
+                </label>
                 <div class="tag-input-wrap border rounded p-2">
                     <div id="tagList" class="d-flex flex-wrap gap-2 mb-2"></div>
                     <input type="text" id="tagInput" class="form-control border-0 p-0 shadow-none" placeholder="Type a tag and press Enter or comma">
                 </div>
                 <input type="hidden" name="tags" id="tagsHidden" value="{{ old('tags', is_array($post->tags) ? implode(', ', $post->tags) : '') }}">
-                <small class="text-muted">Add each tag separately. Duplicate tags are ignored.</small>
+                <small class="text-muted">Add up to 10 tags. Duplicate tags are ignored.</small>
             </div>
             <div class="col-md-6 general-extra">
                 <label class="form-label">Author bio</label>
@@ -216,14 +265,67 @@
             @endphp
             <div class="col-12 common-post-fields">
                 <div class="border rounded-3 p-3 bg-white">
-                    <h5 class="mb-3">Common settings</h5>
+                    <h5 class="mb-1">Common settings</h5>
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label" id="locationLabel">Location <span class="text-danger">*</span></label>
-                            <input type="text" name="location" id="communityLocation" class="form-control" value="{{ old('location', $post->location ?? data_get($post->meta, 'location')) }}" maxlength="160" placeholder="Search and select a location" autocomplete="off" required>
-                            <input type="hidden" name="location_lat" id="communityLocationLat" value="{{ old('location_lat', $post->location_lat ?? data_get($post->meta, 'location_lat')) }}">
-                            <input type="hidden" name="location_lng" id="communityLocationLng" value="{{ old('location_lng', $post->location_lng ?? data_get($post->meta, 'location_lng')) }}">
-                            <small class="text-muted" id="locationHelp">Select a Google Places suggestion so latitude and longitude are saved.</small>
+                        <div class="col-12" id="publishAsWrap">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <label class="form-label mb-2">Publish As <span class="text-danger">*</span></label>
+                                <p class="text-muted small mb-3">Choose how your name appears on the public community page when this post is published.</p>
+                                <div class="d-flex flex-wrap gap-3">
+                                    @foreach(\App\Models\CommunityPost::PUBLISH_AS_OPTIONS as $value => $label)
+                                        <div class="form-check">
+                                            <input
+                                                type="radio"
+                                                class="form-check-input"
+                                                name="publish_as"
+                                                id="publishAs{{ \Illuminate\Support\Str::studly($value) }}"
+                                                value="{{ $value }}"
+                                                @checked(old('publish_as', $post->publish_as ?: \App\Models\CommunityPost::PUBLISH_AS_PUBLIC_PROFILE) === $value)
+                                            >
+                                            <label class="form-check-label" for="publishAs{{ \Illuminate\Support\Str::studly($value) }}">{{ $label }}</label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="mt-3" id="penNameWrap" style="display:none;">
+                                    <label class="form-label" for="penNameInput">Pen name <span class="text-danger">*</span></label>
+                                    <input
+                                        type="text"
+                                        name="pen_name"
+                                        id="penNameInput"
+                                        class="form-control"
+                                        value="{{ old('pen_name', $post->pen_name) }}"
+                                        maxlength="120"
+                                        placeholder="Enter the pen name readers will see"
+                                    >
+                                    <small class="text-muted">This name is shown instead of your public profile name.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <h6 class="mb-1">Location information</h6>
+                                <p class="text-muted small mb-3">Very important for SoilnWater. Choose how broadly this post applies, then add a specific place when needed.</p>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="communityLocationType">Location type <span class="text-danger">*</span></label>
+                                        <select name="location_type" id="communityLocationType" class="form-select" required>
+                                            @foreach(\App\Models\CommunityPost::locationTypeOptions() as $value => $label)
+                                                <option value="{{ $value }}" @selected(old('location_type', $post->location_type ?? \App\Models\CommunityPost::LOCATION_TYPE_GLOBAL) === $value)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-12" id="communityLocationScopeNote" style="display:none;">
+                                        <div class="alert alert-info py-2 px-3 mb-0 small" id="communityLocationScopeText"></div>
+                                    </div>
+                                    <div class="col-md-6" id="communitySpecificLocationWrap">
+                                        <label class="form-label" id="locationLabel">Location <span class="text-danger">*</span></label>
+                                        <input type="text" name="location" id="communityLocation" class="form-control" value="{{ old('location', $post->location ?? data_get($post->meta, 'location')) }}" maxlength="160" placeholder="Search and select a location" autocomplete="off">
+                                        <input type="hidden" name="location_lat" id="communityLocationLat" value="{{ old('location_lat', $post->location_lat ?? data_get($post->meta, 'location_lat')) }}">
+                                        <input type="hidden" name="location_lng" id="communityLocationLng" value="{{ old('location_lng', $post->location_lng ?? data_get($post->meta, 'location_lng')) }}">
+                                        <small class="text-muted" id="locationHelp">Select a Google Places suggestion so latitude and longitude are saved.</small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Video <span class="text-muted fw-normal">(optional)</span></label>
@@ -266,6 +368,36 @@
                                 <small class="text-muted d-block">When enabled, logged-in readers can add comments and replies on the public post page.</small>
                             </div>
                         </div>
+                        <div class="col-12" id="allowSharingWrap">
+                            <div class="form-check">
+                                <input type="checkbox" name="allow_sharing" value="1" class="form-check-input" id="allowSharing" @checked(old('allow_sharing', $post->allow_sharing ?? true))>
+                                <label class="form-check-label" for="allowSharing">Enable social sharing</label>
+                                <small class="text-muted d-block">When enabled, readers can share this post using QR code, copy link, WhatsApp, Facebook, and Instagram.</small>
+                            </div>
+                        </div>
+                        <div class="col-12" id="allowPollWrap">
+                            <div class="form-check">
+                                <input type="checkbox" name="allow_poll" value="1" class="form-check-input" id="allowPoll" @checked(old('allow_poll', $post->allow_poll ?? false))>
+                                <label class="form-check-label" for="allowPoll">Allow author to add poll</label>
+                                <small class="text-muted d-block">When enabled, readers can answer a Yes / No / Not Sure poll on the public post page.</small>
+                            </div>
+                        </div>
+                        <div class="col-12" id="pollSubjectWrap" style="display:none;">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <label class="form-label" for="pollSubjectInput">Poll subject <span class="text-danger">*</span></label>
+                                <input
+                                    type="text"
+                                    name="poll_subject"
+                                    id="pollSubjectInput"
+                                    class="form-control"
+                                    value="{{ old('poll_subject', $post->poll_subject) }}"
+                                    maxlength="160"
+                                    placeholder="e.g. rainwater harvesting"
+                                >
+                                <small class="text-muted d-block mt-2">Readers will see:</small>
+                                <div class="mt-1 fw-semibold" id="pollQuestionPreview">Do you support …?</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -295,7 +427,36 @@
     .community-video-field { background: #fafbfc; }
     .video-source-panel { display: none; }
     .video-source-panel.is-active { display: block; }
-    .ck-editor__editable_inline { min-height: 360px; overflow: auto; }
+    #bodyEditorMount .ck-editor__editable_inline {
+        min-height: 320px;
+    }
+
+    #bodyEditorMount .ck.ck-editor {
+        width: 100%;
+    }
+
+    .community-editor-language-select {
+        max-width: 220px;
+        min-width: 160px;
+    }
+
+    .ck-editor__editable.ck-content[lang="hi"] {
+        font-family: "Noto Sans Devanagari", "Nirmala UI", "Mangal", sans-serif;
+    }
+
+    .community-book-editor .book-page-tab {
+        border: 1px solid #cfd8e3;
+        border-radius: 999px;
+        font-weight: 600;
+        padding: .35rem .85rem;
+    }
+
+    .community-book-editor .book-page-tab.active {
+        background: #0f766e;
+        border-color: #0f766e;
+        color: #fff;
+    }
+
     .ck-editor__editable.ck-content > p,
     .ck-editor__editable.ck-content > h2,
     .ck-editor__editable.ck-content > h3,
@@ -378,7 +539,73 @@
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script>
     window.communityTypes = @json($types);
+    window.communityBookTypes = @json(\App\Models\CommunityPost::BOOK_CONTENT_TYPES);
+    window.communityBookPages = @json(collect($initialBookPages)->map(fn ($page) => [
+        'content' => is_array($page) ? ($page['content'] ?? '') : (string) $page,
+        'language' => is_array($page) ? ($page['language'] ?? 'en') : 'en',
+    ])->values());
     window.communityBodyEditor = null;
+    window.communityActiveBookPage = 0;
+    const COMMUNITY_EDITOR_LANGUAGES = {
+        en: { label: 'English', lang: 'en' },
+        hi: { label: 'Hindi', lang: 'hi' },
+    };
+
+    function normalizeEditorLanguage(code) {
+        return COMMUNITY_EDITOR_LANGUAGES[code] ? code : 'en';
+    }
+
+    function getActiveEditorLanguage() {
+        const select = document.getElementById('editorLanguageSelect');
+        return select ? normalizeEditorLanguage(select.value) : 'en';
+    }
+
+    function saveActiveEditorLanguage() {
+        const language = getActiveEditorLanguage();
+        const hidden = document.getElementById('editorLanguageHidden');
+
+        if (hidden) {
+            hidden.value = language;
+        }
+
+        if (isBookContentType(document.getElementById('contentType').value)) {
+            window.communityBookPages[window.communityActiveBookPage] = window.communityBookPages[window.communityActiveBookPage] || { content: '', language: 'en' };
+            window.communityBookPages[window.communityActiveBookPage].language = language;
+        }
+    }
+
+    function applyEditorLanguage(languageCode, options) {
+        const settings = options || {};
+        const language = normalizeEditorLanguage(languageCode);
+        const select = document.getElementById('editorLanguageSelect');
+        const hidden = document.getElementById('editorLanguageHidden');
+
+        if (select) {
+            select.value = language;
+        }
+
+        if (hidden) {
+            hidden.value = language;
+        }
+
+        if (window.communityBodyEditor) {
+            const root = window.communityBodyEditor.editing.view.getDomRoot();
+
+            if (root) {
+                root.setAttribute('lang', COMMUNITY_EDITOR_LANGUAGES[language].lang);
+                root.setAttribute('dir', 'ltr');
+            }
+        }
+
+        if (!settings.skipSave) {
+            saveActiveEditorLanguage();
+        }
+    }
+
+    document.getElementById('editorLanguageSelect')?.addEventListener('change', function () {
+        applyEditorLanguage(this.value);
+        window.communityBodyEditor?.editing.view.focus();
+    });
     window.communityFeaturedImages = {
         max: 5,
         existing: @json(collect($post->featuredImages())->map(fn ($path) => [
@@ -391,6 +618,67 @@
 
     if (window.toastr) {
         window.toastr.options = { closeButton: true, progressBar: true, positionClass: 'toast-top-right', timeOut: 4000, extendedTimeOut: 2000 };
+    }
+
+    const COMMUNITY_LOCATION_TYPES_REQUIRING_PLACE = @json(\App\Models\CommunityPost::locationTypesRequiringPlace());
+
+    function requiresSpecificCommunityLocation(type) {
+        return COMMUNITY_LOCATION_TYPES_REQUIRING_PLACE.includes(type);
+    }
+
+    function refreshCommunityLocationFields(fallbackHelp) {
+        const typeSelect = document.getElementById('communityLocationType');
+        const specificWrap = document.getElementById('communitySpecificLocationWrap');
+        const scopeNote = document.getElementById('communityLocationScopeNote');
+        const scopeText = document.getElementById('communityLocationScopeText');
+        const locationInput = document.getElementById('communityLocation');
+        const locationHelp = document.getElementById('locationHelp');
+
+        if (!typeSelect || !specificWrap) {
+            return;
+        }
+
+        const locationType = typeSelect.value;
+        const needsSpecific = requiresSpecificCommunityLocation(locationType);
+        const contentType = document.getElementById('contentType')?.value || '';
+
+        specificWrap.style.display = needsSpecific ? '' : 'none';
+
+        if (locationInput) {
+            locationInput.required = needsSpecific;
+        }
+
+        const helpText = {
+            state: 'Search and select the state-level location from Google Places.',
+            district: 'Search and select the district-level location from Google Places.',
+            city: 'Search and select the city from Google Places so the story is location-indexed.',
+            village: 'Search and select the village or locality from Google Places.',
+        };
+
+        if (locationHelp) {
+            if (!needsSpecific) {
+                locationHelp.textContent = '';
+            } else if (contentType === 'reports') {
+                locationHelp.textContent = 'Select the exact issue location from Google Places so the problem can be mapped.';
+            } else if (contentType === 'news') {
+                locationHelp.textContent = 'Select the news location from Google Places so the story is location-indexed.';
+            } else {
+                locationHelp.textContent = helpText[locationType] || fallbackHelp || 'Select a Google Places suggestion so latitude and longitude are saved.';
+            }
+        }
+
+        if (scopeNote && scopeText) {
+            if (locationType === 'global') {
+                scopeNote.style.display = '';
+                scopeText.textContent = 'This post will be treated as global. No specific GPS location is required.';
+            } else if (locationType === 'india') {
+                scopeNote.style.display = '';
+                scopeText.textContent = 'This post applies across India. No specific GPS location is required.';
+            } else {
+                scopeNote.style.display = 'none';
+                scopeText.textContent = '';
+            }
+        }
     }
 
     function refreshCommunityCategories() {
@@ -486,13 +774,232 @@
         document.getElementById('bodyLabel').innerHTML = fieldCopy.bodyLabel;
         document.getElementById('bodyHelp').textContent = fieldCopy.bodyHelp;
         document.getElementById('locationLabel').innerHTML = fieldCopy.locationLabel;
-        document.getElementById('locationHelp').textContent = fieldCopy.locationHelp;
+
+        refreshBookLayoutMode(selectedType);
+        refreshCommunityLocationFields(fieldCopy.locationHelp);
     }
+
+    function isBookContentType(type) {
+        return (window.communityBookTypes || []).includes(type);
+    }
+
+    function saveActiveBookPageContent() {
+        if (!window.communityBodyEditor || !isBookContentType(document.getElementById('contentType').value)) {
+            return;
+        }
+
+        window.communityBookPages[window.communityActiveBookPage] = window.communityBookPages[window.communityActiveBookPage] || { content: '', language: 'en' };
+        window.communityBookPages[window.communityActiveBookPage].content = window.communityBodyEditor.getData();
+        saveActiveEditorLanguage();
+        document.getElementById('bodyEditor').value = window.communityBookPages[window.communityActiveBookPage].content;
+    }
+
+    function renderBookPageTabs() {
+        const tabs = document.getElementById('bookPageTabs');
+        const removeBtn = document.getElementById('removeBookPageBtn');
+        if (!tabs) {
+            return;
+        }
+
+        tabs.innerHTML = '';
+        window.communityBookPages.forEach(function (page, index) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn btn-sm book-page-tab' + (index === window.communityActiveBookPage ? ' active' : '');
+            button.textContent = 'Page ' + (index + 1);
+            button.addEventListener('click', function () {
+                switchBookPage(index);
+            });
+            tabs.appendChild(button);
+        });
+
+        if (removeBtn) {
+            removeBtn.style.display = window.communityBookPages.length > 1 ? '' : 'none';
+        }
+
+        const title = document.getElementById('activeBookPageTitle');
+        if (title) {
+            title.textContent = 'Page ' + (window.communityActiveBookPage + 1);
+        }
+    }
+
+    function switchBookPage(index) {
+        if (!window.communityBodyEditor) {
+            return;
+        }
+
+        saveActiveBookPageContent();
+        window.communityActiveBookPage = index;
+        window.communityBookPages[index] = window.communityBookPages[index] || { content: '', language: 'en' };
+        window.communitySwitchingBookPage = true;
+        window.communityBodyEditor.setData(window.communityBookPages[index].content || '');
+        window.communitySwitchingBookPage = false;
+        applyEditorLanguage(window.communityBookPages[index].language || 'en', { skipSave: true });
+        renderBookPageTabs();
+        window.communityBodyEditor.editing.view.focus();
+    }
+
+    function refreshBookLayoutMode(selectedType) {
+        const bookMode = isBookContentType(selectedType);
+        const standardHeader = document.getElementById('standardBodyHeader');
+        const bookHeader = document.getElementById('bookBodyHeader');
+        const editorField = document.getElementById('bodyEditor');
+
+        if (standardHeader) {
+            standardHeader.style.display = bookMode ? 'none' : '';
+        }
+
+        if (bookHeader) {
+            bookHeader.style.display = bookMode ? '' : 'none';
+        }
+
+        if (!bookMode) {
+            if (window.communityBodyEditor) {
+                saveActiveBookPageContent();
+                const mergedBody = window.communityBookPages
+                    .map(function (page) { return page.content || ''; })
+                    .filter(function (content) { return content.trim() !== ''; })
+                    .join('<hr>');
+
+                if (mergedBody) {
+                    window.communityBodyEditor.setData(mergedBody);
+                    editorField.value = mergedBody;
+                }
+            }
+
+            return;
+        }
+
+        if (!window.communityBodyEditor) {
+            return;
+        }
+
+        const bookHelp = document.getElementById('bookBodyHelp');
+        if (bookHelp) {
+            bookHelp.textContent = 'Write each page using the editor below. Switch tabs to edit Page 1, Page 2, and so on.';
+        }
+
+        if (!Array.isArray(window.communityBookPages) || window.communityBookPages.length === 0) {
+            window.communityBookPages = [{ content: editorField.value || '', language: getActiveEditorLanguage() }];
+        }
+
+        window.communityActiveBookPage = Math.min(window.communityActiveBookPage, window.communityBookPages.length - 1);
+        renderBookPageTabs();
+        window.communityBodyEditor.setData(window.communityBookPages[window.communityActiveBookPage].content || '');
+        applyEditorLanguage(window.communityBookPages[window.communityActiveBookPage].language || 'en', { skipSave: true });
+    }
+
+    function appendBookPagesToFormData(formData) {
+        saveActiveBookPageContent();
+        formData.delete('body');
+        formData.delete('book_pages');
+
+        window.communityBookPages.forEach(function (page, index) {
+            formData.append('book_pages[' + index + '][content]', page.content || '');
+            formData.append('book_pages[' + index + '][language]', normalizeEditorLanguage(page.language || 'en'));
+        });
+
+        formData.append('body', window.communityBookPages.map(function (page) {
+            return page.content || '';
+        }).join('\n'));
+    }
+
+    document.getElementById('addBookPageBtn')?.addEventListener('click', function () {
+        saveActiveBookPageContent();
+        window.communityBookPages.push({ content: '', language: getActiveEditorLanguage() });
+        switchBookPage(window.communityBookPages.length - 1);
+        window.communityBodyEditor?.editing.view.focus();
+    });
+
+    document.getElementById('removeBookPageBtn')?.addEventListener('click', function () {
+        if (window.communityBookPages.length <= 1) {
+            return;
+        }
+
+        window.communityBookPages.splice(window.communityActiveBookPage, 1);
+        window.communityActiveBookPage = Math.max(0, window.communityActiveBookPage - 1);
+        renderBookPageTabs();
+        window.communityBodyEditor?.setData(window.communityBookPages[window.communityActiveBookPage].content || '');
+    });
 
     document.getElementById('contentType').addEventListener('change', function () {
         document.getElementById('categorySelect').dataset.selected = '';
         refreshCommunityCategories();
+        if (window.communityBodyEditor) {
+            refreshBookLayoutMode(this.value);
+        }
     });
+
+    document.getElementById('communityLocationType')?.addEventListener('change', function () {
+        refreshCommunityLocationFields();
+    });
+
+    function refreshPublishAsFields() {
+        const statusSelect = document.getElementById('communityPostStatus');
+        const publishWrap = document.getElementById('publishAsWrap');
+        const penNameWrap = document.getElementById('penNameWrap');
+        const penNameInput = document.getElementById('penNameInput');
+
+        if (!statusSelect || !publishWrap) {
+            return;
+        }
+
+        const isPublishing = statusSelect.value === 'published';
+        publishWrap.style.display = isPublishing ? '' : 'none';
+
+        document.querySelectorAll('input[name="publish_as"]').forEach((input) => {
+            input.required = isPublishing;
+            input.disabled = !isPublishing;
+        });
+
+        const selectedPublishAs = document.querySelector('input[name="publish_as"]:checked')?.value || 'public_profile';
+        const showPenName = isPublishing && selectedPublishAs === 'pen_name';
+
+        if (penNameWrap) {
+            penNameWrap.style.display = showPenName ? '' : 'none';
+        }
+
+        if (penNameInput) {
+            penNameInput.required = showPenName;
+            penNameInput.disabled = !showPenName;
+        }
+    }
+
+    document.getElementById('communityPostStatus')?.addEventListener('change', refreshPublishAsFields);
+    document.querySelectorAll('input[name="publish_as"]').forEach((input) => {
+        input.addEventListener('change', refreshPublishAsFields);
+    });
+    refreshPublishAsFields();
+
+    function refreshPollFields() {
+        const allowPoll = document.getElementById('allowPoll');
+        const subjectWrap = document.getElementById('pollSubjectWrap');
+        const subjectInput = document.getElementById('pollSubjectInput');
+        const preview = document.getElementById('pollQuestionPreview');
+
+        if (!allowPoll || !subjectWrap) {
+            return;
+        }
+
+        const enabled = allowPoll.checked;
+        subjectWrap.style.display = enabled ? '' : 'none';
+
+        if (subjectInput) {
+            subjectInput.required = enabled;
+            subjectInput.disabled = !enabled;
+        }
+
+        if (preview) {
+            const subject = subjectInput?.value.trim();
+            preview.textContent = subject
+                ? 'Do you support ' + subject + '?'
+                : 'Do you support …?';
+        }
+    }
+
+    document.getElementById('allowPoll')?.addEventListener('change', refreshPollFields);
+    document.getElementById('pollSubjectInput')?.addEventListener('input', refreshPollFields);
+    refreshPollFields();
 
     refreshCommunityCategories();
 
@@ -628,7 +1135,27 @@
             },
         },
     })
-        .then((editor) => { window.communityBodyEditor = editor; })
+        .then((editor) => {
+            window.communityBodyEditor = editor;
+            const contentType = document.getElementById('contentType').value;
+            let initialLanguage = document.getElementById('editorLanguageHidden')?.value || 'en';
+
+            if (isBookContentType(contentType)) {
+                initialLanguage = window.communityBookPages[window.communityActiveBookPage]?.language || 'en';
+            }
+
+            applyEditorLanguage(initialLanguage, { skipSave: true });
+            editor.model.document.on('change:data', function () {
+                if (window.communitySwitchingBookPage) {
+                    return;
+                }
+
+                if (isBookContentType(document.getElementById('contentType').value)) {
+                    saveActiveBookPageContent();
+                }
+            });
+            refreshBookLayoutMode(document.getElementById('contentType').value);
+        })
         .catch((error) => {
             console.error(error);
             notify('error', 'Unable to load the body editor.');
@@ -637,7 +1164,9 @@
     const tagInput = document.getElementById('tagInput');
     const tagList = document.getElementById('tagList');
     const tagsHidden = document.getElementById('tagsHidden');
-    let tags = (tagsHidden.value || '').split(',').map((tag) => tag.trim()).filter(Boolean);
+    const tagsCount = document.getElementById('communityTagsCount');
+    const MAX_COMMUNITY_TAGS = 10;
+    let tags = (tagsHidden.value || '').split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, MAX_COMMUNITY_TAGS);
 
     function notify(type, message) {
         const toastType = type === 'error' ? 'error' : 'success';
@@ -650,6 +1179,18 @@
 
     function syncTags() {
         tagsHidden.value = tags.join(', ');
+
+        if (tagsCount) {
+            tagsCount.textContent = tags.length + ' / ' + MAX_COMMUNITY_TAGS;
+        }
+
+        if (tagInput) {
+            tagInput.disabled = tags.length >= MAX_COMMUNITY_TAGS;
+            tagInput.placeholder = tags.length >= MAX_COMMUNITY_TAGS
+                ? 'Maximum of 10 tags reached'
+                : 'Type a tag and press Enter or comma';
+        }
+
         tagList.innerHTML = '';
         tags.forEach((tag, index) => {
             const pill = document.createElement('span');
@@ -664,12 +1205,30 @@
     }
 
     function addTagsFromInput() {
+        if (tags.length >= MAX_COMMUNITY_TAGS) {
+            notify('error', 'You can add up to ' + MAX_COMMUNITY_TAGS + ' tags only.');
+            tagInput.value = '';
+            return;
+        }
+
         const nextTags = tagInput.value.split(',').map((tag) => tag.trim()).filter(Boolean);
+        let limitReached = false;
+
         nextTags.forEach((tag) => {
+            if (tags.length >= MAX_COMMUNITY_TAGS) {
+                limitReached = true;
+                return;
+            }
+
             if (!tags.map((item) => item.toLowerCase()).includes(tag.toLowerCase())) {
                 tags.push(tag);
             }
         });
+
+        if (limitReached) {
+            notify('error', 'You can add up to ' + MAX_COMMUNITY_TAGS + ' tags only.');
+        }
+
         tagInput.value = '';
         syncTags();
     }
@@ -857,19 +1416,55 @@
         const originalButtonHtml = submitButton.innerHTML;
 
         if (window.communityBodyEditor) {
-            document.getElementById('bodyEditor').value = window.communityBodyEditor.getData();
+            if (isBookContentType(document.getElementById('contentType').value)) {
+                saveActiveBookPageContent();
+                const hasBookContent = window.communityBookPages.some(function (page) {
+                    return (page.content || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() !== '';
+                });
+
+                if (!hasBookContent) {
+                    notify('error', 'Please add content to at least one book page.');
+                    window.communityBodyEditor.editing.view.focus();
+                    return;
+                }
+            } else {
+                document.getElementById('bodyEditor').value = window.communityBodyEditor.getData();
+                const bodyText = document.getElementById('bodyEditor').value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+                if (!bodyText) {
+                    notify('error', 'Please enter content in the body field.');
+                    window.communityBodyEditor.editing.view.focus();
+                    return;
+                }
+            }
         }
+
+        saveActiveEditorLanguage();
         addTagsFromInput();
 
-        const bodyText = document.getElementById('bodyEditor').value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-        if (bodyText.length < 20) {
-            notify('error', 'Please enter at least 20 characters in the body field.');
-            window.communityBodyEditor?.editing.view.focus();
-            return;
+        const locationType = document.getElementById('communityLocationType')?.value || 'global';
+        if (requiresSpecificCommunityLocation(locationType)) {
+            if (!document.getElementById('communityLocationLat').value || !document.getElementById('communityLocationLng').value) {
+                notify('error', 'Please select a location from the Google Places suggestions.');
+                return;
+            }
         }
 
-        if (!document.getElementById('communityLocationLat').value || !document.getElementById('communityLocationLng').value) {
-            notify('error', 'Please select a location from the Google Places suggestions.');
+        const postStatus = document.getElementById('communityPostStatus')?.value || 'draft';
+        if (postStatus === 'published') {
+            const publishAs = document.querySelector('input[name="publish_as"]:checked')?.value;
+            if (!publishAs) {
+                notify('error', 'Please choose how you want to publish this post.');
+                return;
+            }
+
+            if (publishAs === 'pen_name' && !document.getElementById('penNameInput')?.value.trim()) {
+                notify('error', 'Please enter a pen name.');
+                return;
+            }
+        }
+
+        if (document.getElementById('allowPoll')?.checked && !document.getElementById('pollSubjectInput')?.value.trim()) {
+            notify('error', 'Please enter the poll subject.');
             return;
         }
 
@@ -901,6 +1496,9 @@
 
         const formData = new FormData(form);
         formData.delete('featured_images[]');
+        if (isBookContentType(document.getElementById('contentType').value)) {
+            appendBookPagesToFormData(formData);
+        }
         featuredImagesState.pending.forEach((item) => {
             formData.append('featured_images[]', item.file);
         });

@@ -13,6 +13,8 @@
     $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
     $communityPostsActive = request()->routeIs('community.posts.*');
+    $communityAuthorQuestionsActive = request()->routeIs('community.author-questions.*');
+    $communityMenuActive = request()->routeIs('admin.community-posts.*') || request()->routeIs('community.posts.*') || request()->routeIs('community.author-questions.*');
     $vendorsMenuActive = request()->routeIs('admin.vendors.*') || request()->routeIs('admin.vendor-products.*');
     $consultantsMenuActive = request()->routeIs('admin.consultants.*') || request()->routeIs('admin.consultant-services.*');
     $serviceProvidersMenuActive = request()->routeIs('admin.service_providers.*') || request()->routeIs('admin.service-provider-services.*');
@@ -120,12 +122,6 @@
                 <a class="{{ request()->routeIs('admin.terms-and-conditions.*') ? 'active' : '' }}" href="{{ route('admin.terms-and-conditions.index') }}">
                     <i class="fa-solid fa-file-contract"></i>
                     <span>Terms &amp; Conditions</span>
-                </a>
-            </li>
-            <li>
-                <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
-                    <i class="fa-solid fa-pen-nib"></i>
-                    <span>Community Posts</span>
                 </a>
             </li>
             <li>
@@ -309,6 +305,43 @@
                     </ul>
                 </details>
             </li>
+            <li class="admin-sidebar-group">
+                <details {{ $communityMenuActive ? 'open' : '' }}>
+                    <summary class="{{ $communityMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <i class="fa-solid fa-pen-nib"></i>
+                            <span>Community</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down small"></i>
+                    </summary>
+                    <ul class="list-unstyled ps-4">
+                        <li>
+                            <a class="{{ request()->routeIs('admin.community-posts.index') || request()->routeIs('admin.community-posts.show') || request()->routeIs('admin.community-posts.preview') ? 'active' : '' }}" href="{{ route('admin.community-posts.index') }}">
+                                <i class="fa-solid fa-clipboard-check"></i>
+                                <span>Post Approvals</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('community.posts.*') ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
+                                <i class="fa-solid fa-user-pen"></i>
+                                <span>My Posts</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
+                                <i class="fa-solid fa-circle-question"></i>
+                                <span>Reader Questions</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.community-posts.all.*') ? 'active' : '' }}" href="{{ route('admin.community-posts.all.index') }}">
+                                <i class="fa-solid fa-rectangle-list"></i>
+                                <span>All Posts</span>
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
         @endif
 
          @foreach($emsModules as $slug => $label)
@@ -350,6 +383,12 @@
                 </a>
             </li>
             <li>
+                <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Reader Questions</span>
+                </a>
+            </li>
+            <li>
                 <a class="{{ request()->routeIs('user.profile.*') ? 'active' : '' }}" href="{{ route('user.profile.edit') }}">
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Profile</span>
@@ -372,6 +411,12 @@
                 <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
                     <i class="fa-solid fa-pen-nib"></i>
                     <span>Community Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Reader Questions</span>
                 </a>
             </li>
             <li class="admin-sidebar-group">
@@ -431,6 +476,12 @@
                     <span>Community Posts</span>
                 </a>
             </li>
+            <li>
+                <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Reader Questions</span>
+                </a>
+            </li>
             <li class="admin-sidebar-group">
                 <details {{ $consultantPagesMenuActive ? 'open' : '' }}>
                     <summary class="{{ $consultantPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
@@ -488,6 +539,12 @@
                     <span>Community Posts</span>
                 </a>
             </li>
+            <li>
+                <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Reader Questions</span>
+                </a>
+            </li>
             <li class="admin-sidebar-group">
                 <details {{ $serviceProviderPagesMenuActive ? 'open' : '' }}>
                     <summary class="{{ $serviceProviderPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
@@ -539,6 +596,12 @@
                 <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
                     <i class="fa-solid fa-pen-nib"></i>
                     <span>Community Posts</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $communityAuthorQuestionsActive ? 'active' : '' }}" href="{{ route('community.author-questions.index') }}">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Reader Questions</span>
                 </a>
             </li>
             <li>

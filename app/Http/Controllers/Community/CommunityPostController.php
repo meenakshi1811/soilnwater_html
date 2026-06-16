@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Community;
 
 use App\Http\Controllers\Controller;
+use App\Models\CommunityAuthorQuestion;
 use App\Models\CommunityPost;
 use App\Models\CommunityPostComment;
+use App\Models\CommunityPostPollVote;
 use App\Models\CommunityPostReaction;
 use App\Models\User;
+use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
 use App\Support\CommunityPostFormFields;
 use Illuminate\Http\JsonResponse;
@@ -16,10 +19,13 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Yajra\DataTables\Facades\DataTables;
 
 class CommunityPostController extends Controller
 {
     private const MAX_FEATURED_IMAGES = 5;
+
+    private const MAX_TAGS = 10;
 
     private const MAX_VIDEO_FILE_KB = 51200;
 
@@ -52,16 +58,23 @@ class CommunityPostController extends Controller
             'types' => CommunityContentTaxonomy::formTypes(),
             'activeType' => $request->string('type')->toString(),
             'activeAuthor' => $author,
+            'answeredAuthorQuestions' => $this->answeredQuestionsForAuthor($author),
         ]);
     }
 
     public function show(CommunityPost $post): View
     {
-        abort_unless($post->status === CommunityPost::STATUS_PUBLISHED || auth()->id() === $post->user_id || auth()->user()?->isAdmin(), 404);
+        abort_unless(
+            $post->isPubliclyVisible()
+            || auth()->id() === $post->user_id
+            || auth()->user()?->isAdmin(),
+            404
+        );
 
         $post->load([
             'user',
             'reactions',
+            'pollVotes',
             'discussionComments.user',
             'discussionComments.replies.user',
         ]);
@@ -69,15 +82,18 @@ class CommunityPostController extends Controller
         return view('community.show', [
             'post' => $post,
             'types' => CommunityContentTaxonomy::formTypes(),
+            'answeredAuthorQuestions' => $post->user_id
+                ? $this->answeredQuestionsForPost($post)
+                : collect(),
         ]);
     }
 
     public function react(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
     {
-        abort_unless($post->status === CommunityPost::STATUS_PUBLISHED, 404);
+        abort_unless($post->isPubliclyVisible(), 404);
 
         $data = $request->validate([
-            'reaction' => ['required', Rule::in(['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote'])],
+            'reaction' => ['required', Rule::in(['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'])],
         ]);
 
         $reaction = CommunityPostReaction::query()->where([
@@ -115,9 +131,41 @@ class CommunityPostController extends Controller
         return back()->with('success', $message);
     }
 
+    public function votePoll(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
+    {
+        abort_unless($post->isPubliclyVisible(), 404);
+        abort_unless($post->allowsPoll(), 403, 'Polls are disabled for this post.');
+
+        $data = $request->validate([
+            'option' => ['required', Rule::in(array_keys(CommunityPost::POLL_OPTIONS))],
+        ]);
+
+        CommunityPostPollVote::query()->updateOrCreate(
+            [
+                'community_post_id' => $post->id,
+                'user_id' => $request->user()->id,
+            ],
+            [
+                'option' => $data['option'],
+            ]
+        );
+
+        $message = 'Poll vote saved.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'option' => $data['option'],
+                'counts' => $post->pollCounts(),
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
     public function comment(Request $request, CommunityPost $post): RedirectResponse
     {
-        abort_unless($post->status === CommunityPost::STATUS_PUBLISHED, 404);
+        abort_unless($post->isPubliclyVisible(), 404);
         abort_unless($post->allow_comments, 403, 'Discussions are disabled for this post.');
 
         $data = $request->validate([
@@ -154,14 +202,70 @@ class CommunityPostController extends Controller
 
     public function myPosts(Request $request): View
     {
-        $posts = CommunityPost::query()
-            ->where('user_id', $request->user()->id)
-            ->latest()
-            ->paginate(15);
+        return view('backend.community-posts.index');
+    }
 
-        return view('backend.community-posts.index', [
-            'posts' => $posts,
-        ]);
+    public function myPostsData(Request $request): JsonResponse
+    {
+        abort_unless($request->ajax(), 404);
+
+        $query = CommunityPost::query()
+            ->where('user_id', $request->user()->id)
+            ->select([
+                'id',
+                'slug',
+                'content_type',
+                'category',
+                'meta',
+                'title',
+                'status',
+                'published_at',
+                'submitted_at',
+                'created_at',
+            ]);
+
+        return DataTables::of($query)
+            ->addColumn('type_label', fn (CommunityPost $post): string => e($post->typeLabel()))
+            ->addColumn('category_display', fn (CommunityPost $post): string => e(
+                filled(data_get($post->meta, 'report_type'))
+                    ? data_get($post->meta, 'report_type', $post->category)
+                    : $post->category
+            ))
+            ->addColumn('status_badge', fn (CommunityPost $post): string => '<span class="badge '.$post->statusBadgeClass().'">'.e($post->statusLabel()).'</span>')
+            ->addColumn('published_display', function (CommunityPost $post): string {
+                if ($post->published_at) {
+                    return $post->published_at->timezone(config('app.timezone'))->format('d M Y, h:i A');
+                }
+
+                return $post->isPendingApproval() ? 'Awaiting approval' : '—';
+            })
+            ->addColumn('actions', function (CommunityPost $post): string {
+                return '<div class="d-flex gap-2 justify-content-end">'
+                    .'<a href="'.route('community.posts.show', $post).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a>'
+                    .'<a href="'.route('community.posts.edit', $post).'" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fa-solid fa-pen"></i></a>'
+                    .'<button type="button" class="btn btn-sm btn-outline-danger js-delete-post" data-slug="'.e($post->slug).'" title="Delete"><i class="fa-solid fa-trash"></i></button>'
+                    .'</div>';
+            })
+            ->rawColumns(['status_badge', 'actions'])
+            ->make(true);
+    }
+
+    public function destroyPost(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
+    {
+        $this->authorizeOwner($request, $post);
+
+        foreach ($post->featuredImages() as $imagePath) {
+            $this->deleteFeaturedImage($imagePath);
+        }
+
+        $this->deleteVideoFile($post->videoData());
+        $post->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Community post deleted successfully.']);
+        }
+
+        return redirect()->route('community.posts.index')->with('success', 'Community post deleted successfully.');
     }
 
     public function updateAuthorUrl(Request $request): RedirectResponse
@@ -187,7 +291,7 @@ class CommunityPostController extends Controller
     public function create(): View
     {
         return view('backend.community-posts.form', [
-            'post' => new CommunityPost(['status' => CommunityPost::STATUS_PUBLISHED, 'allow_comments' => true]),
+            'post' => new CommunityPost(['status' => CommunityPost::STATUS_PUBLISHED, 'allow_comments' => true, 'allow_sharing' => true, 'allow_poll' => false]),
             'types' => CommunityContentTaxonomy::formTypes(),
             'mode' => 'create',
         ]);
@@ -200,30 +304,36 @@ class CommunityPostController extends Controller
         $data['slug'] = $this->uniqueSlug($data['title']);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
-        unset($data['location'], $data['location_lat'], $data['location_lng']);
+        $this->mergeBookPagesIntoMeta($request, $data);
 
         if ($request->hasFile('issue_attachments')) {
             $data['meta']['issue_attachments'] = $this->storeIssueAttachments($request);
         }
         $data['allow_comments'] = $this->shouldAllowComments($request);
-        $data['status'] = $request->input('status', CommunityPost::STATUS_PUBLISHED);
-        $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? now() : null;
-        $data['location'] = $request->input('location');
-        $data['location_lat'] = $request->input('location_lat');
-        $data['location_lng'] = $request->input('location_lng');
+        $data['allow_sharing'] = $this->shouldAllowSharing($request);
+        $data['allow_poll'] = $this->shouldAllowPoll($request);
+        $data = array_merge($data, $this->resolvePublicationState($request, $post = null));
         [$data['featured_images'], $data['featured_image_path']] = $this->resolveFeaturedImages($request);
         $data['video'] = $this->resolveVideo($request);
 
         $post = CommunityPost::create($data);
 
+        if ($post->isPendingApproval()) {
+            $this->notifyAdminsOfPendingPost($post);
+        }
+
+        $message = $post->isPendingApproval()
+            ? 'Community post submitted for admin approval.'
+            : 'Community post created successfully.';
+
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Community post created successfully.',
+                'message' => $message,
                 'redirect' => route('community.posts.show', $post),
             ]);
         }
 
-        return redirect()->route('community.posts.show', $post)->with('success', 'Community post created successfully.');
+        return redirect()->route('community.posts.show', $post)->with('success', $message);
     }
 
     public function edit(Request $request, CommunityPost $post): View
@@ -244,7 +354,7 @@ class CommunityPostController extends Controller
         $data = $this->validated($request, $post);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
-        unset($data['location'], $data['location_lat'], $data['location_lng']);
+        $this->mergeBookPagesIntoMeta($request, $data);
 
         if ($request->hasFile('issue_attachments')) {
             $data['meta']['issue_attachments'] = array_values(array_merge(
@@ -256,11 +366,10 @@ class CommunityPostController extends Controller
         }
 
         $data['allow_comments'] = $this->shouldAllowComments($request);
-        $data['status'] = $request->input('status', CommunityPost::STATUS_PUBLISHED);
-        $data['published_at'] = $data['status'] === CommunityPost::STATUS_PUBLISHED ? ($post->published_at ?? now()) : null;
-        $data['location'] = $request->input('location');
-        $data['location_lat'] = $request->input('location_lat');
-        $data['location_lng'] = $request->input('location_lng');
+        $data['allow_sharing'] = $this->shouldAllowSharing($request);
+        $data['allow_poll'] = $this->shouldAllowPoll($request);
+        $wasPending = $post->isPendingApproval();
+        $data = array_merge($data, $this->resolvePublicationState($request, $post));
 
         [$featuredImages, $featuredImagePath] = $this->resolveFeaturedImages($request, $post);
         $this->deleteRemovedFeaturedImages($post->featuredImages(), $featuredImages);
@@ -274,29 +383,27 @@ class CommunityPostController extends Controller
 
         $post->update($data);
 
+        if ($post->isPendingApproval() && ! $wasPending) {
+            $this->notifyAdminsOfPendingPost($post->fresh());
+        }
+
+        $message = $post->isPendingApproval()
+            ? 'Community post submitted for admin approval.'
+            : 'Community post updated successfully.';
+
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Community post updated successfully.',
+                'message' => $message,
                 'redirect' => route('community.posts.show', $post),
             ]);
         }
 
-        return redirect()->route('community.posts.show', $post)->with('success', 'Community post updated successfully.');
+        return redirect()->route('community.posts.show', $post)->with('success', $message);
     }
 
-    public function destroy(Request $request, CommunityPost $post): RedirectResponse
+    public function destroy(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
     {
-        $this->authorizeOwner($request, $post);
-
-        foreach ($post->featuredImages() as $imagePath) {
-            $this->deleteFeaturedImage($imagePath);
-        }
-
-        $this->deleteVideoFile($post->videoData());
-
-        $post->delete();
-
-        return redirect()->route('community.posts.index')->with('success', 'Community post deleted successfully.');
+        return $this->destroyPost($request, $post);
     }
 
     public function uploadInlineImage(Request $request): JsonResponse
@@ -343,18 +450,77 @@ class CommunityPostController extends Controller
             ],
             'title' => ['required', 'string', 'max:255'],
             'excerpt' => ['nullable', 'string', 'max:1000'],
-            'body' => ['required', 'string', 'min:20'],
+            'body' => [Rule::requiredIf(fn () => ! CommunityPost::isBookContentType($contentType))],
+            'book_pages' => [Rule::requiredIf(fn () => CommunityPost::isBookContentType($contentType)), 'array', 'min:1'],
+            'book_pages.*.content' => ['nullable', 'string'],
+            'book_pages.*.language' => ['nullable', Rule::in(['en', 'hi'])],
+            'editor_language' => ['nullable', Rule::in(['en', 'hi'])],
             'featured_images' => ['nullable', 'array', 'max:'.self::MAX_FEATURED_IMAGES],
             'featured_images.*' => ['image', 'max:4096'],
             'removed_featured_images' => ['nullable', 'array'],
             'removed_featured_images.*' => ['string', 'max:255'],
-            'tags' => ['nullable', 'string', 'max:500'],
+            'tags' => [
+                'nullable',
+                'string',
+                'max:500',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! is_string($value)) {
+                        return;
+                    }
+
+                    $count = collect(explode(',', $value))
+                        ->map(fn (string $tag) => trim($tag))
+                        ->filter()
+                        ->unique()
+                        ->count();
+
+                    if ($count > self::MAX_TAGS) {
+                        $fail('You can add up to '.self::MAX_TAGS.' tags only.');
+                    }
+                },
+            ],
             'status' => ['required', Rule::in([CommunityPost::STATUS_DRAFT, CommunityPost::STATUS_PUBLISHED])],
+            'publish_as' => [
+                Rule::requiredIf(fn () => $request->input('status') === CommunityPost::STATUS_PUBLISHED),
+                'nullable',
+                Rule::in(array_keys(CommunityPost::PUBLISH_AS_OPTIONS)),
+            ],
+            'pen_name' => [
+                Rule::requiredIf(fn () => $request->input('status') === CommunityPost::STATUS_PUBLISHED
+                    && $request->input('publish_as') === CommunityPost::PUBLISH_AS_PEN_NAME),
+                'nullable',
+                'string',
+                'max:120',
+            ],
             'allow_comments' => ['nullable', 'boolean'],
+            'allow_sharing' => ['nullable', 'boolean'],
+            'allow_poll' => ['nullable', 'boolean'],
+            'poll_subject' => [
+                Rule::requiredIf(fn () => $request->boolean('allow_poll')),
+                'nullable',
+                'string',
+                'max:160',
+            ],
             'author_bio' => ['nullable', 'string', 'max:500'],
-            'location' => ['required', 'string', 'max:160'],
-            'location_lat' => ['required', 'numeric', 'between:-90,90'],
-            'location_lng' => ['required', 'numeric', 'between:-180,180'],
+            'location_type' => ['required', Rule::in(array_keys(CommunityPost::LOCATION_TYPES))],
+            'location' => [
+                Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'location_lat' => [
+                Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
+                'nullable',
+                'numeric',
+                'between:-90,90',
+            ],
+            'location_lng' => [
+                Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
+                'nullable',
+                'numeric',
+                'between:-180,180',
+            ],
             'video_source_type' => ['nullable', Rule::in(['none', 'youtube', 'upload'])],
             'video_youtube_url' => [
                 Rule::requiredIf(fn () => $request->input('video_source_type') === 'youtube'),
@@ -395,6 +561,36 @@ class CommunityPostController extends Controller
 
         $validated = $request->validate($rules);
         $this->assertFeaturedImageLimit($request, $post);
+
+        if (CommunityPost::isBookContentType($contentType)) {
+            $bookPages = $this->normalizeBookPages($validated['book_pages'] ?? []);
+
+            if ($bookPages === []) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'book_pages' => 'Please add content to at least one book page.',
+                ]);
+            }
+
+            $validated['body'] = CommunityPost::bodyFromBookPages($bookPages);
+            $validated['book_pages'] = $bookPages;
+        }
+
+        unset($validated['book_pages']);
+
+        if (! in_array($validated['location_type'], CommunityPost::locationTypesRequiringPlace(), true)) {
+            $validated = array_merge($validated, CommunityPost::defaultLocationForType($validated['location_type']));
+        }
+
+        if (($validated['status'] ?? null) === CommunityPost::STATUS_DRAFT) {
+            $validated['publish_as'] = null;
+            $validated['pen_name'] = null;
+        } elseif (($validated['publish_as'] ?? null) !== CommunityPost::PUBLISH_AS_PEN_NAME) {
+            $validated['pen_name'] = null;
+        }
+
+        if (! ($validated['allow_poll'] ?? false)) {
+            $validated['poll_subject'] = null;
+        }
 
         return $validated;
     }
@@ -490,6 +686,8 @@ class CommunityPostController extends Controller
         $payload['data_sources'] = $request->input('data_sources');
         $payload['key_findings'] = $request->input('key_findings');
         $payload['recommendations'] = $request->input('recommendations');
+        $editorLanguage = $request->input('editor_language', 'en');
+        $payload['editor_language'] = in_array($editorLanguage, ['en', 'hi'], true) ? $editorLanguage : 'en';
 
         return array_filter($payload, fn ($value) => filled($value) || is_bool($value));
     }
@@ -497,6 +695,16 @@ class CommunityPostController extends Controller
     private function shouldAllowComments(Request $request): bool
     {
         return $request->boolean('allow_comments');
+    }
+
+    private function shouldAllowSharing(Request $request): bool
+    {
+        return $request->boolean('allow_sharing');
+    }
+
+    private function shouldAllowPoll(Request $request): bool
+    {
+        return $request->boolean('allow_poll');
     }
 
     /**
@@ -512,6 +720,7 @@ class CommunityPostController extends Controller
             ->map(fn (string $tag) => trim($tag))
             ->filter()
             ->unique()
+            ->take(self::MAX_TAGS)
             ->values()
             ->all();
     }
@@ -669,10 +878,15 @@ class CommunityPostController extends Controller
         return CommunityPost::query()
             ->with('user')
             ->withCount(['reactions', 'comments'])
-            ->published()
-            ->when($author, fn ($query) => $query->where('user_id', $author->id))
+            ->publiclyListed()
+            ->when($author, fn ($query) => $query
+                ->where('user_id', $author->id)
+                ->visibleOnAuthorProfile())
             ->when($request->filled('type'), fn ($query) => $query->where('content_type', $request->string('type')->toString()))
             ->when($request->filled('category'), fn ($query) => $query->where('category', $request->string('category')->toString()))
+            ->orderByDesc('is_featured')
+            ->orderByDesc('is_highlighted')
+            ->orderByDesc('is_sponsored')
             ->latest('published_at')
             ->paginate(12)
             ->withQueryString();
@@ -706,8 +920,115 @@ class CommunityPostController extends Controller
         abort(404);
     }
 
+    private function answeredQuestionsForPost(CommunityPost $post)
+    {
+        return CommunityAuthorQuestion::query()
+            ->forAuthor($post->user_id)
+            ->where('community_post_id', $post->id)
+            ->answered()
+            ->with(['asker:id,name,full_name'])
+            ->latest('answered_at')
+            ->get();
+    }
+
+    private function answeredQuestionsForAuthor(User $author)
+    {
+        return CommunityAuthorQuestion::query()
+            ->forAuthor($author->id)
+            ->answered()
+            ->with(['asker:id,name,full_name', 'post:id,title,slug'])
+            ->latest('answered_at')
+            ->get();
+    }
+
     private function authorizeOwner(Request $request, CommunityPost $post): void
     {
         abort_unless($post->user_id === $request->user()->id || $request->user()->isAdmin(), 403);
+    }
+
+    /**
+     * @return array{status: string, published_at: ?\Illuminate\Support\Carbon, submitted_at: ?\Illuminate\Support\Carbon, reviewed_at: null, reviewed_by: null, review_note: null}
+     */
+    private function resolvePublicationState(Request $request, ?CommunityPost $post = null): array
+    {
+        $requestedStatus = $request->input('status', CommunityPost::STATUS_PUBLISHED);
+        $user = $request->user();
+
+        if ($requestedStatus === CommunityPost::STATUS_DRAFT) {
+            return [
+                'status' => CommunityPost::STATUS_DRAFT,
+                'published_at' => null,
+                'submitted_at' => null,
+                'reviewed_at' => null,
+                'reviewed_by' => null,
+                'review_note' => null,
+            ];
+        }
+
+        if ($user->isAdmin()) {
+            return [
+                'status' => CommunityPost::STATUS_PUBLISHED,
+                'published_at' => $post?->published_at ?? now(),
+                'submitted_at' => null,
+                'reviewed_at' => $post?->reviewed_at,
+                'reviewed_by' => $post?->reviewed_by,
+                'review_note' => $post?->review_note,
+            ];
+        }
+
+        return [
+            'status' => CommunityPost::STATUS_PENDING,
+            'published_at' => null,
+            'submitted_at' => now(),
+            'reviewed_at' => null,
+            'reviewed_by' => null,
+            'review_note' => null,
+        ];
+    }
+
+    private function notifyAdminsOfPendingPost(CommunityPost $post): void
+    {
+        PortalNotificationService::notifyAdminsOfApprovalRequest(
+            'Community post',
+            $post->title,
+            route('admin.community-posts.show', $post)
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function mergeBookPagesIntoMeta(Request $request, array &$data): void
+    {
+        $contentType = $data['content_type'] ?? $request->input('content_type');
+
+        if (! CommunityPost::isBookContentType(is_string($contentType) ? $contentType : null)) {
+            return;
+        }
+
+        $pages = $this->normalizeBookPages($request->input('book_pages', []));
+
+        if ($pages !== []) {
+            $data['meta']['book_pages'] = $pages;
+            $data['body'] = CommunityPost::bodyFromBookPages($pages);
+        }
+    }
+
+    /**
+     * @param  list<array{content?: string, language?: string}>|list<string>  $pages
+     * @return list<array{content: string, language: string}>
+     */
+    private function normalizeBookPages(array $pages): array
+    {
+        return collect($pages)
+            ->map(fn (mixed $page): array => [
+                'content' => is_array($page) ? (string) ($page['content'] ?? '') : (string) $page,
+                'language' => in_array(is_array($page) ? ($page['language'] ?? 'en') : 'en', ['en', 'hi'], true)
+                    ? (is_array($page) ? ($page['language'] ?? 'en') : 'en')
+                    : 'en',
+            ])
+            ->filter(fn (array $page): bool => filled(strip_tags($page['content'])))
+            ->values()
+            ->all();
     }
 }

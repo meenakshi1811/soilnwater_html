@@ -440,6 +440,19 @@ class CommunityPostFormFields
     private static function editorialFields(): array
     {
         return [
+            self::select('article_type', 'Article type', [
+                'Opinion',
+                'Experience',
+                'Guide',
+                'Tutorial',
+                'Research',
+                'Awareness',
+                'News',
+                'Story',
+                'Interview',
+                'Review',
+                'Report',
+            ], true, 'col-md-6'),
             self::text('article_subtitle', 'Subtitle / deck', 255, false, 'Optional second line below the headline'),
             self::text('reading_time', 'Estimated reading time (minutes)', 10, false, 'e.g. 8'),
             self::textarea('key_takeaways', 'Key takeaways', 2000, false, 'Bullet-style summary of main points'),
@@ -616,7 +629,7 @@ class CommunityPostFormFields
      * @param  list<string>  $options
      * @return array<string, mixed>
      */
-    private static function select(string $name, string $label, array $options, bool $required): array
+    private static function select(string $name, string $label, array $options, bool $required, string $col = 'col-md-4'): array
     {
         return [
             'name' => $name,
@@ -624,7 +637,7 @@ class CommunityPostFormFields
             'type' => 'select',
             'options' => $options,
             'required' => $required,
-            'col' => 'col-md-4',
+            'col' => $col,
         ];
     }
 

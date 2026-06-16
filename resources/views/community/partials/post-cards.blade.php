@@ -1,19 +1,16 @@
 @forelse ($posts as $post)
     @php
-        $authorDisplayName = $post->user->name ?? $post->user->full_name ?? 'Community author';
-        $authorInitials = collect(preg_split('/\s+/', trim($authorDisplayName)) ?: [])
-            ->filter()
-            ->take(2)
-            ->map(fn (string $part) => mb_strtoupper(mb_substr($part, 0, 1)))
-            ->implode('');
+        $authorDisplayName = $post->authorDisplayName();
+        $authorInitials = $post->authorInitials();
         $categoryLabel = filled(data_get($post->meta, 'report_type'))
             ? data_get($post->meta, 'report_type', $post->category)
             : $post->category;
         $excerpt = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 160);
         $locationLabel = $post->location ?? data_get($post->meta, 'location');
+        $promotionLabels = $post->adminPromotionLabels();
     @endphp
     <div class="col">
-        <article class="community-post-card h-100">
+        <article class="community-post-card h-100 {{ $post->is_highlighted ? 'community-post-card--highlighted' : '' }}">
             <a href="{{ route('community.show', $post) }}" class="community-post-card__media-link" aria-label="Read {{ $post->title }}">
                 @if ($post->featuredImageUrl())
                     <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="community-post-card__image" loading="lazy">
@@ -23,12 +20,16 @@
                     </div>
                 @endif
                 <div class="community-post-card__media-overlay"></div>
-                <div class="community-post-card__badges">
-                    <span class="community-post-card__badge community-post-card__badge--type">{{ $post->typeLabel() }}</span>
-                    @if ($categoryLabel)
-                        <span class="community-post-card__badge">{{ $categoryLabel }}</span>
-                    @endif
-                </div>
+                @if ($categoryLabel || $promotionLabels !== [])
+                    <div class="community-post-card__badges">
+                        @foreach($promotionLabels as $promotionLabel)
+                            <span class="community-post-card__badge community-post-card__badge--promotion">{{ $promotionLabel }}</span>
+                        @endforeach
+                        @if ($categoryLabel)
+                            <span class="community-post-card__badge">{{ $categoryLabel }}</span>
+                        @endif
+                    </div>
+                @endif
                 @if ($post->hasVideo())
                     <span class="community-post-card__video-badge" title="Includes video">
                         <i class="fa-solid fa-circle-play"></i>
@@ -56,7 +57,7 @@
                     <div class="community-post-card__author">
                         <span class="community-post-card__avatar" aria-hidden="true">{{ $authorInitials ?: 'CA' }}</span>
                         <div class="community-post-card__author-meta">
-                            @if ($post->user)
+                            @if ($post->showsAuthorProfileLink())
                                 <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="community-post-card__author-name">{{ $authorDisplayName }}</a>
                             @else
                                 <span class="community-post-card__author-name">{{ $authorDisplayName }}</span>
@@ -66,6 +67,12 @@
                     </div>
 
                     <div class="community-post-card__stats">
+                        @if ($post->allowsSharing())
+                            @include('community.partials.share-panel', [
+                                'post' => $post,
+                                'showCardTrigger' => true,
+                            ])
+                        @endif
                         @if (($post->reactions_count ?? 0) > 0)
                             <span title="Reactions"><i class="fa-solid fa-heart" aria-hidden="true"></i> {{ $post->reactions_count }}</span>
                         @endif

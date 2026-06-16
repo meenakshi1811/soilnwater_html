@@ -2,6 +2,10 @@
 
 @section('title', 'My Community Posts')
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+@endpush
+
 @section('content')
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
@@ -26,7 +30,9 @@
         </div>
     @endif
 
-    @php($authorUniqueName = old('author_slug', auth()->user()->authorUniqueName()))
+    @php
+        $authorUniqueName = old('author_slug', auth()->user()->authorUniqueName());
+    @endphp
     <div class="chart-card mb-3 p-3">
         <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
             <div>
@@ -49,7 +55,7 @@
         </div>
     </div>
 
-    <div class="chart-card">
+    <div class="chart-card p-3">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h5 class="mb-0">Post listing</h5>
             <a href="{{ route('community.posts.create') }}" class="btn btn-primary ems-btn-primary">
@@ -58,7 +64,9 @@
         </div>
 
         <div class="table-responsive">
-            <table class="table table-bordered align-middle">
+            <table id="myCommunityPostsTable" class="table table-bordered align-middle w-100"
+                data-source-url="{{ route('community.posts.data') }}"
+                data-delete-base-url="{{ url('/dashboard/community-posts') }}">
                 <thead>
                     <tr>
                         <th>Title</th>
@@ -66,39 +74,20 @@
                         <th>Category</th>
                         <th>Status</th>
                         <th>Published</th>
-                        <th class="text-end">Action</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @forelse($posts as $post)
-                        <tr>
-                            <td>{{ $post->title }}</td>
-                            <td>{{ $post->typeLabel() }}</td>
-                            <td>{{ filled(data_get($post->meta, 'report_type')) ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</td>
-                            <td><span class="badge {{ $post->status === 'published' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($post->status) }}</span></td>
-                            <td>{{ $post->published_at?->format('Y-m-d H:i') ?? 'Draft' }}</td>
-                            <td class="text-end">
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a href="{{ route('community.posts.show', $post) }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
-                                    <a href="{{ route('community.posts.edit', $post) }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-pen"></i></a>
-                                    <form method="POST" action="{{ route('community.posts.destroy', $post) }}" onsubmit="return confirm('Delete this post?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">No community posts yet.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
             </table>
         </div>
-
-        {{ $posts->links() }}
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('assets/js/community-posts.js') }}?v={{ now()->timestamp }}"></script>
+@endpush

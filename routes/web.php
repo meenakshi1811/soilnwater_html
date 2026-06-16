@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\TermsAndConditionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Community\CommunityAuthorQuestionController;
 use App\Http\Controllers\Community\CommunityPostController;
 use App\Http\Controllers\Frontend\OfferPageController;
 use App\Http\Controllers\Frontend\AdsMarketController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\User\UserAdController;
 use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\ApprovalCenterController;
+use App\Http\Controllers\Admin\CommunityPostApprovalController;
 use App\Http\Controllers\Admin\AdSizeController;
 use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
 use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
@@ -234,11 +236,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::post('/community/{post:slug}/react', [CommunityPostController::class, 'react'])->name('community.react');
+    Route::post('/community/{post:slug}/poll', [CommunityPostController::class, 'votePoll'])->name('community.poll.vote');
     Route::post('/community/{post:slug}/comments', [CommunityPostController::class, 'comment'])->name('community.comments.store');
+    Route::post('/community/{post:slug}/questions', [CommunityAuthorQuestionController::class, 'storeForPost'])->name('community.author-questions.store.post');
     Route::post('/community/authors/{author}/follow', [CommunityPostController::class, 'followAuthor'])->name('community.authors.follow');
+    Route::post('/community/authors/{author}/questions', [CommunityAuthorQuestionController::class, 'storeForAuthor'])->name('community.author-questions.store.author');
+
+    Route::prefix('dashboard/community-author-questions')->name('community.author-questions.')->group(function () {
+        Route::get('/', [CommunityAuthorQuestionController::class, 'index'])->name('index');
+        Route::post('/{question}/answer', [CommunityAuthorQuestionController::class, 'answer'])->name('answer');
+    });
 
     Route::prefix('dashboard/community-posts')->name('community.posts.')->group(function () {
         Route::get('/', [CommunityPostController::class, 'myPosts'])->name('index');
+        Route::get('/data', [CommunityPostController::class, 'myPostsData'])->name('data');
         Route::get('/create', [CommunityPostController::class, 'create'])->name('create');
         Route::patch('/author-url', [CommunityPostController::class, 'updateAuthorUrl'])->name('author-url.update');
         Route::post('/uploads/image', [CommunityPostController::class, 'uploadInlineImage'])->name('uploads.image');
@@ -278,6 +289,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', [ApprovalCenterController::class, 'index'])->name('index');
             Route::post('/{type}/{id}/approve', [ApprovalCenterController::class, 'approve'])->name('approve');
             Route::post('/{type}/{id}/decline', [ApprovalCenterController::class, 'decline'])->name('decline');
+        });
+
+        Route::prefix('community-posts')->name('community-posts.')->group(function () {
+            Route::get('/', [CommunityPostApprovalController::class, 'index'])->name('index');
+            Route::get('/data', [CommunityPostApprovalController::class, 'data'])->name('data');
+            Route::get('/all', [CommunityPostApprovalController::class, 'allIndex'])->name('all.index');
+            Route::get('/all/data', [CommunityPostApprovalController::class, 'allData'])->name('all.data');
+            Route::get('/{post}/preview', [CommunityPostApprovalController::class, 'preview'])->name('preview');
+            Route::get('/{post}', [CommunityPostApprovalController::class, 'show'])->name('show');
+            Route::post('/{post}/approve', [CommunityPostApprovalController::class, 'approve'])->name('approve');
+            Route::post('/{post}/reject', [CommunityPostApprovalController::class, 'reject'])->name('reject');
+            Route::post('/{post}/decline', [CommunityPostApprovalController::class, 'decline'])->name('decline');
+            Route::post('/{post}/draft', [CommunityPostApprovalController::class, 'moveToDraft'])->name('draft');
+            Route::post('/{post}/archive', [CommunityPostApprovalController::class, 'archive'])->name('archive');
+            Route::post('/{post}/feature', [CommunityPostApprovalController::class, 'feature'])->name('feature');
+            Route::post('/{post}/sponsor', [CommunityPostApprovalController::class, 'sponsor'])->name('sponsor');
+            Route::post('/{post}/highlight', [CommunityPostApprovalController::class, 'highlight'])->name('highlight');
         });
 
         Route::prefix('offers')->name('offers.')->group(function () {

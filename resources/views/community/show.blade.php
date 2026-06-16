@@ -1,5 +1,31 @@
 @extends('frontend.layouts.app')
 
+@section('meta_title', $post->seoTitle())
+@section('meta_description', $post->seoDescription())
+@section('meta_url', $post->publicUrl())
+@section('meta_canonical', $post->publicUrl())
+@section('meta_keywords', $post->seoKeywords())
+@section('meta_image', $post->seoImageUrl())
+@section('meta_type', 'article')
+@if($post->shouldBlockSearchIndexing())
+@section('meta_robots', 'noindex, nofollow')
+@endif
+
+@if($post->status === \App\Models\CommunityPost::STATUS_PUBLISHED)
+@push('head')
+@if($post->published_at)
+<meta property="article:published_time" content="{{ $post->published_at->toIso8601String() }}">
+@endif
+@if($post->updated_at)
+<meta property="article:modified_time" content="{{ $post->updated_at->toIso8601String() }}">
+@endif
+<meta property="article:section" content="{{ $post->typeLabel() }}">
+<meta property="article:tag" content="{{ $post->category }}">
+<meta property="article:author" content="{{ $post->authorDisplayName() }}">
+<script type="application/ld+json">{!! json_encode($post->structuredData(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endpush
+@endif
+
 @push('styles')
 <style>
     .community-featured-gallery {
@@ -22,31 +48,121 @@
             grid-template-columns: 1fr;
         }
     }
+
+    .community-post-back-wrap {
+        margin: 0 auto 0.5rem;
+        max-width: min(1720px, calc(100vw - 48px));
+        text-align: left;
+        width: 100%;
+    }
+
+    .community-post-back {
+        align-items: center;
+        color: rgba(255, 255, 255, 0.92);
+        display: inline-flex;
+        font-size: 0.9rem;
+        font-weight: 600;
+        gap: 0.4rem;
+        margin-bottom: 1rem;
+        text-decoration: none;
+    }
+
+    .community-post-back:hover {
+        color: #fff;
+        text-decoration: underline;
+    }
+
+    .community-post-banner-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .community-post-banner-tag {
+        border-radius: 999px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+    }
+
+    [data-community-body-protected] {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="about-page">
+    @if(!empty($preview) || $post->isPendingApproval())
+        <div class="alert alert-warning text-center rounded-0 mb-0 border-0">
+            @if(!empty($preview))
+                Admin preview — this is how the post will appear on the frontend after approval.
+            @else
+                This post is awaiting admin approval and is not visible on the public community hub yet.
+            @endif
+        </div>
+    @elseif($post->status === \App\Models\CommunityPost::STATUS_DECLINED)
+        <div class="alert alert-danger text-center rounded-0 mb-0 border-0">
+            This post was rejected by admin.
+            @if(filled($post->review_note))
+                <span class="d-block small mt-1">Note: {{ $post->review_note }}</span>
+            @endif
+        </div>
+    @elseif($post->isArchived())
+        <div class="alert alert-secondary text-center rounded-0 mb-0 border-0">
+            This post has been archived and is no longer visible on the public community hub.
+        </div>
+    @elseif($post->status === \App\Models\CommunityPost::STATUS_DRAFT)
+        <div class="alert alert-secondary text-center rounded-0 mb-0 border-0">
+            This post is saved as a draft and is not visible on the public community hub yet.
+        </div>
+    @endif
     <section class="about-banner">
-        <div class="mb-2">
-            <span class="badge bg-light text-dark">{{ $post->typeLabel() }}</span>
-            <span class="badge bg-light text-dark">{{ filled(data_get($post->meta, 'report_type')) ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</span>
+        <div class="community-post-back-wrap">
+            <a href="{{ route('community.index') }}" class="community-post-back">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                Back to Community
+            </a>
+        </div>
+        <div class="community-post-banner-tags">
+            <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->typeLabel() }}</span>
+            @foreach($post->adminPromotionLabels() as $promotionLabel)
+                <span class="badge bg-warning text-dark community-post-banner-tag">{{ $promotionLabel }}</span>
+            @endforeach
+            @if($post->content_type === 'articles' && filled(data_get($post->meta, 'article_type')))
+                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'article_type') }}</span>
+            @endif
+            <span class="badge bg-light text-dark community-post-banner-tag">{{ filled(data_get($post->meta, 'report_type')) ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</span>
         </div>
         <h1>{{ $post->title }}</h1>
         <p>
             By
-            @if($post->user)
-                <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="text-white text-decoration-underline">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
+            @if($post->showsAuthorProfileLink())
+                <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="text-white text-decoration-underline">{{ $post->authorDisplayName() }}</a>
             @else
-                Community author
+                {{ $post->authorDisplayName() }}
             @endif
             · {{ $post->published_at?->format('M d, Y') ?? 'Draft' }}
         </p>
-        @auth
-            @if(auth()->id() === $post->user_id || auth()->user()->isAdmin())
-                <a href="{{ route('community.posts.edit', $post) }}" class="btn btn-light mt-2"><i class="fa-solid fa-pen me-2"></i>Edit Post</a>
+        <div class="d-flex flex-wrap gap-2 justify-content-center mt-2">
+            @if($post->allowsSharing())
+                @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true])
             @endif
-        @endauth
+            @auth
+                @if(auth()->id() === $post->user_id || auth()->user()->isAdmin())
+                    <a href="{{ route('community.posts.edit', $post) }}" class="community-banner-action">
+                        <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                        Edit Post
+                    </a>
+                @endif
+            @endauth
+        </div>
     </section>
 
     <div class="about-inner">
@@ -91,12 +207,16 @@
                 </div>
             @endif
 
-            <div class="community-post-body">{!! $post->body !!}</div>
+            @if($post->usesBookLayout() && $post->bookPages() !== [])
+                @include('community.partials.book-reader', ['post' => $post])
+            @else
+                <div class="community-post-body" data-community-body-protected lang="{{ data_get($post->meta, 'editor_language', 'en') }}">{!! $post->body !!}</div>
+            @endif
 
             @php
                 $resolvedLocation = $post->location ?? data_get($post->meta, 'location');
                 $formFieldLabels = \App\Support\CommunityPostFormFields::labels();
-                $visibleMeta = collect($post->meta ?? [])->except(['location', 'location_lat', 'location_lng']);
+                $visibleMeta = collect($post->meta ?? [])->except(['location', 'location_lat', 'location_lng', 'book_pages', 'editor_language']);
                 $reportMetaLabels = [
                     'report_subtitle' => 'Subtitle',
                     'reporting_period' => 'Reporting period',
@@ -244,12 +364,19 @@
                     $visibleMeta = $additionalMyVoiceMeta;
                 @endphp
             @endif
-            @if(filled($resolvedLocation))
+            @if(filled($post->location_type))
                 <div class="about-box mt-4">
-                    <h4>Location</h4>
-                    <p class="mb-0">{{ $resolvedLocation }}</p>
-                    @if(filled($post->location_lat) && filled($post->location_lng))
-                        <small class="text-muted">Coordinates: {{ $post->location_lat }}, {{ $post->location_lng }}</small>
+                    <h4>Location information</h4>
+                    <p class="mb-2"><strong>Type:</strong> {{ $post->locationTypeLabel() }}</p>
+                    @if($post->location_type === \App\Models\CommunityPost::LOCATION_TYPE_GLOBAL)
+                        <p class="mb-0 text-muted">This post has global relevance.</p>
+                    @elseif($post->location_type === \App\Models\CommunityPost::LOCATION_TYPE_INDIA)
+                        <p class="mb-0 text-muted">This post applies across India.</p>
+                    @elseif($post->requiresSpecificLocation() && filled($resolvedLocation))
+                        <p class="mb-0">{{ $resolvedLocation }}</p>
+                        @if(filled($post->location_lat) && filled($post->location_lng))
+                            <small class="text-muted">Coordinates: {{ $post->location_lat }}, {{ $post->location_lng }}</small>
+                        @endif
                     @endif
                 </div>
             @endif
@@ -259,6 +386,9 @@
                     <ul class="about-list mb-0">
                         @foreach($visibleMeta as $key => $value)
                             @if(blank($value) && $value !== false)
+                                @continue
+                            @endif
+                            @if(is_array($value) || is_object($value))
                                 @continue
                             @endif
                             <li><strong>{{ $formFieldLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}:</strong> {!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</li>
@@ -275,6 +405,14 @@
                 </div>
             @endif
 
+            @if($post->allowsSharing())
+                @include('community.partials.share-panel', ['post' => $post, 'showInline' => true])
+            @endif
+
+            @if($post->allowsPoll())
+                @include('community.partials.poll', ['post' => $post])
+            @endif
+
             <div class="about-box mt-4">
                 <h4>Community engagement</h4>
                 @php
@@ -286,12 +424,14 @@
                             'Vote' => 'fa-solid fa-square-poll-vertical',
                             'Helpful' => 'fa-solid fa-circle-info',
                             'Informative' => 'fa-solid fa-lightbulb',
+                            'Dislike' => 'fa-solid fa-thumbs-down',
                         ]
                         : [
                             'Helpful' => 'fa-solid fa-hand-holding-heart',
                             'Inspiring' => 'fa-solid fa-lightbulb',
                             'Excellent' => 'fa-solid fa-star',
                             'Informative' => 'fa-solid fa-circle-info',
+                            'Dislike' => 'fa-solid fa-thumbs-down',
                         ];
                 @endphp
                 @auth
@@ -305,7 +445,7 @@
                                 </button>
                             </form>
                         @endforeach
-                        @if($post->user && auth()->id() !== $post->user_id)
+                        @if($post->showsAuthorProfileLink() && auth()->id() !== $post->user_id)
                             <form method="POST" action="{{ route('community.authors.follow', $post->user) }}">
                                 @csrf
                                 <button type="submit" class="btn btn-success btn-sm">Follow Author</button>
@@ -317,15 +457,23 @@
                 @endauth
                 <ul class="about-list mb-0">
                     <li>
-                        Author profile:
-                        @if($post->user)
-                            <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}">{{ $post->user->name ?? $post->user->full_name ?? 'Community author' }}</a>
+                        Author:
+                        @if($post->showsAuthorProfileLink())
+                            <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}">{{ $post->authorDisplayName() }}</a>
                         @else
-                            Community author
+                            {{ $post->authorDisplayName() }}
                         @endif
                     </li>
                 </ul>
             </div>
+
+            @if($post->user_id && $post->resolvedPublishAs() !== \App\Models\CommunityPost::PUBLISH_AS_ANONYMOUS)
+                @include('community.partials.author-questions', [
+                    'author' => $post->user,
+                    'post' => $post,
+                    'answeredQuestions' => $answeredAuthorQuestions ?? collect(),
+                ])
+            @endif
 
             <div class="about-box mt-4" id="discussion">
                 <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
@@ -392,6 +540,10 @@
             </div>
         </section>
     </div>
+
+    @if($post->allowsSharing())
+        @include('community.partials.share-modal')
+    @endif
 </div>
 @endsection
 
@@ -476,6 +628,52 @@
 
 @push('scripts')
 <script>
+    (function () {
+        const protectedSelector = '[data-community-body-protected]';
+
+        function isInsideProtectedContent(node) {
+            if (!node) {
+                return false;
+            }
+
+            const element = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+
+            return Boolean(element && element.closest(protectedSelector));
+        }
+
+        document.querySelectorAll(protectedSelector).forEach(function (element) {
+            ['copy', 'cut', 'paste', 'contextmenu', 'dragstart'].forEach(function (eventName) {
+                element.addEventListener(eventName, function (event) {
+                    event.preventDefault();
+                });
+            });
+        });
+
+        document.addEventListener('copy', function (event) {
+            const selection = window.getSelection();
+
+            if (!selection || selection.isCollapsed) {
+                return;
+            }
+
+            if (isInsideProtectedContent(selection.anchorNode) || isInsideProtectedContent(selection.focusNode)) {
+                event.preventDefault();
+            }
+        }, true);
+
+        document.addEventListener('cut', function (event) {
+            const selection = window.getSelection();
+
+            if (!selection || selection.isCollapsed) {
+                return;
+            }
+
+            if (isInsideProtectedContent(selection.anchorNode) || isInsideProtectedContent(selection.focusNode)) {
+                event.preventDefault();
+            }
+        }, true);
+    })();
+
     document.querySelectorAll('.js-community-reaction-form').forEach((form) => {
         form.addEventListener('submit', async (event) => {
             event.preventDefault();

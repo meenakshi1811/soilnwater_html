@@ -39,7 +39,7 @@
     <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
         <div>
             <h2 class="admin-title mb-1">Approval Center</h2>
-            <p class="text-muted mb-0">Review every pending ad, offer, product, service, and public page request from one newest-first queue.</p>
+            <p class="text-muted mb-0">Review every pending ad, offer, product, service, public page, and community post request from one newest-first queue.</p>
         </div>
         <div class="chart-card px-4 py-3 text-lg-end">
             <div class="text-muted small text-uppercase fw-bold">Pending requests</div>
