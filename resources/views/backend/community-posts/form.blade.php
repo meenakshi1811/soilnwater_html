@@ -62,7 +62,7 @@
                 <small id="typeHelp" class="text-muted d-block mt-1"></small>
             </div>
             <div class="col-md-6" id="categoryFieldWrap">
-                <label class="form-label">Category <span class="text-danger">*</span></label>
+                <label class="form-label" id="categoryLabel">Category <span class="text-danger">*</span></label>
                 <select name="category" id="categorySelect" class="form-select" data-selected="{{ old('category', $post->category) }}" required>
                     <option value="">Select category</option>
                 </select>
@@ -216,63 +216,303 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 type-extra my-area-flow" data-for="reports">
-                <div class="my-area-flow-card border rounded-3 p-3 bg-light">
-                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
-                        <div>
-                            <h5 class="mb-1">My Area problem report</h5>
-                            <p class="text-muted mb-0 small">Turn local issues into trackable community action with evidence, GPS location, support, comments, and votes.</p>
+            @php
+                $reportAuthorName = old(
+                    'report_author_name',
+                    data_get($post->meta, 'report_author_name', $post->user?->name ?: $post->user?->full_name ?: auth()->user()?->name ?: auth()->user()?->full_name)
+                );
+            @endphp
+            <div class="col-12 type-extra report-flow" data-for="reports">
+                <div class="report-flow-stack d-flex flex-column gap-3">
+                    <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-light">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Report classification</h5>
+                                <p class="text-muted mb-0 small">Define the report format, priority, and tracking details.</p>
+                            </div>
+                            <span class="badge bg-warning text-dark">Reports</span>
                         </div>
-                        <span class="badge bg-warning text-dark">Reports · My Area</span>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Report type <span class="text-danger">*</span></label>
-                            <select name="report_type" class="form-select my-area-required">
-                                <option value="">Select report type</option>
-                                @foreach(\App\Support\CommunityContentTaxonomy::myAreaReportTypes() as $reportType)
-                                    <option value="{{ $reportType }}" @selected(old('report_type', data_get($post->meta, 'report_type')) === $reportType)>{{ $reportType }}</option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">Choose what neighbours should support, comment on, and vote for.</small>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Priority <span class="text-danger">*</span></label>
-                            <select name="issue_priority" class="form-select my-area-required">
-                                <option value="">Select priority</option>
-                                @foreach(['Low', 'Medium', 'High', 'Urgent'] as $priority)
-                                    <option value="{{ $priority }}" @selected(old('issue_priority', data_get($post->meta, 'issue_priority')) === $priority)>{{ $priority }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Issue status</label>
-                            <select name="issue_status" class="form-select">
-                                @foreach(['Open', 'Under Review', 'Resolved'] as $status)
-                                    <option value="{{ $status }}" @selected(old('issue_status', data_get($post->meta, 'issue_status', 'Open')) === $status)>{{ $status }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Reported to</label>
-                            <input type="text" name="reported_to" class="form-control" value="{{ old('reported_to', data_get($post->meta, 'reported_to')) }}" maxlength="160" placeholder="Department/authority">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Reference / complaint no.</label>
-                            <input type="text" name="issue_reference" class="form-control" value="{{ old('issue_reference', data_get($post->meta, 'issue_reference')) }}" maxlength="160" placeholder="Optional tracking ID">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Evidence files</label>
-                            <input type="file" name="issue_attachments[]" class="form-control" accept="image/*,video/*,.pdf,.doc,.docx" multiple>
-                            <small class="text-muted">Upload up to 6 photos, videos, or documents. Each file can be up to 20 MB.</small>
-                            @if(!empty(data_get($post->meta, 'issue_attachments')))
-                                <div class="mt-2 d-flex flex-wrap gap-2">
-                                    @foreach(data_get($post->meta, 'issue_attachments', []) as $attachment)
-                                        <a href="{{ data_get($attachment, 'url') }}" target="_blank" rel="noopener" class="badge bg-light text-dark border text-decoration-none">{{ data_get($attachment, 'name', 'Attachment') }}</a>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Report status <span class="text-danger">*</span></label>
+                                <select name="report_status" class="form-select my-area-required">
+                                    <option value="">Select report status</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::reportStatuses() as $reportStatus)
+                                        <option value="{{ $reportStatus }}" @selected(old('report_status', data_get($post->meta, 'report_status')) === $reportStatus)>{{ $reportStatus }}</option>
                                     @endforeach
-                                </div>
-                            @endif
+                                </select>
+                                <small class="text-muted">What this report is asking for or communicating.</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Report type <span class="text-danger">*</span></label>
+                                <select name="report_type" class="form-select my-area-required">
+                                    <option value="">Select report type</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::reportTypes() as $reportType)
+                                        <option value="{{ $reportType }}" @selected(old('report_type', data_get($post->meta, 'report_type')) === $reportType)>{{ $reportType }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">Choose the format or nature of this report.</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Priority <span class="text-danger">*</span></label>
+                                <select name="issue_priority" class="form-select my-area-required">
+                                    <option value="">Select priority</option>
+                                    @foreach(['Low', 'Medium', 'High', 'Urgent'] as $priority)
+                                        <option value="{{ $priority }}" @selected(old('issue_priority', data_get($post->meta, 'issue_priority')) === $priority)>{{ $priority }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Issue status</label>
+                                <select name="issue_status" class="form-select">
+                                    @foreach(['Open', 'Under Review', 'Resolved'] as $status)
+                                        <option value="{{ $status }}" @selected(old('issue_status', data_get($post->meta, 'issue_status', 'Open')) === $status)>{{ $status }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Reported to</label>
+                                <input type="text" name="reported_to" class="form-control" value="{{ old('reported_to', data_get($post->meta, 'reported_to')) }}" maxlength="160" placeholder="Department or authority">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Reference / complaint no.</label>
+                                <input type="text" name="issue_reference" class="form-control" value="{{ old('issue_reference', data_get($post->meta, 'issue_reference')) }}" maxlength="160" placeholder="Optional tracking ID">
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Report period</h5>
+                                <p class="text-muted mb-0 small">Observation period covered by this report.</p>
+                            </div>
+                            <span class="badge bg-secondary-subtle text-secondary border">Optional dates</span>
+                        </div>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label" for="observationPeriodFrom">From date</label>
+                                <input
+                                    type="date"
+                                    name="observation_period_from"
+                                    id="observationPeriodFrom"
+                                    class="form-control"
+                                    value="{{ old('observation_period_from', data_get($post->meta, 'observation_period_from')) }}"
+                                >
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="observationPeriodTo">To date</label>
+                                <input
+                                    type="date"
+                                    name="observation_period_to"
+                                    id="observationPeriodTo"
+                                    class="form-control"
+                                    value="{{ old('observation_period_to', data_get($post->meta, 'observation_period_to')) }}"
+                                >
+                            </div>
+                            <div class="col-md-4">
+                                <div class="report-period-preview border rounded-3 px-3 py-2 bg-light h-100 d-flex flex-column justify-content-center">
+                                    <small class="text-muted d-block mb-1">Example</small>
+                                    <span class="small fw-semibold" id="observationPeriodPreview">01-Jan-2025 to 31-Dec-2025</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Report author details</h5>
+                                <p class="text-muted mb-0 small">Your profile name is auto-filled. Choose the author type that best describes you.</p>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary border">Auto-filled</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="reportAuthorName">Author name</label>
+                                <input
+                                    type="text"
+                                    name="report_author_name"
+                                    id="reportAuthorName"
+                                    class="form-control bg-light"
+                                    value="{{ $reportAuthorName }}"
+                                    maxlength="160"
+                                    readonly
+                                >
+                                <small class="text-muted">Taken from your account profile.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="reportAuthorType">Author type <span class="text-danger">*</span></label>
+                                <select name="report_author_type" id="reportAuthorType" class="form-select my-area-required">
+                                    <option value="">Select author type</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::reportAuthorTypes() as $authorType)
+                                        <option value="{{ $authorType }}" @selected(old('report_author_type', data_get($post->meta, 'report_author_type')) === $authorType)>{{ $authorType }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Organization details</h5>
+                                <p class="text-muted mb-0 small">Optional affiliation for institutional, academic, NGO, or government reports.</p>
+                            </div>
+                            <span class="badge bg-light text-dark border">Optional</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label class="form-label" for="organizationType">Organization type</label>
+                                <select name="organization_type" id="organizationType" class="form-select">
+                                    <option value="">Select organization type</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::reportOrganizationTypes() as $organizationType)
+                                        <option value="{{ $organizationType }}" @selected(old('organization_type', data_get($post->meta, 'organization_type')) === $organizationType)>{{ $organizationType }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-7">
+                                <label class="form-label" for="organizationName">Organization name</label>
+                                <input
+                                    type="text"
+                                    name="organization_name"
+                                    id="organizationName"
+                                    class="form-control"
+                                    value="{{ old('organization_name', data_get($post->meta, 'organization_name')) }}"
+                                    maxlength="160"
+                                    placeholder="e.g. Soil & Water Research Institute"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Findings &amp; conclusions</h5>
+                                <p class="text-muted mb-0 small">Structure the core narrative of your report from observations through to summary.</p>
+                            </div>
+                            <span class="badge bg-success-subtle text-success border">Report body</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="report-narrative-field report-narrative-field--findings h-100">
+                                    <label class="form-label mb-1" for="reportFindings">Findings</label>
+                                    <small class="text-muted d-block mb-2">Main observations</small>
+                                    <textarea
+                                        name="key_findings"
+                                        id="reportFindings"
+                                        class="form-control"
+                                        rows="6"
+                                        maxlength="3000"
+                                        placeholder="What did you observe? List the key facts, patterns, and evidence gathered."
+                                    >{{ old('key_findings', data_get($post->meta, 'key_findings')) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="report-narrative-field report-narrative-field--analysis h-100">
+                                    <label class="form-label mb-1" for="reportAnalysis">Analysis</label>
+                                    <small class="text-muted d-block mb-2">Interpretation</small>
+                                    <textarea
+                                        name="report_analysis"
+                                        id="reportAnalysis"
+                                        class="form-control"
+                                        rows="6"
+                                        maxlength="3000"
+                                        placeholder="What do these observations mean? Explain causes, context, and implications."
+                                    >{{ old('report_analysis', data_get($post->meta, 'report_analysis')) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="report-narrative-field report-narrative-field--recommendations h-100">
+                                    <label class="form-label mb-1" for="reportRecommendations">Recommendations</label>
+                                    <small class="text-muted d-block mb-2">Suggested solutions</small>
+                                    <textarea
+                                        name="recommendations"
+                                        id="reportRecommendations"
+                                        class="form-control"
+                                        rows="6"
+                                        maxlength="3000"
+                                        placeholder="What actions should follow? Propose practical next steps for stakeholders."
+                                    >{{ old('recommendations', data_get($post->meta, 'recommendations')) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="report-narrative-field report-narrative-field--conclusion h-100">
+                                    <label class="form-label mb-1" for="reportConclusion">Conclusion</label>
+                                    <small class="text-muted d-block mb-2">Summary</small>
+                                    <textarea
+                                        name="report_conclusion"
+                                        id="reportConclusion"
+                                        class="form-control"
+                                        rows="6"
+                                        maxlength="3000"
+                                        placeholder="Wrap up with a concise summary of outcomes, impact, and final takeaway."
+                                    >{{ old('report_conclusion', data_get($post->meta, 'report_conclusion')) }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-flow-card report-flow-card--action border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Community action</h5>
+                                <p class="text-muted mb-0 small">Unique SoilnWater feature — request follow-up action from the right audience.</p>
+                            </div>
+                            <span class="badge bg-info text-dark">SoilnWater feature</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label" for="actionNeeded">Is action needed?</label>
+                                <select name="action_needed" id="actionNeeded" class="form-select">
+                                    <option value="">Select option</option>
+                                    @foreach(['Yes', 'No'] as $actionNeeded)
+                                        <option value="{{ $actionNeeded }}" @selected(old('action_needed', data_get($post->meta, 'action_needed')) === $actionNeeded)>{{ $actionNeeded }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-8" id="communityActionDetailsWrap">
+                                <div class="row g-3">
+                                    <div class="col-md-5">
+                                        <label class="form-label" for="actionRequestedFrom">Action requested from <span class="text-danger action-required-marker" style="display:none;">*</span></label>
+                                        <select name="action_requested_from" id="actionRequestedFrom" class="form-select">
+                                            <option value="">Select audience</option>
+                                            @foreach(\App\Support\CommunityContentTaxonomy::reportActionRequestedFrom() as $actionAudience)
+                                                <option value="{{ $actionAudience }}" @selected(old('action_requested_from', data_get($post->meta, 'action_requested_from')) === $actionAudience)>{{ $actionAudience }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <label class="form-label" for="suggestedSolution">Suggested solution</label>
+                                        <textarea
+                                            name="suggested_solution"
+                                            id="suggestedSolution"
+                                            class="form-control"
+                                            rows="3"
+                                            maxlength="2000"
+                                            placeholder="Describe the practical solution or action you want taken."
+                                        >{{ old('suggested_solution', data_get($post->meta, 'suggested_solution')) }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-light">
+                        <div class="mb-3">
+                            <h5 class="mb-1">Evidence files</h5>
+                            <p class="text-muted mb-0 small">Upload supporting photos, videos, or documents for this report.</p>
+                        </div>
+                        <input type="file" name="issue_attachments[]" class="form-control" accept="image/*,video/*,.pdf,.doc,.docx" multiple>
+                        <small class="text-muted d-block mt-2">Upload up to 6 photos, videos, or documents. Each file can be up to 20 MB.</small>
+                        @if(!empty(data_get($post->meta, 'issue_attachments')))
+                            <div class="mt-2 d-flex flex-wrap gap-2">
+                                @foreach(data_get($post->meta, 'issue_attachments', []) as $attachment)
+                                    <a href="{{ data_get($attachment, 'url') }}" target="_blank" rel="noopener" class="badge bg-light text-dark border text-decoration-none">{{ data_get($attachment, 'name', 'Attachment') }}</a>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -327,7 +567,7 @@
                                     <div class="col-md-6">
                                         <label class="form-label" for="communityLocationType">Location type <span class="text-danger">*</span></label>
                                         <select name="location_type" id="communityLocationType" class="form-select" required>
-                                            @foreach(\App\Models\CommunityPost::locationTypeOptions() as $value => $label)
+                                            @foreach(\App\Models\CommunityPost::locationTypeOptions(old('content_type', $post->content_type)) as $value => $label)
                                                 <option value="{{ $value }}" @selected(old('location_type', $post->location_type ?? \App\Models\CommunityPost::LOCATION_TYPE_GLOBAL) === $value)>{{ $label }}</option>
                                             @endforeach
                                         </select>
@@ -338,9 +578,47 @@
                                     <div class="col-md-6" id="communitySpecificLocationWrap">
                                         <label class="form-label" id="locationLabel">Location <span class="text-danger">*</span></label>
                                         <input type="text" name="location" id="communityLocation" class="form-control" value="{{ old('location', $post->location ?? data_get($post->meta, 'location')) }}" maxlength="160" placeholder="Search and select a location" autocomplete="off">
-                                        <input type="hidden" name="location_lat" id="communityLocationLat" value="{{ old('location_lat', $post->location_lat ?? data_get($post->meta, 'location_lat')) }}">
-                                        <input type="hidden" name="location_lng" id="communityLocationLng" value="{{ old('location_lng', $post->location_lng ?? data_get($post->meta, 'location_lng')) }}">
                                         <small class="text-muted" id="locationHelp">Select a Google Places suggestion so latitude and longitude are saved.</small>
+                                    </div>
+                                    <div class="col-12" id="communityGpsLocationWrap" style="display:none;">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label" for="communityLocationLat">Latitude <span class="text-muted fw-normal">(optional)</span></label>
+                                                <input
+                                                    type="number"
+                                                    name="location_lat"
+                                                    id="communityLocationLat"
+                                                    class="form-control"
+                                                    value="{{ old('location_lat', $post->location_lat ?? data_get($post->meta, 'location_lat')) }}"
+                                                    step="any"
+                                                    min="-90"
+                                                    max="90"
+                                                    placeholder="e.g. 26.9124000"
+                                                >
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label" for="communityLocationLng">Longitude <span class="text-muted fw-normal">(optional)</span></label>
+                                                <input
+                                                    type="number"
+                                                    name="location_lng"
+                                                    id="communityLocationLng"
+                                                    class="form-control"
+                                                    value="{{ old('location_lng', $post->location_lng ?? data_get($post->meta, 'location_lng')) }}"
+                                                    step="any"
+                                                    min="-180"
+                                                    max="180"
+                                                    placeholder="e.g. 75.7873000"
+                                                >
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Map marker <span class="text-muted fw-normal">(optional)</span></label>
+                                                @if(!config('services.google.maps_api_key'))
+                                                    <div class="alert alert-warning py-2 px-3 mb-2 small">Google Maps is not configured. Add <code>GOOGLE_MAPS_API_KEY</code> to your environment file to enable the map pin.</div>
+                                                @endif
+                                                <div id="communityGpsMap" class="community-gps-map border rounded bg-white" role="application" aria-label="Optional GPS map pin"></div>
+                                                <small class="text-muted d-block mt-2">Click the map to place a pin, drag it to adjust, or enter coordinates manually.</small>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -379,11 +657,30 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12" id="allowCommentsWrap">
-                            <div class="form-check">
-                                <input type="checkbox" name="allow_comments" value="1" class="form-check-input" id="allowComments" @checked(old('allow_comments', $post->allow_comments ?? true))>
-                                <label class="form-check-label" for="allowComments">Enable public discussion thread</label>
-                                <small class="text-muted d-block">When enabled, logged-in readers can add comments and replies on the public post page.</small>
+                        <div class="col-12" id="publicParticipationWrap">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <h5 class="mb-2">Public Participation</h5>
+                                <p class="text-muted small mb-3">Choose what logged-in readers can submit on the public post page. The author is notified in the portal and by email for each submission.</p>
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" name="allow_comments" value="1" class="form-check-input" id="allowComments" @checked(old('allow_comments', $post->allow_comments ?? true))>
+                                    <label class="form-check-label" for="allowComments">Comments</label>
+                                    <small class="text-muted d-block">Enable a public discussion thread with comments and replies.</small>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" name="allow_suggestions" value="1" class="form-check-input" id="allowSuggestions" @checked(old('allow_suggestions', $post->allow_suggestions ?? false))>
+                                    <label class="form-check-label" for="allowSuggestions">Suggestions</label>
+                                    <small class="text-muted d-block">Readers can recommend actions or improvements.</small>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" name="allow_feedback" value="1" class="form-check-input" id="allowFeedback" @checked(old('allow_feedback', $post->allow_feedback ?? false))>
+                                    <label class="form-check-label" for="allowFeedback">Feedback</label>
+                                    <small class="text-muted d-block">Readers can share constructive feedback with the author.</small>
+                                </div>
+                                <div class="form-check mb-0">
+                                    <input type="checkbox" name="allow_additional_evidence" value="1" class="form-check-input" id="allowAdditionalEvidence" @checked(old('allow_additional_evidence', $post->allow_additional_evidence ?? false))>
+                                    <label class="form-check-label" for="allowAdditionalEvidence">Additional Evidence</label>
+                                    <small class="text-muted d-block">Readers can upload supporting photos or documents.</small>
+                                </div>
                             </div>
                         </div>
                         <div class="col-12" id="allowSharingWrap">
@@ -590,6 +887,44 @@
             max-width: 100%;
         }
     }
+    .community-gps-map {
+        height: 320px;
+        min-height: 240px;
+        width: 100%;
+    }
+    .report-flow-card h5 {
+        font-size: 1.05rem;
+    }
+    .report-period-preview {
+        min-height: calc(1.5em + 0.75rem + 2px);
+    }
+    .report-narrative-field {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        background: #f8fafc;
+    }
+    .report-narrative-field textarea {
+        resize: vertical;
+        min-height: 150px;
+        background: #fff;
+    }
+    .report-narrative-field--findings {
+        border-top: 3px solid #0d6efd;
+    }
+    .report-narrative-field--analysis {
+        border-top: 3px solid #6f42c1;
+    }
+    .report-narrative-field--recommendations {
+        border-top: 3px solid #198754;
+    }
+    .report-narrative-field--conclusion {
+        border-top: 3px solid #fd7e14;
+    }
+    .report-flow-card--action {
+        border-left: 4px solid #0dcaf0 !important;
+        background: linear-gradient(180deg, #f8fdff 0%, #ffffff 100%);
+    }
 </style>
 @endpush
 
@@ -681,14 +1016,190 @@
     }
 
     const COMMUNITY_LOCATION_TYPES_REQUIRING_PLACE = @json(\App\Models\CommunityPost::locationTypesRequiringPlace());
+    const COMMUNITY_LOCATION_TYPE_GPS = @json(\App\Models\CommunityPost::LOCATION_TYPE_GPS);
+    const COMMUNITY_BASE_LOCATION_TYPES = @json(\App\Models\CommunityPost::locationTypeOptions());
+    let communityGpsMap = null;
+    let communityGpsMarker = null;
+    let communityGpsMapInitialized = false;
+    let communityGpsInputListenersBound = false;
 
     function requiresSpecificCommunityLocation(type) {
         return COMMUNITY_LOCATION_TYPES_REQUIRING_PLACE.includes(type);
     }
 
+    function isGpsCommunityLocation(type) {
+        return type === COMMUNITY_LOCATION_TYPE_GPS;
+    }
+
+    function refreshCommunityLocationTypeOptions(isReport) {
+        const typeSelect = document.getElementById('communityLocationType');
+        if (!typeSelect) {
+            return;
+        }
+
+        const selected = typeSelect.value;
+        const options = { ...COMMUNITY_BASE_LOCATION_TYPES };
+
+        if (isReport) {
+            options[COMMUNITY_LOCATION_TYPE_GPS] = 'GPS Location';
+        }
+
+        typeSelect.innerHTML = '';
+        Object.entries(options).forEach(([value, label]) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = label;
+            option.selected = value === selected;
+            typeSelect.appendChild(option);
+        });
+
+        if (!Object.prototype.hasOwnProperty.call(options, selected)) {
+            typeSelect.value = 'global';
+        }
+    }
+
+    function updateCommunityGpsInputs(lat, lng) {
+        const latInput = document.getElementById('communityLocationLat');
+        const lngInput = document.getElementById('communityLocationLng');
+
+        if (latInput) {
+            latInput.value = Number(lat).toFixed(7);
+        }
+
+        if (lngInput) {
+            lngInput.value = Number(lng).toFixed(7);
+        }
+    }
+
+    function placeCommunityGpsMarker(lat, lng, centerMap = true) {
+        updateCommunityGpsInputs(lat, lng);
+
+        const position = { lat, lng };
+
+        if (!communityGpsMarker) {
+            communityGpsMarker = new google.maps.Marker({
+                position,
+                map: communityGpsMap,
+                draggable: true,
+            });
+
+            communityGpsMarker.addListener('dragend', function (event) {
+                updateCommunityGpsInputs(event.latLng.lat(), event.latLng.lng());
+            });
+        } else {
+            communityGpsMarker.setPosition(position);
+            communityGpsMarker.setMap(communityGpsMap);
+        }
+
+        if (centerMap && communityGpsMap) {
+            communityGpsMap.panTo(position);
+        }
+    }
+
+    function syncCommunityGpsMarkerFromInputs() {
+        const lat = parseFloat(document.getElementById('communityLocationLat')?.value);
+        const lng = parseFloat(document.getElementById('communityLocationLng')?.value);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            if (communityGpsMarker) {
+                communityGpsMarker.setMap(null);
+                communityGpsMarker = null;
+            }
+
+            return;
+        }
+
+        if (!communityGpsMap) {
+            initCommunityGpsMap();
+        }
+
+        placeCommunityGpsMarker(lat, lng);
+    }
+
+    function queueCommunityGpsMapResize() {
+        if (!communityGpsMap || !window.google?.maps) {
+            return;
+        }
+
+        window.setTimeout(function () {
+            google.maps.event.trigger(communityGpsMap, 'resize');
+
+            const lat = parseFloat(document.getElementById('communityLocationLat')?.value);
+            const lng = parseFloat(document.getElementById('communityLocationLng')?.value);
+
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                communityGpsMap.setCenter({ lat, lng });
+            }
+        }, 200);
+    }
+
+    function initCommunityGpsMap() {
+        const mapEl = document.getElementById('communityGpsMap');
+        const gpsWrap = document.getElementById('communityGpsLocationWrap');
+        const locationType = document.getElementById('communityLocationType')?.value;
+        const contentType = document.getElementById('contentType')?.value;
+
+        if (!mapEl || !gpsWrap || !isGpsCommunityLocation(locationType) || contentType !== 'reports' || !window.google?.maps) {
+            return;
+        }
+
+        if (gpsWrap.style.display === 'none') {
+            return;
+        }
+
+        const latInput = document.getElementById('communityLocationLat');
+        const lngInput = document.getElementById('communityLocationLng');
+        const defaultCenter = { lat: 20.5937, lng: 78.9629 };
+        const initialLat = parseFloat(latInput?.value);
+        const initialLng = parseFloat(lngInput?.value);
+        const hasCoords = Number.isFinite(initialLat) && Number.isFinite(initialLng);
+
+        const renderMap = function () {
+            if (!communityGpsMapInitialized) {
+                communityGpsMap = new google.maps.Map(mapEl, {
+                    center: hasCoords ? { lat: initialLat, lng: initialLng } : defaultCenter,
+                    zoom: hasCoords ? 14 : 5,
+                    mapTypeControl: true,
+                    streetViewControl: false,
+                    fullscreenControl: true,
+                });
+
+                communityGpsMap.addListener('click', function (event) {
+                    placeCommunityGpsMarker(event.latLng.lat(), event.latLng.lng());
+                });
+
+                if (hasCoords) {
+                    placeCommunityGpsMarker(initialLat, initialLng, false);
+                }
+
+                communityGpsMapInitialized = true;
+            } else if (communityGpsMap) {
+                google.maps.event.trigger(communityGpsMap, 'resize');
+                if (hasCoords) {
+                    communityGpsMap.setCenter({ lat: initialLat, lng: initialLng });
+                }
+            }
+
+            if (!communityGpsInputListenersBound) {
+                latInput?.addEventListener('change', syncCommunityGpsMarkerFromInputs);
+                lngInput?.addEventListener('change', syncCommunityGpsMarkerFromInputs);
+                latInput?.addEventListener('input', syncCommunityGpsMarkerFromInputs);
+                lngInput?.addEventListener('input', syncCommunityGpsMarkerFromInputs);
+                communityGpsInputListenersBound = true;
+            }
+
+            queueCommunityGpsMapResize();
+        };
+
+        window.requestAnimationFrame(function () {
+            window.setTimeout(renderMap, 150);
+        });
+    }
+
     function refreshCommunityLocationFields(fallbackHelp) {
         const typeSelect = document.getElementById('communityLocationType');
         const specificWrap = document.getElementById('communitySpecificLocationWrap');
+        const gpsWrap = document.getElementById('communityGpsLocationWrap');
         const scopeNote = document.getElementById('communityLocationScopeNote');
         const scopeText = document.getElementById('communityLocationScopeText');
         const locationInput = document.getElementById('communityLocation');
@@ -699,13 +1210,22 @@
         }
 
         const locationType = typeSelect.value;
-        const needsSpecific = requiresSpecificCommunityLocation(locationType);
         const contentType = document.getElementById('contentType')?.value || '';
+        const needsSpecific = requiresSpecificCommunityLocation(locationType);
+        const showGpsPanel = isGpsCommunityLocation(locationType) && contentType === 'reports';
 
         specificWrap.style.display = needsSpecific ? '' : 'none';
 
+        if (gpsWrap) {
+            gpsWrap.style.display = showGpsPanel ? '' : 'none';
+        }
+
         if (locationInput) {
             locationInput.required = needsSpecific;
+        }
+
+        if (showGpsPanel) {
+            initCommunityGpsMap();
         }
 
         const helpText = {
@@ -734,6 +1254,9 @@
             } else if (locationType === 'india') {
                 scopeNote.style.display = '';
                 scopeText.textContent = 'This post applies across India. No specific GPS location is required.';
+            } else if (showGpsPanel) {
+                scopeNote.style.display = '';
+                scopeText.textContent = 'GPS location is optional. Pin the report on the map or enter latitude and longitude manually.';
             } else {
                 scopeNote.style.display = 'none';
                 scopeText.textContent = '';
@@ -756,29 +1279,24 @@
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
 
-        if (isReport) {
-            const option = document.createElement('option');
-            option.value = 'Community Problem Report';
-            option.textContent = 'Community Problem Report';
-            option.selected = true;
-            categorySelect.appendChild(option);
-            categorySelect.required = false;
-            categoryWrap.style.display = 'none';
-        } else {
-            categorySelect.required = true;
-            categoryWrap.style.display = '';
+        const categoryLabel = document.getElementById('categoryLabel');
 
-            if (type) {
-                type.categories
-                    .filter((category) => category !== 'Community Problem Report')
-                    .forEach((category) => {
-                        const option = document.createElement('option');
-                        option.value = category;
-                        option.textContent = category;
-                        option.selected = category === selected;
-                        categorySelect.appendChild(option);
-                    });
-            }
+        categorySelect.required = true;
+        categorySelect.disabled = false;
+        categoryWrap.style.display = '';
+
+        if (categoryLabel) {
+            categoryLabel.innerHTML = 'Category <span class="text-danger">*</span>';
+        }
+
+        if (type) {
+            type.categories.forEach((category) => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                option.selected = category === selected;
+                categorySelect.appendChild(option);
+            });
         }
 
         document.querySelectorAll('.type-extra').forEach((field) => {
@@ -835,8 +1353,25 @@
         document.getElementById('bodyHelp').textContent = fieldCopy.bodyHelp;
         document.getElementById('locationLabel').innerHTML = fieldCopy.locationLabel;
 
+        refreshCommunityLocationTypeOptions(isReport);
         refreshBookLayoutMode(selectedType);
         refreshCommunityLocationFields(fieldCopy.locationHelp);
+
+        if (typeof refreshCommunityActionFields === 'function') {
+            refreshCommunityActionFields();
+        }
+
+        const allowPollWrap = document.getElementById('allowPollWrap');
+        const allowPoll = document.getElementById('allowPoll');
+        if (allowPollWrap) {
+            allowPollWrap.style.display = isReport ? 'none' : '';
+        }
+        if (isReport && allowPoll) {
+            allowPoll.checked = false;
+        }
+        if (typeof refreshPollFields === 'function') {
+            refreshPollFields();
+        }
     }
 
     function isBookContentType(type) {
@@ -1060,6 +1595,94 @@
     document.getElementById('allowPoll')?.addEventListener('change', refreshPollFields);
     document.getElementById('pollSubjectInput')?.addEventListener('input', refreshPollFields);
     refreshPollFields();
+
+    function formatObservationDate(value) {
+        if (!value) {
+            return '';
+        }
+
+        const date = new Date(value + 'T00:00:00');
+        if (Number.isNaN(date.getTime())) {
+            return '';
+        }
+
+        return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        }).replace(/ /g, '-');
+    }
+
+    function refreshObservationPeriodPreview() {
+        const preview = document.getElementById('observationPeriodPreview');
+        const fromInput = document.getElementById('observationPeriodFrom');
+        const toInput = document.getElementById('observationPeriodTo');
+
+        if (!preview || !fromInput || !toInput) {
+            return;
+        }
+
+        const fromLabel = formatObservationDate(fromInput.value);
+        const toLabel = formatObservationDate(toInput.value);
+
+        if (fromLabel && toLabel) {
+            preview.textContent = fromLabel + ' to ' + toLabel;
+            return;
+        }
+
+        if (fromLabel) {
+            preview.textContent = fromLabel + ' to …';
+            return;
+        }
+
+        if (toLabel) {
+            preview.textContent = '… to ' + toLabel;
+            return;
+        }
+
+        preview.textContent = '01-Jan-2025 to 31-Dec-2025';
+    }
+
+    document.getElementById('observationPeriodFrom')?.addEventListener('change', refreshObservationPeriodPreview);
+    document.getElementById('observationPeriodTo')?.addEventListener('change', refreshObservationPeriodPreview);
+    refreshObservationPeriodPreview();
+
+    function refreshCommunityActionFields() {
+        const actionNeeded = document.getElementById('actionNeeded')?.value || '';
+        const detailsWrap = document.getElementById('communityActionDetailsWrap');
+        const actionRequestedFrom = document.getElementById('actionRequestedFrom');
+        const suggestedSolution = document.getElementById('suggestedSolution');
+        const requiredMarker = document.querySelector('.action-required-marker');
+        const needsAction = actionNeeded === 'Yes';
+
+        if (detailsWrap) {
+            detailsWrap.style.display = needsAction ? '' : 'none';
+        }
+
+        if (actionRequestedFrom) {
+            actionRequestedFrom.required = needsAction;
+            actionRequestedFrom.disabled = !needsAction;
+        }
+
+        if (suggestedSolution) {
+            suggestedSolution.disabled = !needsAction;
+        }
+
+        if (requiredMarker) {
+            requiredMarker.style.display = needsAction ? '' : 'none';
+        }
+
+        if (!needsAction) {
+            if (actionRequestedFrom) {
+                actionRequestedFrom.value = '';
+            }
+            if (suggestedSolution) {
+                suggestedSolution.value = '';
+            }
+        }
+    }
+
+    document.getElementById('actionNeeded')?.addEventListener('change', refreshCommunityActionFields);
 
     refreshCommunityCategories();
 
@@ -1454,19 +2077,30 @@
         autocomplete.addListener('place_changed', function () {
             const place = autocomplete.getPlace();
             if (!place?.geometry?.location) {
-                latitudeInput.value = '';
-                longitudeInput.value = '';
+                if (latitudeInput) latitudeInput.value = '';
+                if (longitudeInput) longitudeInput.value = '';
                 return;
             }
             locationInput.value = place.formatted_address || locationInput.value;
-            latitudeInput.value = place.geometry.location.lat().toFixed(7);
-            longitudeInput.value = place.geometry.location.lng().toFixed(7);
+            if (latitudeInput) latitudeInput.value = place.geometry.location.lat().toFixed(7);
+            if (longitudeInput) longitudeInput.value = place.geometry.location.lng().toFixed(7);
         });
 
         locationInput.addEventListener('input', function () {
-            latitudeInput.value = '';
-            longitudeInput.value = '';
+            if (latitudeInput) latitudeInput.value = '';
+            if (longitudeInput) longitudeInput.value = '';
         });
+    };
+
+    window.initCommunityPostMaps = function () {
+        window.initCommunityPostLocationAutocomplete();
+
+        if (
+            document.getElementById('contentType')?.value === 'reports'
+            && isGpsCommunityLocation(document.getElementById('communityLocationType')?.value)
+        ) {
+            initCommunityGpsMap();
+        }
     };
 
     document.getElementById('community-post-form').addEventListener('submit', function (event) {
@@ -1590,5 +2224,11 @@
             });
     });
 </script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initCommunityPostLocationAutocomplete"></script>
+@if(config('services.google.maps_api_key'))
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initCommunityPostMaps"></script>
+@else
+<script>
+    console.warn('Google Maps API key is missing. Set GOOGLE_MAPS_API_KEY in your environment file.');
+</script>
+@endif
 @endpush

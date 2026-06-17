@@ -100,7 +100,7 @@ class CommunityPostSeeder extends Seeder
     private function categoryFor(string $typeKey, array $type): string
     {
         if ($typeKey === 'reports') {
-            return 'Community Problem Report';
+            return CommunityContentTaxonomy::reportMainCategories()[0];
         }
 
         return $type['categories'][0];
@@ -159,7 +159,12 @@ HTML;
                 'methodology' => 'Resident interviews, field observation, and department correspondence.',
                 'data_sources' => 'Citizen reports, ward office notes, and on-site photos.',
                 'key_findings' => "Issue confirmed by multiple residents.\nResponse time from department needs improvement.",
+                'report_analysis' => 'The delay appears linked to incomplete handoffs between ward office and maintenance teams.',
                 'recommendations' => "Escalate to the relevant department.\nPublish monthly progress updates to the community.",
+                'report_conclusion' => 'Community follow-up and transparent reporting can improve resolution timelines.',
+                'action_needed' => 'Yes',
+                'action_requested_from' => 'Panchayat',
+                'suggested_solution' => 'Schedule a ward-level review meeting and assign a visible action owner.',
             ]);
         }
 

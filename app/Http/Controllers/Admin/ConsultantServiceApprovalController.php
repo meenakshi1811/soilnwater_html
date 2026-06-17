@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ValidatesConsultantServiceRequest;
 use App\Http\Controllers\Controller;
 use App\Services\PortalNotificationService;
+use App\Models\Consultant;
 use App\Models\ConsultantService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,6 +14,51 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ConsultantServiceApprovalController extends Controller
 {
+    use ValidatesConsultantServiceRequest;
+
+    public function create(): View
+    {
+        return view('backend.consultant.services.form', [
+            'service' => new ConsultantService(),
+            'categories' => $this->consultantCategories(),
+            'isAdmin' => true,
+            'consultants' => $this->approvedConsultants(),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'consultant_id' => ['required', 'exists:consultants,id'],
+        ]);
+
+        $data = $this->validatedConsultantService($request);
+        $data['consultant_id'] = (int) $request->input('consultant_id');
+        $data['slug'] = $this->uniqueConsultantServiceSlug($data['consultant_id'], $data['name']);
+
+        $service = ConsultantService::create($data);
+
+        $service->loadMissing('consultant.user');
+        PortalNotificationService::notifyUser(
+            $service->consultant?->user,
+            'Consultation service added by admin',
+            $service->name.' has been added on your behalf and is pending approval.',
+            route('consultant.services.show', $service),
+            'approval'
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Consultation service created successfully for the selected consultant.',
+                'redirect' => route('admin.consultant-services.all.index'),
+            ]);
+        }
+
+        return redirect()->route('admin.consultant-services.all.index')
+            ->with('success', 'Consultation service created successfully for the selected consultant.');
+    }
+
     public function index(): View
     {
         return view('backend.admin.consultant-services.index');
@@ -144,5 +191,13 @@ class ConsultantServiceApprovalController extends Controller
         }
 
         return $decoded;
+    }
+
+    private function approvedConsultants()
+    {
+        return Consultant::query()
+            ->where('status', 'approved')
+            ->orderBy('company_name')
+            ->get(['id', 'company_name', 'display_name']);
     }
 }

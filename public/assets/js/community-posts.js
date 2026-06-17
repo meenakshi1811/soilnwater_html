@@ -69,13 +69,14 @@
             processing: true,
             serverSide: true,
             ajax: $('#myCommunityPostsTable').data('source-url'),
-            order: [[5, 'desc']],
+            order: [[6, 'desc']],
             columns: [
                 { data: 'title', name: 'title' },
                 { data: 'writing_purpose_display', name: 'writing_purpose' },
                 { data: 'type_label', name: 'content_type', orderable: false, searchable: false },
                 { data: 'category_display', name: 'category' },
                 { data: 'status_badge', name: 'status', orderable: false, searchable: false },
+                { data: 'trust_score_display', name: 'trust_score_display', orderable: false, searchable: false },
                 { data: 'published_display', name: 'published_at' },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end' }
             ]

@@ -6,7 +6,7 @@
 @endpush
 @section('content')
 <div class="admin-panel ems-page">
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><div><p class="ems-kicker mb-1">Admin Portal</p><h2 class="admin-title mb-0">All Consultation Services</h2></div><a href="{{ route('admin.consultant-services.index') }}" class="btn btn-outline-primary">Pending Approvals</a></div>
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><div><p class="ems-kicker mb-1">Admin Portal</p><h2 class="admin-title mb-0">All Consultation Services</h2></div><div class="d-flex gap-2 flex-wrap"><a href="{{ route('admin.consultant-services.create') }}" class="btn btn-primary">Create Service</a><a href="{{ route('admin.consultant-services.index') }}" class="btn btn-outline-primary">Pending Approvals</a></div></div>
   <div class="chart-card p-3 p-lg-4"><div class="row mb-3"><div class="col-md-3"><select id="serviceStatusFilter" class="form-select"><option value="">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div></div><div class="table-responsive"><table id="allConsultantServicesTable" class="table table-hover align-middle w-100"><thead><tr><th>Service</th><th>Consultant</th><th>Category</th><th>Charges</th><th>Status</th><th>Updated</th><th class="text-end">Actions</th></tr></thead></table></div></div>
 </div>
 @endsection

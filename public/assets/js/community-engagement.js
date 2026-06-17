@@ -115,7 +115,242 @@
         }
     });
 
+    function updateReportEngagementStats(engagement) {
+        if (!engagement) {
+            return;
+        }
+
+        const map = {
+            supports: engagement.supports_count,
+            agreements: engagement.agreements_count,
+            follows: engagement.follows_count,
+        };
+
+        Object.entries(map).forEach(([key, value]) => {
+            const el = document.querySelector(`[data-report-stat="${key}"]`);
+            if (el) {
+                el.textContent = Number(value || 0).toLocaleString();
+            }
+        });
+    }
+
+    function updateReportTrustScore(score) {
+        if (score === null || score === undefined) {
+            return;
+        }
+
+        document.querySelectorAll('.report-trust-score__value').forEach((el) => {
+            el.textContent = `${score}%`;
+        });
+
+        document.querySelectorAll('.community-post-banner-tag').forEach((badge) => {
+            if (badge.textContent.trim().startsWith('Trust Score:')) {
+                badge.textContent = `Trust Score: ${score}%`;
+            }
+        });
+    }
+
+    function setReportToggleState(button, active, action) {
+        const labels = {
+            support: active ? 'Supported' : 'Support report',
+            agree: active ? 'Agreed' : 'I agree',
+            follow: active ? 'Following' : 'Follow issue',
+        };
+
+        button.classList.toggle('btn-success', active);
+        button.classList.toggle('btn-outline-success', !active);
+        button.dataset.active = active ? '1' : '0';
+
+        const label = button.querySelector('.js-report-action-label');
+        if (label) {
+            label.textContent = labels[action] || label.textContent;
+        }
+    }
+
+    function appendParticipationTextEntry(list, entry) {
+        if (!list) {
+            return;
+        }
+
+        list.querySelectorAll('.js-participation-empty').forEach((el) => el.remove());
+
+        const item = document.createElement('div');
+        item.className = 'border rounded-3 p-3 bg-white';
+        item.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                <strong class="small">${entry.contributor || 'Community member'}</strong>
+                <small class="text-muted">${entry.created_at || 'Just now'}</small>
+            </div>
+            <p class="small mb-0"></p>
+        `;
+        item.querySelector('p').textContent = entry.body || '';
+        list.prepend(item);
+    }
+
+    document.addEventListener('click', async function (event) {
+        const toggleButton = event.target.closest('.js-report-engagement-toggle');
+        if (toggleButton) {
+            event.preventDefault();
+            toggleButton.disabled = true;
+
+            try {
+                const response = await fetch(toggleButton.dataset.url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                    },
+                    body: new URLSearchParams({ _token: csrfToken() }),
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Unable to update report engagement.');
+                }
+
+                const action = toggleButton.dataset.action;
+                const active = Boolean(data.supported ?? data.agreed ?? data.following);
+                setReportToggleState(toggleButton, active, action);
+                updateReportEngagementStats(data.engagement);
+                updateReportTrustScore(data.report_trust_score);
+                notify('success', data.message);
+            } catch (error) {
+                notify('error', error.message || 'Unable to update report engagement.');
+            } finally {
+                toggleButton.disabled = false;
+            }
+
+            return;
+        }
+    });
+
     document.addEventListener('submit', async function (event) {
+        const textForm = event.target.closest('.js-participation-text-form');
+        if (textForm) {
+            event.preventDefault();
+
+            const submitButton = textForm.querySelector('[type="submit"]');
+            const bodyField = textForm.querySelector('[name="body"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
+
+                const bodyText = bodyField?.value || '';
+
+                try {
+                    const response = await fetch(textForm.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ body: bodyField?.value || '' }),
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Unable to submit participation.');
+                }
+
+                textForm.reset();
+
+                const isSuggestion = textForm.action.includes('/participation/suggestion');
+                const list = document.getElementById(isSuggestion ? 'participationSuggestionsList' : 'participationFeedbackList');
+                appendParticipationTextEntry(list, {
+                    contributor: 'You',
+                    created_at: 'Just now',
+                    body: bodyText,
+                });
+
+                notify('success', data.message);
+            } catch (error) {
+                notify('error', error.message || 'Unable to submit participation.');
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                }
+            }
+
+            return;
+        }
+
+        const evidenceForm = event.target.closest('.js-participation-evidence-form');
+        if (evidenceForm) {
+            event.preventDefault();
+
+            const submitButton = evidenceForm.querySelector('[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
+
+            try {
+                const response = await fetch(evidenceForm.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                    },
+                    body: new FormData(evidenceForm),
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Unable to upload evidence.');
+                }
+
+                evidenceForm.reset();
+                updateReportTrustScore(data.report_trust_score);
+
+                const emptyMessage = document.getElementById('participationEvidenceEmpty');
+                if (emptyMessage) {
+                    emptyMessage.remove();
+                }
+
+                const section = document.getElementById('communityParticipationEvidenceSection');
+                const list = document.getElementById('communityParticipationEvidenceList');
+                if (section) {
+                    section.style.display = '';
+                }
+
+                (data.evidence || []).forEach((item) => {
+                    if (!list || list.querySelector(`[data-evidence-id="${item.id}"]`)) {
+                        return;
+                    }
+
+                    const col = document.createElement('div');
+                    col.className = 'col-md-6';
+                    col.dataset.evidenceId = String(item.id);
+                    col.innerHTML = `
+                        <div class="border rounded-3 p-3 h-100 bg-white">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <strong class="small">${item.contributor || 'Community member'}</strong>
+                                <small class="text-muted">${item.created_at || 'Just now'}</small>
+                            </div>
+                            <a href="${item.url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary mb-2">
+                                <i class="fa-solid fa-paperclip me-1"></i>${item.name}
+                            </a>
+                            ${item.note ? `<p class="small text-muted mb-0">${item.note}</p>` : ''}
+                        </div>
+                    `;
+                    list?.prepend(col);
+                });
+
+                notify('success', data.message);
+            } catch (error) {
+                notify('error', error.message || 'Unable to upload evidence.');
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                }
+            }
+
+            return;
+        }
+
         const form = event.target.closest('#communityPostReportForm');
         if (!form) {
             return;

@@ -87,6 +87,205 @@
         padding: 0.5rem 1rem;
     }
 
+    .report-trust-score {
+        background: linear-gradient(135deg, #f8fafc 0%, #eef6ff 100%);
+        border: 1px solid #cfe0f5;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .report-trust-score--high {
+        border-color: #86efac;
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    }
+
+    .report-trust-score--medium {
+        border-color: #fcd34d;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    }
+
+    .report-trust-score--low {
+        border-color: #cbd5e1;
+    }
+
+    .report-trust-score__header {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .report-trust-score__kicker {
+        color: #0f766e;
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .report-trust-score__title {
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+
+    .report-trust-score__value-wrap {
+        align-items: center;
+        background: #fff;
+        border: 2px solid currentColor;
+        border-radius: 999px;
+        color: #0f766e;
+        display: inline-flex;
+        min-width: 5.5rem;
+        justify-content: center;
+        padding: 0.35rem 1rem;
+    }
+
+    .report-trust-score--high .report-trust-score__value-wrap {
+        color: #15803d;
+    }
+
+    .report-trust-score--medium .report-trust-score__value-wrap {
+        color: #b45309;
+    }
+
+    .report-trust-score__value {
+        font-size: 1.35rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .report-trust-score__factor {
+        align-items: flex-start;
+        border-top: 1px solid rgba(15, 23, 42, 0.08);
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: auto 1fr auto;
+        padding: 0.75rem 0;
+    }
+
+    .report-trust-score__factor-icon {
+        color: #94a3b8;
+        padding-top: 0.1rem;
+    }
+
+    .report-trust-score__factor.is-met .report-trust-score__factor-icon {
+        color: #16a34a;
+    }
+
+    .report-trust-score__factor-points {
+        color: #475569;
+        font-size: 0.85rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .report-trust-score--compact {
+        padding: 0.9rem 1rem;
+    }
+
+    .report-trust-score--compact .report-trust-score__title {
+        font-size: 1rem;
+    }
+
+    .report-trust-score--compact .report-trust-score__value {
+        font-size: 1.1rem;
+    }
+
+    .community-post-card__badge--trust-score {
+        background: rgba(15, 118, 110, 0.92);
+        color: #fff;
+    }
+
+    .report-community-panel {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        border: 1px solid #d7e6f5;
+        border-radius: 18px;
+        padding: 1.5rem;
+    }
+
+    .report-community-panel__header {
+        display: flex;
+        gap: 1.25rem;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
+    }
+
+    .report-community-panel__kicker {
+        color: #0f766e;
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.35rem;
+        text-transform: uppercase;
+    }
+
+    .report-community-panel__stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+    }
+
+    .report-community-panel__stat {
+        background: #fff;
+        border: 1px solid #dbe7f3;
+        border-radius: 999px;
+        color: #475569;
+        font-size: 0.82rem;
+        padding: 0.35rem 0.8rem;
+    }
+
+    .report-community-panel__grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .report-community-action-card {
+        background: #fff;
+        border: 1px solid #e2ebf5;
+        border-radius: 16px;
+        display: flex;
+        gap: 1rem;
+        min-height: 100%;
+        padding: 1.1rem;
+    }
+
+    .report-community-action-card--wide {
+        grid-column: 1 / -1;
+    }
+
+    .report-community-action-card__icon {
+        align-items: center;
+        border-radius: 14px;
+        color: #fff;
+        display: inline-flex;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+        height: 48px;
+        justify-content: center;
+        width: 48px;
+    }
+
+    .report-community-action-card__icon--support { background: linear-gradient(135deg, #0f766e, #14b8a6); }
+    .report-community-action-card__icon--agree { background: linear-gradient(135deg, #166534, #22c55e); }
+    .report-community-action-card__icon--follow { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+    .report-community-action-card__icon--evidence { background: linear-gradient(135deg, #b45309, #f59e0b); }
+
+    .report-community-action-card__body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    @@media (max-width: 991.98px) {
+        .report-community-panel__grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
     [data-community-body-protected] {
         -webkit-touch-callout: none;
         -webkit-user-select: none;
@@ -149,6 +348,12 @@
             @endforeach
             @if($post->content_type === 'articles' && filled(data_get($post->meta, 'article_type')))
                 <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'article_type') }}</span>
+            @endif
+            @if($post->content_type === 'reports' && filled($post->reportStatus()))
+                <span class="badge {{ $post->reportStatusBadgeClass() }} community-post-banner-tag">{{ $post->reportStatus() }}</span>
+            @endif
+            @if($post->isReportContent())
+                <span class="badge bg-success community-post-banner-tag">Trust Score: {{ $post->reportTrustScore() }}%</span>
             @endif
             <span class="badge bg-light text-dark community-post-banner-tag">{{ filled(data_get($post->meta, 'report_type')) ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</span>
         </div>
@@ -220,6 +425,16 @@
                 <p class="lead">{{ $post->excerpt }}</p>
             @endif
 
+            @if($post->isReportContent())
+                <div class="mb-4">
+                    @include('community.partials.report-trust-score', ['post' => $post])
+                </div>
+                @include('community.partials.report-community-actions', [
+                    'post' => $post,
+                    'reportEngagement' => $reportEngagement,
+                ])
+            @endif
+
             @if($post->hasVideo())
                 <div class="community-post-video mb-4">
                     @if($post->youtubeEmbedUrl())
@@ -278,12 +493,7 @@
                     'quote_attribution' => 'Quote / attribution',
                     'location' => 'News location',
                 ];
-                $myAreaMetaLabels = [
-                    'report_type' => 'Report type',
-                    'issue_priority' => 'Priority',
-                    'issue_status' => 'Status',
-                    'reported_to' => 'Reported to',
-                    'issue_reference' => 'Reference / complaint no.',
+                $myAreaMetaLabels = \App\Support\CommunityPostFormFields::reportDetailMetaOrder() + [
                     'location' => 'GPS issue location',
                 ];
                 $myVoiceMetaLabels = [
@@ -312,7 +522,12 @@
                 $additionalMyAreaMeta = $visibleMeta->except([...$myAreaMetaOrder, 'report_format', 'issue_attachments', 'author_bio']);
                 $additionalMyVoiceMeta = $visibleMeta->except([...$myVoiceMetaOrder, 'author_bio']);
             @endphp
-            @if($post->content_type === 'reports' && blank(data_get($post->meta, 'report_type')) && $orderedReportMeta->isNotEmpty())
+            @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
+                @include('community.partials.report-meta-details', ['post' => $post, 'includeLocation' => true])
+                @php
+                    $visibleMeta = $additionalMyAreaMeta;
+                @endphp
+            @elseif($post->content_type === 'reports' && blank(data_get($post->meta, 'report_type')) && $orderedReportMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Report details</h4>
                     <div class="row g-3">
@@ -352,36 +567,6 @@
                     $visibleMeta = $additionalNewsMeta;
                 @endphp
             @endif
-            @if($post->content_type === 'reports' && ($orderedMyAreaMeta->isNotEmpty() || !empty(data_get($post->meta, 'issue_attachments'))))
-                <div class="about-box mt-4">
-                    <h4>My Area report details</h4>
-                    @if($orderedMyAreaMeta->isNotEmpty())
-                        <div class="row g-3 mb-3">
-                            @foreach($orderedMyAreaMeta as $key => $value)
-                                <div class="col-md-6">
-                                    <div class="border rounded p-3 h-100 bg-light">
-                                        <strong class="d-block mb-1">{{ $myAreaMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
-                                        <span>{!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                    @if(!empty(data_get($post->meta, 'issue_attachments')))
-                        <h5 class="h6">Evidence files</h5>
-                        <div class="d-flex flex-wrap gap-2">
-                            @foreach(data_get($post->meta, 'issue_attachments', []) as $attachment)
-                                <a href="{{ data_get($attachment, 'url') }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fa-solid fa-paperclip me-1"></i>{{ data_get($attachment, 'name', 'Attachment') }}
-                                </a>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-                @php
-                    $visibleMeta = $additionalMyAreaMeta;
-                @endphp
-            @endif
             @if($post->content_type === 'my-voice' && $orderedMyVoiceMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>My Voice details</h4>
@@ -408,6 +593,21 @@
                         <p class="mb-0 text-muted">This post has global relevance.</p>
                     @elseif($post->location_type === \App\Models\CommunityPost::LOCATION_TYPE_INDIA)
                         <p class="mb-0 text-muted">This post applies across India.</p>
+                    @elseif($post->usesGpsLocation())
+                        <p class="mb-2 text-muted">This report uses an optional GPS location.</p>
+                        @if($post->hasMapCoordinates())
+                            <p class="mb-2"><strong>Coordinates:</strong> {{ $post->location_lat }}, {{ $post->location_lng }}</p>
+                            <div class="ratio ratio-16x9 border rounded overflow-hidden">
+                                <iframe
+                                    title="Report GPS location map"
+                                    loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    src="https://www.openstreetmap.org/export/embed.html?bbox={{ $post->location_lng - 0.02 }},{{ $post->location_lat - 0.02 }},{{ $post->location_lng + 0.02 }},{{ $post->location_lat + 0.02 }}&layer=mapnik&marker={{ $post->location_lat }},{{ $post->location_lng }}"
+                                ></iframe>
+                            </div>
+                        @else
+                            <p class="mb-0 text-muted">No GPS coordinates were provided for this report.</p>
+                        @endif
                     @elseif($post->requiresSpecificLocation() && filled($resolvedLocation))
                         <p class="mb-0">{{ $resolvedLocation }}</p>
                         @if(filled($post->location_lat) && filled($post->location_lng))
@@ -532,69 +732,12 @@
                 ])
             @endif
 
-            <div class="about-box mt-4" id="discussion">
-                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
-                    <div>
-                        <h4 class="mb-1">Discussion</h4>
-                        <p class="text-muted mb-0">Ask questions, share answers, and reply to other readers on this post.</p>
-                    </div>
-                    <span class="badge {{ $post->allow_comments ? 'bg-success' : 'bg-secondary' }}">{{ $post->allow_comments ? 'Open' : 'Closed' }}</span>
-                </div>
-
-                @if($post->allow_comments)
-                    @auth
-                        <form method="POST" action="{{ route('community.comments.store', $post) }}" class="mb-4">
-                            @csrf
-                            <label class="form-label" for="discussionBody">Start a discussion or add your answer</label>
-                            <textarea name="body" id="discussionBody" class="form-control{{ $errors->has('body') ? ' is-invalid' : '' }}" rows="4" maxlength="2000" required placeholder="Write your question, answer, suggestion, or experience...">{{ old('body') }}</textarea>
-                            @error('body')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <button type="submit" class="btn btn-success mt-2">Post comment</button>
-                        </form>
-                    @else
-                        <p><a href="{{ route('login') }}">Login</a> to join this discussion.</p>
-                    @endauth
-                @else
-                    <p class="text-muted mb-0">The author has disabled public discussion for this post.</p>
-                @endif
-
-                @forelse($post->discussionComments as $comment)
-                    <div class="discussion-comment border rounded-3 p-3 mb-3">
-                        <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-2">
-                            <strong>{{ $comment->user->name ?? $comment->user->full_name ?? 'Community member' }}</strong>
-                            <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
-                        </div>
-                        <p class="mb-2">{!! nl2br(e($comment->body)) !!}</p>
-
-                        @if($post->allow_comments)
-                            @auth
-                                <details class="mb-3">
-                                    <summary class="text-success fw-semibold">Reply</summary>
-                                    <form method="POST" action="{{ route('community.comments.store', $post) }}" class="mt-2">
-                                        @csrf
-                                        <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                                        <textarea name="body" class="form-control" rows="2" maxlength="2000" required placeholder="Reply to this comment..."></textarea>
-                                        <button type="submit" class="btn btn-outline-success btn-sm mt-2">Post reply</button>
-                                    </form>
-                                </details>
-                            @endauth
-                        @endif
-
-                        @foreach($comment->replies as $reply)
-                            <div class="discussion-reply border-start ps-3 ms-2 mb-2">
-                                <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-1">
-                                    <strong>{{ $reply->user->name ?? $reply->user->full_name ?? 'Community member' }}</strong>
-                                    <small class="text-muted">{{ $reply->created_at->diffForHumans() }}</small>
-                                </div>
-                                <p class="mb-0">{!! nl2br(e($reply->body)) !!}</p>
-                            </div>
-                        @endforeach
-                    </div>
-                @empty
-                    <p class="text-muted mb-0">No discussion yet. Be the first to comment.</p>
-                @endforelse
-            </div>
+            @include('community.partials.public-participation', [
+                'post' => $post,
+                'participationSuggestions' => $participationSuggestions ?? collect(),
+                'participationFeedback' => $participationFeedback ?? collect(),
+                'communityParticipationEvidence' => $communityParticipationEvidence ?? collect(),
+            ])
         </section>
     </div>
 
@@ -679,6 +822,14 @@
     }
     .discussion-comment { background: #fff; }
     .discussion-reply { background: #f8faf9; border-color: #badbcc !important; padding-bottom: .5rem; padding-top: .5rem; }
+    .public-participation__block {
+        border-top: 1px solid #e8f0ea;
+        padding-top: 1.25rem;
+    }
+    .public-participation__block:first-of-type {
+        border-top: 0;
+        padding-top: 0;
+    }
     @@media (max-width: 767.98px) {
         .community-post-body .image.image-style-align-left,
         .community-post-body .image.image-style-align-right,

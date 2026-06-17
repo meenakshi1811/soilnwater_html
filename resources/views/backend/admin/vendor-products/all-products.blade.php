@@ -8,7 +8,10 @@
 
 @section('content')
 <div class="admin-panel ems-page">
-    <h2 class="admin-title mb-3">All Vendor Products</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2 class="admin-title mb-0">All Vendor Products</h2>
+        <a href="{{ route('admin.vendor-products.create') }}" class="btn btn-primary">Create Product</a>
+    </div>
 
     <div class="chart-card p-3 mb-3">
         <div class="row g-2 align-items-end">

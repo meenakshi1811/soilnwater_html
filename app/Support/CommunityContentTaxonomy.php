@@ -22,7 +22,7 @@ class CommunityContentTaxonomy
             'reports' => [
                 'label' => 'Reports',
                 'description' => 'Research, analytical content, and My Area civic problem reports.',
-                'categories' => ['Industry Reports', 'Market Analysis', 'Survey Reports', 'Economic Reports', 'Infrastructure Reports', 'Local Development Reports', 'Water & Environment Reports', 'Community Problem Report'],
+                'categories' => self::reportMainCategories(),
             ],
             'my-area' => [
                 'label' => 'My Area',
@@ -215,7 +215,122 @@ class CommunityContentTaxonomy
     }
 
     /**
-     * Report type choices for My Area civic issue posts.
+     * Main category choices for report posts.
+     *
+     * @return list<string>
+     */
+    public static function reportMainCategories(): array
+    {
+        return [
+            'Community Report',
+            'Research Report',
+            'Survey Report',
+            'Infrastructure Report',
+            'Environment Report',
+            'Water Report',
+            'Agriculture Report',
+            'Education Report',
+            'Health Report',
+            'Market Report',
+            'Government Scheme Report',
+            'Social Impact Report',
+        ];
+    }
+
+    /**
+     * Report type choices for report posts.
+     *
+     * @return list<string>
+     */
+    public static function reportTypes(): array
+    {
+        return [
+            'Observation Report',
+            'Survey Report',
+            'Research Report',
+            'Field Report',
+            'Investigation Report',
+            'Community Report',
+            'Technical Report',
+            'Market Analysis',
+            'Case Study',
+            'Progress Report',
+            'Impact Assessment',
+        ];
+    }
+
+    /**
+     * Author type choices for report posts.
+     *
+     * @return list<string>
+     */
+    public static function reportAuthorTypes(): array
+    {
+        return [
+            'Citizen Reporter',
+            'Student',
+            'Researcher',
+            'Teacher',
+            'NGO',
+            'Government Officer',
+            'Business',
+            'Consultant',
+            'Professional',
+        ];
+    }
+
+    /**
+     * Organization type choices for report posts.
+     *
+     * @return list<string>
+     */
+    public static function reportOrganizationTypes(): array
+    {
+        return [
+            'Institution',
+            'School / College',
+            'NGO',
+            'Government Department',
+        ];
+    }
+
+    /**
+     * Report status choices describing the intent or outcome of a report.
+     *
+     * @return list<string>
+     */
+    public static function reportStatuses(): array
+    {
+        return [
+            'Information Only',
+            'Seeking Support',
+            'Awareness Campaign',
+            'Request for Action',
+            'Success Story',
+            'Issue Resolved',
+        ];
+    }
+
+    /**
+     * Action audience choices for community report action requests.
+     *
+     * @return list<string>
+     */
+    public static function reportActionRequestedFrom(): array
+    {
+        return [
+            'Municipality',
+            'Panchayat',
+            'State Government',
+            'NGO',
+            'Community',
+            'Business',
+            'General Public',
+        ];
+    }
+
+    /**
+     * Legacy civic issue report types for older My Area posts.
      *
      * @return list<string>
      */

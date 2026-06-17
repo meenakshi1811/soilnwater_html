@@ -48,6 +48,7 @@
                     <th>Role</th>
                     <th>Status</th>
                     <th>Score</th>
+                    <th>Trust</th>
                     <th>Promotion</th>
                     <th>Published</th>
                     <th class="text-end">Actions</th>

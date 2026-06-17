@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Mail\CommunityPostReviewMail;
 use App\Models\CommunityPost;
 use App\Services\CommunityArticleScoreService;
+use App\Services\CommunityReportTrustScoreService;
 use App\Services\CommunityEngagementNotificationService;
+use App\Services\CommunityReportEngagementNotificationService;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
 use Illuminate\Http\JsonResponse;
@@ -65,6 +67,10 @@ class CommunityPostApprovalController extends Controller
             'reactions as likes_count' => fn ($query) => $query->where('reaction', '!=', 'Dislike'),
             'comments',
             'saves',
+            'reportSupports',
+            'reportAgreements',
+            'reportFollows',
+            'reportEvidence',
         ]);
 
         return view('backend.admin.community-posts.show', [
@@ -72,6 +78,21 @@ class CommunityPostApprovalController extends Controller
             'types' => CommunityContentTaxonomy::formTypes(),
             'scoreMetrics' => CommunityArticleScoreService::metricSummary($post),
             'scoreBreakdown' => CommunityArticleScoreService::breakdown($post),
+            'reportEngagement' => $post->isReportContent()
+                ? CommunityReportEngagementNotificationService::stateForPost($post)
+                : null,
+            'communityParticipationEvidence' => $post->isReportContent()
+                ? CommunityReportEngagementNotificationService::recentEvidence($post, 20)
+                : collect(),
+            'participationSuggestions' => $post->suggestions()->with('user:id,name,full_name')->latest()->limit(20)->get(),
+            'participationFeedback' => $post->feedbackEntries()->with('user:id,name,full_name')->latest()->limit(20)->get(),
+            'reportEngagementActivity' => $post->isReportContent()
+                ? [
+                    'supports' => $post->reportSupports()->with('user:id,name,full_name')->latest()->limit(10)->get(),
+                    'agreements' => $post->reportAgreements()->with('user:id,name,full_name')->latest()->limit(10)->get(),
+                    'follows' => $post->reportFollows()->with('user:id,name,full_name')->latest()->limit(10)->get(),
+                ]
+                : null,
         ]);
     }
 
@@ -111,7 +132,12 @@ class CommunityPostApprovalController extends Controller
             $post = $post->fresh('user');
             $this->notifyOwnerOfReview($post, 'approved');
             CommunityEngagementNotificationService::notifySubscribersOfPublishedPost($post);
+            CommunityReportEngagementNotificationService::notifyFollowersOfReportUpdate(
+                $post,
+                'This report has been reviewed and published.'
+            );
             CommunityArticleScoreService::recalculate($post);
+            CommunityReportTrustScoreService::syncToMeta($post);
         }
 
         return response()->json(['message' => 'Community post approved and published.']);
@@ -285,16 +311,13 @@ class CommunityPostApprovalController extends Controller
 
         return DataTables::of($query)
             ->addColumn('type_label', fn (CommunityPost $post): string => e($post->typeLabel()))
-            ->addColumn('category_display', fn (CommunityPost $post): string => e(
-                filled(data_get($post->meta, 'report_type'))
-                    ? data_get($post->meta, 'report_type', $post->category)
-                    : $post->category
-            ))
+            ->addColumn('category_display', fn (CommunityPost $post): string => e($post->listingCategoryLabel()))
             ->addColumn('owner_name', fn (CommunityPost $post): string => e($post->user?->full_name ?: ($post->user?->name ?? 'Unknown user')))
             ->addColumn('owner_role', fn (CommunityPost $post): string => '<span class="badge bg-light text-dark border">'.e($this->roleLabel($post->user?->role)).'</span>')
             ->addColumn('status_badge', fn (CommunityPost $post): string => '<span class="badge '.$post->statusBadgeClass().'">'.e($post->statusLabel()).'</span>')
             ->addColumn('promotion_badges', fn (CommunityPost $post): string => $this->renderPromotionBadges($post))
             ->addColumn('article_score_display', fn (CommunityPost $post): string => number_format((float) $post->article_score, 1))
+            ->addColumn('trust_score_display', fn (CommunityPost $post): string => CommunityReportTrustScoreService::badgeHtml($post))
             ->addColumn('published_display', function (CommunityPost $post): string {
                 if ($post->published_at) {
                     return $post->published_at->timezone(config('app.timezone'))->format('d M Y, h:i A');
@@ -307,7 +330,7 @@ class CommunityPostApprovalController extends Controller
                 return '—';
             })
             ->addColumn('actions', fn (CommunityPost $post): string => $this->renderActionButtons($post, false))
-            ->rawColumns(['owner_role', 'status_badge', 'promotion_badges', 'actions'])
+            ->rawColumns(['owner_role', 'status_badge', 'promotion_badges', 'trust_score_display', 'actions'])
             ->make(true);
     }
 

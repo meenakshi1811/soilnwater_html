@@ -270,7 +270,7 @@
                     payload.status = $('#statusFilter').val() || '';
                 }
             },
-            order: [[8, 'desc']],
+            order: [[9, 'desc']],
             columns: [
                 { data: 'title', name: 'title' },
                 { data: 'type_label', name: 'content_type', orderable: false, searchable: false },
@@ -279,6 +279,7 @@
                 { data: 'owner_role', name: 'user.role', orderable: false, searchable: false },
                 { data: 'status_badge', name: 'status', orderable: false, searchable: false },
                 { data: 'article_score_display', name: 'article_score' },
+                { data: 'trust_score_display', name: 'trust_score_display', orderable: false, searchable: false },
                 { data: 'promotion_badges', name: 'is_featured', orderable: false, searchable: false },
                 { data: 'published_display', name: 'published_at' },
                 { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end' }

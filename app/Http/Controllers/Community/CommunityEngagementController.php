@@ -8,6 +8,7 @@ use App\Models\CommunityPost;
 use App\Models\CommunityPostReport;
 use App\Models\CommunityPostSave;
 use App\Models\CommunityTopicFollow;
+use App\Services\CommunityReportTrustScoreService;
 use App\Support\CommunityContentTaxonomy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -38,6 +39,10 @@ class CommunityEngagementController extends Controller
             ]);
             $saved = true;
             $message = 'Post saved successfully.';
+        }
+
+        if ($post->isReportContent()) {
+            CommunityReportTrustScoreService::syncToMeta($post->fresh());
         }
 
         if ($request->expectsJson()) {

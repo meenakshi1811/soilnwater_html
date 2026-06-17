@@ -4,6 +4,8 @@
         $authorDisplayName = $post->authorDisplayName();
         $authorInitials = $post->authorInitials();
         $authorAvatarUrl = $post->authorAvatarUrl();
+        $reportStatus = $post->reportStatus();
+        $reportTrustScore = $post->isReportContent() ? $post->reportTrustScore() : null;
         $categoryLabel = filled(data_get($post->meta, 'report_type'))
             ? data_get($post->meta, 'report_type', $post->category)
             : $post->category;
@@ -24,7 +26,7 @@
                     </div>
                 @endif
                 <div class="community-post-card__media-overlay"></div>
-                @if ($categoryLabel || $promotionLabels !== [] || $scoreBadges !== [])
+                @if ($categoryLabel || $reportStatus || $reportTrustScore !== null || $promotionLabels !== [] || $scoreBadges !== [])
                     <div class="community-post-card__badges">
                         @foreach($scoreBadges as $badge)
                             <span class="community-post-card__badge community-post-card__badge--score {{ $badge['class'] }}">{{ $badge['label'] }}</span>
@@ -32,6 +34,12 @@
                         @foreach($promotionLabels as $promotionLabel)
                             <span class="community-post-card__badge community-post-card__badge--promotion">{{ $promotionLabel }}</span>
                         @endforeach
+                        @if ($reportTrustScore !== null)
+                            <span class="community-post-card__badge community-post-card__badge--trust-score">Trust {{ $reportTrustScore }}%</span>
+                        @endif
+                        @if ($reportStatus)
+                            <span class="community-post-card__badge community-post-card__badge--report-status">{{ $reportStatus }}</span>
+                        @endif
                         @if ($categoryLabel)
                             <span class="community-post-card__badge">{{ $categoryLabel }}</span>
                         @endif

@@ -12,6 +12,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Community\CommunityAuthorQuestionController;
 use App\Http\Controllers\Community\CommunityEngagementController;
 use App\Http\Controllers\Community\CommunityPostController;
+use App\Http\Controllers\Community\CommunityPostParticipationController;
+use App\Http\Controllers\Community\CommunityReportEngagementController;
 use App\Http\Controllers\Frontend\OfferPageController;
 use App\Http\Controllers\Frontend\AdsMarketController;
 use App\Http\Controllers\Frontend\AdReportController;
@@ -243,6 +245,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/community/{post:slug}/poll', [CommunityPostController::class, 'votePoll'])->name('community.poll.vote');
     Route::post('/community/{post:slug}/comments', [CommunityPostController::class, 'comment'])->name('community.comments.store');
     Route::post('/community/{post:slug}/save', [CommunityEngagementController::class, 'toggleSave'])->name('community.save.toggle');
+    Route::post('/community/{post:slug}/participation/suggestion', [CommunityPostParticipationController::class, 'storeSuggestion'])->name('community.participation.suggestion');
+    Route::post('/community/{post:slug}/participation/feedback', [CommunityPostParticipationController::class, 'storeFeedback'])->name('community.participation.feedback');
+    Route::post('/community/{post:slug}/participation/evidence', [CommunityPostParticipationController::class, 'storeEvidence'])->name('community.participation.evidence');
+    Route::post('/community/{post:slug}/report-engagement/support', [CommunityReportEngagementController::class, 'toggleSupport'])->name('community.report-engagement.support');
+    Route::post('/community/{post:slug}/report-engagement/agree', [CommunityReportEngagementController::class, 'toggleAgree'])->name('community.report-engagement.agree');
+    Route::post('/community/{post:slug}/report-engagement/follow', [CommunityReportEngagementController::class, 'toggleFollow'])->name('community.report-engagement.follow');
     Route::post('/community/{post:slug}/report', [CommunityEngagementController::class, 'report'])->name('community.report');
     Route::post('/community/subscriptions/category', [CommunityEngagementController::class, 'toggleCategorySubscription'])->name('community.subscriptions.category.toggle');
     Route::post('/community/subscriptions/topic', [CommunityEngagementController::class, 'toggleTopicFollow'])->name('community.subscriptions.topic.toggle');
@@ -420,6 +428,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('vendor-products')->name('vendor-products.')->group(function () {
             Route::get('/', [VendorProductApprovalController::class, 'index'])->name('index');
             Route::get('/data', [VendorProductApprovalController::class, 'data'])->name('data');
+            Route::get('/create', [VendorProductApprovalController::class, 'create'])->name('create');
+            Route::post('/store', [VendorProductApprovalController::class, 'store'])->name('store');
             Route::get('/all-products', [VendorProductApprovalController::class, 'allProductsIndex'])->name('all.index');
             Route::get('/all-products/data', [VendorProductApprovalController::class, 'allProductsData'])->name('all.data');
             Route::get('/{product}', [VendorProductApprovalController::class, 'show'])->name('show');
@@ -447,6 +457,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('consultant-services')->name('consultant-services.')->group(function () {
             Route::get('/', [ConsultantServiceApprovalController::class, 'index'])->name('index');
             Route::get('/data', [ConsultantServiceApprovalController::class, 'data'])->name('data');
+            Route::get('/create', [ConsultantServiceApprovalController::class, 'create'])->name('create');
+            Route::post('/store', [ConsultantServiceApprovalController::class, 'store'])->name('store');
             Route::get('/all-services', [ConsultantServiceApprovalController::class, 'allServicesIndex'])->name('all.index');
             Route::get('/all-services/data', [ConsultantServiceApprovalController::class, 'allServicesData'])->name('all.data');
             Route::get('/{service}', [ConsultantServiceApprovalController::class, 'show'])->name('show');

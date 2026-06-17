@@ -2,16 +2,63 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ValidatesVendorProductRequest;
 use App\Http\Controllers\Controller;
 use App\Services\PortalNotificationService;
+use App\Models\Vendor;
 use App\Models\VendorProduct;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Yajra\DataTables\Facades\DataTables;
 
 class VendorProductApprovalController extends Controller
 {
+    use ValidatesVendorProductRequest;
+
+    public function create(): View
+    {
+        return view('backend.vendor.products.form', [
+            'product' => new VendorProduct(),
+            'categories' => $this->vendorCategories(),
+            'isAdmin' => true,
+            'vendors' => $this->approvedVendors(),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'vendor_id' => ['required', 'exists:vendors,id'],
+        ]);
+
+        $data = $this->validatedVendorProduct($request);
+        $data['vendor_id'] = (int) $request->input('vendor_id');
+        $data['sku'] = $data['sku'] ?: 'SKU-'.Str::upper(Str::random(8));
+        $product = VendorProduct::create($data);
+
+        $product->loadMissing('vendor.user');
+        PortalNotificationService::notifyUser(
+            $product->vendor?->user,
+            'Product added by admin',
+            $product->name.' has been added on your behalf and is pending approval.',
+            route('vendor.products.show', $product),
+            'approval'
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Product created successfully for the selected vendor.',
+                'redirect' => route('admin.vendor-products.all.index'),
+            ]);
+        }
+
+        return redirect()->route('admin.vendor-products.all.index')
+            ->with('success', 'Product created successfully for the selected vendor.');
+    }
+
     public function index(): View
     {
         return view('backend.admin.vendor-products.index');
@@ -141,5 +188,13 @@ class VendorProductApprovalController extends Controller
         $product->delete();
 
         return response()->json(['message' => 'Product deleted successfully.']);
+    }
+
+    private function approvedVendors()
+    {
+        return Vendor::query()
+            ->where('status', 'approved')
+            ->orderBy('company_name')
+            ->get(['id', 'company_name', 'display_name']);
     }
 }

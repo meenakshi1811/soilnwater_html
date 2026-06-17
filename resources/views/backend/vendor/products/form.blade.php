@@ -1,10 +1,11 @@
 @extends('backend.layouts.app')
 @section('title', $product->exists ? 'Edit Product' : 'Create Product')
 @section('content')
+@php($isAdmin = $isAdmin ?? false)
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <div><p class="ems-kicker mb-1">Vendor Portal</p><h2 class="admin-title mb-0">{{ $product->exists ? 'Edit Product' : 'Add New Product' }}</h2></div>
-    <a href="{{ route('vendor.products.index') }}" class="btn btn-outline-secondary">Back to Listing</a>
+    <div><p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Portal' : 'Vendor Portal' }}</p><h2 class="admin-title mb-0">{{ $product->exists ? 'Edit Product' : ($isAdmin ? 'Create Product for Vendor' : 'Add New Product') }}</h2></div>
+    <a href="{{ $isAdmin ? route('admin.vendor-products.all.index') : route('vendor.products.index') }}" class="btn btn-outline-secondary">Back to Listing</a>
   </div>
   @php($oldTiers = old('bulk_min') ? collect(old('bulk_min'))->map(fn($m,$i)=>['buy_min'=>$m,'price'=>old('bulk_price')[$i] ?? ''])->values()->all() : ($product->bulk_tiers ?? [['buy_min'=>10,'price'=>'']]))
   @php($visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten())
@@ -18,8 +19,11 @@
     </div>
   @endif
 
-  <form id="vendor-product-form" data-ajax-create="{{ $product->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $product->exists ? route('vendor.products.update',$product) : route('vendor.products.store') }}" class="row g-3">@csrf @if($product->exists) @method('PUT') @endif
+  <form id="vendor-product-form" data-ajax-create="{{ $product->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $product->exists ? ($isAdmin ? route('vendor.products.update', $product) : route('vendor.products.update',$product)) : ($isAdmin ? route('admin.vendor-products.store') : route('vendor.products.store')) }}" class="row g-3">@csrf @if($product->exists) @method('PUT') @endif
     <div class="col-lg-8"><div class="chart-card p-4"><h5 class="mb-3">Basic Information</h5><div class="row g-3">
+      @if($isAdmin)
+      <div class="col-12"><label class="form-label">Vendor *</label><select class="form-select @error('vendor_id') is-invalid @enderror" name="vendor_id" required><option value="">Select vendor</option>@foreach($vendors as $vendor)<option value="{{ $vendor->id }}" @selected(old('vendor_id') == $vendor->id)>{{ $vendor->display_name ?: $vendor->company_name }}</option>@endforeach</select>@error('vendor_id')<div id="vendor_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
+      @endif
       <div class="col-12"><label class="form-label">Product Name *</label><input class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name',$product->name) }}">@error('name')<div id="name-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">Brand</label><input class="form-control @error('brand') is-invalid @enderror" name="brand" value="{{ old('brand',$product->brand) }}">@error('brand')<div id="brand-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">SKU</label><input class="form-control @error('sku') is-invalid @enderror" name="sku" value="{{ old('sku',$product->sku) }}">@error('sku')<div id="sku-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
@@ -40,11 +44,13 @@
 
 
     <div class="col-12">
+      @unless($isAdmin)
       <div class="form-check">
         <input class="form-check-input @error('accept_terms') is-invalid @enderror" type="checkbox" value="1" id="accept_terms" name="accept_terms" {{ old('accept_terms') ? 'checked' : '' }}>
         <label class="form-check-label" for="accept_terms">I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'vendors']) }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms & Conditions</a>.</label>
             @error('accept_terms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
+      @endunless
     </div>
 
     <div class="col-12 text-end"><button type="submit" id="productSubmitBtn" class="btn btn-dark px-4 py-2">Save & Send for Approval</button></div>
@@ -228,7 +234,10 @@ $(function () {
       location: { required: true, locationPicked: true, maxlength: 255 },
       youtube_link: { url: true },
       discount_percent: { number: true, min: 0, max: 100 },
-      accept_terms: { required: true }
+      accept_terms: { required: {{ $isAdmin ? 'false' : 'true' }} },
+      @if($isAdmin)
+      vendor_id: { required: true },
+      @endif
     },
     messages: {
       name: { required: 'Please enter the product name.' },
@@ -239,7 +248,10 @@ $(function () {
       stock_quantity: { required: 'Please enter stock quantity.' },
       shipping_charges: { required: 'Please enter shipping charges.' },
       location: { required: 'Please enter a location.' },
-      accept_terms: { required: 'Please accept the terms and conditions.' }
+      accept_terms: { required: 'Please accept the terms and conditions.' },
+      @if($isAdmin)
+      vendor_id: { required: 'Please select a vendor.' },
+      @endif
     },
     errorElement: 'div',
     errorClass: 'invalid-feedback d-block',
@@ -296,7 +308,7 @@ $(function () {
 
           notify('success', payload.message || 'Product submitted successfully.');
           setTimeout(() => {
-            window.location.href = payload.redirect || '{{ route('vendor.products.index') }}';
+            window.location.href = payload.redirect || '{{ $isAdmin ? route('admin.vendor-products.all.index') : route('vendor.products.index') }}';
           }, 800);
         })
         .catch(() => {

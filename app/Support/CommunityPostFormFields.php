@@ -187,7 +187,10 @@ class CommunityPostFormFields
 
         if ($contentType === 'reports') {
             $allowedKeys = array_merge($allowedKeys, [
-                'report_type', 'issue_priority', 'issue_status', 'reported_to', 'issue_reference',
+                'report_status', 'report_type', 'issue_priority', 'issue_status', 'reported_to', 'issue_reference',
+                'observation_period_from', 'observation_period_to', 'report_author_name', 'report_author_type',
+                'organization_type', 'organization_name',
+                'action_needed', 'action_requested_from', 'suggested_solution',
             ]);
         }
 
@@ -207,6 +210,10 @@ class CommunityPostFormFields
 
         if ($contentType === 'reports') {
             $payload['issue_status'] = $request->input('issue_status', 'Open');
+
+            if ($request->input('action_needed') !== 'Yes') {
+                unset($payload['action_requested_from'], $payload['suggested_solution']);
+            }
         }
 
         return array_filter($payload, fn ($value) => filled($value) || is_bool($value));
@@ -226,6 +233,79 @@ class CommunityPostFormFields
         }
 
         return array_merge($labels, self::legacyMetaLabels());
+    }
+
+    /**
+     * Ordered report metadata keys and labels for detail views.
+     *
+     * @return array<string, string>
+     */
+    public static function reportDetailMetaOrder(): array
+    {
+        return [
+            'report_status' => 'Report status',
+            'report_type' => 'Report type',
+            'observation_period_from' => 'Observation from',
+            'observation_period_to' => 'Observation to',
+            'report_author_name' => 'Author name',
+            'report_author_type' => 'Author type',
+            'organization_type' => 'Organization type',
+            'organization_name' => 'Organization name',
+            'key_findings' => 'Findings',
+            'report_analysis' => 'Analysis',
+            'recommendations' => 'Recommendations',
+            'report_conclusion' => 'Conclusion',
+            'action_needed' => 'Is action needed?',
+            'action_requested_from' => 'Action requested from',
+            'suggested_solution' => 'Suggested solution',
+            'issue_priority' => 'Priority',
+            'issue_status' => 'Issue status',
+            'reported_to' => 'Reported to',
+            'issue_reference' => 'Reference / complaint no.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function narrativeReportMetaKeys(): array
+    {
+        return ['key_findings', 'report_analysis', 'recommendations', 'report_conclusion', 'suggested_solution'];
+    }
+
+    public static function formatReportMetaValue(string $key, mixed $value): string
+    {
+        if (in_array($key, ['observation_period_from', 'observation_period_to'], true) && filled($value)) {
+            return \Illuminate\Support\Carbon::parse($value)->format('d-M-Y');
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'Yes' : 'No';
+        }
+
+        return (string) $value;
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedReportMetaForDisplay(\App\Models\CommunityPost $post, bool $includeLocation = false): \Illuminate\Support\Collection
+    {
+        $order = self::reportDetailMetaOrder();
+
+        if ($includeLocation && filled($post->location)) {
+            $order['location'] = 'GPS issue location';
+        }
+
+        return collect($order)
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                if ($key === 'location') {
+                    return [$key => $post->location];
+                }
+
+                return [$key => data_get($post->meta, $key)];
+            })
+            ->filter(fn (mixed $value): bool => filled($value) || is_bool($value));
     }
 
     /**
@@ -263,11 +343,23 @@ class CommunityPostFormFields
             'verification_notes',
             'impact_area',
             'quote_attribution',
+            'report_status',
             'report_type',
             'issue_priority',
             'issue_status',
             'reported_to',
             'issue_reference',
+            'observation_period_from',
+            'observation_period_to',
+            'report_author_name',
+            'report_author_type',
+            'organization_type',
+            'organization_name',
+            'report_analysis',
+            'report_conclusion',
+            'action_needed',
+            'action_requested_from',
+            'suggested_solution',
         ];
     }
 
@@ -285,7 +377,7 @@ class CommunityPostFormFields
             'report_scope' => 'Scope / objective',
             'methodology' => 'Methodology',
             'data_sources' => 'Data sources',
-            'key_findings' => 'Key findings',
+            'key_findings' => 'Findings',
             'recommendations' => 'Recommendations',
             'news_subtitle' => 'Subtitle / deck',
             'news_dateline' => 'Dateline',
@@ -297,11 +389,23 @@ class CommunityPostFormFields
             'verification_notes' => 'Verification notes',
             'impact_area' => 'Impact / affected area',
             'quote_attribution' => 'Quote / attribution',
+            'report_status' => 'Report status',
             'report_type' => 'Report type',
             'issue_priority' => 'Priority',
-            'issue_status' => 'Status',
+            'issue_status' => 'Issue status',
             'reported_to' => 'Reported to',
             'issue_reference' => 'Reference / complaint no.',
+            'observation_period_from' => 'Observation from',
+            'observation_period_to' => 'Observation to',
+            'report_author_name' => 'Author name',
+            'report_author_type' => 'Author type',
+            'organization_type' => 'Organization type',
+            'organization_name' => 'Organization name',
+            'report_analysis' => 'Analysis',
+            'report_conclusion' => 'Conclusion',
+            'action_needed' => 'Is action needed?',
+            'action_requested_from' => 'Action requested from',
+            'suggested_solution' => 'Suggested solution',
             'article_subtitle' => 'Subtitle / deck',
             'reading_time' => 'Reading time',
             'key_takeaways' => 'Key takeaways',
@@ -417,7 +521,21 @@ class CommunityPostFormFields
         }
 
         return [
-            self::select('report_type', 'Report type', CommunityContentTaxonomy::myAreaReportTypes(), true),
+            self::select('report_status', 'Report status', CommunityContentTaxonomy::reportStatuses(), true),
+            self::select('report_type', 'Report type', CommunityContentTaxonomy::reportTypes(), true),
+            self::date('observation_period_from', 'Observation from', false),
+            self::date('observation_period_to', 'Observation to', false),
+            self::text('report_author_name', 'Author name', 160, false),
+            self::select('report_author_type', 'Author type', CommunityContentTaxonomy::reportAuthorTypes(), true),
+            self::select('organization_type', 'Organization type', CommunityContentTaxonomy::reportOrganizationTypes(), false),
+            self::text('organization_name', 'Organization name', 160, false),
+            self::textarea('key_findings', 'Findings', 3000, false, 'Main observations'),
+            self::textarea('report_analysis', 'Analysis', 3000, false, 'Interpretation'),
+            self::textarea('recommendations', 'Recommendations', 3000, false, 'Suggested solutions'),
+            self::textarea('report_conclusion', 'Conclusion', 3000, false, 'Summary'),
+            self::select('action_needed', 'Is action needed?', ['Yes', 'No'], false),
+            self::select('action_requested_from', 'Action requested from', CommunityContentTaxonomy::reportActionRequestedFrom(), false),
+            self::textarea('suggested_solution', 'Suggested solution', 2000, false),
             self::select('issue_priority', 'Priority', ['Low', 'Medium', 'High', 'Urgent'], true),
             self::select('issue_status', 'Issue status', ['Open', 'Under Review', 'Resolved'], false),
             self::text('reported_to', 'Reported to', 160, false),

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\CommunityContentTaxonomy;
+use App\Support\CommunityPostFileUploader;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -36,6 +37,8 @@ class CommunityPost extends Model
 
     public const LOCATION_TYPE_VILLAGE = 'village';
 
+    public const LOCATION_TYPE_GPS = 'gps';
+
     /** @var array<string, string> */
     public const LOCATION_TYPES = [
         self::LOCATION_TYPE_GLOBAL => 'Global',
@@ -44,6 +47,7 @@ class CommunityPost extends Model
         self::LOCATION_TYPE_DISTRICT => 'District Specific',
         self::LOCATION_TYPE_CITY => 'City Specific',
         self::LOCATION_TYPE_VILLAGE => 'Village Specific',
+        self::LOCATION_TYPE_GPS => 'GPS Location',
     ];
 
     public const PUBLISH_AS_PUBLIC_PROFILE = 'public_profile';
@@ -105,6 +109,9 @@ class CommunityPost extends Model
         'video',
         'meta',
         'allow_comments',
+        'allow_suggestions',
+        'allow_feedback',
+        'allow_additional_evidence',
         'allow_sharing',
         'allow_poll',
         'poll_subject',
@@ -140,6 +147,9 @@ class CommunityPost extends Model
             'location_lat' => 'decimal:7',
             'location_lng' => 'decimal:7',
             'allow_comments' => 'boolean',
+            'allow_suggestions' => 'boolean',
+            'allow_feedback' => 'boolean',
+            'allow_additional_evidence' => 'boolean',
             'allow_sharing' => 'boolean',
             'allow_poll' => 'boolean',
             'quality_score' => 'decimal:2',
@@ -191,6 +201,49 @@ class CommunityPost extends Model
     public function saves(): HasMany
     {
         return $this->hasMany(CommunityPostSave::class);
+    }
+
+    public function reportSupports(): HasMany
+    {
+        return $this->hasMany(CommunityReportSupport::class);
+    }
+
+    public function reportAgreements(): HasMany
+    {
+        return $this->hasMany(CommunityReportAgreement::class);
+    }
+
+    public function reportFollows(): HasMany
+    {
+        return $this->hasMany(CommunityReportFollow::class);
+    }
+
+    public function reportEvidence(): HasMany
+    {
+        return $this->hasMany(CommunityReportEvidence::class);
+    }
+
+    public function participations(): HasMany
+    {
+        return $this->hasMany(CommunityPostParticipation::class);
+    }
+
+    public function suggestions(): HasMany
+    {
+        return $this->participations()->where('type', CommunityPostParticipation::TYPE_SUGGESTION);
+    }
+
+    public function feedbackEntries(): HasMany
+    {
+        return $this->participations()->where('type', CommunityPostParticipation::TYPE_FEEDBACK);
+    }
+
+    public function allowsPublicParticipation(): bool
+    {
+        return $this->allow_comments
+            || $this->allow_suggestions
+            || $this->allow_feedback
+            || $this->allow_additional_evidence;
     }
 
     public function reports(): HasMany
@@ -329,9 +382,27 @@ class CommunityPost extends Model
     /**
      * @return array<string, string>
      */
-    public static function locationTypeOptions(): array
+    public static function locationTypeOptions(?string $contentType = null): array
     {
-        return self::LOCATION_TYPES;
+        $options = collect(self::LOCATION_TYPES)
+            ->except(self::LOCATION_TYPE_GPS)
+            ->all();
+
+        if ($contentType === 'reports') {
+            $options[self::LOCATION_TYPE_GPS] = 'GPS Location';
+        }
+
+        return $options;
+    }
+
+    public function usesGpsLocation(): bool
+    {
+        return $this->location_type === self::LOCATION_TYPE_GPS;
+    }
+
+    public function hasMapCoordinates(): bool
+    {
+        return filled($this->location_lat) && filled($this->location_lng);
     }
 
     public function locationTypeLabel(): string
@@ -372,6 +443,11 @@ class CommunityPost extends Model
                 'location' => 'India',
                 'location_lat' => 20.5937,
                 'location_lng' => 78.9629,
+            ],
+            self::LOCATION_TYPE_GPS => [
+                'location' => 'GPS Location',
+                'location_lat' => null,
+                'location_lng' => null,
             ],
             default => [
                 'location' => '',
@@ -576,19 +652,7 @@ class CommunityPost extends Model
 
     public static function resolveImageUrl(?string $path): ?string
     {
-        if (! filled($path)) {
-            return null;
-        }
-
-        if (Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
-        }
-
-        if (Str::startsWith($path, 'uploads/')) {
-            return asset($path);
-        }
-
-        return asset('storage/'.$path);
+        return CommunityPostFileUploader::url($path);
     }
 
     /**
@@ -673,6 +737,76 @@ class CommunityPost extends Model
         return Str::limit($bodyText, 160, '...');
     }
 
+    public function reportStatus(): ?string
+    {
+        $status = data_get($this->meta, 'report_status');
+
+        return filled($status) ? (string) $status : null;
+    }
+
+    public function reportStatusBadgeClass(): string
+    {
+        return match ($this->reportStatus()) {
+            'Information Only' => 'bg-secondary',
+            'Seeking Support' => 'bg-info text-dark',
+            'Awareness Campaign' => 'bg-primary',
+            'Request for Action' => 'bg-warning text-dark',
+            'Success Story', 'Issue Resolved' => 'bg-success',
+            default => 'bg-light text-dark',
+        };
+    }
+
+    public function listingCategoryLabel(): string
+    {
+        if ($this->content_type === 'reports') {
+            $parts = array_filter([
+                filled(data_get($this->meta, 'report_type'))
+                    ? (string) data_get($this->meta, 'report_type')
+                    : $this->category,
+                $this->reportStatus(),
+            ]);
+
+            return $parts !== [] ? implode(' · ', $parts) : (string) $this->category;
+        }
+
+        return (string) $this->category;
+    }
+
+    public function isReportContent(): bool
+    {
+        return $this->content_type === 'reports';
+    }
+
+    public function reportTrustScore(): int
+    {
+        if (! $this->isReportContent()) {
+            return 0;
+        }
+
+        return \App\Services\CommunityReportTrustScoreService::score($this);
+    }
+
+    /**
+     * @return array<string, array{label: string, points: float, max: int, met: bool, detail: string}>
+     */
+    public function reportTrustBreakdown(): array
+    {
+        if (! $this->isReportContent()) {
+            return [];
+        }
+
+        return \App\Services\CommunityReportTrustScoreService::breakdown($this);
+    }
+
+    public function reportTrustBadgeClass(): string
+    {
+        return match (true) {
+            $this->reportTrustScore() >= 80 => 'report-trust-score--high',
+            $this->reportTrustScore() >= 50 => 'report-trust-score--medium',
+            default => 'report-trust-score--low',
+        };
+    }
+
     public function seoImageUrl(): string
     {
         return $this->featuredImageUrl() ?? asset('assets/images/logo_soilnwater.webp');
@@ -685,6 +819,7 @@ class CommunityPost extends Model
             $this->locationTypeLabel(),
             $this->category,
             data_get($this->meta, 'report_type'),
+            $this->reportStatus(),
             $this->location,
             ...($this->tags ?? []),
         ])

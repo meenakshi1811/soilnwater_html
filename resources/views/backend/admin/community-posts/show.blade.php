@@ -18,6 +18,87 @@
         text-transform: uppercase;
     }
 
+    .report-trust-score {
+        background: linear-gradient(135deg, #f8fafc 0%, #eef6ff 100%);
+        border: 1px solid #cfe0f5;
+        border-radius: 12px;
+        padding: 1rem 1.1rem;
+    }
+
+    .report-trust-score--high {
+        border-color: #86efac;
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    }
+
+    .report-trust-score--medium {
+        border-color: #fcd34d;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    }
+
+    .report-trust-score__header {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .report-trust-score__kicker {
+        color: #0f766e;
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .report-trust-score__title {
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .report-trust-score__value-wrap {
+        align-items: center;
+        background: #fff;
+        border: 2px solid #0f766e;
+        border-radius: 999px;
+        color: #0f766e;
+        display: inline-flex;
+        min-width: 5rem;
+        justify-content: center;
+        padding: 0.25rem 0.85rem;
+    }
+
+    .report-trust-score__value {
+        font-size: 1.1rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .report-trust-score__factor {
+        align-items: flex-start;
+        border-top: 1px solid rgba(15, 23, 42, 0.08);
+        display: grid;
+        gap: 0.65rem;
+        grid-template-columns: auto 1fr auto;
+        padding: 0.65rem 0;
+    }
+
+    .report-trust-score__factor-icon {
+        color: #94a3b8;
+    }
+
+    .report-trust-score__factor.is-met .report-trust-score__factor-icon {
+        color: #16a34a;
+    }
+
+    .report-trust-score__factor-points {
+        color: #475569;
+        font-size: 0.8rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
     .community-admin-action-group {
         border: 1px solid #dbe4ef;
         border-radius: 12px;
@@ -116,7 +197,15 @@
                         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
                             <div>
                                 <h3 class="mb-1">{{ $post->title }}</h3>
-                                <div class="text-muted small">{{ $post->typeLabel() }} · {{ $post->category }}</div>
+                                <div class="text-muted small">
+                                    {{ $post->typeLabel() }} · {{ $post->content_type === 'reports' ? $post->listingCategoryLabel() : $post->category }}
+                                </div>
+                                @if($post->content_type === 'reports' && filled($post->reportStatus()))
+                                    <span class="badge {{ $post->reportStatusBadgeClass() }} mt-2">{{ $post->reportStatus() }}</span>
+                                @endif
+                                @if($post->isReportContent())
+                                    <span class="badge bg-success mt-2">Trust Score: {{ $post->reportTrustScore() }}%</span>
+                                @endif
                             </div>
                         </div>
 
@@ -157,10 +246,103 @@
                                 </video>
                             @endif
                         @endif
+
+                        @if($post->isReportContent())
+                            <div class="mb-4">
+                                @include('community.partials.report-trust-score', ['post' => $post])
+                            </div>
+                            @include('community.partials.report-community-actions', [
+                                'post' => $post,
+                                'reportEngagement' => $reportEngagement,
+                            ])
+                        @endif
+
+                        @if($post->content_type === 'reports')
+                            @include('community.partials.report-meta-details', ['post' => $post, 'heading' => 'Report metadata'])
+                        @endif
                     </div>
                 </div>
 
                 <div class="col-lg-4">
+                    @if($post->isReportContent() && $reportEngagement)
+                        <div class="chart-card p-3 p-lg-4 mb-4">
+                            <h5 class="mb-3">Community reporting activity</h5>
+                            <div class="row g-2 mb-3 small">
+                                <div class="col-6"><strong>Supports:</strong> {{ number_format($reportEngagement['supports_count']) }}</div>
+                                <div class="col-6"><strong>I Agree:</strong> {{ number_format($reportEngagement['agreements_count']) }}</div>
+                                <div class="col-6"><strong>Followers:</strong> {{ number_format($reportEngagement['follows_count']) }}</div>
+                                <div class="col-6"><strong>Evidence files:</strong> {{ number_format($reportEngagement['evidence_count']) }}</div>
+                            </div>
+
+                            @if($reportEngagementActivity)
+                                @foreach([
+                                    'supports' => 'Recent supporters',
+                                    'agreements' => 'Recent agreements',
+                                    'follows' => 'Recent followers',
+                                ] as $key => $label)
+                                    @if($reportEngagementActivity[$key]->isNotEmpty())
+                                        <h6 class="small text-uppercase text-muted mt-3 mb-2">{{ $label }}</h6>
+                                        <ul class="list-unstyled small mb-0">
+                                            @foreach($reportEngagementActivity[$key] as $item)
+                                                <li class="mb-1">
+                                                    {{ $item->user?->full_name ?: ($item->user?->name ?? 'Community member') }}
+                                                    <span class="text-muted">· {{ $item->created_at?->diffForHumans() }}</span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                @endforeach
+                            @endif
+
+                            @if($communityParticipationEvidence->isNotEmpty())
+                                <h6 class="small text-uppercase text-muted mt-3 mb-2">Additional evidence</h6>
+                                <div class="d-flex flex-column gap-2">
+                                    @foreach($communityParticipationEvidence as $evidence)
+                                        <div class="border rounded p-2 bg-white small">
+                                            <div class="fw-semibold">{{ $evidence->user?->full_name ?: ($evidence->user?->name ?? 'Community member') }}</div>
+                                            <a href="{{ $evidence->url }}" target="_blank" rel="noopener">{{ $evidence->name }}</a>
+                                            @if(filled($evidence->note))
+                                                <div class="text-muted">{{ $evidence->note }}</div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if(($participationSuggestions ?? collect())->isNotEmpty() || ($participationFeedback ?? collect())->isNotEmpty())
+                        <div class="chart-card p-3 p-lg-4 mb-4">
+                            <h5 class="mb-3">Public participation submissions</h5>
+
+                            @if(($participationSuggestions ?? collect())->isNotEmpty())
+                                <h6 class="small text-uppercase text-muted mb-2">Suggestions</h6>
+                                <div class="d-flex flex-column gap-2 mb-3">
+                                    @foreach($participationSuggestions as $entry)
+                                        <div class="border rounded p-2 bg-white small">
+                                            <div class="fw-semibold">{{ $entry->user?->full_name ?: ($entry->user?->name ?? 'Community member') }}</div>
+                                            <div class="text-muted">{{ $entry->created_at?->diffForHumans() }}</div>
+                                            <div>{{ $entry->body }}</div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            @if(($participationFeedback ?? collect())->isNotEmpty())
+                                <h6 class="small text-uppercase text-muted mb-2">Feedback</h6>
+                                <div class="d-flex flex-column gap-2">
+                                    @foreach($participationFeedback as $entry)
+                                        <div class="border rounded p-2 bg-white small">
+                                            <div class="fw-semibold">{{ $entry->user?->full_name ?: ($entry->user?->name ?? 'Community member') }}</div>
+                                            <div class="text-muted">{{ $entry->created_at?->diffForHumans() }}</div>
+                                            <div>{{ $entry->body }}</div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
                     <div class="chart-card p-3 p-lg-4 mb-4">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
                             <div>
@@ -270,8 +452,13 @@
                             @endif
                         </div>
                         <div class="mb-3">
-                            <div class="label">Comments</div>
-                            <div>{{ $post->allow_comments ? 'Enabled' : 'Disabled' }}</div>
+                            <div class="label">Public participation</div>
+                            <ul class="list-unstyled small mb-0">
+                                <li>Comments: {{ $post->allow_comments ? 'Enabled' : 'Disabled' }}</li>
+                                <li>Suggestions: {{ $post->allow_suggestions ? 'Enabled' : 'Disabled' }}</li>
+                                <li>Feedback: {{ $post->allow_feedback ? 'Enabled' : 'Disabled' }}</li>
+                                <li>Additional evidence: {{ $post->allow_additional_evidence ? 'Enabled' : 'Disabled' }}</li>
+                            </ul>
                         </div>
                         @if(filled($post->review_note))
                             <div class="mb-3">
@@ -344,16 +531,23 @@
                     @endif
 
                     @if(is_array($post->meta) && $post->meta !== [])
+                        @php
+                            $reportMetaKeys = $post->content_type === 'reports'
+                                ? array_keys(\App\Support\CommunityPostFormFields::reportDetailMetaOrder())
+                                : [];
+                        @endphp
                         <div class="chart-card p-3 p-lg-4">
                             <h5 class="mb-3">Additional metadata</h5>
                             <div class="table-responsive">
                                 <table class="table table-sm mb-0">
                                     <tbody>
                                         @foreach($post->meta as $key => $value)
+                                            @continue(in_array($key, $reportMetaKeys, true))
+                                            @continue($key === 'issue_attachments')
                                             @continue(is_array($value) || is_object($value))
                                             @continue(blank($value))
                                             <tr>
-                                                <th class="text-muted">{{ \Illuminate\Support\Str::headline($key) }}</th>
+                                                <th class="text-muted">{{ \App\Support\CommunityPostFormFields::labels()[$key] ?? \Illuminate\Support\Str::headline($key) }}</th>
                                                 <td>{{ is_bool($value) ? ($value ? 'Yes' : 'No') : $value }}</td>
                                             </tr>
                                         @endforeach

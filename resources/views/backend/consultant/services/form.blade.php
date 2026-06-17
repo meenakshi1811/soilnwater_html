@@ -1,8 +1,9 @@
 @extends('backend.layouts.app')
 @section('title', $service->exists ? 'Edit Consultation Service' : 'Create Consultation Service')
 @section('content')
+@php($isAdmin = $isAdmin ?? false)
 <div class="admin-panel ems-page">
-  <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">Consultant Portal</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Consultation Service' : 'Add Consultation Service' }}</h2></div><a href="{{ route('consultant.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
+  <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Portal' : 'Consultant Portal' }}</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Consultation Service' : ($isAdmin ? 'Create Service for Consultant' : 'Add Consultation Service') }}</h2></div><a href="{{ $isAdmin ? route('admin.consultant-services.all.index') : route('consultant.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
   @php
     $visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten();
     $chargeDurationLabels = ['minute' => 'Minutes', 'hour' => 'Hours', 'day' => 'Days', 'month' => 'Months', 'contractual' => 'Contractual'];
@@ -15,8 +16,11 @@
     $businessTypes = ['Architect', 'Lawyer', 'Landscaper', 'Software Consultant', 'Business'];
   @endphp
   @if ($visibleErrors->isNotEmpty())<div class="alert alert-danger"><ul class="mb-0">@foreach ($visibleErrors as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-  <form id="consultant-service-form" data-ajax-create="{{ $service->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $service->exists ? route('consultant.services.update', $service) : route('consultant.services.store') }}" class="row g-3">@csrf @if($service->exists) @method('PUT') @endif
+  <form id="consultant-service-form" data-ajax-create="{{ $service->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $service->exists ? route('consultant.services.update', $service) : ($isAdmin ? route('admin.consultant-services.store') : route('consultant.services.store')) }}" class="row g-3">@csrf @if($service->exists) @method('PUT') @endif
     <div class="col-lg-8"><div class="chart-card p-4"><h5 class="mb-3">Service Information</h5><div class="row g-3">
+      @if($isAdmin)
+      <div class="col-12"><label class="form-label">Consultant *</label><select class="form-select @error('consultant_id') is-invalid @enderror" name="consultant_id" required><option value="">Select consultant</option>@foreach($consultants as $consultant)<option value="{{ $consultant->id }}" @selected(old('consultant_id') == $consultant->id)>{{ $consultant->display_name ?: $consultant->company_name }}</option>@endforeach</select>@error('consultant_id')<div id="consultant_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
+      @endif
       <div class="col-12"><label class="form-label">Consultation Service Name *</label><input class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $service->name) }}" required>@error('name')<div id="name-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">Category *</label><select id="category_id" class="form-select @error('category_id') is-invalid @enderror" name="category_id" required><option value="">Select category</option>@foreach($categories as $cat)<option value="{{ $cat->id }}" @selected(old('category_id', $service->category_id)==$cat->id)>{{ $cat->name }}</option>@endforeach</select>@error('category_id')<div id="category_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">Subcategory</label><select id="subcategory_id" class="form-select @error('subcategory_id') is-invalid @enderror" name="subcategory_id" data-current="{{ old('subcategory_id', $service->subcategory_id) }}"><option value="">Select subcategory</option></select>@error('subcategory_id')<div id="subcategory_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
@@ -33,7 +37,7 @@
       <label class="form-label mt-3">Consultant Location *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ old('location', $service->location) }}" placeholder="Search location in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Select a Google Places suggestion to save latitude and longitude.</small>
       <input id="latitude" type="hidden" name="latitude" value="{{ old('latitude', $service->latitude) }}">
       <input id="longitude" type="hidden" name="longitude" value="{{ old('longitude', $service->longitude) }}">
-      @unless($service->exists)<div class="form-check mt-3"><input class="form-check-input @error('accept_terms') is-invalid @enderror" type="checkbox" value="1" id="accept_terms" name="accept_terms" required><label class="form-check-label" for="accept_terms">I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'consultants']) }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms & Conditions</a>.</label>@error('accept_terms')<div id="accept_terms-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>@endunless
+      @unless($isAdmin || $service->exists)<div class="form-check mt-3"><input class="form-check-input @error('accept_terms') is-invalid @enderror" type="checkbox" value="1" id="accept_terms" name="accept_terms" required><label class="form-check-label" for="accept_terms">I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'consultants']) }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms & Conditions</a>.</label>@error('accept_terms')<div id="accept_terms-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>@endunless
       <button type="submit" id="consultantServiceSubmitBtn" class="btn btn-primary ems-btn-primary w-100 mt-4">{{ $service->exists ? 'Update & Resubmit' : 'Submit for Approval' }}</button>
     </div></div>
   </form>
@@ -208,7 +212,10 @@ $(function () {
       consultation_type: { required: true },
       business_type: { required: true },
       location: { required: true, locationPicked: true, maxlength: 255 },
-      accept_terms: { required: true }
+      accept_terms: { required: {{ ($isAdmin || $service->exists) ? 'false' : 'true' }} },
+      @if($isAdmin)
+      consultant_id: { required: true },
+      @endif
     },
     messages: {
       name: { required: 'Please enter the service name.' },
@@ -216,7 +223,10 @@ $(function () {
       consultation_type: { required: 'Please select a consultation type.' },
       business_type: { required: 'Please select a business type.' },
       location: { required: 'Please enter a location.' },
-      accept_terms: { required: 'Please accept the terms and conditions.' }
+      accept_terms: { required: 'Please accept the terms and conditions.' },
+      @if($isAdmin)
+      consultant_id: { required: 'Please select a consultant.' },
+      @endif
     },
     errorElement: 'div',
     errorClass: 'invalid-feedback d-block',
@@ -246,7 +256,7 @@ $(function () {
             return;
           }
           notify('success', payload.message || 'Consultation service submitted successfully.');
-          setTimeout(function () { window.location.href = payload.redirect || '{{ route('consultant.services.index') }}'; }, 800);
+          setTimeout(function () { window.location.href = payload.redirect || '{{ $isAdmin ? route('admin.consultant-services.all.index') : route('consultant.services.index') }}'; }, 800);
         })
         .catch(function () { notify('error', 'Network error while saving consultation service.'); })
         .finally(function () { setSubmitLoading(false); });

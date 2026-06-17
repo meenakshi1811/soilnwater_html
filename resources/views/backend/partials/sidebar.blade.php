@@ -218,7 +218,13 @@
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('admin.vendor-products.*') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
+                            <a class="{{ request()->routeIs('admin.vendor-products.create') ? 'active' : '' }}" href="{{ route('admin.vendor-products.create') }}">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Create Product</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.vendor-products.*') && ! request()->routeIs('admin.vendor-products.all.*') && ! request()->routeIs('admin.vendor-products.create') ? 'active' : '' }}" href="{{ route('admin.vendor-products.index') }}">
                                 <i class="fa-solid fa-boxes-stacked"></i>
                                 <span>Products Approval</span>
                             </a>
@@ -249,7 +255,13 @@
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('admin.consultant-services.*') && ! request()->routeIs('admin.consultant-services.all.*') ? 'active' : '' }}" href="{{ route('admin.consultant-services.index') }}">
+                            <a class="{{ request()->routeIs('admin.consultant-services.create') ? 'active' : '' }}" href="{{ route('admin.consultant-services.create') }}">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Create Service</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.consultant-services.*') && ! request()->routeIs('admin.consultant-services.all.*') && ! request()->routeIs('admin.consultant-services.create') ? 'active' : '' }}" href="{{ route('admin.consultant-services.index') }}">
                                 <i class="fa-solid fa-clipboard-check"></i>
                                 <span>Services Approval</span>
                             </a>

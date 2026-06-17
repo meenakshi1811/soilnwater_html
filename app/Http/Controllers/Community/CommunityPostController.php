@@ -10,15 +10,18 @@ use App\Models\CommunityPostComment;
 use App\Models\CommunityPostPollVote;
 use App\Models\CommunityPostReaction;
 use App\Models\User;
+use App\Services\CommunityPostParticipationNotificationService;
+use App\Services\CommunityReportEngagementNotificationService;
+use App\Services\CommunityReportTrustScoreService;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
 use App\Support\CommunityPostAuditLogger;
+use App\Support\CommunityPostFileUploader;
 use App\Support\CommunityPostFormFields;
 use App\Support\UserFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -95,6 +98,18 @@ class CommunityPostController extends Controller
                 ? $this->answeredQuestionsForPost($post)
                 : collect(),
             'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+            'reportEngagement' => $post->isReportContent()
+                ? CommunityReportEngagementNotificationService::stateForPost($post, auth()->id())
+                : null,
+            'communityParticipationEvidence' => $post->allow_additional_evidence
+                ? CommunityReportEngagementNotificationService::recentEvidence($post)
+                : collect(),
+            'participationSuggestions' => $post->allow_suggestions
+                ? $post->participations()->with('user:id,name,full_name')->where('type', \App\Models\CommunityPostParticipation::TYPE_SUGGESTION)->latest()->limit(20)->get()
+                : collect(),
+            'participationFeedback' => $post->allow_feedback
+                ? $post->participations()->with('user:id,name,full_name')->where('type', \App\Models\CommunityPostParticipation::TYPE_FEEDBACK)->latest()->limit(20)->get()
+                : collect(),
         ]);
     }
 
@@ -126,6 +141,8 @@ class CommunityPostController extends Controller
             $active = true;
         }
 
+        $post = $this->syncReportTrustScore($post->fresh());
+
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
@@ -135,6 +152,7 @@ class CommunityPostController extends Controller
                     ->selectRaw('reaction, count(*) as total')
                     ->groupBy('reaction')
                     ->pluck('total', 'reaction'),
+                'report_trust_score' => $post->isReportContent() ? $post->reportTrustScore() : null,
             ]);
         }
 
@@ -195,6 +213,15 @@ class CommunityPostController extends Controller
             'body' => $data['body'],
         ]);
 
+        CommunityPostParticipationNotificationService::notifyAuthorOfComment(
+            $post,
+            $request->user(),
+            $data['body'],
+            filled($data['parent_id'] ?? null)
+        );
+
+        $this->syncReportTrustScore($post->fresh());
+
         return back()->with('success', filled($data['parent_id'] ?? null) ? 'Reply added to the discussion.' : 'Comment added to the discussion.');
     }
 
@@ -238,11 +265,8 @@ class CommunityPostController extends Controller
         return DataTables::of($query)
             ->addColumn('type_label', fn (CommunityPost $post): string => e($post->typeLabel()))
             ->addColumn('writing_purpose_display', fn (CommunityPost $post): string => e($post->writingPurposeLabel() ?? '—'))
-            ->addColumn('category_display', fn (CommunityPost $post): string => e(
-                filled(data_get($post->meta, 'report_type'))
-                    ? data_get($post->meta, 'report_type', $post->category)
-                    : $post->category
-            ))
+            ->addColumn('category_display', fn (CommunityPost $post): string => e($post->listingCategoryLabel()))
+            ->addColumn('trust_score_display', fn (CommunityPost $post): string => CommunityReportTrustScoreService::badgeHtml($post))
             ->addColumn('status_badge', fn (CommunityPost $post): string => '<span class="badge '.$post->statusBadgeClass().'">'.e($post->statusLabel()).'</span>')
             ->addColumn('published_display', function (CommunityPost $post): string {
                 if ($post->published_at) {
@@ -258,7 +282,7 @@ class CommunityPostController extends Controller
                     .'<button type="button" class="btn btn-sm btn-outline-danger js-delete-post" data-slug="'.e($post->slug).'" title="Delete"><i class="fa-solid fa-trash"></i></button>'
                     .'</div>';
             })
-            ->rawColumns(['status_badge', 'actions'])
+            ->rawColumns(['status_badge', 'trust_score_display', 'actions'])
             ->make(true);
     }
 
@@ -267,7 +291,11 @@ class CommunityPostController extends Controller
         $this->authorizeOwner($request, $post);
 
         foreach ($post->featuredImages() as $imagePath) {
-            $this->deleteFeaturedImage($imagePath);
+            CommunityPostFileUploader::deleteIfExists($imagePath);
+        }
+
+        foreach ((array) data_get($post->meta, 'issue_attachments', []) as $attachment) {
+            CommunityPostFileUploader::deleteIfExists(data_get($attachment, 'path'));
         }
 
         $this->deleteVideoFile($post->videoData());
@@ -334,13 +362,18 @@ class CommunityPostController extends Controller
             $data['meta']['issue_attachments'] = $this->storeIssueAttachments($request);
         }
         $data['allow_comments'] = $this->shouldAllowComments($request);
+        $data['allow_suggestions'] = $this->shouldAllowSuggestions($request);
+        $data['allow_feedback'] = $this->shouldAllowFeedback($request);
+        $data['allow_additional_evidence'] = $this->shouldAllowAdditionalEvidence($request);
         $data['allow_sharing'] = $this->shouldAllowSharing($request);
-        $data['allow_poll'] = $this->shouldAllowPoll($request);
+        $data['allow_poll'] = $this->shouldAllowPoll($request, $data['content_type'] ?? $post?->content_type);
         $data = array_merge($data, $this->resolvePublicationState($request, $post = null));
         [$data['featured_images'], $data['featured_image_path']] = $this->resolveFeaturedImages($request);
         $data['video'] = $this->resolveVideo($request);
 
         $post = CommunityPost::create($data);
+
+        $this->syncReportTrustScore($post);
 
         CommunityPostAuditLogger::logCreated($post, $request);
 
@@ -394,8 +427,11 @@ class CommunityPostController extends Controller
         }
 
         $data['allow_comments'] = $this->shouldAllowComments($request);
+        $data['allow_suggestions'] = $this->shouldAllowSuggestions($request);
+        $data['allow_feedback'] = $this->shouldAllowFeedback($request);
+        $data['allow_additional_evidence'] = $this->shouldAllowAdditionalEvidence($request);
         $data['allow_sharing'] = $this->shouldAllowSharing($request);
-        $data['allow_poll'] = $this->shouldAllowPoll($request);
+        $data['allow_poll'] = $this->shouldAllowPoll($request, $data['content_type'] ?? $post?->content_type);
         $wasPending = $post->isPendingApproval();
         $data = array_merge($data, $this->resolvePublicationState($request, $post));
 
@@ -412,7 +448,16 @@ class CommunityPostController extends Controller
         $originalAttributes = $post->getOriginal();
         $post->update($data);
 
+        $this->syncReportTrustScore($post->fresh());
+
         CommunityPostAuditLogger::logUpdated($post, $request, $originalAttributes);
+
+        if ($post->isReportContent() && $post->isPubliclyVisible()) {
+            CommunityReportEngagementNotificationService::notifyFollowersOfReportUpdate(
+                $post->fresh(),
+                'The author published an update to this report.'
+            );
+        }
 
         if ($post->isPendingApproval() && ! $wasPending) {
             $this->notifyAdminsOfPendingPost($post->fresh());
@@ -444,17 +489,9 @@ class CommunityPostController extends Controller
         ]);
 
         $file = $request->file('upload');
-        $directory = public_path('uploads/community-posts/inline');
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $filename = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
-        $file->move($directory, $filename);
 
         return response()->json([
-            'url' => asset('uploads/community-posts/inline/'.$filename),
+            'url' => CommunityPostFileUploader::storeInlineImage($file),
         ]);
     }
 
@@ -525,6 +562,9 @@ class CommunityPostController extends Controller
                 'max:120',
             ],
             'allow_comments' => ['nullable', 'boolean'],
+            'allow_suggestions' => ['nullable', 'boolean'],
+            'allow_feedback' => ['nullable', 'boolean'],
+            'allow_additional_evidence' => ['nullable', 'boolean'],
             'allow_sharing' => ['nullable', 'boolean'],
             'allow_poll' => ['nullable', 'boolean'],
             'poll_subject' => [
@@ -534,7 +574,7 @@ class CommunityPostController extends Controller
                 'max:160',
             ],
             'author_bio' => ['nullable', 'string', 'max:500'],
-            'location_type' => ['required', Rule::in(array_keys(CommunityPost::LOCATION_TYPES))],
+            'location_type' => ['required', Rule::in(array_keys(CommunityPost::locationTypeOptions($contentType)))],
             'location' => [
                 Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
                 'nullable',
@@ -582,7 +622,9 @@ class CommunityPostController extends Controller
             'methodology' => ['nullable', 'string', 'max:2000'],
             'data_sources' => ['nullable', 'string', 'max:2000'],
             'key_findings' => ['nullable', 'string', 'max:3000'],
+            'report_analysis' => ['nullable', 'string', 'max:3000'],
             'recommendations' => ['nullable', 'string', 'max:3000'],
+            'report_conclusion' => ['nullable', 'string', 'max:3000'],
             'issue_attachments' => ['nullable', 'array', 'max:6'],
             'issue_attachments.*' => ['file', 'max:20480', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,pdf,doc,docx'],
             'accept_content_responsibility' => ['accepted'],
@@ -591,6 +633,13 @@ class CommunityPostController extends Controller
 
         if (is_string($contentType)) {
             $rules = array_merge($rules, CommunityPostFormFields::validationRules($contentType));
+        }
+
+        if ($contentType === 'reports') {
+            $rules['observation_period_to'][] = 'after_or_equal:observation_period_from';
+            $rules['action_requested_from'][] = Rule::requiredIf(
+                fn () => $request->input('action_needed') === 'Yes'
+            );
         }
 
         $validated = $request->validate($rules);
@@ -611,7 +660,13 @@ class CommunityPostController extends Controller
 
         unset($validated['book_pages']);
 
-        if (! in_array($validated['location_type'], CommunityPost::locationTypesRequiringPlace(), true)) {
+        if ($validated['location_type'] === CommunityPost::LOCATION_TYPE_GPS) {
+            $validated['location'] = filled($validated['location'] ?? null)
+                ? $validated['location']
+                : 'GPS Location';
+            $validated['location_lat'] = filled($validated['location_lat'] ?? null) ? $validated['location_lat'] : null;
+            $validated['location_lng'] = filled($validated['location_lng'] ?? null) ? $validated['location_lng'] : null;
+        } elseif (! in_array($validated['location_type'], CommunityPost::locationTypesRequiringPlace(), true)) {
             $validated = array_merge($validated, CommunityPost::defaultLocationForType($validated['location_type']));
         }
 
@@ -620,6 +675,11 @@ class CommunityPostController extends Controller
             $validated['pen_name'] = null;
         } elseif (($validated['publish_as'] ?? null) !== CommunityPost::PUBLISH_AS_PEN_NAME) {
             $validated['pen_name'] = null;
+        }
+
+        if (($validated['content_type'] ?? null) === 'reports' || ! ($validated['allow_poll'] ?? false)) {
+            $validated['allow_poll'] = false;
+            $validated['poll_subject'] = null;
         }
 
         if (! ($validated['allow_poll'] ?? false)) {
@@ -683,19 +743,8 @@ class CommunityPostController extends Controller
      */
     private function storeFeaturedImages(Request $request): array
     {
-        $directory = public_path('uploads/community-posts');
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
         return collect($request->file('featured_images', []))
-            ->map(function ($file) use ($directory): string {
-                $filename = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
-                $file->move($directory, $filename);
-
-                return 'uploads/community-posts/'.$filename;
-            })
+            ->map(fn ($file) => CommunityPostFileUploader::storeImage($file))
             ->values()
             ->all();
     }
@@ -719,9 +768,17 @@ class CommunityPostController extends Controller
         $payload['methodology'] = $request->input('methodology');
         $payload['data_sources'] = $request->input('data_sources');
         $payload['key_findings'] = $request->input('key_findings');
+        $payload['report_analysis'] = $request->input('report_analysis');
         $payload['recommendations'] = $request->input('recommendations');
+        $payload['report_conclusion'] = $request->input('report_conclusion');
         $editorLanguage = $request->input('editor_language', 'en');
         $payload['editor_language'] = in_array($editorLanguage, ['en', 'hi'], true) ? $editorLanguage : 'en';
+
+        if ($request->input('content_type') === 'reports') {
+            $payload['report_author_name'] = filled($request->input('report_author_name'))
+                ? $request->input('report_author_name')
+                : ($request->user()?->name ?: $request->user()?->full_name);
+        }
 
         return array_filter($payload, fn ($value) => filled($value) || is_bool($value));
     }
@@ -736,9 +793,30 @@ class CommunityPostController extends Controller
         return $request->boolean('allow_sharing');
     }
 
-    private function shouldAllowPoll(Request $request): bool
+    private function shouldAllowPoll(Request $request, ?string $contentType = null): bool
     {
+        $type = $contentType ?? $request->input('content_type');
+
+        if ($type === 'reports') {
+            return false;
+        }
+
         return $request->boolean('allow_poll');
+    }
+
+    private function shouldAllowSuggestions(Request $request): bool
+    {
+        return $request->boolean('allow_suggestions');
+    }
+
+    private function shouldAllowFeedback(Request $request): bool
+    {
+        return $request->boolean('allow_feedback');
+    }
+
+    private function shouldAllowAdditionalEvidence(Request $request): bool
+    {
+        return $request->boolean('allow_additional_evidence');
     }
 
     /**
@@ -778,25 +856,8 @@ class CommunityPostController extends Controller
      */
     private function storeIssueAttachments(Request $request): array
     {
-        $directory = public_path('uploads/community-posts/issues');
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
         return collect($request->file('issue_attachments', []))
-            ->map(function ($file) use ($directory): array {
-                $filename = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
-                $file->move($directory, $filename);
-                $path = 'uploads/community-posts/issues/'.$filename;
-
-                return [
-                    'path' => $path,
-                    'url' => asset($path),
-                    'name' => $file->getClientOriginalName(),
-                    'type' => Str::before($file->getMimeType(), '/'),
-                ];
-            })
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file))
             ->values()
             ->all();
     }
@@ -855,20 +916,7 @@ class CommunityPostController extends Controller
      */
     private function storeVideoFile(\Illuminate\Http\UploadedFile $file): array
     {
-        $directory = public_path('uploads/community-posts/videos');
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $filename = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
-        $file->move($directory, $filename);
-
-        return [
-            'type' => 'upload',
-            'path' => 'uploads/community-posts/videos/'.$filename,
-            'name' => $file->getClientOriginalName(),
-        ];
+        return CommunityPostFileUploader::storeVideo($file);
     }
 
     /**
@@ -880,30 +928,12 @@ class CommunityPostController extends Controller
             return;
         }
 
-        $publicPath = public_path($video['path']);
-        if (is_file($publicPath)) {
-            unlink($publicPath);
-
-            return;
-        }
-
-        Storage::disk('public')->delete($video['path']);
+        CommunityPostFileUploader::deleteIfExists($video['path']);
     }
 
     private function deleteFeaturedImage(?string $path): void
     {
-        if (! $path) {
-            return;
-        }
-
-        $publicPath = public_path($path);
-        if (is_file($publicPath)) {
-            unlink($publicPath);
-
-            return;
-        }
-
-        Storage::disk('public')->delete($path);
+        CommunityPostFileUploader::deleteIfExists($path);
     }
 
 
@@ -1083,5 +1113,14 @@ class CommunityPostController extends Controller
             ->filter(fn (array $page): bool => filled(strip_tags($page['content'])))
             ->values()
             ->all();
+    }
+
+    private function syncReportTrustScore(CommunityPost $post): CommunityPost
+    {
+        if (! $post->isReportContent()) {
+            return $post;
+        }
+
+        return CommunityReportTrustScoreService::syncToMeta($post);
     }
 }

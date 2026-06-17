@@ -224,9 +224,10 @@
                         <th>Title</th>
                         <th>Why writing</th>
                         <th>Type</th>
-                        <th>Category</th>
-                        <th>Status</th>
-                        <th>Published</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Trust</th>
+                    <th>Published</th>
                         <th class="text-end">Actions</th>
                     </tr>
                 </thead>
