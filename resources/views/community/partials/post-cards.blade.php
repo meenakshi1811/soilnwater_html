@@ -14,6 +14,11 @@
         $promotionLabels = $post->adminPromotionLabels();
         $scoreBadges = $post->articleScoreBadges();
         $isSaved = auth()->check() && in_array($post->id, $engagement['saved_post_ids'] ?? [], true);
+        $isPoetry = $post->content_type === 'poetry';
+        $poetryThemes = $isPoetry ? array_slice((array) data_get($post->meta, 'poetry_themes', []), 0, 2) : [];
+        $poetryType = $isPoetry ? data_get($post->meta, 'poetry_type') : null;
+        $poetryRating = $isPoetry ? $post->averageStarRating() : null;
+        $hasPoetryAudio = $isPoetry && $post->poetryAudioUrl();
     @endphp
     <div class="col">
         <article class="community-post-card h-100 {{ $post->is_highlighted ? 'community-post-card--highlighted' : '' }}">
@@ -50,9 +55,30 @@
                         <i class="fa-solid fa-circle-play"></i>
                     </span>
                 @endif
+                @if ($hasPoetryAudio)
+                    <span class="community-post-card__video-badge community-post-card__audio-badge" title="Includes audio recitation">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </span>
+                @endif
             </a>
 
             <div class="community-post-card__body">
+                @if($isPoetry && ($poetryType || $poetryThemes !== [] || $poetryRating))
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        @if($poetryType)
+                            <span class="poetry-card-badge bg-light text-dark border">{{ $poetryType }}</span>
+                        @endif
+                        @foreach($poetryThemes as $theme)
+                            <span class="poetry-card-badge bg-light text-dark border">{{ $theme }}</span>
+                        @endforeach
+                        @if($poetryRating)
+                            <span class="poetry-card-badge poetry-card-badge--rating">
+                                <i class="fa-solid fa-star" aria-hidden="true"></i>
+                                {{ number_format($poetryRating, 1) }}
+                            </span>
+                        @endif
+                    </div>
+                @endif
                 <h2 class="community-post-card__title">
                     <a href="{{ route('community.show', $post) }}">{{ $post->title }}</a>
                 </h2>

@@ -66,6 +66,175 @@
                 <select name="category" id="categorySelect" class="form-select" data-selected="{{ old('category', $post->category) }}" required>
                     <option value="">Select category</option>
                 </select>
+                <small id="categoryHelp" class="text-muted d-block mt-1"></small>
+            </div>
+            <div class="col-md-6" id="subCategoryFieldWrap" style="display:none;">
+                <label class="form-label" id="subCategoryLabel">Sub Category <span class="text-danger">*</span></label>
+                <select name="sub_category" id="subCategorySelect" class="form-select poetry-required" data-selected="{{ old('sub_category', data_get($post->meta, 'sub_category')) }}">
+                    <option value="">Select sub category</option>
+                    @foreach(\App\Support\CommunityContentTaxonomy::poetrySubCategories() as $subCategory)
+                        <option value="{{ $subCategory }}" @selected(old('sub_category', data_get($post->meta, 'sub_category')) === $subCategory)>{{ $subCategory }}</option>
+                    @endforeach
+                </select>
+                <small id="subCategoryHelp" class="text-muted d-block mt-1"></small>
+            </div>
+            <div class="col-12 type-extra" data-for="stories">
+                <div class="news-classification-card border rounded-3 p-3 p-md-4">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
+                        <div>
+                            <h5 class="mb-1">Story classification</h5>
+                            <p class="text-muted mb-0 small">Choose the story format before writing your narrative.</p>
+                        </div>
+                        <span class="badge bg-primary text-white">Stories only</span>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <div class="news-classification-panel h-100">
+                                <div class="news-classification-panel__icon">
+                                    <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+                                </div>
+                                <div class="news-classification-panel__copy">
+                                    <h6 class="news-classification-panel__title">Story type <span class="text-danger">*</span></h6>
+                                    <p class="news-classification-panel__hint">Very important.</p>
+                                </div>
+                                <select name="story_type" class="form-select stories-required">
+                                    <option value="">Select story type</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::storyTypeGroups() as $groupLabel => $groupOptions)
+                                        <optgroup label="{{ $groupLabel }}">
+                                            @foreach($groupOptions as $storyType)
+                                                <option value="{{ $storyType }}" @selected(old('story_type', data_get($post->meta, 'story_type')) === $storyType)>{{ $storyType }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="news-classification-panel h-100">
+                                <div class="news-classification-panel__icon">
+                                    <i class="fa-solid fa-language" aria-hidden="true"></i>
+                                </div>
+                                <div class="news-classification-panel__copy">
+                                    <h6 class="news-classification-panel__title">Language <span class="text-danger">*</span></h6>
+                                    <p class="news-classification-panel__hint">Story language.</p>
+                                </div>
+                                <select name="story_language" class="form-select stories-required">
+                                    <option value="">Select language</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::storyLanguages() as $storyLanguage)
+                                        <option value="{{ $storyLanguage }}" @selected(old('story_language', data_get($post->meta, 'story_language')) === $storyLanguage)>{{ $storyLanguage }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 type-extra" data-for="poetry">
+                <div class="news-classification-card border rounded-3 p-3 p-md-4">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
+                        <div>
+                            <h5 class="mb-1">Poetry classification</h5>
+                            <p class="text-muted mb-0 small">Choose the poetry format before writing your poem.</p>
+                        </div>
+                        <span class="badge bg-primary text-white">Poetry only</span>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <div class="news-classification-panel h-100">
+                                <div class="news-classification-panel__icon">
+                                    <i class="fa-solid fa-feather-pointed" aria-hidden="true"></i>
+                                </div>
+                                <div class="news-classification-panel__copy">
+                                    <h6 class="news-classification-panel__title">Poetry type <span class="text-danger">*</span></h6>
+                                    <p class="news-classification-panel__hint">Very important.</p>
+                                </div>
+                                <select name="poetry_type" class="form-select poetry-required">
+                                    <option value="">Select poetry type</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::poetryTypeGroups() as $groupLabel => $groupOptions)
+                                        <optgroup label="{{ $groupLabel }}">
+                                            @foreach($groupOptions as $poetryType)
+                                                <option value="{{ $poetryType }}" @selected(old('poetry_type', data_get($post->meta, 'poetry_type')) === $poetryType)>{{ $poetryType }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="news-classification-panel h-100">
+                                <div class="news-classification-panel__icon">
+                                    <i class="fa-solid fa-language" aria-hidden="true"></i>
+                                </div>
+                                <div class="news-classification-panel__copy">
+                                    <h6 class="news-classification-panel__title">Poem language <span class="text-danger">*</span></h6>
+                                    <p class="news-classification-panel__hint">Language of the poem.</p>
+                                </div>
+                                <select name="poem_language" class="form-select poetry-required">
+                                    <option value="">Select poem language</option>
+                                    @foreach(['Hindi', 'English', 'Urdu', 'Regional', 'Multilingual'] as $poemLanguage)
+                                        <option value="{{ $poemLanguage }}" @selected(old('poem_language', data_get($post->meta, 'poem_language')) === $poemLanguage)>{{ $poemLanguage }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label" for="dedication">Dedication</label>
+                            <input
+                                type="text"
+                                name="dedication"
+                                id="dedication"
+                                class="form-control"
+                                value="{{ old('dedication', data_get($post->meta, 'dedication')) }}"
+                                maxlength="160"
+                                placeholder="Optional dedication line"
+                            >
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="reading_time">Estimated reading time (minutes)</label>
+                            <input
+                                type="text"
+                                name="reading_time"
+                                id="reading_time"
+                                class="form-control"
+                                value="{{ old('reading_time', data_get($post->meta, 'reading_time')) }}"
+                                maxlength="10"
+                                placeholder="e.g. 3"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 type-extra" data-for="autobiography">
+                <div class="news-classification-card border rounded-3 p-3 p-md-4">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
+                        <div>
+                            <h5 class="mb-1">Autobiography classification</h5>
+                            <p class="text-muted mb-0 small">Choose the autobiography format before writing your life story.</p>
+                        </div>
+                        <span class="badge bg-primary text-white">Autobiography only</span>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="news-classification-panel h-100">
+                                <div class="news-classification-panel__icon">
+                                    <i class="fa-solid fa-book-open-reader" aria-hidden="true"></i>
+                                </div>
+                                <div class="news-classification-panel__copy">
+                                    <h6 class="news-classification-panel__title">Autobiography type <span class="text-danger">*</span></h6>
+                                    <p class="news-classification-panel__hint">Very important.</p>
+                                </div>
+                                <select name="autobiography_type" class="form-select autobiography-required">
+                                    <option value="">Select autobiography type</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::autobiographyTypes() as $autobiographyType)
+                                        <option value="{{ $autobiographyType }}" @selected(old('autobiography_type', data_get($post->meta, 'autobiography_type')) === $autobiographyType)>{{ $autobiographyType }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-12 type-extra" data-for="news">
                 <div class="news-classification-card border rounded-3 p-3 p-md-4">
@@ -134,6 +303,138 @@
                 }
             @endphp
             <div class="col-12" id="bodyContentSection">
+                <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Story content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below. For stories, write page by page like a book — each page uses the same editor.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Stories only</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field already on the form. Add your full narrative using the editor below.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-0">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Headings</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Bold</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Italic</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Lists</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Quotes</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        <li class="mb-2">
+                                            <strong>Beginning</strong>
+                                            <span class="text-muted d-block">Introduce characters or situation</span>
+                                        </li>
+                                        <li class="mb-2">
+                                            <strong>Main story</strong>
+                                            <span class="text-muted d-block">Events and experiences</span>
+                                        </li>
+                                        <li>
+                                            <strong>Lesson / message</strong>
+                                            <span class="text-muted d-block">What readers can learn</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="poetryContentGuide" class="story-content-guide mb-3" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Poem content</h5>
+                                <p class="text-muted mb-0 small">Use the large poetry editor below. This is the same body field — your poem displays on the public page exactly as you format it here.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Poetry only</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Poetry editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">Large text editor with full Unicode support for Indian languages.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Paragraphs</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Line breaks</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Unicode languages</li>
+                                    </ul>
+                                    <p class="small mb-1 fw-semibold">Languages:</p>
+                                    <div class="poetry-language-pills d-flex flex-wrap gap-2">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::poetryEditorLanguages() as $languageLabel)
+                                            <span class="badge bg-light text-dark border">{{ $languageLabel }}</span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Example</h6>
+                                    <pre class="poetry-content-example mb-0">The river flows,
+Silent and deep,
+
+Carrying stories,
+The mountains keep.</pre>
+                                    <small class="text-muted d-block mt-2">Use Enter for new lines and a blank line between stanzas.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="autobiographyContentGuide" class="story-content-guide mb-3" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Autobiography content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for each chapter. This is the same body field — chapters are saved page by page.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Autobiography only</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">Write chapter content with headings, images, tables, quotes, and links.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-0">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Headings</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Tables</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Quotes</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Chapter management</h6>
+                                    <p class="text-muted small mb-2">Add multiple chapters. Each chapter includes a title, summary, and rich content.</p>
+                                    <p class="small mb-1 fw-semibold">Example:</p>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        <li class="mb-2"><strong>Chapter 1 – Childhood</strong></li>
+                                        <li class="mb-2"><strong>Chapter 2 – Education</strong></li>
+                                        <li class="mb-2"><strong>Chapter 3 – Starting My Career</strong></li>
+                                        <li><strong>Chapter 4 – Building My Business</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="standardBodyHeader">
                     <label class="form-label" id="bodyLabel">Body <span class="text-danger">*</span></label>
                     <small id="bodyHelp" class="text-muted d-block mb-2">Add text and images together. There is no word limit. Select an image to align it, or drag its corner to resize.</small>
@@ -145,13 +446,27 @@
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                             <div class="d-flex flex-wrap gap-2" id="bookPageTabs" role="tablist" aria-label="Book pages"></div>
                             <button type="button" class="btn btn-sm btn-outline-primary" id="addBookPageBtn">
-                                <i class="fa-solid fa-plus me-1"></i>Add another page
+                                <i class="fa-solid fa-plus me-1"></i><span id="addBookPageBtnLabel">Add another page</span>
                             </button>
+                        </div>
+                        <div id="bookChapterMetaFields" style="display:none;">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-5">
+                                    <label class="form-label" for="activeChapterTitle">Chapter title <span class="text-danger">*</span></label>
+                                    <input type="text" id="activeChapterTitle" class="form-control" maxlength="160" placeholder="Chapter 1 – Childhood">
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label" for="activeChapterSummary">Chapter summary</label>
+                                    <input type="text" id="activeChapterSummary" class="form-control" maxlength="500" placeholder="Brief summary of this chapter">
+                                </div>
+                            </div>
+                            <label class="form-label" id="activeChapterContentLabel">Chapter content <span class="text-danger">*</span></label>
+                            <small class="text-muted d-block mb-2">Use the rich text editor below. Add images inside the chapter content.</small>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
                             <strong id="activeBookPageTitle">Page 1</strong>
                             <button type="button" class="btn btn-sm btn-outline-danger" id="removeBookPageBtn" style="display:none;">
-                                <i class="fa-solid fa-trash me-1"></i>Remove page
+                                <i class="fa-solid fa-trash me-1"></i><span id="removeBookPageBtnLabel">Remove page</span>
                             </button>
                         </div>
                     </div>
@@ -159,12 +474,13 @@
                 <div id="bodyEditorMount" class="community-body-editor-mount border rounded-3 bg-white p-2">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 px-1" id="editorLanguageWrap">
                         <div>
-                            <label for="editorLanguageSelect" class="form-label mb-0 small fw-semibold">Editor language</label>
-                            <small class="text-muted d-block">Default is English. Switch to Hindi to write in Devanagari.</small>
+                            <label for="editorLanguageSelect" class="form-label mb-0 small fw-semibold" id="editorLanguageLabel">Editor language</label>
+                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Switch to Hindi to write in Devanagari.</small>
                         </div>
                         <select id="editorLanguageSelect" class="form-select form-select-sm community-editor-language-select">
-                            <option value="en">English</option>
-                            <option value="hi">Hindi</option>
+                            @foreach(\App\Support\CommunityContentTaxonomy::standardEditorLanguages() as $code => $label)
+                                <option value="{{ $code }}" @selected(old('editor_language', data_get($post->meta, 'editor_language', 'en')) === $code)>{{ $label }}</option>
+                            @endforeach
                         </select>
                         <input
                             type="hidden"
@@ -174,6 +490,317 @@
                         >
                     </div>
                     <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
+                </div>
+            </div>
+            <div class="col-12 type-extra poetry-flow" data-for="poetry">
+                @include('backend.community-posts.partials.poetry-flow-fields', ['post' => $post])
+            </div>
+            <div class="col-12 type-extra autobiography-flow" data-for="autobiography">
+                @include('backend.community-posts.partials.autobiography-flow-fields', ['post' => $post])
+            </div>
+            <div class="col-12 type-extra story-flow" data-for="stories">
+                <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Target audience</h5>
+                            <p class="text-muted mb-0 small">Select all groups this story is meant for.</p>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary border">Multiple selection</span>
+                    </div>
+                    @php
+                        $selectedAudiences = old('story_target_audience', data_get($post->meta, 'story_target_audience', []));
+                    @endphp
+                    <div class="row g-2">
+                        @foreach(\App\Support\CommunityContentTaxonomy::storyTargetAudiences() as $audience)
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-check border rounded p-2 bg-light h-100 mb-0">
+                                    <input
+                                        type="checkbox"
+                                        name="story_target_audience[]"
+                                        value="{{ $audience }}"
+                                        class="form-check-input"
+                                        @checked(in_array($audience, (array) $selectedAudiences, true))
+                                    >
+                                    <span class="form-check-label">{{ $audience }}</span>
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="news-flow-card story-flow-card story-flow-card--theme border rounded-3 p-3 p-md-4 bg-light mb-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Story theme</h5>
+                            <p class="text-muted mb-0 small">Very useful for recommendations.</p>
+                        </div>
+                        <span class="badge bg-primary text-white">Recommendations</span>
+                    </div>
+                    @php
+                        $selectedThemes = old('story_themes', data_get($post->meta, 'story_themes', []));
+                    @endphp
+                    <div class="row g-2">
+                        @foreach(\App\Support\CommunityContentTaxonomy::storyThemes() as $theme)
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-check border rounded p-2 bg-white h-100 mb-0">
+                                    <input
+                                        type="checkbox"
+                                        name="story_themes[]"
+                                        value="{{ $theme }}"
+                                        class="form-check-input"
+                                        @checked(in_array($theme, (array) $selectedThemes, true))
+                                    >
+                                    <span class="form-check-label">{{ $theme }}</span>
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="news-flow-card story-flow-card story-flow-card--achievements border rounded-3 p-3 p-md-4 bg-white mb-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Story achievements</h5>
+                            <p class="text-muted mb-0 small">Automatic badges awarded based on reader engagement.</p>
+                        </div>
+                        <span class="badge bg-success text-white">Automatic</span>
+                    </div>
+                    <div class="row g-2">
+                        @foreach(\App\Services\CommunityStoryAchievementService::BADGE_LABELS as $field => $badgeLabel)
+                            @php $earned = (bool) ($post->{$field} ?? false); @endphp
+                            <div class="col-md-6 col-lg-3">
+                                <div class="story-achievement-item {{ $earned ? 'is-earned' : 'is-pending' }}">
+                                    <span class="story-achievement-item__icon" aria-hidden="true">
+                                        <i class="fa-solid {{ $earned ? 'fa-medal text-success' : 'fa-lock text-muted' }}"></i>
+                                    </span>
+                                    {{ $badgeLabel }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <p class="text-muted small mb-0 mt-3">Readers can also rate stories from 1–5 stars on the public story page.</p>
+                </div>
+
+                <div class="news-flow-card story-flow-card story-flow-card--moral border rounded-3 p-3 p-md-4 bg-white mb-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Moral / takeaway</h5>
+                            <p class="text-muted mb-0 small">Can be displayed separately on the public story page.</p>
+                        </div>
+                        <span class="badge bg-warning text-dark">Highly recommended</span>
+                    </div>
+                    <label class="form-label" for="story_moral_takeaway">Moral / takeaway</label>
+                    <textarea
+                        name="story_moral_takeaway"
+                        id="story_moral_takeaway"
+                        class="form-control"
+                        rows="3"
+                        maxlength="1000"
+                        placeholder="Never underestimate the power of community cooperation."
+                    >{{ old('story_moral_takeaway', data_get($post->meta, 'story_moral_takeaway')) }}</textarea>
+                    <small class="text-muted d-block mt-1">Example: Never underestimate the power of community cooperation.</small>
+                </div>
+
+                <div class="news-flow-card story-flow-card story-flow-card--characters border rounded-3 p-3 p-md-4 bg-light mb-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Characters</h5>
+                            <p class="text-muted mb-0 small">Optional context about the people in your story.</p>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary border">Optional</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label" for="story_main_characters">Main characters</label>
+                            <textarea
+                                name="story_main_characters"
+                                id="story_main_characters"
+                                class="form-control"
+                                rows="3"
+                                maxlength="2000"
+                                placeholder="Ramesh Kumar, Village Head, School Teacher"
+                            >{{ old('story_main_characters', data_get($post->meta, 'story_main_characters')) }}</textarea>
+                            <small class="text-muted d-block mt-1">Example: Ramesh Kumar, Village Head, School Teacher</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="story_character_type">Character type</label>
+                            <select name="story_character_type" id="story_character_type" class="form-select">
+                                <option value="">Select character type</option>
+                                @foreach(\App\Support\CommunityContentTaxonomy::storyCharacterTypes() as $characterType)
+                                    <option value="{{ $characterType }}" @selected(old('story_character_type', data_get($post->meta, 'story_character_type')) === $characterType)>{{ $characterType }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-flow-card story-flow-card story-flow-card--location border rounded-3 p-3 p-md-4 bg-white">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Location information</h5>
+                            <p class="text-muted mb-0 small">Especially useful for local stories.</p>
+                        </div>
+                        <span class="badge bg-success text-white">Local stories</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="story_place_type">Story location</label>
+                            <select name="story_place_type" id="story_place_type" class="form-select">
+                                <option value="">Select location scope</option>
+                                @foreach(\App\Support\CommunityContentTaxonomy::storyPlaceTypes() as $placeType)
+                                    <option value="{{ $placeType }}" @selected(old('story_place_type', data_get($post->meta, 'story_place_type')) === $placeType)>{{ $placeType }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="story_place_names">Place names</label>
+                            <input
+                                type="text"
+                                name="story_place_names"
+                                id="story_place_names"
+                                class="form-control"
+                                value="{{ old('story_place_names', data_get($post->meta, 'story_place_names')) }}"
+                                maxlength="500"
+                                placeholder="Dehradun, Uttarakhand, India"
+                            >
+                            <small class="text-muted d-block mt-1">Example: Dehradun, Uttarakhand, India</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-flow-card story-flow-card story-flow-card--period border rounded-3 p-3 p-md-4 bg-light mb-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Time period</h5>
+                            <p class="text-muted mb-0 small">When does your story take place?</p>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary border">Optional</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="story_time_period">Time period</label>
+                            <select name="story_time_period" id="story_time_period" class="form-select">
+                                <option value="">Select time period</option>
+                                @foreach(\App\Support\CommunityContentTaxonomy::storyTimePeriods() as $timePeriod)
+                                    <option value="{{ $timePeriod }}" @selected(old('story_time_period', data_get($post->meta, 'story_time_period')) === $timePeriod)>{{ $timePeriod }}</option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted d-block mt-1">Example: Childhood, Present Day, 1980s, Historical Period, Future</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-flow-card story-flow-card story-flow-card--cover border rounded-3 p-3 p-md-4 bg-white mb-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Featured image</h5>
+                            <p class="text-muted mb-0 small">Cover image for story cards, social sharing, and homepage.</p>
+                        </div>
+                        <span class="badge bg-warning text-dark">Recommended</span>
+                    </div>
+                    <ul class="story-cover-uses list-unstyled small text-muted mb-3">
+                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Story cards</li>
+                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Social sharing</li>
+                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Homepage</li>
+                    </ul>
+                    <div id="communityStoryFeaturedImagesSlot"></div>
+                </div>
+
+                <div class="news-flow-card story-flow-card story-flow-card--gallery border rounded-3 p-3 p-md-4 bg-light">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Story gallery</h5>
+                            <p class="text-muted mb-0 small">Optional visual gallery alongside your story.</p>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary border">Optional</span>
+                    </div>
+                    <p class="small text-muted mb-3">Upload: Photos, Illustrations, Drawings, Old Images</p>
+                    <input type="file" name="story_gallery[]" class="form-control" accept="image/*" multiple>
+                    <small class="text-muted d-block mt-1">JPG, PNG, WebP, or GIF. Up to 10 images, max 4 MB each.</small>
+                    @if(!empty(data_get($post->meta, 'story_gallery')))
+                        <div class="mt-3 d-flex flex-column gap-2">
+                            @foreach(data_get($post->meta, 'story_gallery', []) as $galleryImage)
+                                <label class="form-check border rounded p-2 bg-white mb-0">
+                                    <input type="checkbox" name="removed_story_gallery[]" value="{{ data_get($galleryImage, 'path') }}" class="form-check-input">
+                                    <span class="form-check-label">Remove {{ data_get($galleryImage, 'name', 'gallery image') }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                @php
+                    $existingStoryAudio = data_get($post->meta, 'story_audio');
+                    $storyAudioSourceType = old('story_audio_source_type', filled($existingStoryAudio) ? (($existingStoryAudio['type'] ?? '') === 'recording' ? 'recording' : 'upload') : 'none');
+                @endphp
+
+                <div class="news-flow-card story-flow-card story-flow-card--audio border rounded-3 p-3 p-md-4 bg-white mb-3 mt-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Audio story</h5>
+                            <p class="text-muted mb-0 small">Unique feature — upload MP3 or record voice directly in the browser.</p>
+                        </div>
+                        <span class="badge bg-info text-white">Unique feature</span>
+                    </div>
+                    <ul class="story-audio-uses list-unstyled small text-muted mb-3">
+                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Useful for senior citizens</li>
+                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Regional language stories</li>
+                    </ul>
+                    <div class="community-audio-field border rounded-3 p-3 bg-light">
+                        <div class="btn-group btn-group-sm w-100 mb-3" role="group" aria-label="Audio story source type">
+                            <input type="radio" class="btn-check" name="story_audio_source_type" id="storyAudioSourceNone" value="none" @checked($storyAudioSourceType === 'none')>
+                            <label class="btn btn-outline-secondary" for="storyAudioSourceNone">No audio</label>
+                            <input type="radio" class="btn-check" name="story_audio_source_type" id="storyAudioSourceUpload" value="upload" @checked($storyAudioSourceType === 'upload')>
+                            <label class="btn btn-outline-secondary" for="storyAudioSourceUpload">MP3 upload</label>
+                            <input type="radio" class="btn-check" name="story_audio_source_type" id="storyAudioSourceRecording" value="recording" @checked($storyAudioSourceType === 'recording')>
+                            <label class="btn btn-outline-secondary" for="storyAudioSourceRecording">Voice recording</label>
+                        </div>
+
+                        <div id="storyAudioUploadWrap" class="audio-source-panel">
+                            <label class="form-label" for="storyAudioFile">MP3 file</label>
+                            <input type="file" name="story_audio_file" id="storyAudioFile" class="form-control" accept="audio/mpeg,audio/mp3,audio/wav,audio/webm,audio/ogg,.mp3,.wav,.webm,.ogg">
+                            <small class="text-muted d-block mt-2">MP3 or other audio formats. Maximum size: 20 MB.</small>
+                        </div>
+
+                        <div id="storyAudioRecordingWrap" class="audio-source-panel">
+                            <div class="story-audio-recorder border rounded-3 p-3 bg-white">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                                    <button type="button" class="btn btn-sm btn-danger" id="storyAudioRecordBtn">
+                                        <i class="fa-solid fa-microphone me-1"></i>Start recording
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="storyAudioStopBtn" disabled>Stop</button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="storyAudioClearRecordingBtn" disabled>Clear</button>
+                                    <span class="small text-muted" id="storyAudioRecordingStatus">Ready to record.</span>
+                                </div>
+                                <audio id="storyAudioRecordingPreview" controls class="w-100" style="display:none;"></audio>
+                                <small class="text-muted d-block">Use your microphone to record the story. The recording is saved when you submit the form.</small>
+                            </div>
+                        </div>
+
+                        @if(filled($existingStoryAudio))
+                            <input type="hidden" name="keep_existing_story_audio" id="keepExistingStoryAudio" value="1">
+                            <div id="existingStoryAudioPreview" class="alert alert-light border mt-3 mb-0 py-2 px-3 d-flex align-items-center justify-content-between gap-2">
+                                <div class="small">
+                                    <strong>Current audio:</strong> {{ $existingStoryAudio['name'] ?? 'Audio story' }}
+                                    @if(filled($existingStoryAudio['url'] ?? null))
+                                        <audio controls class="d-block mt-2 w-100" src="{{ $existingStoryAudio['url'] }}"></audio>
+                                    @endif
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger align-self-start" id="removeExistingStoryAudioBtn">Remove</button>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="news-flow-card story-flow-card story-flow-card--video border rounded-3 p-3 p-md-4 bg-light">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                        <div>
+                            <h5 class="mb-1">Video story</h5>
+                            <p class="text-muted mb-0 small">Optional video version — YouTube link or uploaded file.</p>
+                        </div>
+                        <span class="badge bg-secondary-subtle text-secondary border">Optional</span>
+                    </div>
+                    <div id="communityStoryVideoSlot"></div>
                 </div>
             </div>
             <div class="col-md-6" id="communityFeaturedImagesWrap">
@@ -859,7 +1486,7 @@
                         </div>
                         <div class="col-md-6" id="communityVideoHiddenSlot"></div>
                         <div class="col-md-6" id="communityVideoWrap">
-                            <label class="form-label">Video <span class="text-muted fw-normal">(optional)</span></label>
+                            <label class="form-label" id="videoFieldLabel">Video <span class="text-muted fw-normal">(optional)</span></label>
                             <div class="community-video-field border rounded-3 p-3">
                                 <div class="btn-group btn-group-sm w-100 mb-3" role="group" aria-label="Video source type">
                                     <input type="radio" class="btn-check" name="video_source_type" id="videoSourceNone" value="none" @checked($videoSourceType === 'none')>
@@ -1023,6 +1650,39 @@
         min-height: 320px;
     }
 
+    #bodyEditorMount.is-poetry-mode .ck-editor__editable_inline {
+        min-height: 480px;
+    }
+
+    .poetry-content-example {
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: .75rem;
+        color: #334155;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: .95rem;
+        line-height: 1.7;
+        padding: 1rem 1.15rem;
+        white-space: pre-wrap;
+    }
+
+    .poetry-language-pills .badge {
+        font-weight: 500;
+    }
+
+    .poetry-author-preview__avatar img,
+    .poetry-author-preview__initials {
+        align-items: center;
+        background: #e2e8f0;
+        color: #334155;
+        display: inline-flex;
+        font-weight: 700;
+        height: 72px;
+        justify-content: center;
+        object-fit: cover;
+        width: 72px;
+    }
+
     #bodyEditorMount .ck.ck-editor {
         width: 100%;
     }
@@ -1034,6 +1694,36 @@
 
     .ck-editor__editable.ck-content[lang="hi"] {
         font-family: "Noto Sans Devanagari", "Nirmala UI", "Mangal", sans-serif;
+    }
+
+    .ck-editor__editable.ck-content[lang="ur"] {
+        direction: rtl;
+        font-family: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Urdu Typesetting", serif;
+        text-align: right;
+    }
+
+    .ck-editor__editable.ck-content[lang="pa"] {
+        font-family: "Noto Sans Gurmukhi", "Raavi", "AnmolUni", sans-serif;
+    }
+
+    .ck-editor__editable.ck-content[lang="bn"] {
+        font-family: "Noto Sans Bengali", "Vrinda", "Shonar Bangla", sans-serif;
+    }
+
+    .ck-editor__editable.ck-content[lang="mr"] {
+        font-family: "Noto Sans Devanagari", "Nirmala UI", "Mangal", sans-serif;
+    }
+
+    .ck-editor__editable.ck-content[lang="gu"] {
+        font-family: "Noto Sans Gujarati", "Shruti", sans-serif;
+    }
+
+    .ck-editor__editable.ck-content[lang="ta"] {
+        font-family: "Noto Sans Tamil", "Latha", "Vijaya", sans-serif;
+    }
+
+    .ck-editor__editable.ck-content[lang="te"] {
+        font-family: "Noto Sans Telugu", "Gautami", "Vani", sans-serif;
     }
 
     .community-book-editor .book-page-tab {
@@ -1185,6 +1875,96 @@
         border-left: 4px solid #0d6efd !important;
         background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
     }
+    .story-flow-card {
+        border-left: 4px solid #6f42c1 !important;
+        background: linear-gradient(180deg, #faf8ff 0%, #ffffff 100%);
+    }
+    .story-flow-card--moral {
+        border-left-color: #ffc107 !important;
+        background: linear-gradient(180deg, #fffdf8 0%, #ffffff 100%);
+    }
+    .story-flow-card--characters {
+        border-left-color: #0d6efd !important;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    }
+    .story-flow-card--location {
+        border-left-color: #198754 !important;
+        background: linear-gradient(180deg, #f8fff9 0%, #ffffff 100%);
+    }
+    .story-flow-card--period {
+        border-left-color: #6c757d !important;
+        background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+    }
+    .story-flow-card--cover {
+        border-left-color: #ffc107 !important;
+        background: linear-gradient(180deg, #fffdf8 0%, #ffffff 100%);
+    }
+    .story-flow-card--gallery {
+        border-left-color: #0dcaf0 !important;
+        background: linear-gradient(180deg, #f8fdff 0%, #ffffff 100%);
+    }
+    .story-flow-card--audience {
+        border-left-color: #6610f2 !important;
+        background: linear-gradient(180deg, #f8f5ff 0%, #ffffff 100%);
+    }
+    .story-flow-card--theme {
+        border-left-color: #0d6efd !important;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    }
+    .story-flow-card--achievements {
+        border-left-color: #198754 !important;
+        background: linear-gradient(180deg, #f8fff9 0%, #ffffff 100%);
+    }
+    .story-flow-card--timeline {
+        border-left-color: #ffc107 !important;
+        background: linear-gradient(180deg, #fffdf5 0%, #ffffff 100%);
+    }
+    .story-flow-card--lessons {
+        border-left-color: #0d6efd !important;
+        background: linear-gradient(180deg, #f5f9ff 0%, #ffffff 100%);
+    }
+    .story-cover-uses {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.35rem 1rem;
+    }
+    #communityStoryFeaturedImagesSlot .featured-images-uploader {
+        background: #fff;
+    }
+    #communityStoryVideoSlot .community-video-field {
+        background: #fff;
+    }
+    .community-audio-field { background: #fafbfc; }
+    .audio-source-panel { display: none; }
+    .audio-source-panel.is-active { display: block; }
+    .story-flow-card--audio {
+        border-left-color: #0dcaf0 !important;
+        background: linear-gradient(180deg, #f8fdff 0%, #ffffff 100%);
+    }
+    .story-flow-card--video {
+        border-left-color: #dc3545 !important;
+        background: linear-gradient(180deg, #fff8f8 0%, #ffffff 100%);
+    }
+    .story-audio-uses {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem 1rem;
+    }
+    .story-content-panel {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        background: #f8fafc;
+    }
+    .story-content-panel__title {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+    .story-content-support {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem 1rem;
+    }
     #communityNewsFeaturedImagesSlot .featured-images-uploader,
     #communityNewsVideoSlot .community-video-field {
         background: #fff;
@@ -1289,6 +2069,7 @@
         border-top-color: rgba(15, 23, 42, 0.08) !important;
     }
 </style>
+@include('community.partials.story-styles')
 @endpush
 
 @push('scripts')
@@ -1301,13 +2082,81 @@
     window.communityBookPages = @json(collect($initialBookPages)->map(fn ($page) => [
         'content' => is_array($page) ? ($page['content'] ?? '') : (string) $page,
         'language' => is_array($page) ? ($page['language'] ?? 'en') : 'en',
+        'title' => is_array($page) ? ($page['title'] ?? '') : '',
+        'summary' => is_array($page) ? ($page['summary'] ?? '') : '',
     ])->values());
     window.communityBodyEditor = null;
     window.communityActiveBookPage = 0;
     const COMMUNITY_EDITOR_LANGUAGES = {
-        en: { label: 'English', lang: 'en' },
-        hi: { label: 'Hindi', lang: 'hi' },
+        en: { label: 'English', lang: 'en', dir: 'ltr' },
+        hi: { label: 'Hindi', lang: 'hi', dir: 'ltr' },
+        ur: { label: 'Urdu', lang: 'ur', dir: 'rtl' },
+        pa: { label: 'Punjabi', lang: 'pa', dir: 'ltr' },
+        bn: { label: 'Bengali', lang: 'bn', dir: 'ltr' },
+        mr: { label: 'Marathi', lang: 'mr', dir: 'ltr' },
+        gu: { label: 'Gujarati', lang: 'gu', dir: 'ltr' },
+        ta: { label: 'Tamil', lang: 'ta', dir: 'ltr' },
+        te: { label: 'Telugu', lang: 'te', dir: 'ltr' },
     };
+    const COMMUNITY_STANDARD_EDITOR_LANGUAGE_CODES = @json(array_keys(\App\Support\CommunityContentTaxonomy::standardEditorLanguages()));
+    const COMMUNITY_POETRY_EDITOR_LANGUAGE_CODES = @json(array_keys(\App\Support\CommunityContentTaxonomy::poetryEditorLanguages()));
+
+    function editorLanguageOptionsForContentType(contentType) {
+        const codes = contentType === 'poetry' ? COMMUNITY_POETRY_EDITOR_LANGUAGE_CODES : COMMUNITY_STANDARD_EDITOR_LANGUAGE_CODES;
+
+        return codes.map(function (code) {
+            return {
+                code: code,
+                label: (COMMUNITY_EDITOR_LANGUAGES[code] || { label: code }).label,
+            };
+        });
+    }
+
+    function refreshEditorLanguageOptions(contentType) {
+        const select = document.getElementById('editorLanguageSelect');
+        const hidden = document.getElementById('editorLanguageHidden');
+        const label = document.getElementById('editorLanguageLabel');
+        const help = document.getElementById('editorLanguageHelp');
+
+        if (!select) {
+            return;
+        }
+
+        const currentValue = hidden?.value || select.value || 'en';
+        const options = editorLanguageOptionsForContentType(contentType);
+
+        select.innerHTML = options.map(function (option) {
+            return '<option value="' + option.code + '">' + option.label + '</option>';
+        }).join('');
+
+        const nextValue = options.some(function (option) { return option.code === currentValue; })
+            ? currentValue
+            : (options[0]?.code || 'en');
+
+        applyEditorLanguage(nextValue, { skipSave: true });
+        saveActiveEditorLanguage();
+
+        if (label) {
+            label.textContent = contentType === 'poetry' ? 'Poem script / language' : 'Editor language';
+        }
+
+        if (help) {
+            help.textContent = contentType === 'poetry'
+                ? 'Choose the script you are writing in. Unicode input is supported for all listed languages.'
+                : 'Default is English. Switch to Hindi to write in Devanagari.';
+        }
+    }
+
+    function refreshPoetryEditorMode(contentType) {
+        const editorMount = document.getElementById('bodyEditorMount');
+        const isPoetry = contentType === 'poetry';
+
+        if (editorMount) {
+            editorMount.classList.toggle('is-poetry-mode', isPoetry);
+        }
+
+        refreshEditorLanguageOptions(contentType);
+    }
 
     function normalizeEditorLanguage(code) {
         return COMMUNITY_EDITOR_LANGUAGES[code] ? code : 'en';
@@ -1350,8 +2199,9 @@
             const root = window.communityBodyEditor.editing.view.getDomRoot();
 
             if (root) {
-                root.setAttribute('lang', COMMUNITY_EDITOR_LANGUAGES[language].lang);
-                root.setAttribute('dir', 'ltr');
+                const languageMeta = COMMUNITY_EDITOR_LANGUAGES[language] || COMMUNITY_EDITOR_LANGUAGES.en;
+                root.setAttribute('lang', languageMeta.lang);
+                root.setAttribute('dir', languageMeta.dir || 'ltr');
             }
         }
 
@@ -1480,20 +2330,26 @@
         }
     }
 
-    function mountNewsMediaFields(isNews) {
+    function mountNewsMediaFields(isNews, isStories) {
         const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
         const featuredSlot = document.getElementById('communityNewsFeaturedImagesSlot');
+        const storyFeaturedSlot = document.getElementById('communityStoryFeaturedImagesSlot');
         const tagsCol = document.getElementById('communityTagsWrap');
         const videoWrap = document.getElementById('communityVideoWrap');
         const videoSlot = document.getElementById('communityNewsVideoSlot');
+        const storyVideoSlot = document.getElementById('communityStoryVideoSlot');
         const videoAnchor = document.getElementById('communityVideoHiddenSlot');
+        const videoFieldLabel = document.getElementById('videoFieldLabel');
         const featuredLabel = document.getElementById('featuredImagesLabel');
         const featuredHelp = document.getElementById('featuredImagesHelp');
         const featuredAddBtn = document.getElementById('featuredImagesAddBtn');
 
-        if (featuredWrap && featuredSlot && tagsCol) {
-            if (isNews) {
+        if (featuredWrap && tagsCol) {
+            if (isNews && featuredSlot) {
                 featuredSlot.appendChild(featuredWrap);
+                featuredWrap.classList.remove('col-md-6');
+            } else if (isStories && storyFeaturedSlot) {
+                storyFeaturedSlot.appendChild(featuredWrap);
                 featuredWrap.classList.remove('col-md-6');
             } else {
                 tagsCol.parentElement.insertBefore(featuredWrap, tagsCol);
@@ -1501,9 +2357,12 @@
             }
         }
 
-        if (videoWrap && videoSlot && videoAnchor) {
-            if (isNews) {
+        if (videoWrap && videoAnchor) {
+            if (isNews && videoSlot) {
                 videoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (isStories && storyVideoSlot) {
+                storyVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
             } else {
                 videoAnchor.insertAdjacentElement('afterend', videoWrap);
@@ -1511,20 +2370,40 @@
             }
         }
 
+        if (videoFieldLabel) {
+            videoFieldLabel.innerHTML = isStories
+                ? 'Video story <span class="text-muted fw-normal">(optional)</span>'
+                : 'Video <span class="text-muted fw-normal">(optional)</span>';
+        }
+
         if (featuredLabel) {
-            featuredLabel.textContent = isNews ? 'Featured image (recommended)' : 'Featured images';
+            if (isStories) {
+                featuredLabel.textContent = 'Cover image (recommended)';
+            } else if (isNews) {
+                featuredLabel.textContent = 'Featured image (recommended)';
+            } else {
+                featuredLabel.textContent = 'Featured images';
+            }
         }
 
         if (featuredHelp) {
-            featuredHelp.textContent = isNews
-                ? 'Upload a lead image first, then add additional photos. Examples: event photos, road damage, flooding, community activities, meetings. JPG, PNG, or WebP, max 4 MB each.'
-                : 'Upload up to 5 images. JPG, PNG, or WebP, max 4 MB each.';
+            if (isStories) {
+                featuredHelp.textContent = 'Used for story cards, social sharing, and homepage. Upload your cover image first. JPG, PNG, or WebP, max 4 MB each.';
+            } else if (isNews) {
+                featuredHelp.textContent = 'Upload a lead image first, then add additional photos. Examples: event photos, road damage, flooding, community activities, meetings. JPG, PNG, or WebP, max 4 MB each.';
+            } else {
+                featuredHelp.textContent = 'Upload up to 5 images. JPG, PNG, or WebP, max 4 MB each.';
+            }
         }
 
         if (featuredAddBtn) {
-            featuredAddBtn.innerHTML = isNews
-                ? '<i class="fa-solid fa-images me-1"></i>Add featured / additional images'
-                : '<i class="fa-solid fa-images me-1"></i>Add images';
+            if (isStories) {
+                featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
+            } else if (isNews) {
+                featuredAddBtn.innerHTML = '<i class="fa-solid fa-images me-1"></i>Add featured / additional images';
+            } else {
+                featuredAddBtn.innerHTML = '<i class="fa-solid fa-images me-1"></i>Add images';
+            }
         }
     }
 
@@ -1736,29 +2615,87 @@
         const selectedType = typeSelect.value;
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports'].includes(selectedType);
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'autobiography'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
 
         const categoryLabel = document.getElementById('categoryLabel');
+        const categoryHelp = document.getElementById('categoryHelp');
+        const subCategoryWrap = document.getElementById('subCategoryFieldWrap');
+        const subCategoryHelp = document.getElementById('subCategoryHelp');
 
         categorySelect.required = true;
         categorySelect.disabled = false;
         categoryWrap.style.display = '';
 
+        const isStories = selectedType === 'stories';
+        const isPoetry = selectedType === 'poetry';
+        const isAutobiography = selectedType === 'autobiography';
+
         if (categoryLabel) {
-            categoryLabel.innerHTML = 'Category <span class="text-danger">*</span>';
+            categoryLabel.innerHTML = (isStories || isReport || isPoetry)
+                ? 'Main Category <span class="text-danger">*</span>'
+                : 'Category <span class="text-danger">*</span>';
+        }
+
+        if (categoryHelp) {
+            categoryHelp.innerHTML = isStories
+                ? 'Examples:<br>Inspirational Stories · Life Experiences · Motivational Stories · Short Stories · Social Stories · Family Stories<br>'
+                    + "Children's Stories · Educational Stories · Travel Stories · Historical Stories · Business Stories · Village Stories<br>"
+                    + "Women's Stories · Senior Citizen Stories · Student Stories · Success Stories · Humor Stories · Fiction Stories"
+                : (isPoetry
+                    ? 'Examples:<br>Poetry · Shayari · Ghazal · Nazm · Geet (Song) · Haiku · Doha · Free Verse · Children\'s Poetry · Spiritual Poetry'
+                    : (isAutobiography
+                        ? 'Examples:<br>Personal Journey · Career Journey · Business Journey · Educational Journey · Women\'s Journey · Senior Citizen Journey<br>'
+                            + "Farmer's Journey · Social Service Journey · Professional Journey · Spiritual Journey"
+                        : ''));
+        }
+
+        if (subCategoryWrap) {
+            subCategoryWrap.style.display = isPoetry ? '' : 'none';
+        }
+
+        if (subCategoryHelp) {
+            subCategoryHelp.innerHTML = isPoetry
+                ? 'Examples:<br>Love Poetry · Inspirational Poetry · Nature Poetry · Patriotic Poetry · Social Poetry · Humor Poetry · Spiritual Poetry<br>'
+                    + "Women's Poetry · Student Poetry · Environmental Poetry · Village Poetry"
+                : '';
         }
 
         if (type) {
-            type.categories.forEach((category) => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                option.selected = category === selected;
-                categorySelect.appendChild(option);
-            });
+            const categoryGroups = type.categoryGroups || null;
+
+            if (categoryGroups && typeof categoryGroups === 'object') {
+                Object.entries(categoryGroups).forEach(([groupLabel, groupCategories]) => {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = groupLabel;
+                    groupCategories.forEach((category) => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        option.selected = category === selected;
+                        optgroup.appendChild(option);
+                    });
+                    categorySelect.appendChild(optgroup);
+                });
+            } else {
+                type.categories.forEach((category) => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    option.selected = category === selected;
+                    categorySelect.appendChild(option);
+                });
+            }
+
+            if (selected && !categorySelect.querySelector('option[value="' + CSS.escape(selected) + '"]')) {
+                const legacyOption = document.createElement('option');
+                legacyOption.value = selected;
+                legacyOption.textContent = selected + ' (legacy)';
+                legacyOption.selected = true;
+                categorySelect.insertBefore(legacyOption, categorySelect.options[1] || null);
+            }
         }
 
         document.querySelectorAll('.type-extra').forEach((field) => {
@@ -1766,11 +2703,37 @@
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = (isNews || isReport || hasTypeSection) ? 'none' : '';
+            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isAutobiography) ? 'none' : '';
+        });
+
+        document.querySelectorAll('.general-extra input, .general-extra textarea, .general-extra select').forEach((field) => {
+            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isAutobiography;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
             field.required = isNews;
+        });
+
+        document.querySelectorAll('.stories-required').forEach((field) => {
+            field.required = isStories;
+        });
+
+        document.querySelectorAll('.poetry-required').forEach((field) => {
+            field.required = isPoetry;
+        });
+
+        document.querySelectorAll('.autobiography-required').forEach((field) => {
+            field.required = isAutobiography;
+        });
+
+        refreshLifeTimelineRequiredState(isAutobiography);
+
+        document.querySelectorAll('.autobiography-flow input, .autobiography-flow textarea, .autobiography-flow select').forEach((field) => {
+            field.disabled = !isAutobiography;
+        });
+
+        document.querySelectorAll('.type-extra[data-for="autobiography"] input, .type-extra[data-for="autobiography"] textarea, .type-extra[data-for="autobiography"] select').forEach((field) => {
+            field.disabled = !isAutobiography;
         });
 
         document.querySelectorAll('.my-area-required').forEach((field) => {
@@ -1798,6 +2761,14 @@
             bodyHelp: 'Use the rich text editor for the full news story. Add images, formatting, and complete narrative detail here.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select the news location from Google Places so the story is location-indexed.',
+        } : (isPoetry ? {
+            excerptLabel: 'Short excerpt',
+            excerptPlaceholder: 'A brief teaser for your poem',
+            excerptHelp: 'Optional summary shown in listing cards.',
+            bodyLabel: 'Poetry editor <span class="text-danger">*</span>',
+            bodyHelp: 'Write your poem below. Use line breaks for verses and blank lines between stanzas.',
+            locationLabel: 'Location <span class="text-danger">*</span>',
+            locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -1806,7 +2777,7 @@
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        });
+        }));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -1815,8 +2786,26 @@
         document.getElementById('bodyHelp').textContent = fieldCopy.bodyHelp;
         document.getElementById('locationLabel').innerHTML = fieldCopy.locationLabel;
 
+        const storyContentGuide = document.getElementById('storyContentGuide');
+        if (storyContentGuide) {
+            storyContentGuide.style.display = isStories ? '' : 'none';
+        }
+
+        const poetryContentGuide = document.getElementById('poetryContentGuide');
+        if (poetryContentGuide) {
+            poetryContentGuide.style.display = isPoetry ? '' : 'none';
+        }
+
+        const autobiographyContentGuide = document.getElementById('autobiographyContentGuide');
+        if (autobiographyContentGuide) {
+            autobiographyContentGuide.style.display = isAutobiography ? '' : 'none';
+        }
+
+        refreshPoetryEditorMode(selectedType);
+        refreshPoetrySeriesFields();
+
         mountStructuredLocationFields(isNews, isReport);
-        mountNewsMediaFields(isNews);
+        mountNewsMediaFields(isNews, isStories);
         mountNewsParticipationFields(isNews);
         refreshCommunityLocationTypeOptions(isReport);
         refreshBookLayoutMode(selectedType);
@@ -1843,12 +2832,109 @@
         return (window.communityBookTypes || []).includes(type);
     }
 
+    function isChapterContentType(type) {
+        return type === 'autobiography';
+    }
+
+    function chapterTabLabel(page, index) {
+        const title = (page?.title || '').trim();
+        if (title !== '') {
+            return title.length > 28 ? title.slice(0, 28) + '…' : title;
+        }
+
+        return 'Chapter ' + (index + 1);
+    }
+
+    function saveActiveChapterMeta() {
+        if (!isChapterContentType(document.getElementById('contentType')?.value || '')) {
+            return;
+        }
+
+        const titleInput = document.getElementById('activeChapterTitle');
+        const summaryInput = document.getElementById('activeChapterSummary');
+        if (!titleInput || !summaryInput) {
+            return;
+        }
+
+        window.communityBookPages[window.communityActiveBookPage] = window.communityBookPages[window.communityActiveBookPage] || {
+            content: '',
+            language: 'en',
+            title: '',
+            summary: '',
+        };
+        window.communityBookPages[window.communityActiveBookPage].title = titleInput.value.trim();
+        window.communityBookPages[window.communityActiveBookPage].summary = summaryInput.value.trim();
+    }
+
+    function loadActiveChapterMeta() {
+        const titleInput = document.getElementById('activeChapterTitle');
+        const summaryInput = document.getElementById('activeChapterSummary');
+        if (!titleInput || !summaryInput) {
+            return;
+        }
+
+        const page = window.communityBookPages[window.communityActiveBookPage] || {};
+        titleInput.value = page.title || '';
+        summaryInput.value = page.summary || '';
+    }
+
+    function refreshChapterEditorLabels(selectedType) {
+        const chapterMode = isChapterContentType(selectedType);
+        const bookBodyLabel = document.getElementById('bookBodyLabel');
+        const bookBodyHelp = document.getElementById('bookBodyHelp');
+        const chapterMetaFields = document.getElementById('bookChapterMetaFields');
+        const addBookPageBtnLabel = document.getElementById('addBookPageBtnLabel');
+        const removeBookPageBtnLabel = document.getElementById('removeBookPageBtnLabel');
+        const bookPageTabs = document.getElementById('bookPageTabs');
+        const titleInput = document.getElementById('activeChapterTitle');
+
+        if (bookBodyLabel) {
+            bookBodyLabel.innerHTML = chapterMode
+                ? 'Autobiography content <span class="text-danger">*</span>'
+                : 'Book pages <span class="text-danger">*</span>';
+        }
+
+        if (bookBodyHelp) {
+            bookBodyHelp.textContent = chapterMode
+                ? 'Add multiple chapters. Each chapter has a title, summary, and rich content with images.'
+                : (selectedType === 'stories'
+                    ? 'Write your story page by page, like a book. Use the rich text editor below for each page.'
+                    : 'Write each page using the editor below. Switch tabs to edit Page 1, Page 2, and so on.');
+        }
+
+        if (chapterMetaFields) {
+            chapterMetaFields.style.display = chapterMode ? '' : 'none';
+        }
+
+        if (addBookPageBtnLabel) {
+            addBookPageBtnLabel.textContent = chapterMode ? 'Add another chapter' : 'Add another page';
+        }
+
+        if (removeBookPageBtnLabel) {
+            removeBookPageBtnLabel.textContent = chapterMode ? 'Remove chapter' : 'Remove page';
+        }
+
+        if (bookPageTabs) {
+            bookPageTabs.setAttribute('aria-label', chapterMode ? 'Autobiography chapters' : 'Book pages');
+        }
+
+        if (titleInput) {
+            titleInput.required = chapterMode;
+        }
+    }
+
     function saveActiveBookPageContent() {
         if (!window.communityBodyEditor || !isBookContentType(document.getElementById('contentType').value)) {
             return;
         }
 
-        window.communityBookPages[window.communityActiveBookPage] = window.communityBookPages[window.communityActiveBookPage] || { content: '', language: 'en' };
+        saveActiveChapterMeta();
+        window.communityBookPages[window.communityActiveBookPage] = window.communityBookPages[window.communityActiveBookPage] || {
+            content: '',
+            language: 'en',
+            title: '',
+            summary: '',
+        };
         window.communityBookPages[window.communityActiveBookPage].content = window.communityBodyEditor.getData();
         saveActiveEditorLanguage();
         document.getElementById('bodyEditor').value = window.communityBookPages[window.communityActiveBookPage].content;
@@ -1857,6 +2943,8 @@
     function renderBookPageTabs() {
         const tabs = document.getElementById('bookPageTabs');
         const removeBtn = document.getElementById('removeBookPageBtn');
+        const selectedType = document.getElementById('contentType')?.value || '';
+        const chapterMode = isChapterContentType(selectedType);
         if (!tabs) {
             return;
         }
@@ -1866,7 +2954,7 @@
             const button = document.createElement('button');
             button.type = 'button';
             button.className = 'btn btn-sm book-page-tab' + (index === window.communityActiveBookPage ? ' active' : '');
-            button.textContent = 'Page ' + (index + 1);
+            button.textContent = chapterMode ? chapterTabLabel(page, index) : ('Page ' + (index + 1));
             button.addEventListener('click', function () {
                 switchBookPage(index);
             });
@@ -1879,7 +2967,9 @@
 
         const title = document.getElementById('activeBookPageTitle');
         if (title) {
-            title.textContent = 'Page ' + (window.communityActiveBookPage + 1);
+            title.textContent = chapterMode
+                ? chapterTabLabel(window.communityBookPages[window.communityActiveBookPage] || {}, window.communityActiveBookPage)
+                : ('Page ' + (window.communityActiveBookPage + 1));
         }
     }
 
@@ -1890,11 +2980,17 @@
 
         saveActiveBookPageContent();
         window.communityActiveBookPage = index;
-        window.communityBookPages[index] = window.communityBookPages[index] || { content: '', language: 'en' };
+        window.communityBookPages[index] = window.communityBookPages[index] || {
+            content: '',
+            language: 'en',
+            title: '',
+            summary: '',
+        };
         window.communitySwitchingBookPage = true;
         window.communityBodyEditor.setData(window.communityBookPages[index].content || '');
         window.communitySwitchingBookPage = false;
         applyEditorLanguage(window.communityBookPages[index].language || 'en', { skipSave: true });
+        loadActiveChapterMeta();
         renderBookPageTabs();
         window.communityBodyEditor.editing.view.focus();
     }
@@ -1904,6 +3000,8 @@
         const standardHeader = document.getElementById('standardBodyHeader');
         const bookHeader = document.getElementById('bookBodyHeader');
         const editorField = document.getElementById('bodyEditor');
+
+        refreshChapterEditorLabels(selectedType);
 
         if (standardHeader) {
             standardHeader.style.display = bookMode ? 'none' : '';
@@ -1934,19 +3032,29 @@
             return;
         }
 
-        const bookHelp = document.getElementById('bookBodyHelp');
-        if (bookHelp) {
-            bookHelp.textContent = 'Write each page using the editor below. Switch tabs to edit Page 1, Page 2, and so on.';
+        if (!Array.isArray(window.communityBookPages) || window.communityBookPages.length === 0) {
+            window.communityBookPages = [{
+                content: editorField.value || '',
+                language: getActiveEditorLanguage(),
+                title: '',
+                summary: '',
+            }];
         }
 
-        if (!Array.isArray(window.communityBookPages) || window.communityBookPages.length === 0) {
-            window.communityBookPages = [{ content: editorField.value || '', language: getActiveEditorLanguage() }];
-        }
+        window.communityBookPages = window.communityBookPages.map(function (page) {
+            return {
+                content: page.content || '',
+                language: page.language || 'en',
+                title: page.title || '',
+                summary: page.summary || '',
+            };
+        });
 
         window.communityActiveBookPage = Math.min(window.communityActiveBookPage, window.communityBookPages.length - 1);
         renderBookPageTabs();
         window.communityBodyEditor.setData(window.communityBookPages[window.communityActiveBookPage].content || '');
         applyEditorLanguage(window.communityBookPages[window.communityActiveBookPage].language || 'en', { skipSave: true });
+        loadActiveChapterMeta();
     }
 
     function appendBookPagesToFormData(formData) {
@@ -1957,6 +3065,8 @@
         window.communityBookPages.forEach(function (page, index) {
             formData.append('book_pages[' + index + '][content]', page.content || '');
             formData.append('book_pages[' + index + '][language]', normalizeEditorLanguage(page.language || 'en'));
+            formData.append('book_pages[' + index + '][title]', page.title || '');
+            formData.append('book_pages[' + index + '][summary]', page.summary || '');
         });
 
         formData.append('body', window.communityBookPages.map(function (page) {
@@ -1966,7 +3076,12 @@
 
     document.getElementById('addBookPageBtn')?.addEventListener('click', function () {
         saveActiveBookPageContent();
-        window.communityBookPages.push({ content: '', language: getActiveEditorLanguage() });
+        window.communityBookPages.push({
+            content: '',
+            language: getActiveEditorLanguage(),
+            title: '',
+            summary: '',
+        });
         switchBookPage(window.communityBookPages.length - 1);
         window.communityBodyEditor?.editing.view.focus();
     });
@@ -1980,6 +3095,16 @@
         window.communityActiveBookPage = Math.max(0, window.communityActiveBookPage - 1);
         renderBookPageTabs();
         window.communityBodyEditor?.setData(window.communityBookPages[window.communityActiveBookPage].content || '');
+        loadActiveChapterMeta();
+    });
+
+    document.getElementById('activeChapterTitle')?.addEventListener('input', function () {
+        saveActiveChapterMeta();
+        renderBookPageTabs();
+    });
+
+    document.getElementById('activeChapterSummary')?.addEventListener('input', function () {
+        saveActiveChapterMeta();
     });
 
     document.getElementById('contentType').addEventListener('change', function () {
@@ -2303,6 +3428,7 @@
                 }
             });
             refreshBookLayoutMode(document.getElementById('contentType').value);
+            refreshPoetryEditorMode(document.getElementById('contentType').value);
         })
         .catch((error) => {
             console.error(error);
@@ -2529,6 +3655,846 @@
 
     refreshVideoSourcePanels();
 
+    const maxStoryAudioBytes = 20971520;
+    const storyAudioUploadWrap = document.getElementById('storyAudioUploadWrap');
+    const storyAudioRecordingWrap = document.getElementById('storyAudioRecordingWrap');
+    const storyAudioFileInput = document.getElementById('storyAudioFile');
+    const keepExistingStoryAudioInput = document.getElementById('keepExistingStoryAudio');
+    const existingStoryAudioPreview = document.getElementById('existingStoryAudioPreview');
+    const removeExistingStoryAudioBtn = document.getElementById('removeExistingStoryAudioBtn');
+    const storyAudioRecordBtn = document.getElementById('storyAudioRecordBtn');
+    const storyAudioStopBtn = document.getElementById('storyAudioStopBtn');
+    const storyAudioClearRecordingBtn = document.getElementById('storyAudioClearRecordingBtn');
+    const storyAudioRecordingStatus = document.getElementById('storyAudioRecordingStatus');
+    const storyAudioRecordingPreview = document.getElementById('storyAudioRecordingPreview');
+    let storyAudioRecorder = null;
+    let storyAudioStream = null;
+    let storyAudioChunks = [];
+    let storyAudioBlob = null;
+
+    function refreshStoryAudioPanels() {
+        const selected = document.querySelector('input[name="story_audio_source_type"]:checked')?.value || 'none';
+        storyAudioUploadWrap?.classList.toggle('is-active', selected === 'upload');
+        storyAudioRecordingWrap?.classList.toggle('is-active', selected === 'recording');
+    }
+
+    document.querySelectorAll('input[name="story_audio_source_type"]').forEach((input) => {
+        input.addEventListener('change', refreshStoryAudioPanels);
+    });
+
+    removeExistingStoryAudioBtn?.addEventListener('click', () => {
+        document.getElementById('storyAudioSourceNone')?.click();
+        existingStoryAudioPreview?.remove();
+        keepExistingStoryAudioInput?.remove();
+
+        let removeInput = document.getElementById('removeStoryAudioInput');
+        if (!removeInput) {
+            removeInput = document.createElement('input');
+            removeInput.type = 'hidden';
+            removeInput.name = 'remove_story_audio';
+            removeInput.id = 'removeStoryAudioInput';
+            removeInput.value = '1';
+            document.getElementById('community-post-form')?.appendChild(removeInput);
+        }
+
+        if (storyAudioFileInput) {
+            storyAudioFileInput.value = '';
+        }
+    });
+
+    storyAudioFileInput?.addEventListener('change', function () {
+        const file = this.files?.[0];
+        if (!file) {
+            return;
+        }
+
+        if (file.size > maxStoryAudioBytes) {
+            notify('error', 'Audio file must be 20 MB or smaller.');
+            this.value = '';
+            return;
+        }
+
+        if (keepExistingStoryAudioInput) {
+            keepExistingStoryAudioInput.value = '0';
+        }
+    });
+
+    function resetStoryAudioRecordingUi() {
+        if (storyAudioStream) {
+            storyAudioStream.getTracks().forEach((track) => track.stop());
+            storyAudioStream = null;
+        }
+
+        storyAudioRecorder = null;
+        storyAudioChunks = [];
+        storyAudioBlob = null;
+
+        if (storyAudioRecordingPreview) {
+            storyAudioRecordingPreview.removeAttribute('src');
+            storyAudioRecordingPreview.style.display = 'none';
+            storyAudioRecordingPreview.load();
+        }
+
+        if (storyAudioRecordBtn) {
+            storyAudioRecordBtn.disabled = false;
+        }
+        if (storyAudioStopBtn) {
+            storyAudioStopBtn.disabled = true;
+        }
+        if (storyAudioClearRecordingBtn) {
+            storyAudioClearRecordingBtn.disabled = true;
+        }
+        if (storyAudioRecordingStatus) {
+            storyAudioRecordingStatus.textContent = 'Ready to record.';
+        }
+    }
+
+    storyAudioRecordBtn?.addEventListener('click', async function () {
+        if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+            notify('error', 'Voice recording is not supported in this browser.');
+            return;
+        }
+
+        try {
+            resetStoryAudioRecordingUi();
+            storyAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            storyAudioChunks = [];
+            storyAudioRecorder = new MediaRecorder(storyAudioStream);
+            storyAudioRecorder.addEventListener('dataavailable', function (event) {
+                if (event.data && event.data.size > 0) {
+                    storyAudioChunks.push(event.data);
+                }
+            });
+            storyAudioRecorder.addEventListener('stop', function () {
+                storyAudioBlob = new Blob(storyAudioChunks, { type: 'audio/webm' });
+                const previewUrl = URL.createObjectURL(storyAudioBlob);
+
+                if (storyAudioRecordingPreview) {
+                    storyAudioRecordingPreview.src = previewUrl;
+                    storyAudioRecordingPreview.style.display = '';
+                    storyAudioRecordingPreview.load();
+                }
+
+                if (storyAudioClearRecordingBtn) {
+                    storyAudioClearRecordingBtn.disabled = false;
+                }
+                if (storyAudioRecordingStatus) {
+                    storyAudioRecordingStatus.textContent = 'Recording ready. Submit the form to save it.';
+                }
+
+                if (keepExistingStoryAudioInput) {
+                    keepExistingStoryAudioInput.value = '0';
+                }
+            });
+
+            storyAudioRecorder.start();
+            storyAudioRecordBtn.disabled = true;
+            storyAudioStopBtn.disabled = false;
+            storyAudioRecordingStatus.textContent = 'Recording...';
+        } catch (error) {
+            notify('error', 'Microphone access is required for voice recording.');
+        }
+    });
+
+    storyAudioStopBtn?.addEventListener('click', function () {
+        if (storyAudioRecorder && storyAudioRecorder.state !== 'inactive') {
+            storyAudioRecorder.stop();
+        }
+
+        if (storyAudioStream) {
+            storyAudioStream.getTracks().forEach((track) => track.stop());
+            storyAudioStream = null;
+        }
+
+        storyAudioRecordBtn.disabled = false;
+        storyAudioStopBtn.disabled = true;
+    });
+
+    storyAudioClearRecordingBtn?.addEventListener('click', function () {
+        resetStoryAudioRecordingUi();
+    });
+
+    refreshStoryAudioPanels();
+
+    const lifeTimelineEntries = document.getElementById('lifeTimelineEntries');
+    const lifeTimelineTemplate = document.getElementById('lifeTimelineEntryTemplate');
+    const addLifeTimelineEntryBtn = document.getElementById('addLifeTimelineEntryBtn');
+    let lifeTimelineNextIndex = 0;
+
+    function refreshLifeTimelineRequiredState(isAutobiography) {
+        if (!lifeTimelineEntries) {
+            return;
+        }
+
+        lifeTimelineEntries.querySelectorAll('.autobiography-timeline-entry').forEach((entry) => {
+            const yearInput = entry.querySelector('.js-timeline-year');
+            const titleInput = entry.querySelector('.js-timeline-title');
+            const descriptionInput = entry.querySelector('.js-timeline-description');
+
+            if (yearInput) {
+                yearInput.required = Boolean(isAutobiography);
+            }
+            if (titleInput) {
+                titleInput.required = Boolean(isAutobiography);
+            }
+            if (descriptionInput) {
+                descriptionInput.required = Boolean(isAutobiography);
+            }
+        });
+    }
+
+    function syncLifeTimelineFieldNames(entry, index) {
+        entry.dataset.timelineIndex = String(index);
+        entry.querySelector('.autobiography-timeline-entry__title').textContent = 'Milestone ' + (index + 1);
+
+        entry.querySelectorAll('[data-name]').forEach((field) => {
+            const fieldName = field.dataset.name.replace(/__INDEX__/g, String(index));
+            field.name = fieldName;
+            field.id = fieldName.replace(/[\[\]]/g, '_');
+        });
+    }
+
+    function bindLifeTimelineEntry(entry) {
+        const photoInput = entry.querySelector('.js-timeline-photo');
+        const previewWrap = entry.querySelector('.js-timeline-photo-preview');
+        const previewImage = previewWrap?.querySelector('img');
+        const existingPathInput = entry.querySelector('.js-timeline-existing-photo-path');
+
+        entry.querySelector('.js-remove-timeline-entry')?.addEventListener('click', function () {
+            entry.remove();
+            reindexLifeTimelineEntries();
+            refreshLifeTimelineRequiredState(document.getElementById('contentType')?.value === 'autobiography');
+        });
+
+        photoInput?.addEventListener('change', function () {
+            const file = photoInput.files?.[0];
+            if (!file || !previewWrap || !previewImage) {
+                return;
+            }
+
+            previewImage.src = URL.createObjectURL(file);
+            previewWrap.style.display = '';
+            if (existingPathInput) {
+                existingPathInput.value = '';
+            }
+        });
+
+        if (existingPathInput?.value && previewWrap && previewImage) {
+            const existingUrl = entry.dataset.existingPhotoUrl || '';
+            if (existingUrl) {
+                previewImage.src = existingUrl;
+                previewWrap.style.display = '';
+            }
+        }
+    }
+
+    function reindexLifeTimelineEntries() {
+        if (!lifeTimelineEntries) {
+            return;
+        }
+
+        lifeTimelineEntries.querySelectorAll('.autobiography-timeline-entry').forEach((entry, index) => {
+            syncLifeTimelineFieldNames(entry, index);
+        });
+        lifeTimelineNextIndex = lifeTimelineEntries.querySelectorAll('.autobiography-timeline-entry').length;
+    }
+
+    function addLifeTimelineEntry(data) {
+        if (!lifeTimelineEntries || !lifeTimelineTemplate) {
+            return;
+        }
+
+        const fragment = lifeTimelineTemplate.content.cloneNode(true);
+        const entry = fragment.querySelector('.autobiography-timeline-entry');
+        const index = lifeTimelineNextIndex;
+
+        syncLifeTimelineFieldNames(entry, index);
+        entry.querySelector('.js-timeline-year').value = data?.year || '';
+        entry.querySelector('.js-timeline-title').value = data?.title || '';
+        entry.querySelector('.js-timeline-description').value = data?.description || '';
+
+        const existingPathInput = entry.querySelector('.js-timeline-existing-photo-path');
+        if (existingPathInput && data?.existing_photo_path) {
+            existingPathInput.value = data.existing_photo_path;
+        }
+        if (data?.existing_photo_url) {
+            entry.dataset.existingPhotoUrl = data.existing_photo_url;
+        }
+
+        bindLifeTimelineEntry(entry);
+        lifeTimelineEntries.appendChild(entry);
+        lifeTimelineNextIndex += 1;
+        refreshLifeTimelineRequiredState(document.getElementById('contentType')?.value === 'autobiography');
+    }
+
+    function initLifeTimelineBuilder() {
+        if (!lifeTimelineEntries || !lifeTimelineTemplate) {
+            return;
+        }
+
+        lifeTimelineEntries.innerHTML = '';
+        lifeTimelineNextIndex = 0;
+
+        const initialEntries = Array.isArray(window.communityLifeTimeline) ? window.communityLifeTimeline : [];
+        if (initialEntries.length > 0) {
+            initialEntries.forEach((entry) => addLifeTimelineEntry(entry));
+        }
+    }
+
+    addLifeTimelineEntryBtn?.addEventListener('click', function () {
+        addLifeTimelineEntry({});
+    });
+
+    initLifeTimelineBuilder();
+
+    function createListBuilder(config) {
+        const container = document.getElementById(config.containerId);
+        const template = document.getElementById(config.templateId);
+        const addButton = document.getElementById(config.addButtonId);
+        let nextIndex = 0;
+
+        function syncFieldNames(entry, index) {
+            entry.querySelectorAll('[data-name]').forEach((field) => {
+                const fieldName = field.dataset.name.replace(/__INDEX__/g, String(index));
+                field.name = fieldName;
+                field.id = fieldName.replace(/[\[\]]/g, '_');
+            });
+        }
+
+        function bindEntry(entry) {
+            entry.querySelector('.js-remove-list-entry')?.addEventListener('click', function () {
+                entry.remove();
+                reindex();
+            });
+            entry.querySelector('.js-remove-related-person')?.addEventListener('click', function () {
+                entry.remove();
+                reindex();
+            });
+        }
+
+        function reindex() {
+            if (!container) {
+                return;
+            }
+
+            const selector = config.entrySelector || '.autobiography-list-entry, .autobiography-related-person-entry';
+            container.querySelectorAll(selector).forEach((entry, index) => {
+                syncFieldNames(entry, index);
+            });
+            nextIndex = container.querySelectorAll(selector).length;
+        }
+
+        function addEntry(data) {
+            if (!container || !template) {
+                return;
+            }
+
+            const fragment = template.content.cloneNode(true);
+            const entry = fragment.querySelector(config.entrySelector || '.autobiography-list-entry, .autobiography-related-person-entry');
+            const index = nextIndex;
+            syncFieldNames(entry, index);
+
+            if (config.populate) {
+                config.populate(entry, data || {});
+            }
+
+            bindEntry(entry);
+            container.appendChild(entry);
+            nextIndex += 1;
+        }
+
+        function init() {
+            if (!container || !template) {
+                return;
+            }
+
+            container.innerHTML = '';
+            nextIndex = 0;
+            const initialEntries = Array.isArray(config.initialData) ? config.initialData : [];
+            if (initialEntries.length > 0) {
+                initialEntries.forEach((entry) => addEntry(entry));
+            }
+        }
+
+        addButton?.addEventListener('click', function () {
+            addEntry(config.emptyEntry || '');
+        });
+
+        init();
+
+        return { addEntry, reindex };
+    }
+
+    createListBuilder({
+        containerId: 'placesMentionedEntries',
+        templateId: 'placeMentionedTemplate',
+        addButtonId: 'addPlaceMentionedBtn',
+        initialData: window.communityPlacesMentioned || [],
+        emptyEntry: '',
+        populate: function (entry, value) {
+            const input = entry.querySelector('.js-place-mentioned-input');
+            if (input) {
+                input.value = typeof value === 'string' ? value : '';
+            }
+        },
+    });
+
+    createListBuilder({
+        containerId: 'keyLessonsEntries',
+        templateId: 'keyLessonTemplate',
+        addButtonId: 'addKeyLessonBtn',
+        initialData: window.communityKeyLessons || [],
+        emptyEntry: '',
+        populate: function (entry, value) {
+            const input = entry.querySelector('.js-key-lesson-input');
+            if (input) {
+                input.value = typeof value === 'string' ? value : '';
+            }
+        },
+    });
+
+    createListBuilder({
+        containerId: 'relatedPeopleEntries',
+        templateId: 'relatedPersonTemplate',
+        addButtonId: 'addRelatedPersonBtn',
+        entrySelector: '.autobiography-related-person-entry',
+        initialData: window.communityRelatedPeople || [],
+        emptyEntry: {},
+        populate: function (entry, data) {
+            const nameInput = entry.querySelector('.js-related-person-name');
+            const relationshipInput = entry.querySelector('.js-related-person-relationship');
+            if (nameInput) {
+                nameInput.value = data?.name || '';
+            }
+            if (relationshipInput) {
+                relationshipInput.value = data?.relationship || '';
+            }
+        },
+    });
+
+    const autobiographyAchievementEntries = document.getElementById('autobiographyAchievementEntries');
+    const autobiographyAchievementTemplate = document.getElementById('autobiographyAchievementTemplate');
+    const addAutobiographyAchievementBtn = document.getElementById('addAutobiographyAchievementBtn');
+    let autobiographyAchievementNextIndex = 0;
+
+    function syncAchievementFieldNames(entry, index) {
+        entry.dataset.achievementIndex = String(index);
+        entry.querySelector('.autobiography-achievement-entry__title').textContent = 'Achievement ' + (index + 1);
+        entry.querySelectorAll('[data-name]').forEach((field) => {
+            const fieldName = field.dataset.name.replace(/__INDEX__/g, String(index));
+            field.name = fieldName;
+            field.id = fieldName.replace(/[\[\]]/g, '_');
+        });
+    }
+
+    function bindAchievementEntry(entry) {
+        const imageInput = entry.querySelector('.js-achievement-image');
+        const previewWrap = entry.querySelector('.js-achievement-image-preview');
+        const previewImage = previewWrap?.querySelector('img');
+        const existingPathInput = entry.querySelector('.js-achievement-existing-image-path');
+
+        entry.querySelector('.js-remove-achievement-entry')?.addEventListener('click', function () {
+            entry.remove();
+            reindexAutobiographyAchievements();
+        });
+
+        imageInput?.addEventListener('change', function () {
+            const file = imageInput.files?.[0];
+            if (!file || !previewWrap || !previewImage) {
+                return;
+            }
+
+            previewImage.src = URL.createObjectURL(file);
+            previewWrap.style.display = '';
+            if (existingPathInput) {
+                existingPathInput.value = '';
+            }
+        });
+
+        if (existingPathInput?.value && previewWrap && previewImage) {
+            const existingUrl = entry.dataset.existingImageUrl || '';
+            if (existingUrl) {
+                previewImage.src = existingUrl;
+                previewWrap.style.display = '';
+            }
+        }
+    }
+
+    function reindexAutobiographyAchievements() {
+        if (!autobiographyAchievementEntries) {
+            return;
+        }
+
+        autobiographyAchievementEntries.querySelectorAll('.autobiography-achievement-entry').forEach((entry, index) => {
+            syncAchievementFieldNames(entry, index);
+        });
+        autobiographyAchievementNextIndex = autobiographyAchievementEntries.querySelectorAll('.autobiography-achievement-entry').length;
+    }
+
+    function addAutobiographyAchievement(data) {
+        if (!autobiographyAchievementEntries || !autobiographyAchievementTemplate) {
+            return;
+        }
+
+        const fragment = autobiographyAchievementTemplate.content.cloneNode(true);
+        const entry = fragment.querySelector('.autobiography-achievement-entry');
+        const index = autobiographyAchievementNextIndex;
+        syncAchievementFieldNames(entry, index);
+        entry.querySelector('.js-achievement-award-name').value = data?.award_name || '';
+        entry.querySelector('.js-achievement-year').value = data?.year || '';
+        entry.querySelector('.js-achievement-description').value = data?.description || '';
+
+        const existingPathInput = entry.querySelector('.js-achievement-existing-image-path');
+        if (existingPathInput && data?.existing_image_path) {
+            existingPathInput.value = data.existing_image_path;
+        }
+        if (data?.existing_image_url) {
+            entry.dataset.existingImageUrl = data.existing_image_url;
+        }
+
+        bindAchievementEntry(entry);
+        autobiographyAchievementEntries.appendChild(entry);
+        autobiographyAchievementNextIndex += 1;
+    }
+
+    function initAutobiographyAchievements() {
+        if (!autobiographyAchievementEntries || !autobiographyAchievementTemplate) {
+            return;
+        }
+
+        autobiographyAchievementEntries.innerHTML = '';
+        autobiographyAchievementNextIndex = 0;
+        const initialEntries = Array.isArray(window.communityAutobiographyAchievements) ? window.communityAutobiographyAchievements : [];
+        if (initialEntries.length > 0) {
+            initialEntries.forEach((entry) => addAutobiographyAchievement(entry));
+        }
+    }
+
+    addAutobiographyAchievementBtn?.addEventListener('click', function () {
+        addAutobiographyAchievement({});
+    });
+
+    initAutobiographyAchievements();
+
+    const autobiographyAudioUploadWrap = document.getElementById('autobiographyAudioUploadWrap');
+    const autobiographyAudioRecordingWrap = document.getElementById('autobiographyAudioRecordingWrap');
+    const autobiographyAudioFileInput = document.getElementById('autobiographyAudioFile');
+    const keepExistingAutobiographyAudioInput = document.getElementById('keepExistingAutobiographyAudio');
+    const existingAutobiographyAudioPreview = document.getElementById('existingAutobiographyAudioPreview');
+    const removeExistingAutobiographyAudioBtn = document.getElementById('removeExistingAutobiographyAudioBtn');
+    const autobiographyAudioRecordBtn = document.getElementById('autobiographyAudioRecordBtn');
+    const autobiographyAudioStopBtn = document.getElementById('autobiographyAudioStopBtn');
+    const autobiographyAudioClearRecordingBtn = document.getElementById('autobiographyAudioClearRecordingBtn');
+    const autobiographyAudioRecordingStatus = document.getElementById('autobiographyAudioRecordingStatus');
+    const autobiographyAudioRecordingPreview = document.getElementById('autobiographyAudioRecordingPreview');
+    let autobiographyAudioRecorder = null;
+    let autobiographyAudioStream = null;
+    let autobiographyAudioChunks = [];
+    let autobiographyAudioBlob = null;
+
+    function refreshAutobiographyAudioPanels() {
+        const selected = document.querySelector('input[name="autobiography_audio_source_type"]:checked')?.value || 'none';
+        autobiographyAudioUploadWrap?.classList.toggle('is-active', selected === 'upload');
+        autobiographyAudioRecordingWrap?.classList.toggle('is-active', selected === 'recording');
+    }
+
+    document.querySelectorAll('input[name="autobiography_audio_source_type"]').forEach((input) => {
+        input.addEventListener('change', refreshAutobiographyAudioPanels);
+    });
+
+    removeExistingAutobiographyAudioBtn?.addEventListener('click', () => {
+        document.getElementById('autobiographyAudioSourceNone')?.click();
+        existingAutobiographyAudioPreview?.remove();
+        keepExistingAutobiographyAudioInput?.remove();
+
+        let removeInput = document.getElementById('removeAutobiographyAudioInput');
+        if (!removeInput) {
+            removeInput = document.createElement('input');
+            removeInput.type = 'hidden';
+            removeInput.name = 'remove_autobiography_audio';
+            removeInput.id = 'removeAutobiographyAudioInput';
+            removeInput.value = '1';
+            document.getElementById('community-post-form')?.appendChild(removeInput);
+        }
+
+        if (autobiographyAudioFileInput) {
+            autobiographyAudioFileInput.value = '';
+        }
+    });
+
+    function resetAutobiographyAudioRecordingUi() {
+        if (autobiographyAudioStream) {
+            autobiographyAudioStream.getTracks().forEach((track) => track.stop());
+            autobiographyAudioStream = null;
+        }
+
+        autobiographyAudioRecorder = null;
+        autobiographyAudioChunks = [];
+        autobiographyAudioBlob = null;
+
+        if (autobiographyAudioRecordingPreview) {
+            autobiographyAudioRecordingPreview.removeAttribute('src');
+            autobiographyAudioRecordingPreview.style.display = 'none';
+            autobiographyAudioRecordingPreview.load();
+        }
+
+        if (autobiographyAudioRecordBtn) {
+            autobiographyAudioRecordBtn.disabled = false;
+        }
+        if (autobiographyAudioStopBtn) {
+            autobiographyAudioStopBtn.disabled = true;
+        }
+        if (autobiographyAudioClearRecordingBtn) {
+            autobiographyAudioClearRecordingBtn.disabled = true;
+        }
+        if (autobiographyAudioRecordingStatus) {
+            autobiographyAudioRecordingStatus.textContent = 'Ready to record.';
+        }
+    }
+
+    autobiographyAudioRecordBtn?.addEventListener('click', async function () {
+        try {
+            autobiographyAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            autobiographyAudioChunks = [];
+            autobiographyAudioRecorder = new MediaRecorder(autobiographyAudioStream);
+            autobiographyAudioRecorder.addEventListener('dataavailable', function (event) {
+                if (event.data.size > 0) {
+                    autobiographyAudioChunks.push(event.data);
+                }
+            });
+            autobiographyAudioRecorder.addEventListener('stop', function () {
+                autobiographyAudioBlob = new Blob(autobiographyAudioChunks, { type: 'audio/webm' });
+                const previewUrl = URL.createObjectURL(autobiographyAudioBlob);
+
+                if (autobiographyAudioRecordingPreview) {
+                    autobiographyAudioRecordingPreview.src = previewUrl;
+                    autobiographyAudioRecordingPreview.style.display = '';
+                    autobiographyAudioRecordingPreview.load();
+                }
+
+                if (autobiographyAudioClearRecordingBtn) {
+                    autobiographyAudioClearRecordingBtn.disabled = false;
+                }
+                if (autobiographyAudioRecordingStatus) {
+                    autobiographyAudioRecordingStatus.textContent = 'Recording ready. Submit the form to save it.';
+                }
+
+                if (keepExistingAutobiographyAudioInput) {
+                    keepExistingAutobiographyAudioInput.value = '0';
+                }
+            });
+
+            autobiographyAudioRecorder.start();
+            autobiographyAudioRecordBtn.disabled = true;
+            autobiographyAudioStopBtn.disabled = false;
+            autobiographyAudioRecordingStatus.textContent = 'Recording...';
+        } catch (error) {
+            notify('error', 'Microphone access is required for voice recording.');
+        }
+    });
+
+    autobiographyAudioStopBtn?.addEventListener('click', function () {
+        if (autobiographyAudioRecorder && autobiographyAudioRecorder.state !== 'inactive') {
+            autobiographyAudioRecorder.stop();
+        }
+
+        if (autobiographyAudioStream) {
+            autobiographyAudioStream.getTracks().forEach((track) => track.stop());
+            autobiographyAudioStream = null;
+        }
+
+        autobiographyAudioRecordBtn.disabled = false;
+        autobiographyAudioStopBtn.disabled = true;
+    });
+
+    autobiographyAudioClearRecordingBtn?.addEventListener('click', function () {
+        resetAutobiographyAudioRecordingUi();
+    });
+
+    refreshAutobiographyAudioPanels();
+
+    const poetryAudioUploadWrap = document.getElementById('poetryAudioUploadWrap');
+    const poetryAudioRecordingWrap = document.getElementById('poetryAudioRecordingWrap');
+    const poetryAudioFileInput = document.getElementById('poetryAudioFile');
+    const keepExistingPoetryAudioInput = document.getElementById('keepExistingPoetryAudio');
+    const existingPoetryAudioPreview = document.getElementById('existingPoetryAudioPreview');
+    const removeExistingPoetryAudioBtn = document.getElementById('removeExistingPoetryAudioBtn');
+    const poetryAudioRecordBtn = document.getElementById('poetryAudioRecordBtn');
+    const poetryAudioStopBtn = document.getElementById('poetryAudioStopBtn');
+    const poetryAudioClearRecordingBtn = document.getElementById('poetryAudioClearRecordingBtn');
+    const poetryAudioRecordingStatus = document.getElementById('poetryAudioRecordingStatus');
+    const poetryAudioRecordingPreview = document.getElementById('poetryAudioRecordingPreview');
+    let poetryAudioRecorder = null;
+    let poetryAudioStream = null;
+    let poetryAudioChunks = [];
+    let poetryAudioBlob = null;
+
+    function refreshPoetryAudioPanels() {
+        const selected = document.querySelector('input[name="poetry_audio_source_type"]:checked')?.value || 'none';
+        poetryAudioUploadWrap?.classList.toggle('is-active', selected === 'upload');
+        poetryAudioRecordingWrap?.classList.toggle('is-active', selected === 'recording');
+    }
+
+    function refreshPoetrySeriesFields() {
+        const isSeries = document.querySelector('input[name="poetry_part_of_series"]:checked')?.value === 'Yes';
+        const nameWrap = document.getElementById('poetrySeriesNameWrap');
+        const partWrap = document.getElementById('poetrySeriesPartWrap');
+        const nameInput = document.getElementById('poetry_series_name');
+
+        if (nameWrap) {
+            nameWrap.style.display = isSeries ? '' : 'none';
+        }
+        if (partWrap) {
+            partWrap.style.display = isSeries ? '' : 'none';
+        }
+        if (nameInput) {
+            nameInput.required = isSeries && document.getElementById('contentType')?.value === 'poetry';
+        }
+    }
+
+    document.querySelectorAll('input[name="poetry_audio_source_type"]').forEach((input) => {
+        input.addEventListener('change', refreshPoetryAudioPanels);
+    });
+
+    document.querySelectorAll('.js-poetry-series-toggle').forEach((input) => {
+        input.addEventListener('change', refreshPoetrySeriesFields);
+    });
+
+    removeExistingPoetryAudioBtn?.addEventListener('click', () => {
+        document.getElementById('poetryAudioSourceNone')?.click();
+        existingPoetryAudioPreview?.remove();
+        keepExistingPoetryAudioInput?.remove();
+
+        let removeInput = document.getElementById('removePoetryAudioInput');
+        if (!removeInput) {
+            removeInput = document.createElement('input');
+            removeInput.type = 'hidden';
+            removeInput.name = 'remove_poetry_audio';
+            removeInput.id = 'removePoetryAudioInput';
+            removeInput.value = '1';
+            document.getElementById('community-post-form')?.appendChild(removeInput);
+        }
+
+        if (poetryAudioFileInput) {
+            poetryAudioFileInput.value = '';
+        }
+    });
+
+    poetryAudioFileInput?.addEventListener('change', function () {
+        const file = this.files?.[0];
+        if (!file) {
+            return;
+        }
+
+        if (file.size > maxStoryAudioBytes) {
+            notify('error', 'Audio file must be 20 MB or smaller.');
+            this.value = '';
+            return;
+        }
+
+        if (keepExistingPoetryAudioInput) {
+            keepExistingPoetryAudioInput.value = '0';
+        }
+    });
+
+    function resetPoetryAudioRecordingUi() {
+        if (poetryAudioStream) {
+            poetryAudioStream.getTracks().forEach((track) => track.stop());
+            poetryAudioStream = null;
+        }
+
+        poetryAudioRecorder = null;
+        poetryAudioChunks = [];
+        poetryAudioBlob = null;
+
+        if (poetryAudioRecordingPreview) {
+            poetryAudioRecordingPreview.removeAttribute('src');
+            poetryAudioRecordingPreview.style.display = 'none';
+            poetryAudioRecordingPreview.load();
+        }
+
+        if (poetryAudioRecordBtn) {
+            poetryAudioRecordBtn.disabled = false;
+        }
+        if (poetryAudioStopBtn) {
+            poetryAudioStopBtn.disabled = true;
+        }
+        if (poetryAudioClearRecordingBtn) {
+            poetryAudioClearRecordingBtn.disabled = true;
+        }
+        if (poetryAudioRecordingStatus) {
+            poetryAudioRecordingStatus.textContent = 'Ready to record.';
+        }
+    }
+
+    poetryAudioRecordBtn?.addEventListener('click', async function () {
+        if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+            notify('error', 'Voice recording is not supported in this browser.');
+            return;
+        }
+
+        try {
+            resetPoetryAudioRecordingUi();
+            poetryAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            poetryAudioChunks = [];
+            poetryAudioRecorder = new MediaRecorder(poetryAudioStream);
+            poetryAudioRecorder.addEventListener('dataavailable', function (event) {
+                if (event.data && event.data.size > 0) {
+                    poetryAudioChunks.push(event.data);
+                }
+            });
+            poetryAudioRecorder.addEventListener('stop', function () {
+                poetryAudioBlob = new Blob(poetryAudioChunks, { type: 'audio/webm' });
+                const previewUrl = URL.createObjectURL(poetryAudioBlob);
+
+                if (poetryAudioRecordingPreview) {
+                    poetryAudioRecordingPreview.src = previewUrl;
+                    poetryAudioRecordingPreview.style.display = '';
+                    poetryAudioRecordingPreview.load();
+                }
+
+                if (poetryAudioClearRecordingBtn) {
+                    poetryAudioClearRecordingBtn.disabled = false;
+                }
+                if (poetryAudioRecordingStatus) {
+                    poetryAudioRecordingStatus.textContent = 'Recording ready. Submit the form to save it.';
+                }
+
+                if (keepExistingPoetryAudioInput) {
+                    keepExistingPoetryAudioInput.value = '0';
+                }
+            });
+
+            poetryAudioRecorder.start();
+            poetryAudioRecordBtn.disabled = true;
+            poetryAudioStopBtn.disabled = false;
+            poetryAudioRecordingStatus.textContent = 'Recording...';
+        } catch (error) {
+            notify('error', 'Microphone access is required for voice recording.');
+        }
+    });
+
+    poetryAudioStopBtn?.addEventListener('click', function () {
+        if (poetryAudioRecorder && poetryAudioRecorder.state !== 'inactive') {
+            poetryAudioRecorder.stop();
+        }
+
+        if (poetryAudioStream) {
+            poetryAudioStream.getTracks().forEach((track) => track.stop());
+            poetryAudioStream = null;
+        }
+
+        poetryAudioRecordBtn.disabled = false;
+        poetryAudioStopBtn.disabled = true;
+    });
+
+    poetryAudioClearRecordingBtn?.addEventListener('click', function () {
+        resetPoetryAudioRecordingUi();
+    });
+
+    refreshPoetryAudioPanels();
+    refreshPoetrySeriesFields();
+
     function readCommunityAddressPart(components, type) {
         const match = (components || []).find((component) => (component.types || []).includes(type));
         return match?.long_name || '';
@@ -2636,14 +4602,30 @@
         if (window.communityBodyEditor) {
             if (isBookContentType(document.getElementById('contentType').value)) {
                 saveActiveBookPageContent();
+                const chapterMode = isChapterContentType(document.getElementById('contentType').value);
                 const hasBookContent = window.communityBookPages.some(function (page) {
                     return (page.content || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() !== '';
                 });
 
                 if (!hasBookContent) {
-                    notify('error', 'Please add content to at least one book page.');
+                    notify('error', chapterMode
+                        ? 'Please add content to at least one chapter.'
+                        : 'Please add content to at least one book page.');
                     window.communityBodyEditor.editing.view.focus();
                     return;
+                }
+
+                if (chapterMode) {
+                    const missingChapterTitle = window.communityBookPages.some(function (page) {
+                        const hasContent = (page.content || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() !== '';
+                        return hasContent && !(page.title || '').trim();
+                    });
+
+                    if (missingChapterTitle) {
+                        notify('error', 'Please enter a title for each chapter that has content.');
+                        document.getElementById('activeChapterTitle')?.focus();
+                        return;
+                    }
                 }
             } else {
                 document.getElementById('bodyEditor').value = window.communityBodyEditor.getData();
@@ -2729,6 +4711,43 @@
             }
         }
 
+        const contentType = document.getElementById('contentType').value;
+        if (contentType === 'stories') {
+            const storyLanguage = document.querySelector('select[name="story_language"]')?.value;
+            if (!storyLanguage) {
+                notify('error', 'Please select a story language.');
+                return;
+            }
+
+            const audioSource = document.querySelector('input[name="story_audio_source_type"]:checked')?.value || 'none';
+            if (audioSource === 'upload') {
+                const hasNewAudio = (storyAudioFileInput?.files?.length || 0) > 0;
+                const keepingExistingAudio = keepExistingStoryAudioInput?.value === '1';
+                if (!hasNewAudio && !keepingExistingAudio) {
+                    notify('error', 'Please choose an MP3 file or switch to another audio option.');
+                    return;
+                }
+
+                if (hasNewAudio && storyAudioFileInput.files[0].size > maxStoryAudioBytes) {
+                    notify('error', 'Audio file must be 20 MB or smaller.');
+                    return;
+                }
+            }
+
+            if (audioSource === 'recording') {
+                const keepingExistingAudio = keepExistingStoryAudioInput?.value === '1';
+                if (!storyAudioBlob && !keepingExistingAudio) {
+                    notify('error', 'Please record your voice story or switch to another audio option.');
+                    return;
+                }
+
+                if (storyAudioBlob && storyAudioBlob.size > maxStoryAudioBytes) {
+                    notify('error', 'Recorded audio must be 20 MB or smaller.');
+                    return;
+                }
+            }
+        }
+
         submitButton.disabled = true;
         submitButton.innerHTML = 'Saving...';
 
@@ -2740,6 +4759,30 @@
         featuredImagesState.pending.forEach((item) => {
             formData.append('featured_images[]', item.file);
         });
+
+        if (document.getElementById('contentType').value === 'stories') {
+            formData.delete('story_audio_recording');
+            const audioSource = document.querySelector('input[name="story_audio_source_type"]:checked')?.value || 'none';
+            if (audioSource === 'recording' && storyAudioBlob) {
+                formData.append('story_audio_recording', storyAudioBlob, 'story-recording.webm');
+            }
+        }
+
+        if (document.getElementById('contentType').value === 'poetry') {
+            formData.delete('poetry_audio_recording');
+            const poetryAudioSource = document.querySelector('input[name="poetry_audio_source_type"]:checked')?.value || 'none';
+            if (poetryAudioSource === 'recording' && poetryAudioBlob) {
+                formData.append('poetry_audio_recording', poetryAudioBlob, 'poetry-recording.webm');
+            }
+        }
+
+        if (document.getElementById('contentType').value === 'autobiography') {
+            formData.delete('autobiography_audio_recording');
+            const autobiographyAudioSource = document.querySelector('input[name="autobiography_audio_source_type"]:checked')?.value || 'none';
+            if (autobiographyAudioSource === 'recording' && autobiographyAudioBlob) {
+                formData.append('autobiography_audio_recording', autobiographyAudioBlob, 'autobiography-recording.webm');
+            }
+        }
 
         fetch(form.action, {
             method: 'POST',

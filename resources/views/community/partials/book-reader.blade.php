@@ -1,5 +1,6 @@
 @php
     $bookPages = $post->bookPages();
+    $usesChapters = $post->usesChapterLayoutForDisplay();
 @endphp
 
 @if($bookPages !== [])
@@ -45,6 +46,21 @@
                 text-transform: uppercase;
             }
 
+            .community-book-chapter-title {
+                color: #2f2a24;
+                font-size: 1.65rem;
+                font-weight: 700;
+                line-height: 1.3;
+                margin-bottom: .75rem;
+            }
+
+            .community-book-chapter-summary {
+                color: #6b5b45;
+                font-size: 1rem;
+                line-height: 1.7;
+                margin-bottom: 1.5rem;
+            }
+
             .community-book-page-content {
                 color: #2f2a24;
                 font-size: 1.05rem;
@@ -87,6 +103,7 @@
                     const prevBtn = reader.querySelector('[data-book-prev]');
                     const nextBtn = reader.querySelector('[data-book-next]');
                     const status = reader.querySelector('[data-book-status]');
+                    const usesChapters = reader.dataset.usesChapters === '1';
                     let current = 0;
 
                     function render() {
@@ -95,7 +112,7 @@
                         });
 
                         if (status) {
-                            status.textContent = 'Page ' + (current + 1) + ' of ' + pages.length;
+                            status.textContent = (usesChapters ? 'Chapter ' : 'Page ') + (current + 1) + ' of ' + pages.length;
                         }
 
                         if (prevBtn) {
@@ -128,11 +145,21 @@
         @endpush
     @endonce
 
-    <div class="community-book-reader" data-book-reader>
+    <div class="community-book-reader" data-book-reader data-uses-chapters="{{ $usesChapters ? '1' : '0' }}">
         <div class="community-book-shell">
             @foreach($bookPages as $index => $page)
                 <article class="community-book-page{{ $index === 0 ? ' is-active' : '' }}" data-book-page>
-                    <div class="community-book-page-number">Page {{ $index + 1 }}</div>
+                    @if($usesChapters)
+                        <div class="community-book-page-number">Chapter {{ $index + 1 }}</div>
+                        @if(filled($page['title'] ?? null))
+                            <h2 class="community-book-chapter-title">{{ $page['title'] }}</h2>
+                        @endif
+                        @if(filled($page['summary'] ?? null))
+                            <p class="community-book-chapter-summary">{{ $page['summary'] }}</p>
+                        @endif
+                    @else
+                        <div class="community-book-page-number">Page {{ $index + 1 }}</div>
+                    @endif
                     <div class="community-book-page-content" data-community-body-protected lang="{{ $page['language'] ?? 'en' }}">{!! $page['content'] !!}</div>
                 </article>
             @endforeach
@@ -141,11 +168,11 @@
         @if(count($bookPages) > 1)
             <div class="community-book-controls">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-book-prev>
-                    <i class="fa-solid fa-chevron-left me-1"></i> Previous page
+                    <i class="fa-solid fa-chevron-left me-1"></i> Previous {{ $usesChapters ? 'chapter' : 'page' }}
                 </button>
-                <span class="community-book-status" data-book-status>Page 1 of {{ count($bookPages) }}</span>
+                <span class="community-book-status" data-book-status>{{ ($usesChapters ? 'Chapter' : 'Page') }} 1 of {{ count($bookPages) }}</span>
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-book-next>
-                    Next page <i class="fa-solid fa-chevron-right ms-1"></i>
+                    Next {{ $usesChapters ? 'chapter' : 'page' }} <i class="fa-solid fa-chevron-right ms-1"></i>
                 </button>
             </div>
         @endif

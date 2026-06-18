@@ -8,12 +8,14 @@ use App\Models\CommunityAuthorQuestion;
 use App\Models\CommunityPost;
 use App\Models\CommunityPostParticipation;
 use App\Models\CommunityPostComment;
-use App\Models\CommunityPostPollVote;
+use App\Models\CommunityPostStarRating;
 use App\Models\CommunityPostReaction;
 use App\Models\User;
 use App\Services\CommunityPostParticipationNotificationService;
 use App\Services\CommunityReportEngagementNotificationService;
-use App\Services\CommunityReportTrustScoreService;
+use App\Services\CommunityStoryAchievementService;
+use App\Services\CommunityStoryEngagementNotificationService;
+use App\Services\CommunityArticleScoreService;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
 use App\Support\CommunityPostAuditLogger;
@@ -31,6 +33,16 @@ use Yajra\DataTables\Facades\DataTables;
 class CommunityPostController extends Controller
 {
     private const MAX_FEATURED_IMAGES = 5;
+
+    private const MAX_STORY_GALLERY = 10;
+
+    private const MAX_LIFE_TIMELINE = 30;
+
+    private const MAX_AUTOBIOGRAPHY_ACHIEVEMENTS = 15;
+
+    private const MAX_AUTOBIOGRAPHY_DOCUMENTS = 10;
+
+    private const MAX_STORY_AUDIO_KB = 20480;
 
     private const MAX_TAGS = 10;
 
@@ -84,9 +96,10 @@ class CommunityPostController extends Controller
             'user',
             'reactions',
             'pollVotes',
+            'starRatings',
             'discussionComments.user',
             'discussionComments.replies.user',
-        ]);
+        ])->loadCount('starRatings');
 
         if ($post->isPubliclyVisible()) {
             $this->recordPostView($request, $post);
@@ -110,7 +123,8 @@ class CommunityPostController extends Controller
             'user',
             'discussionComments.user',
             'discussionComments.replies.user',
-        ]);
+            'starRatings',
+        ])->loadCount('starRatings');
 
         $participation = $this->participationViewData($post, limit: 50);
 
@@ -182,6 +196,31 @@ class CommunityPostController extends Controller
 
         $post = $this->syncReportTrustScore($post->fresh());
 
+        if ($post->content_type === 'stories') {
+            $post = CommunityStoryAchievementService::recalculate($post->fresh());
+
+            if ($active && $data['reaction'] === 'Inspiring') {
+                CommunityStoryEngagementNotificationService::notifyAuthorOfInspiringReaction(
+                    $post,
+                    $request->user()
+                );
+            }
+        }
+
+        if ($post->content_type === 'poetry' && $active && $data['reaction'] === 'Inspiring') {
+            CommunityStoryEngagementNotificationService::notifyAuthorOfInspiringReaction(
+                $post,
+                $request->user()
+            );
+        }
+
+        if ($post->content_type === 'autobiography' && $active && $data['reaction'] === 'Inspiring') {
+            CommunityStoryEngagementNotificationService::notifyAuthorOfInspiringReaction(
+                $post,
+                $request->user()
+            );
+        }
+
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
@@ -192,6 +231,55 @@ class CommunityPostController extends Controller
                     ->groupBy('reaction')
                     ->pluck('total', 'reaction'),
                 'report_trust_score' => $post->isReportContent() ? $post->reportTrustScore() : null,
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    public function rateStory(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
+    {
+        abort_unless($post->isPubliclyVisible(), 404);
+        abort_unless(CommunityPost::supportsStarRating($post->content_type), 404);
+
+        $data = $request->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+        ]);
+
+        CommunityPostStarRating::query()->updateOrCreate(
+            [
+                'community_post_id' => $post->id,
+                'user_id' => $request->user()->id,
+            ],
+            [
+                'rating' => $data['rating'],
+            ]
+        );
+
+        CommunityArticleScoreService::recalculate($post->fresh());
+
+        if (CommunityPost::supportsStarRating($post->content_type)) {
+            CommunityStoryEngagementNotificationService::notifyAuthorOfRating(
+                $post,
+                $request->user(),
+                (int) $data['rating']
+            );
+        }
+
+        $post = $post->fresh()->loadCount('starRatings');
+        $message = match ($post->content_type) {
+            'poetry' => 'Poetry rating saved.',
+            'autobiography' => 'Autobiography rating saved.',
+            default => 'Story rating saved.',
+        };
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'rating' => (int) $data['rating'],
+                'average_rating' => $post->averageStarRating(),
+                'ratings_count' => (int) $post->star_ratings_count,
+                'achievement_badges' => $post->storyAchievementBadges(),
             ]);
         }
 
@@ -354,6 +442,13 @@ class CommunityPostController extends Controller
             CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
         }
 
+        foreach ((array) data_get($post->meta, 'story_gallery', []) as $image) {
+            CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+        }
+
+        $this->deleteStoryAudioFile(data_get($post->meta, 'story_audio'));
+        $this->deleteStoryAudioFile(data_get($post->meta, 'poetry_audio'));
+
         $this->deleteVideoFile($post->videoData());
         $post->delete();
 
@@ -423,6 +518,47 @@ class CommunityPostController extends Controller
                 $data['meta']['news_documents'] = $documents;
             }
         }
+        $storyGallery = $this->resolveStoryGallery($request);
+        if ($storyGallery !== null) {
+            $data['meta']['story_gallery'] = $storyGallery;
+        }
+        $storyAudio = $this->resolveStoryAudio($request);
+        if ($storyAudio !== null || ($request->input('content_type') === 'stories' && $request->input('story_audio_source_type') === 'none')) {
+            if ($storyAudio !== null) {
+                $data['meta']['story_audio'] = $storyAudio;
+            } else {
+                unset($data['meta']['story_audio']);
+            }
+        }
+        $poetryAudio = $this->resolvePoetryAudio($request);
+        if ($poetryAudio !== null || ($request->input('content_type') === 'poetry' && $request->input('poetry_audio_source_type') === 'none')) {
+            if ($poetryAudio !== null) {
+                $data['meta']['poetry_audio'] = $poetryAudio;
+            } else {
+                unset($data['meta']['poetry_audio']);
+            }
+        }
+        $lifeTimeline = $this->resolveLifeTimeline($request);
+        if ($lifeTimeline !== null) {
+            $data['meta']['life_timeline'] = $lifeTimeline;
+        }
+        $autobiographyAudio = $this->resolveAutobiographyAudio($request);
+        if ($autobiographyAudio !== null || ($request->input('content_type') === 'autobiography' && $request->input('autobiography_audio_source_type') === 'none')) {
+            if ($autobiographyAudio !== null) {
+                $data['meta']['autobiography_audio'] = $autobiographyAudio;
+            } else {
+                unset($data['meta']['autobiography_audio']);
+            }
+        }
+        $autobiographyAchievements = $this->resolveAutobiographyAchievements($request);
+        if ($autobiographyAchievements !== null) {
+            $data['meta']['autobiography_achievements'] = $autobiographyAchievements;
+        }
+        $autobiographyDocuments = $this->resolveAutobiographyDocuments($request);
+        if ($autobiographyDocuments !== null) {
+            $data['meta']['autobiography_documents'] = $autobiographyDocuments;
+        }
+        $data = $this->applyPoetryRegionalLocation($data);
         $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['allow_questions'] = $this->shouldAllowQuestions($request);
         $data['allow_suggestions'] = $this->shouldAllowSuggestions($request);
@@ -442,6 +578,8 @@ class CommunityPostController extends Controller
 
         if ($post->isPendingApproval()) {
             $this->notifyAdminsOfPendingPost($post);
+        } elseif (in_array($post->content_type, ['poetry', 'autobiography'], true) && $post->isPubliclyVisible()) {
+            CommunityStoryEngagementNotificationService::notifyAuthorOfPublishedWithoutAudio($post->fresh());
         }
 
         $message = $post->isPendingApproval()
@@ -496,6 +634,62 @@ class CommunityPostController extends Controller
             unset($data['meta']['news_documents']);
         }
 
+        $storyGallery = $this->resolveStoryGallery($request, $post);
+        if ($storyGallery !== null) {
+            $data['meta']['story_gallery'] = $storyGallery;
+        } elseif (data_get($post->meta, 'story_gallery')) {
+            unset($data['meta']['story_gallery']);
+        }
+
+        $storyAudio = $this->resolveStoryAudio($request, $post);
+        if ($storyAudio !== null) {
+            $data['meta']['story_audio'] = $storyAudio;
+        } elseif ($request->input('content_type') === 'stories' && $request->input('story_audio_source_type') === 'none') {
+            unset($data['meta']['story_audio']);
+        } elseif ($request->boolean('remove_story_audio')) {
+            unset($data['meta']['story_audio']);
+        }
+
+        $poetryAudio = $this->resolvePoetryAudio($request, $post);
+        if ($poetryAudio !== null) {
+            $data['meta']['poetry_audio'] = $poetryAudio;
+        } elseif ($request->input('content_type') === 'poetry' && $request->input('poetry_audio_source_type') === 'none') {
+            unset($data['meta']['poetry_audio']);
+        } elseif ($request->boolean('remove_poetry_audio')) {
+            unset($data['meta']['poetry_audio']);
+        }
+
+        $lifeTimeline = $this->resolveLifeTimeline($request, $post);
+        if ($lifeTimeline !== null) {
+            $data['meta']['life_timeline'] = $lifeTimeline;
+        } elseif ($request->input('content_type') === 'autobiography' && data_get($post->meta, 'life_timeline')) {
+            unset($data['meta']['life_timeline']);
+        }
+
+        $autobiographyAudio = $this->resolveAutobiographyAudio($request, $post);
+        if ($autobiographyAudio !== null) {
+            $data['meta']['autobiography_audio'] = $autobiographyAudio;
+        } elseif ($request->input('content_type') === 'autobiography' && $request->input('autobiography_audio_source_type') === 'none') {
+            unset($data['meta']['autobiography_audio']);
+        } elseif ($request->boolean('remove_autobiography_audio')) {
+            unset($data['meta']['autobiography_audio']);
+        }
+
+        $autobiographyAchievements = $this->resolveAutobiographyAchievements($request, $post);
+        if ($autobiographyAchievements !== null) {
+            $data['meta']['autobiography_achievements'] = $autobiographyAchievements;
+        } elseif ($request->input('content_type') === 'autobiography' && data_get($post->meta, 'autobiography_achievements')) {
+            unset($data['meta']['autobiography_achievements']);
+        }
+
+        $autobiographyDocuments = $this->resolveAutobiographyDocuments($request, $post);
+        if ($autobiographyDocuments !== null) {
+            $data['meta']['autobiography_documents'] = $autobiographyDocuments;
+        } elseif ($request->input('content_type') === 'autobiography' && data_get($post->meta, 'autobiography_documents')) {
+            unset($data['meta']['autobiography_documents']);
+        }
+
+        $data = $this->applyPoetryRegionalLocation($data);
         $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['allow_questions'] = $this->shouldAllowQuestions($request);
         $data['allow_suggestions'] = $this->shouldAllowSuggestions($request);
@@ -532,6 +726,13 @@ class CommunityPostController extends Controller
 
         if ($post->isPendingApproval() && ! $wasPending) {
             $this->notifyAdminsOfPendingPost($post->fresh());
+        } elseif (
+            in_array($post->content_type, ['poetry', 'autobiography'], true)
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityStoryEngagementNotificationService::notifyAuthorOfPublishedWithoutAudio($post->fresh());
         }
 
         $message = $post->isPendingApproval()
@@ -595,7 +796,17 @@ class CommunityPostController extends Controller
             'book_pages' => [Rule::requiredIf(fn () => CommunityPost::isBookContentType($contentType)), 'array', 'min:1'],
             'book_pages.*.content' => ['nullable', 'string'],
             'book_pages.*.language' => ['nullable', Rule::in(['en', 'hi'])],
-            'editor_language' => ['nullable', Rule::in(['en', 'hi'])],
+            'book_pages.*.title' => [
+                Rule::requiredIf(fn () => CommunityPost::usesChapterLayout(is_string($contentType) ? $contentType : null)),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'book_pages.*.summary' => ['nullable', 'string', 'max:500'],
+            'editor_language' => [
+                'nullable',
+                Rule::in(CommunityContentTaxonomy::editorLanguageCodesFor(is_string($contentType) ? $contentType : null)),
+            ],
             'featured_images' => ['nullable', 'array', 'max:'.self::MAX_FEATURED_IMAGES],
             'featured_images.*' => ['image', 'max:4096'],
             'removed_featured_images' => ['nullable', 'array'],
@@ -646,7 +857,12 @@ class CommunityPostController extends Controller
                 'string',
                 'max:160',
             ],
-            'author_bio' => ['nullable', 'string', 'max:500'],
+            'author_bio' => [
+                Rule::requiredIf(fn () => $contentType === 'autobiography'),
+                'nullable',
+                'string',
+                'max:500',
+            ],
             'location_type' => $usesStructuredLocation
                 ? ['nullable', Rule::in(array_keys(CommunityPost::locationTypeOptions($contentType)))]
                 : ['required', Rule::in(array_keys(CommunityPost::locationTypeOptions($contentType)))],
@@ -705,6 +921,152 @@ class CommunityPostController extends Controller
             'news_documents.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx'],
             'removed_news_documents' => ['nullable', 'array'],
             'removed_news_documents.*' => ['string', 'max:255'],
+            'story_gallery' => ['nullable', 'array', 'max:'.self::MAX_STORY_GALLERY],
+            'story_gallery.*' => ['image', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
+            'removed_story_gallery' => ['nullable', 'array'],
+            'removed_story_gallery.*' => ['string', 'max:255'],
+            'story_audio_source_type' => ['nullable', Rule::in(['none', 'upload', 'recording'])],
+            'story_audio_file' => [
+                Rule::requiredIf(fn () => $request->input('content_type') === 'stories'
+                    && $request->input('story_audio_source_type') === 'upload'
+                    && ! $request->boolean('keep_existing_story_audio')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'story_audio_recording' => [
+                Rule::requiredIf(fn () => $request->input('content_type') === 'stories'
+                    && $request->input('story_audio_source_type') === 'recording'
+                    && ! $request->boolean('keep_existing_story_audio')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'keep_existing_story_audio' => ['nullable', 'boolean'],
+            'remove_story_audio' => ['nullable', 'boolean'],
+            'story_target_audience' => ['nullable', 'array'],
+            'story_target_audience.*' => ['string', Rule::in(CommunityContentTaxonomy::storyTargetAudiences())],
+            'story_themes' => ['nullable', 'array'],
+            'story_themes.*' => ['string', Rule::in(CommunityContentTaxonomy::storyThemes())],
+            'sub_category' => [
+                Rule::requiredIf(fn () => $contentType === 'poetry'),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::poetrySubCategories()),
+            ],
+            'poetry_themes' => ['nullable', 'array'],
+            'poetry_themes.*' => ['string', Rule::in(CommunityContentTaxonomy::poetryThemes())],
+            'poetry_target_audience' => ['nullable', 'array'],
+            'poetry_target_audience.*' => ['string', Rule::in(CommunityContentTaxonomy::poetryTargetAudiences())],
+            'poetry_inspiration' => ['nullable', 'string', 'max:2000'],
+            'poetry_part_of_series' => ['nullable', Rule::in(['Yes', 'No'])],
+            'poetry_series_name' => [
+                Rule::requiredIf(fn () => $contentType === 'poetry' && $request->input('poetry_part_of_series') === 'Yes'),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'poetry_series_part' => ['nullable', 'string', 'max:40'],
+            'poetry_audio_source_type' => ['nullable', Rule::in(['none', 'upload', 'recording'])],
+            'poetry_audio_file' => [
+                Rule::requiredIf(fn () => $contentType === 'poetry'
+                    && $request->input('poetry_audio_source_type') === 'upload'
+                    && ! $request->boolean('keep_existing_poetry_audio')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'poetry_audio_recording' => [
+                Rule::requiredIf(fn () => $contentType === 'poetry'
+                    && $request->input('poetry_audio_source_type') === 'recording'
+                    && ! $request->boolean('keep_existing_poetry_audio')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'keep_existing_poetry_audio' => ['nullable', 'boolean'],
+            'remove_poetry_audio' => ['nullable', 'boolean'],
+            'location_country' => [
+                Rule::requiredIf(fn () => CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null)),
+                'nullable',
+                'string',
+                'max:120',
+            ],
+            'location_state' => [
+                Rule::requiredIf(fn () => CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null)),
+                'nullable',
+                'string',
+                'max:120',
+            ],
+            'location_district' => [
+                Rule::requiredIf(fn () => CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null)),
+                'nullable',
+                'string',
+                'max:120',
+            ],
+            'location_city' => [
+                Rule::requiredIf(fn () => CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null)),
+                'nullable',
+                'string',
+                'max:120',
+            ],
+            'location_locality' => ['nullable', 'string', 'max:120'],
+            'autobiography_type' => [
+                Rule::requiredIf(fn () => $contentType === 'autobiography'),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::autobiographyTypes()),
+            ],
+            'life_timeline' => ['nullable', 'array', 'max:'.self::MAX_LIFE_TIMELINE],
+            'life_timeline.*.year' => ['required_with:life_timeline', 'string', 'max:10'],
+            'life_timeline.*.title' => ['required_with:life_timeline', 'string', 'max:160'],
+            'life_timeline.*.description' => ['required_with:life_timeline', 'string', 'max:2000'],
+            'life_timeline.*.existing_photo_path' => ['nullable', 'string', 'max:255'],
+            'life_timeline.*.photo' => ['nullable', 'image', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
+            'autobiography_audio_source_type' => ['nullable', Rule::in(['none', 'upload', 'recording'])],
+            'autobiography_audio_file' => [
+                Rule::requiredIf(fn () => $contentType === 'autobiography'
+                    && $request->input('autobiography_audio_source_type') === 'upload'
+                    && ! $request->boolean('keep_existing_autobiography_audio')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'autobiography_audio_recording' => [
+                Rule::requiredIf(fn () => $contentType === 'autobiography'
+                    && $request->input('autobiography_audio_source_type') === 'recording'
+                    && ! $request->boolean('keep_existing_autobiography_audio')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'keep_existing_autobiography_audio' => ['nullable', 'boolean'],
+            'remove_autobiography_audio' => ['nullable', 'boolean'],
+            'birth_place' => ['nullable', 'string', 'max:160'],
+            'current_location' => ['nullable', 'string', 'max:160'],
+            'places_mentioned' => ['nullable', 'array', 'max:20'],
+            'places_mentioned.*' => ['nullable', 'string', 'max:120'],
+            'key_lessons_learned' => ['nullable', 'array', 'max:15'],
+            'key_lessons_learned.*' => ['nullable', 'string', 'max:300'],
+            'autobiography_achievements' => ['nullable', 'array', 'max:'.self::MAX_AUTOBIOGRAPHY_ACHIEVEMENTS],
+            'autobiography_achievements.*.award_name' => ['nullable', 'string', 'max:160'],
+            'autobiography_achievements.*.year' => ['nullable', 'string', 'max:10'],
+            'autobiography_achievements.*.description' => ['nullable', 'string', 'max:1000'],
+            'autobiography_achievements.*.existing_image_path' => ['nullable', 'string', 'max:255'],
+            'autobiography_achievements.*.image' => ['nullable', 'image', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
+            'autobiography_documents' => ['nullable', 'array', 'max:'.self::MAX_AUTOBIOGRAPHY_DOCUMENTS],
+            'autobiography_documents.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx'],
+            'removed_autobiography_documents' => ['nullable', 'array'],
+            'removed_autobiography_documents.*' => ['string', 'max:255'],
+            'related_people' => ['nullable', 'array', 'max:20'],
+            'related_people.*.name' => ['nullable', 'string', 'max:120'],
+            'related_people.*.relationship' => ['nullable', 'string', 'max:80'],
             'accept_content_responsibility' => ['accepted'],
             'accept_original_work_indemnity' => ['accepted'],
         ];
@@ -724,11 +1086,16 @@ class CommunityPostController extends Controller
         $this->assertFeaturedImageLimit($request, $post);
 
         if (CommunityPost::isBookContentType($contentType)) {
-            $bookPages = $this->normalizeBookPages($validated['book_pages'] ?? []);
+            $bookPages = $this->normalizeBookPages(
+                $validated['book_pages'] ?? [],
+                is_string($contentType) ? $contentType : null
+            );
 
             if ($bookPages === []) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'book_pages' => 'Please add content to at least one book page.',
+                    'book_pages' => CommunityPost::usesChapterLayout(is_string($contentType) ? $contentType : null)
+                        ? 'Please add content to at least one chapter.'
+                        : 'Please add content to at least one book page.',
                 ]);
             }
 
@@ -867,8 +1234,10 @@ class CommunityPostController extends Controller
         $payload['report_analysis'] = $request->input('report_analysis');
         $payload['recommendations'] = $request->input('recommendations');
         $payload['report_conclusion'] = $request->input('report_conclusion');
-        $editorLanguage = $request->input('editor_language', 'en');
-        $payload['editor_language'] = in_array($editorLanguage, ['en', 'hi'], true) ? $editorLanguage : 'en';
+        $payload['editor_language'] = CommunityContentTaxonomy::normalizeEditorLanguage(
+            is_string($contentType) ? $contentType : null,
+            $request->input('editor_language', 'en')
+        );
 
         if ($request->input('content_type') === 'reports') {
             $payload['report_author_name'] = filled($request->input('report_author_name'))
@@ -1007,6 +1376,439 @@ class CommunityPostController extends Controller
     }
 
     /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeStoryGallery(Request $request): array
+    {
+        return collect($request->file('story_gallery', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'story-gallery'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveStoryGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if ($request->input('content_type') !== 'stories') {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'story_gallery', []);
+        $removed = (array) $request->input('removed_story_gallery', []);
+
+        if ($existing === [] && ! $request->hasFile('story_gallery')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $image): bool => in_array((string) data_get($image, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('story_gallery')) {
+            $kept = array_values(array_merge($kept, $this->storeStoryGallery($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_STORY_GALLERY));
+    }
+
+    /**
+     * @return list<array{year: string, title: string, description: string, photo: array{path: string, url: string, name: string, type: string}|null}>|null
+     */
+    private function resolveLifeTimeline(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if ($request->input('content_type') !== 'autobiography') {
+            return null;
+        }
+
+        $entries = collect($request->input('life_timeline', []))
+            ->filter(fn (mixed $entry): bool => is_array($entry)
+                && filled($entry['year'] ?? null)
+                && filled($entry['title'] ?? null)
+                && filled($entry['description'] ?? null))
+            ->values();
+
+        if ($entries->isEmpty()) {
+            $this->deleteLifeTimelinePhotos((array) data_get($post?->meta, 'life_timeline', []));
+
+            return null;
+        }
+
+        $existingByPath = collect((array) data_get($post?->meta, 'life_timeline', []))
+            ->mapWithKeys(function (mixed $entry): array {
+                $path = (string) data_get($entry, 'photo.path', data_get($entry, 'photo_path', ''));
+
+                return filled($path) ? [$path => $entry] : [];
+            });
+
+        $resolved = $entries
+            ->take(self::MAX_LIFE_TIMELINE)
+            ->map(function (array $entry, int $index) use ($request, $existingByPath): array {
+                $photo = null;
+                $uploadedFile = $request->file("life_timeline.$index.photo");
+
+                if ($uploadedFile) {
+                    $existingPath = (string) ($entry['existing_photo_path'] ?? '');
+                    if (filled($existingPath)) {
+                        CommunityPostFileUploader::deleteIfExists($existingPath);
+                    }
+
+                    $photo = CommunityPostFileUploader::storeAttachment($uploadedFile, 'autobiography-timeline');
+                } elseif (filled($entry['existing_photo_path'] ?? null)) {
+                    $existingPath = (string) $entry['existing_photo_path'];
+                    $existingEntry = $existingByPath->get($existingPath);
+                    $existingPhoto = data_get($existingEntry, 'photo');
+
+                    if (is_array($existingPhoto)) {
+                        $photo = $existingPhoto;
+                    }
+                }
+
+                return [
+                    'year' => trim((string) ($entry['year'] ?? '')),
+                    'title' => trim((string) ($entry['title'] ?? '')),
+                    'description' => trim((string) ($entry['description'] ?? '')),
+                    'photo' => $photo,
+                ];
+            })
+            ->values()
+            ->all();
+
+        $keptPaths = collect($resolved)
+            ->map(fn (array $entry): string => (string) data_get($entry, 'photo.path', ''))
+            ->filter()
+            ->all();
+
+        collect((array) data_get($post?->meta, 'life_timeline', []))
+            ->each(function (mixed $entry) use ($keptPaths): void {
+                $path = (string) data_get($entry, 'photo.path', data_get($entry, 'photo_path', ''));
+                if (filled($path) && ! in_array($path, $keptPaths, true)) {
+                    CommunityPostFileUploader::deleteIfExists($path);
+                }
+            });
+
+        return $resolved;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $entries
+     */
+    private function deleteLifeTimelinePhotos(array $entries): void
+    {
+        foreach ($entries as $entry) {
+            CommunityPostFileUploader::deleteIfExists((string) data_get($entry, 'photo.path', data_get($entry, 'photo_path', '')));
+        }
+    }
+
+    /**
+     * @return array{type: string, path: string, name: string, url: string}|null
+     */
+    private function resolveStoryAudio(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if ($request->input('content_type') !== 'stories') {
+            return null;
+        }
+
+        if ($request->boolean('remove_story_audio')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'story_audio'));
+
+            return null;
+        }
+
+        $sourceType = $request->input('story_audio_source_type', 'none');
+
+        if ($sourceType === 'upload' && $request->hasFile('story_audio_file')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'story_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('story_audio_file'), 'upload');
+        }
+
+        if ($sourceType === 'recording' && $request->hasFile('story_audio_recording')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'story_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('story_audio_recording'), 'recording');
+        }
+
+        if ($request->boolean('keep_existing_story_audio') && data_get($post?->meta, 'story_audio')) {
+            return data_get($post->meta, 'story_audio');
+        }
+
+        if ($sourceType === 'none') {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'story_audio'));
+
+            return null;
+        }
+
+        return data_get($post?->meta, 'story_audio');
+    }
+
+    /**
+     * @return array{type: string, path: string, name: string, url: string}|null
+     */
+    private function resolvePoetryAudio(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if ($request->input('content_type') !== 'poetry') {
+            return null;
+        }
+
+        if ($request->boolean('remove_poetry_audio')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'poetry_audio'));
+
+            return null;
+        }
+
+        $sourceType = $request->input('poetry_audio_source_type', 'none');
+
+        if ($sourceType === 'upload' && $request->hasFile('poetry_audio_file')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'poetry_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('poetry_audio_file'), 'upload');
+        }
+
+        if ($sourceType === 'recording' && $request->hasFile('poetry_audio_recording')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'poetry_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('poetry_audio_recording'), 'recording');
+        }
+
+        if ($request->boolean('keep_existing_poetry_audio') && data_get($post?->meta, 'poetry_audio')) {
+            return data_get($post->meta, 'poetry_audio');
+        }
+
+        if ($sourceType === 'none') {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'poetry_audio'));
+
+            return null;
+        }
+
+        return data_get($post?->meta, 'poetry_audio');
+    }
+
+    /**
+     * @return array{type: string, path: string, name: string, url: string}|null
+     */
+    private function resolveAutobiographyAudio(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if ($request->input('content_type') !== 'autobiography') {
+            return null;
+        }
+
+        if ($request->boolean('remove_autobiography_audio')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'autobiography_audio'));
+
+            return null;
+        }
+
+        $sourceType = $request->input('autobiography_audio_source_type', 'none');
+
+        if ($sourceType === 'upload' && $request->hasFile('autobiography_audio_file')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'autobiography_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('autobiography_audio_file'), 'upload');
+        }
+
+        if ($sourceType === 'recording' && $request->hasFile('autobiography_audio_recording')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'autobiography_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('autobiography_audio_recording'), 'recording');
+        }
+
+        if ($request->boolean('keep_existing_autobiography_audio') && data_get($post?->meta, 'autobiography_audio')) {
+            return data_get($post->meta, 'autobiography_audio');
+        }
+
+        if ($sourceType === 'none') {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'autobiography_audio'));
+
+            return null;
+        }
+
+        return data_get($post?->meta, 'autobiography_audio');
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveAutobiographyDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if ($request->input('content_type') !== 'autobiography') {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'autobiography_documents', []);
+        $removed = (array) $request->input('removed_autobiography_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('autobiography_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('autobiography_documents')) {
+            $kept = array_values(array_merge(
+                $kept,
+                collect($request->file('autobiography_documents', []))
+                    ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'autobiography-documents'))
+                    ->values()
+                    ->all()
+            ));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_AUTOBIOGRAPHY_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{award_name: string, year: string, description: string, image: array{path: string, url: string, name: string, type: string}|null}>|null
+     */
+    private function resolveAutobiographyAchievements(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if ($request->input('content_type') !== 'autobiography') {
+            return null;
+        }
+
+        $entries = collect($request->input('autobiography_achievements', []))
+            ->filter(function (mixed $entry): bool {
+                if (! is_array($entry)) {
+                    return false;
+                }
+
+                return filled($entry['award_name'] ?? null)
+                    || filled($entry['year'] ?? null)
+                    || filled($entry['description'] ?? null)
+                    || filled($entry['existing_image_path'] ?? null);
+            })
+            ->values();
+
+        if ($entries->isEmpty()) {
+            $this->deleteAutobiographyAchievementImages((array) data_get($post?->meta, 'autobiography_achievements', []));
+
+            return null;
+        }
+
+        $existingByPath = collect((array) data_get($post?->meta, 'autobiography_achievements', []))
+            ->mapWithKeys(function (mixed $entry): array {
+                $path = (string) data_get($entry, 'image.path', '');
+
+                return filled($path) ? [$path => $entry] : [];
+            });
+
+        $resolved = $entries
+            ->take(self::MAX_AUTOBIOGRAPHY_ACHIEVEMENTS)
+            ->map(function (array $entry, int $index) use ($request, $existingByPath): array {
+                $image = null;
+                $uploadedFile = $request->file("autobiography_achievements.$index.image");
+
+                if ($uploadedFile) {
+                    $existingPath = (string) ($entry['existing_image_path'] ?? '');
+                    if (filled($existingPath)) {
+                        CommunityPostFileUploader::deleteIfExists($existingPath);
+                    }
+
+                    $image = CommunityPostFileUploader::storeAttachment($uploadedFile, 'autobiography-achievements');
+                } elseif (filled($entry['existing_image_path'] ?? null)) {
+                    $existingPath = (string) $entry['existing_image_path'];
+                    $existingEntry = $existingByPath->get($existingPath);
+                    $existingImage = data_get($existingEntry, 'image');
+
+                    if (is_array($existingImage)) {
+                        $image = $existingImage;
+                    }
+                }
+
+                return [
+                    'award_name' => trim((string) ($entry['award_name'] ?? '')),
+                    'year' => trim((string) ($entry['year'] ?? '')),
+                    'description' => trim((string) ($entry['description'] ?? '')),
+                    'image' => $image,
+                ];
+            })
+            ->filter(fn (array $entry): bool => filled($entry['award_name']) || filled($entry['description']))
+            ->values()
+            ->all();
+
+        if ($resolved === []) {
+            $this->deleteAutobiographyAchievementImages((array) data_get($post?->meta, 'autobiography_achievements', []));
+
+            return null;
+        }
+
+        $keptPaths = collect($resolved)
+            ->map(fn (array $entry): string => (string) data_get($entry, 'image.path', ''))
+            ->filter()
+            ->all();
+
+        collect((array) data_get($post?->meta, 'autobiography_achievements', []))
+            ->each(function (mixed $entry) use ($keptPaths): void {
+                $path = (string) data_get($entry, 'image.path', '');
+                if (filled($path) && ! in_array($path, $keptPaths, true)) {
+                    CommunityPostFileUploader::deleteIfExists($path);
+                }
+            });
+
+        return $resolved;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $entries
+     */
+    private function deleteAutobiographyAchievementImages(array $entries): void
+    {
+        foreach ($entries as $entry) {
+            CommunityPostFileUploader::deleteIfExists((string) data_get($entry, 'image.path', ''));
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function applyPoetryRegionalLocation(array $data): array
+    {
+        if (($data['content_type'] ?? null) !== 'poetry') {
+            return $data;
+        }
+
+        $structuredFields = array_intersect_key(
+            $data['meta'] ?? [],
+            array_flip(CommunityPost::structuredLocationMetaKeys())
+        );
+
+        if (collect($structuredFields)->filter(fn (mixed $value): bool => filled($value))->isEmpty()) {
+            return $data;
+        }
+
+        $data['location_type'] = CommunityPost::inferLocationTypeFromStructured($structuredFields);
+        $data['location'] = CommunityPost::composeStructuredLocation($structuredFields);
+
+        return $data;
+    }
+
+    /**
+     * @param  array{type?: string, path?: string}|null  $audio
+     */
+    private function deleteStoryAudioFile(?array $audio): void
+    {
+        if (blank($audio['path'] ?? null)) {
+            return;
+        }
+
+        CommunityPostFileUploader::deleteIfExists($audio['path']);
+    }
+
+    /**
      * @return array{type: string, url?: string, video_id?: string, path?: string, name?: string}|null
      */
     private function resolveVideo(Request $request, ?CommunityPost $post = null): ?array
@@ -1085,7 +1887,8 @@ class CommunityPostController extends Controller
     {
         $query = CommunityPost::query()
             ->with('user')
-            ->withCount(['reactions', 'comments'])
+            ->withCount(['reactions', 'comments', 'starRatings'])
+            ->withAvg('starRatings', 'rating')
             ->publiclyListed()
             ->when($author, fn ($query) => $query
                 ->where('user_id', $author->id)
@@ -1233,7 +2036,10 @@ class CommunityPostController extends Controller
             return;
         }
 
-        $pages = $this->normalizeBookPages($request->input('book_pages', []));
+        $pages = $this->normalizeBookPages(
+            $request->input('book_pages', []),
+            is_string($contentType) ? $contentType : null
+        );
 
         if ($pages !== []) {
             $data['meta']['book_pages'] = $pages;
@@ -1242,19 +2048,36 @@ class CommunityPostController extends Controller
     }
 
     /**
-     * @param  list<array{content?: string, language?: string}>|list<string>  $pages
-     * @return list<array{content: string, language: string}>
+     * @param  list<array{content?: string, language?: string, title?: string, summary?: string}>|list<string>  $pages
+     * @return list<array{content: string, language: string, title?: string, summary?: string}>
      */
-    private function normalizeBookPages(array $pages): array
+    private function normalizeBookPages(array $pages, ?string $contentType = null): array
     {
+        $usesChapters = CommunityPost::usesChapterLayout($contentType);
+
         return collect($pages)
-            ->map(fn (mixed $page): array => [
-                'content' => is_array($page) ? (string) ($page['content'] ?? '') : (string) $page,
-                'language' => in_array(is_array($page) ? ($page['language'] ?? 'en') : 'en', ['en', 'hi'], true)
-                    ? (is_array($page) ? ($page['language'] ?? 'en') : 'en')
-                    : 'en',
-            ])
-            ->filter(fn (array $page): bool => filled(strip_tags($page['content'])))
+            ->map(function (mixed $page) use ($usesChapters): array {
+                $normalized = [
+                    'content' => is_array($page) ? (string) ($page['content'] ?? '') : (string) $page,
+                    'language' => in_array(is_array($page) ? ($page['language'] ?? 'en') : 'en', ['en', 'hi'], true)
+                        ? (is_array($page) ? ($page['language'] ?? 'en') : 'en')
+                        : 'en',
+                ];
+
+                if ($usesChapters) {
+                    $normalized['title'] = trim(is_array($page) ? (string) ($page['title'] ?? '') : '');
+                    $normalized['summary'] = trim(is_array($page) ? (string) ($page['summary'] ?? '') : '');
+                }
+
+                return $normalized;
+            })
+            ->filter(function (array $page) use ($usesChapters): bool {
+                if (filled(strip_tags($page['content']))) {
+                    return true;
+                }
+
+                return $usesChapters && filled($page['title'] ?? null);
+            })
             ->values()
             ->all();
     }

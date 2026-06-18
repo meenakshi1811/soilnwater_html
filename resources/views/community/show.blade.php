@@ -343,6 +343,30 @@
             @foreach($post->articleScoreBadges() as $badge)
                 <span class="badge bg-light text-dark community-post-banner-tag community-score-badge {{ $badge['class'] }}">{{ $badge['label'] }}</span>
             @endforeach
+            @if($post->content_type === 'stories')
+                @foreach($post->storyAchievementBadges() as $badge)
+                    <span class="badge bg-light text-dark community-post-banner-tag community-story-badge {{ $badge['class'] }}">{{ $badge['label'] }}</span>
+                @endforeach
+                @foreach((array) data_get($post->meta, 'story_themes', []) as $theme)
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $theme }}</span>
+                @endforeach
+                @foreach((array) data_get($post->meta, 'story_target_audience', []) as $audience)
+                    <span class="badge bg-light text-dark community-post-banner-tag story-meta-pill--audience">{{ $audience }}</span>
+                @endforeach
+            @endif
+            @if($post->content_type === 'poetry')
+                @foreach((array) data_get($post->meta, 'poetry_themes', []) as $theme)
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $theme }}</span>
+                @endforeach
+                @foreach((array) data_get($post->meta, 'poetry_target_audience', []) as $audience)
+                    <span class="badge bg-light text-dark community-post-banner-tag story-meta-pill--audience">{{ $audience }}</span>
+                @endforeach
+                @if(data_get($post->meta, 'poetry_part_of_series') === 'Yes' && filled(data_get($post->meta, 'poetry_series_name')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">
+                        {{ data_get($post->meta, 'poetry_series_name') }}@if(filled(data_get($post->meta, 'poetry_series_part'))) · {{ data_get($post->meta, 'poetry_series_part') }}@endif
+                    </span>
+                @endif
+            @endif
             @foreach($post->adminPromotionLabels() as $promotionLabel)
                 <span class="badge bg-warning text-dark community-post-banner-tag">{{ $promotionLabel }}</span>
             @endforeach
@@ -351,6 +375,32 @@
             @endif
             @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_type')))
                 <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'news_type') }}</span>
+            @endif
+            @if($post->content_type === 'stories' && filled(data_get($post->meta, 'story_type')))
+                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'story_type') }}</span>
+            @endif
+            @if($post->content_type === 'poetry' && filled(data_get($post->meta, 'poetry_type')))
+                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'poetry_type') }}</span>
+            @endif
+            @if($post->content_type === 'poetry' && filled(data_get($post->meta, 'sub_category')))
+                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'sub_category') }}</span>
+            @endif
+            @if($post->content_type === 'poetry' && filled(data_get($post->meta, 'poem_language')))
+                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'poem_language') }}</span>
+            @endif
+            @if($post->content_type === 'autobiography' && filled(data_get($post->meta, 'autobiography_type')))
+                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'autobiography_type') }}</span>
+            @endif
+            @if($post->content_type === 'autobiography')
+                @foreach(array_slice(array_values(array_filter((array) data_get($post->meta, 'places_mentioned', []))), 0, 3) as $place)
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $place }}</span>
+                @endforeach
+            @endif
+            @if($post->content_type === 'stories' && filled(data_get($post->meta, 'story_time_period')))
+                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'story_time_period') }}</span>
+            @endif
+            @if($post->content_type === 'stories' && filled(data_get($post->meta, 'story_language')))
+                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'story_language') }}</span>
             @endif
             @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_priority')))
                 <span class="badge bg-warning text-dark community-post-banner-tag">{{ data_get($post->meta, 'news_priority') }}</span>
@@ -437,6 +487,14 @@
                 <p class="lead">{{ $post->excerpt }}</p>
             @endif
 
+            @if($post->content_type === 'poetry')
+                @include('community.partials.poetry-show-sections', ['post' => $post])
+            @endif
+
+            @if($post->content_type === 'autobiography')
+                @include('community.partials.autobiography-show-sections', ['post' => $post])
+            @endif
+
             @if($post->isReportContent())
                 <div class="mb-4">
                     @include('community.partials.report-trust-score', ['post' => $post])
@@ -447,8 +505,26 @@
                 ])
             @endif
 
+            @if($post->content_type === 'stories' && $post->storyAudioUrl())
+                <div class="story-audio-player about-box mb-4">
+                    <h4 class="mb-2">Audio story</h4>
+                    <p class="text-muted small mb-3">
+                        {{ data_get($post->storyAudioData(), 'type') === 'recording' ? 'Voice recording' : 'Uploaded audio' }}
+                        @if(filled(data_get($post->storyAudioData(), 'name')))
+                            — {{ data_get($post->storyAudioData(), 'name') }}
+                        @endif
+                    </p>
+                    <audio controls class="w-100" preload="metadata" src="{{ $post->storyAudioUrl() }}">
+                        Your browser does not support embedded audio playback.
+                    </audio>
+                </div>
+            @endif
+
             @if($post->hasVideo())
                 <div class="community-post-video mb-4">
+                    @if($post->content_type === 'stories')
+                        <h4 class="mb-3">Video story</h4>
+                    @endif
                     @if($post->youtubeEmbedUrl())
                         <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm">
                             <iframe
@@ -473,7 +549,43 @@
             @if($post->usesBookLayout() && $post->bookPages() !== [])
                 @include('community.partials.book-reader', ['post' => $post])
             @else
-                <div class="community-post-body" data-community-body-protected lang="{{ data_get($post->meta, 'editor_language', 'en') }}">{!! $post->body !!}</div>
+                @php
+                    $editorLanguage = data_get($post->meta, 'editor_language', 'en');
+                    $bodyClasses = 'community-post-body';
+                    if ($post->content_type === 'poetry') {
+                        $bodyClasses .= ' community-post-body--poetry';
+                    }
+                @endphp
+                @if($post->content_type === 'poetry')
+                    <div class="poetry-reading-card mb-4">
+                        <div class="poetry-reading-card__kicker">Poem</div>
+                        <div class="{{ $bodyClasses }}" data-community-body-protected lang="{{ $editorLanguage }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
+                    </div>
+                @else
+                    <div class="{{ $bodyClasses }}" data-community-body-protected lang="{{ $editorLanguage }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
+                @endif
+            @endif
+
+            @if($post->content_type === 'poetry' && filled(data_get($post->meta, 'poetry_inspiration')))
+                <div class="poetry-inspiration-panel about-box mt-4 mb-0">
+                    <h4 class="mb-2">Inspiration</h4>
+                    <blockquote class="poetry-inspiration-panel__quote mb-0">
+                        {!! nl2br(e(data_get($post->meta, 'poetry_inspiration'))) !!}
+                    </blockquote>
+                </div>
+            @endif
+
+            @if($post->content_type === 'stories' && filled(data_get($post->meta, 'story_moral_takeaway')))
+                <div class="story-moral-takeaway about-box mt-4 mb-0">
+                    <h4 class="mb-2">Moral / takeaway</h4>
+                    <blockquote class="story-moral-takeaway__quote mb-0">
+                        {!! nl2br(e(data_get($post->meta, 'story_moral_takeaway'))) !!}
+                    </blockquote>
+                </div>
+            @endif
+
+            @if($post->content_type === 'autobiography')
+                @include('community.partials.autobiography-after-content', ['post' => $post])
             @endif
 
             @php
@@ -501,6 +613,7 @@
                     'location' => 'Related location',
                 ];
                 $newsMetaOrder = array_keys(\App\Support\CommunityPostFormFields::newsDetailMetaOrder());
+                $storyMetaOrder = array_keys(\App\Support\CommunityPostFormFields::storyDetailMetaOrder());
                 $reportMetaOrder = array_keys($reportMetaLabels);
                 $myAreaMetaOrder = array_keys($myAreaMetaLabels);
                 $myVoiceMetaOrder = array_keys($myVoiceMetaLabels);
@@ -520,6 +633,25 @@
                     'author_bio',
                     'news_documents',
                     'fact_summary',
+                ]);
+                $additionalStoryMeta = $visibleMeta->except([
+                    ...$storyMetaOrder,
+                    'story_type',
+                    'story_moral_takeaway',
+                    'story_gallery',
+                    'story_audio',
+                    'story_genre',
+                    'mood_or_theme',
+                    'reading_time',
+                    'author_bio',
+                ]);
+                $poetryMetaOrder = array_keys(\App\Support\CommunityPostFormFields::poetryDetailMetaOrder());
+                $additionalPoetryMeta = $visibleMeta->except([
+                    ...$poetryMetaOrder,
+                    ...array_keys(\App\Support\CommunityPostFormFields::poetryRegionalLocationOrder()),
+                    'poetry_audio',
+                    'poetry_part_of_series',
+                    'author_bio',
                 ]);
                 $additionalMyAreaMeta = $visibleMeta->except([...$myAreaMetaOrder, 'report_format', 'issue_attachments', 'author_bio']);
                 $additionalMyVoiceMeta = $visibleMeta->except([...$myVoiceMetaOrder, 'author_bio']);
@@ -551,6 +683,26 @@
                 @include('community.partials.news-meta-details', ['post' => $post])
                 @php
                     $visibleMeta = $additionalNewsMeta;
+                @endphp
+            @endif
+            @if($post->content_type === 'stories')
+                @include('community.partials.story-meta-details', ['post' => $post])
+                @include('community.partials.story-rating', ['post' => $post])
+                @php
+                    $visibleMeta = $additionalStoryMeta;
+                @endphp
+            @endif
+            @if($post->content_type === 'poetry')
+                @include('community.partials.poetry-meta-details', ['post' => $post])
+                @include('community.partials.story-rating', ['post' => $post])
+                @php
+                    $visibleMeta = $additionalPoetryMeta;
+                @endphp
+            @endif
+            @if($post->content_type === 'autobiography')
+                @include('community.partials.story-rating', ['post' => $post])
+                @php
+                    $visibleMeta = $visibleMeta->except(\App\Support\CommunityPostFormFields::autobiographyStructuredMetaKeys());
                 @endphp
             @endif
             @if($post->content_type === 'my-voice' && $orderedMyVoiceMeta->isNotEmpty())
@@ -596,7 +748,7 @@
                         </div>
                     @endif
                 </div>
-            @elseif(filled($post->location_type))
+            @elseif($post->content_type !== 'poetry' && filled($post->location_type))
                 <div class="about-box mt-4">
                     <h4>Location information</h4>
                     <p class="mb-2"><strong>Type:</strong> {{ $post->locationTypeLabel() }}</p>
@@ -799,10 +951,53 @@
 
 
 @push('styles')
+@include('community.partials.story-styles')
+@if($post->content_type === 'poetry')
+@include('community.partials.poetry-styles')
+@endif
+@if($post->content_type === 'autobiography')
+@include('community.partials.autobiography-styles')
+@endif
 <style>
     .community-post-body {
         line-height: 1.8;
         overflow: auto;
+    }
+    .community-post-body--poetry {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1.08rem;
+        line-height: 1.85;
+        white-space: normal;
+    }
+    .community-post-body--poetry > p {
+        margin-bottom: 0.35rem;
+    }
+    .community-post-body--poetry > p:last-child {
+        margin-bottom: 0;
+    }
+    .community-post-body--poetry[lang="hi"],
+    .community-post-body--poetry[lang="mr"] {
+        font-family: "Noto Sans Devanagari", "Nirmala UI", "Mangal", Georgia, serif;
+    }
+    .community-post-body--poetry[lang="ur"] {
+        direction: rtl;
+        font-family: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Urdu Typesetting", serif;
+        text-align: right;
+    }
+    .community-post-body--poetry[lang="pa"] {
+        font-family: "Noto Sans Gurmukhi", "Raavi", Georgia, serif;
+    }
+    .community-post-body--poetry[lang="bn"] {
+        font-family: "Noto Sans Bengali", "Vrinda", Georgia, serif;
+    }
+    .community-post-body--poetry[lang="gu"] {
+        font-family: "Noto Sans Gujarati", "Shruti", Georgia, serif;
+    }
+    .community-post-body--poetry[lang="ta"] {
+        font-family: "Noto Sans Tamil", "Latha", Georgia, serif;
+    }
+    .community-post-body--poetry[lang="te"] {
+        font-family: "Noto Sans Telugu", "Gautami", Georgia, serif;
     }
     .community-post-body > p,
     .community-post-body > h2,
@@ -975,6 +1170,114 @@
                 button.innerHTML = originalHtml;
             } finally {
                 button.disabled = false;
+            }
+        });
+    });
+
+    document.querySelectorAll('.js-story-rating-form').forEach((form) => {
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const button = event.submitter;
+            if (!button || button.disabled) {
+                return;
+            }
+
+            const originalHtml = button.innerHTML;
+            form.querySelectorAll('button[type="submit"]').forEach((starButton) => {
+                starButton.disabled = true;
+            });
+
+            try {
+                const formData = new FormData(form);
+                formData.set('rating', button.value);
+
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: formData,
+                });
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(payload.message || 'Unable to save rating.');
+                }
+
+                const panel = form.closest('.story-rating-panel');
+                const rating = Number(payload.rating || button.value);
+
+                form.querySelectorAll('[data-story-rating-star]').forEach((starButton) => {
+                    const starValue = Number(starButton.dataset.storyRatingStar);
+                    starButton.classList.toggle('btn-warning', starValue <= rating);
+                    starButton.classList.toggle('btn-outline-warning', starValue > rating);
+                });
+
+                if (panel && payload.average_rating !== undefined) {
+                    let summary = panel.querySelector('.story-rating-summary__score')?.closest('.text-end');
+                    if (!summary && payload.average_rating) {
+                        const header = panel.querySelector('.d-flex.flex-wrap.align-items-start');
+                        if (header) {
+                            summary = document.createElement('div');
+                            summary.className = 'text-end';
+                            summary.innerHTML = `
+                                <div class="story-rating-summary__score"></div>
+                                <div class="story-rating-summary__stars" aria-hidden="true"></div>
+                                <small class="text-muted"></small>
+                            `;
+                            header.appendChild(summary);
+                        }
+                    }
+
+                    if (summary) {
+                        const scoreEl = summary.querySelector('.story-rating-summary__score');
+                        const starsEl = summary.querySelector('.story-rating-summary__stars');
+                        const countEl = summary.querySelector('small.text-muted');
+                        const average = Number(payload.average_rating);
+                        const count = Number(payload.ratings_count || 0);
+
+                        if (scoreEl) {
+                            scoreEl.textContent = average.toFixed(1);
+                        }
+                        if (starsEl) {
+                            starsEl.innerHTML = Array.from({ length: 5 }, (_, index) => {
+                                const filled = index + 1 <= Math.round(average);
+                                return `<i class="fa-solid fa-star${filled ? '' : '-o'}" aria-hidden="true"></i>`;
+                            }).join('');
+                        }
+                        if (countEl) {
+                            countEl.textContent = `${count} rating${count === 1 ? '' : 's'}`;
+                        }
+                    }
+                }
+
+                if (Array.isArray(payload.achievement_badges)) {
+                    const banner = document.querySelector('.community-post-banner-tags');
+                    if (banner) {
+                        banner.querySelectorAll('.community-story-badge').forEach((badge) => badge.remove());
+                        const anchor = banner.querySelector('.community-score-badge')?.nextElementSibling
+                            || banner.querySelector('.community-post-banner-tag');
+
+                        payload.achievement_badges.forEach((badge) => {
+                            const span = document.createElement('span');
+                            span.className = `badge bg-light text-dark community-post-banner-tag community-story-badge ${badge.class}`;
+                            span.textContent = badge.label;
+                            if (anchor) {
+                                banner.insertBefore(span, anchor);
+                            } else {
+                                banner.appendChild(span);
+                            }
+                        });
+                    }
+                }
+            } catch (error) {
+                alert(error.message || 'Unable to save rating.');
+                button.innerHTML = originalHtml;
+            } finally {
+                form.querySelectorAll('button[type="submit"]').forEach((starButton) => {
+                    starButton.disabled = false;
+                });
             }
         });
     });

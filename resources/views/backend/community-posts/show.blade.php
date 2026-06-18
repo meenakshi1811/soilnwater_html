@@ -3,13 +3,28 @@
 @section('title', 'Manage Post')
 
 @section('content')
+@if($post->content_type === 'stories')
+    @push('styles')
+        @include('community.partials.story-styles')
+    @endpush
+@endif
+@if($post->content_type === 'poetry')
+    @push('styles')
+        @include('community.partials.poetry-styles')
+    @endpush
+@endif
+@if($post->content_type === 'autobiography')
+    @push('styles')
+        @include('community.partials.autobiography-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
             <div>
                 <p class="ems-kicker mb-1">{{ $post->typeLabel() }} · {{ $post->statusLabel() }}</p>
                 <h2 class="admin-title mb-1">{{ $post->title }}</h2>
-                <p class="mb-0 text-secondary">Manage reader engagement, review news metadata, and respond to questions.</p>
+                <p class="mb-0 text-secondary">Manage reader engagement, review metadata, and respond to questions.</p>
             </div>
             <div class="d-flex flex-wrap gap-2">
                 @if($post->isPubliclyVisible())
@@ -33,6 +48,28 @@
         <div class="col-lg-8">
             @if($post->content_type === 'news')
                 @include('community.partials.news-meta-details', ['post' => $post, 'heading' => 'Saved news metadata'])
+            @endif
+
+            @if($post->content_type === 'stories')
+                @include('community.partials.story-meta-details', ['post' => $post, 'heading' => 'Saved story metadata'])
+                @include('community.partials.story-rating-summary', ['post' => $post, 'compact' => true])
+                @include('community.partials.story-achievements-panel', ['post' => $post, 'compact' => true, 'wrapperClass' => 'chart-card p-3 p-lg-4 mb-4'])
+            @endif
+
+            @if($post->content_type === 'poetry')
+                @include('community.partials.poetry-show-sections', ['post' => $post])
+                @include('community.partials.poetry-meta-details', ['post' => $post, 'heading' => 'Saved poetry metadata'])
+                @include('community.partials.story-rating-summary', ['post' => $post, 'compact' => true])
+            @endif
+
+            @if($post->content_type === 'autobiography')
+                @include('community.partials.autobiography-show-sections', ['post' => $post])
+                @if($post->usesChapterLayoutForDisplay())
+                    @include('community.partials.book-reader', ['post' => $post])
+                @endif
+                @include('community.partials.autobiography-after-content', ['post' => $post])
+                @include('community.partials.autobiography-meta-details', ['post' => $post, 'heading' => 'Saved autobiography metadata'])
+                @include('community.partials.story-rating-summary', ['post' => $post, 'compact' => true])
             @endif
 
             <div class="chart-card p-3 p-lg-4 mb-4">
@@ -148,6 +185,63 @@
                         <li class="mb-1"><strong>Affected group:</strong> {{ data_get($post->meta, 'news_affected_group', '—') }}</li>
                         <li class="mb-0"><strong>Priority:</strong> {{ data_get($post->meta, 'news_priority', '—') }}</li>
                     </ul>
+                </div>
+            @endif
+
+            @if($post->content_type === 'stories')
+                <div class="chart-card p-3 p-lg-4 mb-4">
+                    <h5 class="mb-3">Story engagement</h5>
+                    <div class="row g-2 small">
+                        <div class="col-6"><strong>Ratings</strong><div>{{ number_format($post->star_ratings_count ?? 0) }}</div></div>
+                        <div class="col-6"><strong>Avg. stars</strong><div>{{ $post->averageStarRating() ? number_format($post->averageStarRating(), 1) : '—' }}</div></div>
+                        <div class="col-6"><strong>Shares</strong><div>{{ number_format($post->shares_count ?? 0) }}</div></div>
+                        <div class="col-6"><strong>Views</strong><div>{{ number_format($post->views_count ?? 0) }}</div></div>
+                    </div>
+                    @if($post->storyAchievementBadges() !== [])
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            @foreach($post->storyAchievementBadges() as $badge)
+                                <span class="badge bg-light text-dark border community-story-badge {{ $badge['class'] }}">{{ $badge['label'] }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if($post->content_type === 'poetry')
+                <div class="chart-card p-3 p-lg-4 mb-4">
+                    <h5 class="mb-3">Poetry engagement</h5>
+                    <div class="row g-2 small">
+                        <div class="col-6"><strong>Ratings</strong><div>{{ number_format($post->star_ratings_count ?? 0) }}</div></div>
+                        <div class="col-6"><strong>Avg. stars</strong><div>{{ $post->averageStarRating() ? number_format($post->averageStarRating(), 1) : '—' }}</div></div>
+                        <div class="col-6"><strong>Audio</strong><div>{{ $post->poetryAudioUrl() ? 'Yes' : 'No' }}</div></div>
+                        <div class="col-6"><strong>Views</strong><div>{{ number_format($post->views_count ?? 0) }}</div></div>
+                    </div>
+                    @if(filled(data_get($post->meta, 'poetry_themes')))
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            @foreach((array) data_get($post->meta, 'poetry_themes', []) as $theme)
+                                <span class="badge bg-light text-dark border">{{ $theme }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if($post->content_type === 'autobiography')
+                <div class="chart-card p-3 p-lg-4 mb-4">
+                    <h5 class="mb-3">Autobiography engagement</h5>
+                    <div class="row g-2 small">
+                        <div class="col-6"><strong>Ratings</strong><div>{{ number_format($post->star_ratings_count ?? 0) }}</div></div>
+                        <div class="col-6"><strong>Avg. stars</strong><div>{{ $post->averageStarRating() ? number_format($post->averageStarRating(), 1) : '—' }}</div></div>
+                        <div class="col-6"><strong>Chapters</strong><div>{{ count($post->bookPages()) }}</div></div>
+                        <div class="col-6"><strong>Timeline</strong><div>{{ count((array) data_get($post->meta, 'life_timeline', [])) }}</div></div>
+                        <div class="col-6"><strong>Audio</strong><div>{{ $post->autobiographyAudioUrl() ? 'Yes' : 'No' }}</div></div>
+                        <div class="col-6"><strong>Views</strong><div>{{ number_format($post->views_count ?? 0) }}</div></div>
+                    </div>
+                    @if(filled(data_get($post->meta, 'autobiography_type')))
+                        <div class="mt-3">
+                            <span class="badge bg-light text-dark border">{{ data_get($post->meta, 'autobiography_type') }}</span>
+                        </div>
+                    @endif
                 </div>
             @endif
 

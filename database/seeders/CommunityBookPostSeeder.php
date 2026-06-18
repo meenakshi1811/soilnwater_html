@@ -113,21 +113,34 @@ class CommunityBookPostSeeder extends Seeder
             [
                 'slug' => 'book-autobiography-village-student',
                 'content_type' => 'autobiography',
-                'category' => 'Education',
+                'category' => 'Educational Journey',
                 'title' => 'From Village Student to Water Volunteer',
                 'excerpt' => 'An autobiographical account in three pages about learning, leaving, and returning home with a purpose.',
                 'featured_image' => 'https://picsum.photos/seed/soil-water-book-auto/960/540',
                 'tags' => ['Autobiography', 'Book Layout', 'Education', 'Demo'],
                 'days_ago' => 6,
                 'meta' => [
-                    'life_stage' => 'Early Career',
-                    'timeline_period' => '2008-2026',
-                    'lessons_learned' => "Education gave me language for problems I already knew by heart.\nReturning home mattered more than sounding impressive in a bigger city.\nSmall consistent actions outlast dramatic speeches.",
+                    'autobiography_type' => 'Complete Life Story',
                 ],
                 'book_pages' => [
-                    ['content' => '<p>I was the first in my family to attend college, and I carried my village with me in every notebook. Classmates talked about internships in tall glass buildings. I thought about the cracked tank behind our school and the afternoons we missed when the supply failed.</p><p>In my second year, a professor asked us to write about a resource crisis in our hometown. I wrote twelve pages without stopping. That assignment did not make me a writer. It made me honest about what I wanted to do with my degree.</p>'],
-                    ['content' => '<p>After graduation I took a job in the city because I thought experience had to happen far away to count. I learned spreadsheets, presentation decks, and how to speak in meetings where everyone sounded certain. I also learned loneliness. Success tasted thinner than I expected when nobody around me knew the well where I had filled buckets as a child.</p><p>On a visit home, my mother did not ask about salary. She asked whether I still knew how to fix the hand pump. I did not. That answer sat with me for weeks.</p>'],
-                    ['content' => '<p>I returned to Jaipur and joined a small nonprofit working on community water literacy. My city skills finally found a use: mapping complaints, training volunteers, translating reports. But the work that mattered most was simpler. Sitting with neighbours. Listening. Showing up when the tanker was late.</p><p>I am not a hero in this story. I am a student who came back. If these pages help one young reader believe that local work is real work, then every awkward meeting and every long bus ride home was worth it.</p>'],
+                    [
+                        'title' => 'Chapter 1 – Village Student',
+                        'summary' => 'Early school years and learning to care about water.',
+                        'content' => '<p>I was the first in my family to attend college, and I carried my village with me in every notebook. Classmates talked about internships in tall glass buildings. I thought about the cracked tank behind our school and the afternoons we missed when the supply failed.</p><p>In my second year, a professor asked us to write about a resource crisis in our hometown. I wrote twelve pages without stopping. That assignment did not make me a writer. It made me honest about what I wanted to do with my degree.</p>',
+                        'language' => 'en',
+                    ],
+                    [
+                        'title' => 'Chapter 2 – City Lessons',
+                        'summary' => 'Working away from home and realizing what mattered.',
+                        'content' => '<p>After graduation I took a job in the city because I thought experience had to happen far away to count. I learned spreadsheets, presentation decks, and how to speak in meetings where everyone sounded certain. I also learned loneliness. Success tasted thinner than I expected when nobody around me knew the well where I had filled buckets as a child.</p><p>On a visit home, my mother did not ask about salary. She asked whether I still knew how to fix the hand pump. I did not. That answer sat with me for weeks.</p>',
+                        'language' => 'en',
+                    ],
+                    [
+                        'title' => 'Chapter 3 – Returning Home',
+                        'summary' => 'Coming back to serve the community with purpose.',
+                        'content' => '<p>I returned to Jaipur and joined a small nonprofit working on community water literacy. My city skills finally found a use: mapping complaints, training volunteers, translating reports. But the work that mattered most was simpler. Sitting with neighbours. Listening. Showing up when the tanker was late.</p><p>I am not a hero in this story. I am a student who came back. If these pages help one young reader believe that local work is real work, then every awkward meeting and every long bus ride home was worth it.</p>',
+                        'language' => 'en',
+                    ],
                 ],
             ],
         ];

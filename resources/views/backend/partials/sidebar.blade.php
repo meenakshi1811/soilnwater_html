@@ -295,11 +295,17 @@
                         <li>
                             <a class="{{ request()->routeIs('admin.service_providers.*') && ! request()->routeIs('admin.service_providers.reports.*') ? 'active' : '' }}" href="{{ route('admin.service_providers.index') }}">
                                 <i class="fa-solid fa-list"></i>
-                                <span>All Services</span>
+                                <span>All Service Providers</span>
                             </a>
                         </li>
                         <li>
-                            <a class="{{ request()->routeIs('admin.service-provider-services.*') && ! request()->routeIs('admin.service-provider-services.all.*') ? 'active' : '' }}" href="{{ route('admin.service-provider-services.index') }}">
+                            <a class="{{ request()->routeIs('admin.service-provider-services.create') ? 'active' : '' }}" href="{{ route('admin.service-provider-services.create') }}">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Create Service</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.service-provider-services.*') && ! request()->routeIs('admin.service-provider-services.all.*') && ! request()->routeIs('admin.service-provider-services.create') ? 'active' : '' }}" href="{{ route('admin.service-provider-services.index') }}">
                                 <i class="fa-solid fa-clipboard-check"></i>
                                 <span>Services Approval</span>
                             </a>

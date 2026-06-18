@@ -242,6 +242,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::post('/community/{post:slug}/react', [CommunityPostController::class, 'react'])->name('community.react');
+    Route::post('/community/{post:slug}/rate', [CommunityPostController::class, 'rateStory'])->name('community.story.rate');
     Route::post('/community/{post:slug}/poll', [CommunityPostController::class, 'votePoll'])->name('community.poll.vote');
     Route::post('/community/{post:slug}/comments', [CommunityPostController::class, 'comment'])->name('community.comments.store');
     Route::post('/community/{post:slug}/save', [CommunityEngagementController::class, 'toggleSave'])->name('community.save.toggle');
@@ -493,6 +494,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('service-approvals')->name('service-provider-services.')->group(function () {
             Route::get('/', [ServiceProviderServiceApprovalController::class, 'index'])->name('index');
             Route::get('/data', [ServiceProviderServiceApprovalController::class, 'data'])->name('data');
+            Route::get('/create', [ServiceProviderServiceApprovalController::class, 'create'])->name('create');
+            Route::post('/store', [ServiceProviderServiceApprovalController::class, 'store'])->name('store');
             Route::get('/all-services', [ServiceProviderServiceApprovalController::class, 'allServicesIndex'])->name('all.index');
             Route::get('/all-services/data', [ServiceProviderServiceApprovalController::class, 'allServicesData'])->name('all.data');
             Route::get('/{service}', [ServiceProviderServiceApprovalController::class, 'show'])->name('show');

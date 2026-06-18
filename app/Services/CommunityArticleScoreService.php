@@ -48,6 +48,10 @@ class CommunityArticleScoreService
 
         $post->update($updates);
 
+        if ($post->content_type === 'stories') {
+            CommunityStoryAchievementService::recalculate($post->fresh());
+        }
+
         return $post->fresh();
     }
 

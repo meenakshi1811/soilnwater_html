@@ -328,6 +328,24 @@
         z-index: 1;
     }
 
+    .community-post-card__audio-badge {
+        background: rgba(13, 110, 122, 0.88);
+        bottom: 0.75rem;
+        top: auto;
+    }
+
+    .poetry-card-badge {
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.2rem 0.55rem;
+    }
+
+    .poetry-card-badge--rating {
+        background: rgba(255, 193, 7, 0.18);
+        color: #92400e;
+    }
+
     .community-post-card__body {
         display: flex;
         flex: 1;

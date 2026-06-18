@@ -60,12 +60,13 @@ class CommunityContentTaxonomy
             'stories' => [
                 'label' => 'Stories',
                 'description' => 'One of the highest engagement sections.',
-                'categories' => ['Inspirational Stories', 'Motivational Stories', 'Social Stories', 'Family Stories', 'Short Stories', 'Fiction', 'Real Life Experiences'],
+                'categories' => self::storyMainCategories(),
+                'categoryGroups' => self::storyMainCategoryGroups(),
             ],
             'poetry' => [
                 'label' => 'Poetry',
                 'description' => 'Poetry submissions from the community.',
-                'categories' => ['Hindi Poetry', 'English Poetry', 'Urdu Poetry', 'Inspirational Poetry', "Children's Poetry", 'Patriotic Poetry', 'Love Poetry', 'Social Poetry'],
+                'categories' => self::poetryMainCategories(),
             ],
             'biography' => [
                 'label' => 'Biography',
@@ -74,8 +75,19 @@ class CommunityContentTaxonomy
             ],
             'autobiography' => [
                 'label' => 'Autobiography',
-                'description' => 'Personal life journeys.',
-                'categories' => ['Student Life', 'Entrepreneur Journey', 'Retirement Journey', "Women's Journey", 'Career Journey', 'Life Lessons'],
+                'description' => 'Personal life journeys with milestones, lessons, and author context.',
+                'categories' => [
+                    'Personal Journey',
+                    'Career Journey',
+                    'Business Journey',
+                    'Educational Journey',
+                    "Women's Journey",
+                    'Senior Citizen Journey',
+                    "Farmer's Journey",
+                    'Social Service Journey',
+                    'Professional Journey',
+                    'Spiritual Journey',
+                ],
             ],
             'childrens-corner' => [
                 'label' => "Children's Corner",
@@ -228,6 +240,392 @@ class CommunityContentTaxonomy
     {
         return [
             'my_area' => 'My Area problem report',
+        ];
+    }
+
+    /**
+     * Main category choices for story posts, grouped for the create/edit form.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function storyMainCategoryGroups(): array
+    {
+        return [
+            'Personal & emotional' => [
+                'Inspirational Stories',
+                'Life Experiences',
+                'Motivational Stories',
+                'Short Stories',
+                'Social Stories',
+                'Family Stories',
+            ],
+            'Thematic' => [
+                "Children's Stories",
+                'Educational Stories',
+                'Travel Stories',
+                'Historical Stories',
+                'Business Stories',
+                'Village Stories',
+            ],
+            'Audience & style' => [
+                "Women's Stories",
+                'Senior Citizen Stories',
+                'Student Stories',
+                'Success Stories',
+                'Humor Stories',
+                'Fiction Stories',
+            ],
+        ];
+    }
+
+    /**
+     * Main category choices for story posts.
+     *
+     * @return list<string>
+     */
+    public static function storyMainCategories(): array
+    {
+        return array_values(array_merge(...array_values(self::storyMainCategoryGroups())));
+    }
+
+    /**
+     * Story type choices grouped for the create/edit form.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function storyTypeGroups(): array
+    {
+        return [
+            'Narrative format' => [
+                'True Story',
+                'Personal Experience',
+                'Fiction',
+                'Historical',
+            ],
+            'Purpose & audience' => [
+                'Educational',
+                'Motivational',
+                "Children's Story",
+                'Folklore',
+            ],
+            'Community & travel' => [
+                'Community Story',
+                'Travel Diary',
+            ],
+        ];
+    }
+
+    /**
+     * Story type choices for story posts.
+     *
+     * @return list<string>
+     */
+    public static function storyTypes(): array
+    {
+        return array_values(array_merge(...array_values(self::storyTypeGroups())));
+    }
+
+    /**
+     * Autobiography type choices for autobiography posts.
+     *
+     * @return list<string>
+     */
+    public static function autobiographyTypes(): array
+    {
+        return [
+            'Complete Life Story',
+            'Selected Life Events',
+            'Career Journey',
+            'Success Story',
+            'Inspirational Journey',
+            'Memoir',
+            'Travel Memoir',
+            'Professional Experience',
+        ];
+    }
+
+    /**
+     * Character type choices for story posts.
+     *
+     * @return list<string>
+     */
+    public static function storyCharacterTypes(): array
+    {
+        return [
+            'Real Person',
+            'Fictional Character',
+            'Historical Figure',
+            'Anonymous Person',
+        ];
+    }
+
+    /**
+     * Story setting location scope choices for story posts.
+     *
+     * @return list<string>
+     */
+    public static function storyPlaceTypes(): array
+    {
+        return [
+            'Village',
+            'Town',
+            'City',
+            'District',
+            'State',
+            'Country',
+        ];
+    }
+
+    /**
+     * Time period choices for story posts.
+     *
+     * @return list<string>
+     */
+    public static function storyTimePeriods(): array
+    {
+        return [
+            'Childhood',
+            'Present Day',
+            '1980s',
+            'Historical Period',
+            'Future',
+        ];
+    }
+
+    /**
+     * Story language choices for story posts.
+     *
+     * @return list<string>
+     */
+    public static function storyLanguages(): array
+    {
+        return [
+            'English',
+            'Hindi',
+            'Punjabi',
+            'Bengali',
+            'Tamil',
+            'Marathi',
+            'Gujarati',
+            'Other',
+        ];
+    }
+
+    /**
+     * Target audience choices for story posts.
+     *
+     * @return list<string>
+     */
+    public static function storyTargetAudiences(): array
+    {
+        return [
+            'Children',
+            'Students',
+            'Women',
+            'Senior Citizens',
+            'Youth',
+            'Professionals',
+            'General Public',
+        ];
+    }
+
+    /**
+     * Story theme choices for story posts.
+     *
+     * @return list<string>
+     */
+    public static function storyThemes(): array
+    {
+        return [
+            'Friendship',
+            'Love',
+            'Family',
+            'Success',
+            'Education',
+            'Environment',
+            'Community',
+            "Women's Empowerment",
+            'Agriculture',
+            'Business',
+            'Patriotism',
+            'Spirituality',
+            'Adventure',
+        ];
+    }
+
+    /**
+     * Main category choices for poetry posts.
+     *
+     * @return list<string>
+     */
+    public static function poetryMainCategories(): array
+    {
+        return [
+            'Poetry',
+            'Shayari',
+            'Ghazal',
+            'Nazm',
+            'Geet (Song)',
+            'Haiku',
+            'Doha',
+            'Free Verse',
+            "Children's Poetry",
+            'Spiritual Poetry',
+        ];
+    }
+
+    /**
+     * Sub category choices for poetry posts.
+     *
+     * @return list<string>
+     */
+    public static function poetrySubCategories(): array
+    {
+        return [
+            'Love Poetry',
+            'Inspirational Poetry',
+            'Nature Poetry',
+            'Patriotic Poetry',
+            'Social Poetry',
+            'Humor Poetry',
+            'Spiritual Poetry',
+            "Women's Poetry",
+            'Student Poetry',
+            'Environmental Poetry',
+            'Village Poetry',
+        ];
+    }
+
+    /**
+     * Poetry type choices grouped for the create/edit form.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function poetryTypeGroups(): array
+    {
+        return [
+            'Original & contemporary' => [
+                'Original Poetry',
+                'Rhyming Poem',
+                'Free Verse',
+                'Song Lyrics',
+                "Children's Poem",
+                'Motivational Poetry',
+                'Narrative Poetry',
+            ],
+            'Classical & regional' => [
+                'Shayari',
+                'Ghazal',
+                'Classical Poetry',
+            ],
+        ];
+    }
+
+    /**
+     * Poetry type choices for poetry posts.
+     *
+     * @return list<string>
+     */
+    public static function poetryTypes(): array
+    {
+        return array_values(array_merge(...array_values(self::poetryTypeGroups())));
+    }
+
+    /**
+     * Editor script options for poetry body content.
+     *
+     * @return array<string, string>
+     */
+    public static function poetryEditorLanguages(): array
+    {
+        return [
+            'hi' => 'Hindi',
+            'en' => 'English',
+            'ur' => 'Urdu',
+            'pa' => 'Punjabi',
+            'bn' => 'Bengali',
+            'mr' => 'Marathi',
+            'gu' => 'Gujarati',
+            'ta' => 'Tamil',
+            'te' => 'Telugu',
+        ];
+    }
+
+    /**
+     * Editor language options for standard (non-poetry) posts.
+     *
+     * @return array<string, string>
+     */
+    public static function standardEditorLanguages(): array
+    {
+        return [
+            'en' => 'English',
+            'hi' => 'Hindi',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function editorLanguageCodesFor(?string $contentType): array
+    {
+        if ($contentType === 'poetry') {
+            return array_keys(self::poetryEditorLanguages());
+        }
+
+        return array_keys(self::standardEditorLanguages());
+    }
+
+    public static function normalizeEditorLanguage(?string $contentType, mixed $code): string
+    {
+        $normalized = is_string($code) ? $code : 'en';
+
+        return in_array($normalized, self::editorLanguageCodesFor($contentType), true) ? $normalized : 'en';
+    }
+
+    /**
+     * Theme choices for poetry posts.
+     *
+     * @return list<string>
+     */
+    public static function poetryThemes(): array
+    {
+        return [
+            'Love',
+            'Nature',
+            'Water',
+            'Environment',
+            'Friendship',
+            'Family',
+            'Mother',
+            'Father',
+            'Patriotism',
+            'Life',
+            'Spirituality',
+            'Motivation',
+            "Women's Empowerment",
+            'Village Life',
+            'Agriculture',
+            'Education',
+            'Social Awareness',
+            'Humor',
+        ];
+    }
+
+    /**
+     * Target audience choices for poetry posts.
+     *
+     * @return list<string>
+     */
+    public static function poetryTargetAudiences(): array
+    {
+        return [
+            'Children',
+            'Students',
+            'Women',
+            'Youth',
+            'Senior Citizens',
+            'General Public',
         ];
     }
 
@@ -474,6 +872,17 @@ class CommunityContentTaxonomy
 
     public static function isValidCategory(string $type, string $category): bool
     {
+        if ($type === 'stories' && in_array($category, ['Real Life Experiences', 'Fiction'], true)) {
+            return true;
+        }
+
+        if ($type === 'poetry' && in_array($category, [
+            'Hindi Poetry', 'English Poetry', 'Urdu Poetry', 'Inspirational Poetry',
+            "Children's Poetry", 'Patriotic Poetry', 'Love Poetry', 'Social Poetry',
+        ], true)) {
+            return true;
+        }
+
         return in_array($category, self::categoriesFor($type), true);
     }
 

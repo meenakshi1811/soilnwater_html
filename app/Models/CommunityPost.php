@@ -130,7 +130,9 @@ class CommunityPost extends Model
         'badge_trending',
         'badge_editors_choice',
         'badge_most_read',
-        'badge_community_pick',
+        'badge_most_shared',
+        'badge_most_inspiring',
+        'badge_community_favorite',
         'status',
         'published_at',
         'submitted_at',
@@ -166,6 +168,9 @@ class CommunityPost extends Model
             'badge_trending' => 'boolean',
             'badge_editors_choice' => 'boolean',
             'badge_most_read' => 'boolean',
+            'badge_most_shared' => 'boolean',
+            'badge_most_inspiring' => 'boolean',
+            'badge_community_favorite' => 'boolean',
             'badge_community_pick' => 'boolean',
             'published_at' => 'datetime',
             'submitted_at' => 'datetime',
@@ -241,6 +246,51 @@ class CommunityPost extends Model
     public function authorQuestions(): HasMany
     {
         return $this->hasMany(CommunityAuthorQuestion::class, 'community_post_id');
+    }
+
+    public function starRatings(): HasMany
+    {
+        return $this->hasMany(CommunityPostStarRating::class);
+    }
+
+    public function averageStarRating(): ?float
+    {
+        if (! self::supportsStarRating($this->content_type)) {
+            return null;
+        }
+
+        if (isset($this->star_ratings_avg_rating)) {
+            return $this->star_ratings_avg_rating !== null
+                ? round((float) $this->star_ratings_avg_rating, 1)
+                : null;
+        }
+
+        $average = $this->relationLoaded('starRatings')
+            ? $this->starRatings->avg('rating')
+            : $this->starRatings()->avg('rating');
+
+        return $average !== null ? round((float) $average, 1) : null;
+    }
+
+    public function userStarRating(?int $userId): ?int
+    {
+        if ($userId === null) {
+            return null;
+        }
+
+        $rating = $this->relationLoaded('starRatings')
+            ? $this->starRatings->firstWhere('user_id', $userId)
+            : $this->starRatings()->where('user_id', $userId)->first();
+
+        return $rating?->rating;
+    }
+
+    /**
+     * @return list<array{label: string, class: string}>
+     */
+    public function storyAchievementBadges(): array
+    {
+        return \App\Services\CommunityStoryAchievementService::badgesFor($this);
     }
 
     /**
@@ -486,6 +536,16 @@ class CommunityPost extends Model
     public static function usesStructuredLocation(?string $contentType): bool
     {
         return in_array($contentType, ['news', 'reports'], true);
+    }
+
+    public static function supportsStarRating(?string $contentType): bool
+    {
+        return in_array($contentType, ['stories', 'poetry', 'autobiography'], true);
+    }
+
+    public static function usesPoetryRegionalLocation(?string $contentType): bool
+    {
+        return $contentType === 'poetry';
     }
 
     /**
@@ -748,27 +808,53 @@ class CommunityPost extends Model
         return in_array($contentType, self::BOOK_CONTENT_TYPES, true);
     }
 
+    public static function usesChapterLayout(?string $contentType = null): bool
+    {
+        return $contentType === 'autobiography';
+    }
+
     public function usesBookLayout(): bool
     {
         return self::isBookContentType($this->content_type);
     }
 
+    public function usesChapterLayoutForDisplay(): bool
+    {
+        return self::usesChapterLayout($this->content_type);
+    }
+
     /**
-     * @return list<array{content: string, language: string}>
+     * @return list<array{content: string, language: string, title?: string, summary?: string}>
      */
     public function bookPages(): array
     {
         $pages = data_get($this->meta, 'book_pages');
+        $usesChapters = $this->usesChapterLayoutForDisplay();
 
         if (is_array($pages) && $pages !== []) {
             return collect($pages)
-                ->map(fn (mixed $page): array => [
-                    'content' => is_array($page) ? (string) ($page['content'] ?? '') : (string) $page,
-                    'language' => in_array(is_array($page) ? ($page['language'] ?? 'en') : 'en', ['en', 'hi'], true)
-                        ? (is_array($page) ? ($page['language'] ?? 'en') : 'en')
-                        : 'en',
-                ])
-                ->filter(fn (array $page): bool => filled(strip_tags($page['content'])))
+                ->map(function (mixed $page) use ($usesChapters): array {
+                    $normalized = [
+                        'content' => is_array($page) ? (string) ($page['content'] ?? '') : (string) $page,
+                        'language' => in_array(is_array($page) ? ($page['language'] ?? 'en') : 'en', ['en', 'hi'], true)
+                            ? (is_array($page) ? ($page['language'] ?? 'en') : 'en')
+                            : 'en',
+                    ];
+
+                    if ($usesChapters) {
+                        $normalized['title'] = is_array($page) ? trim((string) ($page['title'] ?? '')) : '';
+                        $normalized['summary'] = is_array($page) ? trim((string) ($page['summary'] ?? '')) : '';
+                    }
+
+                    return $normalized;
+                })
+                ->filter(function (array $page) use ($usesChapters): bool {
+                    if (filled(strip_tags($page['content']))) {
+                        return true;
+                    }
+
+                    return $usesChapters && filled($page['title'] ?? null);
+                })
                 ->values()
                 ->all();
         }
@@ -874,6 +960,64 @@ class CommunityPost extends Model
         }
 
         return self::resolveImageUrl($video['path'] ?? null);
+    }
+
+    /**
+     * @return array{type: string, path?: string, name?: string, url?: string}|null
+     */
+    public function storyAudioData(): ?array
+    {
+        $audio = data_get($this->meta, 'story_audio');
+
+        return is_array($audio) && filled($audio['url'] ?? null)
+            ? $audio
+            : null;
+    }
+
+    public function storyAudioUrl(): ?string
+    {
+        return $this->storyAudioData()['url'] ?? null;
+    }
+
+    /**
+     * @return array{type: string, path?: string, name?: string, url?: string}|null
+     */
+    public function poetryAudioData(): ?array
+    {
+        $audio = data_get($this->meta, 'poetry_audio');
+
+        return is_array($audio) && filled($audio['url'] ?? null)
+            ? $audio
+            : null;
+    }
+
+    public function poetryAudioUrl(): ?string
+    {
+        return $this->poetryAudioData()['url'] ?? null;
+    }
+
+    /**
+     * @return array{type: string, path?: string, name?: string, url?: string}|null
+     */
+    public function autobiographyAudioData(): ?array
+    {
+        $audio = data_get($this->meta, 'autobiography_audio');
+
+        return is_array($audio) && filled($audio['url'] ?? null)
+            ? $audio
+            : null;
+    }
+
+    public function autobiographyAudioUrl(): ?string
+    {
+        return $this->autobiographyAudioData()['url'] ?? null;
+    }
+
+    public function authorBioForDisplay(): ?string
+    {
+        $bio = data_get($this->meta, 'author_bio');
+
+        return filled($bio) ? (string) $bio : null;
     }
 
     public static function parseYoutubeVideoId(?string $url): ?string

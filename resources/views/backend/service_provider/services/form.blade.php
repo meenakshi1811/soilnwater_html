@@ -2,8 +2,9 @@
 @section('title', $service->exists ? 'Edit Service' : 'Create Service')
 @section('content')
 <div class="admin-panel ems-page">
-  <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">Service Portal</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Service' : 'Add Service' }}</h2></div><a href="{{ route('service_provider.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
+  <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">{{ ($isAdmin ?? false) ? 'Admin Portal' : 'Service Portal' }}</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Service' : (($isAdmin ?? false) ? 'Create Service for Service Provider' : 'Add Service') }}</h2></div><a href="{{ ($isAdmin ?? false) ? route('admin.service-provider-services.all.index') : route('service_provider.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
   @php
+    $isAdmin = $isAdmin ?? false;
     $visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten();
     $chargeDurationLabels = ['minute' => 'Minutes', 'hour' => 'Hours', 'day' => 'Days', 'month' => 'Months', 'contractual' => 'Contractual'];
     $storedCharges = collect($service->consultation_charges ?: [])->map(function ($charge, $key) {
@@ -15,8 +16,11 @@
     $businessTypes = ['Architect', 'Lawyer', 'Landscaper', 'Software Service', 'Business'];
   @endphp
   @if ($visibleErrors->isNotEmpty())<div class="alert alert-danger"><ul class="mb-0">@foreach ($visibleErrors as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-  <form id="service_provider-service-form" data-ajax-create="{{ $service->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $service->exists ? route('service_provider.services.update', $service) : route('service_provider.services.store') }}" class="row g-3">@csrf @if($service->exists) @method('PUT') @endif
+  <form id="service_provider-service-form" data-ajax-create="{{ $service->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $service->exists ? route('service_provider.services.update', $service) : ($isAdmin ? route('admin.service-provider-services.store') : route('service_provider.services.store')) }}" class="row g-3">@csrf @if($service->exists) @method('PUT') @endif
     <div class="col-lg-8"><div class="chart-card p-4"><h5 class="mb-3">Service Information</h5><div class="row g-3">
+      @if($isAdmin)
+      <div class="col-12"><label class="form-label">Service Provider *</label><select class="form-select @error('service_provider_id') is-invalid @enderror" name="service_provider_id" required><option value="">Select service provider</option>@foreach($serviceProviders as $serviceProvider)<option value="{{ $serviceProvider->id }}" @selected(old('service_provider_id') == $serviceProvider->id)>{{ $serviceProvider->display_name ?: $serviceProvider->company_name }}</option>@endforeach</select>@error('service_provider_id')<div id="service_provider_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
+      @endif
       <div class="col-12"><label class="form-label">Service Name *</label><input class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $service->name) }}" required>@error('name')<div id="name-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">Service Category *</label><select id="category_id" class="form-select @error('category_id') is-invalid @enderror" name="category_id" required><option value="">Select category</option>@foreach($categories as $cat)<option value="{{ $cat->id }}" @selected(old('category_id', $service->category_id)==$cat->id)>{{ $cat->name }}</option>@endforeach</select>@error('category_id')<div id="category_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-md-6"><label class="form-label">Sub Services</label><select id="subcategory_id" class="form-select @error('subcategory_id') is-invalid @enderror" name="subcategory_id" data-current="{{ old('subcategory_id', $service->subcategory_id) }}"><option value="">Select sub service</option></select>@error('subcategory_id')<div id="subcategory_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
@@ -36,8 +40,8 @@
       <label class="form-label mt-3">Working Hours</label><textarea class="form-control @error('working_hours') is-invalid @enderror" rows="3" name="working_hours" placeholder="Example: Mon-Fri, 9:00 AM - 6:00 PM">{{ old('working_hours', $service->working_hours) }}</textarea>@error('working_hours')<div id="working_hours-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror
       <input id="latitude" type="hidden" name="latitude" value="{{ old('latitude', $service->latitude) }}">
       <input id="longitude" type="hidden" name="longitude" value="{{ old('longitude', $service->longitude) }}">
-      @unless($service->exists)<div class="form-check mt-3"><input class="form-check-input @error('accept_terms') is-invalid @enderror" type="checkbox" value="1" id="accept_terms" name="accept_terms" required><label class="form-check-label" for="accept_terms">I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'service_providers']) }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms and Condition</a>.</label>@error('accept_terms')<div id="accept_terms-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>@endunless
-      <button type="submit" id="service_providerServiceSubmitBtn" class="btn btn-primary ems-btn-primary w-100 mt-4">{{ $service->exists ? 'Update & Resubmit' : 'Submit for Approval' }}</button>
+      @unless($isAdmin || $service->exists)<div class="form-check mt-3"><input class="form-check-input @error('accept_terms') is-invalid @enderror" type="checkbox" value="1" id="accept_terms" name="accept_terms" required><label class="form-check-label" for="accept_terms">I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'service_providers']) }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms and Condition</a>.</label>@error('accept_terms')<div id="accept_terms-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>@endunless
+      <button type="submit" id="service_providerServiceSubmitBtn" class="btn btn-primary ems-btn-primary w-100 mt-4">{{ $service->exists ? 'Update & Resubmit' : ($isAdmin ? 'Create Service' : 'Submit for Approval') }}</button>
     </div></div>
   </form>
 </div>
@@ -258,7 +262,7 @@ $(function () {
             return;
           }
           notify('success', payload.message || 'Service submitted successfully.');
-          setTimeout(function () { window.location.href = payload.redirect || '{{ route('service_provider.services.index') }}'; }, 800);
+          setTimeout(function () { window.location.href = payload.redirect || '{{ $isAdmin ? route('admin.service-provider-services.all.index') : route('service_provider.services.index') }}'; }, 800);
         })
         .catch(function () { notify('error', 'Network error while saving service.'); })
         .finally(function () { setSubmitLoading(false); });

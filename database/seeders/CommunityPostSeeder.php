@@ -149,6 +149,13 @@ HTML;
             $meta[$field['name']] = $this->dummyValueForField($field, $typeLabel, $topic);
         }
 
+        if ($typeKey === 'poetry') {
+            $meta['sub_category'] = CommunityContentTaxonomy::poetrySubCategories()[0];
+            $meta['poetry_themes'] = [CommunityContentTaxonomy::poetryThemes()[0]];
+            $meta['poetry_target_audience'] = [CommunityContentTaxonomy::poetryTargetAudiences()[0]];
+            $meta['poetry_inspiration'] = 'Inspired by a childhood visit to a village pond.';
+        }
+
         if ($typeKey === 'reports') {
             $meta = array_merge($meta, [
                 'report_subtitle' => 'Local infrastructure and service delivery review',

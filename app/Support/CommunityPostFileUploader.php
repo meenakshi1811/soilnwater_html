@@ -54,6 +54,21 @@ class CommunityPostFileUploader
         ];
     }
 
+    /**
+     * @return array{type: string, path: string, name: string, url: string}
+     */
+    public static function storeAudio(UploadedFile $file, string $source = 'upload'): array
+    {
+        $path = self::storeFile($file, 'audio');
+
+        return [
+            'type' => $source,
+            'path' => $path,
+            'name' => $file->getClientOriginalName() ?: ($source === 'recording' ? 'Voice recording' : 'Audio story'),
+            'url' => self::url($path),
+        ];
+    }
+
     public static function storeInlineImage(UploadedFile $file): string
     {
         return self::url(self::storeFile($file, 'inline'));

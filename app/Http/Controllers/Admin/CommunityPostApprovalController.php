@@ -80,7 +80,9 @@ class CommunityPostApprovalController extends Controller
             'reportFollows',
             'reportEvidence',
             'authorQuestions',
+            'starRatings',
         ]);
+        $post->load(['starRatings']);
 
         return view('backend.admin.community-posts.show', array_merge([
             'post' => $post,
@@ -105,9 +107,10 @@ class CommunityPostApprovalController extends Controller
             'user',
             'reactions',
             'pollVotes',
+            'starRatings',
             'discussionComments.user',
             'discussionComments.replies.user',
-        ]);
+        ])->loadCount('starRatings');
 
         return view('community.show', array_merge([
             'post' => $post,

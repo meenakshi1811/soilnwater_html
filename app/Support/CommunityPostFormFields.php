@@ -17,18 +17,8 @@ class CommunityPostFormFields
             'stories' => self::section('Story details', 'Stories', 'Help readers discover genre, mood, and reading time.', self::narrativeFields('story_genre', [
                 'Inspirational', 'Motivational', 'Fiction', 'Real Life', 'Family', 'Social', 'Short Story',
             ])),
-            'poetry' => self::section('Poetry details', 'Poetry', 'Poetry metadata similar to literary magazines and anthologies.', [
-                self::select('poem_language', 'Poem language', ['Hindi', 'English', 'Urdu', 'Regional', 'Multilingual'], true),
-                self::select('poem_form', 'Poem form / style', ['Free Verse', 'Ghazal', 'Sonnet', 'Haiku', 'Nazm', 'Other'], false),
-                self::text('dedication', 'Dedication', 160, false, 'Optional dedication line'),
-                self::text('reading_time', 'Estimated reading time (minutes)', 10, false, 'e.g. 3'),
-            ]),
             'biography' => self::section('Biography details', 'Biography', 'Profile the subject with structured biography metadata.', self::profileBioFields()),
-            'autobiography' => self::section('Autobiography details', 'Autobiography', 'Frame your personal journey with timeline and lessons.', [
-                self::select('life_stage', 'Life stage / chapter', ['Student Life', 'Early Career', 'Mid Career', 'Retirement', 'Life Transition', 'Other'], true),
-                self::text('timeline_period', 'Timeline / period covered', 120, true, 'e.g. 1998–2024'),
-                self::textarea('lessons_learned', 'Key lessons learned', 2000, true, 'What readers should take away from your journey'),
-            ]),
+            'autobiography' => self::section('Autobiography details', 'Autobiography', 'Use the dedicated autobiography flow fields on the form.', []),
             'childrens-corner' => self::section("Children's Corner details", "Children's Corner", 'Safeguard child submissions with school and guardian context.', [
                 self::checkbox('parent_approved', 'Parent / guardian approved'),
                 self::text('school_name', 'School name', 160, false),
@@ -141,7 +131,7 @@ class CommunityPostFormFields
      */
     public static function fieldsFor(string $contentType): array
     {
-        if (in_array($contentType, ['news', 'reports'], true)) {
+        if (in_array($contentType, ['news', 'reports', 'stories', 'poetry'], true)) {
             return self::legacyFieldsFor($contentType);
         }
 
@@ -233,7 +223,96 @@ class CommunityPostFormFields
             }
         }
 
-        return array_filter($payload, fn ($value) => filled($value) || is_bool($value));
+        if ($contentType === 'stories') {
+            $payload['story_target_audience'] = array_values(array_intersect(
+                (array) $request->input('story_target_audience', []),
+                CommunityContentTaxonomy::storyTargetAudiences()
+            ));
+            $payload['story_themes'] = array_values(array_intersect(
+                (array) $request->input('story_themes', []),
+                CommunityContentTaxonomy::storyThemes()
+            ));
+        }
+
+        if ($contentType === 'poetry' && $request->has('sub_category')) {
+            $payload['sub_category'] = $request->input('sub_category');
+        }
+
+        if ($contentType === 'poetry') {
+            $allowedKeys = array_merge($allowedKeys, CommunityPost::structuredLocationMetaKeys(), [
+                'poetry_inspiration',
+                'poetry_part_of_series',
+                'poetry_series_name',
+                'poetry_series_part',
+            ]);
+
+            $payload['poetry_themes'] = array_values(array_intersect(
+                (array) $request->input('poetry_themes', []),
+                CommunityContentTaxonomy::poetryThemes()
+            ));
+            $payload['poetry_target_audience'] = array_values(array_intersect(
+                (array) $request->input('poetry_target_audience', []),
+                CommunityContentTaxonomy::poetryTargetAudiences()
+            ));
+            $payload['poetry_inspiration'] = $request->input('poetry_inspiration');
+            $payload['poetry_part_of_series'] = $request->input('poetry_part_of_series');
+
+            if ($request->input('poetry_part_of_series') === 'Yes') {
+                $payload['poetry_series_name'] = $request->input('poetry_series_name');
+                $payload['poetry_series_part'] = $request->input('poetry_series_part');
+            } else {
+                unset($payload['poetry_series_name'], $payload['poetry_series_part']);
+            }
+
+            foreach (CommunityPost::structuredLocationMetaKeys() as $locationKey) {
+                if ($request->has($locationKey)) {
+                    $payload[$locationKey] = $request->input($locationKey);
+                }
+            }
+        }
+
+        if ($contentType === 'autobiography') {
+            $payload['autobiography_type'] = $request->input('autobiography_type');
+            $payload['birth_place'] = $request->input('birth_place');
+            $payload['current_location'] = $request->input('current_location');
+            $payload['places_mentioned'] = collect((array) $request->input('places_mentioned', []))
+                ->map(fn (mixed $place): string => trim((string) $place))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+            $payload['key_lessons_learned'] = collect((array) $request->input('key_lessons_learned', []))
+                ->map(fn (mixed $lesson): string => trim((string) $lesson))
+                ->filter()
+                ->values()
+                ->all();
+            $payload['related_people'] = collect((array) $request->input('related_people', []))
+                ->filter(fn (mixed $person): bool => is_array($person) && filled($person['name'] ?? null))
+                ->map(fn (array $person): array => [
+                    'name' => trim((string) ($person['name'] ?? '')),
+                    'relationship' => trim((string) ($person['relationship'] ?? '')),
+                ])
+                ->values()
+                ->all();
+        }
+
+        return collect($payload)
+            ->filter(function (mixed $value, string $key): bool {
+                if (in_array($key, [
+                    'story_target_audience',
+                    'story_themes',
+                    'poetry_themes',
+                    'poetry_target_audience',
+                    'places_mentioned',
+                    'key_lessons_learned',
+                    'related_people',
+                ], true)) {
+                    return true;
+                }
+
+                return filled($value) || is_bool($value);
+            })
+            ->all();
     }
 
     /**
@@ -347,6 +426,170 @@ class CommunityPostFormFields
     }
 
     /**
+     * Ordered story metadata keys and labels for detail views.
+     * Moral / takeaway is displayed separately on the public page.
+     *
+     * @return array<string, string>
+     */
+    public static function storyDetailMetaOrder(): array
+    {
+        return [
+            'story_time_period' => 'Time period',
+            'story_language' => 'Language',
+            'story_target_audience' => 'Target audience',
+            'story_themes' => 'Story theme',
+            'story_main_characters' => 'Main characters',
+            'story_character_type' => 'Character type',
+            'story_place_type' => 'Story location',
+            'story_place_names' => 'Place names',
+        ];
+    }
+
+    /**
+     * Ordered poetry metadata keys and labels for detail views.
+     *
+     * @return array<string, string>
+     */
+    public static function poetryDetailMetaOrder(): array
+    {
+        return [
+            'poetry_type' => 'Poetry type',
+            'sub_category' => 'Sub category',
+            'poem_language' => 'Poem language',
+            'poetry_themes' => 'Theme',
+            'poetry_target_audience' => 'Target audience',
+            'poetry_inspiration' => 'Inspiration',
+            'poetry_series_name' => 'Collection',
+            'poetry_series_part' => 'Part',
+            'dedication' => 'Dedication',
+            'reading_time' => 'Reading time',
+        ];
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedPoetryMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::poetryDetailMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if (in_array($key, ['poetry_themes', 'poetry_target_audience'], true) && is_array($value)) {
+                    $value = implode(', ', $value);
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value) || is_bool($value));
+    }
+
+    /**
+     * Regional location keys and labels for poetry detail views.
+     *
+     * @return array<string, string>
+     */
+    public static function poetryRegionalLocationOrder(): array
+    {
+        return [
+            'location_country' => 'Country',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City',
+        ];
+    }
+
+    /**
+     * Ordered autobiography metadata keys and labels for detail views.
+     *
+     * @return array<string, string>
+     */
+    public static function autobiographyDetailMetaOrder(): array
+    {
+        return [
+            'autobiography_type' => 'Autobiography type',
+            'birth_place' => 'Birth place',
+            'current_location' => 'Current location',
+            'places_mentioned' => 'Places mentioned',
+            'key_lessons_learned' => 'Inspirational lessons',
+            'related_people' => 'Related people',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function autobiographyStructuredMetaKeys(): array
+    {
+        return [
+            'autobiography_type',
+            'birth_place',
+            'current_location',
+            'places_mentioned',
+            'key_lessons_learned',
+            'life_timeline',
+            'autobiography_audio',
+            'autobiography_achievements',
+            'autobiography_documents',
+            'related_people',
+            'author_bio',
+            'book_pages',
+        ];
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedAutobiographyMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::autobiographyDetailMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if ($key === 'places_mentioned' && is_array($value)) {
+                    $value = implode(', ', array_values(array_filter($value)));
+                }
+
+                if ($key === 'key_lessons_learned' && is_array($value)) {
+                    $value = implode('; ', array_values(array_filter($value)));
+                }
+
+                if ($key === 'related_people' && is_array($value)) {
+                    $value = collect($value)
+                        ->filter(fn (mixed $person): bool => filled(data_get($person, 'name')))
+                        ->map(function (mixed $person): string {
+                            $name = (string) data_get($person, 'name');
+                            $relationship = data_get($person, 'relationship');
+
+                            return filled($relationship) ? $name.' ('.$relationship.')' : $name;
+                        })
+                        ->implode(', ');
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value));
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedStoryMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::storyDetailMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if (in_array($key, ['story_target_audience', 'story_themes'], true) && is_array($value)) {
+                    $value = implode(', ', $value);
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value) || is_bool($value));
+    }
+
+    /**
      * @return list<string>
      */
     public static function narrativeNewsMetaKeys(): array
@@ -423,6 +666,26 @@ class CommunityPostFormFields
             'key_findings',
             'recommendations',
             'news_type',
+            'story_type',
+            'poetry_type',
+            'sub_category',
+            'poetry_themes',
+            'poetry_target_audience',
+            'poetry_inspiration',
+            'poetry_part_of_series',
+            'poetry_series_name',
+            'poetry_series_part',
+            'poetry_audio',
+            'poem_language',
+            'dedication',
+            'reading_time',
+            'story_moral_takeaway',
+            'story_main_characters',
+            'story_character_type',
+            'story_place_type',
+            'story_place_names',
+            'story_time_period',
+            'story_language',
             'event_date',
             'event_time',
             'news_subtitle',
@@ -489,6 +752,16 @@ class CommunityPostFormFields
             'key_findings' => 'Findings',
             'recommendations' => 'Recommendations',
             'news_type' => 'News type',
+            'story_type' => 'Story type',
+            'poetry_type' => 'Poetry type',
+            'sub_category' => 'Sub category',
+            'story_moral_takeaway' => 'Moral / takeaway',
+            'story_main_characters' => 'Main characters',
+            'story_character_type' => 'Character type',
+            'story_place_type' => 'Story location',
+            'story_place_names' => 'Place names',
+            'story_time_period' => 'Time period',
+            'story_language' => 'Language',
             'event_date' => 'Event date',
             'event_time' => 'Event time',
             'news_subtitle' => 'Subtitle / deck',
@@ -542,7 +815,6 @@ class CommunityPostFormFields
             'story_genre' => 'Genre',
             'mood_or_theme' => 'Mood / theme',
             'poem_language' => 'Poem language',
-            'poem_form' => 'Poem form',
             'dedication' => 'Dedication',
             'subject_name' => 'Subject name',
             'subject_field' => 'Subject field',
@@ -551,6 +823,7 @@ class CommunityPostFormFields
             'life_stage' => 'Life stage',
             'timeline_period' => 'Timeline',
             'lessons_learned' => 'Lessons learned',
+            'autobiography_type' => 'Autobiography type',
             'school_name' => 'School name',
             'child_age_range' => 'Age range',
             'grade_level' => 'Grade / class',
@@ -701,6 +974,28 @@ class CommunityPostFormFields
                 self::textarea('impact_area', 'Impact / affected area', 1000, false),
                 self::textarea('quote_attribution', 'Quote / attribution', 1000, false),
             ], self::newsContentFields());
+        }
+
+        if ($contentType === 'stories') {
+            return [
+                self::select('story_type', 'Story type', CommunityContentTaxonomy::storyTypes(), true),
+                self::select('story_language', 'Language', CommunityContentTaxonomy::storyLanguages(), true, 'col-md-6'),
+                self::textarea('story_moral_takeaway', 'Moral / takeaway', 1000, false, 'Never underestimate the power of community cooperation.'),
+                self::textarea('story_main_characters', 'Main characters', 2000, false, 'Ramesh Kumar, Village Head, School Teacher'),
+                self::select('story_character_type', 'Character type', CommunityContentTaxonomy::storyCharacterTypes(), false, 'col-md-6'),
+                self::select('story_place_type', 'Story location', CommunityContentTaxonomy::storyPlaceTypes(), false, 'col-md-6'),
+                self::text('story_place_names', 'Place names', 500, false, 'Dehradun, Uttarakhand, India'),
+                self::select('story_time_period', 'Time period', CommunityContentTaxonomy::storyTimePeriods(), false, 'col-md-6'),
+            ];
+        }
+
+        if ($contentType === 'poetry') {
+            return [
+                self::select('poetry_type', 'Poetry type', CommunityContentTaxonomy::poetryTypes(), true),
+                self::select('poem_language', 'Poem language', ['Hindi', 'English', 'Urdu', 'Regional', 'Multilingual'], true, 'col-md-6'),
+                self::text('dedication', 'Dedication', 160, false, 'Optional dedication line'),
+                self::text('reading_time', 'Estimated reading time (minutes)', 10, false, 'e.g. 3'),
+            ];
         }
 
         return [

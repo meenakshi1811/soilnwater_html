@@ -1,10 +1,10 @@
 @extends('backend.layouts.app')
 @section('title', $service->exists ? 'Edit Consultation Service' : 'Create Consultation Service')
 @section('content')
-@php($isAdmin = $isAdmin ?? false)
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Portal' : 'Consultant Portal' }}</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Consultation Service' : ($isAdmin ? 'Create Service for Consultant' : 'Add Consultation Service') }}</h2></div><a href="{{ $isAdmin ? route('admin.consultant-services.all.index') : route('consultant.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
   @php
+    $isAdmin = $isAdmin ?? false;
     $visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten();
     $chargeDurationLabels = ['minute' => 'Minutes', 'hour' => 'Hours', 'day' => 'Days', 'month' => 'Months', 'contractual' => 'Contractual'];
     $storedCharges = collect($service->consultation_charges ?: [])->map(function ($charge, $key) {

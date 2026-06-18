@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ValidatesServiceProviderServiceRequest;
 use App\Http\Controllers\Controller;
 use App\Services\PortalNotificationService;
+use App\Models\ServiceProvider;
 use App\Models\ServiceProviderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,6 +14,51 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ServiceProviderServiceApprovalController extends Controller
 {
+    use ValidatesServiceProviderServiceRequest;
+
+    public function create(): View
+    {
+        return view('backend.service_provider.services.form', [
+            'service' => new ServiceProviderService(),
+            'categories' => $this->serviceProviderCategories(),
+            'isAdmin' => true,
+            'serviceProviders' => $this->approvedServiceProviders(),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'service_provider_id' => ['required', 'exists:service_providers,id'],
+        ]);
+
+        $data = $this->validatedServiceProviderService($request);
+        $data['service_provider_id'] = (int) $request->input('service_provider_id');
+        $data['slug'] = $this->uniqueServiceProviderServiceSlug($data['service_provider_id'], $data['name']);
+
+        $service = ServiceProviderService::create($data);
+
+        $service->loadMissing('service_provider.user');
+        PortalNotificationService::notifyUser(
+            $service->service_provider?->user,
+            'Service added by admin',
+            $service->name.' has been added on your behalf and is pending approval.',
+            route('service_provider.services.show', $service),
+            'approval'
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Service created successfully for the selected service provider.',
+                'redirect' => route('admin.service-provider-services.all.index'),
+            ]);
+        }
+
+        return redirect()->route('admin.service-provider-services.all.index')
+            ->with('success', 'Service created successfully for the selected service provider.');
+    }
+
     public function index(): View
     {
         return view('backend.admin.service-provider-services.index');
@@ -144,5 +191,13 @@ class ServiceProviderServiceApprovalController extends Controller
         }
 
         return $decoded;
+    }
+
+    private function approvedServiceProviders()
+    {
+        return ServiceProvider::query()
+            ->where('status', 'approved')
+            ->orderBy('company_name')
+            ->get(['id', 'company_name', 'display_name']);
     }
 }

@@ -45,6 +45,10 @@ class CommunityEngagementController extends Controller
             CommunityReportTrustScoreService::syncToMeta($post->fresh());
         }
 
+        if ($post->content_type === 'stories') {
+            \App\Services\CommunityStoryAchievementService::recalculate($post->fresh());
+        }
+
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
@@ -60,10 +64,16 @@ class CommunityEngagementController extends Controller
         abort_unless($post->isPubliclyVisible(), 404);
 
         $post->increment('shares_count');
+        $post = $post->fresh();
+
+        if ($post->content_type === 'stories') {
+            \App\Services\CommunityStoryAchievementService::recalculate($post);
+            $post = $post->fresh();
+        }
 
         return response()->json([
             'message' => 'Share recorded.',
-            'shares_count' => (int) $post->fresh()->shares_count,
+            'shares_count' => (int) $post->shares_count,
         ]);
     }
 

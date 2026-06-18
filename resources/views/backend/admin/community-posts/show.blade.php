@@ -109,6 +109,13 @@
         margin-top: 0.75rem;
     }
 </style>
+@include('community.partials.story-styles')
+@if($post->content_type === 'poetry')
+@include('community.partials.poetry-styles')
+@endif
+@if($post->content_type === 'autobiography')
+@include('community.partials.autobiography-styles')
+@endif
 @endpush
 
 @section('content')
@@ -263,6 +270,28 @@
 
                         @if($post->content_type === 'news')
                             @include('community.partials.news-meta-details', ['post' => $post, 'heading' => 'News metadata'])
+                        @endif
+
+                        @if($post->content_type === 'stories')
+                            @include('community.partials.story-meta-details', ['post' => $post, 'heading' => 'Story metadata'])
+                            @include('community.partials.story-rating-summary', ['post' => $post, 'compact' => true])
+                            @include('community.partials.story-achievements-panel', ['post' => $post, 'compact' => true])
+                        @endif
+
+                        @if($post->content_type === 'poetry')
+                            @include('community.partials.poetry-show-sections', ['post' => $post])
+                            @include('community.partials.poetry-meta-details', ['post' => $post, 'heading' => 'Poetry metadata'])
+                            @include('community.partials.story-rating-summary', ['post' => $post, 'compact' => true])
+                        @endif
+
+                        @if($post->content_type === 'autobiography')
+                            @include('community.partials.autobiography-show-sections', ['post' => $post])
+                            @if($post->usesChapterLayoutForDisplay())
+                                @include('community.partials.book-reader', ['post' => $post])
+                            @endif
+                            @include('community.partials.autobiography-after-content', ['post' => $post])
+                            @include('community.partials.autobiography-meta-details', ['post' => $post, 'heading' => 'Autobiography metadata'])
+                            @include('community.partials.story-rating-summary', ['post' => $post, 'compact' => true])
                         @endif
                     </div>
                 </div>
@@ -427,7 +456,7 @@
                         </div>
 
                         <h6 class="mb-2">Article badges</h6>
-                        <div class="d-flex flex-wrap gap-2">
+                        <div class="d-flex flex-wrap gap-2 mb-3">
                             @foreach(\App\Services\CommunityArticleScoreService::BADGE_LABELS as $field => $label)
                                 @php $enabled = (bool) $post->{$field}; @endphp
                                 <button
@@ -438,6 +467,19 @@
                                 >{{ $label }}</button>
                             @endforeach
                         </div>
+
+                        @if($post->content_type === 'stories')
+                            <h6 class="mb-2">Story achievement badges</h6>
+                            <p class="small text-muted">Automatic badges recalculated from reads, shares, ratings, and saves.</p>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach(\App\Services\CommunityStoryAchievementService::BADGE_LABELS as $field => $label)
+                                    @php $enabled = (bool) $post->{$field}; @endphp
+                                    <span class="badge {{ $enabled ? 'bg-success' : 'bg-light text-dark border' }} community-story-badge community-story-badge--{{ str_replace('_', '-', str_replace('badge_', '', $field)) }}">
+                                        {{ $label }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
 
                     <div class="chart-card p-3 p-lg-4 mb-4 community-review-meta">
@@ -566,6 +608,24 @@
                             $reportMetaKeys = $post->content_type === 'reports'
                                 ? array_keys(\App\Support\CommunityPostFormFields::reportDetailMetaOrder())
                                 : [];
+                            $storyMetaKeys = $post->content_type === 'stories'
+                                ? array_keys(\App\Support\CommunityPostFormFields::storyDetailMetaOrder())
+                                : [];
+                            $poetryMetaKeys = $post->content_type === 'poetry'
+                                ? array_merge(
+                                    array_keys(\App\Support\CommunityPostFormFields::poetryDetailMetaOrder()),
+                                    array_keys(\App\Support\CommunityPostFormFields::poetryRegionalLocationOrder())
+                                )
+                                : [];
+                            $autobiographyMetaKeys = $post->content_type === 'autobiography'
+                                ? \App\Support\CommunityPostFormFields::autobiographyStructuredMetaKeys()
+                                : [];
+                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, [
+                                'story_gallery',
+                                'story_audio',
+                                'poetry_audio',
+                                'book_pages',
+                            ]);
                         @endphp
                         <div class="chart-card p-3 p-lg-4">
                             <h5 class="mb-3">Additional metadata</h5>
@@ -573,13 +633,19 @@
                                 <table class="table table-sm mb-0">
                                     <tbody>
                                         @foreach($post->meta as $key => $value)
-                                            @continue(in_array($key, $reportMetaKeys, true))
+                                            @continue(in_array($key, $skipMetaKeys, true))
                                             @continue($key === 'issue_attachments')
-                                            @continue(is_array($value) || is_object($value))
-                                            @continue(blank($value))
+                                            @continue(is_object($value))
+                                            @continue(blank($value) && ! is_bool($value))
                                             <tr>
                                                 <th class="text-muted">{{ \App\Support\CommunityPostFormFields::labels()[$key] ?? \Illuminate\Support\Str::headline($key) }}</th>
-                                                <td>{{ is_bool($value) ? ($value ? 'Yes' : 'No') : $value }}</td>
+                                                <td>
+                                                    @if(is_array($value))
+                                                        {{ implode(', ', $value) }}
+                                                    @else
+                                                        {{ is_bool($value) ? ($value ? 'Yes' : 'No') : $value }}
+                                                    @endif
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
