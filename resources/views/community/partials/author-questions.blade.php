@@ -139,10 +139,16 @@
     @endpush
 @endonce
 
-<div class="community-author-questions-box mt-4" id="author-questions">
+<div class="community-author-questions-box {{ ($compactSection ?? false) ? 'community-author-questions-box--embedded mt-0 mb-4' : 'mt-4' }}" id="author-questions">
     <div class="community-author-questions-head">
-        <h4 class="community-author-questions-title mb-0">Ask Question to Author</h4>
-        <p class="text-muted small mb-0">Send a direct question to {{ $authorDisplay }} {{ $contextLabel }}. Only logged-in readers can ask questions.</p>
+        <h4 class="community-author-questions-title mb-0">{{ $sectionTitle ?? 'Ask Question to Author' }}</h4>
+        <p class="text-muted small mb-0">
+            @if(isset($post) && $post->content_type === 'news')
+                Ask {{ $authorDisplay }} a direct question about this news story. You will be notified when the author answers in the portal.
+            @else
+                Send a direct question to {{ $authorDisplay }} {{ $contextLabel }}. Only logged-in readers can ask questions.
+            @endif
+        </p>
     </div>
 
     <div class="community-author-questions-body">

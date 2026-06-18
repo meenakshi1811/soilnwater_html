@@ -260,6 +260,10 @@
                         @if($post->content_type === 'reports')
                             @include('community.partials.report-meta-details', ['post' => $post, 'heading' => 'Report metadata'])
                         @endif
+
+                        @if($post->content_type === 'news')
+                            @include('community.partials.news-meta-details', ['post' => $post, 'heading' => 'News metadata'])
+                        @endif
                     </div>
                 </div>
 
@@ -311,9 +315,35 @@
                         </div>
                     @endif
 
-                    @if(($participationSuggestions ?? collect())->isNotEmpty() || ($participationFeedback ?? collect())->isNotEmpty())
+                    @if(($participationSuggestions ?? collect())->isNotEmpty() || ($participationFeedback ?? collect())->isNotEmpty() || ($post->content_type === 'news' && ($post->allow_comments || $post->allow_questions)))
                         <div class="chart-card p-3 p-lg-4 mb-4">
                             <h5 class="mb-3">Public participation submissions</h5>
+
+                            @if($post->allow_comments && $post->discussionComments->isNotEmpty())
+                                <h6 class="small text-uppercase text-muted mb-2">Comments</h6>
+                                <div class="d-flex flex-column gap-2 mb-3">
+                                    @foreach($post->discussionComments->take(10) as $comment)
+                                        <div class="border rounded p-2 bg-white small">
+                                            <div class="fw-semibold">{{ $comment->user?->full_name ?: ($comment->user?->name ?? 'Community member') }}</div>
+                                            <div class="text-muted">{{ $comment->created_at?->diffForHumans() }}</div>
+                                            <div>{{ $comment->body }}</div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            @if($post->allow_questions && $post->authorQuestions->isNotEmpty())
+                                <h6 class="small text-uppercase text-muted mb-2">Reader questions</h6>
+                                <div class="d-flex flex-column gap-2 mb-3">
+                                    @foreach($post->authorQuestions->take(10) as $question)
+                                        <div class="border rounded p-2 bg-white small">
+                                            <div class="fw-semibold">{{ $question->asker?->full_name ?: ($question->asker?->name ?? 'Reader') }}</div>
+                                            <div class="text-muted">{{ $question->created_at?->diffForHumans() }} · {{ $question->answered_at ? 'Answered' : 'Pending' }}</div>
+                                            <div>{{ $question->question }}</div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
 
                             @if(($participationSuggestions ?? collect())->isNotEmpty())
                                 <h6 class="small text-uppercase text-muted mb-2">Suggestions</h6>
@@ -455,6 +485,7 @@
                             <div class="label">Public participation</div>
                             <ul class="list-unstyled small mb-0">
                                 <li>Comments: {{ $post->allow_comments ? 'Enabled' : 'Disabled' }}</li>
+                                <li>Questions: {{ $post->allow_questions ? 'Enabled' : 'Disabled' }}</li>
                                 <li>Suggestions: {{ $post->allow_suggestions ? 'Enabled' : 'Disabled' }}</li>
                                 <li>Feedback: {{ $post->allow_feedback ? 'Enabled' : 'Disabled' }}</li>
                                 <li>Additional evidence: {{ $post->allow_additional_evidence ? 'Enabled' : 'Disabled' }}</li>

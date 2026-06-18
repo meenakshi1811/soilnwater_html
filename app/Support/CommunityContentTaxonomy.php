@@ -38,7 +38,24 @@ class CommunityContentTaxonomy
             'news' => [
                 'label' => 'News',
                 'description' => 'Community and local news.',
-                'categories' => ['National News', 'State News', 'Local News', 'Education News', 'Business News', 'Agriculture News', 'Environment News'],
+                'categories' => [
+                    'Local News',
+                    'State News',
+                    'National News',
+                    'International News',
+                    'Business News',
+                    'Education News',
+                    'Agriculture News',
+                    'Water News',
+                    'Environment News',
+                    'Technology News',
+                    'Health News',
+                    'Sports News',
+                    'Entertainment News',
+                    'Community News',
+                    'Government News',
+                    'Infrastructure News',
+                ],
             ],
             'stories' => [
                 'label' => 'Stories',
@@ -234,6 +251,112 @@ class CommunityContentTaxonomy
             'Market Report',
             'Government Scheme Report',
             'Social Impact Report',
+        ];
+    }
+
+    /**
+     * Source type choices for news posts.
+     *
+     * @return list<string>
+     */
+    public static function newsSourceTypes(): array
+    {
+        return [
+            'Self Witnessed',
+            'Official Source',
+            'Government Source',
+            'Press Release',
+            'Media Source',
+            'Community Source',
+            'Survey',
+            'Other',
+        ];
+    }
+
+    /**
+     * News type choices grouped for the create/edit form.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function newsTypeGroups(): array
+    {
+        return [
+            'News format' => [
+                'Breaking News',
+                'General News',
+                'Community News',
+                'Press Release',
+            ],
+            'Events & official' => [
+                'Event Coverage',
+                'Government',
+                'Announcement',
+                'Public Notice',
+            ],
+            'Community impact' => [
+                'Development Update',
+                'Awareness News',
+                'Success Story',
+                'Citizen Report',
+            ],
+        ];
+    }
+
+    /**
+     * News type choices for news posts.
+     *
+     * @return list<string>
+     */
+    public static function newsTypes(): array
+    {
+        return array_values(array_merge(...array_values(self::newsTypeGroups())));
+    }
+
+    /**
+     * News priority suggestions from contributors.
+     *
+     * @return list<string>
+     */
+    public static function newsPriorities(): array
+    {
+        return [
+            'Normal',
+            'Important',
+            'Urgent',
+            'Breaking',
+        ];
+    }
+
+    /**
+     * Community impact level choices for news posts.
+     *
+     * @return list<string>
+     */
+    public static function newsImpactLevels(): array
+    {
+        return [
+            'Low',
+            'Medium',
+            'High',
+            'Critical',
+        ];
+    }
+
+    /**
+     * Affected community groups for news impact tracking.
+     *
+     * @return list<string>
+     */
+    public static function newsAffectedGroups(): array
+    {
+        return [
+            'Residents',
+            'Students',
+            'Farmers',
+            'Businesses',
+            'Women',
+            'Senior Citizens',
+            'General Public',
         ];
     }
 

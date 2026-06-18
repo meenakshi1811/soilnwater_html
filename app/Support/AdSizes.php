@@ -73,4 +73,22 @@ final class AdSizes
     {
         return self::all()[$sizeType]['name'] ?? $sizeType;
     }
+
+    /**
+     * Highest possible base price per day for a size (max category + all modules).
+     */
+    public static function maxPricePerDay(array $size): ?float
+    {
+        if (! (bool) ($size['is_paid'] ?? false)) {
+            return null;
+        }
+
+        $categoryPrices = $size['category_prices'] ?? [];
+        $modulePrices = $size['module_prices'] ?? [];
+        $maxCategory = $categoryPrices !== [] ? (float) max($categoryPrices) : 0.0;
+        $moduleTotal = (float) array_sum($modulePrices);
+        $total = $maxCategory + $moduleTotal;
+
+        return $total > 0 ? round($total, 2) : null;
+    }
 }

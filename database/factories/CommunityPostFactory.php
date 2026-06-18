@@ -31,6 +31,7 @@ class CommunityPostFactory extends Factory
             'location_lat' => 26.9124000,
             'location_lng' => 75.7873000,
             'allow_comments' => true,
+            'allow_questions' => true,
             'allow_sharing' => true,
             'allow_poll' => false,
             'is_featured' => false,

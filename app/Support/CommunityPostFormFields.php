@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\CommunityPost;
 use Illuminate\Validation\Rule;
 
 class CommunityPostFormFields
@@ -158,6 +159,18 @@ class CommunityPostFormFields
             $rules[$field['name']] = self::rulesForField($field, $contentType);
         }
 
+        if (CommunityPost::usesStructuredLocation($contentType)) {
+            foreach (self::structuredLocationFields() as $field) {
+                $rules[$field['name']] = self::rulesForField($field, $contentType);
+            }
+        }
+
+        if ($contentType === 'news') {
+            foreach (self::newsContentFields() as $field) {
+                $rules[$field['name']] = self::rulesForField($field, $contentType);
+            }
+        }
+
         return $rules;
     }
 
@@ -192,6 +205,10 @@ class CommunityPostFormFields
                 'organization_type', 'organization_name',
                 'action_needed', 'action_requested_from', 'suggested_solution',
             ]);
+        }
+
+        if (CommunityPost::usesStructuredLocation($contentType)) {
+            $allowedKeys = array_merge($allowedKeys, CommunityPost::structuredLocationMetaKeys());
         }
 
         foreach (array_unique($allowedKeys) as $key) {
@@ -286,6 +303,78 @@ class CommunityPostFormFields
         return (string) $value;
     }
 
+    public static function formatNewsMetaValue(string $key, mixed $value): string
+    {
+        if (in_array($key, ['event_date', 'news_date'], true) && filled($value)) {
+            return \Illuminate\Support\Carbon::parse($value)->format('j F Y'.($key === 'news_date' ? ', g:i A' : ''));
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'Yes' : 'No';
+        }
+
+        return (string) $value;
+    }
+
+    /**
+     * Ordered news metadata keys and labels for detail views.
+     *
+     * @return array<string, string>
+     */
+    public static function newsDetailMetaOrder(): array
+    {
+        return [
+            'news_type' => 'News type',
+            'event_date' => 'Event date',
+            'event_time' => 'Event time',
+            'news_date' => 'News date',
+            'news_dateline' => 'Dateline',
+            'reporter_name' => 'Reporter / byline',
+            'news_subtitle' => 'Subtitle / deck',
+            ...self::newsContentMetaOrder(),
+            'news_people_organizations' => 'People & organizations mentioned',
+            'news_priority' => 'News priority',
+            'news_impact_level' => 'Impact level',
+            'news_affected_group' => 'Affected group',
+            'impact_area' => 'Impact / affected area',
+            'quote_attribution' => 'Quote / attribution',
+            'news_source_type' => 'Source type',
+            'news_source' => 'Source',
+            'source_url' => 'Source URL',
+            'verification_notes' => 'Verification notes',
+            'news_related_authority' => 'Related authority',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function narrativeNewsMetaKeys(): array
+    {
+        return [
+            'news_what_happened',
+            'news_where_happened',
+            'news_when_happened',
+            'news_who_involved',
+            'news_why_important',
+            'news_current_status',
+            'news_people_organizations',
+            'verification_notes',
+            'impact_area',
+            'quote_attribution',
+        ];
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedNewsMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::newsDetailMetaOrder())
+            ->mapWithKeys(fn (string $label, string $key): array => [$key => data_get($post->meta, $key)])
+            ->filter(fn (mixed $value): bool => filled($value) || is_bool($value));
+    }
+
     /**
      * @return \Illuminate\Support\Collection<string, mixed>
      */
@@ -333,14 +422,29 @@ class CommunityPostFormFields
             'data_sources',
             'key_findings',
             'recommendations',
+            'news_type',
+            'event_date',
+            'event_time',
             'news_subtitle',
             'news_dateline',
             'news_date',
             'reporter_name',
+            'news_source_type',
             'news_source',
             'source_url',
+            'news_what_happened',
+            'news_where_happened',
+            'news_when_happened',
+            'news_who_involved',
+            'news_why_important',
+            'news_current_status',
             'fact_summary',
             'verification_notes',
+            'news_related_authority',
+            'news_people_organizations',
+            'news_priority',
+            'news_impact_level',
+            'news_affected_group',
             'impact_area',
             'quote_attribution',
             'report_status',
@@ -360,6 +464,11 @@ class CommunityPostFormFields
             'action_needed',
             'action_requested_from',
             'suggested_solution',
+            'location_country',
+            'location_state',
+            'location_district',
+            'location_city',
+            'location_locality',
         ];
     }
 
@@ -379,14 +488,29 @@ class CommunityPostFormFields
             'data_sources' => 'Data sources',
             'key_findings' => 'Findings',
             'recommendations' => 'Recommendations',
+            'news_type' => 'News type',
+            'event_date' => 'Event date',
+            'event_time' => 'Event time',
             'news_subtitle' => 'Subtitle / deck',
             'news_dateline' => 'Dateline',
             'news_date' => 'News date',
             'reporter_name' => 'Reporter / byline',
-            'news_source' => 'Primary source',
+            'news_source_type' => 'Source type',
+            'news_source' => 'Source',
             'source_url' => 'Source URL',
+            'news_what_happened' => 'What happened?',
+            'news_where_happened' => 'Where did it happen?',
+            'news_when_happened' => 'When did it happen?',
+            'news_who_involved' => 'Who was involved?',
+            'news_why_important' => 'Why is it important?',
+            'news_current_status' => 'Current status',
             'fact_summary' => 'Verified facts / 5W summary',
             'verification_notes' => 'Verification notes',
+            'news_related_authority' => 'Related authority',
+            'news_people_organizations' => 'People & organizations mentioned',
+            'news_priority' => 'News priority',
+            'news_impact_level' => 'Impact level',
+            'news_affected_group' => 'Affected group',
             'impact_area' => 'Impact / affected area',
             'quote_attribution' => 'Quote / attribution',
             'report_status' => 'Report status',
@@ -406,6 +530,11 @@ class CommunityPostFormFields
             'action_needed' => 'Is action needed?',
             'action_requested_from' => 'Action requested from',
             'suggested_solution' => 'Suggested solution',
+            'location_country' => 'Country',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City',
+            'location_locality' => 'Locality',
             'article_subtitle' => 'Subtitle / deck',
             'reading_time' => 'Reading time',
             'key_takeaways' => 'Key takeaways',
@@ -503,21 +632,75 @@ class CommunityPostFormFields
     /**
      * @return list<array<string, mixed>>
      */
+    public static function newsContentFields(): array
+    {
+        return [
+            self::textarea('news_what_happened', 'What happened?', 2000, true, 'Describe the core event or development.'),
+            self::textarea('news_where_happened', 'Where did it happen?', 1000, true, 'City, district, landmark, or venue.'),
+            self::textarea('news_when_happened', 'When did it happen?', 500, true, 'Date, time, or period readers should know.'),
+            self::textarea('news_who_involved', 'Who was involved?', 1000, true, 'People, departments, organizations, or groups.'),
+            self::textarea('news_why_important', 'Why is it important?', 1000, true, 'Explain the impact or significance for readers.'),
+            self::textarea('news_current_status', 'Current status', 1000, true, 'Latest update, ongoing action, or resolution status.'),
+        ];
+    }
+
+    /**
+     * Ordered news content metadata keys for detail views.
+     *
+     * @return array<string, string>
+     */
+    public static function newsContentMetaOrder(): array
+    {
+        return [
+            'news_what_happened' => 'What happened?',
+            'news_where_happened' => 'Where did it happen?',
+            'news_when_happened' => 'When did it happen?',
+            'news_who_involved' => 'Who was involved?',
+            'news_why_important' => 'Why is it important?',
+            'news_current_status' => 'Current status',
+        ];
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function structuredLocationFields(): array
+    {
+        return [
+            self::text('location_country', 'Country', 120, true),
+            self::text('location_state', 'State', 120, true),
+            self::text('location_district', 'District', 120, true),
+            self::text('location_city', 'City', 120, true),
+            self::text('location_locality', 'Locality', 120, false),
+        ];
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
     private static function legacyFieldsFor(string $contentType): array
     {
         if ($contentType === 'news') {
-            return [
+            return array_merge([
+                self::select('news_type', 'News type', CommunityContentTaxonomy::newsTypes(), true),
+                self::date('event_date', 'Event date', true),
+                self::text('event_time', 'Event time', 40, false, '7:30 PM'),
                 self::text('news_subtitle', 'News subtitle / deck', 255, false),
                 self::text('news_dateline', 'Dateline / place', 160, true),
                 self::datetime('news_date', 'News date', true),
                 self::text('reporter_name', 'Reporter / byline', 160, true),
-                self::text('news_source', 'Primary source', 160, true),
+                self::select('news_source_type', 'Source type', CommunityContentTaxonomy::newsSourceTypes(), true),
+                self::text('news_source', 'Source', 160, true),
                 self::url('source_url', 'Source URL', false),
-                self::textarea('fact_summary', 'Verified facts / 5W summary', 2000, true),
                 self::textarea('verification_notes', 'Verification notes', 2000, true),
+                self::text('news_related_authority', 'Related authority', 160, false, 'Municipal Corporation'),
+                self::textarea('news_people_organizations', 'People & organizations mentioned', 2000, false),
+                self::select('news_priority', 'News priority', CommunityContentTaxonomy::newsPriorities(), false),
+                self::select('news_impact_level', 'Impact level', CommunityContentTaxonomy::newsImpactLevels(), true),
+                self::select('news_affected_group', 'Affected group', CommunityContentTaxonomy::newsAffectedGroups(), true),
                 self::textarea('impact_area', 'Impact / affected area', 1000, false),
                 self::textarea('quote_attribution', 'Quote / attribution', 1000, false),
-            ];
+            ], self::newsContentFields());
         }
 
         return [

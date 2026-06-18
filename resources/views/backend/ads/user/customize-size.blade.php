@@ -16,16 +16,109 @@
     #adsSizeCustomizerPage .select2-container--default .select2-selection--multiple .select2-selection__choice {
         margin-top: .2rem;
     }
+    .ad-size-pricing-card {
+        background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+        border: 1px solid #f5d08a;
+        border-radius: 14px;
+        padding: 1.15rem 1.35rem;
+    }
+    .ad-size-pricing-card__label {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #b45309;
+        margin-bottom: .35rem;
+    }
+    .ad-size-pricing-card__amount {
+        display: flex;
+        align-items: baseline;
+        gap: .15rem;
+        color: #92400e;
+        line-height: 1;
+    }
+    .ad-size-pricing-card__currency {
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+    .ad-size-pricing-card__value {
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -.02em;
+    }
+    .ad-size-pricing-card__period {
+        font-size: .95rem;
+        font-weight: 600;
+        color: #b45309;
+        margin-left: .15rem;
+    }
+    .ad-size-pricing-card__note {
+        font-size: .84rem;
+        color: #78716c;
+        margin: .65rem 0 0;
+        line-height: 1.45;
+    }
+    .ad-size-pricing-card__estimate {
+        margin-top: .85rem;
+        padding-top: .85rem;
+        border-top: 1px dashed #f0c674;
+    }
+    .ad-size-pricing-card__estimate-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: .9rem;
+        color: #57534e;
+        margin-bottom: .35rem;
+    }
+    .ad-size-pricing-card__estimate-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+        color: #1c1917;
+        font-size: 1.05rem;
+    }
+    .ads-size-card-price {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        margin-top: .75rem;
+        padding: .35rem .75rem;
+        border-radius: 999px;
+        font-size: .82rem;
+        font-weight: 700;
+        color: #b45309;
+        background: #fff7ed;
+        border: 1px solid #f7c793;
+    }
 </style>
 @endpush
 
 @section('content')
+@php
+    $sizeMaxPricePerDay = \App\Support\AdSizes::maxPricePerDay($size);
+    $showSizePricing = (bool) ($size['is_paid'] ?? false) && $sizeMaxPricePerDay !== null;
+@endphp
 <div class="admin-panel ems-page" id="adsSizeCustomizerPage">
     <div class="ems-hero mb-4">
-        <div>
-            <p class="ems-kicker mb-1">Ads</p>
-            <h2 class="admin-title mb-1">{{ !empty($isEdit) ? 'Edit Your Ad' : 'Create Your Ad' }}</h2>
-            <p class="mb-0 text-secondary">Selected size: <strong>{{ $size['name'] }}</strong> ({{ $size['w'] }}×{{ $size['h'] }} px)</p>
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 w-100">
+            <div>
+                <p class="ems-kicker mb-1">Ads</p>
+                <h2 class="admin-title mb-1">{{ !empty($isEdit) ? 'Edit Your Ad' : 'Create Your Ad' }}</h2>
+                <p class="mb-0 text-secondary">Selected size: <strong>{{ $size['name'] }}</strong> ({{ $size['w'] }}×{{ $size['h'] }} px)</p>
+            </div>
+            @if($showSizePricing)
+                <div class="ad-size-pricing-card" style="min-width:min(100%, 280px); max-width:340px;" id="adSizePricingHero" data-max-price="{{ $sizeMaxPricePerDay }}">
+                    <div class="ad-size-pricing-card__label" id="pricingHeroLabel">Maximum placement price</div>
+                    <div class="ad-size-pricing-card__amount">
+                        <span class="ad-size-pricing-card__currency">₹</span>
+                        <span class="ad-size-pricing-card__value" id="pricingHeroValue">{{ number_format($sizeMaxPricePerDay, 2) }}</span>
+                        <span class="ad-size-pricing-card__period">/ day</span>
+                    </div>
+                    <p class="ad-size-pricing-card__note mb-0" id="pricingHeroNote">Final price may go up or down based on the modules you select.</p>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -65,13 +158,13 @@
                                         {{ in_array($moduleKey, $selectedModulesForCheckboxes, true) ? 'checked' : '' }}
                                     >
                                     <label class="form-check-label" for="moduleCheckbox{{ $moduleKey }}">
-                                        {{ $moduleName }}{{ $modulePrice !== null && $modulePrice > 0 ? ' (₹' . number_format((float) $modulePrice, 2) . '/day)' : '' }}
+                                        {{ $moduleName }}
                                     </label>
                                 </div>
                             </div>
                         @endforeach
                     </div>
-                    <div id="adModulePriceNote" class="form-text text-muted">Modules are optional. Leave all unchecked to show all categories, or check modules to filter categories.</div>
+                    <div id="adModulePriceNote" class="form-text text-muted">Modules are optional. Price may increase or decrease when you select modules. Leave all unchecked to show all categories.</div>
                 </div>
                 <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -87,15 +180,6 @@
                             <option value="{{ $category->id }}" data-ad-price="{{ $categoryPrice !== null ? (float) $categoryPrice : '' }}" data-modules="{{ e(json_encode(array_values(array_filter($category->modules ?? [], fn($module) => $module !== 'ads')))) }}" {{ in_array((string) $category->id, array_map('strval', $selectedCategoryIds), true) ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach
                     </select>
-                    @if((bool) ($size['is_paid'] ?? false))
-                        <div id="adCategoryPriceNote" class="form-text text-muted">Select a category to see this size price.</div>
-                        <div id="adCategoryPremiumChip" class="d-none mt-2">
-                            <span class="badge rounded-pill px-3 py-2 fw-semibold text-warning-emphasis bg-warning-subtle border border-warning-subtle">
-                                <i class="fa-solid fa-crown me-1" aria-hidden="true"></i>
-                                Premium • ₹0.00
-                            </span>
-                        </div>
-                    @endif
                 </div>
                 <div class="col-md-6">
                     <label for="subcategorySelect" class="form-label fw-semibold required-label">Sub Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -330,38 +414,43 @@
                 </div>
             </div>
 
-            @if((bool) ($size['is_paid'] ?? false))
-                <div id="pricingDetailsCard" class="mt-4 rounded-4 border p-4 d-none" style="background:#f5f2ec;border-color:#f1bb86 !important;">
-                    <h4 class="mb-3">Pricing Details</h4>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Category price / day</span>
-                        <strong id="pricingCategoryPrice">₹0.00</strong>
+            @if($showSizePricing)
+                <div id="pricingDetailsCard" class="ad-size-pricing-card mt-4" data-max-price="{{ $sizeMaxPricePerDay }}">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="ad-size-pricing-card__label" id="pricingAmountLabel">Estimated placement price</div>
+                            <div class="ad-size-pricing-card__amount">
+                                <span class="ad-size-pricing-card__currency">₹</span>
+                                <span class="ad-size-pricing-card__value" id="pricingBasePrice">{{ number_format($sizeMaxPricePerDay, 2) }}</span>
+                                <span class="ad-size-pricing-card__period">/ day</span>
+                            </div>
+                            <p class="ad-size-pricing-card__note mb-0" id="pricingModuleNote">Final price may go up or down based on the modules and category you select.</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2">
+                                <i class="fa-solid fa-crown me-1" aria-hidden="true"></i>Paid placement
+                            </span>
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Module price / day</span>
-                        <strong id="pricingModulePrice">₹0.00</strong>
+                    <div id="pricingEstimateSection" class="ad-size-pricing-card__estimate d-none">
+                        <div class="ad-size-pricing-card__estimate-row">
+                            <span>Duration</span>
+                            <strong id="pricingTotalDays">1</strong>
+                        </div>
+                        <div class="ad-size-pricing-card__estimate-row">
+                            <span>Subtotal</span>
+                            <strong id="pricingSubtotal">₹0.00</strong>
+                        </div>
+                        <div class="ad-size-pricing-card__estimate-row">
+                            <span>GST (5%)</span>
+                            <strong id="pricingGst">₹0.00</strong>
+                        </div>
+                        <div class="ad-size-pricing-card__estimate-total mt-2">
+                            <span>Estimated total</span>
+                            <strong id="pricingGrandTotal">₹0.00</strong>
+                        </div>
+                        <p id="pricingHint" class="ad-size-pricing-card__note mb-0 mt-2">Valid until is not selected, so the estimate uses a 1-day placement price.</p>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Base price / day (Category + Module)</span>
-                        <strong id="pricingBasePrice">₹0.00</strong>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Total days</span>
-                        <strong id="pricingTotalDays">1</strong>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Subtotal (Base × Days)</span>
-                        <strong id="pricingSubtotal">₹0.00</strong>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span>GST (5%)</span>
-                        <strong id="pricingGst">₹0.00</strong>
-                    </div>
-                    <div class="border-top pt-3 d-flex justify-content-between align-items-center">
-                        <strong class="fs-4">Grand Total</strong>
-                        <strong class="fs-3" id="pricingGrandTotal">₹0.00</strong>
-                    </div>
-                    <p id="pricingHint" class="text-secondary mb-0 mt-3">Valid until is not selected, so GST is calculated on the standard 1-day base price.</p>
                 </div>
             @endif
 
@@ -1330,12 +1419,13 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             $select.prop('disabled', !!selectElement.disabled).trigger('change.select2');
         }
 
-        const categoryPriceNote = document.getElementById('adCategoryPriceNote');
-        const adCategoryPremiumChip = document.getElementById('adCategoryPremiumChip');
+        const pricingHeroValue = document.getElementById('pricingHeroValue');
+        const pricingHeroLabel = document.getElementById('pricingHeroLabel');
+        const pricingHeroNote = document.getElementById('pricingHeroNote');
+        const pricingAmountLabel = document.getElementById('pricingAmountLabel');
+        const pricingModuleNote = document.getElementById('pricingModuleNote');
         const moduleCheckboxes = Array.from(document.querySelectorAll('.js-module-checkbox[name="selected_modules[]"]'));
         const adModulePriceNote = document.getElementById('adModulePriceNote');
-        const pricingCategoryPrice = document.getElementById('pricingCategoryPrice');
-        const pricingModulePrice = document.getElementById('pricingModulePrice');
         const validUntilInput = document.querySelector('input[name="valid_until"]');
         const pricingBasePrice = document.getElementById('pricingBasePrice');
         const pricingTotalDays = document.getElementById('pricingTotalDays');
@@ -1344,6 +1434,8 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         const pricingGrandTotal = document.getElementById('pricingGrandTotal');
         const pricingHint = document.getElementById('pricingHint');
         const pricingDetailsCard = document.getElementById('pricingDetailsCard');
+        const pricingEstimateSection = document.getElementById('pricingEstimateSection');
+        const configuredMaxPrice = Number(pricingDetailsCard?.dataset.maxPrice || document.getElementById('adSizePricingHero')?.dataset.maxPrice || 0);
         const isSquareSizeType = @json($sizeType === 'square');
 
         const allCategoryOptions = categorySelect
@@ -1482,6 +1574,18 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             return { days: Math.max(1, diffDays), usedFallback: false };
         }
 
+        function selectedCategoryPricePerDay() {
+            if (!categorySelect) return 0;
+            const selectedOptions = Array.from(categorySelect.selectedOptions || []);
+            if (selectedOptions.length === 0) return 0;
+
+            const prices = selectedOptions
+                .map((option) => Number(option.dataset.adPrice || 0))
+                .filter((amount) => Number.isFinite(amount) && amount > 0);
+
+            return prices.length > 0 ? Math.max(...prices) : 0;
+        }
+
         function selectedModulePricePerDay() {
             return moduleCheckboxes.reduce((total, checkbox) => {
                 if (!checkbox.checked) return total;
@@ -1490,63 +1594,83 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             }, 0);
         }
 
-        function updatePricingDetails(categoryPrice, modulePrice = selectedModulePricePerDay()) {
-            if (!pricingBasePrice || !pricingTotalDays || !pricingSubtotal || !pricingGst || !pricingGrandTotal) return;
-            const normalizedCategoryPrice = Number.isFinite(Number(categoryPrice)) && Number(categoryPrice) > 0 ? Number(categoryPrice) : 0;
-            const normalizedModulePrice = Number.isFinite(Number(modulePrice)) && Number(modulePrice) > 0 ? Number(modulePrice) : 0;
-            const normalizedBasePrice = normalizedCategoryPrice + normalizedModulePrice;
+        function currentPlacementPricePerDay() {
+            const categoryPrice = selectedCategoryPricePerDay();
+            const modulePrice = selectedModulePricePerDay();
+            const combined = categoryPrice + modulePrice;
 
-            if (pricingDetailsCard) {
-                pricingDetailsCard.classList.toggle('d-none', normalizedBasePrice <= 0);
+            if (combined > 0) {
+                return combined;
             }
+
+            return Number.isFinite(configuredMaxPrice) && configuredMaxPrice > 0 ? configuredMaxPrice : 0;
+        }
+
+        function formatInr(amount) {
+            return Number(amount || 0).toFixed(2);
+        }
+
+        function updatePricingDisplay() {
+            if (!pricingBasePrice) return;
+
+            const placementPrice = currentPlacementPricePerDay();
+            const hasCategorySelection = selectedCategoryPricePerDay() > 0;
+            const hasModuleSelection = selectedModulePricePerDay() > 0;
+            const usingConfiguredMax = !hasCategorySelection && !hasModuleSelection && placementPrice > 0;
+            const formattedPlacementPrice = formatInr(placementPrice);
+
+            pricingBasePrice.textContent = formattedPlacementPrice;
+            if (pricingHeroValue) {
+                pricingHeroValue.textContent = formattedPlacementPrice;
+            }
+
+            if (pricingAmountLabel) {
+                pricingAmountLabel.textContent = usingConfiguredMax ? 'Maximum placement price' : 'Estimated placement price';
+            }
+            if (pricingHeroLabel) {
+                pricingHeroLabel.textContent = usingConfiguredMax ? 'Maximum placement price' : 'Estimated placement price';
+            }
+
+            const moduleNote = 'Final price may go up or down based on the modules and category you select.';
+            if (pricingModuleNote) {
+                pricingModuleNote.textContent = moduleNote;
+            }
+            if (pricingHeroNote) {
+                pricingHeroNote.textContent = moduleNote;
+            }
+            if (adModulePriceNote) {
+                adModulePriceNote.textContent = hasModuleSelection
+                    ? 'Selected modules are applied. Price may increase or decrease when you change modules.'
+                    : 'Modules are optional. Price may increase or decrease when you select modules. Leave all unchecked to show all categories.';
+            }
+
             const { days, usedFallback } = calculateValidDays();
-            const subtotal = normalizedBasePrice * days;
+            const subtotal = placementPrice * days;
             const gst = subtotal * 0.05;
             const grandTotal = subtotal + gst;
+            const showEstimate = placementPrice > 0;
 
-            if (pricingCategoryPrice) pricingCategoryPrice.textContent = `₹${normalizedCategoryPrice.toFixed(2)}`;
-            if (pricingModulePrice) pricingModulePrice.textContent = `₹${normalizedModulePrice.toFixed(2)}`;
-            pricingBasePrice.textContent = `₹${normalizedBasePrice.toFixed(2)}`;
-            pricingTotalDays.textContent = String(days);
-            pricingSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
-            pricingGst.textContent = `₹${gst.toFixed(2)}`;
-            pricingGrandTotal.textContent = `₹${grandTotal.toFixed(2)}`;
+            if (pricingEstimateSection) {
+                pricingEstimateSection.classList.toggle('d-none', !showEstimate);
+            }
+            if (pricingTotalDays) pricingTotalDays.textContent = String(days);
+            if (pricingSubtotal) pricingSubtotal.textContent = `₹${formatInr(subtotal)}`;
+            if (pricingGst) pricingGst.textContent = `₹${formatInr(gst)}`;
+            if (pricingGrandTotal) pricingGrandTotal.textContent = `₹${formatInr(grandTotal)}`;
 
             if (pricingHint) {
                 pricingHint.textContent = usedFallback
-                    ? 'Valid until is not selected, so GST is calculated on the standard 1-day base price.'
-                    : `Valid upto is ${days} day${days > 1 ? 's' : ''}.`;
+                    ? 'Valid until is not selected, so the estimate uses a 1-day placement price.'
+                    : `Estimated for ${days} day${days > 1 ? 's' : ''} including 5% GST.`;
             }
         }
 
         function updateCategoryPriceNote() {
-            if (!categoryPriceNote || !categorySelect) return;
-            const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-            const price = selectedOption ? selectedOption.dataset.adPrice : '';
-            if (price === undefined || price === '') {
-                categoryPriceNote.textContent = categorySelect.value ? 'No price is configured for this category and size.' : 'Select a category to see this size price.';
-                adCategoryPremiumChip?.classList.add('d-none');
-                updatePricingDetails(0);
-                return;
-            }
-
-            const formattedPrice = Number(price).toFixed(2);
-            categoryPriceNote.textContent = `Price for this category and size: ₹${formattedPrice}`;
-            if (adCategoryPremiumChip) {
-                adCategoryPremiumChip.classList.remove('d-none');
-                adCategoryPremiumChip.innerHTML = `<span class="badge rounded-pill px-3 py-2 fw-semibold text-warning-emphasis bg-warning-subtle border border-warning-subtle"><i class="fa-solid fa-crown me-1" aria-hidden="true"></i> Premium • ₹${formattedPrice}</span>`;
-            }
-            updatePricingDetails(price);
+            updatePricingDisplay();
         }
 
         function updateModulePriceNote() {
-            if (!adModulePriceNote) return;
-            const modulePrice = selectedModulePricePerDay();
-            adModulePriceNote.textContent = modulePrice > 0
-                ? `Selected module charges: ₹${modulePrice.toFixed(2)}/day`
-                : 'Selected modules are free for this size.';
-            const selectedOption = categorySelect?.options[categorySelect.selectedIndex];
-            updatePricingDetails(selectedOption ? selectedOption.dataset.adPrice : 0, modulePrice);
+            updatePricingDisplay();
         }
 
         initCategorySubcategorySelect2();

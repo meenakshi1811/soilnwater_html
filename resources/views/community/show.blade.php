@@ -349,6 +349,15 @@
             @if($post->content_type === 'articles' && filled(data_get($post->meta, 'article_type')))
                 <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'article_type') }}</span>
             @endif
+            @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_type')))
+                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'news_type') }}</span>
+            @endif
+            @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_priority')))
+                <span class="badge bg-warning text-dark community-post-banner-tag">{{ data_get($post->meta, 'news_priority') }}</span>
+            @endif
+            @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_impact_level')))
+                <span class="badge bg-danger community-post-banner-tag">{{ data_get($post->meta, 'news_impact_level') }} impact</span>
+            @endif
             @if($post->content_type === 'reports' && filled($post->reportStatus()))
                 <span class="badge {{ $post->reportStatusBadgeClass() }} community-post-banner-tag">{{ $post->reportStatus() }}</span>
             @endif
@@ -358,6 +367,9 @@
             <span class="badge bg-light text-dark community-post-banner-tag">{{ filled(data_get($post->meta, 'report_type')) ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</span>
         </div>
         <h1>{{ $post->title }}</h1>
+        @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_subtitle')))
+            <p class="lead mb-2">{{ data_get($post->meta, 'news_subtitle') }}</p>
+        @endif
         <p>
             By
             @if($post->showsAuthorProfileLink())
@@ -480,19 +492,6 @@
                     'recommendations' => 'Recommendations',
                     'location' => 'Coverage / study area',
                 ];
-                $newsMetaLabels = [
-                    'news_subtitle' => 'Subtitle / deck',
-                    'news_dateline' => 'Dateline',
-                    'news_date' => 'News date',
-                    'reporter_name' => 'Reporter / byline',
-                    'news_source' => 'Primary source',
-                    'source_url' => 'Source URL',
-                    'fact_summary' => 'Verified facts / 5W summary',
-                    'verification_notes' => 'Verification notes',
-                    'impact_area' => 'Impact / affected area',
-                    'quote_attribution' => 'Quote / attribution',
-                    'location' => 'News location',
-                ];
                 $myAreaMetaLabels = \App\Support\CommunityPostFormFields::reportDetailMetaOrder() + [
                     'location' => 'GPS issue location',
                 ];
@@ -501,14 +500,11 @@
                     'voice_perspective' => 'Perspective',
                     'location' => 'Related location',
                 ];
+                $newsMetaOrder = array_keys(\App\Support\CommunityPostFormFields::newsDetailMetaOrder());
                 $reportMetaOrder = array_keys($reportMetaLabels);
-                $newsMetaOrder = array_keys($newsMetaLabels);
                 $myAreaMetaOrder = array_keys($myAreaMetaLabels);
                 $myVoiceMetaOrder = array_keys($myVoiceMetaLabels);
                 $orderedReportMeta = collect($reportMetaOrder)
-                    ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
-                    ->filter(fn ($value) => filled($value) || is_bool($value));
-                $orderedNewsMeta = collect($newsMetaOrder)
                     ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
                     ->filter(fn ($value) => filled($value) || is_bool($value));
                 $orderedMyAreaMeta = collect($myAreaMetaOrder)
@@ -518,7 +514,13 @@
                     ->mapWithKeys(fn ($key) => [$key => data_get($post->meta, $key)])
                     ->filter(fn ($value) => filled($value) || is_bool($value));
                 $additionalReportMeta = $visibleMeta->except([...$reportMetaOrder, 'report_format', 'author_bio']);
-                $additionalNewsMeta = $visibleMeta->except([...$newsMetaOrder, 'author_bio']);
+                $additionalNewsMeta = $visibleMeta->except([
+                    ...$newsMetaOrder,
+                    ...\App\Models\CommunityPost::structuredLocationMetaKeys(),
+                    'author_bio',
+                    'news_documents',
+                    'fact_summary',
+                ]);
                 $additionalMyAreaMeta = $visibleMeta->except([...$myAreaMetaOrder, 'report_format', 'issue_attachments', 'author_bio']);
                 $additionalMyVoiceMeta = $visibleMeta->except([...$myVoiceMetaOrder, 'author_bio']);
             @endphp
@@ -545,24 +547,8 @@
                     $visibleMeta = $additionalReportMeta;
                 @endphp
             @endif
-            @if($post->content_type === 'news' && $orderedNewsMeta->isNotEmpty())
-                <div class="about-box mt-4">
-                    <h4>News details</h4>
-                    <div class="row g-3">
-                        @foreach($orderedNewsMeta as $key => $value)
-                            <div class="col-md-6">
-                                <div class="border rounded p-3 h-100 bg-light">
-                                    <strong class="d-block mb-1">{{ $newsMetaLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
-                                    @if($key === 'source_url')
-                                        <a href="{{ $value }}" target="_blank" rel="noopener">{{ $value }}</a>
-                                    @else
-                                        <span>{!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</span>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
+            @if($post->content_type === 'news')
+                @include('community.partials.news-meta-details', ['post' => $post])
                 @php
                     $visibleMeta = $additionalNewsMeta;
                 @endphp
@@ -585,7 +571,32 @@
                     $visibleMeta = $additionalMyVoiceMeta;
                 @endphp
             @endif
-            @if(filled($post->location_type))
+            @if(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && $post->content_type !== 'news' && $post->structuredLocationForDisplay()->isNotEmpty())
+                <div class="about-box mt-4">
+                    <h4>Location information</h4>
+                    <div class="row g-3">
+                        @foreach($post->structuredLocationForDisplay() as $key => $value)
+                            <div class="col-md-6">
+                                <div class="border rounded p-3 h-100 bg-light">
+                                    <strong class="d-block mb-1">{{ \App\Models\CommunityPost::structuredLocationLabels()[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
+                                    <span>{{ $value }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    @if($post->hasMapCoordinates())
+                        <p class="mb-2 mt-3"><strong>Map location:</strong> {{ $post->location_lat }}, {{ $post->location_lng }}</p>
+                        <div class="ratio ratio-16x9 border rounded overflow-hidden">
+                            <iframe
+                                title="Post GPS location map"
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                src="https://www.openstreetmap.org/export/embed.html?bbox={{ $post->location_lng - 0.02 }},{{ $post->location_lat - 0.02 }},{{ $post->location_lng + 0.02 }},{{ $post->location_lat + 0.02 }}&layer=mapnik&marker={{ $post->location_lat }},{{ $post->location_lng }}"
+                            ></iframe>
+                        </div>
+                    @endif
+                </div>
+            @elseif(filled($post->location_type))
                 <div class="about-box mt-4">
                     <h4>Location information</h4>
                     <p class="mb-2"><strong>Type:</strong> {{ $post->locationTypeLabel() }}</p>
@@ -724,11 +735,34 @@
                 </ul>
             </div>
 
-            @if($post->user_id && $post->resolvedPublishAs() !== \App\Models\CommunityPost::PUBLISH_AS_ANONYMOUS)
+            @if($post->content_type === 'news' && $post->allowsNewsDiscussion())
+                <section class="about-box mt-4" id="comments-discussion">
+                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+                        <div>
+                            <h4 class="mb-1">Comments &amp; Discussion</h4>
+                            <p class="text-muted mb-0">Readers can comment, ask questions, or share suggestions. Authors are notified in the portal and by email; readers are notified when questions are answered.</p>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @if($post->allow_comments)
+                                <span class="badge bg-success">Comments open</span>
+                            @endif
+                            @if($post->allow_questions)
+                                <span class="badge bg-success">Questions open</span>
+                            @endif
+                            @if($post->allow_suggestions)
+                                <span class="badge bg-success">Suggestions open</span>
+                            @endif
+                        </div>
+                    </div>
+            @endif
+
+            @if($post->user_id && $post->resolvedPublishAs() !== \App\Models\CommunityPost::PUBLISH_AS_ANONYMOUS && $post->allow_questions)
                 @include('community.partials.author-questions', [
                     'author' => $post->user,
                     'post' => $post,
                     'answeredQuestions' => $answeredAuthorQuestions ?? collect(),
+                    'sectionTitle' => $post->content_type === 'news' ? 'Questions' : null,
+                    'compactSection' => $post->content_type === 'news',
                 ])
             @endif
 
@@ -737,7 +771,12 @@
                 'participationSuggestions' => $participationSuggestions ?? collect(),
                 'participationFeedback' => $participationFeedback ?? collect(),
                 'communityParticipationEvidence' => $communityParticipationEvidence ?? collect(),
+                'hideSectionHeader' => $post->content_type === 'news' && $post->allowsNewsDiscussion(),
             ])
+
+            @if($post->content_type === 'news' && $post->allowsNewsDiscussion())
+                </section>
+            @endif
         </section>
     </div>
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Community\CommunityEngagementController;
 use App\Models\CommunityAuthorQuestion;
 use App\Models\CommunityPost;
+use App\Models\CommunityPostParticipation;
 use App\Models\CommunityPostComment;
 use App\Models\CommunityPostPollVote;
 use App\Models\CommunityPostReaction;
@@ -91,26 +92,64 @@ class CommunityPostController extends Controller
             $this->recordPostView($request, $post);
         }
 
-        return view('community.show', [
+        return view('community.show', array_merge([
             'post' => $post,
             'types' => CommunityContentTaxonomy::formTypes(),
             'answeredAuthorQuestions' => $post->user_id
                 ? $this->answeredQuestionsForPost($post)
                 : collect(),
             'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+        ], $this->participationViewData($post)));
+    }
+
+    public function authorShow(Request $request, CommunityPost $post): View
+    {
+        $this->authorizeOwner($request, $post);
+
+        $post->load([
+            'user',
+            'discussionComments.user',
+            'discussionComments.replies.user',
+        ]);
+
+        $participation = $this->participationViewData($post, limit: 50);
+
+        return view('backend.community-posts.show', array_merge([
+            'post' => $post,
+            'engagementSummary' => $post->engagementSummary(),
+            'pendingAuthorQuestions' => $post->authorQuestions()
+                ->with(['asker:id,name,full_name,email'])
+                ->whereNull('answered_at')
+                ->latest()
+                ->get(),
+            'answeredAuthorQuestions' => $post->authorQuestions()
+                ->with(['asker:id,name,full_name'])
+                ->whereNotNull('answered_at')
+                ->latest()
+                ->limit(20)
+                ->get(),
+        ], $participation));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function participationViewData(CommunityPost $post, int $limit = 20): array
+    {
+        return [
             'reportEngagement' => $post->isReportContent()
                 ? CommunityReportEngagementNotificationService::stateForPost($post, auth()->id())
                 : null,
             'communityParticipationEvidence' => $post->allow_additional_evidence
-                ? CommunityReportEngagementNotificationService::recentEvidence($post)
+                ? CommunityReportEngagementNotificationService::recentEvidence($post, $limit)
                 : collect(),
             'participationSuggestions' => $post->allow_suggestions
-                ? $post->participations()->with('user:id,name,full_name')->where('type', \App\Models\CommunityPostParticipation::TYPE_SUGGESTION)->latest()->limit(20)->get()
+                ? $post->participations()->with('user:id,name,full_name')->where('type', CommunityPostParticipation::TYPE_SUGGESTION)->latest()->limit($limit)->get()
                 : collect(),
             'participationFeedback' => $post->allow_feedback
-                ? $post->participations()->with('user:id,name,full_name')->where('type', \App\Models\CommunityPostParticipation::TYPE_FEEDBACK)->latest()->limit(20)->get()
+                ? $post->participations()->with('user:id,name,full_name')->where('type', CommunityPostParticipation::TYPE_FEEDBACK)->latest()->limit($limit)->get()
                 : collect(),
-        ]);
+        ];
     }
 
     public function react(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
@@ -248,6 +287,12 @@ class CommunityPostController extends Controller
 
         $query = CommunityPost::query()
             ->where('user_id', $request->user()->id)
+            ->withCount([
+                'comments',
+                'suggestions',
+                'authorQuestions as questions_count',
+                'authorQuestions as pending_questions_count' => fn ($builder) => $builder->whereNull('answered_at'),
+            ])
             ->select([
                 'id',
                 'slug',
@@ -276,8 +321,15 @@ class CommunityPostController extends Controller
                 return $post->isPendingApproval() ? 'Awaiting approval' : '—';
             })
             ->addColumn('actions', function (CommunityPost $post): string {
-                return '<div class="d-flex gap-2 justify-content-end">'
-                    .'<a href="'.route('community.posts.show', $post).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a>'
+                $engagementTotal = ($post->comments_count ?? 0) + ($post->suggestions_count ?? 0) + ($post->pending_questions_count ?? 0);
+                $engagementBadge = $engagementTotal > 0
+                    ? ' <span class="badge bg-info text-dark" title="Comments / suggestions / pending questions">'.($post->comments_count ?? 0).'/'.($post->suggestions_count ?? 0).'/'.($post->pending_questions_count ?? 0).'</span>'
+                    : '';
+
+                return '<div class="d-flex gap-2 justify-content-end align-items-center">'
+                    .$engagementBadge
+                    .'<a href="'.route('community.posts.manage', $post).'" class="btn btn-sm btn-outline-success" title="Manage post"><i class="fa-solid fa-comments"></i></a>'
+                    .'<a href="'.route('community.show', $post).'" class="btn btn-sm btn-outline-primary" title="Public page" target="_blank" rel="noopener"><i class="fa-solid fa-eye"></i></a>'
                     .'<a href="'.route('community.posts.edit', $post).'" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fa-solid fa-pen"></i></a>'
                     .'<button type="button" class="btn btn-sm btn-outline-danger js-delete-post" data-slug="'.e($post->slug).'" title="Delete"><i class="fa-solid fa-trash"></i></button>'
                     .'</div>';
@@ -296,6 +348,10 @@ class CommunityPostController extends Controller
 
         foreach ((array) data_get($post->meta, 'issue_attachments', []) as $attachment) {
             CommunityPostFileUploader::deleteIfExists(data_get($attachment, 'path'));
+        }
+
+        foreach ((array) data_get($post->meta, 'news_documents', []) as $document) {
+            CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
         }
 
         $this->deleteVideoFile($post->videoData());
@@ -341,7 +397,7 @@ class CommunityPostController extends Controller
     public function create(): View
     {
         return view('backend.community-posts.form', [
-            'post' => new CommunityPost(['status' => CommunityPost::STATUS_PUBLISHED, 'allow_comments' => true, 'allow_sharing' => true, 'allow_poll' => false]),
+            'post' => new CommunityPost(['status' => CommunityPost::STATUS_PUBLISHED, 'allow_comments' => true, 'allow_questions' => true, 'allow_sharing' => true, 'allow_poll' => false]),
             'types' => CommunityContentTaxonomy::formTypes(),
             'mode' => 'create',
         ]);
@@ -361,7 +417,14 @@ class CommunityPostController extends Controller
         if ($request->hasFile('issue_attachments')) {
             $data['meta']['issue_attachments'] = $this->storeIssueAttachments($request);
         }
+        if ($request->hasFile('news_documents')) {
+            $documents = $this->storeNewsDocuments($request);
+            if ($documents !== []) {
+                $data['meta']['news_documents'] = $documents;
+            }
+        }
         $data['allow_comments'] = $this->shouldAllowComments($request);
+        $data['allow_questions'] = $this->shouldAllowQuestions($request);
         $data['allow_suggestions'] = $this->shouldAllowSuggestions($request);
         $data['allow_feedback'] = $this->shouldAllowFeedback($request);
         $data['allow_additional_evidence'] = $this->shouldAllowAdditionalEvidence($request);
@@ -426,7 +489,15 @@ class CommunityPostController extends Controller
             $data['meta']['issue_attachments'] = data_get($post->meta, 'issue_attachments');
         }
 
+        $newsDocuments = $this->resolveNewsDocuments($request, $post);
+        if ($newsDocuments !== null) {
+            $data['meta']['news_documents'] = $newsDocuments;
+        } elseif (data_get($post->meta, 'news_documents')) {
+            unset($data['meta']['news_documents']);
+        }
+
         $data['allow_comments'] = $this->shouldAllowComments($request);
+        $data['allow_questions'] = $this->shouldAllowQuestions($request);
         $data['allow_suggestions'] = $this->shouldAllowSuggestions($request);
         $data['allow_feedback'] = $this->shouldAllowFeedback($request);
         $data['allow_additional_evidence'] = $this->shouldAllowAdditionalEvidence($request);
@@ -503,6 +574,7 @@ class CommunityPostController extends Controller
         $typeKeys = array_keys(CommunityContentTaxonomy::formTypes());
         $contentType = $request->input('content_type');
         $isReport = $contentType === 'reports';
+        $usesStructuredLocation = CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null);
 
         $rules = [
             'content_type' => ['required', Rule::in($typeKeys)],
@@ -562,6 +634,7 @@ class CommunityPostController extends Controller
                 'max:120',
             ],
             'allow_comments' => ['nullable', 'boolean'],
+            'allow_questions' => ['nullable', 'boolean'],
             'allow_suggestions' => ['nullable', 'boolean'],
             'allow_feedback' => ['nullable', 'boolean'],
             'allow_additional_evidence' => ['nullable', 'boolean'],
@@ -574,25 +647,26 @@ class CommunityPostController extends Controller
                 'max:160',
             ],
             'author_bio' => ['nullable', 'string', 'max:500'],
-            'location_type' => ['required', Rule::in(array_keys(CommunityPost::locationTypeOptions($contentType)))],
-            'location' => [
-                Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
-                'nullable',
-                'string',
-                'max:160',
-            ],
-            'location_lat' => [
-                Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
-                'nullable',
-                'numeric',
-                'between:-90,90',
-            ],
-            'location_lng' => [
-                Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
-                'nullable',
-                'numeric',
-                'between:-180,180',
-            ],
+            'location_type' => $usesStructuredLocation
+                ? ['nullable', Rule::in(array_keys(CommunityPost::locationTypeOptions($contentType)))]
+                : ['required', Rule::in(array_keys(CommunityPost::locationTypeOptions($contentType)))],
+            'location' => ['nullable', 'string', 'max:160'],
+            'location_lat' => $usesStructuredLocation
+                ? ['nullable', 'numeric', 'between:-90,90']
+                : [
+                    Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
+                    'nullable',
+                    'numeric',
+                    'between:-90,90',
+                ],
+            'location_lng' => $usesStructuredLocation
+                ? ['nullable', 'numeric', 'between:-180,180']
+                : [
+                    Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
+                    'nullable',
+                    'numeric',
+                    'between:-180,180',
+                ],
             'video_source_type' => ['nullable', Rule::in(['none', 'youtube', 'upload'])],
             'video_youtube_url' => [
                 Rule::requiredIf(fn () => $request->input('video_source_type') === 'youtube'),
@@ -627,6 +701,10 @@ class CommunityPostController extends Controller
             'report_conclusion' => ['nullable', 'string', 'max:3000'],
             'issue_attachments' => ['nullable', 'array', 'max:6'],
             'issue_attachments.*' => ['file', 'max:20480', 'mimes:jpg,jpeg,png,webp,mp4,mov,avi,pdf,doc,docx'],
+            'news_documents' => ['nullable', 'array', 'max:6'],
+            'news_documents.*' => ['file', 'max:20480', 'mimes:pdf,doc,docx'],
+            'removed_news_documents' => ['nullable', 'array'],
+            'removed_news_documents.*' => ['string', 'max:255'],
             'accept_content_responsibility' => ['accepted'],
             'accept_original_work_indemnity' => ['accepted'],
         ];
@@ -660,7 +738,9 @@ class CommunityPostController extends Controller
 
         unset($validated['book_pages']);
 
-        if ($validated['location_type'] === CommunityPost::LOCATION_TYPE_GPS) {
+        if ($usesStructuredLocation) {
+            $validated = $this->applyStructuredLocation($validated, $request);
+        } elseif ($validated['location_type'] === CommunityPost::LOCATION_TYPE_GPS) {
             $validated['location'] = filled($validated['location'] ?? null)
                 ? $validated['location']
                 : 'GPS Location';
@@ -685,6 +765,22 @@ class CommunityPostController extends Controller
         if (! ($validated['allow_poll'] ?? false)) {
             $validated['poll_subject'] = null;
         }
+
+        return $validated;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function applyStructuredLocation(array $validated, Request $request): array
+    {
+        $structuredFields = $request->only(CommunityPost::structuredLocationMetaKeys());
+
+        $validated['location_type'] = CommunityPost::inferLocationTypeFromStructured($structuredFields);
+        $validated['location'] = CommunityPost::composeStructuredLocation($structuredFields);
+        $validated['location_lat'] = filled($request->input('location_lat')) ? $request->input('location_lat') : null;
+        $validated['location_lng'] = filled($request->input('location_lng')) ? $request->input('location_lng') : null;
 
         return $validated;
     }
@@ -788,6 +884,15 @@ class CommunityPostController extends Controller
         return $request->boolean('allow_comments');
     }
 
+    private function shouldAllowQuestions(Request $request): bool
+    {
+        if ($request->input('content_type') === 'news') {
+            return $request->boolean('allow_questions');
+        }
+
+        return $request->boolean('allow_questions', true);
+    }
+
     private function shouldAllowSharing(Request $request): bool
     {
         return $request->boolean('allow_sharing');
@@ -860,6 +965,45 @@ class CommunityPostController extends Controller
             ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file))
             ->values()
             ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeNewsDocuments(Request $request): array
+    {
+        return collect($request->file('news_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'news-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveNewsDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        $existing = (array) data_get($post?->meta, 'news_documents', []);
+        $removed = (array) $request->input('removed_news_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('news_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('news_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeNewsDocuments($request)));
+        }
+
+        return $kept;
     }
 
     /**

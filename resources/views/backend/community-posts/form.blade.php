@@ -67,6 +67,50 @@
                     <option value="">Select category</option>
                 </select>
             </div>
+            <div class="col-12 type-extra" data-for="news">
+                <div class="news-classification-card border rounded-3 p-3 p-md-4">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
+                        <div>
+                            <h5 class="mb-1">News classification</h5>
+                            <p class="text-muted mb-0 small">Choose the news format and geographic scope before writing the story.</p>
+                        </div>
+                        <span class="badge bg-primary text-white">News only</span>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <div class="news-classification-panel h-100">
+                                <div class="news-classification-panel__icon">
+                                    <i class="fa-solid fa-newspaper" aria-hidden="true"></i>
+                                </div>
+                                <div class="news-classification-panel__copy">
+                                    <h6 class="news-classification-panel__title">News type <span class="text-danger">*</span></h6>
+                                    <p class="news-classification-panel__hint">Very important.</p>
+                                </div>
+                                <select name="news_type" class="form-select news-required">
+                                    <option value="">Select news type</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::newsTypeGroups() as $groupLabel => $groupOptions)
+                                        <optgroup label="{{ $groupLabel }}">
+                                            @foreach($groupOptions as $newsType)
+                                                <option value="{{ $newsType }}" @selected(old('news_type', data_get($post->meta, 'news_type')) === $newsType)>{{ $newsType }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="news-classification-panel news-classification-panel--location mt-4">
+                        <div class="news-classification-panel__icon news-classification-panel__icon--location">
+                            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                        </div>
+                        <div class="news-classification-panel__copy">
+                            <h6 class="news-classification-panel__title">Location fields</h6>
+                            <p class="news-classification-panel__hint">Critical for SoilnWater.</p>
+                        </div>
+                        <div id="communityNewsLocationSlot" class="news-classification-panel__fields"></div>
+                    </div>
+                </div>
+            </div>
             <div class="col-md-8">
                 <label class="form-label">Title <span class="text-danger">*</span></label>
                 <input type="text" name="title" class="form-control" value="{{ old('title', $post->title) }}" maxlength="255" required>
@@ -132,9 +176,9 @@
                     <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6" id="communityFeaturedImagesWrap">
                 <label class="form-label d-flex align-items-center justify-content-between gap-2">
-                    <span>Featured images</span>
+                    <span id="featuredImagesLabel">Featured images</span>
                     <small class="text-muted fw-normal" id="featuredImagesCount">0 / 5</small>
                 </label>
                 <div class="featured-images-uploader border rounded-3 p-3">
@@ -142,12 +186,12 @@
                     <button type="button" id="featuredImagesAddBtn" class="btn btn-outline-primary btn-sm">
                         <i class="fa-solid fa-images me-1"></i>Add images
                     </button>
-                    <small class="text-muted d-block mt-2">Upload up to 5 images. JPG, PNG, or WebP, max 4 MB each.</small>
+                    <small class="text-muted d-block mt-2" id="featuredImagesHelp">Upload up to 5 images. JPG, PNG, or WebP, max 4 MB each.</small>
                     <div id="featuredImagesPreview" class="featured-images-grid mt-3"></div>
                     <div id="featuredImagesRemovedWrap"></div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6" id="communityTagsWrap">
                 <label class="form-label d-flex align-items-center justify-content-between gap-2">
                     <span>Tags</span>
                     <small class="text-muted fw-normal" id="communityTagsCount">0 / 10</small>
@@ -164,54 +208,255 @@
                 <input type="text" name="author_bio" class="form-control" value="{{ old('author_bio', data_get($post->meta, 'author_bio')) }}" maxlength="500">
             </div>
             <div class="col-12 type-extra news-flow" data-for="news">
-                <div class="news-flow-card border rounded-3 p-3 bg-light">
-                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
-                        <div>
-                            <h5 class="mb-1">Professional news structure</h5>
-                            <p class="text-muted mb-0 small">Capture the who, what, when, where, why, source, and verification details for publish-ready news.</p>
+                <div class="news-flow-stack d-flex flex-column gap-3">
+                    <div class="news-flow-card border rounded-3 p-3 p-md-4 bg-light">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Event &amp; publication details</h5>
+                                <p class="text-muted mb-0 small">Timing, dateline, and reporter information.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">News only</span>
                         </div>
-                        <span class="badge bg-primary text-white">News only</span>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Event date <span class="text-danger">*</span></label>
+                                <input type="date" name="event_date" class="form-control news-required" value="{{ old('event_date', data_get($post->meta, 'event_date')) }}">
+                                <small class="text-muted d-block mt-1">Example: 15 June 2026</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Event time</label>
+                                <input type="text" name="event_time" class="form-control" value="{{ old('event_time', data_get($post->meta, 'event_time')) }}" maxlength="40" placeholder="7:30 PM">
+                                <small class="text-muted d-block mt-1">Optional. Example: 7:30 PM</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">News submission date</label>
+                                @php
+                                    $newsSubmissionAt = $post->submitted_at ?? ($post->exists ? $post->created_at : null);
+                                @endphp
+                                <input type="text" class="form-control bg-light" value="{{ $newsSubmissionAt ? $newsSubmissionAt->timezone(config('app.timezone'))->format('j F Y, g:i A') : 'Auto-generated on submit' }}" readonly tabindex="-1">
+                                <small class="text-muted d-block mt-1">Auto generated.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">News subtitle / deck</label>
+                                <input type="text" name="news_subtitle" class="form-control" value="{{ old('news_subtitle', data_get($post->meta, 'news_subtitle')) }}" maxlength="255" placeholder="Optional second line below the headline">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Dateline / place <span class="text-danger">*</span></label>
+                                <input type="text" name="news_dateline" class="form-control news-required" value="{{ old('news_dateline', data_get($post->meta, 'news_dateline')) }}" maxlength="160" placeholder="e.g. Jaipur">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">News date <span class="text-danger">*</span></label>
+                                <input type="datetime-local" name="news_date" class="form-control news-required" value="{{ old('news_date', data_get($post->meta, 'news_date')) }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Reporter / byline <span class="text-danger">*</span></label>
+                                <input type="text" name="reporter_name" class="form-control news-required" value="{{ old('reporter_name', data_get($post->meta, 'reporter_name')) }}" maxlength="160" placeholder="Reporter or desk name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Impact / affected area</label>
+                                <textarea name="impact_area" class="form-control" rows="3" maxlength="1000" placeholder="Who is affected and what readers should know">{{ old('impact_area', data_get($post->meta, 'impact_area')) }}</textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Quote / attribution</label>
+                                <textarea name="quote_attribution" class="form-control" rows="2" maxlength="1000" placeholder="Important quote with speaker attribution">{{ old('quote_attribution', data_get($post->meta, 'quote_attribution')) }}</textarea>
+                            </div>
+                        </div>
                     </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">News subtitle / deck</label>
-                            <input type="text" name="news_subtitle" class="form-control" value="{{ old('news_subtitle', data_get($post->meta, 'news_subtitle')) }}" maxlength="255" placeholder="Optional second line below the headline">
+
+                    <div class="news-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">News content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor above for the full story. Complete these structured fields for clarity and searchability.</p>
+                            </div>
+                            <span class="badge bg-secondary-subtle text-secondary border">Structured</span>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Dateline / place <span class="text-danger">*</span></label>
-                            <input type="text" name="news_dateline" class="form-control news-required" value="{{ old('news_dateline', data_get($post->meta, 'news_dateline')) }}" maxlength="160" placeholder="e.g. Jaipur">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="news-narrative-field h-100">
+                                    <label class="form-label">What happened? <span class="text-danger">*</span></label>
+                                    <textarea name="news_what_happened" class="form-control news-required" rows="4" maxlength="2000" placeholder="Describe the core event or development">{{ old('news_what_happened', data_get($post->meta, 'news_what_happened', data_get($post->meta, 'fact_summary'))) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="news-narrative-field h-100">
+                                    <label class="form-label">Where did it happen? <span class="text-danger">*</span></label>
+                                    <textarea name="news_where_happened" class="form-control news-required" rows="4" maxlength="1000" placeholder="City, district, landmark, or venue">{{ old('news_where_happened', data_get($post->meta, 'news_where_happened')) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="news-narrative-field h-100">
+                                    <label class="form-label">When did it happen? <span class="text-danger">*</span></label>
+                                    <textarea name="news_when_happened" class="form-control news-required" rows="3" maxlength="500" placeholder="Date, time, or period readers should know">{{ old('news_when_happened', data_get($post->meta, 'news_when_happened')) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="news-narrative-field h-100">
+                                    <label class="form-label">Who was involved? <span class="text-danger">*</span></label>
+                                    <textarea name="news_who_involved" class="form-control news-required" rows="3" maxlength="1000" placeholder="People, departments, organizations, or groups">{{ old('news_who_involved', data_get($post->meta, 'news_who_involved')) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="news-narrative-field h-100">
+                                    <label class="form-label">Why is it important? <span class="text-danger">*</span></label>
+                                    <textarea name="news_why_important" class="form-control news-required" rows="3" maxlength="1000" placeholder="Explain the impact or significance for readers">{{ old('news_why_important', data_get($post->meta, 'news_why_important')) }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="news-narrative-field h-100">
+                                    <label class="form-label">Current status <span class="text-danger">*</span></label>
+                                    <textarea name="news_current_status" class="form-control news-required" rows="3" maxlength="1000" placeholder="Latest update, ongoing action, or resolution status">{{ old('news_current_status', data_get($post->meta, 'news_current_status')) }}</textarea>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">News date <span class="text-danger">*</span></label>
-                            <input type="datetime-local" name="news_date" class="form-control news-required" value="{{ old('news_date', data_get($post->meta, 'news_date')) }}">
+                    </div>
+
+                    <div class="news-flow-card news-flow-card--impact border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">People, priority &amp; community impact</h5>
+                                <p class="text-muted mb-0 small">Optional mentions and priority, plus SoilnWater community impact tracking.</p>
+                            </div>
+                            <span class="badge bg-success text-white">Community impact</span>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Reporter / byline <span class="text-danger">*</span></label>
-                            <input type="text" name="reporter_name" class="form-control news-required" value="{{ old('reporter_name', data_get($post->meta, 'reporter_name')) }}" maxlength="160" placeholder="Reporter or desk name">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">People &amp; organizations mentioned</label>
+                                <textarea name="news_people_organizations" class="form-control" rows="3" maxlength="2000" placeholder="Mayor, District Magistrate, School Principal, NGO, Company Name">{{ old('news_people_organizations', data_get($post->meta, 'news_people_organizations')) }}</textarea>
+                                <small class="text-muted d-block mt-1">Optional. Examples: Mayor, District Magistrate, School Principal, NGO, Company Name</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">News priority</label>
+                                <select name="news_priority" class="form-select">
+                                    <option value="">Select priority (optional)</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::newsPriorities() as $newsPriority)
+                                        <option value="{{ $newsPriority }}" @selected(old('news_priority', data_get($post->meta, 'news_priority')) === $newsPriority)>{{ $newsPriority }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted d-block mt-1">User suggestion.</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Impact level <span class="text-danger">*</span></label>
+                                <select name="news_impact_level" class="form-select news-required">
+                                    <option value="">Select impact level</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::newsImpactLevels() as $impactLevel)
+                                        <option value="{{ $impactLevel }}" @selected(old('news_impact_level', data_get($post->meta, 'news_impact_level')) === $impactLevel)>{{ $impactLevel }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Affected group <span class="text-danger">*</span></label>
+                                <select name="news_affected_group" class="form-select news-required">
+                                    <option value="">Select affected group</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::newsAffectedGroups() as $affectedGroup)
+                                        <option value="{{ $affectedGroup }}" @selected(old('news_affected_group', data_get($post->meta, 'news_affected_group')) === $affectedGroup)>{{ $affectedGroup }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <div class="alert alert-success py-2 px-3 mb-0 small">
+                                    <strong>Unique SoilnWater feature.</strong> Impact level and affected group help readers understand who this news affects and how urgently the community should respond.
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Primary source <span class="text-danger">*</span></label>
-                            <input type="text" name="news_source" class="form-control news-required" value="{{ old('news_source', data_get($post->meta, 'news_source')) }}" maxlength="160" placeholder="Official, witness, release, or agency">
+                    </div>
+
+                    <div class="news-flow-card news-flow-card--source border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">News source</h5>
+                                <p class="text-muted mb-0 small">Very important for credibility.</p>
+                            </div>
+                            <span class="badge bg-warning text-dark">Credibility</span>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Source URL</label>
-                            <input type="url" name="source_url" class="form-control" value="{{ old('source_url', data_get($post->meta, 'source_url')) }}" maxlength="255" placeholder="https://example.com/source">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Source type <span class="text-danger">*</span></label>
+                                <select name="news_source_type" class="form-select news-required">
+                                    <option value="">Select source type</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::newsSourceTypes() as $sourceType)
+                                        <option value="{{ $sourceType }}" @selected(old('news_source_type', data_get($post->meta, 'news_source_type')) === $sourceType)>{{ $sourceType }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Source <span class="text-danger">*</span></label>
+                                <input type="text" name="news_source" class="form-control news-required" value="{{ old('news_source', data_get($post->meta, 'news_source')) }}" maxlength="160" placeholder="Name of witness, agency, publication, or organization">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Source URL</label>
+                                <input type="url" name="source_url" class="form-control" value="{{ old('source_url', data_get($post->meta, 'source_url')) }}" maxlength="255" placeholder="https://example.com/source">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Verification notes <span class="text-danger">*</span></label>
+                                <textarea name="verification_notes" class="form-control news-required" rows="3" maxlength="2000" placeholder="Cross-checks, documents, official statements, and confirmation status">{{ old('verification_notes', data_get($post->meta, 'verification_notes')) }}</textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Related authority</label>
+                                <input type="text" name="news_related_authority" class="form-control" value="{{ old('news_related_authority', data_get($post->meta, 'news_related_authority')) }}" maxlength="160" placeholder="e.g. Municipal Corporation">
+                                <small class="text-muted d-block mt-1">Optional. Examples: Municipal Corporation, District Administration, School Authority</small>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Verified facts / 5W summary <span class="text-danger">*</span></label>
-                            <textarea name="fact_summary" class="form-control news-required" rows="4" maxlength="2000" placeholder="Who, what, when, where, why, and how confirmed">{{ old('fact_summary', data_get($post->meta, 'fact_summary')) }}</textarea>
+                    </div>
+
+                    <div class="news-flow-card news-flow-card--media border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Images, video &amp; documents</h5>
+                                <p class="text-muted mb-0 small">Add visual evidence, optional video, and supporting official documents.</p>
+                            </div>
+                            <span class="badge bg-info text-dark">Media</span>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Verification notes <span class="text-danger">*</span></label>
-                            <textarea name="verification_notes" class="form-control news-required" rows="4" maxlength="2000" placeholder="Cross-checks, documents, official statements, and confirmation status">{{ old('verification_notes', data_get($post->meta, 'verification_notes')) }}</textarea>
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <div id="communityNewsFeaturedImagesSlot"></div>
+                            </div>
+                            <div class="col-12">
+                                <div id="communityNewsVideoSlot"></div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Documents <span class="text-muted fw-normal">(optional)</span></label>
+                                <input type="file" name="news_documents[]" class="form-control" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple>
+                                <small class="text-muted d-block mt-2">Useful for: Government Orders, Circulars, Press Releases, Reports, Notices. Supported: PDF, DOC, DOCX. Up to 6 files, 20 MB each.</small>
+                                @if(!empty(data_get($post->meta, 'news_documents')))
+                                    <div class="mt-2 d-flex flex-column gap-2">
+                                        @foreach(data_get($post->meta, 'news_documents', []) as $document)
+                                            <label class="d-flex align-items-center gap-2 mb-0">
+                                                <input type="checkbox" name="removed_news_documents[]" value="{{ data_get($document, 'path') }}" class="form-check-input">
+                                                <a href="{{ data_get($document, 'url') }}" target="_blank" rel="noopener" class="badge bg-light text-dark border text-decoration-none">
+                                                    <i class="fa-solid fa-file-lines me-1"></i>{{ data_get($document, 'name', 'Document') }}
+                                                </a>
+                                                <small class="text-muted">Remove on save</small>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Impact / affected area</label>
-                            <textarea name="impact_area" class="form-control" rows="3" maxlength="1000" placeholder="Who is affected and what readers should know">{{ old('impact_area', data_get($post->meta, 'impact_area')) }}</textarea>
+                    </div>
+
+                    <div class="news-flow-card news-flow-card--discussion border rounded-3 p-3 p-md-4 bg-light" id="newsParticipationWrap">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Comments &amp; discussion</h5>
+                                <p class="text-muted mb-0 small">Choose what logged-in readers can submit on the public news page. The author is notified in the portal and by email; readers are notified when questions are answered.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Engagement</span>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Quote / attribution</label>
-                            <textarea name="quote_attribution" class="form-control" rows="3" maxlength="1000" placeholder="Important quote with speaker attribution">{{ old('quote_attribution', data_get($post->meta, 'quote_attribution')) }}</textarea>
+                        <div class="form-check mb-2">
+                            <input type="checkbox" name="allow_comments" value="1" class="form-check-input" id="newsAllowComments" @checked(old('allow_comments', $post->allow_comments ?? true))>
+                            <label class="form-check-label" for="newsAllowComments">Comments</label>
+                            <small class="text-muted d-block">Enable a public discussion thread with comments and replies.</small>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input type="checkbox" name="allow_questions" value="1" class="form-check-input" id="newsAllowQuestions" @checked(old('allow_questions', $post->allow_questions ?? true))>
+                            <label class="form-check-label" for="newsAllowQuestions">Questions</label>
+                            <small class="text-muted d-block">Readers can ask the author a direct question. You answer in the author portal; the reader is notified by email.</small>
+                        </div>
+                        <div class="form-check mb-0">
+                            <input type="checkbox" name="allow_suggestions" value="1" class="form-check-input" id="newsAllowSuggestions" @checked(old('allow_suggestions', $post->allow_suggestions ?? false))>
+                            <label class="form-check-label" for="newsAllowSuggestions">Suggestions</label>
+                            <small class="text-muted d-block">Readers can recommend actions, follow-ups, or improvements.</small>
                         </div>
                     </div>
                 </div>
@@ -279,6 +524,17 @@
                                 <input type="text" name="issue_reference" class="form-control" value="{{ old('issue_reference', data_get($post->meta, 'issue_reference')) }}" maxlength="160" placeholder="Optional tracking ID">
                             </div>
                         </div>
+                    </div>
+
+                    <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Location fields</h5>
+                                <p class="text-muted mb-0 small">Country, state, district, city, and optional GPS coordinates for this report.</p>
+                            </div>
+                            <span class="badge bg-success-subtle text-success border">Critical for SoilnWater</span>
+                        </div>
+                        <div id="communityReportLocationSlot"></div>
                     </div>
 
                     <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -499,6 +755,17 @@
                         </div>
                     </div>
 
+                    <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Location fields</h5>
+                                <p class="text-muted mb-0 small">Country, state, district, city, and optional GPS coordinates for this report.</p>
+                            </div>
+                            <span class="badge bg-success-subtle text-success border">Critical for SoilnWater</span>
+                        </div>
+                        <div id="communityReportLocationSlot"></div>
+                    </div>
+
                     <div class="report-flow-card border rounded-3 p-3 p-md-4 bg-light">
                         <div class="mb-3">
                             <h5 class="mb-1">Evidence files</h5>
@@ -517,6 +784,11 @@
                 </div>
             </div>
             @include('backend.community-posts.partials.type-fields')
+            <div id="communityStructuredLocationHiddenSlot" class="d-none">
+                <div id="communityStructuredLocationWrapper">
+                    @include('backend.community-posts.partials.structured-location-fields', ['post' => $post])
+                </div>
+            </div>
             @php
                 $existingVideo = $post->videoData();
                 $videoSourceType = old('video_source_type', $existingVideo['type'] ?? 'none');
@@ -559,13 +831,15 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12">
-                            <div class="border rounded-3 p-3 bg-light">
-                                <h6 class="mb-1">Location information</h6>
-                                <p class="text-muted small mb-3">Very important for SoilnWater. Choose how broadly this post applies, then add a specific place when needed.</p>
+                        <div class="col-12" id="communityCommonLocationSlot">
+                            <div class="community-location-fields border rounded-3 p-3 bg-light">
+                                <div class="community-location-fields__header">
+                                    <h6 class="mb-1" id="communityLocationSectionTitle">Location information</h6>
+                                    <p class="text-muted small mb-3" id="communityLocationSectionHelp">Very important for SoilnWater. Choose how broadly this post applies, then add a specific place when needed.</p>
+                                </div>
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label" for="communityLocationType">Location type <span class="text-danger">*</span></label>
+                                        <label class="form-label" for="communityLocationType" id="communityLocationTypeLabel">Location type <span class="text-danger">*</span></label>
                                         <select name="location_type" id="communityLocationType" class="form-select" required>
                                             @foreach(\App\Models\CommunityPost::locationTypeOptions(old('content_type', $post->content_type)) as $value => $label)
                                                 <option value="{{ $value }}" @selected(old('location_type', $post->location_type ?? \App\Models\CommunityPost::LOCATION_TYPE_GLOBAL) === $value)>{{ $label }}</option>
@@ -580,50 +854,11 @@
                                         <input type="text" name="location" id="communityLocation" class="form-control" value="{{ old('location', $post->location ?? data_get($post->meta, 'location')) }}" maxlength="160" placeholder="Search and select a location" autocomplete="off">
                                         <small class="text-muted" id="locationHelp">Select a Google Places suggestion so latitude and longitude are saved.</small>
                                     </div>
-                                    <div class="col-12" id="communityGpsLocationWrap" style="display:none;">
-                                        <div class="row g-3">
-                                            <div class="col-md-4">
-                                                <label class="form-label" for="communityLocationLat">Latitude <span class="text-muted fw-normal">(optional)</span></label>
-                                                <input
-                                                    type="number"
-                                                    name="location_lat"
-                                                    id="communityLocationLat"
-                                                    class="form-control"
-                                                    value="{{ old('location_lat', $post->location_lat ?? data_get($post->meta, 'location_lat')) }}"
-                                                    step="any"
-                                                    min="-90"
-                                                    max="90"
-                                                    placeholder="e.g. 26.9124000"
-                                                >
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label" for="communityLocationLng">Longitude <span class="text-muted fw-normal">(optional)</span></label>
-                                                <input
-                                                    type="number"
-                                                    name="location_lng"
-                                                    id="communityLocationLng"
-                                                    class="form-control"
-                                                    value="{{ old('location_lng', $post->location_lng ?? data_get($post->meta, 'location_lng')) }}"
-                                                    step="any"
-                                                    min="-180"
-                                                    max="180"
-                                                    placeholder="e.g. 75.7873000"
-                                                >
-                                            </div>
-                                            <div class="col-12">
-                                                <label class="form-label">Map marker <span class="text-muted fw-normal">(optional)</span></label>
-                                                @if(!config('services.google.maps_api_key'))
-                                                    <div class="alert alert-warning py-2 px-3 mb-2 small">Google Maps is not configured. Add <code>GOOGLE_MAPS_API_KEY</code> to your environment file to enable the map pin.</div>
-                                                @endif
-                                                <div id="communityGpsMap" class="community-gps-map border rounded bg-white" role="application" aria-label="Optional GPS map pin"></div>
-                                                <small class="text-muted d-block mt-2">Click the map to place a pin, drag it to adjust, or enter coordinates manually.</small>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6" id="communityVideoHiddenSlot"></div>
+                        <div class="col-md-6" id="communityVideoWrap">
                             <label class="form-label">Video <span class="text-muted fw-normal">(optional)</span></label>
                             <div class="community-video-field border rounded-3 p-3">
                                 <div class="btn-group btn-group-sm w-100 mb-3" role="group" aria-label="Video source type">
@@ -925,6 +1160,134 @@
         border-left: 4px solid #0dcaf0 !important;
         background: linear-gradient(180deg, #f8fdff 0%, #ffffff 100%);
     }
+    .news-flow-card h5 {
+        font-size: 1.05rem;
+    }
+    .news-flow-card--source {
+        border-left: 4px solid #ffc107 !important;
+        background: linear-gradient(180deg, #fffdf8 0%, #ffffff 100%);
+    }
+    .news-narrative-field {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        background: #f8fafc;
+    }
+    .news-flow-card--impact {
+        border-left: 4px solid #198754 !important;
+        background: linear-gradient(180deg, #f8fff9 0%, #ffffff 100%);
+    }
+    .news-flow-card--media {
+        border-left: 4px solid #0dcaf0 !important;
+        background: linear-gradient(180deg, #f8fdff 0%, #ffffff 100%);
+    }
+    .news-flow-card--discussion {
+        border-left: 4px solid #0d6efd !important;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    }
+    #communityNewsFeaturedImagesSlot .featured-images-uploader,
+    #communityNewsVideoSlot .community-video-field {
+        background: #fff;
+    }
+    .news-classification-card {
+        background: linear-gradient(135deg, #f8fbff 0%, #ffffff 55%, #f4f9f6 100%);
+        border-color: rgba(13, 110, 253, 0.15) !important;
+    }
+    .news-classification-panel {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        gap: 0.35rem 0.85rem;
+        padding: 1rem 1.1rem;
+        border: 1px solid rgba(13, 110, 253, 0.12);
+        border-radius: 0.85rem;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .news-classification-panel--location {
+        border-color: rgba(25, 135, 84, 0.18);
+    }
+    .news-classification-panel__icon {
+        grid-row: 1 / span 2;
+        align-self: start;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+        font-size: 1rem;
+    }
+    .news-classification-panel__icon--location {
+        background: rgba(25, 135, 84, 0.12);
+        color: #198754;
+    }
+    .news-classification-panel__title {
+        margin-bottom: 0;
+        font-size: 0.98rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+    }
+    .news-classification-panel__hint {
+        margin-bottom: 0;
+        color: #6c757d;
+        font-size: 0.82rem;
+        font-weight: 600;
+    }
+    .news-classification-panel__copy {
+        align-self: center;
+    }
+    .news-classification-panel > .form-select,
+    .news-classification-panel__fields {
+        grid-column: 1 / -1;
+    }
+    .news-classification-panel .community-location-fields {
+        border: 0 !important;
+        background: transparent !important;
+        padding: 0 !important;
+        box-shadow: none;
+    }
+    .news-classification-panel .community-location-fields__header {
+        display: none;
+    }
+    .news-classification-panel .community-location-fields .row {
+        --bs-gutter-y: 0.85rem;
+    }
+    .news-classification-panel .community-location-fields #communityLocationTypeLabel {
+        text-transform: none;
+        font-weight: 600;
+        letter-spacing: normal;
+    }
+    .news-classification-panel .community-location-fields [class*="col-md-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .news-classification-panel--location {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        gap: 0.35rem 0.85rem;
+        padding: 1rem 1.1rem;
+        border: 1px solid rgba(25, 135, 84, 0.18);
+        border-radius: 0.85rem;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .community-structured-location {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 0.85rem;
+        background: #fbfcfe;
+        padding: 1rem;
+    }
+    .community-structured-location__search .form-control {
+        background: #fff;
+    }
+    .community-structured-location__map {
+        border-top-color: rgba(15, 23, 42, 0.08) !important;
+    }
 </style>
 @endpush
 
@@ -1018,6 +1381,7 @@
     const COMMUNITY_LOCATION_TYPES_REQUIRING_PLACE = @json(\App\Models\CommunityPost::locationTypesRequiringPlace());
     const COMMUNITY_LOCATION_TYPE_GPS = @json(\App\Models\CommunityPost::LOCATION_TYPE_GPS);
     const COMMUNITY_BASE_LOCATION_TYPES = @json(\App\Models\CommunityPost::locationTypeOptions());
+    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports'];
     let communityGpsMap = null;
     let communityGpsMarker = null;
     let communityGpsMapInitialized = false;
@@ -1029,6 +1393,10 @@
 
     function isGpsCommunityLocation(type) {
         return type === COMMUNITY_LOCATION_TYPE_GPS;
+    }
+
+    function usesStructuredCommunityLocation(contentType) {
+        return COMMUNITY_STRUCTURED_LOCATION_TYPES.includes(contentType);
     }
 
     function refreshCommunityLocationTypeOptions(isReport) {
@@ -1055,6 +1423,108 @@
 
         if (!Object.prototype.hasOwnProperty.call(options, selected)) {
             typeSelect.value = 'global';
+        }
+    }
+
+    function mountStructuredLocationFields(isNews, isReport) {
+        const wrapper = document.getElementById('communityStructuredLocationWrapper');
+        const hiddenSlot = document.getElementById('communityStructuredLocationHiddenSlot');
+        const newsSlot = document.getElementById('communityNewsLocationSlot');
+        const reportSlot = document.getElementById('communityReportLocationSlot');
+        const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
+
+        if (!wrapper) {
+            return;
+        }
+
+        const usesStructured = isNews || isReport;
+        const targetSlot = isNews ? newsSlot : (isReport ? reportSlot : hiddenSlot);
+
+        if (targetSlot && wrapper.parentElement !== targetSlot) {
+            targetSlot.appendChild(wrapper);
+        }
+
+        if (commonLocationSlot) {
+            commonLocationSlot.style.display = usesStructured ? 'none' : '';
+            commonLocationSlot.querySelectorAll('input, select, textarea').forEach((field) => {
+                field.disabled = usesStructured;
+            });
+        }
+
+        document.querySelectorAll('.structured-location-required').forEach((field) => {
+            field.required = usesStructured;
+            field.disabled = !usesStructured;
+        });
+
+        document.querySelectorAll('#communityStructuredLocationWrapper input[name="location_lat"], #communityStructuredLocationWrapper input[name="location_lng"]').forEach((field) => {
+            field.disabled = !usesStructured;
+        });
+
+        if (usesStructured) {
+            window.requestAnimationFrame(function () {
+                initCommunityGpsMap();
+            });
+        }
+    }
+
+    function mountNewsParticipationFields(isNews) {
+        const publicParticipationWrap = document.getElementById('publicParticipationWrap');
+        const newsParticipationWrap = document.getElementById('newsParticipationWrap');
+
+        if (publicParticipationWrap) {
+            publicParticipationWrap.style.display = isNews ? 'none' : '';
+        }
+
+        if (newsParticipationWrap) {
+            newsParticipationWrap.style.display = isNews ? '' : 'none';
+        }
+    }
+
+    function mountNewsMediaFields(isNews) {
+        const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
+        const featuredSlot = document.getElementById('communityNewsFeaturedImagesSlot');
+        const tagsCol = document.getElementById('communityTagsWrap');
+        const videoWrap = document.getElementById('communityVideoWrap');
+        const videoSlot = document.getElementById('communityNewsVideoSlot');
+        const videoAnchor = document.getElementById('communityVideoHiddenSlot');
+        const featuredLabel = document.getElementById('featuredImagesLabel');
+        const featuredHelp = document.getElementById('featuredImagesHelp');
+        const featuredAddBtn = document.getElementById('featuredImagesAddBtn');
+
+        if (featuredWrap && featuredSlot && tagsCol) {
+            if (isNews) {
+                featuredSlot.appendChild(featuredWrap);
+                featuredWrap.classList.remove('col-md-6');
+            } else {
+                tagsCol.parentElement.insertBefore(featuredWrap, tagsCol);
+                featuredWrap.classList.add('col-md-6');
+            }
+        }
+
+        if (videoWrap && videoSlot && videoAnchor) {
+            if (isNews) {
+                videoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else {
+                videoAnchor.insertAdjacentElement('afterend', videoWrap);
+                videoWrap.classList.add('col-md-6');
+            }
+        }
+
+        if (featuredLabel) {
+            featuredLabel.textContent = isNews ? 'Featured image (recommended)' : 'Featured images';
+        }
+
+        if (featuredHelp) {
+            featuredHelp.textContent = isNews
+                ? 'Upload a lead image first, then add additional photos. Examples: event photos, road damage, flooding, community activities, meetings. JPG, PNG, or WebP, max 4 MB each.'
+                : 'Upload up to 5 images. JPG, PNG, or WebP, max 4 MB each.';
+        }
+
+        if (featuredAddBtn) {
+            featuredAddBtn.innerHTML = isNews
+                ? '<i class="fa-solid fa-images me-1"></i>Add featured / additional images'
+                : '<i class="fa-solid fa-images me-1"></i>Add images';
         }
     }
 
@@ -1135,15 +1605,15 @@
 
     function initCommunityGpsMap() {
         const mapEl = document.getElementById('communityGpsMap');
-        const gpsWrap = document.getElementById('communityGpsLocationWrap');
-        const locationType = document.getElementById('communityLocationType')?.value;
-        const contentType = document.getElementById('contentType')?.value;
+        const contentType = document.getElementById('contentType')?.value || '';
+        const hiddenSlot = document.getElementById('communityStructuredLocationHiddenSlot');
+        const wrapper = document.getElementById('communityStructuredLocationWrapper');
 
-        if (!mapEl || !gpsWrap || !isGpsCommunityLocation(locationType) || contentType !== 'reports' || !window.google?.maps) {
+        if (!mapEl || !window.google?.maps || !usesStructuredCommunityLocation(contentType)) {
             return;
         }
 
-        if (gpsWrap.style.display === 'none') {
+        if (wrapper && hiddenSlot && wrapper.parentElement === hiddenSlot) {
             return;
         }
 
@@ -1199,39 +1669,34 @@
     function refreshCommunityLocationFields(fallbackHelp) {
         const typeSelect = document.getElementById('communityLocationType');
         const specificWrap = document.getElementById('communitySpecificLocationWrap');
-        const gpsWrap = document.getElementById('communityGpsLocationWrap');
         const scopeNote = document.getElementById('communityLocationScopeNote');
         const scopeText = document.getElementById('communityLocationScopeText');
         const locationInput = document.getElementById('communityLocation');
         const locationHelp = document.getElementById('locationHelp');
+        const contentType = document.getElementById('contentType')?.value || '';
+
+        if (usesStructuredCommunityLocation(contentType)) {
+            return;
+        }
 
         if (!typeSelect || !specificWrap) {
             return;
         }
 
         const locationType = typeSelect.value;
-        const contentType = document.getElementById('contentType')?.value || '';
         const needsSpecific = requiresSpecificCommunityLocation(locationType);
-        const showGpsPanel = isGpsCommunityLocation(locationType) && contentType === 'reports';
 
         specificWrap.style.display = needsSpecific ? '' : 'none';
 
-        if (gpsWrap) {
-            gpsWrap.style.display = showGpsPanel ? '' : 'none';
-        }
-
         if (locationInput) {
             locationInput.required = needsSpecific;
-        }
-
-        if (showGpsPanel) {
-            initCommunityGpsMap();
         }
 
         const helpText = {
             state: 'Search and select the state-level location from Google Places.',
             district: 'Search and select the district-level location from Google Places.',
             city: 'Search and select the city from Google Places so the story is location-indexed.',
+            town: 'Search and select the town from Google Places so the story is location-indexed.',
             village: 'Search and select the village or locality from Google Places.',
         };
 
@@ -1254,9 +1719,6 @@
             } else if (locationType === 'india') {
                 scopeNote.style.display = '';
                 scopeText.textContent = 'This post applies across India. No specific GPS location is required.';
-            } else if (showGpsPanel) {
-                scopeNote.style.display = '';
-                scopeText.textContent = 'GPS location is optional. Pin the report on the map or enter latitude and longitude manually.';
             } else {
                 scopeNote.style.display = 'none';
                 scopeText.textContent = '';
@@ -1332,8 +1794,8 @@
             excerptLabel: 'News summary / standfirst',
             excerptPlaceholder: 'Summarize the news angle, confirmed facts, and why it matters.',
             excerptHelp: 'Use a concise newsroom-style summary with the main verified fact and reader impact.',
-            bodyLabel: 'Full news story <span class="text-danger">*</span>',
-            bodyHelp: 'Recommended flow: lead, nut graph, details, context, quotes, impact, and latest update.',
+            bodyLabel: 'News content <span class="text-danger">*</span>',
+            bodyHelp: 'Use the rich text editor for the full news story. Add images, formatting, and complete narrative detail here.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select the news location from Google Places so the story is location-indexed.',
         } : {
@@ -1353,6 +1815,9 @@
         document.getElementById('bodyHelp').textContent = fieldCopy.bodyHelp;
         document.getElementById('locationLabel').innerHTML = fieldCopy.locationLabel;
 
+        mountStructuredLocationFields(isNews, isReport);
+        mountNewsMediaFields(isNews);
+        mountNewsParticipationFields(isNews);
         refreshCommunityLocationTypeOptions(isReport);
         refreshBookLayoutMode(selectedType);
         refreshCommunityLocationFields(fieldCopy.locationHelp);
@@ -2064,11 +2529,70 @@
 
     refreshVideoSourcePanels();
 
+    function readCommunityAddressPart(components, type) {
+        const match = (components || []).find((component) => (component.types || []).includes(type));
+        return match?.long_name || '';
+    }
+
+    function fillStructuredLocationFromPlace(place) {
+        const components = place?.address_components || [];
+        const country = readCommunityAddressPart(components, 'country');
+        const state = readCommunityAddressPart(components, 'administrative_area_level_1');
+        const district = readCommunityAddressPart(components, 'administrative_area_level_2')
+            || readCommunityAddressPart(components, 'administrative_area_level_3');
+        const city = readCommunityAddressPart(components, 'locality')
+            || readCommunityAddressPart(components, 'postal_town')
+            || readCommunityAddressPart(components, 'administrative_area_level_2');
+        const locality = readCommunityAddressPart(components, 'sublocality_level_1')
+            || readCommunityAddressPart(components, 'sublocality')
+            || readCommunityAddressPart(components, 'neighborhood')
+            || readCommunityAddressPart(components, 'route');
+
+        const countryInput = document.getElementById('communityLocationCountry');
+        const stateInput = document.getElementById('communityLocationState');
+        const districtInput = document.getElementById('communityLocationDistrict');
+        const cityInput = document.getElementById('communityLocationCity');
+        const localityInput = document.getElementById('communityLocationLocality');
+        const latInput = document.getElementById('communityLocationLat');
+        const lngInput = document.getElementById('communityLocationLng');
+
+        if (countryInput && country) countryInput.value = country;
+        if (stateInput && state) stateInput.value = state;
+        if (districtInput && district) districtInput.value = district;
+        if (cityInput && city) cityInput.value = city;
+        if (localityInput && locality) localityInput.value = locality;
+
+        if (place?.geometry?.location) {
+            if (latInput) latInput.value = place.geometry.location.lat().toFixed(7);
+            if (lngInput) lngInput.value = place.geometry.location.lng().toFixed(7);
+            syncCommunityGpsMarkerFromInputs();
+        }
+    }
+
     window.initCommunityPostLocationAutocomplete = function () {
+        if (!window.google || !google.maps || !google.maps.places) {
+            return;
+        }
+
+        const structuredSearchInput = document.getElementById('communityStructuredLocationSearch');
+        if (structuredSearchInput && !structuredSearchInput.dataset.autocompleteBound) {
+            const structuredAutocomplete = new google.maps.places.Autocomplete(structuredSearchInput, {
+                fields: ['address_components', 'formatted_address', 'geometry', 'place_id'],
+            });
+
+            structuredAutocomplete.addListener('place_changed', function () {
+                fillStructuredLocationFromPlace(structuredAutocomplete.getPlace());
+            });
+
+            structuredSearchInput.dataset.autocompleteBound = '1';
+        }
+
         const locationInput = document.getElementById('communityLocation');
         const latitudeInput = document.getElementById('communityLocationLat');
         const longitudeInput = document.getElementById('communityLocationLng');
-        if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
+        if (!locationInput || locationInput.dataset.autocompleteBound) {
+            return;
+        }
 
         const autocomplete = new google.maps.places.Autocomplete(locationInput, {
             fields: ['formatted_address', 'geometry', 'place_id'],
@@ -2090,15 +2614,15 @@
             if (latitudeInput) latitudeInput.value = '';
             if (longitudeInput) longitudeInput.value = '';
         });
+
+        locationInput.dataset.autocompleteBound = '1';
     };
 
     window.initCommunityPostMaps = function () {
         window.initCommunityPostLocationAutocomplete();
 
-        if (
-            document.getElementById('contentType')?.value === 'reports'
-            && isGpsCommunityLocation(document.getElementById('communityLocationType')?.value)
-        ) {
+        const contentType = document.getElementById('contentType')?.value || '';
+        if (usesStructuredCommunityLocation(contentType)) {
             initCommunityGpsMap();
         }
     };
@@ -2135,11 +2659,26 @@
         saveActiveEditorLanguage();
         addTagsFromInput();
 
-        const locationType = document.getElementById('communityLocationType')?.value || 'global';
-        if (requiresSpecificCommunityLocation(locationType)) {
-            if (!document.getElementById('communityLocationLat').value || !document.getElementById('communityLocationLng').value) {
-                notify('error', 'Please select a location from the Google Places suggestions.');
+        const contentType = document.getElementById('contentType')?.value || '';
+        if (usesStructuredCommunityLocation(contentType)) {
+            const requiredStructuredFields = [
+                document.getElementById('communityLocationCountry'),
+                document.getElementById('communityLocationState'),
+                document.getElementById('communityLocationDistrict'),
+                document.getElementById('communityLocationCity'),
+            ];
+
+            if (requiredStructuredFields.some((field) => !field?.value.trim())) {
+                notify('error', 'Please complete country, state, district, and city for this post.');
                 return;
+            }
+        } else {
+            const locationType = document.getElementById('communityLocationType')?.value || 'global';
+            if (requiresSpecificCommunityLocation(locationType)) {
+                if (!document.getElementById('communityLocation')?.value.trim()) {
+                    notify('error', 'Please select a location from the Google Places suggestions.');
+                    return;
+                }
             }
         }
 

@@ -2,16 +2,18 @@
     $participationSuggestions = $participationSuggestions ?? collect();
     $participationFeedback = $participationFeedback ?? collect();
     $communityParticipationEvidence = $communityParticipationEvidence ?? collect();
+    $hideSectionHeader = $hideSectionHeader ?? false;
     $isAuthor = auth()->check() && auth()->id() === $post->user_id;
     $canParticipate = auth()->check() && $post->isPubliclyVisible() && ! $isAuthor;
 @endphp
 
 @if($post->isPubliclyVisible() && $post->allowsPublicParticipation())
-    <section class="about-box mt-4 public-participation" id="public-participation">
+    <section class="about-box mt-4 public-participation {{ $hideSectionHeader ? 'public-participation--embedded border-0 p-0 mt-0 bg-transparent shadow-none' : '' }}" id="public-participation">
+        @unless($hideSectionHeader)
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
             <div>
-                <h4 class="mb-1">Public Participation</h4>
-                <p class="text-muted mb-0">Share comments, suggestions, feedback, or additional evidence on this post.</p>
+                <h4 class="mb-1">{{ $post->content_type === 'news' ? 'Comments & Discussion' : 'Public Participation' }}</h4>
+                <p class="text-muted mb-0">{{ $post->content_type === 'news' ? 'Share comments and suggestions on this news story.' : 'Share comments, suggestions, feedback, or additional evidence on this post.' }}</p>
             </div>
             <div class="d-flex flex-wrap gap-2">
                 @if($post->allow_comments)
@@ -28,6 +30,7 @@
                 @endif
             </div>
         </div>
+        @endunless
 
         @if($post->allow_comments)
             <div class="public-participation__block mb-4" id="participation-comments">

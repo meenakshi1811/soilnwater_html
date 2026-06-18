@@ -49,6 +49,7 @@ class CommunityAuthorQuestionController extends Controller
     {
         abort_unless($post->isPubliclyVisible(), 404);
         abort_unless($post->user_id, 422, 'This post does not have an author to contact.');
+        abort_unless($post->allow_questions, 403, 'Questions are disabled for this post.');
 
         return $this->storeQuestion($request, $post->user, $post);
     }

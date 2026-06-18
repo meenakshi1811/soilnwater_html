@@ -179,4 +179,22 @@ class CommunityAuthorQuestionFlowTest extends TestCase
         $response->assertStatus(422);
         $this->assertDatabaseCount('community_author_questions', 0);
     }
+
+    public function test_reader_cannot_ask_question_when_disabled_on_post(): void
+    {
+        $author = User::factory()->create(['email_verified_at' => now()]);
+        $reader = User::factory()->create(['email_verified_at' => now()]);
+        $post = CommunityPost::factory()->create([
+            'user_id' => $author->id,
+            'status' => CommunityPost::STATUS_PUBLISHED,
+            'published_at' => now(),
+            'allow_questions' => false,
+        ]);
+
+        $this->actingAs($reader)->postJson(route('community.author-questions.store.post', $post), [
+            'question' => 'Can I still ask a question on this post?',
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('community_author_questions', 0);
+    }
 }

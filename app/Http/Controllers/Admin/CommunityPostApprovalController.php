@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Community\CommunityEngagementController;
+use App\Http\Controllers\Community\CommunityPostController;
+use App\Models\CommunityAuthorQuestion;
 use App\Mail\CommunityPostReviewMail;
 use App\Models\CommunityPost;
 use App\Services\CommunityArticleScoreService;
@@ -62,7 +64,13 @@ class CommunityPostApprovalController extends Controller
 
     public function show(CommunityPost $post): View
     {
-        $post->load(['user', 'reviewer:id,name,full_name', 'auditLogs.user:id,name,full_name']);
+        $post->load([
+            'user',
+            'reviewer:id,name,full_name',
+            'auditLogs.user:id,name,full_name',
+            'discussionComments.user:id,name,full_name',
+            'authorQuestions.asker:id,name,full_name',
+        ]);
         $post->loadCount([
             'reactions as likes_count' => fn ($query) => $query->where('reaction', '!=', 'Dislike'),
             'comments',
@@ -71,21 +79,14 @@ class CommunityPostApprovalController extends Controller
             'reportAgreements',
             'reportFollows',
             'reportEvidence',
+            'authorQuestions',
         ]);
 
-        return view('backend.admin.community-posts.show', [
+        return view('backend.admin.community-posts.show', array_merge([
             'post' => $post,
             'types' => CommunityContentTaxonomy::formTypes(),
             'scoreMetrics' => CommunityArticleScoreService::metricSummary($post),
             'scoreBreakdown' => CommunityArticleScoreService::breakdown($post),
-            'reportEngagement' => $post->isReportContent()
-                ? CommunityReportEngagementNotificationService::stateForPost($post)
-                : null,
-            'communityParticipationEvidence' => $post->isReportContent()
-                ? CommunityReportEngagementNotificationService::recentEvidence($post, 20)
-                : collect(),
-            'participationSuggestions' => $post->suggestions()->with('user:id,name,full_name')->latest()->limit(20)->get(),
-            'participationFeedback' => $post->feedbackEntries()->with('user:id,name,full_name')->latest()->limit(20)->get(),
             'reportEngagementActivity' => $post->isReportContent()
                 ? [
                     'supports' => $post->reportSupports()->with('user:id,name,full_name')->latest()->limit(10)->get(),
@@ -93,7 +94,7 @@ class CommunityPostApprovalController extends Controller
                     'follows' => $post->reportFollows()->with('user:id,name,full_name')->latest()->limit(10)->get(),
                 ]
                 : null,
-        ]);
+        ], app(CommunityPostController::class)->participationViewData($post, 20)));
     }
 
     public function preview(CommunityPost $post): View
@@ -108,11 +109,21 @@ class CommunityPostApprovalController extends Controller
             'discussionComments.replies.user',
         ]);
 
-        return view('community.show', [
+        return view('community.show', array_merge([
             'post' => $post,
             'types' => CommunityContentTaxonomy::formTypes(),
             'preview' => true,
-        ]);
+            'answeredAuthorQuestions' => $post->user_id
+                ? CommunityAuthorQuestion::query()
+                    ->where('community_post_id', $post->id)
+                    ->whereNotNull('answered_at')
+                    ->with(['asker:id,name,full_name'])
+                    ->latest()
+                    ->limit(10)
+                    ->get()
+                : collect(),
+            'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+        ], app(CommunityPostController::class)->participationViewData($post)));
     }
 
     public function approve(Request $request, CommunityPost $post): JsonResponse

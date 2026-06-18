@@ -49,6 +49,14 @@
                         </div>
                         <div class="mt-3">
                             <div class="text-secondary small">Aspect ratio {{ $size['ratio'] }}</div>
+                            @php $sizeMaxPrice = \App\Support\AdSizes::maxPricePerDay($size); @endphp
+                            @if($sizeMaxPrice !== null)
+                                <div class="ads-size-card-price">
+                                    <i class="fa-solid fa-tag" aria-hidden="true"></i>
+                                    Up to ₹{{ number_format($sizeMaxPrice, 2) }}/day
+                                </div>
+                                <div class="text-secondary small mt-1">Price may vary by module selection</div>
+                            @endif
                         </div>
                     </a>
                 </div>
@@ -101,6 +109,19 @@
 .customization-request-modal{border:0;border-radius:14px;box-shadow:0 20px 44px rgba(15,23,42,.18)}
 .customization-request-modal .modal-header{padding:1rem 1.25rem .5rem}
 .customization-request-modal .modal-body,.customization-request-modal .modal-footer{padding:1rem 1.25rem}
+.ads-size-card-price {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    margin-top: .5rem;
+    padding: .35rem .75rem;
+    border-radius: 999px;
+    font-size: .82rem;
+    font-weight: 700;
+    color: #b45309;
+    background: #fff7ed;
+    border: 1px solid #f7c793;
+}
 </style>
 @endpush
 

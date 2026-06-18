@@ -13,6 +13,22 @@ class CommunityPostReportFlowTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * @return array<string, string>
+     */
+    private function structuredLocationPayload(): array
+    {
+        return [
+            'location_country' => 'India',
+            'location_state' => 'Rajasthan',
+            'location_district' => 'Jaipur',
+            'location_city' => 'Jaipur',
+            'location_locality' => 'Malviya Nagar',
+            'location_lat' => '26.9124000',
+            'location_lng' => '75.7873000',
+        ];
+    }
+
     public function test_report_posts_require_my_area_fields(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
@@ -25,10 +41,7 @@ class CommunityPostReportFlowTest extends TestCase
             'excerpt' => 'A professional overview of water market performance.',
             'body' => 'This report contains detailed analysis for the water market this quarter.',
             'status' => CommunityPost::STATUS_PUBLISHED,
-            'location_type' => 'city',
-            'location' => 'Jaipur, Rajasthan, India',
-            'location_lat' => '26.9124000',
-            'location_lng' => '75.7873000',
+            ...$this->structuredLocationPayload(),
             'accept_content_responsibility' => '1',
             'accept_original_work_indemnity' => '1',
         ]);
@@ -54,11 +67,9 @@ class CommunityPostReportFlowTest extends TestCase
             'excerpt' => 'Executive summary covering objective, findings, and action points.',
             'body' => 'Background, context, analysis, evidence, limitations, conclusion, and appendix notes are included here.',
             'status' => CommunityPost::STATUS_PUBLISHED,
+            'publish_as' => CommunityPost::PUBLISH_AS_PUBLIC_PROFILE,
             'allow_comments' => '1',
-            'location_type' => 'city',
-            'location' => 'Jaipur, Rajasthan, India',
-            'location_lat' => '26.9124000',
-            'location_lng' => '75.7873000',
+            ...$this->structuredLocationPayload(),
             'report_status' => 'Awareness Campaign',
             'report_type' => 'Research Report',
             'issue_priority' => 'High',
@@ -88,7 +99,10 @@ class CommunityPostReportFlowTest extends TestCase
 
         $this->assertTrue($post->allow_comments);
         $this->assertSame('reports', $post->content_type);
-        $this->assertSame('Jaipur, Rajasthan, India', $post->location);
+        $this->assertSame('India', $post->meta['location_country']);
+        $this->assertSame('Rajasthan', $post->meta['location_state']);
+        $this->assertSame('Jaipur', $post->meta['location_city']);
+        $this->assertSame('Malviya Nagar, Jaipur, Rajasthan, India', $post->location);
         $this->assertSame('26.9124000', (string) $post->location_lat);
         $this->assertSame('75.7873000', (string) $post->location_lng);
         $this->assertSame('Awareness Campaign', $post->meta['report_status']);
@@ -99,6 +113,21 @@ class CommunityPostReportFlowTest extends TestCase
         $this->assertSame('Soil & Water Research Desk', $post->meta['prepared_by']);
         $this->assertSame('Field survey, public datasets, and local department notes.', $post->meta['data_sources']);
         $this->assertSame("Prioritize recharge projects.\nPublish monthly progress dashboards.", $post->meta['recommendations']);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function newsContentPayload(): array
+    {
+        return [
+            'news_what_happened' => 'The municipal office announced updated water supply timings.',
+            'news_where_happened' => 'Jaipur, Rajasthan',
+            'news_when_happened' => 'Effective from Monday morning',
+            'news_who_involved' => 'Municipal water department and ward residents',
+            'news_why_important' => 'Summer demand requires adjusted supply windows.',
+            'news_current_status' => 'Schedule published and active from Monday.',
+        ];
     }
 
     public function test_news_posts_require_professional_news_fields(): void
@@ -112,23 +141,33 @@ class CommunityPostReportFlowTest extends TestCase
             'title' => 'Canal Repair Work Begins',
             'excerpt' => 'A concise newsroom summary for the local update.',
             'body' => 'This news story contains enough details about the local canal repair work.',
-            'status' => CommunityPost::STATUS_PUBLISHED,
-            'location_type' => 'city',
-            'location' => 'Jaipur, Rajasthan, India',
-            'location_lat' => '26.9124000',
-            'location_lng' => '75.7873000',
+            'status' => CommunityPost::STATUS_DRAFT,
             'accept_content_responsibility' => '1',
             'accept_original_work_indemnity' => '1',
         ]);
 
         $response->assertUnprocessable();
         $response->assertJsonValidationErrors([
+            'news_type',
+            'event_date',
+            'location_country',
+            'location_state',
+            'location_district',
+            'location_city',
             'news_dateline',
             'news_date',
             'reporter_name',
+            'news_source_type',
             'news_source',
-            'fact_summary',
+            'news_what_happened',
+            'news_where_happened',
+            'news_when_happened',
+            'news_who_involved',
+            'news_why_important',
+            'news_current_status',
             'verification_notes',
+            'news_impact_level',
+            'news_affected_group',
         ]);
     }
 
@@ -144,19 +183,27 @@ class CommunityPostReportFlowTest extends TestCase
             'excerpt' => 'Residents will receive updated water supply timings from Monday.',
             'body' => 'The municipal office announced updated water supply timings after reviewing summer demand.',
             'status' => CommunityPost::STATUS_PUBLISHED,
+            'publish_as' => CommunityPost::PUBLISH_AS_PUBLIC_PROFILE,
             'allow_comments' => '1',
-            'location_type' => 'city',
-            'location' => 'Jaipur, Rajasthan, India',
-            'location_lat' => '26.9124000',
-            'location_lng' => '75.7873000',
+            'allow_questions' => '1',
+            'allow_suggestions' => '1',
+            ...$this->structuredLocationPayload(),
+            'news_type' => 'General News',
+            'event_date' => '2026-06-15',
+            'event_time' => '7:30 PM',
             'news_subtitle' => 'Municipal update for summer demand',
             'news_dateline' => 'Jaipur',
             'news_date' => '2026-06-12T10:30',
             'reporter_name' => 'Community News Desk',
+            'news_source_type' => 'Official Source',
             'news_source' => 'Municipal water department release',
             'source_url' => 'https://example.com/water-schedule',
-            'fact_summary' => 'The schedule changes start Monday and apply to three wards.',
+            ...$this->newsContentPayload(),
             'verification_notes' => 'Confirmed against the municipal release and ward notice.',
+            'news_impact_level' => 'Medium',
+            'news_affected_group' => 'Residents',
+            'news_priority' => 'Important',
+            'news_people_organizations' => 'Mayor, Municipal water department',
             'impact_area' => 'Residents in wards 10, 11, and 12.',
             'quote_attribution' => 'Department spokesperson said supply pressure will be monitored.',
             'accept_content_responsibility' => '1',
@@ -172,12 +219,25 @@ class CommunityPostReportFlowTest extends TestCase
         $this->assertSame(CommunityPost::STATUS_PENDING, $post->status);
 
         $this->assertTrue($post->allow_comments);
+        $this->assertTrue($post->allow_questions);
+        $this->assertTrue($post->allow_suggestions);
         $this->assertSame('news', $post->content_type);
+        $this->assertSame('General News', $post->meta['news_type']);
+        $this->assertSame('2026-06-15', $post->meta['event_date']);
+        $this->assertSame('7:30 PM', $post->meta['event_time']);
+        $this->assertSame('India', $post->meta['location_country']);
+        $this->assertSame('Rajasthan', $post->meta['location_state']);
         $this->assertSame('Jaipur', $post->meta['news_dateline']);
         $this->assertSame('2026-06-12T10:30', $post->meta['news_date']);
         $this->assertSame('Community News Desk', $post->meta['reporter_name']);
+        $this->assertSame('Official Source', $post->meta['news_source_type']);
         $this->assertSame('Municipal water department release', $post->meta['news_source']);
+        $this->assertSame('The municipal office announced updated water supply timings.', $post->meta['news_what_happened']);
         $this->assertSame('https://example.com/water-schedule', $post->meta['source_url']);
+        $this->assertSame('Medium', $post->meta['news_impact_level']);
+        $this->assertSame('Residents', $post->meta['news_affected_group']);
+        $this->assertSame('Important', $post->meta['news_priority']);
+        $this->assertSame('Mayor, Municipal water department', $post->meta['news_people_organizations']);
     }
 
     public function test_report_posts_can_store_my_area_issue_details_and_attachments(): void
@@ -194,11 +254,9 @@ class CommunityPostReportFlowTest extends TestCase
             'excerpt' => 'Water has been leaking near the market and affecting nearby shops.',
             'body' => 'The water pipeline has been broken for three days and needs urgent repair from the local department.',
             'status' => CommunityPost::STATUS_PUBLISHED,
+            'publish_as' => CommunityPost::PUBLISH_AS_PUBLIC_PROFILE,
             'allow_comments' => '1',
-            'location_type' => 'city',
-            'location' => 'Jaipur, Rajasthan, India',
-            'location_lat' => '26.9124000',
-            'location_lng' => '75.7873000',
+            ...$this->structuredLocationPayload(),
             'issue_priority' => 'Urgent',
             'report_author_type' => 'Citizen Reporter',
             'issue_status' => 'Open',
@@ -351,7 +409,7 @@ class CommunityPostReportFlowTest extends TestCase
             'title' => 'Annual Soil Health Report',
             'body' => 'Detailed annual soil health findings and recommendations.',
             'status' => CommunityPost::STATUS_DRAFT,
-            'location_type' => CommunityPost::LOCATION_TYPE_GLOBAL,
+            ...$this->structuredLocationPayload(),
             'accept_content_responsibility' => '1',
             'accept_original_work_indemnity' => '1',
         ]);
@@ -360,6 +418,7 @@ class CommunityPostReportFlowTest extends TestCase
 
         $post = CommunityPost::query()->where('title', 'Annual Soil Health Report')->firstOrFail();
 
+        $this->assertSame('India', $post->meta['location_country']);
         $this->assertSame('2025-01-01', $post->meta['observation_period_from']);
         $this->assertSame('2025-12-31', $post->meta['observation_period_to']);
         $this->assertSame('Asha Verma', $post->meta['report_author_name']);
@@ -391,7 +450,7 @@ class CommunityPostReportFlowTest extends TestCase
             'title' => 'Community Action Validation Test',
             'body' => 'This report requests municipal follow-up without selecting an audience.',
             'status' => CommunityPost::STATUS_DRAFT,
-            'location_type' => CommunityPost::LOCATION_TYPE_GLOBAL,
+            ...$this->structuredLocationPayload(),
             'accept_content_responsibility' => '1',
             'accept_original_work_indemnity' => '1',
         ]);
@@ -415,9 +474,7 @@ class CommunityPostReportFlowTest extends TestCase
             'title' => 'GPS Survey Report',
             'body' => 'Field observations collected with optional GPS coordinates.',
             'status' => CommunityPost::STATUS_DRAFT,
-            'location_type' => CommunityPost::LOCATION_TYPE_GPS,
-            'location_lat' => '26.9124000',
-            'location_lng' => '75.7873000',
+            ...$this->structuredLocationPayload(),
             'accept_content_responsibility' => '1',
             'accept_original_work_indemnity' => '1',
         ]);
@@ -426,9 +483,10 @@ class CommunityPostReportFlowTest extends TestCase
 
         $post = CommunityPost::query()->where('title', 'GPS Survey Report')->firstOrFail();
 
-        $this->assertSame(CommunityPost::LOCATION_TYPE_GPS, $post->location_type);
+        $this->assertSame(CommunityPost::LOCATION_TYPE_VILLAGE, $post->location_type);
         $this->assertSame('26.9124000', (string) $post->location_lat);
         $this->assertSame('75.7873000', (string) $post->location_lng);
+        $this->assertSame('Malviya Nagar', $post->meta['location_locality']);
     }
 
     public function test_gps_location_type_is_rejected_for_non_report_posts(): void

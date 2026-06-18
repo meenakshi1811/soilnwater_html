@@ -35,6 +35,8 @@ class CommunityPost extends Model
 
     public const LOCATION_TYPE_CITY = 'city';
 
+    public const LOCATION_TYPE_TOWN = 'town';
+
     public const LOCATION_TYPE_VILLAGE = 'village';
 
     public const LOCATION_TYPE_GPS = 'gps';
@@ -46,6 +48,7 @@ class CommunityPost extends Model
         self::LOCATION_TYPE_STATE => 'State Specific',
         self::LOCATION_TYPE_DISTRICT => 'District Specific',
         self::LOCATION_TYPE_CITY => 'City Specific',
+        self::LOCATION_TYPE_TOWN => 'Town Specific',
         self::LOCATION_TYPE_VILLAGE => 'Village Specific',
         self::LOCATION_TYPE_GPS => 'GPS Location',
     ];
@@ -109,6 +112,7 @@ class CommunityPost extends Model
         'video',
         'meta',
         'allow_comments',
+        'allow_questions',
         'allow_suggestions',
         'allow_feedback',
         'allow_additional_evidence',
@@ -147,6 +151,7 @@ class CommunityPost extends Model
             'location_lat' => 'decimal:7',
             'location_lng' => 'decimal:7',
             'allow_comments' => 'boolean',
+            'allow_questions' => 'boolean',
             'allow_suggestions' => 'boolean',
             'allow_feedback' => 'boolean',
             'allow_additional_evidence' => 'boolean',
@@ -233,6 +238,24 @@ class CommunityPost extends Model
         return $this->participations()->where('type', CommunityPostParticipation::TYPE_SUGGESTION);
     }
 
+    public function authorQuestions(): HasMany
+    {
+        return $this->hasMany(CommunityAuthorQuestion::class, 'community_post_id');
+    }
+
+    /**
+     * @return array{comments: int, suggestions: int, questions: int, pending_questions: int}
+     */
+    public function engagementSummary(): array
+    {
+        return [
+            'comments' => $this->comments()->count(),
+            'suggestions' => $this->suggestions()->count(),
+            'questions' => $this->authorQuestions()->count(),
+            'pending_questions' => $this->authorQuestions()->whereNull('answered_at')->count(),
+        ];
+    }
+
     public function feedbackEntries(): HasMany
     {
         return $this->participations()->where('type', CommunityPostParticipation::TYPE_FEEDBACK);
@@ -244,6 +267,17 @@ class CommunityPost extends Model
             || $this->allow_suggestions
             || $this->allow_feedback
             || $this->allow_additional_evidence;
+    }
+
+    public function allowsNewsDiscussion(): bool
+    {
+        if ($this->content_type !== 'news') {
+            return false;
+        }
+
+        return $this->allow_comments
+            || $this->allow_suggestions
+            || $this->allow_questions;
     }
 
     public function reports(): HasMany
@@ -384,6 +418,10 @@ class CommunityPost extends Model
      */
     public static function locationTypeOptions(?string $contentType = null): array
     {
+        if ($contentType === 'news') {
+            return self::newsGeographicCoverageOptions();
+        }
+
         $options = collect(self::LOCATION_TYPES)
             ->except(self::LOCATION_TYPE_GPS)
             ->all();
@@ -393,6 +431,149 @@ class CommunityPost extends Model
         }
 
         return $options;
+    }
+
+    /**
+     * Geographic coverage choices shown on news posts.
+     *
+     * @return array<string, string>
+     */
+    public static function newsGeographicCoverageOptions(): array
+    {
+        return [
+            self::LOCATION_TYPE_VILLAGE => 'Village',
+            self::LOCATION_TYPE_TOWN => 'Town',
+            self::LOCATION_TYPE_CITY => 'City',
+            self::LOCATION_TYPE_DISTRICT => 'District',
+            self::LOCATION_TYPE_STATE => 'State',
+            self::LOCATION_TYPE_INDIA => 'National',
+            self::LOCATION_TYPE_GLOBAL => 'International',
+        ];
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    public static function newsGeographicCoverageGroups(): array
+    {
+        return [
+            'Local area' => [
+                self::LOCATION_TYPE_VILLAGE,
+                self::LOCATION_TYPE_TOWN,
+                self::LOCATION_TYPE_CITY,
+            ],
+            'Regional' => [
+                self::LOCATION_TYPE_DISTRICT,
+                self::LOCATION_TYPE_STATE,
+            ],
+            'Broader reach' => [
+                self::LOCATION_TYPE_INDIA,
+                self::LOCATION_TYPE_GLOBAL,
+            ],
+        ];
+    }
+
+    public function geographicCoverageLabel(): string
+    {
+        if ($this->content_type === 'news') {
+            return self::newsGeographicCoverageOptions()[$this->location_type]
+                ?? $this->locationTypeLabel();
+        }
+
+        return $this->locationTypeLabel();
+    }
+
+    public static function usesStructuredLocation(?string $contentType): bool
+    {
+        return in_array($contentType, ['news', 'reports'], true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function structuredLocationMetaKeys(): array
+    {
+        return [
+            'location_country',
+            'location_state',
+            'location_district',
+            'location_city',
+            'location_locality',
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $fields
+     */
+    public static function composeStructuredLocation(array $fields): string
+    {
+        return collect([
+            $fields['location_locality'] ?? null,
+            $fields['location_city'] ?? null,
+            $fields['location_district'] ?? null,
+            $fields['location_state'] ?? null,
+            $fields['location_country'] ?? null,
+        ])
+            ->filter(fn (mixed $value): bool => filled($value))
+            ->map(fn (mixed $value): string => trim((string) $value))
+            ->unique()
+            ->implode(', ');
+    }
+
+    /**
+     * @param  array<string, mixed>  $fields
+     */
+    public static function inferLocationTypeFromStructured(array $fields): string
+    {
+        if (filled($fields['location_locality'] ?? null)) {
+            return self::LOCATION_TYPE_VILLAGE;
+        }
+
+        if (filled($fields['location_city'] ?? null)) {
+            return self::LOCATION_TYPE_CITY;
+        }
+
+        if (filled($fields['location_district'] ?? null)) {
+            return self::LOCATION_TYPE_DISTRICT;
+        }
+
+        if (filled($fields['location_state'] ?? null)) {
+            return self::LOCATION_TYPE_STATE;
+        }
+
+        if (filled($fields['location_country'] ?? null)) {
+            $country = strtolower(trim((string) $fields['location_country']));
+
+            return in_array($country, ['india', 'bharat'], true)
+                ? self::LOCATION_TYPE_INDIA
+                : self::LOCATION_TYPE_GLOBAL;
+        }
+
+        return self::LOCATION_TYPE_CITY;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function structuredLocationLabels(): array
+    {
+        return [
+            'location_country' => 'Country',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City',
+            'location_locality' => 'Locality',
+        ];
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public function structuredLocationForDisplay(): \Illuminate\Support\Collection
+    {
+        return collect(self::structuredLocationLabels())
+            ->mapWithKeys(fn (string $label, string $key): array => [$key => data_get($this->meta, $key)])
+            ->filter(fn (mixed $value): bool => filled($value));
     }
 
     public function usesGpsLocation(): bool
@@ -424,6 +605,7 @@ class CommunityPost extends Model
             self::LOCATION_TYPE_STATE,
             self::LOCATION_TYPE_DISTRICT,
             self::LOCATION_TYPE_CITY,
+            self::LOCATION_TYPE_TOWN,
             self::LOCATION_TYPE_VILLAGE,
         ];
     }
