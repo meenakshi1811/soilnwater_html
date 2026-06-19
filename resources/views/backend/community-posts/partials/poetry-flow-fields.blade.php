@@ -12,6 +12,9 @@
     $poetPhoto = $post->exists
         ? $post->authorAvatarUrl()
         : ($authorUser?->authorImageUrl());
+    $poetInitials = $post->exists
+        ? $post->authorInitials()
+        : (collect(preg_split('/\s+/', trim($poetName)) ?: [])->filter()->take(2)->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->implode('') ?: 'P');
 @endphp
 
 <div class="news-flow-card story-flow-card story-flow-card--theme border rounded-3 p-3 p-md-4 bg-light mb-3">
@@ -165,7 +168,7 @@
             @if(filled($poetPhoto))
                 <img src="{{ $poetPhoto }}" alt="{{ $poetName }}" class="rounded-circle">
             @else
-                <span class="poetry-author-preview__initials rounded-circle">{{ $post->exists ? $post->authorInitials() : collect(preg_split('/\s+/', trim($poetName)) ?: [])->filter()->take(2)->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->implode('') ?: 'P' }}</span>
+                <span class="poetry-author-preview__initials rounded-circle">{{ $poetInitials }}</span>
             @endif
         </div>
         <div class="flex-grow-1">
