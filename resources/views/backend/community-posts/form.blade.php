@@ -2079,12 +2079,14 @@ The mountains keep.</pre>
 <script>
     window.communityTypes = @json($types);
     window.communityBookTypes = @json(\App\Models\CommunityPost::BOOK_CONTENT_TYPES);
-    window.communityBookPages = @json(collect($initialBookPages)->map(fn ($page) => [
-        'content' => is_array($page) ? ($page['content'] ?? '') : (string) $page,
-        'language' => is_array($page) ? ($page['language'] ?? 'en') : 'en',
-        'title' => is_array($page) ? ($page['title'] ?? '') : '',
-        'summary' => is_array($page) ? ($page['summary'] ?? '') : '',
-    ])->values());
+    window.communityBookPages = @json(collect($initialBookPages)->map(function ($page) {
+        return [
+            'content' => is_array($page) ? ($page['content'] ?? '') : (string) $page,
+            'language' => is_array($page) ? ($page['language'] ?? 'en') : 'en',
+            'title' => is_array($page) ? ($page['title'] ?? '') : '',
+            'summary' => is_array($page) ? ($page['summary'] ?? '') : '',
+        ];
+    })->values()->all());
     window.communityBodyEditor = null;
     window.communityActiveBookPage = 0;
     const COMMUNITY_EDITOR_LANGUAGES = {
@@ -2216,10 +2218,12 @@ The mountains keep.</pre>
     });
     window.communityFeaturedImages = {
         max: 5,
-        existing: @json(collect($post->featuredImages())->map(fn ($path) => [
-            'path' => $path,
-            'url' => \App\Models\CommunityPost::resolveImageUrl($path),
-        ])->values()),
+        existing: @json(collect($post->featuredImages())->map(function ($path) {
+            return [
+                'path' => $path,
+                'url' => \App\Models\CommunityPost::resolveImageUrl($path),
+            ];
+        })->values()->all()),
         pending: [],
         removed: [],
     };
