@@ -33,6 +33,30 @@
     if (! is_array($initialAchievements)) {
         $initialAchievements = [];
     }
+    $communityLifeTimelineForJs = collect($initialLifeTimeline)->map(function ($entry) {
+        return [
+            'year' => (string) data_get($entry, 'year', ''),
+            'title' => (string) data_get($entry, 'title', ''),
+            'description' => (string) data_get($entry, 'description', ''),
+            'existing_photo_path' => (string) data_get($entry, 'photo.path', data_get($entry, 'photo_path', '')),
+            'existing_photo_url' => (string) data_get($entry, 'photo.url', ''),
+        ];
+    })->values()->all();
+    $communityRelatedPeopleForJs = collect($initialRelatedPeople)->map(function ($person) {
+        return [
+            'name' => (string) data_get($person, 'name', ''),
+            'relationship' => (string) data_get($person, 'relationship', ''),
+        ];
+    })->values()->all();
+    $communityAutobiographyAchievementsForJs = collect($initialAchievements)->map(function ($entry) {
+        return [
+            'award_name' => (string) data_get($entry, 'award_name', ''),
+            'year' => (string) data_get($entry, 'year', ''),
+            'description' => (string) data_get($entry, 'description', ''),
+            'existing_image_path' => (string) data_get($entry, 'image.path', ''),
+            'existing_image_url' => (string) data_get($entry, 'image.url', ''),
+        ];
+    })->values()->all();
 @endphp
 
 <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white mb-3">
@@ -350,30 +374,9 @@
 </div>
 
 <script>
-    window.communityLifeTimeline = @json(collect($initialLifeTimeline)->map(function ($entry) {
-        return [
-            'year' => (string) data_get($entry, 'year', ''),
-            'title' => (string) data_get($entry, 'title', ''),
-            'description' => (string) data_get($entry, 'description', ''),
-            'existing_photo_path' => (string) data_get($entry, 'photo.path', data_get($entry, 'photo_path', '')),
-            'existing_photo_url' => (string) data_get($entry, 'photo.url', ''),
-        ];
-    })->values()->all());
+    window.communityLifeTimeline = @json($communityLifeTimelineForJs);
     window.communityPlacesMentioned = @json(array_values($initialPlacesMentioned));
     window.communityKeyLessons = @json(array_values($initialKeyLessons));
-    window.communityRelatedPeople = @json(collect($initialRelatedPeople)->map(function ($person) {
-        return [
-            'name' => (string) data_get($person, 'name', ''),
-            'relationship' => (string) data_get($person, 'relationship', ''),
-        ];
-    })->values()->all());
-    window.communityAutobiographyAchievements = @json(collect($initialAchievements)->map(function ($entry) {
-        return [
-            'award_name' => (string) data_get($entry, 'award_name', ''),
-            'year' => (string) data_get($entry, 'year', ''),
-            'description' => (string) data_get($entry, 'description', ''),
-            'existing_image_path' => (string) data_get($entry, 'image.path', ''),
-            'existing_image_url' => (string) data_get($entry, 'image.url', ''),
-        ];
-    })->values()->all());
+    window.communityRelatedPeople = @json($communityRelatedPeopleForJs);
+    window.communityAutobiographyAchievements = @json($communityAutobiographyAchievementsForJs);
 </script>

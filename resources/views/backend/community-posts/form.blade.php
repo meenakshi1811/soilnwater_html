@@ -301,6 +301,14 @@
                 if ($initialBookPages === []) {
                     $initialBookPages = [['content' => old('body', $post->body ?? '')]];
                 }
+                $communityBookPagesForJs = collect($initialBookPages)->map(function ($page) {
+                    return [
+                        'content' => is_array($page) ? ($page['content'] ?? '') : (string) $page,
+                        'language' => is_array($page) ? ($page['language'] ?? 'en') : 'en',
+                        'title' => is_array($page) ? ($page['title'] ?? '') : '',
+                        'summary' => is_array($page) ? ($page['summary'] ?? '') : '',
+                    ];
+                })->values()->all();
             @endphp
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
@@ -2072,6 +2080,15 @@ The mountains keep.</pre>
 @include('community.partials.story-styles')
 @endpush
 
+@php
+    $communityFeaturedImagesForJs = collect($post->featuredImages())->map(function ($path) {
+        return [
+            'path' => $path,
+            'url' => \App\Models\CommunityPost::resolveImageUrl($path),
+        ];
+    })->values()->all();
+@endphp
+
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
@@ -2079,14 +2096,7 @@ The mountains keep.</pre>
 <script>
     window.communityTypes = @json($types);
     window.communityBookTypes = @json(\App\Models\CommunityPost::BOOK_CONTENT_TYPES);
-    window.communityBookPages = @json(collect($initialBookPages)->map(function ($page) {
-        return [
-            'content' => is_array($page) ? ($page['content'] ?? '') : (string) $page,
-            'language' => is_array($page) ? ($page['language'] ?? 'en') : 'en',
-            'title' => is_array($page) ? ($page['title'] ?? '') : '',
-            'summary' => is_array($page) ? ($page['summary'] ?? '') : '',
-        ];
-    })->values()->all());
+    window.communityBookPages = @json($communityBookPagesForJs);
     window.communityBodyEditor = null;
     window.communityActiveBookPage = 0;
     const COMMUNITY_EDITOR_LANGUAGES = {
@@ -2218,12 +2228,7 @@ The mountains keep.</pre>
     });
     window.communityFeaturedImages = {
         max: 5,
-        existing: @json(collect($post->featuredImages())->map(function ($path) {
-            return [
-                'path' => $path,
-                'url' => \App\Models\CommunityPost::resolveImageUrl($path),
-            ];
-        })->values()->all()),
+        existing: @json($communityFeaturedImagesForJs),
         pending: [],
         removed: [],
     };
