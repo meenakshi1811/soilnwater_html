@@ -32,7 +32,7 @@
     <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::awarenessCallToActionExamples() as $actionItem)
             <div class="col-md-4 col-sm-6">
-                <label class="form-check border rounded p-2 bg-white h-100 mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-white h-100 mb-0">
                     <input
                         type="checkbox"
                         name="awareness_action_items[]"
@@ -134,7 +134,7 @@
     <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::awarenessSocialImpactCategories() as $category)
             <div class="col-md-4 col-sm-6">
-                <label class="form-check border rounded p-2 bg-light h-100 mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-light h-100 mb-0">
                     <input
                         type="checkbox"
                         name="awareness_social_impact_categories[]"

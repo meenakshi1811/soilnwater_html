@@ -59,7 +59,7 @@
     <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::awarenessTargetAudiences() as $audience)
             <div class="col-md-4 col-sm-6">
-                <label class="form-check border rounded p-2 bg-light h-100 mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-light h-100 mb-0">
                     <input
                         type="checkbox"
                         name="awareness_target_audience[]"
@@ -119,7 +119,7 @@
     <div class="row g-2 mb-3 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::awarenessPostedByOptions() as $postedByOption)
             <div class="col-md-4 col-sm-6">
-                <label class="form-check border rounded p-2 bg-white h-100 mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-white h-100 mb-0">
                     <input
                         type="radio"
                         name="awareness_posted_by"
@@ -218,7 +218,7 @@
     @if(!empty(data_get($post->meta, 'awareness_infographics')))
         <div class="mt-3 d-flex flex-column gap-2">
             @foreach(data_get($post->meta, 'awareness_infographics', []) as $infographic)
-                <label class="form-check border rounded p-2 bg-light mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-light mb-0">
                     <input type="checkbox" name="removed_awareness_infographics[]" value="{{ data_get($infographic, 'path') }}" class="form-check-input">
                     <span class="form-check-label">Remove {{ data_get($infographic, 'name', 'infographic') }}</span>
                 </label>
@@ -269,7 +269,7 @@
     @if(!empty(data_get($post->meta, 'awareness_documents')))
         <div class="mt-3 d-flex flex-column gap-2">
             @foreach(data_get($post->meta, 'awareness_documents', []) as $document)
-                <label class="form-check border rounded p-2 bg-light mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-light mb-0">
                     <input type="checkbox" name="removed_awareness_documents[]" value="{{ data_get($document, 'path') }}" class="form-check-input">
                     <span class="form-check-label d-flex align-items-center gap-2">
                         <i class="fa-solid fa-file-lines" aria-hidden="true"></i>

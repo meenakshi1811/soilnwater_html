@@ -32,7 +32,7 @@
     <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::poetryThemes() as $theme)
             <div class="col-md-6 col-lg-4">
-                <label class="form-check border rounded p-2 bg-white h-100 mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-white h-100 mb-0">
                     <input
                         type="checkbox"
                         name="poetry_themes[]"
@@ -58,7 +58,7 @@
     <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::poetryTargetAudiences() as $audience)
             <div class="col-md-6 col-lg-4">
-                <label class="form-check border rounded p-2 bg-light h-100 mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-light h-100 mb-0">
                     <input
                         type="checkbox"
                         name="poetry_target_audience[]"

@@ -627,7 +627,7 @@ The mountains keep.</pre>
                     <div class="row g-2">
                         @foreach(\App\Support\CommunityContentTaxonomy::storyTargetAudiences() as $audience)
                             <div class="col-md-6 col-lg-4">
-                                <label class="form-check border rounded p-2 bg-light h-100 mb-0">
+                                <label class="form-check border rounded py-2 px-3 bg-light h-100 mb-0">
                                     <input
                                         type="checkbox"
                                         name="story_target_audience[]"
@@ -656,7 +656,7 @@ The mountains keep.</pre>
                     <div class="row g-2">
                         @foreach(\App\Support\CommunityContentTaxonomy::storyThemes() as $theme)
                             <div class="col-md-6 col-lg-4">
-                                <label class="form-check border rounded p-2 bg-white h-100 mb-0">
+                                <label class="form-check border rounded py-2 px-3 bg-white h-100 mb-0">
                                     <input
                                         type="checkbox"
                                         name="story_themes[]"
@@ -834,7 +834,7 @@ The mountains keep.</pre>
                     @if(!empty(data_get($post->meta, 'story_gallery')))
                         <div class="mt-3 d-flex flex-column gap-2">
                             @foreach(data_get($post->meta, 'story_gallery', []) as $galleryImage)
-                                <label class="form-check border rounded p-2 bg-white mb-0">
+                                <label class="form-check border rounded py-2 px-3 bg-white mb-0">
                                     <input type="checkbox" name="removed_story_gallery[]" value="{{ data_get($galleryImage, 'path') }}" class="form-check-input">
                                     <span class="form-check-label">Remove {{ data_get($galleryImage, 'name', 'gallery image') }}</span>
                                 </label>
@@ -2025,17 +2025,28 @@ The mountains keep.</pre>
         border-left-color: #0d6efd !important;
         background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
     }
+    /* Card-style checkbox/radio options (overrides Bootstrap .form-check float/negative margin) */
     .community-flow-checklist label.form-check,
     .community-flow-stack label.form-check,
     .news-flow-card label.form-check,
     .story-flow-card label.form-check,
     .awareness-flow label.form-check,
     .childrens-corner-flow label.form-check {
-        align-items: flex-start;
+        align-items: center;
         cursor: pointer;
         display: flex;
-        gap: 0.65rem;
+        flex-direction: row;
+        gap: 0.75rem;
+        margin-bottom: 0;
+        min-height: auto;
+        padding-left: unset;
+        width: 100%;
         transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+    .community-flow-stack label.form-check,
+    .childrens-corner-flow .community-flow-stack label.form-check,
+    .awareness-flow .community-flow-stack label.form-check {
+        align-items: flex-start;
     }
     .community-flow-checklist label.form-check:hover,
     .community-flow-stack label.form-check:hover,
@@ -2045,18 +2056,19 @@ The mountains keep.</pre>
     .childrens-corner-flow label.form-check:hover {
         border-color: rgba(13, 110, 253, 0.35) !important;
     }
-    .community-flow-checklist label.form-check:has(.form-check-input:checked),
-    .community-flow-stack label.form-check:has(.form-check-input:checked),
-    .news-flow-card label.form-check:has(.form-check-input:checked),
-    .story-flow-card label.form-check:has(.form-check-input:checked),
-    .awareness-flow label.form-check:has(.form-check-input:checked),
-    .childrens-corner-flow label.form-check:has(.form-check-input:checked) {
+    .community-flow-checklist label.form-check:has(.form-check-input[type="checkbox"]:checked),
+    .community-flow-stack label.form-check:has(.form-check-input[type="checkbox"]:checked),
+    .news-flow-card label.form-check:has(.form-check-input[type="checkbox"]:checked),
+    .story-flow-card label.form-check:has(.form-check-input[type="checkbox"]:checked),
+    .awareness-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
+    .childrens-corner-flow label.form-check:has(.form-check-input[type="checkbox"]:checked) {
         background: #f0fdf4 !important;
         border-color: rgba(25, 135, 84, 0.45) !important;
         box-shadow: 0 0 0 1px rgba(25, 135, 84, 0.12);
     }
     .community-flow-checklist label.form-check:has(.form-check-input[type="radio"]:checked),
     .community-flow-stack label.form-check:has(.form-check-input[type="radio"]:checked),
+    .awareness-flow label.form-check:has(.form-check-input[type="radio"]:checked),
     .childrens-corner-flow label.form-check:has(.form-check-input[type="radio"]:checked) {
         background: #eff6ff !important;
         border-color: rgba(37, 99, 235, 0.45) !important;
@@ -2068,34 +2080,67 @@ The mountains keep.</pre>
     .story-flow-card .form-check-input,
     .awareness-flow .form-check-input,
     .childrens-corner-flow .form-check-input {
-        border: 2px solid #64748b;
+        appearance: none;
+        -webkit-appearance: none;
+        background-color: #fff;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+        border: 2px solid #94a3b8;
+        border-radius: 0.25rem;
+        box-shadow: none;
         cursor: pointer;
         flex-shrink: 0;
-        height: 1.1rem;
-        margin-top: 0.15rem;
-        width: 1.1rem;
+        float: none !important;
+        height: 1.125rem;
+        margin: 0 !important;
+        position: static !important;
+        vertical-align: middle;
+        width: 1.125rem;
+    }
+    .community-flow-stack .form-check-input,
+    .childrens-corner-flow .community-flow-stack .form-check-input,
+    .awareness-flow .community-flow-stack .form-check-input {
+        margin-top: 0.2rem !important;
     }
     .community-flow-checklist .form-check-input[type="radio"],
     .community-flow-stack .form-check-input[type="radio"],
+    .news-flow-card .form-check-input[type="radio"],
+    .story-flow-card .form-check-input[type="radio"],
     .awareness-flow .form-check-input[type="radio"],
     .childrens-corner-flow .form-check-input[type="radio"] {
         border-radius: 50%;
     }
-    .community-flow-checklist .form-check-input:checked,
-    .community-flow-stack .form-check-input:checked,
-    .news-flow-card .form-check-input:checked,
-    .story-flow-card .form-check-input:checked,
-    .awareness-flow .form-check-input:checked,
-    .childrens-corner-flow .form-check-input:checked {
+    .community-flow-checklist .form-check-input[type="checkbox"]:checked,
+    .community-flow-stack .form-check-input[type="checkbox"]:checked,
+    .news-flow-card .form-check-input[type="checkbox"]:checked,
+    .story-flow-card .form-check-input[type="checkbox"]:checked,
+    .awareness-flow .form-check-input[type="checkbox"]:checked,
+    .childrens-corner-flow .form-check-input[type="checkbox"]:checked {
         background-color: #198754;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3 6-6'/%3e%3c/svg%3e");
         border-color: #198754;
     }
     .community-flow-checklist .form-check-input[type="radio"]:checked,
     .community-flow-stack .form-check-input[type="radio"]:checked,
+    .news-flow-card .form-check-input[type="radio"]:checked,
+    .story-flow-card .form-check-input[type="radio"]:checked,
     .awareness-flow .form-check-input[type="radio"]:checked,
     .childrens-corner-flow .form-check-input[type="radio"]:checked {
-        background-color: #2563eb;
+        background-color: #fff;
+        background-image: radial-gradient(circle, #2563eb 0%, #2563eb 38%, transparent 42%, transparent 100%);
         border-color: #2563eb;
+        border-width: 2px;
+    }
+    .community-flow-checklist .form-check-input:focus,
+    .community-flow-stack .form-check-input:focus,
+    .news-flow-card .form-check-input:focus,
+    .story-flow-card .form-check-input:focus,
+    .awareness-flow .form-check-input:focus,
+    .childrens-corner-flow .form-check-input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
+        outline: 0;
     }
     .community-flow-checklist .form-check-label,
     .community-flow-stack .form-check-label,
@@ -2104,7 +2149,11 @@ The mountains keep.</pre>
     .awareness-flow .form-check-label,
     .childrens-corner-flow .form-check-label {
         cursor: pointer;
-        line-height: 1.35;
+        flex: 1 1 auto;
+        line-height: 1.4;
+        margin-bottom: 0;
+        min-width: 0;
+        padding-left: 0;
     }
     #bodyContentSection.is-waiting-for-type #bodyEditorMount {
         display: block !important;

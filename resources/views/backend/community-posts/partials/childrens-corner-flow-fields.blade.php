@@ -152,7 +152,7 @@
     <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::childrensCornerThemes() as $theme)
             <div class="col-md-6 col-lg-4">
-                <label class="form-check border rounded p-2 bg-white h-100 mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-white h-100 mb-0">
                     <input
                         type="checkbox"
                         name="childrens_corner_themes[]"
@@ -181,7 +181,7 @@
     <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::childrensCornerTalentCategories() as $category)
             <div class="col-md-6 col-lg-4">
-                <label class="form-check border rounded p-2 bg-light h-100 mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-light h-100 mb-0">
                     <input type="checkbox" name="childrens_corner_talent_categories[]" value="{{ $category }}" class="form-check-input" @checked(in_array($category, (array) $selectedTalentCategories, true))>
                     <span class="form-check-label">{{ $category }}</span>
                 </label>
@@ -289,7 +289,7 @@
     @if($existingChildrensGallery !== [])
         <div class="mt-3 community-flow-stack d-flex flex-column gap-2">
             @foreach($existingChildrensGallery as $galleryImage)
-                <label class="form-check border rounded p-2 bg-white mb-0">
+                <label class="form-check border rounded py-2 px-3 bg-white mb-0">
                     <input type="checkbox" name="removed_childrens_corner_gallery[]" value="{{ data_get($galleryImage, 'path') }}" class="form-check-input">
                     <span class="form-check-label">Remove {{ data_get($galleryImage, 'name', 'gallery image') }}</span>
                 </label>
