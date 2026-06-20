@@ -15,8 +15,12 @@
         $scoreBadges = $post->articleScoreBadges();
         $isSaved = auth()->check() && in_array($post->id, $engagement['saved_post_ids'] ?? [], true);
         $isPoetry = $post->content_type === 'poetry';
+        $isBusiness = $post->isBusinessPost();
         $poetryThemes = $isPoetry ? array_slice((array) data_get($post->meta, 'poetry_themes', []), 0, 2) : [];
+        $businessThemes = $isBusiness ? array_slice((array) data_get($post->meta, 'business_themes', []), 0, 2) : [];
         $poetryType = $isPoetry ? data_get($post->meta, 'poetry_type') : null;
+        $businessContentType = $isBusiness ? data_get($post->meta, 'business_content_type') : null;
+        $businessStage = $isBusiness ? data_get($post->meta, 'business_stage') : null;
         $poetryRating = $isPoetry ? $post->averageStarRating() : null;
         $hasPoetryAudio = $isPoetry && $post->poetryAudioUrl();
     @endphp
@@ -77,6 +81,19 @@
                                 {{ number_format($poetryRating, 1) }}
                             </span>
                         @endif
+                    </div>
+                @endif
+                @if($isBusiness && ($businessContentType || $businessStage || $businessThemes !== []))
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        @if($businessContentType)
+                            <span class="badge bg-warning-subtle text-dark border">{{ $businessContentType }}</span>
+                        @endif
+                        @if($businessStage)
+                            <span class="badge bg-light text-dark border">{{ $businessStage }}</span>
+                        @endif
+                        @foreach($businessThemes as $theme)
+                            <span class="badge bg-light text-dark border">{{ $theme }}</span>
+                        @endforeach
                     </div>
                 @endif
                 <h2 class="community-post-card__title">

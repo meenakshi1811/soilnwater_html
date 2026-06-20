@@ -28,6 +28,11 @@
         @include('community.partials.awareness-styles')
     @endpush
 @endif
+@if($post->isBusinessPost())
+    @push('styles')
+        @include('community.partials.business-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
@@ -103,6 +108,17 @@
                 ])
             @endif
 
+            @if($post->isBusinessPost())
+                @include('community.partials.business-show-sections', [
+                    'post' => $post,
+                    'businessEngagement' => $businessEngagement ?? null,
+                ])
+                @include('community.partials.business-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved business metadata',
+                ])
+            @endif
+
             @if($post->isAwarenessPost() && ($post->allowsAwarenessCauseSupport() || $post->allowsAwarenessPledges() || $post->allowsCampaignJoin()))
                 <div class="mb-4" id="awareness-campaign-activity">
                     @include('backend.community-posts.partials.awareness-portal-activity', [
@@ -111,6 +127,17 @@
                         'awarenessEngagementActivity' => $awarenessEngagementActivity,
                         'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                         'showVolunteerContacts' => true,
+                    ])
+                </div>
+            @endif
+
+            @if($post->isBusinessPost() && $post->allowsBusinessContact())
+                <div class="mb-4" id="business-inquiry-activity">
+                    @include('backend.community-posts.partials.business-portal-activity', [
+                        'post' => $post,
+                        'businessEngagement' => $businessEngagement,
+                        'businessEngagementActivity' => $businessEngagementActivity,
+                        'showQueryContacts' => true,
                     ])
                 </div>
             @endif
@@ -352,6 +379,22 @@
                             @if($post->allowsCampaignJoin())
                                 <span class="badge bg-info-subtle text-info border">Volunteer join enabled</span>
                             @endif
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if($post->isBusinessPost())
+                <div class="chart-card p-3 p-lg-4 mb-4">
+                    <h5 class="mb-3">Business networking</h5>
+                    <div class="row g-2 small">
+                        <div class="col-4"><strong>Inquiries</strong><div>{{ number_format($businessEngagement['queries_count'] ?? 0) }}</div></div>
+                    </div>
+                    @if($post->allowsBusinessContact())
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            @foreach($post->businessContactOptionsForDisplay() as $option)
+                                <span class="badge bg-warning-subtle text-dark border">{{ $option }}</span>
+                            @endforeach
                         </div>
                     @endif
                 </div>

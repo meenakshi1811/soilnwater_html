@@ -436,6 +436,20 @@
                     <span class="badge bg-primary community-post-banner-tag">{{ data_get($post->meta, 'awareness_level') }} level</span>
                 @endif
             @endif
+            @if($post->isBusinessPost())
+                @if(filled($post->businessCategoryLabel()))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->businessCategoryLabel() }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'business_content_type')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'business_content_type') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'business_stage')))
+                    <span class="badge bg-warning text-dark community-post-banner-tag">{{ data_get($post->meta, 'business_stage') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'business_industry')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'business_industry') }}</span>
+                @endif
+            @endif
             @if($post->isReportContent())
                 <span class="badge bg-success community-post-banner-tag">Trust Score: {{ $post->reportTrustScore() }}%</span>
             @endif
@@ -532,6 +546,13 @@
                 ])
             @endif
 
+            @if($post->isBusinessPost())
+                @include('community.partials.business-show-sections', [
+                    'post' => $post,
+                    'businessEngagement' => $businessEngagement ?? null,
+                ])
+            @endif
+
             @if($post->isReportContent())
                 <div class="mb-4">
                     @include('community.partials.report-trust-score', ['post' => $post])
@@ -557,7 +578,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo() && ! $post->isAwarenessPost())
+            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -713,6 +734,13 @@
                     'call_to_action',
                     'related_resource_url',
                 ]);
+                $additionalBusinessMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::businessStructuredMetaKeys(),
+                    ...\App\Support\CommunityPostFormFields::businessEngagementStructuredMetaKeys(),
+                    ...\App\Models\CommunityPost::structuredLocationMetaKeys(),
+                    'business_video_type',
+                    'author_bio',
+                ]);
             @endphp
             @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
                 @include('community.partials.report-meta-details', ['post' => $post, 'includeLocation' => true])
@@ -775,6 +803,12 @@
                     $visibleMeta = $additionalAwarenessMeta;
                 @endphp
             @endif
+            @if($post->isBusinessPost())
+                @include('community.partials.business-meta-details', ['post' => $post])
+                @php
+                    $visibleMeta = $additionalBusinessMeta;
+                @endphp
+            @endif
             @if($post->content_type === 'my-voice' && $orderedMyVoiceMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>My Voice details</h4>
@@ -793,7 +827,7 @@
                     $visibleMeta = $additionalMyVoiceMeta;
                 @endphp
             @endif
-            @if(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
+            @if(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Location information</h4>
                     <div class="row g-3">
@@ -910,6 +944,13 @@
                     $userReactions = auth()->check() ? $post->reactions->where('user_id', auth()->id())->pluck('reaction')->all() : [];
                     $reactionOptions = $post->usesChildFriendlyReactions()
                         ? \App\Support\CommunityContentTaxonomy::childrensCornerReactionOptions()
+                        : ($post->isBusinessPost()
+                        ? [
+                            'Informative' => 'fa-solid fa-circle-info',
+                            'Excellent' => 'fa-solid fa-star',
+                            'Inspiring' => 'fa-solid fa-lightbulb',
+                            'Helpful' => 'fa-solid fa-hand-holding-heart',
+                        ]
                         : ($post->content_type === 'reports' && filled(data_get($post->meta, 'report_type'))
                         ? [
                             'Support' => 'fa-solid fa-hand-holding-heart',
@@ -924,7 +965,7 @@
                             'Excellent' => 'fa-solid fa-star',
                             'Informative' => 'fa-solid fa-circle-info',
                             'Dislike' => 'fa-solid fa-thumbs-down',
-                        ]);
+                        ])));
                 @endphp
                 @auth
                     <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
@@ -1035,6 +1076,9 @@
 @endif
 @if($post->isAwarenessPost())
 @include('community.partials.awareness-styles')
+@endif
+@if($post->isBusinessPost())
+@include('community.partials.business-styles')
 @endif
 <style>
     .community-post-body {

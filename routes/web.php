@@ -92,6 +92,7 @@ Route::get('/auther/{uniqueName}', [CommunityPostController::class, 'author'])->
 Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
 Route::post('/community/{post:slug}/share', [CommunityEngagementController::class, 'trackShare'])->name('community.share.track');
 Route::post('/community/{post:slug}/awareness-engagement/volunteer', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'volunteer'])->name('community.awareness-engagement.volunteer');
+Route::post('/community/{post:slug}/business-engagement/query', [\App\Http\Controllers\Community\CommunityBusinessEngagementController::class, 'submitQuery'])->name('community.business-engagement.query');
 
 Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
     $data = $request->validate([

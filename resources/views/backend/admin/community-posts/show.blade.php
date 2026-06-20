@@ -122,6 +122,9 @@
 @if($post->isAwarenessPost())
 @include('community.partials.awareness-styles')
 @endif
+@if($post->isBusinessPost())
+@include('community.partials.business-styles')
+@endif
 @endpush
 
 @section('content')
@@ -320,6 +323,17 @@
                                 'heading' => 'Awareness metadata',
                             ])
                         @endif
+
+                        @if($post->isBusinessPost())
+                            @include('community.partials.business-show-sections', [
+                                'post' => $post,
+                                'businessEngagement' => $businessEngagement ?? null,
+                            ])
+                            @include('community.partials.business-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Business metadata',
+                            ])
+                        @endif
                     </div>
                 </div>
 
@@ -378,6 +392,15 @@
                             'awarenessEngagementActivity' => $awarenessEngagementActivity,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'showVolunteerContacts' => true,
+                        ])
+                    @endif
+
+                    @if($post->isBusinessPost() && $post->allowsBusinessContact())
+                        @include('backend.community-posts.partials.business-portal-activity', [
+                            'post' => $post,
+                            'businessEngagement' => $businessEngagement,
+                            'businessEngagementActivity' => $businessEngagementActivity,
+                            'showQueryContacts' => true,
                         ])
                     @endif
 
@@ -663,7 +686,10 @@
                             $awarenessMetaKeys = $post->isAwarenessPost()
                                 ? \App\Support\CommunityPostFormFields::awarenessStructuredMetaKeys()
                                 : [];
-                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, $childrensCornerMetaKeys, $awarenessMetaKeys, [
+                            $businessMetaKeys = $post->isBusinessPost()
+                                ? \App\Support\CommunityPostFormFields::businessStructuredMetaKeys()
+                                : [];
+                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, $childrensCornerMetaKeys, $awarenessMetaKeys, $businessMetaKeys, [
                                 'story_gallery',
                                 'story_audio',
                                 'poetry_audio',

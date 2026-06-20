@@ -122,7 +122,7 @@ class CommunityPostController extends Controller
             'starRatings',
             'discussionComments.user',
             'discussionComments.replies.user',
-        ])->loadCount(['starRatings', 'awarenessSupports', 'awarenessPledges', 'awarenessVolunteers']);
+        ])->loadCount(['starRatings', 'awarenessSupports', 'awarenessPledges', 'awarenessVolunteers', 'businessQueries']);
 
         if ($post->isPubliclyVisible()) {
             $this->recordPostView($request, $post);
@@ -152,6 +152,7 @@ class CommunityPostController extends Controller
             'awarenessSupports',
             'awarenessPledges',
             'awarenessVolunteers',
+            'businessQueries',
         ]);
 
         $participation = $this->participationViewData($post, limit: 50);
@@ -191,6 +192,12 @@ class CommunityPostController extends Controller
             'awarenessEngagementActivity' => $post->isAwarenessPost()
                 ? \App\Services\CommunityAwarenessEngagementService::activityForPost($post)
                 : null,
+            'businessEngagement' => $post->isBusinessPost()
+                ? \App\Services\CommunityBusinessEngagementService::stateForPost($post, auth()->id())
+                : null,
+            'businessEngagementActivity' => $post->isBusinessPost()
+                ? \App\Services\CommunityBusinessEngagementService::activityForPost($post)
+                : null,
             'communityParticipationEvidence' => $post->allow_additional_evidence
                 ? CommunityReportEngagementNotificationService::recentEvidence($post, $limit)
                 : collect(),
@@ -208,9 +215,7 @@ class CommunityPostController extends Controller
         $this->ensureCommunityAudienceAccess($post, $request);
 
         $data = $request->validate([
-            'reaction' => ['required', Rule::in($post->usesChildFriendlyReactions()
-                ? CommunityContentTaxonomy::childrensCornerReactionLabels()
-                : ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'])],
+            'reaction' => ['required', Rule::in($post->allowedReactionLabels())],
         ]);
 
         $reaction = CommunityPostReaction::query()->where([

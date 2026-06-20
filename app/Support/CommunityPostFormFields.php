@@ -931,6 +931,48 @@ class CommunityPostFormFields
     /**
      * @return list<string>
      */
+    public static function businessEngagementStructuredMetaKeys(): array
+    {
+        return [
+            'business_ask_community',
+            'business_useful_links',
+            'business_government_schemes',
+            'business_training_programs',
+            'business_industry_resources',
+            'business_contact_options',
+            'business_poll_question',
+            'business_poll_options',
+            'business_gallery',
+            'business_documents',
+            'business_video_type',
+        ];
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedBusinessMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::businessDetailMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if ($key === 'business_category' && blank($value)) {
+                    $value = $post->category;
+                }
+
+                if (is_array($value)) {
+                    $value = implode(', ', array_values(array_filter($value)));
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value));
+    }
+
+    /**
+     * @return list<string>
+     */
     public static function awarenessEngagementStructuredMetaKeys(): array
     {
         return [

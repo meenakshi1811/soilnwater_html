@@ -236,6 +236,11 @@ class CommunityPost extends Model
         return $this->hasMany(CommunityAwarenessVolunteer::class);
     }
 
+    public function businessQueries(): HasMany
+    {
+        return $this->hasMany(CommunityBusinessQuery::class);
+    }
+
     public function reportAgreements(): HasMany
     {
         return $this->hasMany(CommunityReportAgreement::class);
@@ -1013,6 +1018,78 @@ class CommunityPost extends Model
     public function isBusinessPost(): bool
     {
         return self::usesBusinessFlow($this->content_type);
+    }
+
+    public function businessCategoryLabel(): ?string
+    {
+        if (! $this->isBusinessPost()) {
+            return null;
+        }
+
+        return data_get($this->meta, 'business_category') ?: $this->category;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function businessContactOptionsForDisplay(): array
+    {
+        if (! $this->isBusinessPost()) {
+            return [];
+        }
+
+        $options = array_values(array_filter((array) data_get($this->meta, 'business_contact_options', [])));
+
+        return $options === [] ? [] : $options;
+    }
+
+    public function allowsBusinessContact(): bool
+    {
+        return $this->isBusinessPost() && $this->businessContactOptionsForDisplay() !== [];
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function businessGallery(): array
+    {
+        return array_values((array) data_get($this->meta, 'business_gallery', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function businessDocuments(): array
+    {
+        return array_values((array) data_get($this->meta, 'business_documents', []));
+    }
+
+    public function isBusinessGalleryImage(array $file): bool
+    {
+        $mime = strtolower((string) data_get($file, 'type', ''));
+        if (str_starts_with($mime, 'image/')) {
+            return true;
+        }
+
+        $extension = strtolower(pathinfo((string) data_get($file, 'name', ''), PATHINFO_EXTENSION));
+
+        return in_array($extension, ['png', 'jpg', 'jpeg', 'webp', 'gif'], true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function allowedReactionLabels(): array
+    {
+        if ($this->usesChildFriendlyReactions()) {
+            return \App\Support\CommunityContentTaxonomy::childrensCornerReactionLabels();
+        }
+
+        if ($this->isBusinessPost()) {
+            return \App\Support\CommunityContentTaxonomy::businessReactionLabels();
+        }
+
+        return ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'];
     }
 
     public function awarenessCategoryLabel(): ?string
