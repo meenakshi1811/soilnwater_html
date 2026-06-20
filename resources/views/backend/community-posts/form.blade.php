@@ -3414,7 +3414,7 @@ The mountains keep.</pre>
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        }))));
+        })));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
