@@ -33,7 +33,12 @@
     <div class="awareness-section-panel about-box mb-4">
         <div class="awareness-section-panel__header">
             <i class="fa-solid fa-video" aria-hidden="true"></i>
-            <h4 class="mb-0">Video content@if(filled($videoType)) <span class="text-muted fw-normal fs-6">— {{ $videoType }}</span>@endif</h4>
+            <h4 class="mb-0">
+                Video content
+                @if(filled($videoType))
+                    <span class="text-muted fw-normal fs-6">— {{ $videoType }}</span>
+                @endif
+            </h4>
         </div>
         @if($post->youtubeEmbedUrl())
             <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm">
