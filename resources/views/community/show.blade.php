@@ -27,7 +27,6 @@
 @endif
 
 @push('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
     .community-featured-gallery {
         display: grid;
@@ -1073,9 +1072,10 @@
             ])
         @endif
     @endauth
-</div>
+    </div>
 @endsection
 
+@include('community.partials.toastr-assets')
 
 @push('styles')
 @include('community.partials.story-styles')
@@ -1216,18 +1216,6 @@
 @endpush
 
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<script>
-    if (window.toastr) {
-        window.toastr.options = {
-            closeButton: true,
-            progressBar: true,
-            positionClass: 'toast-top-right',
-            timeOut: 3500,
-            extendedTimeOut: 2000,
-        };
-    }
-</script>
 <script>
     (function () {
         const protectedSelector = '[data-community-body-protected]';

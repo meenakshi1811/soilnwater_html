@@ -8,9 +8,20 @@
     function notify(type, message) {
         const toastType = type === 'error' ? 'error' : type;
 
-        if (window.toastr && typeof window.toastr[toastType] === 'function') {
-            window.toastr[toastType](message);
-            return;
+        try {
+            if (window.toastr && window.jQuery && typeof window.toastr[toastType] === 'function') {
+                window.toastr.options = {
+                    closeButton: true,
+                    progressBar: true,
+                    positionClass: 'toast-top-right',
+                    timeOut: 3500,
+                    extendedTimeOut: 2000,
+                };
+                window.toastr[toastType](message);
+                return;
+            }
+        } catch (error) {
+            console.warn('Toastr unavailable.', error);
         }
 
         console.warn(message);
