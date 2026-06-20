@@ -965,7 +965,7 @@
                             'Excellent' => 'fa-solid fa-star',
                             'Informative' => 'fa-solid fa-circle-info',
                             'Dislike' => 'fa-solid fa-thumbs-down',
-                        ])));
+                        ]));
                 @endphp
                 @auth
                     <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
