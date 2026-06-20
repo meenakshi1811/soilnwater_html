@@ -2026,9 +2026,11 @@ The mountains keep.</pre>
         background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
     }
     .community-flow-checklist label.form-check,
+    .community-flow-stack label.form-check,
     .news-flow-card label.form-check,
     .story-flow-card label.form-check,
-    .awareness-flow label.form-check {
+    .awareness-flow label.form-check,
+    .childrens-corner-flow label.form-check {
         align-items: flex-start;
         cursor: pointer;
         display: flex;
@@ -2036,23 +2038,36 @@ The mountains keep.</pre>
         transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
     }
     .community-flow-checklist label.form-check:hover,
+    .community-flow-stack label.form-check:hover,
     .news-flow-card label.form-check:hover,
     .story-flow-card label.form-check:hover,
-    .awareness-flow label.form-check:hover {
+    .awareness-flow label.form-check:hover,
+    .childrens-corner-flow label.form-check:hover {
         border-color: rgba(13, 110, 253, 0.35) !important;
     }
     .community-flow-checklist label.form-check:has(.form-check-input:checked),
+    .community-flow-stack label.form-check:has(.form-check-input:checked),
     .news-flow-card label.form-check:has(.form-check-input:checked),
     .story-flow-card label.form-check:has(.form-check-input:checked),
-    .awareness-flow label.form-check:has(.form-check-input:checked) {
+    .awareness-flow label.form-check:has(.form-check-input:checked),
+    .childrens-corner-flow label.form-check:has(.form-check-input:checked) {
         background: #f0fdf4 !important;
         border-color: rgba(25, 135, 84, 0.45) !important;
         box-shadow: 0 0 0 1px rgba(25, 135, 84, 0.12);
     }
+    .community-flow-checklist label.form-check:has(.form-check-input[type="radio"]:checked),
+    .community-flow-stack label.form-check:has(.form-check-input[type="radio"]:checked),
+    .childrens-corner-flow label.form-check:has(.form-check-input[type="radio"]:checked) {
+        background: #eff6ff !important;
+        border-color: rgba(37, 99, 235, 0.45) !important;
+        box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12);
+    }
     .community-flow-checklist .form-check-input,
+    .community-flow-stack .form-check-input,
     .news-flow-card .form-check-input,
     .story-flow-card .form-check-input,
-    .awareness-flow .form-check-input {
+    .awareness-flow .form-check-input,
+    .childrens-corner-flow .form-check-input {
         border: 2px solid #64748b;
         cursor: pointer;
         flex-shrink: 0;
@@ -2060,17 +2075,34 @@ The mountains keep.</pre>
         margin-top: 0.15rem;
         width: 1.1rem;
     }
+    .community-flow-checklist .form-check-input[type="radio"],
+    .community-flow-stack .form-check-input[type="radio"],
+    .awareness-flow .form-check-input[type="radio"],
+    .childrens-corner-flow .form-check-input[type="radio"] {
+        border-radius: 50%;
+    }
     .community-flow-checklist .form-check-input:checked,
+    .community-flow-stack .form-check-input:checked,
     .news-flow-card .form-check-input:checked,
     .story-flow-card .form-check-input:checked,
-    .awareness-flow .form-check-input:checked {
+    .awareness-flow .form-check-input:checked,
+    .childrens-corner-flow .form-check-input:checked {
         background-color: #198754;
         border-color: #198754;
     }
+    .community-flow-checklist .form-check-input[type="radio"]:checked,
+    .community-flow-stack .form-check-input[type="radio"]:checked,
+    .awareness-flow .form-check-input[type="radio"]:checked,
+    .childrens-corner-flow .form-check-input[type="radio"]:checked {
+        background-color: #2563eb;
+        border-color: #2563eb;
+    }
     .community-flow-checklist .form-check-label,
+    .community-flow-stack .form-check-label,
     .news-flow-card .form-check-label,
     .story-flow-card .form-check-label,
-    .awareness-flow .form-check-label {
+    .awareness-flow .form-check-label,
+    .childrens-corner-flow .form-check-label {
         cursor: pointer;
         line-height: 1.35;
     }

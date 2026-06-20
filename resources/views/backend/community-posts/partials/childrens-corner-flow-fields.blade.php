@@ -122,7 +122,7 @@
         </div>
         <span class="badge bg-danger text-white">Mandatory</span>
     </div>
-    <div class="d-flex flex-column gap-2">
+    <div class="community-flow-stack d-flex flex-column gap-2">
         <label class="form-check border rounded p-3 bg-light mb-0">
             <input type="checkbox" name="child_parent_consent_identity" id="childParentConsentIdentity" class="form-check-input childrens-corner-consent-required" value="1" @checked(old('child_parent_consent_identity', data_get($post->meta, 'child_parent_consent_identity', false))) required>
             <span class="form-check-label">I am the parent/guardian of the child.</span>
@@ -138,7 +138,7 @@
     </div>
 </div>
 
-<div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-light mb-3">
+<div class="news-flow-card story-flow-card story-flow-card--theme border rounded-3 p-3 p-md-4 bg-light mb-3 community-flow-checklist">
     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
         <div>
             <h5 class="mb-1">Theme</h5>
@@ -149,7 +149,7 @@
     @php
         $selectedChildrensThemes = old('childrens_corner_themes', data_get($post->meta, 'childrens_corner_themes', []));
     @endphp
-    <div class="row g-2">
+    <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::childrensCornerThemes() as $theme)
             <div class="col-md-6 col-lg-4">
                 <label class="form-check border rounded p-2 bg-white h-100 mb-0">
@@ -178,7 +178,7 @@
     @php
         $selectedTalentCategories = old('childrens_corner_talent_categories', data_get($post->meta, 'childrens_corner_talent_categories', []));
     @endphp
-    <div class="row g-2">
+    <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::childrensCornerTalentCategories() as $category)
             <div class="col-md-6 col-lg-4">
                 <label class="form-check border rounded p-2 bg-light h-100 mb-0">
@@ -287,7 +287,7 @@
         $existingChildrensGallery = array_values((array) data_get($post->meta, 'childrens_corner_gallery', []));
     @endphp
     @if($existingChildrensGallery !== [])
-        <div class="mt-3 d-flex flex-column gap-2">
+        <div class="mt-3 community-flow-stack d-flex flex-column gap-2">
             @foreach($existingChildrensGallery as $galleryImage)
                 <label class="form-check border rounded p-2 bg-white mb-0">
                     <input type="checkbox" name="removed_childrens_corner_gallery[]" value="{{ data_get($galleryImage, 'path') }}" class="form-check-input">
@@ -420,7 +420,7 @@
             data_get($post->meta, 'childrens_corner_privacy_setting', \App\Support\CommunityContentTaxonomy::childrensCornerDefaultPrivacySetting())
         );
     @endphp
-    <div class="d-flex flex-column gap-2">
+    <div class="community-flow-stack d-flex flex-column gap-2">
         @foreach(\App\Support\CommunityContentTaxonomy::childrensCornerPrivacySettings() as $value => $label)
             <label class="form-check border rounded p-3 mb-0 {{ $value === 'public_limited' ? 'bg-success-subtle border-success' : 'bg-light' }}">
                 <input
@@ -457,7 +457,7 @@
         </div>
         <span class="badge bg-primary text-white">Mandatory</span>
     </div>
-    <div class="d-flex flex-column gap-2">
+    <div class="community-flow-stack d-flex flex-column gap-2">
         @foreach(\App\Support\CommunityContentTaxonomy::childrensCornerSafetyDeclarations() as $field => $label)
             <label class="form-check border rounded p-3 bg-white mb-0">
                 <input
@@ -483,16 +483,17 @@
         </div>
         <span class="badge bg-warning text-dark">Recommended</span>
     </div>
-    <label class="form-check border rounded p-3 bg-white mb-2">
-        <input
-            type="checkbox"
-            class="form-check-input"
-            id="childrensCornerEnableComments"
-            @checked(old('allow_comments', $post->allow_comments ?? true))
-        >
-        <span class="form-check-label">Enable comments on this post</span>
-    </label>
-    <label class="form-check border rounded p-3 bg-white mb-0">
+    <div class="community-flow-stack d-flex flex-column gap-2">
+        <label class="form-check border rounded p-3 bg-white mb-0">
+            <input
+                type="checkbox"
+                class="form-check-input"
+                id="childrensCornerEnableComments"
+                @checked(old('allow_comments', $post->allow_comments ?? true))
+            >
+            <span class="form-check-label">Enable comments on this post</span>
+        </label>
+        <label class="form-check border rounded p-3 bg-white mb-0">
         <input
             type="checkbox"
             name="childrens_corner_comments_moderated"
@@ -502,7 +503,8 @@
             @checked(old('childrens_corner_comments_moderated', data_get($post->meta, 'childrens_corner_comments_moderated', true)))
         >
         <span class="form-check-label">Comments moderated <small class="text-muted">(default — new comments require your approval before they appear publicly)</small></span>
-    </label>
+        </label>
+    </div>
 </div>
 
 <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white mb-3">

@@ -55,18 +55,20 @@
             <p class="text-muted mb-0 small">Let people join your awareness campaign.</p>
         </div>
     </div>
-    <div class="form-check mb-3">
-        <input
-            type="checkbox"
-            name="awareness_allow_campaign_join"
-            value="1"
-            class="form-check-input"
-            id="awarenessAllowCampaignJoin"
-            @checked(old('awareness_allow_campaign_join', data_get($post->meta, 'awareness_allow_campaign_join', false)))
-        >
-        <label class="form-check-label" for="awarenessAllowCampaignJoin">Allow people to join this campaign</label>
+    <div class="community-flow-stack d-flex flex-column gap-2">
+        <label class="form-check border rounded p-3 bg-white mb-0" for="awarenessAllowCampaignJoin">
+            <input
+                type="checkbox"
+                name="awareness_allow_campaign_join"
+                value="1"
+                class="form-check-input"
+                id="awarenessAllowCampaignJoin"
+                @checked(old('awareness_allow_campaign_join', data_get($post->meta, 'awareness_allow_campaign_join', false)))
+            >
+            <span class="form-check-label">Allow people to join this campaign</span>
+            <small class="text-muted d-block mt-1">When enabled, readers can submit name, mobile, email, and city to volunteer for this campaign.</small>
+        </label>
     </div>
-    <p class="text-muted small mb-0">When enabled, readers can submit name, mobile, email, and city to volunteer for this campaign.</p>
 </div>
 
 <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-light mb-3">
@@ -77,16 +79,18 @@
         </div>
         <span class="badge bg-light text-dark border">Optional</span>
     </div>
-    <div class="form-check mb-3">
-        <input
-            type="checkbox"
-            name="awareness_has_event"
-            value="1"
-            class="form-check-input"
-            id="awarenessHasEvent"
-            @checked(old('awareness_has_event', data_get($post->meta, 'awareness_has_event', false)))
-        >
-        <label class="form-check-label" for="awarenessHasEvent">This awareness post is linked to an event</label>
+    <div class="community-flow-stack d-flex flex-column gap-2 mb-3">
+        <label class="form-check border rounded p-3 bg-white mb-0" for="awarenessHasEvent">
+            <input
+                type="checkbox"
+                name="awareness_has_event"
+                value="1"
+                class="form-check-input"
+                id="awarenessHasEvent"
+                @checked(old('awareness_has_event', data_get($post->meta, 'awareness_has_event', false)))
+            >
+            <span class="form-check-label">This awareness post is linked to an event</span>
+        </label>
     </div>
     <div id="awarenessEventFields">
         <div class="row g-3">
@@ -153,21 +157,23 @@
         </div>
         <span class="badge bg-primary text-white">Engagement</span>
     </div>
-    <div class="form-check mb-2">
-        <input type="checkbox" name="allow_comments" value="1" class="form-check-input" id="awarenessAllowComments" @checked(old('allow_comments', $post->allow_comments ?? true))>
-        <label class="form-check-label" for="awarenessAllowComments">Comments</label>
-    </div>
-    <div class="form-check mb-2">
-        <input type="checkbox" name="allow_questions" value="1" class="form-check-input" id="awarenessAllowQuestions" @checked(old('allow_questions', $post->allow_questions ?? true))>
-        <label class="form-check-label" for="awarenessAllowQuestions">Questions</label>
-    </div>
-    <div class="form-check mb-2">
-        <input type="checkbox" name="allow_suggestions" value="1" class="form-check-input" id="awarenessAllowSuggestions" @checked(old('allow_suggestions', $post->allow_suggestions ?? false))>
-        <label class="form-check-label" for="awarenessAllowSuggestions">Suggestions</label>
-    </div>
-    <div class="form-check mb-0">
-        <input type="checkbox" name="allow_sharing" value="1" class="form-check-input" id="awarenessAllowSharing" @checked(old('allow_sharing', $post->allow_sharing ?? true))>
-        <label class="form-check-label" for="awarenessAllowSharing">Sharing</label>
+    <div class="community-flow-stack d-flex flex-column gap-2">
+        <label class="form-check border rounded p-3 bg-white mb-0" for="awarenessAllowComments">
+            <input type="checkbox" name="allow_comments" value="1" class="form-check-input" id="awarenessAllowComments" @checked(old('allow_comments', $post->allow_comments ?? true))>
+            <span class="form-check-label">Comments</span>
+        </label>
+        <label class="form-check border rounded p-3 bg-white mb-0" for="awarenessAllowQuestions">
+            <input type="checkbox" name="allow_questions" value="1" class="form-check-input" id="awarenessAllowQuestions" @checked(old('allow_questions', $post->allow_questions ?? true))>
+            <span class="form-check-label">Questions</span>
+        </label>
+        <label class="form-check border rounded p-3 bg-white mb-0" for="awarenessAllowSuggestions">
+            <input type="checkbox" name="allow_suggestions" value="1" class="form-check-input" id="awarenessAllowSuggestions" @checked(old('allow_suggestions', $post->allow_suggestions ?? false))>
+            <span class="form-check-label">Suggestions</span>
+        </label>
+        <label class="form-check border rounded p-3 bg-white mb-0" for="awarenessAllowSharing">
+            <input type="checkbox" name="allow_sharing" value="1" class="form-check-input" id="awarenessAllowSharing" @checked(old('allow_sharing', $post->allow_sharing ?? true))>
+            <span class="form-check-label">Sharing</span>
+        </label>
     </div>
 </div>
 
@@ -179,17 +185,19 @@
         </div>
         <span class="badge bg-success text-white">Recommended</span>
     </div>
-    <div class="form-check">
-        <input
-            type="checkbox"
-            name="awareness_allow_cause_support"
-            value="1"
-            class="form-check-input"
-            id="awarenessAllowCauseSupport"
-            @checked(old('awareness_allow_cause_support', data_get($post->meta, 'awareness_allow_cause_support', true)))
-        >
-        <label class="form-check-label" for="awarenessAllowCauseSupport">Enable “I Support This Cause” button</label>
-        <small class="text-muted d-block">Supporter count is shown publicly, e.g. 1,250 Supporters.</small>
+    <div class="community-flow-stack d-flex flex-column gap-2">
+        <label class="form-check border rounded p-3 bg-white mb-0" for="awarenessAllowCauseSupport">
+            <input
+                type="checkbox"
+                name="awareness_allow_cause_support"
+                value="1"
+                class="form-check-input"
+                id="awarenessAllowCauseSupport"
+                @checked(old('awareness_allow_cause_support', data_get($post->meta, 'awareness_allow_cause_support', true)))
+            >
+            <span class="form-check-label">Enable “I Support This Cause” button</span>
+            <small class="text-muted d-block mt-1">Supporter count is shown publicly, e.g. 1,250 Supporters.</small>
+        </label>
     </div>
 </div>
 
@@ -201,16 +209,18 @@
         </div>
         <span class="badge bg-warning text-dark">Powerful</span>
     </div>
-    <div class="form-check mb-3">
-        <input
-            type="checkbox"
-            name="awareness_allow_pledges"
-            value="1"
-            class="form-check-input"
-            id="awarenessAllowPledges"
-            @checked(old('awareness_allow_pledges', data_get($post->meta, 'awareness_allow_pledges', false)))
-        >
-        <label class="form-check-label" for="awarenessAllowPledges">Enable digital pledges</label>
+    <div class="community-flow-stack d-flex flex-column gap-2 mb-3">
+        <label class="form-check border rounded p-3 bg-white mb-0" for="awarenessAllowPledges">
+            <input
+                type="checkbox"
+                name="awareness_allow_pledges"
+                value="1"
+                class="form-check-input"
+                id="awarenessAllowPledges"
+                @checked(old('awareness_allow_pledges', data_get($post->meta, 'awareness_allow_pledges', false)))
+            >
+            <span class="form-check-label">Enable digital pledges</span>
+        </label>
     </div>
     <label class="form-label" for="awarenessPledgeOptions">Pledge options</label>
     <textarea
@@ -231,9 +241,12 @@
         </div>
         <span class="badge bg-light text-dark border">Optional</span>
     </div>
-    <div class="form-check mb-3">
-        <input type="checkbox" name="allow_poll" value="1" class="form-check-input" id="awarenessAllowPoll" @checked(old('allow_poll', $post->allow_poll ?? false))>
-        <label class="form-check-label" for="awarenessAllowPoll">Enable poll on this awareness post</label>
+    <div class="community-flow-stack d-flex flex-column gap-2 mb-3">
+        <label class="form-check border rounded p-3 bg-white mb-0" for="awarenessAllowPoll">
+            <input type="checkbox" name="allow_poll" value="1" class="form-check-input" id="awarenessAllowPoll" @checked(old('allow_poll', $post->allow_poll ?? false))>
+            <span class="form-check-label">Enable poll on this awareness post</span>
+            <small class="text-muted d-block mt-1">Readers choose: Yes, No, or Planning To.</small>
+        </label>
     </div>
     <div id="awarenessPollQuestionWrap">
         <label class="form-label" for="awarenessPollQuestion">Poll question</label>
