@@ -716,7 +716,9 @@
                                     class="btn btn-sm {{ $isSubscribed ? 'btn-success' : 'btn-outline-success' }} js-community-subscribe-category {{ $isSubscribed ? 'is-subscribed' : '' }}"
                                     data-url="{{ route('community.subscriptions.category.toggle') }}"
                                     data-content-type="{{ $activeType }}"
-                                    data-category="{{ $categoryName }}">
+                                    data-category="{{ $categoryName }}"
+                                    data-label-subscribed="Subscribed"
+                                    data-label-unsubscribed="Subscribe">
                                     {{ $isSubscribed ? 'Subscribed' : 'Subscribe' }}
                                 </button>
                             @endauth
@@ -760,6 +762,8 @@
 
 @include('community.partials.share-modal')
 @endsection
+
+@include('community.partials.toastr')
 
 @push('scripts')
 <script>

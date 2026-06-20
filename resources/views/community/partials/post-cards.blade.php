@@ -134,6 +134,8 @@
                             <button type="button"
                                 class="community-post-card__save js-community-save-post {{ $isSaved ? 'is-saved' : '' }}"
                                 data-url="{{ route('community.save.toggle', $post) }}"
+                                data-title-saved="Saved"
+                                data-title-unsaved="Save post"
                                 title="{{ $isSaved ? 'Saved' : 'Save post' }}">
                                 <i class="fa-{{ $isSaved ? 'solid' : 'regular' }} fa-bookmark" aria-hidden="true"></i>
                             </button>

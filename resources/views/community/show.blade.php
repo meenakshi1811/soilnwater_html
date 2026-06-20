@@ -476,7 +476,9 @@
                 @if($post->isPubliclyVisible())
                     <button type="button"
                         class="community-banner-action js-community-save-post {{ $isSaved ? 'is-saved' : '' }}"
-                        data-url="{{ route('community.save.toggle', $post) }}">
+                        data-url="{{ route('community.save.toggle', $post) }}"
+                        data-label-saved="Saved"
+                        data-label-unsaved="Save">
                         <i class="fa-{{ $isSaved ? 'solid' : 'regular' }} fa-bookmark" aria-hidden="true"></i>
                         {{ $isSaved ? 'Saved' : 'Save' }}
                     </button>
@@ -485,7 +487,9 @@
                             class="community-banner-action js-community-subscribe-category {{ $isCategorySubscribed ? 'is-subscribed' : '' }}"
                             data-url="{{ route('community.subscriptions.category.toggle') }}"
                             data-content-type="{{ $post->content_type }}"
-                            data-category="{{ $post->category }}">
+                            data-category="{{ $post->category }}"
+                            data-label-subscribed="Subscribed to category"
+                            data-label-unsubscribed="Subscribe to category">
                             {{ $isCategorySubscribed ? 'Subscribed to category' : 'Subscribe to category' }}
                         </button>
                         <button type="button"
@@ -1200,6 +1204,8 @@
     }
 </style>
 @endpush
+
+@include('community.partials.toastr')
 
 @push('scripts')
 <script>

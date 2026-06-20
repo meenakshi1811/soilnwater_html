@@ -6,12 +6,60 @@
     }
 
     function notify(type, message) {
-        if (window.toastr && typeof window.toastr[type] === 'function') {
-            window.toastr[type](message);
+        const toastType = type === 'error' ? 'error' : type;
+
+        if (window.toastr && typeof window.toastr[toastType] === 'function') {
+            window.toastr[toastType](message);
             return;
         }
 
-        alert(message);
+        console.warn(message);
+    }
+
+    function updateSaveButton(button, saved) {
+        button.classList.toggle('is-saved', saved);
+
+        const icon = button.querySelector('i[class*="fa-bookmark"]');
+        if (icon) {
+            icon.className = (saved ? 'fa-solid' : 'fa-regular') + ' fa-bookmark'
+                + (icon.classList.contains('me-1') ? ' me-1' : '');
+            icon.setAttribute('aria-hidden', 'true');
+        }
+
+        const labelSaved = button.dataset.labelSaved;
+        const labelUnsaved = button.dataset.labelUnsaved;
+
+        if (labelSaved !== undefined || labelUnsaved !== undefined) {
+            const label = saved ? (labelSaved || 'Saved') : (labelUnsaved || 'Save');
+            if (icon) {
+                button.replaceChildren(icon, document.createTextNode(label.startsWith(' ') ? label : ' ' + label));
+            } else {
+                button.textContent = label;
+            }
+        } else if (!icon) {
+            button.innerHTML = saved
+                ? '<i class="fa-solid fa-bookmark me-1"></i>Saved'
+                : '<i class="fa-regular fa-bookmark me-1"></i>Save';
+        }
+
+        if (button.dataset.titleSaved || button.dataset.titleUnsaved) {
+            button.title = saved ? button.dataset.titleSaved : button.dataset.titleUnsaved;
+        } else if (button.hasAttribute('title')) {
+            button.title = saved ? 'Saved' : 'Save post';
+        }
+    }
+
+    function updateSubscribeButton(button, subscribed) {
+        button.classList.toggle('is-subscribed', subscribed);
+
+        if (button.classList.contains('btn-success') || button.classList.contains('btn-outline-success')) {
+            button.classList.toggle('btn-success', subscribed);
+            button.classList.toggle('btn-outline-success', !subscribed);
+        }
+
+        const subscribedLabel = button.dataset.labelSubscribed || 'Subscribed';
+        const unsubscribedLabel = button.dataset.labelUnsubscribed || 'Subscribe';
+        button.textContent = subscribed ? subscribedLabel : unsubscribedLabel;
     }
 
     async function postJson(url, payload) {
@@ -57,10 +105,7 @@
                     throw new Error(data.message || 'Unable to save post.');
                 }
 
-                saveButton.classList.toggle('is-saved', Boolean(data.saved));
-                saveButton.innerHTML = data.saved
-                    ? '<i class="fa-solid fa-bookmark me-1"></i>Saved'
-                    : '<i class="fa-regular fa-bookmark me-1"></i>Save';
+                updateSaveButton(saveButton, Boolean(data.saved));
                 notify('success', data.message);
             } catch (error) {
                 notify('error', error.message || 'Unable to save post.');
@@ -82,8 +127,7 @@
                     category: categoryButton.dataset.category,
                 });
 
-                categoryButton.classList.toggle('is-subscribed', Boolean(data.subscribed));
-                categoryButton.textContent = data.subscribed ? 'Subscribed to category' : 'Subscribe to category';
+                updateSubscribeButton(categoryButton, Boolean(data.subscribed));
                 notify('success', data.message);
             } catch (error) {
                 notify('error', error.message || 'Unable to update subscription.');
