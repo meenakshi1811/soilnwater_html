@@ -33,9 +33,6 @@
             <option value="{{ $category }}" @selected($selectedBusinessCategory === $category)>{{ $category }}</option>
         @endforeach
     </select>
-    <small class="text-muted d-block mt-2">
-        Examples: Entrepreneurship, Startup, Small Business, Retail Business, Manufacturing, Service Business, Home-Based Business, Women Entrepreneurship, Agriculture Business, Construction Business, Real Estate Business, E-Commerce, Marketing, Finance, Business Technology, Leadership.
-    </small>
 </div>
 
 <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-light mb-3">

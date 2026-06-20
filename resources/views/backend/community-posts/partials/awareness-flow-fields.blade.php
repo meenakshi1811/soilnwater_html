@@ -26,9 +26,6 @@
             </optgroup>
         @endforeach
     </select>
-    <small class="text-muted d-block mt-2">
-        Examples: Water Conservation, Environment, Health Awareness, Women's Safety, Cyber Security, Financial Literacy, and more.
-    </small>
 </div>
 
 <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-light mb-3">

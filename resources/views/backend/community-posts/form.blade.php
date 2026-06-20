@@ -2416,7 +2416,7 @@ The mountains keep.</pre>
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
 <script>
     window.communityTypes = @json($types);
     window.communityBookTypes = @json(\App\Models\CommunityPost::BOOK_CONTENT_TYPES);
@@ -3477,18 +3477,7 @@ The mountains keep.</pre>
         }
 
         if (categoryHelp) {
-            categoryHelp.innerHTML = isStories
-                ? 'Examples:<br>Inspirational Stories · Life Experiences · Motivational Stories · Short Stories · Social Stories · Family Stories<br>'
-                    + "Children's Stories · Educational Stories · Travel Stories · Historical Stories · Business Stories · Village Stories<br>"
-                    + "Women's Stories · Senior Citizen Stories · Student Stories · Success Stories · Humor Stories · Fiction Stories"
-                : (isPoetry
-                    ? 'Examples:<br>Poetry · Shayari · Ghazal · Nazm · Geet (Song) · Haiku · Doha · Free Verse · Children\'s Poetry · Spiritual Poetry'
-                    : (isLifeStory
-                        ? (isAutobiography
-                            ? 'Examples:<br>Personal Journey · Career Journey · Business Journey · Educational Journey · Women\'s Journey · Senior Citizen Journey<br>'
-                                + "Farmer's Journey · Social Service Journey · Professional Journey · Spiritual Journey"
-                            : 'Examples:<br>Freedom Fighters · Scientists · Entrepreneurs · Teachers · Social Workers · Local Heroes')
-                        : ''));
+            categoryHelp.innerHTML = '';
         }
 
         if (subCategoryWrap) {
@@ -4438,24 +4427,11 @@ The mountains keep.</pre>
 
         communityBodyEditorInitPromise = EditorClass.create(bodyEditor, {
             extraPlugins: [communityUploadAdapterPlugin, communityImageTextFlowPlugin],
-            removePlugins: [
-                'RealTimeCollaborativeEditing',
-                'RealTimeCollaborativeComments',
-                'RealTimeCollaborativeTrackChanges',
-                'RealTimeCollaborativeRevisionHistory',
-                'PresenceList',
-                'Comments',
-                'TrackChanges',
-                'RevisionHistory',
-            ],
             toolbar: {
                 items: [
                     'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
-                    'uploadImage', 'insertTable', 'mediaEmbed', 'blockQuote', '|', 'undo', 'redo',
+                    'uploadImage', 'insertTable', 'blockQuote', '|', 'undo', 'redo',
                 ],
-            },
-            mediaEmbed: {
-                previewsInData: true,
             },
             image: {
                 toolbar: [
