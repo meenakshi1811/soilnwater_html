@@ -70,12 +70,12 @@
             >
         </div>
         <div class="col-md-6 col-lg-4">
-            <label class="form-label" for="communityLocationLocality">Locality</label>
+            <label class="form-label" for="communityLocationLocality" id="communityLocationLocalityLabel">Locality</label>
             <input
                 type="text"
                 name="location_locality"
                 id="communityLocationLocality"
-                class="form-control"
+                class="form-control structured-location-locality"
                 value="{{ $locationLocality }}"
                 maxlength="120"
                 placeholder="e.g. Malviya Nagar"

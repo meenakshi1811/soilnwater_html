@@ -122,6 +122,7 @@ class CommunityStoryEngagementNotificationService
             'poetry' => 'poem',
             'stories' => 'story',
             'autobiography' => 'autobiography',
+            'childrens-corner' => "Children's Corner post",
             default => 'post',
         };
     }

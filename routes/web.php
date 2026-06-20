@@ -91,6 +91,7 @@ Route::get('/community', [CommunityPostController::class, 'index'])->name('commu
 Route::get('/auther/{uniqueName}', [CommunityPostController::class, 'author'])->name('community.authors.show');
 Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
 Route::post('/community/{post:slug}/share', [CommunityEngagementController::class, 'trackShare'])->name('community.share.track');
+Route::post('/community/{post:slug}/awareness-engagement/volunteer', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'volunteer'])->name('community.awareness-engagement.volunteer');
 
 Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
     $data = $request->validate([
@@ -245,6 +246,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/community/{post:slug}/rate', [CommunityPostController::class, 'rateStory'])->name('community.story.rate');
     Route::post('/community/{post:slug}/poll', [CommunityPostController::class, 'votePoll'])->name('community.poll.vote');
     Route::post('/community/{post:slug}/comments', [CommunityPostController::class, 'comment'])->name('community.comments.store');
+    Route::post('/community/{post:slug}/comments/{comment}/approve', [CommunityPostController::class, 'approveComment'])->name('community.comments.approve');
     Route::post('/community/{post:slug}/save', [CommunityEngagementController::class, 'toggleSave'])->name('community.save.toggle');
     Route::post('/community/{post:slug}/participation/suggestion', [CommunityPostParticipationController::class, 'storeSuggestion'])->name('community.participation.suggestion');
     Route::post('/community/{post:slug}/participation/feedback', [CommunityPostParticipationController::class, 'storeFeedback'])->name('community.participation.feedback');
@@ -252,6 +254,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/community/{post:slug}/report-engagement/support', [CommunityReportEngagementController::class, 'toggleSupport'])->name('community.report-engagement.support');
     Route::post('/community/{post:slug}/report-engagement/agree', [CommunityReportEngagementController::class, 'toggleAgree'])->name('community.report-engagement.agree');
     Route::post('/community/{post:slug}/report-engagement/follow', [CommunityReportEngagementController::class, 'toggleFollow'])->name('community.report-engagement.follow');
+    Route::post('/community/{post:slug}/awareness-engagement/support', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'toggleSupport'])->name('community.awareness-engagement.support');
+    Route::post('/community/{post:slug}/awareness-engagement/pledge', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'pledge'])->name('community.awareness-engagement.pledge');
     Route::post('/community/{post:slug}/report', [CommunityEngagementController::class, 'report'])->name('community.report');
     Route::post('/community/subscriptions/category', [CommunityEngagementController::class, 'toggleCategorySubscription'])->name('community.subscriptions.category.toggle');
     Route::post('/community/subscriptions/topic', [CommunityEngagementController::class, 'toggleTopicFollow'])->name('community.subscriptions.topic.toggle');

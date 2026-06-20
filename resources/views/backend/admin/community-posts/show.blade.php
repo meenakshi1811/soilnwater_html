@@ -116,6 +116,12 @@
 @if($post->content_type === 'autobiography')
 @include('community.partials.autobiography-styles')
 @endif
+@if($post->isChildrensCornerPost())
+@include('community.partials.childrens-corner-styles')
+@endif
+@if($post->isAwarenessPost())
+@include('community.partials.awareness-styles')
+@endif
 @endpush
 
 @section('content')
@@ -293,6 +299,27 @@
                             @include('community.partials.autobiography-meta-details', ['post' => $post, 'heading' => 'Autobiography metadata'])
                             @include('community.partials.story-rating-summary', ['post' => $post, 'compact' => true])
                         @endif
+
+                        @if($post->isChildrensCornerPost())
+                            @include('community.partials.childrens-corner-show-sections', [
+                                'post' => $post,
+                                'placement' => 'media',
+                                'showQuizAnswers' => true,
+                            ])
+                            @include('community.partials.childrens-corner-meta-details', [
+                                'post' => $post,
+                                'heading' => "Children's Corner metadata",
+                                'includeAdmin' => true,
+                            ])
+                        @endif
+
+                        @if($post->isAwarenessPost())
+                            @include('community.partials.awareness-show-sections', ['post' => $post])
+                            @include('community.partials.awareness-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Awareness metadata',
+                            ])
+                        @endif
                     </div>
                 </div>
 
@@ -342,6 +369,16 @@
                                 </div>
                             @endif
                         </div>
+                    @endif
+
+                    @if($post->isAwarenessPost() && ($post->allowsAwarenessCauseSupport() || $post->allowsAwarenessPledges() || $post->allowsCampaignJoin()))
+                        @include('backend.community-posts.partials.awareness-portal-activity', [
+                            'post' => $post,
+                            'awarenessEngagement' => $awarenessEngagement,
+                            'awarenessEngagementActivity' => $awarenessEngagementActivity,
+                            'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
+                            'showVolunteerContacts' => true,
+                        ])
                     @endif
 
                     @if(($participationSuggestions ?? collect())->isNotEmpty() || ($participationFeedback ?? collect())->isNotEmpty() || ($post->content_type === 'news' && ($post->allow_comments || $post->allow_questions)))
@@ -620,7 +657,13 @@
                             $autobiographyMetaKeys = $post->content_type === 'autobiography'
                                 ? \App\Support\CommunityPostFormFields::autobiographyStructuredMetaKeys()
                                 : [];
-                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, [
+                            $childrensCornerMetaKeys = $post->isChildrensCornerPost()
+                                ? \App\Support\CommunityPostFormFields::childrensCornerStructuredMetaKeys()
+                                : [];
+                            $awarenessMetaKeys = $post->isAwarenessPost()
+                                ? \App\Support\CommunityPostFormFields::awarenessStructuredMetaKeys()
+                                : [];
+                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, $childrensCornerMetaKeys, $awarenessMetaKeys, [
                                 'story_gallery',
                                 'story_audio',
                                 'poetry_audio',

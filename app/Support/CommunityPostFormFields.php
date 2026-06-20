@@ -17,15 +17,10 @@ class CommunityPostFormFields
             'stories' => self::section('Story details', 'Stories', 'Help readers discover genre, mood, and reading time.', self::narrativeFields('story_genre', [
                 'Inspirational', 'Motivational', 'Fiction', 'Real Life', 'Family', 'Social', 'Short Story',
             ])),
-            'biography' => self::section('Biography details', 'Biography', 'Profile the subject with structured biography metadata.', self::profileBioFields()),
+            'biography' => self::section('Biography details', 'Biography', 'Use the dedicated life-story flow fields on the form.', []),
             'autobiography' => self::section('Autobiography details', 'Autobiography', 'Use the dedicated autobiography flow fields on the form.', []),
-            'childrens-corner' => self::section("Children's Corner details", "Children's Corner", 'Safeguard child submissions with school and guardian context.', [
-                self::checkbox('parent_approved', 'Parent / guardian approved'),
-                self::text('school_name', 'School name', 160, false),
-                self::select('child_age_range', 'Age range', ['3-5', '6-8', '9-12', '13-15'], false),
-                self::text('grade_level', 'Grade / class', 40, false, 'e.g. Class 5'),
-            ]),
-            'awareness' => self::section('Awareness campaign details', 'Awareness', 'Campaign-style fields for public awareness content.', self::campaignFields()),
+            'childrens-corner' => self::section("Children's Corner details", "Children's Corner", 'Use the dedicated Children\'s Corner flow fields on the form.', []),
+            'awareness' => self::section('Awareness details', 'Awareness', 'Use the dedicated awareness flow fields on the form.', []),
             'business' => self::section('Business details', 'Business', 'Business publishing fields for stage, industry, and insight.', self::professionalTipFields('business_stage', [
                 'Startup', 'Small Business', 'SME', 'Enterprise', 'Freelancer', 'Other',
             ])),
@@ -150,7 +145,7 @@ class CommunityPostFormFields
         }
 
         if (CommunityPost::usesStructuredLocation($contentType)) {
-            foreach (self::structuredLocationFields() as $field) {
+            foreach (self::structuredLocationFields($contentType) as $field) {
                 $rules[$field['name']] = self::rulesForField($field, $contentType);
             }
         }
@@ -271,7 +266,7 @@ class CommunityPostFormFields
             }
         }
 
-        if ($contentType === 'autobiography') {
+        if (CommunityPost::usesAutobiographyFlow($contentType)) {
             $payload['autobiography_type'] = $request->input('autobiography_type');
             $payload['birth_place'] = $request->input('birth_place');
             $payload['current_location'] = $request->input('current_location');
@@ -296,6 +291,94 @@ class CommunityPostFormFields
                 ->all();
         }
 
+        if (CommunityPost::usesAwarenessFlow($contentType)) {
+            $payload['awareness_category'] = $request->input('awareness_category');
+            $payload['awareness_type'] = $request->input('awareness_type');
+            $payload['awareness_level'] = $request->input('awareness_level');
+            $payload['awareness_target_audience'] = array_values(array_intersect(
+                (array) $request->input('awareness_target_audience', []),
+                CommunityContentTaxonomy::awarenessTargetAudiences()
+            ));
+            $payload['awareness_posted_by'] = $request->input('awareness_posted_by');
+            $payload['awareness_organization_name'] = $request->input('awareness_organization_name');
+            $payload['awareness_campaign_start_date'] = $request->input('awareness_campaign_start_date');
+            $payload['awareness_campaign_end_date'] = $request->input('awareness_campaign_end_date');
+            $payload['awareness_video_type'] = $request->input('awareness_video_type');
+            $payload['awareness_call_to_action'] = $request->input('awareness_call_to_action');
+            $payload['awareness_action_items'] = array_values(array_intersect(
+                (array) $request->input('awareness_action_items', []),
+                CommunityContentTaxonomy::awarenessCallToActionExamples()
+            ));
+            $payload['awareness_allow_campaign_join'] = $request->boolean('awareness_allow_campaign_join');
+            $payload['awareness_has_event'] = $request->boolean('awareness_has_event');
+            $payload['awareness_event_type'] = $request->input('awareness_event_type');
+            $payload['awareness_event_date'] = $request->input('awareness_event_date');
+            $payload['awareness_event_venue'] = $request->input('awareness_event_venue');
+            $payload['awareness_event_time'] = $request->input('awareness_event_time');
+            $payload['awareness_event_organizer'] = $request->input('awareness_event_organizer');
+            $payload['awareness_social_impact_categories'] = array_values(array_intersect(
+                (array) $request->input('awareness_social_impact_categories', []),
+                CommunityContentTaxonomy::awarenessSocialImpactCategories()
+            ));
+            $payload['awareness_allow_cause_support'] = $request->boolean('awareness_allow_cause_support', true);
+            $payload['awareness_allow_pledges'] = $request->boolean('awareness_allow_pledges');
+            $payload['awareness_pledge_options'] = collect(preg_split('/\R/', (string) $request->input('awareness_pledge_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            $payload['awareness_poll_question'] = $request->input('awareness_poll_question');
+            $payload['awareness_impact_trees_planted'] = $request->input('awareness_impact_trees_planted');
+            $payload['awareness_impact_volunteers_joined'] = $request->input('awareness_impact_volunteers_joined');
+            $payload['awareness_impact_people_reached'] = $request->input('awareness_impact_people_reached');
+        }
+
+        if (CommunityPost::usesChildrensCornerFlow($contentType)) {
+            $payload['child_share_type'] = $request->input('child_share_type');
+            $payload['child_first_name'] = $request->input('child_first_name');
+            $payload['child_age_group'] = $request->input('child_age_group');
+            $payload['child_grade_level'] = $request->input('child_grade_level');
+            $payload['child_school_name'] = $request->input('child_school_name');
+            $payload['parent_name'] = $request->input('parent_name');
+            $payload['parent_mobile'] = $request->input('parent_mobile');
+            $payload['parent_email'] = $request->input('parent_email');
+            $payload['parent_relationship'] = $request->input('parent_relationship');
+            $payload['child_parent_consent_identity'] = $request->boolean('child_parent_consent_identity');
+            $payload['child_parent_consent_publication'] = $request->boolean('child_parent_consent_publication');
+            $payload['child_parent_consent_original'] = $request->boolean('child_parent_consent_original');
+            $payload['parent_approved'] = $request->boolean('child_parent_consent_identity')
+                && $request->boolean('child_parent_consent_publication')
+                && $request->boolean('child_parent_consent_original');
+            $payload['childrens_corner_submitted_through'] = $request->input('childrens_corner_submitted_through');
+            $payload['childrens_corner_school_competition_entry'] = $request->input('childrens_corner_school_competition_entry');
+            $payload['childrens_corner_city'] = $request->input('childrens_corner_city');
+            $payload['childrens_corner_district'] = $request->input('childrens_corner_district');
+            $payload['childrens_corner_state'] = $request->input('childrens_corner_state');
+            $payload['childrens_corner_talent_categories'] = array_values(array_intersect(
+                (array) $request->input('childrens_corner_talent_categories', []),
+                CommunityContentTaxonomy::childrensCornerTalentCategories()
+            ));
+            $payload['childrens_corner_achievement'] = $request->input('childrens_corner_achievement');
+            $payload['childrens_corner_comments_moderated'] = $request->boolean('childrens_corner_comments_moderated', true);
+            $payload['childrens_corner_child_friendly_reactions'] = true;
+            $payload['childrens_corner_privacy_setting'] = array_key_exists(
+                (string) $request->input('childrens_corner_privacy_setting'),
+                CommunityContentTaxonomy::childrensCornerPrivacySettings()
+            )
+                ? (string) $request->input('childrens_corner_privacy_setting')
+                : CommunityContentTaxonomy::childrensCornerDefaultPrivacySetting();
+            foreach (array_keys(CommunityContentTaxonomy::childrensCornerSafetyDeclarations()) as $safetyKey) {
+                $payload[$safetyKey] = $request->boolean($safetyKey);
+            }
+            $payload['childrens_corner_safety_confirmed'] = collect(array_keys(CommunityContentTaxonomy::childrensCornerSafetyDeclarations()))
+                ->every(fn (string $key): bool => $request->boolean($key));
+            $payload['childrens_corner_project_description'] = $request->input('childrens_corner_project_description');
+            $payload['childrens_corner_themes'] = array_values(array_intersect(
+                (array) $request->input('childrens_corner_themes', []),
+                CommunityContentTaxonomy::childrensCornerThemes()
+            ));
+        }
+
         return collect($payload)
             ->filter(function (mixed $value, string $key): bool {
                 if (in_array($key, [
@@ -303,9 +386,21 @@ class CommunityPostFormFields
                     'story_themes',
                     'poetry_themes',
                     'poetry_target_audience',
+                    'childrens_corner_themes',
+                    'childrens_corner_talent_categories',
                     'places_mentioned',
                     'key_lessons_learned',
                     'related_people',
+                    'parent_approved',
+                    'childrens_corner_comments_moderated',
+                    'childrens_corner_child_friendly_reactions',
+                    'childrens_corner_privacy_setting',
+                    'childrens_corner_safety_no_address',
+                    'childrens_corner_safety_no_harmful',
+                    'childrens_corner_safety_no_copyright',
+                    'childrens_corner_safety_no_inappropriate_media',
+                    'childrens_corner_safety_confirmed',
+                    'awareness_target_audience',
                 ], true)) {
                     return true;
                 }
@@ -590,6 +685,213 @@ class CommunityPostFormFields
     }
 
     /**
+     * Ordered Children's Corner metadata for public detail views.
+     *
+     * @return array<string, string>
+     */
+    public static function childrensCornerPublicMetaOrder(): array
+    {
+        return [
+            'child_share_type' => 'Share type',
+            'child_first_name' => "Child's first name",
+            'child_age_group' => 'Age group',
+            'child_grade_level' => 'Grade / class',
+            'child_school_name' => 'School name',
+            'childrens_corner_submitted_through' => 'Submitted through',
+            'childrens_corner_school_competition_entry' => 'School competition entry',
+            'childrens_corner_themes' => 'Themes',
+            'childrens_corner_talent_categories' => 'Talent categories',
+            'childrens_corner_achievement' => 'Achievement / recognition',
+            'childrens_corner_city' => 'City',
+            'childrens_corner_district' => 'District',
+            'childrens_corner_state' => 'State',
+        ];
+    }
+
+    /**
+     * Parent, consent, and moderation fields — backend / author views only.
+     *
+     * @return array<string, string>
+     */
+    public static function childrensCornerAdminMetaOrder(): array
+    {
+        return [
+            'parent_name' => 'Parent / guardian name',
+            'parent_relationship' => 'Relationship',
+            'parent_mobile' => 'Parent mobile',
+            'parent_email' => 'Parent email',
+            'parent_approved' => 'All parent consents confirmed',
+            'child_parent_consent_identity' => 'Identity consent',
+            'child_parent_consent_publication' => 'Publication consent',
+            'child_parent_consent_original' => 'Original work consent',
+            'childrens_corner_comments_moderated' => 'Comments moderated',
+            'childrens_corner_child_friendly_reactions' => 'Child-friendly reactions only',
+            'childrens_corner_privacy_setting' => 'Privacy setting',
+            'childrens_corner_safety_no_address' => 'Safety: no personal address',
+            'childrens_corner_safety_no_harmful' => 'Safety: no harmful content',
+            'childrens_corner_safety_no_copyright' => 'Safety: no copyrighted material',
+            'childrens_corner_safety_no_inappropriate_media' => 'Safety: no inappropriate media',
+            'childrens_corner_safety_confirmed' => 'Safety declaration confirmed',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function childrensCornerStructuredMetaKeys(): array
+    {
+        return array_values(array_unique(array_merge(
+            array_keys(self::childrensCornerPublicMetaOrder()),
+            array_keys(self::childrensCornerAdminMetaOrder()),
+            [
+                'childrens_corner_art',
+                'childrens_corner_project_files',
+                'childrens_corner_project_description',
+                'childrens_corner_quiz',
+                'childrens_corner_gallery',
+                'childrens_corner_video',
+                'childrens_corner_audio',
+                'childrens_corner_certificate',
+            ]
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function childrensCornerPrivateMetaKeys(): array
+    {
+        return [
+            'parent_name',
+            'parent_mobile',
+            'parent_email',
+            'parent_relationship',
+            'child_parent_consent_identity',
+            'child_parent_consent_publication',
+            'child_parent_consent_original',
+            'parent_approved',
+            'childrens_corner_comments_moderated',
+            'childrens_corner_child_friendly_reactions',
+            'childrens_corner_privacy_setting',
+            'childrens_corner_safety_no_address',
+            'childrens_corner_safety_no_harmful',
+            'childrens_corner_safety_no_copyright',
+            'childrens_corner_safety_no_inappropriate_media',
+            'childrens_corner_safety_confirmed',
+        ];
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedChildrensCornerMetaForDisplay(\App\Models\CommunityPost $post, bool $includeAdmin = false): \Illuminate\Support\Collection
+    {
+        $order = $includeAdmin
+            ? self::childrensCornerPublicMetaOrder() + self::childrensCornerAdminMetaOrder()
+            : self::childrensCornerPublicMetaOrder();
+
+        return collect($order)
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if (in_array($key, ['childrens_corner_themes', 'childrens_corner_talent_categories'], true) && is_array($value)) {
+                    $value = implode(', ', $value);
+                }
+
+                if ($key === 'childrens_corner_privacy_setting' && filled($value)) {
+                    $value = CommunityContentTaxonomy::childrensCornerPrivacySettings()[(string) $value] ?? $value;
+                }
+
+                if (str_starts_with($key, 'child_parent_consent_')
+                    || str_starts_with($key, 'childrens_corner_safety_')
+                    || in_array($key, ['parent_approved', 'childrens_corner_comments_moderated', 'childrens_corner_child_friendly_reactions', 'childrens_corner_safety_confirmed'], true)) {
+                    $value = (bool) $value;
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value) || is_bool($value));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function awarenessDetailMetaOrder(): array
+    {
+        return [
+            'awareness_category' => 'Main category',
+            'awareness_type' => 'Awareness type',
+            'awareness_level' => 'Awareness level',
+            'awareness_campaign_start_date' => 'Campaign start date',
+            'awareness_campaign_end_date' => 'Campaign end date',
+            'awareness_video_type' => 'Video type',
+            'awareness_posted_by' => 'Posted by',
+            'awareness_organization_name' => 'Organization name',
+            'awareness_target_audience' => 'Target audience',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessStructuredMetaKeys(): array
+    {
+        return array_keys(self::awarenessDetailMetaOrder());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessEngagementStructuredMetaKeys(): array
+    {
+        return [
+            'awareness_call_to_action',
+            'awareness_action_items',
+            'awareness_allow_campaign_join',
+            'awareness_has_event',
+            'awareness_event_type',
+            'awareness_event_date',
+            'awareness_event_venue',
+            'awareness_event_time',
+            'awareness_event_organizer',
+            'awareness_social_impact_categories',
+            'awareness_allow_cause_support',
+            'awareness_allow_pledges',
+            'awareness_pledge_options',
+            'awareness_poll_question',
+            'awareness_impact_trees_planted',
+            'awareness_impact_volunteers_joined',
+            'awareness_impact_people_reached',
+        ];
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedAwarenessMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::awarenessDetailMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if ($key === 'awareness_category' && blank($value)) {
+                    $value = $post->category;
+                }
+
+                if ($key === 'awareness_target_audience' && is_array($value)) {
+                    $value = implode(', ', $value);
+                }
+
+                if (in_array($key, ['awareness_campaign_start_date', 'awareness_campaign_end_date'], true) && filled($value)) {
+                    $value = \Illuminate\Support\Carbon::parse($value)->format('j F Y');
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value));
+    }
+
+    /**
      * @return list<string>
      */
     public static function narrativeNewsMetaKeys(): array
@@ -827,6 +1129,45 @@ class CommunityPostFormFields
             'school_name' => 'School name',
             'child_age_range' => 'Age range',
             'grade_level' => 'Grade / class',
+            'child_share_type' => 'Share type',
+            'child_first_name' => "Child's first name",
+            'child_age_group' => 'Age group',
+            'child_grade_level' => 'Grade / class',
+            'child_school_name' => 'School name',
+            'parent_name' => 'Parent / guardian name',
+            'parent_mobile' => 'Parent mobile',
+            'parent_email' => 'Parent email',
+            'parent_relationship' => 'Relationship',
+            'parent_approved' => 'Parent consent confirmed',
+            'child_parent_consent_identity' => 'Identity consent',
+            'child_parent_consent_publication' => 'Publication consent',
+            'child_parent_consent_original' => 'Original work consent',
+            'childrens_corner_submitted_through' => 'Submitted through',
+            'childrens_corner_school_competition_entry' => 'School competition entry',
+            'childrens_corner_city' => 'City',
+            'childrens_corner_district' => 'District',
+            'childrens_corner_state' => 'State',
+            'childrens_corner_talent_categories' => 'Talent categories',
+            'childrens_corner_achievement' => 'Achievement / recognition',
+            'childrens_corner_comments_moderated' => 'Comments moderated',
+            'childrens_corner_child_friendly_reactions' => 'Child-friendly reactions',
+            'childrens_corner_privacy_setting' => 'Privacy setting',
+            'childrens_corner_safety_no_address' => 'Safety: no personal address',
+            'childrens_corner_safety_no_harmful' => 'Safety: no harmful content',
+            'childrens_corner_safety_no_copyright' => 'Safety: no copyrighted material',
+            'childrens_corner_safety_no_inappropriate_media' => 'Safety: no inappropriate media',
+            'childrens_corner_safety_confirmed' => 'Safety declaration confirmed',
+            'childrens_corner_project_description' => 'Project description',
+            'childrens_corner_themes' => 'Themes',
+            'awareness_category' => 'Main category',
+            'awareness_type' => 'Awareness type',
+            'awareness_level' => 'Awareness level',
+            'awareness_campaign_start_date' => 'Campaign start date',
+            'awareness_campaign_end_date' => 'Campaign end date',
+            'awareness_video_type' => 'Video type',
+            'awareness_posted_by' => 'Posted by',
+            'awareness_organization_name' => 'Organization name',
+            'awareness_target_audience' => 'Target audience',
             'campaign_topic' => 'Campaign topic',
             'target_audience' => 'Target audience',
             'call_to_action' => 'Call to action',
@@ -937,14 +1278,16 @@ class CommunityPostFormFields
     /**
      * @return list<array<string, mixed>>
      */
-    public static function structuredLocationFields(): array
+    public static function structuredLocationFields(?string $contentType = null): array
     {
+        $requiresArea = $contentType === 'awareness';
+
         return [
             self::text('location_country', 'Country', 120, true),
             self::text('location_state', 'State', 120, true),
             self::text('location_district', 'District', 120, true),
             self::text('location_city', 'City', 120, true),
-            self::text('location_locality', 'Locality', 120, false),
+            self::text('location_locality', $requiresArea ? 'Area' : 'Locality', 120, $requiresArea),
         ];
     }
 

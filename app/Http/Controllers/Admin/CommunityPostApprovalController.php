@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Http\Controllers\Community\CommunityEngagementController;
 use App\Http\Controllers\Community\CommunityPostController;
 use App\Models\CommunityAuthorQuestion;
@@ -79,6 +80,9 @@ class CommunityPostApprovalController extends Controller
             'reportAgreements',
             'reportFollows',
             'reportEvidence',
+            'awarenessSupports',
+            'awarenessPledges',
+            'awarenessVolunteers',
             'authorQuestions',
             'starRatings',
         ]);

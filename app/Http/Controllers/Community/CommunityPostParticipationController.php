@@ -121,6 +121,7 @@ class CommunityPostParticipationController extends Controller
     private function authorizeParticipation(CommunityPost $post, Request $request, string $flag): void
     {
         abort_unless($post->isPubliclyVisible(), 404);
+        abort_unless($post->isVisibleInCommunityTo($request->user()), 403, 'This post is not available to your account.');
         abort_unless((bool) $post->{$flag}, 403, 'This participation option is disabled for this post.');
         abort_if($post->user_id === $request->user()->id, 422, 'You cannot submit public participation on your own post.');
     }

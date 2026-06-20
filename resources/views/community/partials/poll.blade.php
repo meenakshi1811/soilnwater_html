@@ -139,7 +139,7 @@
 
 <div class="community-poll-box mt-4" id="communityPoll">
     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
-        <h4 class="mb-0">Community poll</h4>
+        <h4 class="mb-0">{{ $post->isAwarenessPost() ? 'Awareness poll' : 'Community poll' }}</h4>
         <span class="badge bg-primary">Open</span>
     </div>
     <p class="community-poll-question mb-0">{{ $post->pollQuestion() }}</p>
@@ -147,7 +147,7 @@
     @auth
         <form method="POST" action="{{ route('community.poll.vote', $post) }}" class="mt-3" id="communityPollForm">
             @csrf
-            @foreach(\App\Models\CommunityPost::POLL_OPTIONS as $value => $label)
+            @foreach($post->pollOptionsForDisplay() as $value => $label)
                 <div class="community-poll-option {{ $userPollVote === $value ? 'is-selected' : '' }}">
                     <input
                         type="radio"
@@ -165,7 +165,7 @@
         </form>
     @else
         <div class="mt-3">
-            @foreach(\App\Models\CommunityPost::POLL_OPTIONS as $value => $label)
+            @foreach($post->pollOptionsForDisplay() as $value => $label)
                 <div class="community-poll-option">
                     <span class="text-secondary" aria-hidden="true">○</span>
                     <span class="fw-semibold">{{ $label }}</span>
@@ -177,7 +177,7 @@
 
     @if($pollCounts['total'] > 0)
         <div class="community-poll-results">
-            @foreach(\App\Models\CommunityPost::POLL_OPTIONS as $value => $label)
+            @foreach($post->pollOptionsForDisplay() as $value => $label)
                 @php
                     $count = $pollCounts[$value] ?? 0;
                     $percent = round(($count / $pollTotal) * 100);

@@ -92,13 +92,13 @@ class CommunityContentTaxonomy
             'childrens-corner' => [
                 'label' => "Children's Corner",
                 'description' => 'A dedicated space for children.',
-                'categories' => ['Stories', 'Drawings', 'Poems', 'School Projects', 'Quiz', 'Moral Stories', 'Science Experiments'],
+                'categories' => self::childrensCornerShareTypes(),
                 'features' => ['Parent approval option', 'School participation'],
             ],
             'awareness' => [
                 'label' => 'Awareness',
-                'description' => 'Public awareness campaigns.',
-                'categories' => ['Health Awareness', 'Water Conservation', 'Environment Protection', 'Road Safety', 'Cyber Security', 'Women Safety', 'Financial Literacy', 'Drug Awareness'],
+                'description' => 'Public awareness campaigns, advisories, and social cause content.',
+                'categories' => self::awarenessCategories(),
             ],
             'business' => [
                 'label' => 'Business',
@@ -341,6 +341,430 @@ class CommunityContentTaxonomy
             'Memoir',
             'Travel Memoir',
             'Professional Experience',
+        ];
+    }
+
+    /**
+     * Share-type choices for Children's Corner posts.
+     *
+     * @return list<string>
+     */
+    public static function childrensCornerShareTypes(): array
+    {
+        return array_values(array_merge(...array_values(self::childrensCornerShareTypeGroups())));
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    public static function childrensCornerShareTypeGroups(): array
+    {
+        return [
+            'Writing' => ['Story', 'Poem', 'Essay', 'Article', 'Moral Story', 'Speech', 'Joke'],
+            'Creative' => ['Drawing', 'Painting', 'Photography', 'Craft Work', 'Model Making', 'Talent Showcase'],
+            'School work' => ['School Project', 'Science Project'],
+            'Fun & learning' => ['Quiz', 'Puzzle', 'General Knowledge'],
+            'Other' => ['Other'],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function childrensCornerAgeGroups(): array
+    {
+        return [
+            '3-5 Years',
+            '6-8 Years',
+            '9-12 Years',
+            '13-15 Years',
+            '16-18 Years',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function childrensCornerGradeLevels(): array
+    {
+        return [
+            'Class 1',
+            'Class 2',
+            'Class 3',
+            'Class 4',
+            'Class 5',
+            'Class 6',
+            'Class 7',
+            'Class 8',
+            'Class 9',
+            'Class 10',
+            'Class 11',
+            'Class 12',
+        ];
+    }
+
+    /**
+     * Theme choices for Children's Corner posts.
+     *
+     * @return list<string>
+     */
+    public static function childrensCornerThemes(): array
+    {
+        return [
+            'Environment',
+            'Water Conservation',
+            'Animals',
+            'Nature',
+            'Education',
+            'Science',
+            'Technology',
+            'Patriotism',
+            'Family',
+            'Friendship',
+            'Kindness',
+            'Health',
+            'Sports',
+            'Culture',
+            'Festivals',
+            'Space',
+            'Agriculture',
+        ];
+    }
+
+    /**
+     * Share types that may include an optional featured image.
+     *
+     * @return list<string>
+     */
+    public static function childrensCornerShareTypesWithFeaturedImage(): array
+    {
+        return ['Story', 'Essay'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function childrensCornerParentRelationships(): array
+    {
+        return ['Father', 'Mother', 'Guardian', 'Teacher'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function childrensCornerSubmittedThroughOptions(): array
+    {
+        return ['Parent', 'Teacher', 'School', 'Child'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function childrensCornerTalentCategories(): array
+    {
+        return [
+            'Art',
+            'Poetry',
+            'Story Writing',
+            'Public Speaking',
+            'Science',
+            'Craft',
+            'Photography',
+            'Music',
+            'Dance',
+            'Innovation',
+        ];
+    }
+
+    /**
+     * Child-friendly reaction options for Children's Corner posts.
+     *
+     * @return array<string, string> reaction label => icon class
+     */
+    public static function childrensCornerReactionOptions(): array
+    {
+        return [
+            'Excellent' => 'fa-solid fa-star',
+            'Great Job' => 'fa-solid fa-thumbs-up',
+            'Wonderful' => 'fa-solid fa-face-smile',
+            'Creative' => 'fa-solid fa-palette',
+            'Smart Idea' => 'fa-solid fa-lightbulb',
+            'Inspiring' => 'fa-solid fa-heart',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function childrensCornerReactionLabels(): array
+    {
+        return array_keys(self::childrensCornerReactionOptions());
+    }
+
+    /**
+     * Children's Corner privacy setting values and labels.
+     *
+     * @return array<string, string>
+     */
+    public static function childrensCornerPrivacySettings(): array
+    {
+        return [
+            'public_limited' => 'Public with limited child information',
+            'public' => 'Public',
+            'registered_users' => 'Registered users only',
+            'school_community' => 'School community only',
+        ];
+    }
+
+    public static function childrensCornerDefaultPrivacySetting(): string
+    {
+        return 'public_limited';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function childrensCornerSafetyDeclarations(): array
+    {
+        return [
+            'childrens_corner_safety_no_address' => 'No personal address included',
+            'childrens_corner_safety_no_harmful' => 'No harmful content included',
+            'childrens_corner_safety_no_copyright' => 'No copyrighted material copied',
+            'childrens_corner_safety_no_inappropriate_media' => 'No inappropriate images or videos uploaded',
+        ];
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    public static function childrensCornerShareTypesByContentMode(): array
+    {
+        return [
+            'rich_text' => ['Story', 'Essay', 'Article', 'Moral Story', 'Speech', 'General Knowledge', 'Joke', 'Other'],
+            'poem' => ['Poem'],
+            'image' => ['Drawing', 'Painting', 'Photography', 'Craft Work', 'Model Making', 'Talent Showcase'],
+            'project' => ['School Project', 'Science Project'],
+            'quiz' => ['Quiz', 'Puzzle'],
+        ];
+    }
+
+    public static function childrensCornerContentMode(?string $shareType): ?string
+    {
+        if (! is_string($shareType) || $shareType === '') {
+            return null;
+        }
+
+        foreach (self::childrensCornerShareTypesByContentMode() as $mode => $types) {
+            if (in_array($shareType, $types, true)) {
+                return $mode;
+            }
+        }
+
+        return 'rich_text';
+    }
+
+    /**
+     * Awareness main category groups for the create/edit form.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function awarenessCategoryGroups(): array
+    {
+        return [
+            'Environment & health' => [
+                'Water Conservation',
+                'Environment',
+                'Health Awareness',
+                'Public Health',
+                'Agriculture Awareness',
+            ],
+            'Safety & welfare' => [
+                "Women's Safety",
+                'Child Welfare',
+                'Road Safety',
+                'Cyber Security',
+                'Drug Awareness',
+                'Disaster Management',
+                'Senior Citizen Welfare',
+            ],
+            'Education & society' => [
+                'Education',
+                'Social Awareness',
+                'Consumer Rights',
+                'Animal Welfare',
+                'Financial Literacy',
+            ],
+            'Programs & employment' => [
+                'Government Schemes',
+                'Employment Awareness',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessCategories(): array
+    {
+        return array_values(array_merge(...array_values(self::awarenessCategoryGroups())));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessTypes(): array
+    {
+        return [
+            'Campaign',
+            'Educational Post',
+            'Public Advisory',
+            'Safety Alert',
+            'Government Initiative',
+            'NGO Initiative',
+            'Social Cause',
+            'Event Awareness',
+            'Training Program',
+            'Volunteer Appeal',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessTargetAudiences(): array
+    {
+        return [
+            'General Public',
+            'Students',
+            'Youth',
+            'Women',
+            'Senior Citizens',
+            'Farmers',
+            'Professionals',
+            'Businesses',
+            'Parents',
+            'Children',
+            'Teachers',
+            'Rural Communities',
+            'Urban Communities',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessLevels(): array
+    {
+        return [
+            'Local',
+            'District',
+            'State',
+            'National',
+            'Global',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessPostedByOptions(): array
+    {
+        return [
+            'Individual',
+            'NGO',
+            'School',
+            'College',
+            'Business',
+            'Government Department',
+            'Community Group',
+            'Consultant',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessVideoTypes(): array
+    {
+        return [
+            'Awareness Video',
+            'Public Service Message',
+            'Training Video',
+            'Expert Talk',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessCallToActionExamples(): array
+    {
+        return [
+            'Save Water Daily',
+            'Plant One Tree',
+            'Use Helmets',
+            'Avoid Plastic',
+            'Get Health Checkups',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessEventTypes(): array
+    {
+        return [
+            'Seminar',
+            'Workshop',
+            'Webinar',
+            'Campaign Drive',
+            'Tree Plantation',
+            'Blood Donation Camp',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessSocialImpactCategories(): array
+    {
+        return [
+            'Health',
+            'Education',
+            'Environment',
+            'Women Empowerment',
+            'Agriculture',
+            'Water Conservation',
+            'Community Development',
+            'Animal Welfare',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function awarenessPledgeExamples(): array
+    {
+        return [
+            'I Pledge to Save Water',
+            'I Pledge to Plant Trees',
+            'I Pledge to Follow Road Safety Rules',
+        ];
+    }
+
+    /**
+     * Recommended awareness content sections for the rich text editor.
+     *
+     * @return array<string, string>
+     */
+    public static function awarenessContentStructure(): array
+    {
+        return [
+            'Problem' => 'What issue exists?',
+            'Why It Matters' => 'Why should people care?',
+            'Facts & Statistics' => 'Supporting information.',
+            'Solutions' => 'Practical recommendations.',
+            'Call To Action' => 'What should people do?',
         ];
     }
 
@@ -881,6 +1305,14 @@ class CommunityContentTaxonomy
             "Children's Poetry", 'Patriotic Poetry', 'Love Poetry', 'Social Poetry',
         ], true)) {
             return true;
+        }
+
+        if ($type === 'childrens-corner') {
+            return in_array($category, self::childrensCornerShareTypes(), true);
+        }
+
+        if ($type === 'awareness') {
+            return in_array($category, self::awarenessCategories(), true);
         }
 
         return in_array($category, self::categoriesFor($type), true);

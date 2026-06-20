@@ -206,14 +206,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 type-extra" data-for="autobiography">
+            <div class="col-12 type-extra life-story-flow-section" data-for="biography,autobiography">
                 <div class="news-classification-card border rounded-3 p-3 p-md-4">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
                         <div>
-                            <h5 class="mb-1">Autobiography classification</h5>
-                            <p class="text-muted mb-0 small">Choose the autobiography format before writing your life story.</p>
+                            <h5 class="mb-1">Biography / Autobiography classification</h5>
+                            <p class="text-muted mb-0 small">Choose the life-story format before writing the content.</p>
                         </div>
-                        <span class="badge bg-primary text-white">Autobiography only</span>
+                        <span class="badge bg-primary text-white">Biography &amp; Autobiography</span>
                     </div>
                     <div class="row g-4">
                         <div class="col-lg-6">
@@ -222,13 +222,47 @@
                                     <i class="fa-solid fa-book-open-reader" aria-hidden="true"></i>
                                 </div>
                                 <div class="news-classification-panel__copy">
-                                    <h6 class="news-classification-panel__title">Autobiography type <span class="text-danger">*</span></h6>
+                                    <h6 class="news-classification-panel__title">Life story format <span class="text-danger">*</span></h6>
                                     <p class="news-classification-panel__hint">Very important.</p>
                                 </div>
                                 <select name="autobiography_type" class="form-select autobiography-required">
-                                    <option value="">Select autobiography type</option>
+                                    <option value="">Select life story format</option>
                                     @foreach(\App\Support\CommunityContentTaxonomy::autobiographyTypes() as $autobiographyType)
                                         <option value="{{ $autobiographyType }}" @selected(old('autobiography_type', data_get($post->meta, 'autobiography_type')) === $autobiographyType)>{{ $autobiographyType }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 type-extra childrens-corner-flow-section" data-for="childrens-corner">
+                <div class="news-classification-card border rounded-3 p-3 p-md-4">
+                    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
+                        <div>
+                            <h5 class="mb-1">Children's Corner classification</h5>
+                            <p class="text-muted mb-0 small">Choose what the child would like to share.</p>
+                        </div>
+                        <span class="badge bg-primary text-white">Children's Corner only</span>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="news-classification-panel h-100">
+                                <div class="news-classification-panel__icon">
+                                    <i class="fa-solid fa-child-reaching" aria-hidden="true"></i>
+                                </div>
+                                <div class="news-classification-panel__copy">
+                                    <h6 class="news-classification-panel__title">What would you like to share? <span class="text-danger">*</span></h6>
+                                    <p class="news-classification-panel__hint">Story, poem, drawing, project, quiz, and more.</p>
+                                </div>
+                                <select name="child_share_type" id="childShareType" class="form-select childrens-corner-required">
+                                    <option value="">Select share type</option>
+                                    @foreach(\App\Support\CommunityContentTaxonomy::childrensCornerShareTypeGroups() as $groupLabel => $shareTypes)
+                                        <optgroup label="{{ $groupLabel }}">
+                                            @foreach($shareTypes as $shareType)
+                                                <option value="{{ $shareType }}" @selected(old('child_share_type', data_get($post->meta, 'child_share_type', $post->category)) === $shareType)>{{ $shareType }}</option>
+                                            @endforeach
+                                        </optgroup>
                                     @endforeach
                                 </select>
                             </div>
@@ -402,14 +436,59 @@ The mountains keep.</pre>
                         </div>
                     </div>
                 </div>
-                <div id="autobiographyContentGuide" class="story-content-guide mb-3" style="display:none;">
+                <div id="awarenessContentGuide" class="story-content-guide mb-3 awareness-flow-section" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
                             <div>
-                                <h5 class="mb-1">Autobiography content</h5>
-                                <p class="text-muted mb-0 small">Use the rich text editor below for each chapter. This is the same body field — chapters are saved page by page.</p>
+                                <h5 class="mb-1">Awareness content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full awareness message. Add factual, responsible content with a clear call to action.</p>
                             </div>
-                            <span class="badge bg-primary text-white">Autobiography only</span>
+                            <span class="badge bg-primary text-white">Awareness only</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field on the form. Use the editor below for the full awareness post.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Text</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Tables</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>PDF attachments</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Infographics</li>
+                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertAwarenessStructureBtn">
+                                        Insert recommended structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Recommended structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::awarenessContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="autobiographyContentGuide" class="story-content-guide mb-3 life-story-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Biography / Autobiography content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for each book page or chapter. Content is saved page by page.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Biography &amp; Autobiography</span>
                         </div>
                         <div class="row g-3">
                             <div class="col-lg-6">
@@ -440,6 +519,17 @@ The mountains keep.</pre>
                                     </ul>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="childrensCornerContentGuide" class="story-content-guide mb-3 childrens-corner-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1" id="childrensCornerContentGuideTitle">Children's Corner content</h5>
+                                <p class="text-muted mb-0 small" id="childrensCornerContentGuideHelp">Use the editor or upload panel below based on your share type.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Children's Corner</span>
                         </div>
                     </div>
                 </div>
@@ -503,8 +593,14 @@ The mountains keep.</pre>
             <div class="col-12 type-extra poetry-flow" data-for="poetry">
                 @include('backend.community-posts.partials.poetry-flow-fields', ['post' => $post])
             </div>
-            <div class="col-12 type-extra autobiography-flow" data-for="autobiography">
+            <div class="col-12 type-extra autobiography-flow life-story-flow-section" data-for="biography,autobiography">
                 @include('backend.community-posts.partials.autobiography-flow-fields', ['post' => $post])
+            </div>
+            <div class="col-12 type-extra childrens-corner-flow" data-for="childrens-corner">
+                @include('backend.community-posts.partials.childrens-corner-flow-fields', ['post' => $post])
+            </div>
+            <div class="col-12 type-extra awareness-flow" data-for="awareness">
+                @include('backend.community-posts.partials.awareness-flow-fields', ['post' => $post])
             </div>
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
@@ -1974,6 +2070,8 @@ The mountains keep.</pre>
         gap: 0.35rem 1rem;
     }
     #communityNewsFeaturedImagesSlot .featured-images-uploader,
+    #communityAwarenessFeaturedImagesSlot .featured-images-uploader,
+    #communityAwarenessVideoSlot .community-video-field,
     #communityNewsVideoSlot .community-video-field {
         background: #fff;
     }
@@ -2096,6 +2194,7 @@ The mountains keep.</pre>
 <script>
     window.communityTypes = @json($types);
     window.communityBookTypes = @json(\App\Models\CommunityPost::BOOK_CONTENT_TYPES);
+    window.communityLifeStoryTypes = @json(\App\Models\CommunityPost::LIFE_STORY_CONTENT_TYPES);
     window.communityBookPages = @json($communityBookPagesForJs);
     window.communityBodyEditor = null;
     window.communityActiveBookPage = 0;
@@ -2112,6 +2211,258 @@ The mountains keep.</pre>
     };
     const COMMUNITY_STANDARD_EDITOR_LANGUAGE_CODES = @json(array_keys(\App\Support\CommunityContentTaxonomy::standardEditorLanguages()));
     const COMMUNITY_POETRY_EDITOR_LANGUAGE_CODES = @json(array_keys(\App\Support\CommunityContentTaxonomy::poetryEditorLanguages()));
+
+    function isLifeStoryContentType(type) {
+        return (window.communityLifeStoryTypes || []).includes(type);
+    }
+
+    function contentTypeMatchesDataset(selectedType, datasetFor) {
+        return (datasetFor || '')
+            .split(',')
+            .map(function (value) { return value.trim(); })
+            .filter(Boolean)
+            .includes(selectedType);
+    }
+
+    function getChildrensCornerContentMode(shareType) {
+        const modes = window.communityChildrensCornerShareModes || {};
+
+        if (!shareType) {
+            return null;
+        }
+
+        for (const [mode, types] of Object.entries(modes)) {
+            if ((types || []).includes(shareType)) {
+                return mode;
+            }
+        }
+
+        return 'rich_text';
+    }
+
+    function syncChildrensCornerCategory() {
+        const shareType = document.getElementById('childShareType')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'childrens-corner') {
+            return;
+        }
+
+        categorySelect.value = shareType;
+        categorySelect.dataset.selected = shareType;
+    }
+
+    function syncAwarenessCategory() {
+        const awarenessCategory = document.getElementById('awarenessCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'awareness') {
+            return;
+        }
+
+        categorySelect.value = awarenessCategory;
+        categorySelect.dataset.selected = awarenessCategory;
+    }
+
+    document.getElementById('awarenessCategory')?.addEventListener('change', syncAwarenessCategory);
+
+    document.getElementById('insertAwarenessStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Problem</h2>',
+            '<p>What issue exists?</p>',
+            '<h2>Why It Matters</h2>',
+            '<p>Why should people care?</p>',
+            '<h2>Facts &amp; Statistics</h2>',
+            '<p>Supporting information.</p>',
+            '<h2>Solutions</h2>',
+            '<p>Practical recommendations.</p>',
+            '<h2>Call To Action</h2>',
+            '<p>What should people do?</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    const CHILDRENS_CORNER_CONTENT_GUIDE = {
+        rich_text: {
+            title: 'Story / essay / article',
+            help: 'Use the rich text editor below. You can add text, images, and basic formatting.',
+            bodyLabel: 'Content <span class="text-danger">*</span>',
+            bodyHelp: 'Write your story, essay, or article. Add images and formatting as needed.',
+        },
+        poem: {
+            title: 'Poem',
+            help: 'Use the poetry editor below. Line breaks are preserved for verses and stanzas.',
+            bodyLabel: 'Poem <span class="text-danger">*</span>',
+            bodyHelp: 'Write your poem below. Use line breaks for verses and blank lines between stanzas.',
+        },
+        image: {
+            title: 'Drawing / painting / photo',
+            help: 'Upload your artwork in the project panel below. Formats: JPG, PNG, WEBP.',
+        },
+        project: {
+            title: 'Project submission',
+            help: 'Add a description and upload photos, PDF, or presentation files in the panel below.',
+        },
+        quiz: {
+            title: 'Quiz / puzzle',
+            help: 'Create questions with options and mark the correct answer in the quiz builder below.',
+        },
+    };
+
+    function refreshChildrensCornerContentMode() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const isChildrensCorner = contentType === 'childrens-corner';
+        const shareType = document.getElementById('childShareType')?.value || '';
+        const mode = isChildrensCorner ? getChildrensCornerContentMode(shareType) : null;
+        const showEditor = isChildrensCorner && (mode === 'rich_text' || mode === 'poem');
+        const artPanel = document.getElementById('childrensCornerArtPanel');
+        const projectPanel = document.getElementById('childrensCornerProjectPanel');
+        const quizPanel = document.getElementById('childrensCornerQuizPanel');
+        const standardBodyHeader = document.getElementById('standardBodyHeader');
+        const bodyEditorMount = document.getElementById('bodyEditorMount');
+        const guide = document.getElementById('childrensCornerContentGuide');
+        const guideTitle = document.getElementById('childrensCornerContentGuideTitle');
+        const guideHelp = document.getElementById('childrensCornerContentGuideHelp');
+        const artFileInput = document.getElementById('childrensCornerArtFile');
+        const projectDescription = document.getElementById('childrensCornerProjectDescription');
+        const keepExistingArt = document.getElementById('keepExistingChildrensCornerArt');
+
+        if (artPanel) {
+            artPanel.style.display = isChildrensCorner && mode === 'image' ? '' : 'none';
+        }
+        if (projectPanel) {
+            projectPanel.style.display = isChildrensCorner && mode === 'project' ? '' : 'none';
+        }
+        if (quizPanel) {
+            quizPanel.style.display = isChildrensCorner && mode === 'quiz' ? '' : 'none';
+        }
+
+        if (standardBodyHeader && isChildrensCorner) {
+            standardBodyHeader.style.display = showEditor ? '' : 'none';
+        }
+
+        if (bodyEditorMount && isChildrensCorner) {
+            bodyEditorMount.style.display = showEditor ? '' : 'none';
+        }
+
+        if (guide) {
+            guide.style.display = isChildrensCorner && mode ? '' : 'none';
+        }
+
+        if (guideTitle && guideHelp && mode && CHILDRENS_CORNER_CONTENT_GUIDE[mode]) {
+            guideTitle.textContent = CHILDRENS_CORNER_CONTENT_GUIDE[mode].title;
+            guideHelp.textContent = CHILDRENS_CORNER_CONTENT_GUIDE[mode].help;
+        }
+
+        if (isChildrensCorner && mode && CHILDRENS_CORNER_CONTENT_GUIDE[mode]) {
+            const bodyLabel = document.getElementById('bodyLabel');
+            const bodyHelp = document.getElementById('bodyHelp');
+
+            if (bodyLabel && CHILDRENS_CORNER_CONTENT_GUIDE[mode].bodyLabel) {
+                bodyLabel.innerHTML = CHILDRENS_CORNER_CONTENT_GUIDE[mode].bodyLabel;
+            }
+
+            if (bodyHelp && CHILDRENS_CORNER_CONTENT_GUIDE[mode].bodyHelp) {
+                bodyHelp.textContent = CHILDRENS_CORNER_CONTENT_GUIDE[mode].bodyHelp;
+            }
+        }
+
+        if (artFileInput) {
+            artFileInput.required = Boolean(isChildrensCorner && mode === 'image' && !keepExistingArt);
+        }
+
+        if (projectDescription) {
+            projectDescription.required = Boolean(isChildrensCorner && mode === 'project');
+        }
+
+        document.querySelectorAll('.childrens-corner-flow input, .childrens-corner-flow textarea, .childrens-corner-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount')) {
+                return;
+            }
+
+            field.disabled = !isChildrensCorner;
+        });
+
+        document.querySelectorAll('.childrens-corner-flow-section input, .childrens-corner-flow-section textarea, .childrens-corner-flow-section select').forEach((field) => {
+            field.disabled = !isChildrensCorner;
+        });
+
+        refreshPoetryEditorMode(isChildrensCorner && mode === 'poem' ? 'poetry' : contentType);
+        syncChildrensCornerCategory();
+        refreshChildrensCornerQuizRequiredState(isChildrensCorner && mode === 'quiz');
+        mountChildrensCornerFeaturedImage(shareType);
+        syncChildrensCornerCommentsSettings(isChildrensCorner);
+    }
+
+    function syncChildrensCornerCommentsSettings(isChildrensCorner) {
+        const enableComments = document.getElementById('childrensCornerEnableComments');
+        const allowComments = document.getElementById('allowComments');
+
+        if (!isChildrensCorner || !enableComments || !allowComments) {
+            return;
+        }
+
+        enableComments.checked = allowComments.checked;
+    }
+
+    function mountChildrensCornerFeaturedImage(shareType) {
+        const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
+        const slot = document.getElementById('communityChildrensCornerFeaturedImagesSlot');
+        const tagsCol = document.getElementById('communityTagsWrap');
+        const panel = document.getElementById('childrensCornerFeaturedPanel');
+        const featuredTypes = window.communityChildrensCornerFeaturedShareTypes || ['Story', 'Essay'];
+        const isChildrensCorner = document.getElementById('contentType')?.value === 'childrens-corner';
+        const showFeatured = isChildrensCorner && featuredTypes.includes(shareType);
+
+        if (panel) {
+            panel.style.display = showFeatured ? '' : 'none';
+        }
+
+        if (!featuredWrap) {
+            return;
+        }
+
+        if (showFeatured && slot) {
+            slot.appendChild(featuredWrap);
+            featuredWrap.classList.remove('col-md-6');
+            featuredWrap.style.display = '';
+            window.communityFeaturedImages.max = 1;
+
+            const featuredLabel = document.getElementById('featuredImagesLabel');
+            const featuredHelp = document.getElementById('featuredImagesHelp');
+            const featuredAddBtn = document.getElementById('featuredImagesAddBtn');
+
+            if (featuredLabel) {
+                featuredLabel.textContent = 'Featured image';
+            }
+
+            if (featuredHelp) {
+                featuredHelp.textContent = 'Optional cover image for listing cards and sharing. JPG, PNG, or WebP, max 4 MB.';
+            }
+
+            if (featuredAddBtn) {
+                featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add featured image';
+            }
+        } else if (isChildrensCorner) {
+            featuredWrap.style.display = 'none';
+        }
+
+        if (typeof updateFeaturedImagesUi === 'function') {
+            updateFeaturedImagesUi();
+        }
+    }
 
     function editorLanguageOptionsForContentType(contentType) {
         const codes = contentType === 'poetry' ? COMMUNITY_POETRY_EDITOR_LANGUAGE_CODES : COMMUNITY_STANDARD_EDITOR_LANGUAGE_CODES;
@@ -2240,7 +2591,7 @@ The mountains keep.</pre>
     const COMMUNITY_LOCATION_TYPES_REQUIRING_PLACE = @json(\App\Models\CommunityPost::locationTypesRequiringPlace());
     const COMMUNITY_LOCATION_TYPE_GPS = @json(\App\Models\CommunityPost::LOCATION_TYPE_GPS);
     const COMMUNITY_BASE_LOCATION_TYPES = @json(\App\Models\CommunityPost::locationTypeOptions());
-    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports'];
+    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness'];
     let communityGpsMap = null;
     let communityGpsMarker = null;
     let communityGpsMapInitialized = false;
@@ -2285,19 +2636,31 @@ The mountains keep.</pre>
         }
     }
 
-    function mountStructuredLocationFields(isNews, isReport) {
+    function mountStructuredLocationFields(contentType) {
         const wrapper = document.getElementById('communityStructuredLocationWrapper');
         const hiddenSlot = document.getElementById('communityStructuredLocationHiddenSlot');
         const newsSlot = document.getElementById('communityNewsLocationSlot');
         const reportSlot = document.getElementById('communityReportLocationSlot');
+        const awarenessSlot = document.getElementById('communityAwarenessLocationSlot');
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
 
         if (!wrapper) {
             return;
         }
 
-        const usesStructured = isNews || isReport;
-        const targetSlot = isNews ? newsSlot : (isReport ? reportSlot : hiddenSlot);
+        const isNews = contentType === 'news';
+        const isReport = contentType === 'reports';
+        const isAwareness = contentType === 'awareness';
+        const usesStructured = usesStructuredCommunityLocation(contentType);
+        let targetSlot = hiddenSlot;
+
+        if (isNews) {
+            targetSlot = newsSlot;
+        } else if (isReport) {
+            targetSlot = reportSlot;
+        } else if (isAwareness) {
+            targetSlot = awarenessSlot;
+        }
 
         if (targetSlot && wrapper.parentElement !== targetSlot) {
             targetSlot.appendChild(wrapper);
@@ -2315,6 +2678,27 @@ The mountains keep.</pre>
             field.disabled = !usesStructured;
         });
 
+        const localityField = document.getElementById('communityLocationLocality');
+        const localityLabel = document.getElementById('communityLocationLocalityLabel');
+
+        if (localityField) {
+            localityField.required = usesStructured && isAwareness;
+            localityField.disabled = !usesStructured;
+
+            if (isAwareness) {
+                localityField.classList.add('structured-location-required');
+            } else {
+                localityField.classList.remove('structured-location-required');
+                localityField.required = false;
+            }
+        }
+
+        if (localityLabel) {
+            localityLabel.innerHTML = isAwareness
+                ? 'Area <span class="text-danger">*</span>'
+                : 'Locality';
+        }
+
         document.querySelectorAll('#communityStructuredLocationWrapper input[name="location_lat"], #communityStructuredLocationWrapper input[name="location_lng"]').forEach((field) => {
             field.disabled = !usesStructured;
         });
@@ -2326,43 +2710,111 @@ The mountains keep.</pre>
         }
     }
 
-    function mountNewsParticipationFields(isNews) {
+    function mountNewsParticipationFields(isNews, isAwareness) {
         const publicParticipationWrap = document.getElementById('publicParticipationWrap');
         const newsParticipationWrap = document.getElementById('newsParticipationWrap');
+        const allowSharingWrap = document.getElementById('allowSharingWrap');
+        const allowPollWrap = document.getElementById('allowPollWrap');
+        const awarenessParticipationWrap = document.getElementById('awarenessParticipationWrap');
+        const awarenessPollWrap = document.getElementById('awarenessPollWrap');
+        const awarenessPollQuestionWrap = document.getElementById('awarenessPollQuestionWrap');
 
         if (publicParticipationWrap) {
-            publicParticipationWrap.style.display = isNews ? 'none' : '';
+            publicParticipationWrap.style.display = (isNews || isAwareness) ? 'none' : '';
+            publicParticipationWrap.querySelectorAll('input, select, textarea').forEach((field) => {
+                field.disabled = isNews || isAwareness;
+            });
         }
 
         if (newsParticipationWrap) {
             newsParticipationWrap.style.display = isNews ? '' : 'none';
         }
+
+        if (allowSharingWrap) {
+            allowSharingWrap.style.display = isAwareness ? 'none' : '';
+            allowSharingWrap.querySelectorAll('input, select, textarea').forEach((field) => {
+                field.disabled = isAwareness;
+            });
+        }
+
+        if (allowPollWrap) {
+            allowPollWrap.style.display = isAwareness ? 'none' : '';
+            allowPollWrap.querySelectorAll('input, select, textarea').forEach((field) => {
+                field.disabled = isAwareness;
+            });
+        }
+
+        if (awarenessParticipationWrap) {
+            awarenessParticipationWrap.style.display = isAwareness ? '' : 'none';
+        }
+
+        if (awarenessPollWrap) {
+            awarenessPollWrap.style.display = isAwareness ? '' : 'none';
+        }
+
+        const awarenessAllowPoll = document.getElementById('awarenessAllowPoll');
+        if (awarenessPollQuestionWrap) {
+            const pollEnabled = isAwareness && awarenessAllowPoll?.checked;
+            awarenessPollQuestionWrap.style.display = pollEnabled ? '' : 'none';
+            const awarenessPollQuestion = document.getElementById('awarenessPollQuestion');
+            if (awarenessPollQuestion) {
+                awarenessPollQuestion.required = Boolean(pollEnabled);
+                awarenessPollQuestion.disabled = !pollEnabled;
+            }
+        }
+
+        const awarenessHasEvent = document.getElementById('awarenessHasEvent');
+        const awarenessEventFields = document.getElementById('awarenessEventFields');
+        if (awarenessEventFields) {
+            awarenessEventFields.style.display = isAwareness && awarenessHasEvent?.checked ? '' : 'none';
+        }
     }
 
-    function mountNewsMediaFields(isNews, isStories) {
+    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness) {
         const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
         const featuredSlot = document.getElementById('communityNewsFeaturedImagesSlot');
         const storyFeaturedSlot = document.getElementById('communityStoryFeaturedImagesSlot');
+        const awarenessFeaturedSlot = document.getElementById('communityAwarenessFeaturedImagesSlot');
         const tagsCol = document.getElementById('communityTagsWrap');
         const videoWrap = document.getElementById('communityVideoWrap');
         const videoSlot = document.getElementById('communityNewsVideoSlot');
         const storyVideoSlot = document.getElementById('communityStoryVideoSlot');
+        const awarenessVideoSlot = document.getElementById('communityAwarenessVideoSlot');
         const videoAnchor = document.getElementById('communityVideoHiddenSlot');
         const videoFieldLabel = document.getElementById('videoFieldLabel');
         const featuredLabel = document.getElementById('featuredImagesLabel');
         const featuredHelp = document.getElementById('featuredImagesHelp');
         const featuredAddBtn = document.getElementById('featuredImagesAddBtn');
 
-        if (featuredWrap && tagsCol) {
-            if (isNews && featuredSlot) {
-                featuredSlot.appendChild(featuredWrap);
-                featuredWrap.classList.remove('col-md-6');
-            } else if (isStories && storyFeaturedSlot) {
-                storyFeaturedSlot.appendChild(featuredWrap);
-                featuredWrap.classList.remove('col-md-6');
-            } else {
-                tagsCol.parentElement.insertBefore(featuredWrap, tagsCol);
-                featuredWrap.classList.add('col-md-6');
+        if (isChildrensCorner) {
+            window.communityFeaturedImages.max = featuredWrap?.parentElement?.id === 'communityChildrensCornerFeaturedImagesSlot'
+                ? 1
+                : window.communityFeaturedImages.max;
+            mountChildrensCornerFeaturedImage(document.getElementById('childShareType')?.value || '');
+            if (videoWrap) {
+                videoWrap.style.display = 'none';
+            }
+        } else {
+            window.communityFeaturedImages.max = isAwareness ? 1 : 5;
+            if (videoWrap) {
+                videoWrap.style.display = '';
+            }
+
+            if (featuredWrap && tagsCol) {
+                featuredWrap.style.display = '';
+                if (isNews && featuredSlot) {
+                    featuredSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
+                } else if (isStories && storyFeaturedSlot) {
+                    storyFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
+                } else if (isAwareness && awarenessFeaturedSlot) {
+                    awarenessFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
+                } else {
+                    tagsCol.parentElement.insertBefore(featuredWrap, tagsCol);
+                    featuredWrap.classList.add('col-md-6');
+                }
             }
         }
 
@@ -2373,20 +2825,31 @@ The mountains keep.</pre>
             } else if (isStories && storyVideoSlot) {
                 storyVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
-            } else {
+            } else if (isAwareness && awarenessVideoSlot) {
+                awarenessVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (! isAwareness) {
                 videoAnchor.insertAdjacentElement('afterend', videoWrap);
                 videoWrap.classList.add('col-md-6');
+            } else {
+                videoWrap.style.display = 'none';
             }
         }
 
         if (videoFieldLabel) {
-            videoFieldLabel.innerHTML = isStories
-                ? 'Video story <span class="text-muted fw-normal">(optional)</span>'
-                : 'Video <span class="text-muted fw-normal">(optional)</span>';
+            if (isAwareness) {
+                videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
+            } else {
+                videoFieldLabel.innerHTML = isStories
+                    ? 'Video story <span class="text-muted fw-normal">(optional)</span>'
+                    : 'Video <span class="text-muted fw-normal">(optional)</span>';
+            }
         }
 
-        if (featuredLabel) {
-            if (isStories) {
+        if (featuredLabel && ! isChildrensCorner) {
+            if (isAwareness) {
+                featuredLabel.innerHTML = 'Campaign banner <span class="text-danger">*</span> <span class="text-muted fw-normal">(recommended)</span>';
+            } else if (isStories) {
                 featuredLabel.textContent = 'Cover image (recommended)';
             } else if (isNews) {
                 featuredLabel.textContent = 'Featured image (recommended)';
@@ -2395,8 +2858,10 @@ The mountains keep.</pre>
             }
         }
 
-        if (featuredHelp) {
-            if (isStories) {
+        if (featuredHelp && ! isChildrensCorner) {
+            if (isAwareness) {
+                featuredHelp.textContent = 'Used for homepage, social media, and awareness listings. JPG, PNG, or WebP, max 4 MB.';
+            } else if (isStories) {
                 featuredHelp.textContent = 'Used for story cards, social sharing, and homepage. Upload your cover image first. JPG, PNG, or WebP, max 4 MB each.';
             } else if (isNews) {
                 featuredHelp.textContent = 'Upload a lead image first, then add additional photos. Examples: event photos, road damage, flooding, community activities, meetings. JPG, PNG, or WebP, max 4 MB each.';
@@ -2405,8 +2870,10 @@ The mountains keep.</pre>
             }
         }
 
-        if (featuredAddBtn) {
-            if (isStories) {
+        if (featuredAddBtn && ! isChildrensCorner) {
+            if (isAwareness) {
+                featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add campaign banner';
+            } else if (isStories) {
                 featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
             } else if (isNews) {
                 featuredAddBtn.innerHTML = '<i class="fa-solid fa-images me-1"></i>Add featured / additional images';
@@ -2624,7 +3091,7 @@ The mountains keep.</pre>
         const selectedType = typeSelect.value;
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'autobiography'].includes(selectedType);
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -2640,7 +3107,25 @@ The mountains keep.</pre>
 
         const isStories = selectedType === 'stories';
         const isPoetry = selectedType === 'poetry';
+        const isLifeStory = isLifeStoryContentType(selectedType);
         const isAutobiography = selectedType === 'autobiography';
+        const isChildrensCorner = selectedType === 'childrens-corner';
+        const isAwareness = selectedType === 'awareness';
+
+        if (isChildrensCorner) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncChildrensCornerCategory();
+        } else if (isAwareness) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncAwarenessCategory();
+        } else {
+            categoryWrap.style.display = '';
+            categorySelect.disabled = false;
+        }
 
         if (categoryLabel) {
             categoryLabel.innerHTML = (isStories || isReport || isPoetry)
@@ -2655,9 +3140,11 @@ The mountains keep.</pre>
                     + "Women's Stories · Senior Citizen Stories · Student Stories · Success Stories · Humor Stories · Fiction Stories"
                 : (isPoetry
                     ? 'Examples:<br>Poetry · Shayari · Ghazal · Nazm · Geet (Song) · Haiku · Doha · Free Verse · Children\'s Poetry · Spiritual Poetry'
-                    : (isAutobiography
-                        ? 'Examples:<br>Personal Journey · Career Journey · Business Journey · Educational Journey · Women\'s Journey · Senior Citizen Journey<br>'
-                            + "Farmer's Journey · Social Service Journey · Professional Journey · Spiritual Journey"
+                    : (isLifeStory
+                        ? (isAutobiography
+                            ? 'Examples:<br>Personal Journey · Career Journey · Business Journey · Educational Journey · Women\'s Journey · Senior Citizen Journey<br>'
+                                + "Farmer's Journey · Social Service Journey · Professional Journey · Spiritual Journey"
+                            : 'Examples:<br>Freedom Fighters · Scientists · Entrepreneurs · Teachers · Social Workers · Local Heroes')
                         : ''));
         }
 
@@ -2708,15 +3195,15 @@ The mountains keep.</pre>
         }
 
         document.querySelectorAll('.type-extra').forEach((field) => {
-            field.style.display = field.dataset.for === selectedType ? '' : 'none';
+            field.style.display = contentTypeMatchesDataset(selectedType, field.dataset.for) ? '' : 'none';
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isAutobiography) ? 'none' : '';
+            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness) ? 'none' : '';
         });
 
         document.querySelectorAll('.general-extra input, .general-extra textarea, .general-extra select').forEach((field) => {
-            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isAutobiography;
+            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -2732,18 +3219,69 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.autobiography-required').forEach((field) => {
-            field.required = isAutobiography;
+            field.required = isLifeStory;
         });
 
-        refreshLifeTimelineRequiredState(isAutobiography);
+        document.querySelectorAll('.childrens-corner-required').forEach((field) => {
+            field.required = isChildrensCorner;
+        });
+
+        document.querySelectorAll('.childrens-corner-consent-required').forEach((field) => {
+            field.required = isChildrensCorner;
+        });
+
+        document.querySelectorAll('.childrens-corner-safety-required').forEach((field) => {
+            field.required = isChildrensCorner;
+        });
+
+        document.querySelectorAll('.awareness-required').forEach((field) => {
+            field.required = isAwareness;
+        });
+
+        document.querySelectorAll('.awareness-posted-by-required').forEach((field) => {
+            field.required = isAwareness;
+        });
+
+        document.querySelectorAll('.awareness-flow input, .awareness-flow textarea, .awareness-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isAwareness;
+        });
+
+        const childSchoolName = document.getElementById('childSchoolName');
+        const schoolPrivacySelected = document.querySelector('input[name="childrens_corner_privacy_setting"][value="school_community"]')?.checked;
+        if (childSchoolName) {
+            childSchoolName.required = isChildrensCorner && Boolean(schoolPrivacySelected);
+        }
+
+        refreshLifeTimelineRequiredState(isLifeStory);
 
         document.querySelectorAll('.autobiography-flow input, .autobiography-flow textarea, .autobiography-flow select').forEach((field) => {
-            field.disabled = !isAutobiography;
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount')) {
+                return;
+            }
+
+            field.disabled = !isLifeStory;
         });
 
-        document.querySelectorAll('.type-extra[data-for="autobiography"] input, .type-extra[data-for="autobiography"] textarea, .type-extra[data-for="autobiography"] select').forEach((field) => {
-            field.disabled = !isAutobiography;
+        document.querySelectorAll('.life-story-flow-section input, .life-story-flow-section textarea, .life-story-flow-section select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount')) {
+                return;
+            }
+
+            field.disabled = !isLifeStory;
         });
+
+        const bodyEditorMount = document.getElementById('bodyEditorMount');
+        const bodyEditorField = document.getElementById('bodyEditor');
+        if (bodyEditorMount && !isChildrensCorner) {
+            bodyEditorMount.style.display = '';
+        }
+        if (bodyEditorField) {
+            bodyEditorField.disabled = false;
+        }
 
         document.querySelectorAll('.my-area-required').forEach((field) => {
             field.required = isReport;
@@ -2778,6 +3316,14 @@ The mountains keep.</pre>
             bodyHelp: 'Write your poem below. Use line breaks for verses and blank lines between stanzas.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
+        } : (isAwareness ? {
+            excerptLabel: 'Awareness summary',
+            excerptPlaceholder: 'Summarize the issue, why it matters, and what readers should do.',
+            excerptHelp: 'A concise standfirst shown in community listings.',
+            bodyLabel: 'Awareness content <span class="text-danger">*</span>',
+            bodyHelp: 'Use the rich text editor for Problem, Why It Matters, Facts & Statistics, Solutions, and Call To Action.',
+            locationLabel: 'Location <span class="text-danger">*</span>',
+            locationHelp: 'Enter country, state, district, city, and area. Use Google Places search to auto-fill fields.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -2786,7 +3332,7 @@ The mountains keep.</pre>
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        }));
+        }))));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -2807,15 +3353,32 @@ The mountains keep.</pre>
 
         const autobiographyContentGuide = document.getElementById('autobiographyContentGuide');
         if (autobiographyContentGuide) {
-            autobiographyContentGuide.style.display = isAutobiography ? '' : 'none';
+            autobiographyContentGuide.style.display = isLifeStory ? '' : 'none';
         }
 
-        refreshPoetryEditorMode(selectedType);
-        refreshPoetrySeriesFields();
+        const awarenessContentGuide = document.getElementById('awarenessContentGuide');
+        if (awarenessContentGuide) {
+            awarenessContentGuide.style.display = isAwareness ? '' : 'none';
+        }
 
-        mountStructuredLocationFields(isNews, isReport);
-        mountNewsMediaFields(isNews, isStories);
-        mountNewsParticipationFields(isNews);
+        refreshPoetrySeriesFields();
+        refreshChildrensCornerContentMode();
+
+        mountStructuredLocationFields(selectedType);
+        const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
+        if (commonLocationSlot) {
+            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness) ? 'none' : '';
+            commonLocationSlot.querySelectorAll('input, select, textarea').forEach((field) => {
+                if (isChildrensCorner) {
+                    field.disabled = true;
+                    field.required = false;
+                } else if (!isNews && !isReport && !isAwareness) {
+                    field.disabled = false;
+                }
+            });
+        }
+        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness);
+        mountNewsParticipationFields(isNews, isAwareness);
         refreshCommunityLocationTypeOptions(isReport);
         refreshBookLayoutMode(selectedType);
         refreshCommunityLocationFields(fieldCopy.locationHelp);
@@ -2834,6 +3397,12 @@ The mountains keep.</pre>
         }
         if (typeof refreshPollFields === 'function') {
             refreshPollFields();
+        }
+
+        if (isLifeStory && window.communityBodyEditor) {
+            window.requestAnimationFrame(function () {
+                bodyEditorMount?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
         }
     }
 
@@ -3124,6 +3693,16 @@ The mountains keep.</pre>
         }
     });
 
+    document.getElementById('childShareType')?.addEventListener('change', function () {
+        refreshChildrensCornerContentMode();
+    });
+
+    document.getElementById('removeExistingChildrensCornerArtBtn')?.addEventListener('click', function () {
+        document.getElementById('keepExistingChildrensCornerArt')?.remove();
+        document.getElementById('existingChildrensCornerArtPreview')?.remove();
+        document.getElementById('childrensCornerArtFile')?.setAttribute('required', 'required');
+    });
+
     document.getElementById('communityLocationType')?.addEventListener('change', function () {
         refreshCommunityLocationFields();
     });
@@ -3194,6 +3773,13 @@ The mountains keep.</pre>
     document.getElementById('allowPoll')?.addEventListener('change', refreshPollFields);
     document.getElementById('pollSubjectInput')?.addEventListener('input', refreshPollFields);
     refreshPollFields();
+
+    document.getElementById('awarenessAllowPoll')?.addEventListener('change', function () {
+        mountNewsParticipationFields(false, document.getElementById('contentType')?.value === 'awareness');
+    });
+    document.getElementById('awarenessHasEvent')?.addEventListener('change', function () {
+        mountNewsParticipationFields(false, document.getElementById('contentType')?.value === 'awareness');
+    });
 
     function formatObservationDate(value) {
         if (!value) {
@@ -3283,7 +3869,11 @@ The mountains keep.</pre>
 
     document.getElementById('actionNeeded')?.addEventListener('change', refreshCommunityActionFields);
 
-    refreshCommunityCategories();
+    try {
+        refreshCommunityCategories();
+    } catch (error) {
+        console.error('Unable to initialize community form fields.', error);
+    }
 
     class CommunityUploadAdapter {
         constructor(loader) {
@@ -3385,64 +3975,93 @@ The mountains keep.</pre>
         });
     }
 
-    ClassicEditor.create(document.querySelector('#bodyEditor'), {
-        extraPlugins: [communityUploadAdapterPlugin, communityImageTextFlowPlugin],
-        toolbar: {
-            items: [
-                'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
-                'insertImage', 'blockQuote', 'insertTable', '|', 'undo', 'redo',
-            ],
-        },
-        image: {
-            toolbar: [
-                'imageTextAlternative',
-                'toggleImageCaption',
-                '|',
-                'imageStyle:inline',
-                'imageStyle:alignLeft',
-                'imageStyle:alignRight',
-                'imageStyle:alignCenter',
-                'imageStyle:block',
-                'imageStyle:side',
-            ],
-            styles: {
-                options: [
-                    'inline',
-                    'alignLeft',
-                    'alignRight',
-                    'alignCenter',
-                    'block',
-                    'side',
+    function initCommunityBodyEditor() {
+        const bodyEditor = document.querySelector('#bodyEditor');
+        const bodyEditorMount = document.getElementById('bodyEditorMount');
+
+        if (!bodyEditor || !bodyEditorMount) {
+            console.error('Community body editor mount was not found.');
+            return;
+        }
+
+        bodyEditor.disabled = false;
+        bodyEditorMount.style.display = '';
+
+        if (typeof ClassicEditor === 'undefined') {
+            console.error('CKEditor failed to load.');
+            notify('error', 'Rich text editor failed to load. Please refresh the page or check your internet connection.');
+            return;
+        }
+
+        if (window.communityBodyEditor) {
+            return;
+        }
+
+        ClassicEditor.create(bodyEditor, {
+            extraPlugins: [communityUploadAdapterPlugin, communityImageTextFlowPlugin],
+            toolbar: {
+                items: [
+                    'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                    'uploadImage', 'blockQuote', 'insertTable', '|', 'undo', 'redo',
                 ],
             },
-        },
-    })
-        .then((editor) => {
-            window.communityBodyEditor = editor;
-            const contentType = document.getElementById('contentType').value;
-            let initialLanguage = document.getElementById('editorLanguageHidden')?.value || 'en';
-
-            if (isBookContentType(contentType)) {
-                initialLanguage = window.communityBookPages[window.communityActiveBookPage]?.language || 'en';
-            }
-
-            applyEditorLanguage(initialLanguage, { skipSave: true });
-            editor.model.document.on('change:data', function () {
-                if (window.communitySwitchingBookPage) {
-                    return;
-                }
-
-                if (isBookContentType(document.getElementById('contentType').value)) {
-                    saveActiveBookPageContent();
-                }
-            });
-            refreshBookLayoutMode(document.getElementById('contentType').value);
-            refreshPoetryEditorMode(document.getElementById('contentType').value);
+            image: {
+                toolbar: [
+                    'imageTextAlternative',
+                    'toggleImageCaption',
+                    '|',
+                    'imageStyle:inline',
+                    'imageStyle:alignLeft',
+                    'imageStyle:alignRight',
+                    'imageStyle:alignCenter',
+                    'imageStyle:block',
+                    'imageStyle:side',
+                ],
+                styles: {
+                    options: [
+                        'inline',
+                        'alignLeft',
+                        'alignRight',
+                        'alignCenter',
+                        'block',
+                        'side',
+                    ],
+                },
+            },
         })
-        .catch((error) => {
-            console.error(error);
-            notify('error', 'Unable to load the body editor.');
-        });
+            .then((editor) => {
+                window.communityBodyEditor = editor;
+                const contentType = document.getElementById('contentType').value;
+                let initialLanguage = document.getElementById('editorLanguageHidden')?.value || 'en';
+
+                if (isBookContentType(contentType)) {
+                    initialLanguage = window.communityBookPages[window.communityActiveBookPage]?.language || 'en';
+                }
+
+                applyEditorLanguage(initialLanguage, { skipSave: true });
+                editor.model.document.on('change:data', function () {
+                    if (window.communitySwitchingBookPage) {
+                        return;
+                    }
+
+                    if (isBookContentType(document.getElementById('contentType').value)) {
+                        saveActiveBookPageContent();
+                    }
+                });
+                refreshBookLayoutMode(document.getElementById('contentType').value);
+                refreshPoetryEditorMode(document.getElementById('contentType').value);
+            })
+            .catch((error) => {
+                console.error(error);
+                notify('error', 'Unable to load the body editor.');
+            });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCommunityBodyEditor);
+    } else {
+        initCommunityBodyEditor();
+    }
 
     const tagInput = document.getElementById('tagInput');
     const tagList = document.getElementById('tagList');
@@ -3536,6 +4155,17 @@ The mountains keep.</pre>
         return featuredImagesState.existing.length + featuredImagesState.pending.length;
     }
 
+    function featuredImageBadgeLabel(index, isPending) {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const primaryLabel = contentType === 'awareness' ? 'Banner' : 'Cover';
+
+        if (isPending) {
+            return featuredImagesState.existing.length === 0 && index === 0 ? primaryLabel : 'New';
+        }
+
+        return index === 0 ? primaryLabel : 'Saved';
+    }
+
     function updateFeaturedImagesUi() {
         featuredImagesPreview.innerHTML = '';
         featuredImagesRemovedWrap.innerHTML = '';
@@ -3545,7 +4175,7 @@ The mountains keep.</pre>
         featuredImagesState.existing.forEach((image, index) => {
             featuredImagesPreview.appendChild(createFeaturedImageCard({
                 src: image.url,
-                label: index === 0 ? 'Cover' : 'Saved',
+                label: featuredImageBadgeLabel(index, false),
                 onRemove: () => {
                     featuredImagesState.removed.push(image.path);
                     featuredImagesState.existing.splice(index, 1);
@@ -3558,7 +4188,7 @@ The mountains keep.</pre>
         featuredImagesState.pending.forEach((item, index) => {
             featuredImagesPreview.appendChild(createFeaturedImageCard({
                 src: item.previewUrl,
-                label: featuredImagesState.existing.length === 0 && index === 0 ? 'Cover' : 'New',
+                label: featuredImageBadgeLabel(index, true),
                 onRemove: () => {
                     URL.revokeObjectURL(item.previewUrl);
                     featuredImagesState.pending.splice(index, 1);
@@ -3597,7 +4227,7 @@ The mountains keep.</pre>
 
         files.forEach((file) => {
             if (featuredImagesTotal() >= featuredImagesState.max) {
-                notify('error', 'You can upload up to 5 featured images.');
+                notify('error', 'You can upload up to ' + featuredImagesState.max + ' featured image' + (featuredImagesState.max === 1 ? '' : 's') + '.');
                 return;
             }
 
@@ -3872,7 +4502,7 @@ The mountains keep.</pre>
         entry.querySelector('.js-remove-timeline-entry')?.addEventListener('click', function () {
             entry.remove();
             reindexLifeTimelineEntries();
-            refreshLifeTimelineRequiredState(document.getElementById('contentType')?.value === 'autobiography');
+            refreshLifeTimelineRequiredState(isLifeStoryContentType(document.getElementById('contentType')?.value || ''));
         });
 
         photoInput?.addEventListener('change', function () {
@@ -3933,7 +4563,7 @@ The mountains keep.</pre>
         bindLifeTimelineEntry(entry);
         lifeTimelineEntries.appendChild(entry);
         lifeTimelineNextIndex += 1;
-        refreshLifeTimelineRequiredState(document.getElementById('contentType')?.value === 'autobiography');
+        refreshLifeTimelineRequiredState(isLifeStoryContentType(document.getElementById('contentType')?.value || ''));
     }
 
     function initLifeTimelineBuilder() {
@@ -3953,6 +4583,106 @@ The mountains keep.</pre>
     addLifeTimelineEntryBtn?.addEventListener('click', function () {
         addLifeTimelineEntry({});
     });
+
+    const childrensCornerQuizEntries = document.getElementById('childrensCornerQuizEntries');
+    const childrensCornerQuizTemplate = document.getElementById('childrensCornerQuizTemplate');
+    const addChildrensCornerQuizBtn = document.getElementById('addChildrensCornerQuizBtn');
+    let childrensCornerQuizNextIndex = 0;
+
+    function refreshChildrensCornerQuizRequiredState(isQuizMode) {
+        if (!childrensCornerQuizEntries) {
+            return;
+        }
+
+        childrensCornerQuizEntries.querySelectorAll('.childrens-corner-quiz-entry').forEach((entry) => {
+            entry.querySelectorAll('.js-quiz-question, .js-quiz-option, .js-quiz-correct-answer').forEach((field) => {
+                field.required = Boolean(isQuizMode);
+            });
+        });
+    }
+
+    function syncChildrensCornerQuizFieldNames(entry, index) {
+        entry.dataset.quizIndex = String(index);
+        const title = entry.querySelector('.childrens-corner-quiz-entry__title');
+        if (title) {
+            title.textContent = 'Question ' + (index + 1);
+        }
+
+        entry.querySelectorAll('[data-name]').forEach((field) => {
+            const fieldName = field.dataset.name.replace(/__INDEX__/g, String(index));
+            field.name = fieldName;
+            field.id = fieldName.replace(/[\[\]]/g, '_');
+        });
+    }
+
+    function bindChildrensCornerQuizEntry(entry) {
+        entry.querySelector('.js-remove-childrens-quiz-entry')?.addEventListener('click', function () {
+            entry.remove();
+            reindexChildrensCornerQuizEntries();
+            refreshChildrensCornerQuizRequiredState(
+                getChildrensCornerContentMode(document.getElementById('childShareType')?.value || '') === 'quiz'
+            );
+        });
+    }
+
+    function reindexChildrensCornerQuizEntries() {
+        if (!childrensCornerQuizEntries) {
+            return;
+        }
+
+        childrensCornerQuizEntries.querySelectorAll('.childrens-corner-quiz-entry').forEach((entry, index) => {
+            syncChildrensCornerQuizFieldNames(entry, index);
+        });
+        childrensCornerQuizNextIndex = childrensCornerQuizEntries.querySelectorAll('.childrens-corner-quiz-entry').length;
+    }
+
+    function addChildrensCornerQuizEntry(data) {
+        if (!childrensCornerQuizEntries || !childrensCornerQuizTemplate) {
+            return;
+        }
+
+        const fragment = childrensCornerQuizTemplate.content.cloneNode(true);
+        const entry = fragment.querySelector('.childrens-corner-quiz-entry');
+        const index = childrensCornerQuizNextIndex;
+
+        syncChildrensCornerQuizFieldNames(entry, index);
+        entry.querySelector('.js-quiz-question').value = data?.question || '';
+        entry.querySelector('.js-quiz-correct-answer').value = data?.correct_answer || '';
+
+        const options = Array.isArray(data?.options) ? data.options : [];
+        entry.querySelectorAll('.js-quiz-option').forEach((field, optionIndex) => {
+            field.value = options[optionIndex] || '';
+        });
+
+        bindChildrensCornerQuizEntry(entry);
+        childrensCornerQuizEntries.appendChild(entry);
+        childrensCornerQuizNextIndex += 1;
+        refreshChildrensCornerQuizRequiredState(
+            getChildrensCornerContentMode(document.getElementById('childShareType')?.value || '') === 'quiz'
+        );
+    }
+
+    function initializeChildrensCornerQuizEntries() {
+        if (!childrensCornerQuizEntries || !childrensCornerQuizTemplate) {
+            return;
+        }
+
+        childrensCornerQuizEntries.innerHTML = '';
+        childrensCornerQuizNextIndex = 0;
+
+        const initialEntries = Array.isArray(window.communityChildrensQuiz) ? window.communityChildrensQuiz : [];
+        if (initialEntries.length) {
+            initialEntries.forEach((entry) => addChildrensCornerQuizEntry(entry));
+        } else {
+            addChildrensCornerQuizEntry({});
+        }
+    }
+
+    addChildrensCornerQuizBtn?.addEventListener('click', function () {
+        addChildrensCornerQuizEntry({});
+    });
+
+    initializeChildrensCornerQuizEntries();
 
     initLifeTimelineBuilder();
 
@@ -4637,12 +5367,25 @@ The mountains keep.</pre>
                     }
                 }
             } else {
+                const contentTypeValue = document.getElementById('contentType')?.value || '';
+                const childrensMode = contentTypeValue === 'childrens-corner'
+                    ? getChildrensCornerContentMode(document.getElementById('childShareType')?.value || '')
+                    : null;
+                const requiresBody = contentTypeValue !== 'childrens-corner'
+                    || childrensMode === 'rich_text'
+                    || childrensMode === 'poem';
+
                 document.getElementById('bodyEditor').value = window.communityBodyEditor.getData();
-                const bodyText = document.getElementById('bodyEditor').value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-                if (!bodyText) {
-                    notify('error', 'Please enter content in the body field.');
-                    window.communityBodyEditor.editing.view.focus();
-                    return;
+
+                if (requiresBody) {
+                    const bodyText = document.getElementById('bodyEditor').value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+                    if (!bodyText) {
+                        notify('error', 'Please enter content in the body field.');
+                        window.communityBodyEditor.editing.view.focus();
+                        return;
+                    }
+                } else {
+                    document.getElementById('bodyEditor').value = '';
                 }
             }
         }
@@ -4651,6 +5394,177 @@ The mountains keep.</pre>
         addTagsFromInput();
 
         const contentType = document.getElementById('contentType')?.value || '';
+
+        if (contentType === 'childrens-corner') {
+            syncChildrensCornerCategory();
+            reindexChildrensCornerQuizEntries();
+
+            const shareType = document.getElementById('childShareType')?.value || '';
+            if (!shareType) {
+                notify('error', 'Please select what you would like to share.');
+                document.getElementById('childShareType')?.focus();
+                return;
+            }
+
+            const childrensMode = getChildrensCornerContentMode(shareType);
+
+            if (childrensMode === 'image') {
+                const artFileInput = document.getElementById('childrensCornerArtFile');
+                const hasNewArt = (artFileInput?.files?.length || 0) > 0;
+                const keepingExistingArt = Boolean(document.getElementById('keepExistingChildrensCornerArt'));
+                if (!hasNewArt && !keepingExistingArt) {
+                    notify('error', 'Please upload an image for this submission.');
+                    artFileInput?.focus();
+                    return;
+                }
+            }
+
+            if (childrensMode === 'project') {
+                const projectDescription = document.getElementById('childrensCornerProjectDescription')?.value.trim() || '';
+                if (!projectDescription) {
+                    notify('error', 'Please enter a project description.');
+                    document.getElementById('childrensCornerProjectDescription')?.focus();
+                    return;
+                }
+            }
+
+            if (childrensMode === 'quiz') {
+                const quizCount = document.querySelectorAll('#childrensCornerQuizEntries .childrens-corner-quiz-entry').length;
+                if (!quizCount) {
+                    notify('error', 'Please add at least one quiz question.');
+                    return;
+                }
+            }
+
+            const consentFields = [
+                document.getElementById('childParentConsentIdentity'),
+                document.getElementById('childParentConsentPublication'),
+                document.getElementById('childParentConsentOriginal'),
+            ];
+            if (consentFields.some((field) => !field?.checked)) {
+                notify('error', 'Please accept all parent/guardian consent statements.');
+                return;
+            }
+
+            const safetyFields = document.querySelectorAll('.childrens-corner-safety-required');
+            if (Array.from(safetyFields).some((field) => !field.checked)) {
+                notify('error', 'Please confirm all safety declaration statements.');
+                return;
+            }
+
+            const privacySetting = document.querySelector('input[name="childrens_corner_privacy_setting"]:checked')?.value || '';
+            if (!privacySetting) {
+                notify('error', 'Please choose a privacy setting for this submission.');
+                return;
+            }
+
+            if (privacySetting === 'school_community' && !document.getElementById('childSchoolName')?.value.trim()) {
+                notify('error', 'Please enter the school name for school community privacy.');
+                document.getElementById('childSchoolName')?.focus();
+                return;
+            }
+
+            const videoSource = document.querySelector('input[name="childrens_corner_video_source_type"]:checked')?.value || 'none';
+            if (videoSource === 'youtube') {
+                if (!document.getElementById('childrensCornerVideoYoutubeUrl')?.value.trim()) {
+                    notify('error', 'Please enter a YouTube video link or choose another video option.');
+                    return;
+                }
+            }
+            if (videoSource === 'upload') {
+                const childrensVideoFile = document.getElementById('childrensCornerVideoFile');
+                const hasNewVideo = (childrensVideoFile?.files?.length || 0) > 0;
+                const keepingExistingVideo = document.getElementById('keepExistingChildrensCornerVideo')?.value === '1';
+                if (!hasNewVideo && !keepingExistingVideo) {
+                    notify('error', 'Please choose a video file to upload or switch to another video option.');
+                    return;
+                }
+            }
+
+            const audioSource = document.querySelector('input[name="childrens_corner_audio_source_type"]:checked')?.value || 'none';
+            if (audioSource === 'upload') {
+                const childrensAudioFile = document.getElementById('childrensCornerAudioFile');
+                const hasNewAudio = (childrensAudioFile?.files?.length || 0) > 0;
+                const keepingExistingAudio = document.getElementById('keepExistingChildrensCornerAudio')?.value === '1';
+                if (!hasNewAudio && !keepingExistingAudio) {
+                    notify('error', 'Please choose an audio file or switch to another audio option.');
+                    return;
+                }
+            }
+            if (audioSource === 'recording') {
+                const keepingExistingAudio = document.getElementById('keepExistingChildrensCornerAudio')?.value === '1';
+                if (!window.childrensCornerAudioBlob && !keepingExistingAudio) {
+                    notify('error', 'Please record audio or switch to another audio option.');
+                    return;
+                }
+            }
+        }
+
+        if (contentType === 'awareness') {
+            syncAwarenessCategory();
+
+            const awarenessCategory = document.getElementById('awarenessCategory')?.value || '';
+            if (!awarenessCategory) {
+                notify('error', 'Please select an awareness main category.');
+                document.getElementById('awarenessCategory')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('awarenessType')?.value) {
+                notify('error', 'Please select an awareness type.');
+                document.getElementById('awarenessType')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('awarenessLevel')?.value) {
+                notify('error', 'Please select an awareness level.');
+                document.getElementById('awarenessLevel')?.focus();
+                return;
+            }
+
+            const audienceCount = document.querySelectorAll('input[name="awareness_target_audience[]"]:checked').length;
+            if (!audienceCount) {
+                notify('error', 'Please select at least one target audience.');
+                return;
+            }
+
+            if (!document.querySelector('input[name="awareness_posted_by"]:checked')) {
+                notify('error', 'Please select who is posting this awareness content.');
+                return;
+            }
+
+            const campaignStartDate = document.getElementById('awarenessCampaignStartDate')?.value || '';
+            const campaignEndDate = document.getElementById('awarenessCampaignEndDate')?.value || '';
+            if (campaignStartDate && campaignEndDate && campaignEndDate < campaignStartDate) {
+                notify('error', 'Campaign end date must be on or after the start date.');
+                document.getElementById('awarenessCampaignEndDate')?.focus();
+                return;
+            }
+
+            const postStatus = document.getElementById('communityPostStatus')?.value || 'draft';
+            if (postStatus === 'published' && featuredImagesTotal() === 0) {
+                notify('error', 'Please upload a campaign banner for this awareness post.');
+                document.getElementById('featuredImagesAddBtn')?.focus();
+                return;
+            }
+
+            const callToAction = document.getElementById('awarenessCallToAction')?.value.trim() || '';
+            if (!callToAction) {
+                notify('error', 'Please enter a call to action for this awareness post.');
+                document.getElementById('awarenessCallToAction')?.focus();
+                return;
+            }
+
+            if (document.getElementById('awarenessAllowPoll')?.checked) {
+                const pollQuestion = document.getElementById('awarenessPollQuestion')?.value.trim() || '';
+                if (!pollQuestion) {
+                    notify('error', 'Please enter a poll question for this awareness post.');
+                    document.getElementById('awarenessPollQuestion')?.focus();
+                    return;
+                }
+            }
+        }
+
         if (usesStructuredCommunityLocation(contentType)) {
             const requiredStructuredFields = [
                 document.getElementById('communityLocationCountry'),
@@ -4659,8 +5573,14 @@ The mountains keep.</pre>
                 document.getElementById('communityLocationCity'),
             ];
 
+            if (contentType === 'awareness') {
+                requiredStructuredFields.push(document.getElementById('communityLocationLocality'));
+            }
+
             if (requiredStructuredFields.some((field) => !field?.value.trim())) {
-                notify('error', 'Please complete country, state, district, and city for this post.');
+                notify('error', contentType === 'awareness'
+                    ? 'Please complete country, state, district, city, and area for this awareness post.'
+                    : 'Please complete country, state, district, and city for this post.');
                 return;
             }
         } else {
@@ -4698,7 +5618,7 @@ The mountains keep.</pre>
         }
 
         const videoSource = document.querySelector('input[name="video_source_type"]:checked')?.value || 'none';
-        if (videoSource === 'youtube') {
+        if (contentType !== 'childrens-corner' && videoSource === 'youtube') {
             const youtubeUrl = document.getElementById('videoYoutubeUrl')?.value.trim();
             if (!youtubeUrl) {
                 notify('error', 'Please enter a YouTube video link or choose another video option.');
@@ -4706,7 +5626,7 @@ The mountains keep.</pre>
             }
         }
 
-        if (videoSource === 'upload') {
+        if (contentType !== 'childrens-corner' && videoSource === 'upload') {
             const hasNewFile = (videoFileInput?.files?.length || 0) > 0;
             const keepingExisting = keepExistingVideoInput?.value === '1';
             if (!hasNewFile && !keepingExisting) {
@@ -4720,7 +5640,6 @@ The mountains keep.</pre>
             }
         }
 
-        const contentType = document.getElementById('contentType').value;
         if (contentType === 'stories') {
             const storyLanguage = document.querySelector('select[name="story_language"]')?.value;
             if (!storyLanguage) {
@@ -4785,11 +5704,19 @@ The mountains keep.</pre>
             }
         }
 
-        if (document.getElementById('contentType').value === 'autobiography') {
+        if (isLifeStoryContentType(document.getElementById('contentType').value)) {
             formData.delete('autobiography_audio_recording');
             const autobiographyAudioSource = document.querySelector('input[name="autobiography_audio_source_type"]:checked')?.value || 'none';
             if (autobiographyAudioSource === 'recording' && autobiographyAudioBlob) {
                 formData.append('autobiography_audio_recording', autobiographyAudioBlob, 'autobiography-recording.webm');
+            }
+        }
+
+        if (document.getElementById('contentType').value === 'childrens-corner') {
+            formData.delete('childrens_corner_audio_recording');
+            const childrensAudioSource = document.querySelector('input[name="childrens_corner_audio_source_type"]:checked')?.value || 'none';
+            if (childrensAudioSource === 'recording' && window.childrensCornerAudioBlob) {
+                formData.append('childrens_corner_audio_recording', window.childrensCornerAudioBlob, 'childrens-corner-recording.webm');
             }
         }
 

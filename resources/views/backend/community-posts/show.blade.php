@@ -18,6 +18,16 @@
         @include('community.partials.autobiography-styles')
     @endpush
 @endif
+@if($post->isChildrensCornerPost())
+    @push('styles')
+        @include('community.partials.childrens-corner-styles')
+    @endpush
+@endif
+@if($post->isAwarenessPost())
+    @push('styles')
+        @include('community.partials.awareness-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
@@ -72,30 +82,108 @@
                 @include('community.partials.story-rating-summary', ['post' => $post, 'compact' => true])
             @endif
 
+            @if($post->isChildrensCornerPost())
+                @include('community.partials.childrens-corner-show-sections', [
+                    'post' => $post,
+                    'placement' => 'media',
+                    'showQuizAnswers' => true,
+                ])
+                @include('community.partials.childrens-corner-meta-details', [
+                    'post' => $post,
+                    'heading' => "Saved Children's Corner metadata",
+                    'includeAdmin' => true,
+                ])
+            @endif
+
+            @if($post->isAwarenessPost())
+                @include('community.partials.awareness-show-sections', ['post' => $post])
+                @include('community.partials.awareness-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved awareness metadata',
+                ])
+            @endif
+
+            @if($post->isAwarenessPost() && ($post->allowsAwarenessCauseSupport() || $post->allowsAwarenessPledges() || $post->allowsCampaignJoin()))
+                <div class="mb-4" id="awareness-campaign-activity">
+                    @include('backend.community-posts.partials.awareness-portal-activity', [
+                        'post' => $post,
+                        'awarenessEngagement' => $awarenessEngagement,
+                        'awarenessEngagementActivity' => $awarenessEngagementActivity,
+                        'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
+                        'showVolunteerContacts' => true,
+                    ])
+                </div>
+            @endif
+
             <div class="chart-card p-3 p-lg-4 mb-4">
                 <h5 class="mb-3">Comments &amp; discussion settings</h5>
                 <ul class="list-unstyled small mb-0">
                     <li class="mb-1"><strong>Comments:</strong> {{ $post->allow_comments ? 'Enabled' : 'Disabled' }}</li>
+                    @if($post->isChildrensCornerPost())
+                        <li class="mb-1"><strong>Privacy:</strong> {{ $post->childrensCornerPrivacyLabel() }}</li>
+                        <li class="mb-1"><strong>Safety declaration:</strong> {{ data_get($post->meta, 'childrens_corner_safety_confirmed') ? 'Confirmed' : 'Not recorded' }}</li>
+                        <li class="mb-1"><strong>Comments moderated:</strong> {{ $post->commentsModerated() ? 'Yes — approval required' : 'No' }}</li>
+                        <li class="mb-1"><strong>Reactions:</strong> Child-friendly only</li>
+                    @endif
                     <li class="mb-1"><strong>Questions:</strong> {{ $post->allow_questions ? 'Enabled' : 'Disabled' }}</li>
                     <li class="mb-0"><strong>Suggestions:</strong> {{ $post->allow_suggestions ? 'Enabled' : 'Disabled' }}</li>
                 </ul>
             </div>
 
+            @if($post->allow_comments && $post->isChildrensCornerPost() && $post->commentsModerated())
+                @php
+                    $pendingCommentsCount = $post->discussionComments->filter(fn ($comment) => ! $comment->is_approved)->count()
+                        + $post->discussionComments->flatMap->replies->filter(fn ($reply) => ! $reply->is_approved)->count();
+                @endphp
+                @if($pendingCommentsCount > 0)
+                    <div class="alert alert-warning mb-4">
+                        <strong>{{ $pendingCommentsCount }} comment{{ $pendingCommentsCount === 1 ? '' : 's' }} awaiting your approval.</strong>
+                        Approve them below to make them visible on the public page.
+                    </div>
+                @endif
+            @endif
+
             @if($post->allow_comments)
-                <div class="chart-card p-3 p-lg-4 mb-4">
+                <div class="chart-card p-3 p-lg-4 mb-4" id="participation-comments">
                     <h5 class="mb-3">Comments ({{ $engagementSummary['comments'] }})</h5>
                     @forelse($post->discussionComments as $comment)
-                        <div class="border rounded p-3 mb-3 bg-light">
+                        <div class="border rounded p-3 mb-3 bg-light {{ ! $comment->is_approved ? 'border-warning' : '' }}">
                             <div class="d-flex justify-content-between gap-2 flex-wrap mb-2">
-                                <strong>{{ $comment->user?->full_name ?: ($comment->user?->name ?? 'Community member') }}</strong>
-                                <small class="text-muted">{{ $comment->created_at?->diffForHumans() }}</small>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <strong>{{ $comment->user?->full_name ?: ($comment->user?->name ?? 'Community member') }}</strong>
+                                    @if(! $comment->is_approved)
+                                        <span class="badge bg-warning text-dark">Pending approval</span>
+                                    @endif
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    @if(! $comment->is_approved)
+                                        <form method="POST" action="{{ route('community.comments.approve', [$post, $comment]) }}">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                        </form>
+                                    @endif
+                                    <small class="text-muted">{{ $comment->created_at?->diffForHumans() }}</small>
+                                </div>
                             </div>
                             <p class="mb-2">{!! nl2br(e($comment->body)) !!}</p>
                             @foreach($comment->replies as $reply)
-                                <div class="border-start ps-3 ms-2 mb-2">
+                                <div class="border-start ps-3 ms-2 mb-2 {{ ! $reply->is_approved ? 'border-warning' : '' }}">
                                     <div class="d-flex justify-content-between gap-2 flex-wrap mb-1">
-                                        <strong class="small">{{ $reply->user?->full_name ?: ($reply->user?->name ?? 'Community member') }}</strong>
-                                        <small class="text-muted">{{ $reply->created_at?->diffForHumans() }}</small>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <strong class="small">{{ $reply->user?->full_name ?: ($reply->user?->name ?? 'Community member') }}</strong>
+                                            @if(! $reply->is_approved)
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            @endif
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if(! $reply->is_approved)
+                                                <form method="POST" action="{{ route('community.comments.approve', [$post, $reply]) }}">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-outline-success">Approve</button>
+                                                </form>
+                                            @endif
+                                            <small class="text-muted">{{ $reply->created_at?->diffForHumans() }}</small>
+                                        </div>
                                     </div>
                                     <p class="small mb-0">{!! nl2br(e($reply->body)) !!}</p>
                                 </div>
@@ -240,6 +328,30 @@
                     @if(filled(data_get($post->meta, 'autobiography_type')))
                         <div class="mt-3">
                             <span class="badge bg-light text-dark border">{{ data_get($post->meta, 'autobiography_type') }}</span>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if($post->isAwarenessPost())
+                <div class="chart-card p-3 p-lg-4 mb-4">
+                    <h5 class="mb-3">Awareness campaign engagement</h5>
+                    <div class="row g-2 small">
+                        <div class="col-4"><strong>Supporters</strong><div>{{ number_format($awarenessEngagement['supports_count'] ?? 0) }}</div></div>
+                        <div class="col-4"><strong>Pledges</strong><div>{{ number_format($awarenessEngagement['pledges_count'] ?? 0) }}</div></div>
+                        <div class="col-4"><strong>Volunteers</strong><div>{{ number_format($awarenessEngagement['volunteers_count'] ?? 0) }}</div></div>
+                    </div>
+                    @if($post->allowsAwarenessCauseSupport() || $post->allowsAwarenessPledges() || $post->allowsCampaignJoin())
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            @if($post->allowsAwarenessCauseSupport())
+                                <span class="badge bg-success-subtle text-success border">Cause support enabled</span>
+                            @endif
+                            @if($post->allowsAwarenessPledges())
+                                <span class="badge bg-warning-subtle text-dark border">Pledges enabled</span>
+                            @endif
+                            @if($post->allowsCampaignJoin())
+                                <span class="badge bg-info-subtle text-info border">Volunteer join enabled</span>
+                            @endif
                         </div>
                     @endif
                 </div>

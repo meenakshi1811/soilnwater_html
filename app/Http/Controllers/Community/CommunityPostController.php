@@ -16,6 +16,7 @@ use App\Services\CommunityReportEngagementNotificationService;
 use App\Services\CommunityStoryAchievementService;
 use App\Services\CommunityStoryEngagementNotificationService;
 use App\Services\CommunityArticleScoreService;
+use App\Services\CommunityReportTrustScoreService;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
 use App\Support\CommunityPostAuditLogger;
@@ -42,11 +43,21 @@ class CommunityPostController extends Controller
 
     private const MAX_AUTOBIOGRAPHY_DOCUMENTS = 10;
 
+    private const MAX_AWARENESS_INFOGRAPHICS = 10;
+
+    private const MAX_AWARENESS_DOCUMENTS = 6;
+
     private const MAX_STORY_AUDIO_KB = 20480;
 
     private const MAX_TAGS = 10;
 
     private const MAX_VIDEO_FILE_KB = 51200;
+
+    private const MAX_CHILDRENS_CORNER_PROJECT_FILES = 6;
+
+    private const MAX_CHILDRENS_CORNER_QUIZ_QUESTIONS = 20;
+
+    private const MAX_CHILDRENS_CORNER_GALLERY = 10;
 
     public function index(Request $request): View|JsonResponse
     {
@@ -85,12 +96,20 @@ class CommunityPostController extends Controller
 
     public function show(Request $request, CommunityPost $post): View
     {
+        $viewer = auth()->user();
+        $canManagePreview = $viewer !== null && ($viewer->id === $post->user_id || $viewer->isAdmin());
+
         abort_unless(
-            $post->isPubliclyVisible()
-            || auth()->id() === $post->user_id
-            || auth()->user()?->isAdmin(),
+            $post->isPubliclyVisible() || $canManagePreview,
             404
         );
+
+        if ($post->isPubliclyVisible() && ! $post->isVisibleInCommunityTo($viewer) && ! $canManagePreview) {
+            return view('community.privacy-gate', [
+                'post' => $post,
+                'types' => CommunityContentTaxonomy::formTypes(),
+            ]);
+        }
 
         $post->load([
             'user',
@@ -99,7 +118,7 @@ class CommunityPostController extends Controller
             'starRatings',
             'discussionComments.user',
             'discussionComments.replies.user',
-        ])->loadCount('starRatings');
+        ])->loadCount(['starRatings', 'awarenessSupports', 'awarenessPledges', 'awarenessVolunteers']);
 
         if ($post->isPubliclyVisible()) {
             $this->recordPostView($request, $post);
@@ -124,7 +143,12 @@ class CommunityPostController extends Controller
             'discussionComments.user',
             'discussionComments.replies.user',
             'starRatings',
-        ])->loadCount('starRatings');
+        ])->loadCount([
+            'starRatings',
+            'awarenessSupports',
+            'awarenessPledges',
+            'awarenessVolunteers',
+        ]);
 
         $participation = $this->participationViewData($post, limit: 50);
 
@@ -154,6 +178,15 @@ class CommunityPostController extends Controller
             'reportEngagement' => $post->isReportContent()
                 ? CommunityReportEngagementNotificationService::stateForPost($post, auth()->id())
                 : null,
+            'awarenessEngagement' => $post->isAwarenessPost()
+                ? \App\Services\CommunityAwarenessEngagementService::stateForPost($post, auth()->id())
+                : null,
+            'awarenessPledgeCounts' => $post->isAwarenessPost()
+                ? \App\Services\CommunityAwarenessEngagementService::pledgeCounts($post)
+                : [],
+            'awarenessEngagementActivity' => $post->isAwarenessPost()
+                ? \App\Services\CommunityAwarenessEngagementService::activityForPost($post)
+                : null,
             'communityParticipationEvidence' => $post->allow_additional_evidence
                 ? CommunityReportEngagementNotificationService::recentEvidence($post, $limit)
                 : collect(),
@@ -168,10 +201,12 @@ class CommunityPostController extends Controller
 
     public function react(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
     {
-        abort_unless($post->isPubliclyVisible(), 404);
+        $this->ensureCommunityAudienceAccess($post, $request);
 
         $data = $request->validate([
-            'reaction' => ['required', Rule::in(['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'])],
+            'reaction' => ['required', Rule::in($post->usesChildFriendlyReactions()
+                ? CommunityContentTaxonomy::childrensCornerReactionLabels()
+                : ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'])],
         ]);
 
         $reaction = CommunityPostReaction::query()->where([
@@ -221,6 +256,13 @@ class CommunityPostController extends Controller
             );
         }
 
+        if ($post->isChildrensCornerPost() && $active && $data['reaction'] === 'Inspiring') {
+            CommunityStoryEngagementNotificationService::notifyAuthorOfInspiringReaction(
+                $post,
+                $request->user()
+            );
+        }
+
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
@@ -239,7 +281,7 @@ class CommunityPostController extends Controller
 
     public function rateStory(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
     {
-        abort_unless($post->isPubliclyVisible(), 404);
+        $this->ensureCommunityAudienceAccess($post, $request);
         abort_unless(CommunityPost::supportsStarRating($post->content_type), 404);
 
         $data = $request->validate([
@@ -288,7 +330,7 @@ class CommunityPostController extends Controller
 
     public function votePoll(Request $request, CommunityPost $post): JsonResponse|RedirectResponse
     {
-        abort_unless($post->isPubliclyVisible(), 404);
+        $this->ensureCommunityAudienceAccess($post, $request);
         abort_unless($post->allowsPoll(), 403, 'Polls are disabled for this post.');
 
         $data = $request->validate([
@@ -320,7 +362,7 @@ class CommunityPostController extends Controller
 
     public function comment(Request $request, CommunityPost $post): RedirectResponse
     {
-        abort_unless($post->isPubliclyVisible(), 404);
+        $this->ensureCommunityAudienceAccess($post, $request);
         abort_unless($post->allow_comments, 403, 'Discussions are disabled for this post.');
 
         $data = $request->validate([
@@ -338,7 +380,19 @@ class CommunityPostController extends Controller
             'user_id' => $request->user()->id,
             'parent_id' => $data['parent_id'] ?? null,
             'body' => $data['body'],
+            'is_approved' => ! $post->commentsModerated(),
         ]);
+
+        if ($post->commentsModerated()) {
+            CommunityPostParticipationNotificationService::notifyAuthorOfPendingComment(
+                $post,
+                $request->user(),
+                $data['body'],
+                filled($data['parent_id'] ?? null)
+            );
+
+            return back()->with('success', 'Your comment was submitted and is awaiting approval from the author.');
+        }
 
         CommunityPostParticipationNotificationService::notifyAuthorOfComment(
             $post,
@@ -350,6 +404,27 @@ class CommunityPostController extends Controller
         $this->syncReportTrustScore($post->fresh());
 
         return back()->with('success', filled($data['parent_id'] ?? null) ? 'Reply added to the discussion.' : 'Comment added to the discussion.');
+    }
+
+    public function approveComment(Request $request, CommunityPost $post, CommunityPostComment $comment): RedirectResponse
+    {
+        $this->authorizeOwner($request, $post);
+
+        abort_unless($comment->community_post_id === $post->id, 404);
+
+        $comment->forceFill(['is_approved' => true])->save();
+
+        $comment->loadMissing('user');
+
+        if ($comment->user) {
+            CommunityPostParticipationNotificationService::notifyParticipantOfApprovedComment(
+                $post,
+                $comment,
+                $comment->user
+            );
+        }
+
+        return back()->with('success', 'Comment approved and now visible publicly.');
     }
 
     public function followAuthor(Request $request, User $author): RedirectResponse
@@ -445,6 +520,29 @@ class CommunityPostController extends Controller
         foreach ((array) data_get($post->meta, 'story_gallery', []) as $image) {
             CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
         }
+
+        foreach ((array) data_get($post->meta, 'awareness_infographics', []) as $infographic) {
+            CommunityPostFileUploader::deleteIfExists(data_get($infographic, 'path'));
+        }
+
+        foreach ((array) data_get($post->meta, 'awareness_documents', []) as $document) {
+            CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+        }
+
+        CommunityPostFileUploader::deleteIfExists(data_get($post->meta, 'childrens_corner_art.path'));
+
+        foreach ((array) data_get($post->meta, 'childrens_corner_project_files', []) as $file) {
+            CommunityPostFileUploader::deleteIfExists(data_get($file, 'path'));
+        }
+
+        foreach ((array) data_get($post->meta, 'childrens_corner_gallery', []) as $image) {
+            CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+        }
+
+        CommunityPostFileUploader::deleteIfExists(data_get($post->meta, 'childrens_corner_certificate.path'));
+
+        $this->deleteVideoFile(data_get($post->meta, 'childrens_corner_video'));
+        $this->deleteStoryAudioFile(data_get($post->meta, 'childrens_corner_audio'));
 
         $this->deleteStoryAudioFile(data_get($post->meta, 'story_audio'));
         $this->deleteStoryAudioFile(data_get($post->meta, 'poetry_audio'));
@@ -543,7 +641,7 @@ class CommunityPostController extends Controller
             $data['meta']['life_timeline'] = $lifeTimeline;
         }
         $autobiographyAudio = $this->resolveAutobiographyAudio($request);
-        if ($autobiographyAudio !== null || ($request->input('content_type') === 'autobiography' && $request->input('autobiography_audio_source_type') === 'none')) {
+        if ($autobiographyAudio !== null || (CommunityPost::usesAutobiographyFlow($request->input('content_type')) && $request->input('autobiography_audio_source_type') === 'none')) {
             if ($autobiographyAudio !== null) {
                 $data['meta']['autobiography_audio'] = $autobiographyAudio;
             } else {
@@ -558,6 +656,45 @@ class CommunityPostController extends Controller
         if ($autobiographyDocuments !== null) {
             $data['meta']['autobiography_documents'] = $autobiographyDocuments;
         }
+        $childrensCornerArt = $this->resolveChildrensCornerArt($request);
+        if ($childrensCornerArt !== null) {
+            $data['meta']['childrens_corner_art'] = $childrensCornerArt;
+        }
+        $childrensCornerProjectFiles = $this->resolveChildrensCornerProjectFiles($request);
+        if ($childrensCornerProjectFiles !== null) {
+            $data['meta']['childrens_corner_project_files'] = $childrensCornerProjectFiles;
+        }
+        $childrensCornerQuiz = $this->resolveChildrensCornerQuiz($request);
+        if ($childrensCornerQuiz !== null) {
+            $data['meta']['childrens_corner_quiz'] = $childrensCornerQuiz;
+        }
+        $childrensCornerGallery = $this->resolveChildrensCornerGallery($request);
+        if ($childrensCornerGallery !== null) {
+            $data['meta']['childrens_corner_gallery'] = $childrensCornerGallery;
+        }
+        $childrensCornerVideo = $this->resolveChildrensCornerVideo($request);
+        if ($childrensCornerVideo !== null) {
+            $data['meta']['childrens_corner_video'] = $childrensCornerVideo;
+        }
+        $childrensCornerAudio = $this->resolveChildrensCornerAudio($request);
+        if ($childrensCornerAudio !== null) {
+            $data['meta']['childrens_corner_audio'] = $childrensCornerAudio;
+        }
+        $childrensCornerCertificate = $this->resolveChildrensCornerCertificate($request);
+        if ($childrensCornerCertificate !== null) {
+            $data['meta']['childrens_corner_certificate'] = $childrensCornerCertificate;
+        }
+        $awarenessInfographics = $this->resolveAwarenessInfographics($request);
+        if ($awarenessInfographics !== null) {
+            $data['meta']['awareness_infographics'] = $awarenessInfographics;
+        }
+        $awarenessDocuments = $this->resolveAwarenessDocuments($request);
+        if ($awarenessDocuments !== null) {
+            $data['meta']['awareness_documents'] = $awarenessDocuments;
+        }
+        if (CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            $data['allow_comments'] = $this->shouldAllowComments($request);
+        }
         $data = $this->applyPoetryRegionalLocation($data);
         $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['allow_questions'] = $this->shouldAllowQuestions($request);
@@ -568,7 +705,9 @@ class CommunityPostController extends Controller
         $data['allow_poll'] = $this->shouldAllowPoll($request, $data['content_type'] ?? $post?->content_type);
         $data = array_merge($data, $this->resolvePublicationState($request, $post = null));
         [$data['featured_images'], $data['featured_image_path']] = $this->resolveFeaturedImages($request);
-        $data['video'] = $this->resolveVideo($request);
+        $data['video'] = CommunityPost::usesChildrensCornerFlow($request->input('content_type'))
+            ? null
+            : $this->resolveVideo($request);
 
         $post = CommunityPost::create($data);
 
@@ -578,7 +717,7 @@ class CommunityPostController extends Controller
 
         if ($post->isPendingApproval()) {
             $this->notifyAdminsOfPendingPost($post);
-        } elseif (in_array($post->content_type, ['poetry', 'autobiography'], true) && $post->isPubliclyVisible()) {
+        } elseif (in_array($post->content_type, ['poetry', 'biography', 'autobiography'], true) && $post->isPubliclyVisible()) {
             CommunityStoryEngagementNotificationService::notifyAuthorOfPublishedWithoutAudio($post->fresh());
         }
 
@@ -662,14 +801,14 @@ class CommunityPostController extends Controller
         $lifeTimeline = $this->resolveLifeTimeline($request, $post);
         if ($lifeTimeline !== null) {
             $data['meta']['life_timeline'] = $lifeTimeline;
-        } elseif ($request->input('content_type') === 'autobiography' && data_get($post->meta, 'life_timeline')) {
+        } elseif (CommunityPost::usesAutobiographyFlow($request->input('content_type')) && data_get($post->meta, 'life_timeline')) {
             unset($data['meta']['life_timeline']);
         }
 
         $autobiographyAudio = $this->resolveAutobiographyAudio($request, $post);
         if ($autobiographyAudio !== null) {
             $data['meta']['autobiography_audio'] = $autobiographyAudio;
-        } elseif ($request->input('content_type') === 'autobiography' && $request->input('autobiography_audio_source_type') === 'none') {
+        } elseif (CommunityPost::usesAutobiographyFlow($request->input('content_type')) && $request->input('autobiography_audio_source_type') === 'none') {
             unset($data['meta']['autobiography_audio']);
         } elseif ($request->boolean('remove_autobiography_audio')) {
             unset($data['meta']['autobiography_audio']);
@@ -678,15 +817,78 @@ class CommunityPostController extends Controller
         $autobiographyAchievements = $this->resolveAutobiographyAchievements($request, $post);
         if ($autobiographyAchievements !== null) {
             $data['meta']['autobiography_achievements'] = $autobiographyAchievements;
-        } elseif ($request->input('content_type') === 'autobiography' && data_get($post->meta, 'autobiography_achievements')) {
+        } elseif (CommunityPost::usesAutobiographyFlow($request->input('content_type')) && data_get($post->meta, 'autobiography_achievements')) {
             unset($data['meta']['autobiography_achievements']);
         }
 
         $autobiographyDocuments = $this->resolveAutobiographyDocuments($request, $post);
         if ($autobiographyDocuments !== null) {
             $data['meta']['autobiography_documents'] = $autobiographyDocuments;
-        } elseif ($request->input('content_type') === 'autobiography' && data_get($post->meta, 'autobiography_documents')) {
+        } elseif (CommunityPost::usesAutobiographyFlow($request->input('content_type')) && data_get($post->meta, 'autobiography_documents')) {
             unset($data['meta']['autobiography_documents']);
+        }
+
+        $childrensCornerArt = $this->resolveChildrensCornerArt($request, $post);
+        if ($childrensCornerArt !== null) {
+            $data['meta']['childrens_corner_art'] = $childrensCornerArt;
+        } elseif (CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            unset($data['meta']['childrens_corner_art']);
+        }
+
+        $childrensCornerProjectFiles = $this->resolveChildrensCornerProjectFiles($request, $post);
+        if ($childrensCornerProjectFiles !== null) {
+            $data['meta']['childrens_corner_project_files'] = $childrensCornerProjectFiles;
+        } elseif (CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            unset($data['meta']['childrens_corner_project_files']);
+        }
+
+        $childrensCornerQuiz = $this->resolveChildrensCornerQuiz($request);
+        if ($childrensCornerQuiz !== null) {
+            $data['meta']['childrens_corner_quiz'] = $childrensCornerQuiz;
+        } elseif (CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            unset($data['meta']['childrens_corner_quiz']);
+        }
+
+        $childrensCornerGallery = $this->resolveChildrensCornerGallery($request, $post);
+        if ($childrensCornerGallery !== null) {
+            $data['meta']['childrens_corner_gallery'] = $childrensCornerGallery;
+        } elseif (CommunityPost::usesChildrensCornerFlow($request->input('content_type')) && data_get($post->meta, 'childrens_corner_gallery')) {
+            unset($data['meta']['childrens_corner_gallery']);
+        }
+
+        $childrensCornerVideo = $this->resolveChildrensCornerVideo($request, $post);
+        if ($childrensCornerVideo !== null) {
+            $data['meta']['childrens_corner_video'] = $childrensCornerVideo;
+        } elseif (CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            unset($data['meta']['childrens_corner_video']);
+        }
+
+        $childrensCornerAudio = $this->resolveChildrensCornerAudio($request, $post);
+        if ($childrensCornerAudio !== null) {
+            $data['meta']['childrens_corner_audio'] = $childrensCornerAudio;
+        } elseif (CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            unset($data['meta']['childrens_corner_audio']);
+        }
+
+        $childrensCornerCertificate = $this->resolveChildrensCornerCertificate($request, $post);
+        if ($childrensCornerCertificate !== null) {
+            $data['meta']['childrens_corner_certificate'] = $childrensCornerCertificate;
+        } elseif (CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            unset($data['meta']['childrens_corner_certificate']);
+        }
+
+        $awarenessInfographics = $this->resolveAwarenessInfographics($request, $post);
+        if ($awarenessInfographics !== null) {
+            $data['meta']['awareness_infographics'] = $awarenessInfographics;
+        } elseif (data_get($post->meta, 'awareness_infographics')) {
+            unset($data['meta']['awareness_infographics']);
+        }
+
+        $awarenessDocuments = $this->resolveAwarenessDocuments($request, $post);
+        if ($awarenessDocuments !== null) {
+            $data['meta']['awareness_documents'] = $awarenessDocuments;
+        } elseif (data_get($post->meta, 'awareness_documents')) {
+            unset($data['meta']['awareness_documents']);
         }
 
         $data = $this->applyPoetryRegionalLocation($data);
@@ -704,7 +906,9 @@ class CommunityPostController extends Controller
         $this->deleteRemovedFeaturedImages($post->featuredImages(), $featuredImages);
         $data['featured_images'] = $featuredImages;
         $data['featured_image_path'] = $featuredImagePath;
-        $data['video'] = $this->resolveVideo($request, $post);
+        $data['video'] = CommunityPost::usesChildrensCornerFlow($request->input('content_type'))
+            ? null
+            : $this->resolveVideo($request, $post);
 
         if ($post->title !== $data['title']) {
             $data['slug'] = $this->uniqueSlug($data['title'], $post->id);
@@ -776,6 +980,18 @@ class CommunityPostController extends Controller
         $contentType = $request->input('content_type');
         $isReport = $contentType === 'reports';
         $usesStructuredLocation = CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null);
+        $isChildrensCorner = CommunityPost::usesChildrensCornerFlow(is_string($contentType) ? $contentType : null);
+        $isAwareness = CommunityPost::usesAwarenessFlow(is_string($contentType) ? $contentType : null);
+        $childShareType = $request->input('child_share_type');
+        $childContentMode = CommunityContentTaxonomy::childrensCornerContentMode(is_string($childShareType) ? $childShareType : null);
+
+        if ($isChildrensCorner && $request->filled('child_share_type')) {
+            $request->merge(['category' => $request->input('child_share_type')]);
+        }
+
+        if ($isAwareness && $request->filled('awareness_category')) {
+            $request->merge(['category' => $request->input('awareness_category')]);
+        }
 
         $rules = [
             'content_type' => ['required', Rule::in($typeKeys)],
@@ -792,7 +1008,19 @@ class CommunityPostController extends Controller
             ],
             'title' => ['required', 'string', 'max:255'],
             'excerpt' => ['nullable', 'string', 'max:1000'],
-            'body' => [Rule::requiredIf(fn () => ! CommunityPost::isBookContentType($contentType))],
+            'body' => [
+                Rule::requiredIf(function () use ($contentType, $childContentMode): bool {
+                    if (CommunityPost::isBookContentType(is_string($contentType) ? $contentType : null)) {
+                        return false;
+                    }
+
+                    if (CommunityPost::usesChildrensCornerFlow(is_string($contentType) ? $contentType : null)) {
+                        return in_array($childContentMode, ['rich_text', 'poem'], true);
+                    }
+
+                    return true;
+                }),
+            ],
             'book_pages' => [Rule::requiredIf(fn () => CommunityPost::isBookContentType($contentType)), 'array', 'min:1'],
             'book_pages.*.content' => ['nullable', 'string'],
             'book_pages.*.language' => ['nullable', Rule::in(['en', 'hi'])],
@@ -858,19 +1086,19 @@ class CommunityPostController extends Controller
                 'max:160',
             ],
             'author_bio' => [
-                Rule::requiredIf(fn () => $contentType === 'autobiography'),
+                Rule::requiredIf(fn () => CommunityPost::usesAutobiographyFlow(is_string($contentType) ? $contentType : null)),
                 'nullable',
                 'string',
                 'max:500',
             ],
-            'location_type' => $usesStructuredLocation
+            'location_type' => ($usesStructuredLocation || $isChildrensCorner)
                 ? ['nullable', Rule::in(array_keys(CommunityPost::locationTypeOptions($contentType)))]
                 : ['required', Rule::in(array_keys(CommunityPost::locationTypeOptions($contentType)))],
             'location' => ['nullable', 'string', 'max:160'],
             'location_lat' => $usesStructuredLocation
                 ? ['nullable', 'numeric', 'between:-90,90']
                 : [
-                    Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
+                    Rule::requiredIf(fn () => ! $isChildrensCorner && in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
                     'nullable',
                     'numeric',
                     'between:-90,90',
@@ -878,7 +1106,7 @@ class CommunityPostController extends Controller
             'location_lng' => $usesStructuredLocation
                 ? ['nullable', 'numeric', 'between:-180,180']
                 : [
-                    Rule::requiredIf(fn () => in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
+                    Rule::requiredIf(fn () => ! $isChildrensCorner && in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
                     'nullable',
                     'numeric',
                     'between:-180,180',
@@ -1014,9 +1242,14 @@ class CommunityPostController extends Controller
                 'string',
                 'max:120',
             ],
-            'location_locality' => ['nullable', 'string', 'max:120'],
+            'location_locality' => [
+                Rule::requiredIf(fn () => (string) $contentType === 'awareness'),
+                'nullable',
+                'string',
+                'max:120',
+            ],
             'autobiography_type' => [
-                Rule::requiredIf(fn () => $contentType === 'autobiography'),
+                Rule::requiredIf(fn () => CommunityPost::usesAutobiographyFlow(is_string($contentType) ? $contentType : null)),
                 'nullable',
                 'string',
                 Rule::in(CommunityContentTaxonomy::autobiographyTypes()),
@@ -1029,7 +1262,7 @@ class CommunityPostController extends Controller
             'life_timeline.*.photo' => ['nullable', 'image', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
             'autobiography_audio_source_type' => ['nullable', Rule::in(['none', 'upload', 'recording'])],
             'autobiography_audio_file' => [
-                Rule::requiredIf(fn () => $contentType === 'autobiography'
+                Rule::requiredIf(fn () => CommunityPost::usesAutobiographyFlow(is_string($contentType) ? $contentType : null)
                     && $request->input('autobiography_audio_source_type') === 'upload'
                     && ! $request->boolean('keep_existing_autobiography_audio')),
                 'nullable',
@@ -1038,7 +1271,7 @@ class CommunityPostController extends Controller
                 'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
             ],
             'autobiography_audio_recording' => [
-                Rule::requiredIf(fn () => $contentType === 'autobiography'
+                Rule::requiredIf(fn () => CommunityPost::usesAutobiographyFlow(is_string($contentType) ? $contentType : null)
                     && $request->input('autobiography_audio_source_type') === 'recording'
                     && ! $request->boolean('keep_existing_autobiography_audio')),
                 'nullable',
@@ -1067,6 +1300,485 @@ class CommunityPostController extends Controller
             'related_people' => ['nullable', 'array', 'max:20'],
             'related_people.*.name' => ['nullable', 'string', 'max:120'],
             'related_people.*.relationship' => ['nullable', 'string', 'max:80'],
+            'child_share_type' => [
+                Rule::requiredIf(fn () => $isChildrensCorner),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::childrensCornerShareTypes()),
+            ],
+            'child_first_name' => [
+                Rule::requiredIf(fn () => $isChildrensCorner),
+                'nullable',
+                'string',
+                'max:80',
+            ],
+            'child_age_group' => [
+                Rule::requiredIf(fn () => $isChildrensCorner),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::childrensCornerAgeGroups()),
+            ],
+            'child_grade_level' => [
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::childrensCornerGradeLevels()),
+            ],
+            'child_school_name' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                Rule::requiredIf(fn () => $isChildrensCorner && $request->input('childrens_corner_privacy_setting') === 'school_community'),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'parent_name' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'required',
+                'string',
+                'max:120',
+            ],
+            'parent_mobile' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'required',
+                'string',
+                'max:20',
+            ],
+            'parent_email' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'email',
+                'max:160',
+            ],
+            'parent_relationship' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::childrensCornerParentRelationships()),
+            ],
+            'child_parent_consent_identity' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'accepted',
+            ],
+            'child_parent_consent_publication' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'accepted',
+            ],
+            'child_parent_consent_original' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'accepted',
+            ],
+            'childrens_corner_privacy_setting' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'required',
+                'string',
+                Rule::in(array_keys(CommunityContentTaxonomy::childrensCornerPrivacySettings())),
+            ],
+            'childrens_corner_safety_no_address' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'accepted',
+            ],
+            'childrens_corner_safety_no_harmful' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'accepted',
+            ],
+            'childrens_corner_safety_no_copyright' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'accepted',
+            ],
+            'childrens_corner_safety_no_inappropriate_media' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'accepted',
+            ],
+            'awareness_category' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::awarenessCategories()),
+            ],
+            'awareness_type' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::awarenessTypes()),
+            ],
+            'awareness_level' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::awarenessLevels()),
+            ],
+            'awareness_target_audience' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'required',
+                'array',
+                'min:1',
+            ],
+            'awareness_target_audience.*' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'string',
+                Rule::in(CommunityContentTaxonomy::awarenessTargetAudiences()),
+            ],
+            'awareness_posted_by' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::awarenessPostedByOptions()),
+            ],
+            'awareness_organization_name' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'awareness_campaign_start_date' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'date',
+            ],
+            'awareness_campaign_end_date' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'date',
+                'after_or_equal:awareness_campaign_start_date',
+            ],
+            'awareness_video_type' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::awarenessVideoTypes()),
+            ],
+            'awareness_infographics' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'array',
+                'max:'.self::MAX_AWARENESS_INFOGRAPHICS,
+            ],
+            'awareness_infographics.*' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'file',
+                'max:20480',
+                'mimes:png,jpg,jpeg,pdf',
+            ],
+            'removed_awareness_infographics' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'array',
+            ],
+            'removed_awareness_infographics.*' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'string',
+                'max:255',
+            ],
+            'awareness_documents' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'array',
+                'max:'.self::MAX_AWARENESS_DOCUMENTS,
+            ],
+            'awareness_documents.*' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'file',
+                'max:20480',
+                'mimes:pdf,doc,docx,ppt,pptx',
+            ],
+            'removed_awareness_documents' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'array',
+            ],
+            'removed_awareness_documents.*' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'string',
+                'max:255',
+            ],
+            'awareness_call_to_action' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'required',
+                'string',
+                'max:1000',
+            ],
+            'awareness_action_items' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'array',
+            ],
+            'awareness_action_items.*' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'string',
+                Rule::in(CommunityContentTaxonomy::awarenessCallToActionExamples()),
+            ],
+            'awareness_allow_campaign_join' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'boolean',
+            ],
+            'awareness_has_event' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'boolean',
+            ],
+            'awareness_event_type' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::awarenessEventTypes()),
+            ],
+            'awareness_event_date' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'date',
+            ],
+            'awareness_event_venue' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'awareness_event_time' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'string',
+                'max:40',
+            ],
+            'awareness_event_organizer' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'awareness_social_impact_categories' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'array',
+            ],
+            'awareness_social_impact_categories.*' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'string',
+                Rule::in(CommunityContentTaxonomy::awarenessSocialImpactCategories()),
+            ],
+            'awareness_allow_cause_support' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'boolean',
+            ],
+            'awareness_allow_pledges' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'boolean',
+            ],
+            'awareness_pledge_options' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'awareness_poll_question' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'string',
+                'max:255',
+                Rule::requiredIf(fn () => $isAwareness && $request->boolean('allow_poll')),
+            ],
+            'awareness_impact_trees_planted' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+            'awareness_impact_volunteers_joined' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+            'awareness_impact_people_reached' => [
+                Rule::excludeIf(fn () => ! $isAwareness),
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+            'childrens_corner_submitted_through' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::childrensCornerSubmittedThroughOptions()),
+            ],
+            'childrens_corner_school_competition_entry' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                Rule::in(['Yes', 'No']),
+            ],
+            'childrens_corner_city' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'string',
+                'max:120',
+            ],
+            'childrens_corner_district' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'string',
+                'max:120',
+            ],
+            'childrens_corner_state' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'string',
+                'max:120',
+            ],
+            'childrens_corner_talent_categories' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'array',
+            ],
+            'childrens_corner_talent_categories.*' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'string',
+                Rule::in(CommunityContentTaxonomy::childrensCornerTalentCategories()),
+            ],
+            'childrens_corner_achievement' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+            'childrens_corner_video_source_type' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                Rule::in(['none', 'youtube', 'upload']),
+            ],
+            'childrens_corner_video_youtube_url' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner || $request->input('childrens_corner_video_source_type') !== 'youtube'),
+                'required',
+                'url',
+                'max:500',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! is_string($value) || $value === '') {
+                        return;
+                    }
+
+                    if (! CommunityPost::parseYoutubeVideoId($value)) {
+                        $fail('Please enter a valid YouTube video link.');
+                    }
+                },
+            ],
+            'childrens_corner_video_file' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner
+                    || $request->input('childrens_corner_video_source_type') !== 'upload'
+                    || $request->boolean('keep_existing_childrens_corner_video')),
+                'required',
+                'file',
+                'max:'.self::MAX_VIDEO_FILE_KB,
+                'mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/webm,video/x-matroska',
+            ],
+            'keep_existing_childrens_corner_video' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'boolean',
+            ],
+            'remove_childrens_corner_video' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'boolean',
+            ],
+            'childrens_corner_audio_source_type' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                Rule::in(['none', 'upload', 'recording']),
+            ],
+            'childrens_corner_audio_file' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner
+                    || $request->input('childrens_corner_audio_source_type') !== 'upload'
+                    || $request->boolean('keep_existing_childrens_corner_audio')),
+                'required',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'childrens_corner_audio_recording' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner
+                    || $request->input('childrens_corner_audio_source_type') !== 'recording'
+                    || $request->boolean('keep_existing_childrens_corner_audio')),
+                'required',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'keep_existing_childrens_corner_audio' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'boolean',
+            ],
+            'remove_childrens_corner_audio' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'boolean',
+            ],
+            'childrens_corner_certificate_file' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner
+                    || $request->boolean('keep_existing_childrens_corner_certificate')),
+                'nullable',
+                'file',
+                'max:4096',
+                'mimes:pdf,jpg,jpeg,png,webp',
+            ],
+            'keep_existing_childrens_corner_certificate' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'boolean',
+            ],
+            'remove_childrens_corner_certificate' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'boolean',
+            ],
+            'childrens_corner_comments_moderated' => [
+                Rule::excludeIf(fn () => ! $isChildrensCorner),
+                'nullable',
+                'boolean',
+            ],
+            'childrens_corner_art_file' => [
+                Rule::requiredIf(fn () => $isChildrensCorner
+                    && $childContentMode === 'image'
+                    && ! $request->boolean('keep_existing_childrens_corner_art')
+                    && ! ($post && filled(data_get($post->meta, 'childrens_corner_art.path')))),
+                'nullable',
+                'image',
+                'max:4096',
+                'mimes:jpg,jpeg,png,webp',
+            ],
+            'keep_existing_childrens_corner_art' => ['nullable', 'boolean'],
+            'childrens_corner_project_description' => [
+                Rule::requiredIf(fn () => $isChildrensCorner && $childContentMode === 'project'),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'childrens_corner_project_files' => ['nullable', 'array', 'max:'.self::MAX_CHILDRENS_CORNER_PROJECT_FILES],
+            'childrens_corner_project_files.*' => [
+                'file',
+                'max:20480',
+                'mimes:jpg,jpeg,png,webp,pdf,ppt,pptx,doc,docx',
+            ],
+            'keep_childrens_corner_project_files' => ['nullable', 'array'],
+            'keep_childrens_corner_project_files.*' => ['string', 'max:255'],
+            'existing_childrens_corner_project_files' => ['nullable', 'array'],
+            'childrens_corner_quiz' => [
+                Rule::requiredIf(fn () => $isChildrensCorner && $childContentMode === 'quiz'),
+                'nullable',
+                'array',
+                'min:1',
+                'max:'.self::MAX_CHILDRENS_CORNER_QUIZ_QUESTIONS,
+            ],
+            'childrens_corner_quiz.*.question' => ['required_with:childrens_corner_quiz', 'string', 'max:500'],
+            'childrens_corner_quiz.*.options' => ['required_with:childrens_corner_quiz', 'array', 'min:2', 'max:6'],
+            'childrens_corner_quiz.*.options.*' => ['required', 'string', 'max:255'],
+            'childrens_corner_quiz.*.correct_answer' => ['required_with:childrens_corner_quiz', 'string', 'max:255'],
+            'childrens_corner_themes' => ['nullable', 'array'],
+            'childrens_corner_themes.*' => ['string', Rule::in(CommunityContentTaxonomy::childrensCornerThemes())],
+            'childrens_corner_gallery' => ['nullable', 'array', 'max:'.self::MAX_CHILDRENS_CORNER_GALLERY],
+            'childrens_corner_gallery.*' => ['image', 'max:4096', 'mimes:jpg,jpeg,png,webp,gif'],
+            'removed_childrens_corner_gallery' => ['nullable', 'array'],
+            'removed_childrens_corner_gallery.*' => ['string', 'max:255'],
             'accept_content_responsibility' => ['accepted'],
             'accept_original_work_indemnity' => ['accepted'],
         ];
@@ -1084,6 +1796,40 @@ class CommunityPostController extends Controller
 
         $validated = $request->validate($rules);
         $this->assertFeaturedImageLimit($request, $post);
+        $this->assertAwarenessCampaignBanner($request, $post);
+
+        if ($isChildrensCorner) {
+            $validated['category'] = (string) ($validated['child_share_type'] ?? $request->input('child_share_type'));
+
+            if ($childContentMode === 'quiz') {
+                $quizErrors = [];
+
+                foreach ((array) $request->input('childrens_corner_quiz', []) as $index => $question) {
+                    if (! is_array($question)) {
+                        continue;
+                    }
+
+                    $options = collect((array) ($question['options'] ?? []))
+                        ->map(fn (mixed $option): string => trim((string) $option))
+                        ->filter()
+                        ->values()
+                        ->all();
+                    $correctAnswer = trim((string) ($question['correct_answer'] ?? ''));
+
+                    if ($correctAnswer !== '' && ! in_array($correctAnswer, $options, true)) {
+                        $quizErrors['childrens_corner_quiz.'.$index.'.correct_answer'] = 'The correct answer must match one of the options exactly.';
+                    }
+                }
+
+                if ($quizErrors !== []) {
+                    throw \Illuminate\Validation\ValidationException::withMessages($quizErrors);
+                }
+            }
+        }
+
+        if ($isAwareness) {
+            $validated['category'] = (string) ($validated['awareness_category'] ?? $request->input('awareness_category'));
+        }
 
         if (CommunityPost::isBookContentType($contentType)) {
             $bookPages = $this->normalizeBookPages(
@@ -1105,7 +1851,9 @@ class CommunityPostController extends Controller
 
         unset($validated['book_pages']);
 
-        if ($usesStructuredLocation) {
+        if ($isChildrensCorner) {
+            $validated = $this->applyChildrensCornerBroadLocation($validated, $request);
+        } elseif ($usesStructuredLocation) {
             $validated = $this->applyStructuredLocation($validated, $request);
         } elseif ($validated['location_type'] === CommunityPost::LOCATION_TYPE_GPS) {
             $validated['location'] = filled($validated['location'] ?? null)
@@ -1154,6 +1902,9 @@ class CommunityPostController extends Controller
 
     private function assertFeaturedImageLimit(Request $request, ?CommunityPost $post = null): void
     {
+        $contentType = $request->input('content_type');
+        $isAwareness = CommunityPost::usesAwarenessFlow(is_string($contentType) ? $contentType : null);
+        $maxImages = $isAwareness ? 1 : self::MAX_FEATURED_IMAGES;
         $existing = $post ? $post->featuredImages() : [];
         $removed = (array) $request->input('removed_featured_images', []);
         $remaining = count(array_values(array_filter(
@@ -1162,9 +1913,38 @@ class CommunityPostController extends Controller
         )));
         $incoming = count($request->file('featured_images', []));
 
-        if (($remaining + $incoming) > self::MAX_FEATURED_IMAGES) {
+        if (($remaining + $incoming) > $maxImages) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'featured_images' => 'You can upload up to '.self::MAX_FEATURED_IMAGES.' featured images.',
+                'featured_images' => $isAwareness
+                    ? 'Awareness posts can include one campaign banner image.'
+                    : 'You can upload up to '.self::MAX_FEATURED_IMAGES.' featured images.',
+            ]);
+        }
+    }
+
+    private function assertAwarenessCampaignBanner(Request $request, ?CommunityPost $post = null): void
+    {
+        $contentType = $request->input('content_type');
+
+        if (! CommunityPost::usesAwarenessFlow(is_string($contentType) ? $contentType : null)) {
+            return;
+        }
+
+        if (($request->input('status') ?? CommunityPost::STATUS_DRAFT) === CommunityPost::STATUS_DRAFT) {
+            return;
+        }
+
+        $existing = $post ? $post->featuredImages() : [];
+        $removed = (array) $request->input('removed_featured_images', []);
+        $remaining = count(array_values(array_filter(
+            $existing,
+            fn (string $path) => ! in_array($path, $removed, true)
+        )));
+        $incoming = count($request->file('featured_images', []));
+
+        if (($remaining + $incoming) === 0) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'featured_images' => 'Please upload a campaign banner for this awareness post.',
             ]);
         }
     }
@@ -1419,11 +2199,97 @@ class CommunityPostController extends Controller
     }
 
     /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeAwarenessInfographics(Request $request): array
+    {
+        return collect($request->file('awareness_infographics', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'awareness-infographics'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveAwarenessInfographics(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesAwarenessFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'awareness_infographics', []);
+        $removed = (array) $request->input('removed_awareness_infographics', []);
+
+        if ($existing === [] && ! $request->hasFile('awareness_infographics')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $file): bool => in_array((string) data_get($file, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('awareness_infographics')) {
+            $kept = array_values(array_merge($kept, $this->storeAwarenessInfographics($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_AWARENESS_INFOGRAPHICS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeAwarenessDocuments(Request $request): array
+    {
+        return collect($request->file('awareness_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'awareness-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveAwarenessDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesAwarenessFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'awareness_documents', []);
+        $removed = (array) $request->input('removed_awareness_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('awareness_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('awareness_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeAwarenessDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_AWARENESS_DOCUMENTS));
+    }
+
+    /**
      * @return list<array{year: string, title: string, description: string, photo: array{path: string, url: string, name: string, type: string}|null}>|null
      */
     private function resolveLifeTimeline(Request $request, ?CommunityPost $post = null): ?array
     {
-        if ($request->input('content_type') !== 'autobiography') {
+        if (! CommunityPost::usesAutobiographyFlow($request->input('content_type'))) {
             return null;
         }
 
@@ -1595,7 +2461,7 @@ class CommunityPostController extends Controller
      */
     private function resolveAutobiographyAudio(Request $request, ?CommunityPost $post = null): ?array
     {
-        if ($request->input('content_type') !== 'autobiography') {
+        if (! CommunityPost::usesAutobiographyFlow($request->input('content_type'))) {
             return null;
         }
 
@@ -1637,7 +2503,7 @@ class CommunityPostController extends Controller
      */
     private function resolveAutobiographyDocuments(Request $request, ?CommunityPost $post = null): ?array
     {
-        if ($request->input('content_type') !== 'autobiography') {
+        if (! CommunityPost::usesAutobiographyFlow($request->input('content_type'))) {
             return null;
         }
 
@@ -1675,7 +2541,7 @@ class CommunityPostController extends Controller
      */
     private function resolveAutobiographyAchievements(Request $request, ?CommunityPost $post = null): ?array
     {
-        if ($request->input('content_type') !== 'autobiography') {
+        if (! CommunityPost::usesAutobiographyFlow($request->input('content_type'))) {
             return null;
         }
 
@@ -1877,11 +2743,16 @@ class CommunityPostController extends Controller
         CommunityPostFileUploader::deleteIfExists($video['path']);
     }
 
+    private function ensureCommunityAudienceAccess(CommunityPost $post, Request $request): void
+    {
+        abort_unless($post->isPubliclyVisible(), 404);
+        abort_unless($post->isVisibleInCommunityTo($request->user()), 403, 'This post is not available to your account.');
+    }
+
     private function deleteFeaturedImage(?string $path): void
     {
         CommunityPostFileUploader::deleteIfExists($path);
     }
-
 
     private function paginateCommunityPosts(Request $request, ?User $author = null)
     {
@@ -1890,6 +2761,7 @@ class CommunityPostController extends Controller
             ->withCount(['reactions', 'comments', 'starRatings'])
             ->withAvg('starRatings', 'rating')
             ->publiclyListed()
+            ->visibleInCommunityListing(auth()->user())
             ->when($author, fn ($query) => $query
                 ->where('user_id', $author->id)
                 ->visibleOnAuthorProfile())
@@ -2080,6 +2952,336 @@ class CommunityPostController extends Controller
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * @return array{path: string, url: string, name: string, type: string}|null
+     */
+    private function resolveChildrensCornerArt(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $mode = CommunityContentTaxonomy::childrensCornerContentMode($request->input('child_share_type'));
+
+        if ($mode !== 'image') {
+            $existingPath = (string) data_get($post?->meta, 'childrens_corner_art.path');
+            if (filled($existingPath)) {
+                CommunityPostFileUploader::deleteIfExists($existingPath);
+            }
+
+            return null;
+        }
+
+        if ($request->hasFile('childrens_corner_art_file')) {
+            $existingPath = (string) data_get($post?->meta, 'childrens_corner_art.path');
+            if (filled($existingPath)) {
+                CommunityPostFileUploader::deleteIfExists($existingPath);
+            }
+
+            return CommunityPostFileUploader::storeAttachment($request->file('childrens_corner_art_file'), 'childrens-corner-art');
+        }
+
+        if ($request->boolean('keep_existing_childrens_corner_art') && $post) {
+            $existing = data_get($post->meta, 'childrens_corner_art');
+
+            return is_array($existing) ? $existing : null;
+        }
+
+        $existingPath = (string) data_get($post?->meta, 'childrens_corner_art.path');
+        if (filled($existingPath)) {
+            CommunityPostFileUploader::deleteIfExists($existingPath);
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveChildrensCornerProjectFiles(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $mode = CommunityContentTaxonomy::childrensCornerContentMode($request->input('child_share_type'));
+
+        if ($mode !== 'project') {
+            foreach ((array) data_get($post?->meta, 'childrens_corner_project_files', []) as $file) {
+                CommunityPostFileUploader::deleteIfExists(data_get($file, 'path'));
+            }
+
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'childrens_corner_project_files', []);
+        $keptPaths = (array) $request->input('keep_childrens_corner_project_files', []);
+
+        $kept = collect($existing)
+            ->filter(fn (mixed $file): bool => is_array($file) && in_array((string) data_get($file, 'path'), $keptPaths, true))
+            ->values()
+            ->all();
+
+        foreach ($existing as $file) {
+            $path = (string) data_get($file, 'path');
+            if (filled($path) && ! in_array($path, $keptPaths, true)) {
+                CommunityPostFileUploader::deleteIfExists($path);
+            }
+        }
+
+        if ($request->hasFile('childrens_corner_project_files')) {
+            foreach ($request->file('childrens_corner_project_files', []) as $file) {
+                $kept[] = CommunityPostFileUploader::storeAttachment($file, 'childrens-corner-projects');
+            }
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_CHILDRENS_CORNER_PROJECT_FILES));
+    }
+
+    /**
+     * @return list<array{question: string, options: list<string>, correct_answer: string}>|null
+     */
+    private function resolveChildrensCornerQuiz(Request $request): ?array
+    {
+        if (! CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        if (CommunityContentTaxonomy::childrensCornerContentMode($request->input('child_share_type')) !== 'quiz') {
+            return null;
+        }
+
+        $resolved = collect($request->input('childrens_corner_quiz', []))
+            ->filter(fn (mixed $question): bool => is_array($question) && filled($question['question'] ?? null))
+            ->map(function (array $question): array {
+                $options = collect((array) ($question['options'] ?? []))
+                    ->map(fn (mixed $option): string => trim((string) $option))
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                return [
+                    'question' => trim((string) ($question['question'] ?? '')),
+                    'options' => $options,
+                    'correct_answer' => trim((string) ($question['correct_answer'] ?? '')),
+                ];
+            })
+            ->filter(fn (array $question): bool => $question['options'] !== [] && filled($question['correct_answer']))
+            ->take(self::MAX_CHILDRENS_CORNER_QUIZ_QUESTIONS)
+            ->values()
+            ->all();
+
+        return $resolved === [] ? null : $resolved;
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeChildrensCornerGallery(Request $request): array
+    {
+        return collect($request->file('childrens_corner_gallery', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'childrens-corner-gallery'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveChildrensCornerGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'childrens_corner_gallery', []);
+        $removed = (array) $request->input('removed_childrens_corner_gallery', []);
+
+        if ($existing === [] && ! $request->hasFile('childrens_corner_gallery')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $image): bool => in_array((string) data_get($image, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('childrens_corner_gallery')) {
+            $kept = array_values(array_merge($kept, $this->storeChildrensCornerGallery($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_CHILDRENS_CORNER_GALLERY));
+    }
+
+    /**
+     * @return array{type: string, url?: string, video_id?: string, path?: string, name?: string}|null
+     */
+    private function resolveChildrensCornerVideo(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        if ($request->boolean('remove_childrens_corner_video')) {
+            $this->deleteVideoFile(data_get($post?->meta, 'childrens_corner_video'));
+
+            return null;
+        }
+
+        $sourceType = $request->input('childrens_corner_video_source_type', 'none');
+
+        if ($sourceType === 'youtube') {
+            $url = trim((string) $request->input('childrens_corner_video_youtube_url'));
+            $videoId = CommunityPost::parseYoutubeVideoId($url);
+
+            if (data_get($post?->meta, 'childrens_corner_video.type') === 'upload') {
+                $this->deleteVideoFile(data_get($post?->meta, 'childrens_corner_video'));
+            }
+
+            return [
+                'type' => 'youtube',
+                'url' => $url,
+                'video_id' => $videoId,
+            ];
+        }
+
+        if ($sourceType === 'upload' && $request->hasFile('childrens_corner_video_file')) {
+            $this->deleteVideoFile(data_get($post?->meta, 'childrens_corner_video'));
+
+            return $this->storeVideoFile($request->file('childrens_corner_video_file'));
+        }
+
+        if ($sourceType === 'upload' && $request->boolean('keep_existing_childrens_corner_video')) {
+            $existing = data_get($post?->meta, 'childrens_corner_video');
+
+            return is_array($existing) ? $existing : null;
+        }
+
+        if ($sourceType === 'none') {
+            $this->deleteVideoFile(data_get($post?->meta, 'childrens_corner_video'));
+
+            return null;
+        }
+
+        $existing = data_get($post?->meta, 'childrens_corner_video');
+
+        return is_array($existing) ? $existing : null;
+    }
+
+    /**
+     * @return array{type: string, path: string, name: string, url: string}|null
+     */
+    private function resolveChildrensCornerAudio(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        if ($request->boolean('remove_childrens_corner_audio')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'childrens_corner_audio'));
+
+            return null;
+        }
+
+        $sourceType = $request->input('childrens_corner_audio_source_type', 'none');
+
+        if ($sourceType === 'upload' && $request->hasFile('childrens_corner_audio_file')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'childrens_corner_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('childrens_corner_audio_file'), 'upload');
+        }
+
+        if ($sourceType === 'recording' && $request->hasFile('childrens_corner_audio_recording')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'childrens_corner_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('childrens_corner_audio_recording'), 'recording');
+        }
+
+        if ($request->boolean('keep_existing_childrens_corner_audio') && $post) {
+            $existing = data_get($post->meta, 'childrens_corner_audio');
+
+            return is_array($existing) ? $existing : null;
+        }
+
+        if ($sourceType === 'none') {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'childrens_corner_audio'));
+
+            return null;
+        }
+
+        $existing = data_get($post?->meta, 'childrens_corner_audio');
+
+        return is_array($existing) ? $existing : null;
+    }
+
+    /**
+     * @return array{path: string, url: string, name: string, type: string}|null
+     */
+    private function resolveChildrensCornerCertificate(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        if ($request->boolean('remove_childrens_corner_certificate')) {
+            CommunityPostFileUploader::deleteIfExists(data_get($post?->meta, 'childrens_corner_certificate.path'));
+
+            return null;
+        }
+
+        if ($request->hasFile('childrens_corner_certificate_file')) {
+            $existingPath = (string) data_get($post?->meta, 'childrens_corner_certificate.path');
+            if (filled($existingPath)) {
+                CommunityPostFileUploader::deleteIfExists($existingPath);
+            }
+
+            return CommunityPostFileUploader::storeAttachment($request->file('childrens_corner_certificate_file'), 'childrens-corner-certificates');
+        }
+
+        if ($request->boolean('keep_existing_childrens_corner_certificate') && $post) {
+            $existing = data_get($post->meta, 'childrens_corner_certificate');
+
+            return is_array($existing) ? $existing : null;
+        }
+
+        $existingPath = (string) data_get($post?->meta, 'childrens_corner_certificate.path');
+        if (filled($existingPath)) {
+            CommunityPostFileUploader::deleteIfExists($existingPath);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function applyChildrensCornerBroadLocation(array $validated, Request $request): array
+    {
+        $city = trim((string) $request->input('childrens_corner_city'));
+        $district = trim((string) $request->input('childrens_corner_district'));
+        $state = trim((string) $request->input('childrens_corner_state'));
+        $parts = array_values(array_filter([$city, $district, $state]));
+
+        if ($parts !== []) {
+            $validated['location'] = implode(', ', $parts);
+            $validated['location_type'] = filled($city)
+                ? CommunityPost::LOCATION_TYPE_CITY
+                : (filled($district) ? CommunityPost::LOCATION_TYPE_DISTRICT : CommunityPost::LOCATION_TYPE_STATE);
+        } else {
+            $validated = array_merge($validated, CommunityPost::defaultLocationForType(CommunityPost::LOCATION_TYPE_GLOBAL));
+        }
+
+        $validated['location_lat'] = null;
+        $validated['location_lng'] = null;
+
+        return $validated;
     }
 
     private function syncReportTrustScore(CommunityPost $post): CommunityPost

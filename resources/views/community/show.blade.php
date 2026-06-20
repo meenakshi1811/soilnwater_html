@@ -411,6 +411,31 @@
             @if($post->content_type === 'reports' && filled($post->reportStatus()))
                 <span class="badge {{ $post->reportStatusBadgeClass() }} community-post-banner-tag">{{ $post->reportStatus() }}</span>
             @endif
+            @if($post->isChildrensCornerPost())
+                @if(filled($post->childrensCornerShareType()))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->childrensCornerShareType() }}</span>
+                @endif
+                <span class="badge bg-success community-post-banner-tag">
+                    <i class="fa-solid fa-shield-halved me-1" aria-hidden="true"></i>{{ $post->childrensCornerPrivacyLabel() }}
+                </span>
+                @if(filled(data_get($post->meta, 'child_age_group')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'child_age_group') }}</span>
+                @endif
+                @foreach(array_slice((array) data_get($post->meta, 'childrens_corner_themes', []), 0, 3) as $theme)
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $theme }}</span>
+                @endforeach
+            @endif
+            @if($post->isAwarenessPost())
+                @if(filled($post->awarenessCategoryLabel()))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->awarenessCategoryLabel() }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'awareness_type')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'awareness_type') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'awareness_level')))
+                    <span class="badge bg-primary community-post-banner-tag">{{ data_get($post->meta, 'awareness_level') }} level</span>
+                @endif
+            @endif
             @if($post->isReportContent())
                 <span class="badge bg-success community-post-banner-tag">Trust Score: {{ $post->reportTrustScore() }}%</span>
             @endif
@@ -495,6 +520,18 @@
                 @include('community.partials.autobiography-show-sections', ['post' => $post])
             @endif
 
+            @if($post->isChildrensCornerPost())
+                @include('community.partials.childrens-corner-show-sections', ['post' => $post, 'placement' => 'intro'])
+            @endif
+
+            @if($post->isAwarenessPost())
+                @include('community.partials.awareness-show-sections', [
+                    'post' => $post,
+                    'awarenessEngagement' => $awarenessEngagement ?? null,
+                    'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
+                ])
+            @endif
+
             @if($post->isReportContent())
                 <div class="mb-4">
                     @include('community.partials.report-trust-score', ['post' => $post])
@@ -520,7 +557,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo())
+            @if($post->hasVideo() && ! $post->isAwarenessPost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -552,11 +589,11 @@
                 @php
                     $editorLanguage = data_get($post->meta, 'editor_language', 'en');
                     $bodyClasses = 'community-post-body';
-                    if ($post->content_type === 'poetry') {
+                    if ($post->content_type === 'poetry' || ($post->isChildrensCornerPost() && $post->childrensCornerContentMode() === 'poem')) {
                         $bodyClasses .= ' community-post-body--poetry';
                     }
                 @endphp
-                @if($post->content_type === 'poetry')
+                @if($post->content_type === 'poetry' || ($post->isChildrensCornerPost() && $post->childrensCornerContentMode() === 'poem'))
                     <div class="poetry-reading-card mb-4">
                         <div class="poetry-reading-card__kicker">Poem</div>
                         <div class="{{ $bodyClasses }}" data-community-body-protected lang="{{ $editorLanguage }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
@@ -586,6 +623,10 @@
 
             @if($post->content_type === 'autobiography')
                 @include('community.partials.autobiography-after-content', ['post' => $post])
+            @endif
+
+            @if($post->isChildrensCornerPost())
+                @include('community.partials.childrens-corner-show-sections', ['post' => $post, 'placement' => 'media'])
             @endif
 
             @php
@@ -655,6 +696,23 @@
                 ]);
                 $additionalMyAreaMeta = $visibleMeta->except([...$myAreaMetaOrder, 'report_format', 'issue_attachments', 'author_bio']);
                 $additionalMyVoiceMeta = $visibleMeta->except([...$myVoiceMetaOrder, 'author_bio']);
+                $childrensCornerMetaOrder = array_keys(\App\Support\CommunityPostFormFields::childrensCornerPublicMetaOrder());
+                $additionalChildrensCornerMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::childrensCornerStructuredMetaKeys(),
+                    ...\App\Support\CommunityPostFormFields::childrensCornerPrivateMetaKeys(),
+                    'author_bio',
+                ]);
+                $additionalAwarenessMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::awarenessStructuredMetaKeys(),
+                    ...\App\Support\CommunityPostFormFields::awarenessEngagementStructuredMetaKeys(),
+                    ...\App\Models\CommunityPost::structuredLocationMetaKeys(),
+                    'awareness_video_type',
+                    'author_bio',
+                    'campaign_topic',
+                    'target_audience',
+                    'call_to_action',
+                    'related_resource_url',
+                ]);
             @endphp
             @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
                 @include('community.partials.report-meta-details', ['post' => $post, 'includeLocation' => true])
@@ -705,6 +763,18 @@
                     $visibleMeta = $visibleMeta->except(\App\Support\CommunityPostFormFields::autobiographyStructuredMetaKeys());
                 @endphp
             @endif
+            @if($post->isChildrensCornerPost())
+                @include('community.partials.childrens-corner-meta-details', ['post' => $post])
+                @php
+                    $visibleMeta = $additionalChildrensCornerMeta;
+                @endphp
+            @endif
+            @if($post->isAwarenessPost())
+                @include('community.partials.awareness-meta-details', ['post' => $post])
+                @php
+                    $visibleMeta = $additionalAwarenessMeta;
+                @endphp
+            @endif
             @if($post->content_type === 'my-voice' && $orderedMyVoiceMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>My Voice details</h4>
@@ -723,14 +793,14 @@
                     $visibleMeta = $additionalMyVoiceMeta;
                 @endphp
             @endif
-            @if(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && $post->content_type !== 'news' && $post->structuredLocationForDisplay()->isNotEmpty())
+            @if(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Location information</h4>
                     <div class="row g-3">
                         @foreach($post->structuredLocationForDisplay() as $key => $value)
                             <div class="col-md-6">
                                 <div class="border rounded p-3 h-100 bg-light">
-                                    <strong class="d-block mb-1">{{ \App\Models\CommunityPost::structuredLocationLabels()[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
+                                    <strong class="d-block mb-1">{{ \App\Models\CommunityPost::structuredLocationLabelsFor($post->content_type)[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
                                     <span>{{ $value }}</span>
                                 </div>
                             </div>
@@ -838,7 +908,9 @@
                 @php
                     $reactionCounts = $post->reactions->groupBy('reaction')->map->count();
                     $userReactions = auth()->check() ? $post->reactions->where('user_id', auth()->id())->pluck('reaction')->all() : [];
-                    $reactionOptions = $post->content_type === 'reports' && filled(data_get($post->meta, 'report_type'))
+                    $reactionOptions = $post->usesChildFriendlyReactions()
+                        ? \App\Support\CommunityContentTaxonomy::childrensCornerReactionOptions()
+                        : ($post->content_type === 'reports' && filled(data_get($post->meta, 'report_type'))
                         ? [
                             'Support' => 'fa-solid fa-hand-holding-heart',
                             'Vote' => 'fa-solid fa-square-poll-vertical',
@@ -852,7 +924,7 @@
                             'Excellent' => 'fa-solid fa-star',
                             'Informative' => 'fa-solid fa-circle-info',
                             'Dislike' => 'fa-solid fa-thumbs-down',
-                        ];
+                        ]);
                 @endphp
                 @auth
                     <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
@@ -957,6 +1029,12 @@
 @endif
 @if($post->content_type === 'autobiography')
 @include('community.partials.autobiography-styles')
+@endif
+@if($post->isChildrensCornerPost())
+@include('community.partials.childrens-corner-styles')
+@endif
+@if($post->isAwarenessPost())
+@include('community.partials.awareness-styles')
 @endif
 <style>
     .community-post-body {
@@ -1280,6 +1358,42 @@
                 });
             }
         });
+    });
+
+    document.getElementById('ccQuizCheckBtn')?.addEventListener('click', function () {
+        const cards = document.querySelectorAll('[data-cc-quiz-card]');
+        let answered = 0;
+        let correct = 0;
+
+        cards.forEach(function (card) {
+            const selected = card.querySelector('input[type="radio"]:checked');
+            if (!selected) {
+                return;
+            }
+
+            answered += 1;
+            const optionLabel = selected.closest('.cc-quiz-option');
+            if (selected.dataset.correct === '1') {
+                correct += 1;
+                optionLabel?.classList.add('is-correct');
+            } else {
+                optionLabel?.classList.add('is-incorrect');
+            }
+        });
+
+        const result = document.getElementById('ccQuizResult');
+        if (!result) {
+            return;
+        }
+
+        if (answered === 0) {
+            result.hidden = false;
+            result.textContent = 'Please select at least one answer before checking.';
+            return;
+        }
+
+        result.hidden = false;
+        result.textContent = 'You got ' + correct + ' out of ' + cards.length + ' correct. Great effort!';
     });
 </script>
 <script src="{{ asset('assets/js/community-engagement.js') }}?v={{ now()->timestamp }}"></script>

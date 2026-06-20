@@ -42,22 +42,46 @@
                         @csrf
                         <label class="form-label" for="discussionBody">Add a comment</label>
                         <textarea name="body" id="discussionBody" class="form-control{{ $errors->has('body') ? ' is-invalid' : '' }}" rows="4" maxlength="2000" required placeholder="Write your question, answer, or experience...">{{ old('body') }}</textarea>
+                        @if($post->commentsModerated())
+                            <small class="text-muted d-block mt-1">Comments are moderated. Yours will appear after the author approves it.</small>
+                        @endif
                         @error('body')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <button type="submit" class="btn btn-success mt-2">Post comment</button>
                     </form>
                 @elseif($isAuthor)
-                    <p class="text-muted small mb-3">Readers can comment here. You will be notified in the portal and by email.</p>
+                    <p class="text-muted small mb-3">
+                        Readers can comment here.
+                        @if($post->commentsModerated())
+                            New comments require your approval before they appear publicly. You will be notified in the portal and by email when someone submits a comment.
+                        @else
+                            You will be notified in the portal and by email.
+                        @endif
+                    </p>
                 @else
                     <p class="mb-3"><a href="{{ route('login') }}">Login</a> to add a comment.</p>
                 @endif
 
                 @forelse($post->discussionComments as $comment)
-                    <div class="discussion-comment border rounded-3 p-3 mb-3">
+                    @continue(! $post->commentIsVisibleTo(auth()->user(), $comment))
+                    <div class="discussion-comment border rounded-3 p-3 mb-3 {{ ! $comment->is_approved ? 'border-warning bg-warning-subtle' : '' }}">
                         <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-2">
-                            <strong>{{ $comment->user->name ?? $comment->user->full_name ?? 'Community member' }}</strong>
-                            <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <strong>{{ $comment->user->name ?? $comment->user->full_name ?? 'Community member' }}</strong>
+                                @if(! $comment->is_approved)
+                                    <span class="badge bg-warning text-dark">Pending approval</span>
+                                @endif
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                @if($isAuthor && ! $comment->is_approved)
+                                    <form method="POST" action="{{ route('community.comments.approve', [$post, $comment]) }}">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                    </form>
+                                @endif
+                                <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
+                            </div>
                         </div>
                         <p class="mb-2">{!! nl2br(e($comment->body)) !!}</p>
 
@@ -68,16 +92,33 @@
                                     @csrf
                                     <input type="hidden" name="parent_id" value="{{ $comment->id }}">
                                     <textarea name="body" class="form-control" rows="2" maxlength="2000" required placeholder="Reply to this comment..."></textarea>
+                                    @if($post->commentsModerated())
+                                        <small class="text-muted d-block mt-1">Replies are moderated too.</small>
+                                    @endif
                                     <button type="submit" class="btn btn-outline-success btn-sm mt-2">Post reply</button>
                                 </form>
                             </details>
                         @endif
 
                         @foreach($comment->replies as $reply)
-                            <div class="discussion-reply border-start ps-3 ms-2 mb-2">
+                            @continue(! $post->commentIsVisibleTo(auth()->user(), $reply))
+                            <div class="discussion-reply border-start ps-3 ms-2 mb-2 {{ ! $reply->is_approved ? 'border-warning' : '' }}">
                                 <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-1">
-                                    <strong>{{ $reply->user->name ?? $reply->user->full_name ?? 'Community member' }}</strong>
-                                    <small class="text-muted">{{ $reply->created_at->diffForHumans() }}</small>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <strong>{{ $reply->user->name ?? $reply->user->full_name ?? 'Community member' }}</strong>
+                                        @if(! $reply->is_approved)
+                                            <span class="badge bg-warning text-dark">Pending approval</span>
+                                        @endif
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if($isAuthor && ! $reply->is_approved)
+                                            <form method="POST" action="{{ route('community.comments.approve', [$post, $reply]) }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-success">Approve</button>
+                                            </form>
+                                        @endif
+                                        <small class="text-muted">{{ $reply->created_at->diffForHumans() }}</small>
+                                    </div>
                                 </div>
                                 <p class="mb-0">{!! nl2br(e($reply->body)) !!}</p>
                             </div>

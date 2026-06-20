@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Mail\CommunityCommentApprovedMail;
 use App\Mail\CommunityPostParticipationReceivedMail;
 use App\Models\CommunityPost;
+use App\Models\CommunityPostComment;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -22,6 +24,46 @@ class CommunityPostParticipationNotificationService
             Str::limit($body, 160),
             route('community.show', $post).'#public-participation'
         );
+    }
+
+    public static function notifyAuthorOfPendingComment(CommunityPost $post, User $participant, string $body, bool $isReply = false): void
+    {
+        $type = $isReply ? 'discussion reply' : 'comment';
+
+        self::notifyAuthor(
+            $post,
+            $participant,
+            $isReply ? 'Comment reply awaiting approval' : 'Comment awaiting approval',
+            ucfirst($type).' (pending approval)',
+            Str::limit($body, 160),
+            route('community.posts.manage', $post).'#participation-comments'
+        );
+    }
+
+    public static function notifyParticipantOfApprovedComment(
+        CommunityPost $post,
+        CommunityPostComment $comment,
+        User $participant,
+    ): void {
+        if (! filled($participant->email)) {
+            return;
+        }
+
+        $message = 'Your comment on "'.$post->title.'" has been approved and is now visible publicly.';
+
+        PortalNotificationService::notifyUser(
+            $participant,
+            'Comment approved',
+            $message,
+            route('community.show', $post).'#public-participation',
+            'community'
+        );
+
+        Mail::to($participant->email)->send(new CommunityCommentApprovedMail(
+            $post,
+            $comment,
+            $participant
+        ));
     }
 
     public static function notifyAuthorOfSuggestion(CommunityPost $post, User $participant, string $body): void

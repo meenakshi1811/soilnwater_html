@@ -8,7 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CommunityPostComment extends Model
 {
-    protected $fillable = ['community_post_id', 'user_id', 'parent_id', 'body'];
+    protected $fillable = ['community_post_id', 'user_id', 'parent_id', 'body', 'is_approved'];
+
+    protected function casts(): array
+    {
+        return [
+            'is_approved' => 'boolean',
+        ];
+    }
 
     public function post(): BelongsTo
     {

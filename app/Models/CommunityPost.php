@@ -25,6 +25,9 @@ class CommunityPost extends Model
     /** @var list<string> */
     public const BOOK_CONTENT_TYPES = ['stories', 'biography', 'autobiography'];
 
+    /** @var list<string> */
+    public const LIFE_STORY_CONTENT_TYPES = ['biography', 'autobiography'];
+
     public const LOCATION_TYPE_GLOBAL = 'global';
 
     public const LOCATION_TYPE_INDIA = 'india';
@@ -218,6 +221,21 @@ class CommunityPost extends Model
         return $this->hasMany(CommunityReportSupport::class);
     }
 
+    public function awarenessSupports(): HasMany
+    {
+        return $this->hasMany(CommunityAwarenessSupport::class);
+    }
+
+    public function awarenessPledges(): HasMany
+    {
+        return $this->hasMany(CommunityAwarenessPledge::class);
+    }
+
+    public function awarenessVolunteers(): HasMany
+    {
+        return $this->hasMany(CommunityAwarenessVolunteer::class);
+    }
+
     public function reportAgreements(): HasMany
     {
         return $this->hasMany(CommunityReportAgreement::class);
@@ -350,6 +368,25 @@ class CommunityPost extends Model
     public function scopePubliclyListed(Builder $query): Builder
     {
         return $query->published();
+    }
+
+    public function scopeVisibleInCommunityListing(Builder $query, ?User $viewer = null): Builder
+    {
+        return $query->where(function (Builder $builder) use ($viewer): void {
+            $builder
+                ->where('content_type', '!=', 'childrens-corner')
+                ->orWhere(function (Builder $childrensCorner) use ($viewer): void {
+                    $childrensCorner->where(function (Builder $publicPrivacy): void {
+                        $publicPrivacy
+                            ->whereNull('meta->childrens_corner_privacy_setting')
+                            ->orWhereIn('meta->childrens_corner_privacy_setting', ['public', 'public_limited']);
+                    });
+
+                    if ($viewer !== null) {
+                        $childrensCorner->orWhereIn('meta->childrens_corner_privacy_setting', ['registered_users', 'school_community']);
+                    }
+                });
+        });
     }
 
     public function scopePendingApproval(Builder $query): Builder
@@ -535,7 +572,7 @@ class CommunityPost extends Model
 
     public static function usesStructuredLocation(?string $contentType): bool
     {
-        return in_array($contentType, ['news', 'reports'], true);
+        return in_array($contentType, ['news', 'reports', 'awareness'], true);
     }
 
     public static function supportsStarRating(?string $contentType): bool
@@ -617,12 +654,20 @@ class CommunityPost extends Model
      */
     public static function structuredLocationLabels(): array
     {
+        return self::structuredLocationLabelsFor(null);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function structuredLocationLabelsFor(?string $contentType): array
+    {
         return [
             'location_country' => 'Country',
             'location_state' => 'State',
             'location_district' => 'District',
             'location_city' => 'City',
-            'location_locality' => 'Locality',
+            'location_locality' => $contentType === 'awareness' ? 'Area' : 'Locality',
         ];
     }
 
@@ -631,7 +676,7 @@ class CommunityPost extends Model
      */
     public function structuredLocationForDisplay(): \Illuminate\Support\Collection
     {
-        return collect(self::structuredLocationLabels())
+        return collect(self::structuredLocationLabelsFor($this->content_type))
             ->mapWithKeys(fn (string $label, string $key): array => [$key => data_get($this->meta, $key)])
             ->filter(fn (mixed $value): bool => filled($value));
     }
@@ -754,7 +799,15 @@ class CommunityPost extends Model
 
     public function allowsPoll(): bool
     {
-        return (bool) ($this->allow_poll ?? false) && filled($this->poll_subject);
+        if (! ($this->allow_poll ?? false)) {
+            return false;
+        }
+
+        if ($this->isAwarenessPost()) {
+            return filled(data_get($this->meta, 'awareness_poll_question'));
+        }
+
+        return filled($this->poll_subject);
     }
 
     public function pollQuestion(): ?string
@@ -763,7 +816,94 @@ class CommunityPost extends Model
             return null;
         }
 
+        if ($this->isAwarenessPost()) {
+            return (string) data_get($this->meta, 'awareness_poll_question');
+        }
+
         return 'Do you support '.$this->poll_subject.'?';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function pollOptionsForDisplay(): array
+    {
+        if ($this->isAwarenessPost()) {
+            return [
+                self::POLL_OPTION_YES => 'Yes',
+                self::POLL_OPTION_NO => 'No',
+                self::POLL_OPTION_NOT_SURE => 'Planning To',
+            ];
+        }
+
+        return self::POLL_OPTIONS;
+    }
+
+    public function allowsAwarenessCauseSupport(): bool
+    {
+        return $this->isAwarenessPost()
+            && (bool) data_get($this->meta, 'awareness_allow_cause_support', true);
+    }
+
+    public function allowsAwarenessPledges(): bool
+    {
+        return $this->isAwarenessPost()
+            && (bool) data_get($this->meta, 'awareness_allow_pledges', false)
+            && $this->awarenessPledgeOptions() !== [];
+    }
+
+    public function allowsCampaignJoin(): bool
+    {
+        return $this->isAwarenessPost()
+            && (bool) data_get($this->meta, 'awareness_allow_campaign_join', false);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function awarenessPledgeOptions(): array
+    {
+        if (! $this->isAwarenessPost()) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $option): string => trim((string) $option),
+            (array) data_get($this->meta, 'awareness_pledge_options', [])
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function awarenessCallToActionItems(): array
+    {
+        if (! $this->isAwarenessPost()) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $item): string => trim((string) $item),
+            (array) data_get($this->meta, 'awareness_action_items', [])
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function awarenessSocialImpactCategories(): array
+    {
+        if (! $this->isAwarenessPost()) {
+            return [];
+        }
+
+        return array_values(array_filter((array) data_get($this->meta, 'awareness_social_impact_categories', [])));
+    }
+
+    public function awarenessHasEventDetails(): bool
+    {
+        return $this->isAwarenessPost()
+            && (bool) data_get($this->meta, 'awareness_has_event', false);
     }
 
     /**
@@ -806,6 +946,194 @@ class CommunityPost extends Model
     public static function isBookContentType(?string $contentType): bool
     {
         return in_array($contentType, self::BOOK_CONTENT_TYPES, true);
+    }
+
+    public static function usesAutobiographyFlow(?string $contentType): bool
+    {
+        return in_array($contentType, self::LIFE_STORY_CONTENT_TYPES, true);
+    }
+
+    public static function usesChildrensCornerFlow(?string $contentType): bool
+    {
+        return $contentType === 'childrens-corner';
+    }
+
+    public static function usesAwarenessFlow(?string $contentType): bool
+    {
+        return $contentType === 'awareness';
+    }
+
+    public function isChildrensCornerPost(): bool
+    {
+        return self::usesChildrensCornerFlow($this->content_type);
+    }
+
+    public function isAwarenessPost(): bool
+    {
+        return self::usesAwarenessFlow($this->content_type);
+    }
+
+    public function awarenessCategoryLabel(): ?string
+    {
+        if (! $this->isAwarenessPost()) {
+            return null;
+        }
+
+        return data_get($this->meta, 'awareness_category') ?: $this->category;
+    }
+
+    public function awarenessCampaignPeriodForDisplay(): ?string
+    {
+        if (! $this->isAwarenessPost()) {
+            return null;
+        }
+
+        $start = data_get($this->meta, 'awareness_campaign_start_date');
+        $end = data_get($this->meta, 'awareness_campaign_end_date');
+
+        if (filled($start) && filled($end)) {
+            $startDate = \Illuminate\Support\Carbon::parse($start);
+            $endDate = \Illuminate\Support\Carbon::parse($end);
+
+            if ($startDate->isSameDay($endDate)) {
+                return $startDate->format('j F Y');
+            }
+
+            if ($startDate->year === $endDate->year && $startDate->month === $endDate->month) {
+                return $startDate->format('j').' – '.$endDate->format('j F Y');
+            }
+
+            if ($startDate->year === $endDate->year) {
+                return $startDate->format('j F').' – '.$endDate->format('j F Y');
+            }
+
+            return $startDate->format('j F Y').' – '.$endDate->format('j F Y');
+        }
+
+        if (filled($start)) {
+            return 'From '.\Illuminate\Support\Carbon::parse($start)->format('j F Y');
+        }
+
+        if (filled($end)) {
+            return 'Until '.\Illuminate\Support\Carbon::parse($end)->format('j F Y');
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function awarenessInfographics(): array
+    {
+        return array_values((array) data_get($this->meta, 'awareness_infographics', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function awarenessDocuments(): array
+    {
+        return array_values((array) data_get($this->meta, 'awareness_documents', []));
+    }
+
+    public function isAwarenessInfographicImage(array $file): bool
+    {
+        $mime = strtolower((string) data_get($file, 'type', ''));
+        if (str_starts_with($mime, 'image/')) {
+            return true;
+        }
+
+        $extension = strtolower(pathinfo((string) data_get($file, 'name', ''), PATHINFO_EXTENSION));
+
+        return in_array($extension, ['png', 'jpg', 'jpeg'], true);
+    }
+
+    public function commentsModerated(): bool
+    {
+        if (! $this->isChildrensCornerPost()) {
+            return false;
+        }
+
+        return (bool) data_get($this->meta, 'childrens_corner_comments_moderated', true);
+    }
+
+    public function usesChildFriendlyReactions(): bool
+    {
+        return $this->isChildrensCornerPost();
+    }
+
+    public function childrensCornerPrivacySetting(): string
+    {
+        if (! $this->isChildrensCornerPost()) {
+            return \App\Support\CommunityContentTaxonomy::childrensCornerDefaultPrivacySetting();
+        }
+
+        $setting = (string) data_get($this->meta, 'childrens_corner_privacy_setting', '');
+
+        return array_key_exists($setting, \App\Support\CommunityContentTaxonomy::childrensCornerPrivacySettings())
+            ? $setting
+            : \App\Support\CommunityContentTaxonomy::childrensCornerDefaultPrivacySetting();
+    }
+
+    public function childrensCornerPrivacyLabel(): string
+    {
+        return \App\Support\CommunityContentTaxonomy::childrensCornerPrivacySettings()[$this->childrensCornerPrivacySetting()]
+            ?? 'Public with limited child information';
+    }
+
+    public function showsLimitedChildInformationTo(?User $viewer): bool
+    {
+        if (! $this->isChildrensCornerPost()) {
+            return false;
+        }
+
+        if ($viewer !== null && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
+            return false;
+        }
+
+        return $this->childrensCornerPrivacySetting() === 'public_limited';
+    }
+
+    public function isVisibleInCommunityTo(?User $viewer): bool
+    {
+        if (! $this->isChildrensCornerPost()) {
+            return true;
+        }
+
+        if ($viewer !== null && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
+            return true;
+        }
+
+        return match ($this->childrensCornerPrivacySetting()) {
+            'public', 'public_limited' => true,
+            'registered_users' => $viewer !== null,
+            'school_community' => $viewer !== null,
+            default => true,
+        };
+    }
+
+    public function requiresAuthenticationForCommunityView(): bool
+    {
+        if (! $this->isChildrensCornerPost()) {
+            return false;
+        }
+
+        return in_array($this->childrensCornerPrivacySetting(), ['registered_users', 'school_community'], true);
+    }
+
+    public function commentIsVisibleTo(?User $viewer, CommunityPostComment $comment): bool
+    {
+        if ($comment->is_approved) {
+            return true;
+        }
+
+        return $viewer !== null && $viewer->id === $this->user_id;
+    }
+
+    public function usesLifeStoryFlow(): bool
+    {
+        return self::usesAutobiographyFlow($this->content_type);
     }
 
     public static function usesChapterLayout(?string $contentType = null): bool
@@ -977,6 +1305,127 @@ class CommunityPost extends Model
     public function storyAudioUrl(): ?string
     {
         return $this->storyAudioData()['url'] ?? null;
+    }
+
+    /**
+     * @return array{type: string, url?: string, video_id?: string, path?: string, name?: string}|null
+     */
+    public function childrensCornerVideoData(): ?array
+    {
+        $video = data_get($this->meta, 'childrens_corner_video');
+
+        return is_array($video) && filled($video['type'] ?? null)
+            ? $video
+            : null;
+    }
+
+    public function childrensCornerYoutubeEmbedUrl(): ?string
+    {
+        $video = $this->childrensCornerVideoData();
+
+        if (($video['type'] ?? null) !== 'youtube') {
+            return null;
+        }
+
+        $videoId = $video['video_id'] ?? self::parseYoutubeVideoId($video['url'] ?? null);
+
+        return $videoId ? 'https://www.youtube.com/embed/'.$videoId : null;
+    }
+
+    public function childrensCornerVideoFileUrl(): ?string
+    {
+        $video = $this->childrensCornerVideoData();
+
+        if (($video['type'] ?? null) !== 'upload') {
+            return null;
+        }
+
+        return self::resolveImageUrl($video['path'] ?? null);
+    }
+
+    /**
+     * @return array{type: string, path?: string, name?: string, url?: string}|null
+     */
+    public function childrensCornerAudioData(): ?array
+    {
+        $audio = data_get($this->meta, 'childrens_corner_audio');
+
+        return is_array($audio) && filled($audio['url'] ?? null)
+            ? $audio
+            : null;
+    }
+
+    public function childrensCornerAudioUrl(): ?string
+    {
+        return $this->childrensCornerAudioData()['url'] ?? null;
+    }
+
+    public function childrensCornerShareType(): ?string
+    {
+        $shareType = data_get($this->meta, 'child_share_type');
+
+        return filled($shareType) ? (string) $shareType : ($this->category ?: null);
+    }
+
+    public function childrensCornerContentMode(): ?string
+    {
+        if (! $this->isChildrensCornerPost()) {
+            return null;
+        }
+
+        return \App\Support\CommunityContentTaxonomy::childrensCornerContentMode($this->childrensCornerShareType());
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     */
+    public function childrensCornerGalleryImages(): \Illuminate\Support\Collection
+    {
+        return collect((array) data_get($this->meta, 'childrens_corner_gallery', []))
+            ->filter(fn (mixed $image): bool => filled(data_get($image, 'url')))
+            ->values();
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     */
+    public function childrensCornerProjectFiles(): \Illuminate\Support\Collection
+    {
+        return collect((array) data_get($this->meta, 'childrens_corner_project_files', []))
+            ->filter(fn (mixed $file): bool => filled(data_get($file, 'url')) || filled(data_get($file, 'path')))
+            ->values();
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     */
+    public function childrensCornerQuizQuestions(): \Illuminate\Support\Collection
+    {
+        return collect((array) data_get($this->meta, 'childrens_corner_quiz', []))
+            ->filter(fn (mixed $question): bool => is_array($question) && filled(data_get($question, 'question')))
+            ->values();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function childrensCornerArtData(): ?array
+    {
+        $art = data_get($this->meta, 'childrens_corner_art');
+
+        return is_array($art) && filled($art['url'] ?? null) ? $art : null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function childrensCornerCertificateData(): ?array
+    {
+        $certificate = data_get($this->meta, 'childrens_corner_certificate');
+
+        return is_array($certificate) && (filled($certificate['url'] ?? null) || filled($certificate['path'] ?? null))
+            ? $certificate
+            : null;
     }
 
     /**

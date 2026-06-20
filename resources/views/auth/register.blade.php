@@ -99,8 +99,8 @@
                                 <option value="">Choose your role</option>
                                 <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
                                 <option value="vendor" {{ old('role') === 'vendor' ? 'selected' : '' }}>Vendor</option>
-                                <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
-                                <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option>
+                                <!-- <option value="builder" {{ old('role') === 'builder' ? 'selected' : '' }}>Builder</option>
+                                <option value="developer" {{ old('role') === 'developer' ? 'selected' : '' }}>Developer</option> -->
                                 <option value="consultant" {{ old('role') === 'consultant' ? 'selected' : '' }}>Consultant</option>
                                 <option value="service_provider" {{ old('role') === 'service_provider' ? 'selected' : '' }}>Service</option>
                             </select>
