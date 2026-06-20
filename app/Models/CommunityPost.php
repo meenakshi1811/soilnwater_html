@@ -572,7 +572,7 @@ class CommunityPost extends Model
 
     public static function usesStructuredLocation(?string $contentType): bool
     {
-        return in_array($contentType, ['news', 'reports', 'awareness'], true);
+        return in_array($contentType, ['news', 'reports', 'awareness', 'business'], true);
     }
 
     public static function supportsStarRating(?string $contentType): bool
@@ -807,6 +807,11 @@ class CommunityPost extends Model
             return filled(data_get($this->meta, 'awareness_poll_question'));
         }
 
+        if ($this->isBusinessPost()) {
+            return filled(data_get($this->meta, 'business_poll_question'))
+                && $this->businessPollOptionsForDisplay() !== [];
+        }
+
         return filled($this->poll_subject);
     }
 
@@ -820,7 +825,31 @@ class CommunityPost extends Model
             return (string) data_get($this->meta, 'awareness_poll_question');
         }
 
+        if ($this->isBusinessPost()) {
+            return (string) data_get($this->meta, 'business_poll_question');
+        }
+
         return 'Do you support '.$this->poll_subject.'?';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function businessPollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'business_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::businessDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
     }
 
     /**
@@ -834,6 +863,10 @@ class CommunityPost extends Model
                 self::POLL_OPTION_NO => 'No',
                 self::POLL_OPTION_NOT_SURE => 'Planning To',
             ];
+        }
+
+        if ($this->isBusinessPost()) {
+            return $this->businessPollOptionsForDisplay();
         }
 
         return self::POLL_OPTIONS;
@@ -907,7 +940,7 @@ class CommunityPost extends Model
     }
 
     /**
-     * @return array{yes: int, no: int, not_sure: int, total: int}
+     * @return array<string, int>
      */
     public function pollCounts(): array
     {
@@ -918,16 +951,15 @@ class CommunityPost extends Model
                 ->groupBy('option')
                 ->pluck('total', 'option');
 
-        $yes = (int) ($counts[self::POLL_OPTION_YES] ?? 0);
-        $no = (int) ($counts[self::POLL_OPTION_NO] ?? 0);
-        $notSure = (int) ($counts[self::POLL_OPTION_NOT_SURE] ?? 0);
+        $result = ['total' => 0];
 
-        return [
-            'yes' => $yes,
-            'no' => $no,
-            'not_sure' => $notSure,
-            'total' => $yes + $no + $notSure,
-        ];
+        foreach (array_keys($this->pollOptionsForDisplay()) as $optionKey) {
+            $count = (int) ($counts[$optionKey] ?? 0);
+            $result[$optionKey] = $count;
+            $result['total'] += $count;
+        }
+
+        return $result;
     }
 
     public function userPollVote(?User $user): ?string
@@ -963,6 +995,11 @@ class CommunityPost extends Model
         return $contentType === 'awareness';
     }
 
+    public static function usesBusinessFlow(?string $contentType): bool
+    {
+        return $contentType === 'business';
+    }
+
     public function isChildrensCornerPost(): bool
     {
         return self::usesChildrensCornerFlow($this->content_type);
@@ -971,6 +1008,11 @@ class CommunityPost extends Model
     public function isAwarenessPost(): bool
     {
         return self::usesAwarenessFlow($this->content_type);
+    }
+
+    public function isBusinessPost(): bool
+    {
+        return self::usesBusinessFlow($this->content_type);
     }
 
     public function awarenessCategoryLabel(): ?string

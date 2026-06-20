@@ -103,7 +103,7 @@ class CommunityContentTaxonomy
             'business' => [
                 'label' => 'Business',
                 'description' => 'Business knowledge, stories, and tips.',
-                'categories' => ['Startups', 'Small Business', 'Marketing', 'Finance', 'Success Stories', 'Business Tips'],
+                'categories' => self::businessMainCategories(),
             ],
             'education' => [
                 'label' => 'Education',
@@ -1275,6 +1275,291 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Main category choices for business posts.
+     *
+     * @return list<string>
+     */
+    public static function businessMainCategories(): array
+    {
+        return [
+            'Entrepreneurship',
+            'Startup',
+            'Small Business',
+            'Retail Business',
+            'Manufacturing',
+            'Service Business',
+            'Home-Based Business',
+            'Women Entrepreneurship',
+            'Agriculture Business',
+            'Construction Business',
+            'Real Estate Business',
+            'E-Commerce',
+            'Marketing',
+            'Finance',
+            'Business Technology',
+            'Leadership',
+        ];
+    }
+
+    /**
+     * Business content type choices grouped for the create/edit form.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function businessContentTypeGroups(): array
+    {
+        return [
+            'Type' => [
+                'Business Article',
+                'Success Story',
+                'Case Study',
+                'Business Idea',
+            ],
+            'Business Opportunity' => [
+                'Market Analysis',
+                'Business Guide',
+                'Expert Advice',
+                'Business News',
+                'Industry Insight',
+                'Business Report',
+                'Investment Insight',
+                'Customer Experience',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessContentTypes(): array
+    {
+        return array_values(array_merge(...array_values(self::businessContentTypeGroups())));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessTargetAudiences(): array
+    {
+        return [
+            'Students',
+            'Startup Founders',
+            'Small Business Owners',
+            'Retailers',
+            'Manufacturers',
+            'Women Entrepreneurs',
+            'Freelancers',
+            'Consultants',
+            'Professionals',
+            'Investors',
+            'Farmers',
+            'General Public',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessProfileTypes(): array
+    {
+        return [
+            'Proprietorship',
+            'Partnership',
+            'LLP',
+            'Private Limited',
+            'OPC',
+            'Freelancer',
+            'Startup',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessIndustries(): array
+    {
+        return [
+            'Construction',
+            'Agriculture',
+            'Technology',
+            'Manufacturing',
+            'Retail',
+            'Services',
+            'Real Estate',
+            'Education',
+            'Healthcare',
+            'Others',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessStages(): array
+    {
+        return [
+            'Idea Stage',
+            'Startup',
+            'Growing Business',
+            'Established Business',
+            'Expansion Phase',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessChallenges(): array
+    {
+        return [
+            'Funding',
+            'Marketing',
+            'Customer Acquisition',
+            'Hiring',
+            'Operations',
+            'Technology',
+            'Competition',
+            'Regulations',
+            'Supply Chain',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessOpportunityTypes(): array
+    {
+        return [
+            'Franchise',
+            'Partnership',
+            'Dealer Network',
+            'Distributor Opportunity',
+            'Investment Opportunity',
+            'Collaboration',
+            'Employment',
+            'Training',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessMarketSegments(): array
+    {
+        return [
+            'B2B',
+            'B2C',
+            'B2B2C',
+            'Government',
+            'Export',
+            'Local Market',
+            'National Market',
+            'International Market',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessThemes(): array
+    {
+        return [
+            'Innovation',
+            'Leadership',
+            'Marketing',
+            'Sales',
+            'Digital Transformation',
+            'Customer Service',
+            'Sustainability',
+            'Women Empowerment',
+            'Skill Development',
+            'Technology',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessVideoTypes(): array
+    {
+        return [
+            'Business Introduction',
+            'Founder Interview',
+            'Factory Tour',
+            'Customer Testimonial',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessTagExamples(): array
+    {
+        return [
+            'Startup',
+            'Business Growth',
+            'Marketing',
+            'Entrepreneurship',
+            'Retail',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessDefaultPollOptions(): array
+    {
+        return [
+            'Marketing',
+            'Finance',
+            'Staff',
+            'Technology',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessReactionLabels(): array
+    {
+        return [
+            'Informative',
+            'Excellent',
+            'Inspiring',
+            'Helpful',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessContactOptions(): array
+    {
+        return [
+            'Contact Author',
+            'Send Business Query',
+            'Request Guidance',
+        ];
+    }
+
+    /**
+     * Recommended business content sections for the rich text editor.
+     *
+     * @return array<string, string>
+     */
+    public static function businessContentStructure(): array
+    {
+        return [
+            'Business Problem' => 'What issue are you addressing?',
+            'Background' => 'Context',
+            'Solution' => 'Approach used',
+            'Results' => 'Outcome',
+            'Lessons Learned' => 'Key takeaways',
+            'Recommendations' => 'Advice to others',
+        ];
+    }
+
+    /**
      * Legacy civic issue report types for older My Area posts.
      *
      * @return list<string>
@@ -1313,6 +1598,10 @@ class CommunityContentTaxonomy
 
         if ($type === 'awareness') {
             return in_array($category, self::awarenessCategories(), true);
+        }
+
+        if ($type === 'business') {
+            return in_array($category, self::businessMainCategories(), true);
         }
 
         return in_array($category, self::categoriesFor($type), true);

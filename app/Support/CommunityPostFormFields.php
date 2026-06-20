@@ -21,9 +21,7 @@ class CommunityPostFormFields
             'autobiography' => self::section('Autobiography details', 'Autobiography', 'Use the dedicated autobiography flow fields on the form.', []),
             'childrens-corner' => self::section("Children's Corner details", "Children's Corner", 'Use the dedicated Children\'s Corner flow fields on the form.', []),
             'awareness' => self::section('Awareness details', 'Awareness', 'Use the dedicated awareness flow fields on the form.', []),
-            'business' => self::section('Business details', 'Business', 'Business publishing fields for stage, industry, and insight.', self::professionalTipFields('business_stage', [
-                'Startup', 'Small Business', 'SME', 'Enterprise', 'Freelancer', 'Other',
-            ])),
+            'business' => self::section('Business details', 'Business', 'Use the dedicated business flow fields on the form.', []),
             'education' => self::section('Education details', 'Education', 'Learning content metadata for courses, guides, and study material.', [
                 self::select('education_level', 'Education level', ['School', 'College', 'Competitive Exams', 'Professional', 'Lifelong Learning'], true),
                 self::text('subject_area', 'Subject / topic area', 120, true, 'e.g. Mathematics, UPSC, Coding'),
@@ -333,6 +331,53 @@ class CommunityPostFormFields
             $payload['awareness_impact_people_reached'] = $request->input('awareness_impact_people_reached');
         }
 
+        if (CommunityPost::usesBusinessFlow($contentType)) {
+            $payload['business_category'] = $request->input('business_category');
+            $payload['business_content_type'] = $request->input('business_content_type');
+            $payload['business_stage'] = $request->input('business_stage');
+            $payload['business_target_audience'] = array_values(array_intersect(
+                (array) $request->input('business_target_audience', []),
+                CommunityContentTaxonomy::businessTargetAudiences()
+            ));
+            $payload['business_challenges'] = array_values(array_intersect(
+                (array) $request->input('business_challenges', []),
+                CommunityContentTaxonomy::businessChallenges()
+            ));
+            $payload['business_opportunity_type'] = $request->input('business_opportunity_type');
+            $payload['business_market_segments'] = array_values(array_intersect(
+                (array) $request->input('business_market_segments', []),
+                CommunityContentTaxonomy::businessMarketSegments()
+            ));
+            $payload['business_themes'] = array_values(array_intersect(
+                (array) $request->input('business_themes', []),
+                CommunityContentTaxonomy::businessThemes()
+            ));
+            $payload['business_name'] = $request->input('business_name');
+            $payload['business_author_designation'] = $request->input('business_author_designation');
+            $payload['business_profile_type'] = $request->input('business_profile_type');
+            $payload['business_industry'] = $request->input('business_industry');
+            $payload['business_video_type'] = $request->input('business_video_type');
+            $payload['business_ask_community'] = $request->input('business_ask_community');
+            $payload['business_useful_links'] = $request->input('business_useful_links');
+            $payload['business_government_schemes'] = $request->input('business_government_schemes');
+            $payload['business_training_programs'] = $request->input('business_training_programs');
+            $payload['business_industry_resources'] = $request->input('business_industry_resources');
+            $payload['business_contact_options'] = array_values(array_intersect(
+                (array) $request->input('business_contact_options', []),
+                CommunityContentTaxonomy::businessContactOptions()
+            ));
+            $payload['business_poll_question'] = $request->input('business_poll_question');
+            $payload['business_poll_options'] = collect(preg_split('/\R/', (string) $request->input('business_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+
+            if (! $request->boolean('allow_poll')) {
+                unset($payload['business_poll_question'], $payload['business_poll_options']);
+            }
+        }
+
         if (CommunityPost::usesChildrensCornerFlow($contentType)) {
             $payload['child_share_type'] = $request->input('child_share_type');
             $payload['child_first_name'] = $request->input('child_first_name');
@@ -401,6 +446,12 @@ class CommunityPostFormFields
                     'childrens_corner_safety_no_inappropriate_media',
                     'childrens_corner_safety_confirmed',
                     'awareness_target_audience',
+                    'business_target_audience',
+                    'business_challenges',
+                    'business_market_segments',
+                    'business_themes',
+                    'business_contact_options',
+                    'business_poll_options',
                 ], true)) {
                     return true;
                 }
@@ -840,6 +891,44 @@ class CommunityPostFormFields
     }
 
     /**
+     * @return array<string, string>
+     */
+    public static function businessDetailMetaOrder(): array
+    {
+        return [
+            'business_category' => 'Main category',
+            'business_content_type' => 'Business content type',
+            'business_stage' => 'Business stage',
+            'business_target_audience' => 'Target audience',
+            'business_challenges' => 'Business challenges',
+            'business_opportunity_type' => 'Opportunity type',
+            'business_market_segments' => 'Market segment',
+            'business_themes' => 'Business themes',
+            'business_name' => 'Business name',
+            'business_author_designation' => 'Designation',
+            'business_profile_type' => 'Business type',
+            'business_industry' => 'Industry',
+            'business_video_type' => 'Video type',
+            'business_ask_community' => 'Ask the community',
+            'business_useful_links' => 'Useful links',
+            'business_government_schemes' => 'Government schemes',
+            'business_training_programs' => 'Training programs',
+            'business_industry_resources' => 'Industry resources',
+            'business_contact_options' => 'Contact options',
+            'business_poll_question' => 'Poll question',
+            'business_poll_options' => 'Poll options',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function businessStructuredMetaKeys(): array
+    {
+        return array_keys(self::businessDetailMetaOrder());
+    }
+
+    /**
      * @return list<string>
      */
     public static function awarenessEngagementStructuredMetaKeys(): array
@@ -1168,6 +1257,12 @@ class CommunityPostFormFields
             'awareness_posted_by' => 'Posted by',
             'awareness_organization_name' => 'Organization name',
             'awareness_target_audience' => 'Target audience',
+            'business_category' => 'Main category',
+            'business_content_type' => 'Business content type',
+            'business_target_audience' => 'Target audience',
+            'business_name' => 'Business name',
+            'business_profile_type' => 'Business type',
+            'business_industry' => 'Industry',
             'campaign_topic' => 'Campaign topic',
             'target_audience' => 'Target audience',
             'call_to_action' => 'Call to action',

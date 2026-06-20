@@ -139,7 +139,7 @@
 
 <div class="community-poll-box mt-4" id="communityPoll">
     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
-        <h4 class="mb-0">{{ $post->isAwarenessPost() ? 'Awareness poll' : 'Community poll' }}</h4>
+        <h4 class="mb-0">{{ $post->isAwarenessPost() ? 'Awareness poll' : ($post->isBusinessPost() ? 'Business poll' : 'Community poll') }}</h4>
         <span class="badge bg-primary">Open</span>
     </div>
     <p class="community-poll-question mb-0">{{ $post->pollQuestion() }}</p>

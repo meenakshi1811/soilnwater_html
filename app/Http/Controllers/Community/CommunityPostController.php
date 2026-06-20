@@ -47,6 +47,10 @@ class CommunityPostController extends Controller
 
     private const MAX_AWARENESS_DOCUMENTS = 6;
 
+    private const MAX_BUSINESS_DOCUMENTS = 6;
+
+    private const MAX_BUSINESS_GALLERY = 10;
+
     private const MAX_STORY_AUDIO_KB = 20480;
 
     private const MAX_TAGS = 10;
@@ -334,7 +338,7 @@ class CommunityPostController extends Controller
         abort_unless($post->allowsPoll(), 403, 'Polls are disabled for this post.');
 
         $data = $request->validate([
-            'option' => ['required', Rule::in(array_keys(CommunityPost::POLL_OPTIONS))],
+            'option' => ['required', Rule::in(array_keys($post->pollOptionsForDisplay()))],
         ]);
 
         CommunityPostPollVote::query()->updateOrCreate(
@@ -529,6 +533,14 @@ class CommunityPostController extends Controller
             CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
         }
 
+        foreach ((array) data_get($post->meta, 'business_documents', []) as $document) {
+            CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+        }
+
+        foreach ((array) data_get($post->meta, 'business_gallery', []) as $image) {
+            CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+        }
+
         CommunityPostFileUploader::deleteIfExists(data_get($post->meta, 'childrens_corner_art.path'));
 
         foreach ((array) data_get($post->meta, 'childrens_corner_project_files', []) as $file) {
@@ -691,6 +703,14 @@ class CommunityPostController extends Controller
         $awarenessDocuments = $this->resolveAwarenessDocuments($request);
         if ($awarenessDocuments !== null) {
             $data['meta']['awareness_documents'] = $awarenessDocuments;
+        }
+        $businessDocuments = $this->resolveBusinessDocuments($request);
+        if ($businessDocuments !== null) {
+            $data['meta']['business_documents'] = $businessDocuments;
+        }
+        $businessGallery = $this->resolveBusinessGallery($request);
+        if ($businessGallery !== null) {
+            $data['meta']['business_gallery'] = $businessGallery;
         }
         if (CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
             $data['allow_comments'] = $this->shouldAllowComments($request);
@@ -891,6 +911,20 @@ class CommunityPostController extends Controller
             unset($data['meta']['awareness_documents']);
         }
 
+        $businessDocuments = $this->resolveBusinessDocuments($request, $post);
+        if ($businessDocuments !== null) {
+            $data['meta']['business_documents'] = $businessDocuments;
+        } elseif (data_get($post->meta, 'business_documents')) {
+            unset($data['meta']['business_documents']);
+        }
+
+        $businessGallery = $this->resolveBusinessGallery($request, $post);
+        if ($businessGallery !== null) {
+            $data['meta']['business_gallery'] = $businessGallery;
+        } elseif (data_get($post->meta, 'business_gallery')) {
+            unset($data['meta']['business_gallery']);
+        }
+
         $data = $this->applyPoetryRegionalLocation($data);
         $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['allow_questions'] = $this->shouldAllowQuestions($request);
@@ -982,6 +1016,7 @@ class CommunityPostController extends Controller
         $usesStructuredLocation = CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null);
         $isChildrensCorner = CommunityPost::usesChildrensCornerFlow(is_string($contentType) ? $contentType : null);
         $isAwareness = CommunityPost::usesAwarenessFlow(is_string($contentType) ? $contentType : null);
+        $isBusiness = CommunityPost::usesBusinessFlow(is_string($contentType) ? $contentType : null);
         $childShareType = $request->input('child_share_type');
         $childContentMode = CommunityContentTaxonomy::childrensCornerContentMode(is_string($childShareType) ? $childShareType : null);
 
@@ -991,6 +1026,10 @@ class CommunityPostController extends Controller
 
         if ($isAwareness && $request->filled('awareness_category')) {
             $request->merge(['category' => $request->input('awareness_category')]);
+        }
+
+        if ($isBusiness && $request->filled('business_category')) {
+            $request->merge(['category' => $request->input('business_category')]);
         }
 
         $rules = [
@@ -1596,6 +1635,198 @@ class CommunityPostController extends Controller
                 'integer',
                 'min:0',
             ],
+            'business_category' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessMainCategories()),
+            ],
+            'business_content_type' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessContentTypes()),
+            ],
+            'business_stage' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessStages()),
+            ],
+            'business_target_audience' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'required',
+                'array',
+                'min:1',
+            ],
+            'business_target_audience.*' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessTargetAudiences()),
+            ],
+            'business_challenges' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'array',
+            ],
+            'business_challenges.*' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessChallenges()),
+            ],
+            'business_opportunity_type' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessOpportunityTypes()),
+            ],
+            'business_market_segments' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'array',
+            ],
+            'business_market_segments.*' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessMarketSegments()),
+            ],
+            'business_themes' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'array',
+            ],
+            'business_themes.*' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessThemes()),
+            ],
+            'business_name' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'business_author_designation' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                'max:120',
+            ],
+            'business_profile_type' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessProfileTypes()),
+            ],
+            'business_industry' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessIndustries()),
+            ],
+            'business_video_type' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessVideoTypes()),
+            ],
+            'business_ask_community' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                'max:500',
+            ],
+            'business_useful_links' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'business_government_schemes' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'business_training_programs' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'business_industry_resources' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'business_contact_options' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'array',
+            ],
+            'business_contact_options.*' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'string',
+                Rule::in(CommunityContentTaxonomy::businessContactOptions()),
+            ],
+            'business_poll_question' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                'max:255',
+                Rule::requiredIf(fn () => $isBusiness && $request->boolean('allow_poll')),
+            ],
+            'business_poll_options' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+            'business_gallery' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'array',
+                'max:'.self::MAX_BUSINESS_GALLERY,
+            ],
+            'business_gallery.*' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'image',
+                'max:4096',
+                'mimes:jpg,jpeg,png,webp,gif',
+            ],
+            'removed_business_gallery' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'array',
+            ],
+            'removed_business_gallery.*' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'string',
+                'max:255',
+            ],
+            'business_documents' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'array',
+                'max:'.self::MAX_BUSINESS_DOCUMENTS,
+            ],
+            'business_documents.*' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'file',
+                'max:20480',
+                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx',
+            ],
+            'removed_business_documents' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'nullable',
+                'array',
+            ],
+            'removed_business_documents.*' => [
+                Rule::excludeIf(fn () => ! $isBusiness),
+                'string',
+                'max:255',
+            ],
             'childrens_corner_submitted_through' => [
                 Rule::excludeIf(fn () => ! $isChildrensCorner),
                 'nullable',
@@ -1829,6 +2060,10 @@ class CommunityPostController extends Controller
 
         if ($isAwareness) {
             $validated['category'] = (string) ($validated['awareness_category'] ?? $request->input('awareness_category'));
+        }
+
+        if ($isBusiness) {
+            $validated['category'] = (string) ($validated['business_category'] ?? $request->input('business_category'));
         }
 
         if (CommunityPost::isBookContentType($contentType)) {
@@ -2282,6 +2517,92 @@ class CommunityPostController extends Controller
         }
 
         return array_values(array_slice($kept, 0, self::MAX_AWARENESS_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeBusinessDocuments(Request $request): array
+    {
+        return collect($request->file('business_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'business-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveBusinessDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesBusinessFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'business_documents', []);
+        $removed = (array) $request->input('removed_business_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('business_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('business_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeBusinessDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_BUSINESS_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeBusinessGallery(Request $request): array
+    {
+        return collect($request->file('business_gallery', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'business-gallery'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveBusinessGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesBusinessFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'business_gallery', []);
+        $removed = (array) $request->input('removed_business_gallery', []);
+
+        if ($existing === [] && ! $request->hasFile('business_gallery')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $image): bool => in_array((string) data_get($image, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('business_gallery')) {
+            $kept = array_values(array_merge($kept, $this->storeBusinessGallery($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_BUSINESS_GALLERY));
     }
 
     /**

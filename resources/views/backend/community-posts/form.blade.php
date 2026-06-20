@@ -350,6 +350,9 @@
             <div class="col-12 type-extra awareness-flow" data-for="awareness">
                 @include('backend.community-posts.partials.awareness-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            <div class="col-12 type-extra business-flow" data-for="business">
+                @include('backend.community-posts.partials.business-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -487,6 +490,51 @@ The mountains keep.</pre>
                         </div>
                     </div>
                 </div>
+                <div id="businessContentGuide" class="story-content-guide mb-3 business-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Business content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full business article, story, or guide.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Business only</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field on the form. Use the editor below for the full business post.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Text</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Tables</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Documents</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Charts</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertBusinessStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::businessContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="autobiographyContentGuide" class="story-content-guide mb-3 life-story-flow-section" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -611,6 +659,9 @@ The mountains keep.</pre>
             </div>
             <div class="col-12 type-extra awareness-flow" data-for="awareness">
                 @include('backend.community-posts.partials.awareness-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra business-flow" data-for="business">
+                @include('backend.community-posts.partials.business-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
@@ -2031,6 +2082,7 @@ The mountains keep.</pre>
     .news-flow-card label.form-check,
     .story-flow-card label.form-check,
     .awareness-flow label.form-check,
+    .business-flow label.form-check,
     .childrens-corner-flow label.form-check {
         align-items: center;
         cursor: pointer;
@@ -2045,7 +2097,8 @@ The mountains keep.</pre>
     }
     .community-flow-stack label.form-check,
     .childrens-corner-flow .community-flow-stack label.form-check,
-    .awareness-flow .community-flow-stack label.form-check {
+    .awareness-flow .community-flow-stack label.form-check,
+    .business-flow .community-flow-stack label.form-check {
         align-items: flex-start;
     }
     .community-flow-checklist label.form-check:hover,
@@ -2053,6 +2106,7 @@ The mountains keep.</pre>
     .news-flow-card label.form-check:hover,
     .story-flow-card label.form-check:hover,
     .awareness-flow label.form-check:hover,
+    .business-flow label.form-check:hover,
     .childrens-corner-flow label.form-check:hover {
         border-color: rgba(13, 110, 253, 0.35) !important;
     }
@@ -2061,6 +2115,7 @@ The mountains keep.</pre>
     .news-flow-card label.form-check:has(.form-check-input[type="checkbox"]:checked),
     .story-flow-card label.form-check:has(.form-check-input[type="checkbox"]:checked),
     .awareness-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
+    .business-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
     .childrens-corner-flow label.form-check:has(.form-check-input[type="checkbox"]:checked) {
         background: #f0fdf4 !important;
         border-color: rgba(25, 135, 84, 0.45) !important;
@@ -2069,6 +2124,7 @@ The mountains keep.</pre>
     .community-flow-checklist label.form-check:has(.form-check-input[type="radio"]:checked),
     .community-flow-stack label.form-check:has(.form-check-input[type="radio"]:checked),
     .awareness-flow label.form-check:has(.form-check-input[type="radio"]:checked),
+    .business-flow label.form-check:has(.form-check-input[type="radio"]:checked),
     .childrens-corner-flow label.form-check:has(.form-check-input[type="radio"]:checked) {
         background: #eff6ff !important;
         border-color: rgba(37, 99, 235, 0.45) !important;
@@ -2079,6 +2135,7 @@ The mountains keep.</pre>
     .news-flow-card .form-check-input,
     .story-flow-card .form-check-input,
     .awareness-flow .form-check-input,
+    .business-flow .form-check-input,
     .childrens-corner-flow .form-check-input {
         appearance: none;
         -webkit-appearance: none;
@@ -2100,7 +2157,8 @@ The mountains keep.</pre>
     }
     .community-flow-stack .form-check-input,
     .childrens-corner-flow .community-flow-stack .form-check-input,
-    .awareness-flow .community-flow-stack .form-check-input {
+    .awareness-flow .community-flow-stack .form-check-input,
+    .business-flow .community-flow-stack .form-check-input {
         margin-top: 0.2rem !important;
     }
     .community-flow-checklist .form-check-input[type="radio"],
@@ -2108,6 +2166,7 @@ The mountains keep.</pre>
     .news-flow-card .form-check-input[type="radio"],
     .story-flow-card .form-check-input[type="radio"],
     .awareness-flow .form-check-input[type="radio"],
+    .business-flow .form-check-input[type="radio"],
     .childrens-corner-flow .form-check-input[type="radio"] {
         border-radius: 50%;
     }
@@ -2116,6 +2175,7 @@ The mountains keep.</pre>
     .news-flow-card .form-check-input[type="checkbox"]:checked,
     .story-flow-card .form-check-input[type="checkbox"]:checked,
     .awareness-flow .form-check-input[type="checkbox"]:checked,
+    .business-flow .form-check-input[type="checkbox"]:checked,
     .childrens-corner-flow .form-check-input[type="checkbox"]:checked {
         background-color: #198754;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3 6-6'/%3e%3c/svg%3e");
@@ -2126,6 +2186,7 @@ The mountains keep.</pre>
     .news-flow-card .form-check-input[type="radio"]:checked,
     .story-flow-card .form-check-input[type="radio"]:checked,
     .awareness-flow .form-check-input[type="radio"]:checked,
+    .business-flow .form-check-input[type="radio"]:checked,
     .childrens-corner-flow .form-check-input[type="radio"]:checked {
         background-color: #fff;
         background-image: radial-gradient(circle, #2563eb 0%, #2563eb 38%, transparent 42%, transparent 100%);
@@ -2137,6 +2198,7 @@ The mountains keep.</pre>
     .news-flow-card .form-check-input:focus,
     .story-flow-card .form-check-input:focus,
     .awareness-flow .form-check-input:focus,
+    .business-flow .form-check-input:focus,
     .childrens-corner-flow .form-check-input:focus {
         border-color: #2563eb;
         box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
@@ -2147,6 +2209,7 @@ The mountains keep.</pre>
     .news-flow-card .form-check-label,
     .story-flow-card .form-check-label,
     .awareness-flow .form-check-label,
+    .business-flow .form-check-label,
     .childrens-corner-flow .form-check-label {
         cursor: pointer;
         flex: 1 1 auto;
@@ -2234,6 +2297,7 @@ The mountains keep.</pre>
     #communityNewsFeaturedImagesSlot .featured-images-uploader,
     #communityAwarenessFeaturedImagesSlot .featured-images-uploader,
     #communityAwarenessVideoSlot .community-video-field,
+    #communityBusinessVideoSlot .community-video-field,
     #communityNewsVideoSlot .community-video-field {
         background: #fff;
     }
@@ -2352,7 +2416,7 @@ The mountains keep.</pre>
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 <script>
     window.communityTypes = @json($types);
     window.communityBookTypes = @json(\App\Models\CommunityPost::BOOK_CONTENT_TYPES);
@@ -2428,6 +2492,23 @@ The mountains keep.</pre>
 
     document.getElementById('awarenessCategory')?.addEventListener('change', syncAwarenessCategory);
 
+    const communityTagsDefaultParent = document.getElementById('communityTagsWrap')?.parentElement || null;
+    const communityTagsDefaultNextSibling = document.getElementById('communityTagsWrap')?.nextElementSibling || null;
+
+    function syncBusinessCategory() {
+        const businessCategory = document.getElementById('businessCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'business') {
+            return;
+        }
+
+        categorySelect.value = businessCategory;
+        categorySelect.dataset.selected = businessCategory;
+    }
+
+    document.getElementById('businessCategory')?.addEventListener('change', syncBusinessCategory);
+
     document.getElementById('insertAwarenessStructureBtn')?.addEventListener('click', function () {
         const structureHtml = [
             '<h2>Problem</h2>',
@@ -2440,6 +2521,36 @@ The mountains keep.</pre>
             '<p>Practical recommendations.</p>',
             '<h2>Call To Action</h2>',
             '<p>What should people do?</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    document.getElementById('insertBusinessStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Business Problem</h2>',
+            '<p>What issue are you addressing?</p>',
+            '<h2>Background</h2>',
+            '<p>Context</p>',
+            '<h2>Solution</h2>',
+            '<p>Approach used</p>',
+            '<h2>Results</h2>',
+            '<p>Outcome</p>',
+            '<h2>Lessons Learned</h2>',
+            '<p>Key takeaways</p>',
+            '<h2>Recommendations</h2>',
+            '<p>Advice to others</p>',
         ].join('');
 
         if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
@@ -2754,7 +2865,7 @@ The mountains keep.</pre>
     const COMMUNITY_LOCATION_TYPES_REQUIRING_PLACE = @json(\App\Models\CommunityPost::locationTypesRequiringPlace());
     const COMMUNITY_LOCATION_TYPE_GPS = @json(\App\Models\CommunityPost::LOCATION_TYPE_GPS);
     const COMMUNITY_BASE_LOCATION_TYPES = @json(\App\Models\CommunityPost::locationTypeOptions());
-    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness'];
+    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness', 'business'];
     let communityGpsMap = null;
     let communityGpsMarker = null;
     let communityGpsMapInitialized = false;
@@ -2805,6 +2916,7 @@ The mountains keep.</pre>
         const newsSlot = document.getElementById('communityNewsLocationSlot');
         const reportSlot = document.getElementById('communityReportLocationSlot');
         const awarenessSlot = document.getElementById('communityAwarenessLocationSlot');
+        const businessSlot = document.getElementById('communityBusinessLocationSlot');
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
 
         if (!wrapper) {
@@ -2814,6 +2926,7 @@ The mountains keep.</pre>
         const isNews = contentType === 'news';
         const isReport = contentType === 'reports';
         const isAwareness = contentType === 'awareness';
+        const isBusiness = contentType === 'business';
         const usesStructured = usesStructuredCommunityLocation(contentType);
         let targetSlot = hiddenSlot;
 
@@ -2823,6 +2936,8 @@ The mountains keep.</pre>
             targetSlot = reportSlot;
         } else if (isAwareness) {
             targetSlot = awarenessSlot;
+        } else if (isBusiness) {
+            targetSlot = businessSlot;
         }
 
         if (targetSlot && wrapper.parentElement !== targetSlot) {
@@ -2845,10 +2960,10 @@ The mountains keep.</pre>
         const localityLabel = document.getElementById('communityLocationLocalityLabel');
 
         if (localityField) {
-            localityField.required = usesStructured && isAwareness;
+            localityField.required = usesStructured && (isAwareness || isBusiness);
             localityField.disabled = !usesStructured;
 
-            if (isAwareness) {
+            if (isAwareness || isBusiness) {
                 localityField.classList.add('structured-location-required');
             } else {
                 localityField.classList.remove('structured-location-required');
@@ -2857,7 +2972,7 @@ The mountains keep.</pre>
         }
 
         if (localityLabel) {
-            localityLabel.innerHTML = isAwareness
+            localityLabel.innerHTML = (isAwareness || isBusiness)
                 ? 'Area <span class="text-danger">*</span>'
                 : 'Locality';
         }
@@ -2873,7 +2988,7 @@ The mountains keep.</pre>
         }
     }
 
-    function mountNewsParticipationFields(isNews, isAwareness) {
+    function mountNewsParticipationFields(isNews, isAwareness, isBusiness) {
         const publicParticipationWrap = document.getElementById('publicParticipationWrap');
         const newsParticipationWrap = document.getElementById('newsParticipationWrap');
         const allowSharingWrap = document.getElementById('allowSharingWrap');
@@ -2881,11 +2996,14 @@ The mountains keep.</pre>
         const awarenessParticipationWrap = document.getElementById('awarenessParticipationWrap');
         const awarenessPollWrap = document.getElementById('awarenessPollWrap');
         const awarenessPollQuestionWrap = document.getElementById('awarenessPollQuestionWrap');
+        const businessParticipationWrap = document.getElementById('businessParticipationWrap');
+        const businessPollWrap = document.getElementById('businessPollWrap');
+        const businessPollFields = document.getElementById('businessPollFields');
 
         if (publicParticipationWrap) {
-            publicParticipationWrap.style.display = (isNews || isAwareness) ? 'none' : '';
+            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness) ? 'none' : '';
             publicParticipationWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isNews || isAwareness;
+                field.disabled = isNews || isAwareness || isBusiness;
             });
         }
 
@@ -2894,16 +3012,16 @@ The mountains keep.</pre>
         }
 
         if (allowSharingWrap) {
-            allowSharingWrap.style.display = isAwareness ? 'none' : '';
+            allowSharingWrap.style.display = (isAwareness || isBusiness) ? 'none' : '';
             allowSharingWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness;
+                field.disabled = isAwareness || isBusiness;
             });
         }
 
         if (allowPollWrap) {
-            allowPollWrap.style.display = isAwareness ? 'none' : '';
+            allowPollWrap.style.display = (isAwareness || isBusiness || isNews) ? 'none' : '';
             allowPollWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness;
+                field.disabled = isAwareness || isBusiness || isNews;
             });
         }
 
@@ -2913,6 +3031,14 @@ The mountains keep.</pre>
 
         if (awarenessPollWrap) {
             awarenessPollWrap.style.display = isAwareness ? '' : 'none';
+        }
+
+        if (businessParticipationWrap) {
+            businessParticipationWrap.style.display = isBusiness ? '' : 'none';
+        }
+
+        if (businessPollWrap) {
+            businessPollWrap.style.display = isBusiness ? '' : 'none';
         }
 
         const awarenessAllowPoll = document.getElementById('awarenessAllowPoll');
@@ -2926,6 +3052,21 @@ The mountains keep.</pre>
             }
         }
 
+        const businessAllowPoll = document.getElementById('businessAllowPoll');
+        if (businessPollFields) {
+            const businessPollEnabled = isBusiness && businessAllowPoll?.checked;
+            businessPollFields.style.display = businessPollEnabled ? '' : 'none';
+            const businessPollQuestion = document.getElementById('businessPollQuestion');
+            if (businessPollQuestion) {
+                businessPollQuestion.required = Boolean(businessPollEnabled);
+                businessPollQuestion.disabled = !businessPollEnabled;
+            }
+            const businessPollOptions = document.getElementById('businessPollOptions');
+            if (businessPollOptions) {
+                businessPollOptions.disabled = !businessPollEnabled;
+            }
+        }
+
         const awarenessHasEvent = document.getElementById('awarenessHasEvent');
         const awarenessEventFields = document.getElementById('awarenessEventFields');
         if (awarenessEventFields) {
@@ -2933,16 +3074,19 @@ The mountains keep.</pre>
         }
     }
 
-    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness) {
+    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness) {
         const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
         const featuredSlot = document.getElementById('communityNewsFeaturedImagesSlot');
         const storyFeaturedSlot = document.getElementById('communityStoryFeaturedImagesSlot');
         const awarenessFeaturedSlot = document.getElementById('communityAwarenessFeaturedImagesSlot');
+        const businessFeaturedSlot = document.getElementById('communityBusinessFeaturedImagesSlot');
+        const businessTagsSlot = document.getElementById('communityBusinessTagsSlot');
         const tagsCol = document.getElementById('communityTagsWrap');
         const videoWrap = document.getElementById('communityVideoWrap');
         const videoSlot = document.getElementById('communityNewsVideoSlot');
         const storyVideoSlot = document.getElementById('communityStoryVideoSlot');
         const awarenessVideoSlot = document.getElementById('communityAwarenessVideoSlot');
+        const businessVideoSlot = document.getElementById('communityBusinessVideoSlot');
         const videoAnchor = document.getElementById('communityVideoHiddenSlot');
         const videoFieldLabel = document.getElementById('videoFieldLabel');
         const featuredLabel = document.getElementById('featuredImagesLabel');
@@ -2958,7 +3102,7 @@ The mountains keep.</pre>
                 videoWrap.style.display = 'none';
             }
         } else {
-            window.communityFeaturedImages.max = isAwareness ? 1 : 5;
+            window.communityFeaturedImages.max = (isAwareness || isBusiness) ? 1 : 5;
             if (videoWrap) {
                 videoWrap.style.display = '';
             }
@@ -2974,9 +3118,28 @@ The mountains keep.</pre>
                 } else if (isAwareness && awarenessFeaturedSlot) {
                     awarenessFeaturedSlot.appendChild(featuredWrap);
                     featuredWrap.classList.remove('col-md-6');
+                } else if (isBusiness && businessFeaturedSlot) {
+                    businessFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
                 } else {
                     tagsCol.parentElement.insertBefore(featuredWrap, tagsCol);
                     featuredWrap.classList.add('col-md-6');
+                }
+            }
+
+            if (tagsCol) {
+                if (isBusiness && businessTagsSlot) {
+                    businessTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (communityTagsDefaultParent) {
+                    if (communityTagsDefaultNextSibling && communityTagsDefaultNextSibling.parentElement === communityTagsDefaultParent) {
+                        communityTagsDefaultParent.insertBefore(tagsCol, communityTagsDefaultNextSibling);
+                    } else {
+                        communityTagsDefaultParent.appendChild(tagsCol);
+                    }
+                    tagsCol.classList.add('col-md-6');
+                    tagsCol.style.display = '';
                 }
             }
         }
@@ -2991,7 +3154,10 @@ The mountains keep.</pre>
             } else if (isAwareness && awarenessVideoSlot) {
                 awarenessVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
-            } else if (! isAwareness) {
+            } else if (isBusiness && businessVideoSlot) {
+                businessVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (! isAwareness && ! isBusiness) {
                 videoAnchor.insertAdjacentElement('afterend', videoWrap);
                 videoWrap.classList.add('col-md-6');
             } else {
@@ -3002,6 +3168,8 @@ The mountains keep.</pre>
         if (videoFieldLabel) {
             if (isAwareness) {
                 videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
+            } else if (isBusiness) {
+                videoFieldLabel.innerHTML = 'Business video <span class="text-muted fw-normal">(optional)</span>';
             } else {
                 videoFieldLabel.innerHTML = isStories
                     ? 'Video story <span class="text-muted fw-normal">(optional)</span>'
@@ -3012,6 +3180,8 @@ The mountains keep.</pre>
         if (featuredLabel && ! isChildrensCorner) {
             if (isAwareness) {
                 featuredLabel.innerHTML = 'Campaign banner <span class="text-danger">*</span> <span class="text-muted fw-normal">(recommended)</span>';
+            } else if (isBusiness) {
+                featuredLabel.innerHTML = 'Cover image <span class="text-muted fw-normal">(recommended)</span>';
             } else if (isStories) {
                 featuredLabel.textContent = 'Cover image (recommended)';
             } else if (isNews) {
@@ -3024,6 +3194,8 @@ The mountains keep.</pre>
         if (featuredHelp && ! isChildrensCorner) {
             if (isAwareness) {
                 featuredHelp.textContent = 'Used for homepage, social media, and awareness listings. JPG, PNG, or WebP, max 4 MB.';
+            } else if (isBusiness) {
+                featuredHelp.textContent = 'Recommended size: 1200 × 630 px. Used for listings, social sharing, and homepage. JPG, PNG, or WebP, max 4 MB.';
             } else if (isStories) {
                 featuredHelp.textContent = 'Used for story cards, social sharing, and homepage. Upload your cover image first. JPG, PNG, or WebP, max 4 MB each.';
             } else if (isNews) {
@@ -3036,6 +3208,8 @@ The mountains keep.</pre>
         if (featuredAddBtn && ! isChildrensCorner) {
             if (isAwareness) {
                 featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add campaign banner';
+            } else if (isBusiness) {
+                featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
             } else if (isStories) {
                 featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
             } else if (isNews) {
@@ -3254,7 +3428,7 @@ The mountains keep.</pre>
         const selectedType = typeSelect.value;
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness'].includes(selectedType);
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -3274,6 +3448,7 @@ The mountains keep.</pre>
         const isAutobiography = selectedType === 'autobiography';
         const isChildrensCorner = selectedType === 'childrens-corner';
         const isAwareness = selectedType === 'awareness';
+        const isBusiness = selectedType === 'business';
 
         if (isChildrensCorner) {
             categoryWrap.style.display = 'none';
@@ -3285,6 +3460,11 @@ The mountains keep.</pre>
             categorySelect.required = false;
             categorySelect.disabled = true;
             syncAwarenessCategory();
+        } else if (isBusiness) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncBusinessCategory();
         } else {
             categoryWrap.style.display = '';
             categorySelect.disabled = false;
@@ -3362,11 +3542,11 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness) ? 'none' : '';
+            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness) ? 'none' : '';
         });
 
         document.querySelectorAll('.general-extra input, .general-extra textarea, .general-extra select').forEach((field) => {
-            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness;
+            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -3405,12 +3585,24 @@ The mountains keep.</pre>
             field.required = isAwareness;
         });
 
+        document.querySelectorAll('.business-required').forEach((field) => {
+            field.required = isBusiness;
+        });
+
         document.querySelectorAll('.awareness-flow input, .awareness-flow textarea, .awareness-flow select').forEach((field) => {
             if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
                 return;
             }
 
             field.disabled = !isAwareness;
+        });
+
+        document.querySelectorAll('.business-flow input, .business-flow textarea, .business-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isBusiness;
         });
 
         const childSchoolName = document.getElementById('childSchoolName');
@@ -3487,6 +3679,14 @@ The mountains keep.</pre>
             bodyHelp: 'Use the rich text editor for Problem, Why It Matters, Facts & Statistics, Solutions, and Call To Action.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Enter country, state, district, city, and area. Use Google Places search to auto-fill fields.',
+        } : (isBusiness ? {
+            excerptLabel: 'Business summary',
+            excerptPlaceholder: 'Summarize the business insight, opportunity, or story in one or two sentences.',
+            excerptHelp: 'A concise standfirst shown in business listings.',
+            bodyLabel: 'Business content <span class="text-danger">*</span>',
+            bodyHelp: 'Use the rich text editor for Business Problem, Background, Solution, Results, Lessons Learned, and Recommendations.',
+            locationLabel: 'Location <span class="text-danger">*</span>',
+            locationHelp: 'Enter country, state, district, and city. Use Google Places search to auto-fill fields.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -3495,7 +3695,7 @@ The mountains keep.</pre>
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        })));
+        })))));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -3524,24 +3724,29 @@ The mountains keep.</pre>
             awarenessContentGuide.style.display = isAwareness ? '' : 'none';
         }
 
+        const businessContentGuide = document.getElementById('businessContentGuide');
+        if (businessContentGuide) {
+            businessContentGuide.style.display = isBusiness ? '' : 'none';
+        }
+
         refreshPoetrySeriesFields();
         refreshChildrensCornerContentMode();
 
         mountStructuredLocationFields(selectedType);
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
         if (commonLocationSlot) {
-            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness) ? 'none' : '';
+            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness) ? 'none' : '';
             commonLocationSlot.querySelectorAll('input, select, textarea').forEach((field) => {
                 if (isChildrensCorner) {
                     field.disabled = true;
                     field.required = false;
-                } else if (!isNews && !isReport && !isAwareness) {
+                } else if (!isNews && !isReport && !isAwareness && !isBusiness) {
                     field.disabled = false;
                 }
             });
         }
-        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness);
-        mountNewsParticipationFields(isNews, isAwareness);
+        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness);
+        mountNewsParticipationFields(isNews, isAwareness, isBusiness);
         refreshCommunityLocationTypeOptions(isReport);
         refreshBookLayoutMode(selectedType);
         refreshCommunityLocationFields(fieldCopy.locationHelp);
@@ -3553,7 +3758,7 @@ The mountains keep.</pre>
         const allowPollWrap = document.getElementById('allowPollWrap');
         const allowPoll = document.getElementById('allowPoll');
         if (allowPollWrap) {
-            allowPollWrap.style.display = isReport ? 'none' : '';
+            allowPollWrap.style.display = (isReport || isAwareness || isBusiness) ? 'none' : '';
         }
         if (isReport && allowPoll) {
             allowPoll.checked = false;
@@ -3569,7 +3774,7 @@ The mountains keep.</pre>
         }
 
         refreshBodyEditorVisibility(selectedType).then(function () {
-            if (['poetry', 'awareness', 'news'].includes(selectedType)) {
+            if (['poetry', 'awareness', 'business', 'news'].includes(selectedType)) {
                 window.requestAnimationFrame(function () {
                     document.getElementById('bodyEditorMount')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
@@ -3947,10 +4152,13 @@ The mountains keep.</pre>
     refreshPollFields();
 
     document.getElementById('awarenessAllowPoll')?.addEventListener('change', function () {
-        mountNewsParticipationFields(false, document.getElementById('contentType')?.value === 'awareness');
+        mountNewsParticipationFields(false, document.getElementById('contentType')?.value === 'awareness', document.getElementById('contentType')?.value === 'business');
     });
     document.getElementById('awarenessHasEvent')?.addEventListener('change', function () {
-        mountNewsParticipationFields(false, document.getElementById('contentType')?.value === 'awareness');
+        mountNewsParticipationFields(false, document.getElementById('contentType')?.value === 'awareness', document.getElementById('contentType')?.value === 'business');
+    });
+    document.getElementById('businessAllowPoll')?.addEventListener('change', function () {
+        mountNewsParticipationFields(false, document.getElementById('contentType')?.value === 'awareness', document.getElementById('contentType')?.value === 'business');
     });
 
     function formatObservationDate(value) {
@@ -4220,19 +4428,24 @@ The mountains keep.</pre>
             return communityBodyEditorInitPromise;
         }
 
-        if (typeof ClassicEditor === 'undefined') {
+        if (typeof ClassicEditor === 'undefined' && typeof CKEDITOR === 'undefined') {
             console.error('CKEditor failed to load.');
             notify('error', 'Rich text editor failed to load. Please refresh the page or check your internet connection.');
             return Promise.resolve(null);
         }
 
-        communityBodyEditorInitPromise = ClassicEditor.create(bodyEditor, {
+        const EditorClass = (window.CKEDITOR && window.CKEDITOR.ClassicEditor) || window.ClassicEditor;
+
+        communityBodyEditorInitPromise = EditorClass.create(bodyEditor, {
             extraPlugins: [communityUploadAdapterPlugin, communityImageTextFlowPlugin],
             toolbar: {
                 items: [
                     'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
-                    'uploadImage', 'blockQuote', 'insertTable', '|', 'undo', 'redo',
+                    'uploadImage', 'insertTable', 'mediaEmbed', 'blockQuote', '|', 'undo', 'redo',
                 ],
+            },
+            mediaEmbed: {
+                previewsInData: true,
             },
             image: {
                 toolbar: [
@@ -5732,6 +5945,44 @@ The mountains keep.</pre>
                 const keepingExistingAudio = document.getElementById('keepExistingChildrensCornerAudio')?.value === '1';
                 if (!window.childrensCornerAudioBlob && !keepingExistingAudio) {
                     notify('error', 'Please record audio or switch to another audio option.');
+                    return;
+                }
+            }
+        }
+
+        if (contentType === 'business') {
+            syncBusinessCategory();
+
+            const businessCategory = document.getElementById('businessCategory')?.value || '';
+            if (!businessCategory) {
+                notify('error', 'Please select a business main category.');
+                document.getElementById('businessCategory')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('businessContentType')?.value) {
+                notify('error', 'Please select a business content type.');
+                document.getElementById('businessContentType')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('businessStage')?.value) {
+                notify('error', 'Please select a business stage.');
+                document.getElementById('businessStage')?.focus();
+                return;
+            }
+
+            const businessAudienceCount = document.querySelectorAll('input[name="business_target_audience[]"]:checked').length;
+            if (!businessAudienceCount) {
+                notify('error', 'Please select at least one target audience.');
+                return;
+            }
+
+            if (document.getElementById('businessAllowPoll')?.checked) {
+                const businessPollQuestion = document.getElementById('businessPollQuestion')?.value.trim() || '';
+                if (!businessPollQuestion) {
+                    notify('error', 'Please enter a poll question for this business post.');
+                    document.getElementById('businessPollQuestion')?.focus();
                     return;
                 }
             }
