@@ -8,6 +8,7 @@ use App\Models\CommunityAuthorQuestion;
 use App\Models\CommunityPost;
 use App\Models\CommunityPostParticipation;
 use App\Models\CommunityPostComment;
+use App\Models\CommunityPostPollVote;
 use App\Models\CommunityPostStarRating;
 use App\Models\CommunityPostReaction;
 use App\Models\User;
