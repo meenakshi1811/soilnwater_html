@@ -4438,6 +4438,16 @@ The mountains keep.</pre>
 
         communityBodyEditorInitPromise = EditorClass.create(bodyEditor, {
             extraPlugins: [communityUploadAdapterPlugin, communityImageTextFlowPlugin],
+            removePlugins: [
+                'RealTimeCollaborativeEditing',
+                'RealTimeCollaborativeComments',
+                'RealTimeCollaborativeTrackChanges',
+                'RealTimeCollaborativeRevisionHistory',
+                'PresenceList',
+                'Comments',
+                'TrackChanges',
+                'RevisionHistory',
+            ],
             toolbar: {
                 items: [
                     'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
@@ -4911,11 +4921,12 @@ The mountains keep.</pre>
     let lifeTimelineNextIndex = 0;
 
     function refreshLifeTimelineRequiredState(isAutobiography) {
-        if (!lifeTimelineEntries) {
+        const timelineEntries = document.getElementById('lifeTimelineEntries');
+        if (!timelineEntries) {
             return;
         }
 
-        lifeTimelineEntries.querySelectorAll('.autobiography-timeline-entry').forEach((entry) => {
+        timelineEntries.querySelectorAll('.autobiography-timeline-entry').forEach((entry) => {
             const yearInput = entry.querySelector('.js-timeline-year');
             const titleInput = entry.querySelector('.js-timeline-title');
             const descriptionInput = entry.querySelector('.js-timeline-description');
