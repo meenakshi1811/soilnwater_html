@@ -144,8 +144,16 @@ class CommunityEngagementController extends Controller
             'category' => ['required', 'string', 'max:120'],
         ]);
 
+        $contentType = $validated['content_type'];
+        $category = $validated['category'];
+
         abort_unless(
-            CommunityContentTaxonomy::isValidCategory($validated['content_type'], $validated['category']),
+            CommunityContentTaxonomy::isValidCategory($contentType, $category)
+            || CommunityPost::query()
+                ->where('status', CommunityPost::STATUS_PUBLISHED)
+                ->where('content_type', $contentType)
+                ->where('category', $category)
+                ->exists(),
             422,
             'Please choose a valid category.'
         );
@@ -239,7 +247,8 @@ class CommunityEngagementController extends Controller
      * @return array{
      *     saved_post_ids: list<int>,
      *     subscribed_categories: list<array{content_type: string, category: string}>,
-     *     followed_topics: list<string>
+     *     followed_topics: list<string>,
+     *     followed_author_ids: list<int>
      * }
      */
     public static function engagementStateForUser(?int $userId): array
@@ -249,6 +258,7 @@ class CommunityEngagementController extends Controller
                 'saved_post_ids' => [],
                 'subscribed_categories' => [],
                 'followed_topics' => [],
+                'followed_author_ids' => [],
             ];
         }
 
@@ -268,6 +278,11 @@ class CommunityEngagementController extends Controller
             'followed_topics' => CommunityTopicFollow::query()
                 ->where('user_id', $userId)
                 ->pluck('topic')
+                ->all(),
+            'followed_author_ids' => \Illuminate\Support\Facades\DB::table('community_author_follows')
+                ->where('user_id', $userId)
+                ->pluck('author_id')
+                ->map(fn ($authorId): int => (int) $authorId)
                 ->all(),
         ];
     }

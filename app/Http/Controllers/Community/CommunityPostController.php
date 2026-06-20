@@ -437,16 +437,38 @@ class CommunityPostController extends Controller
         return back()->with('success', 'Comment approved and now visible publicly.');
     }
 
-    public function followAuthor(Request $request, User $author): RedirectResponse
+    public function followAuthor(Request $request, User $author): JsonResponse|RedirectResponse
     {
         abort_if($request->user()->id === $author->id, 422, 'You cannot follow yourself.');
 
-        \Illuminate\Support\Facades\DB::table('community_author_follows')->updateOrInsert(
-            ['user_id' => $request->user()->id, 'author_id' => $author->id],
-            ['updated_at' => now(), 'created_at' => now()]
-        );
+        $existing = \Illuminate\Support\Facades\DB::table('community_author_follows')
+            ->where('user_id', $request->user()->id)
+            ->where('author_id', $author->id)
+            ->first();
 
-        return back()->with('success', 'Author followed successfully.');
+        if ($existing) {
+            \Illuminate\Support\Facades\DB::table('community_author_follows')
+                ->where('id', $existing->id)
+                ->delete();
+            $following = false;
+            $message = 'Author unfollowed successfully.';
+        } else {
+            \Illuminate\Support\Facades\DB::table('community_author_follows')->updateOrInsert(
+                ['user_id' => $request->user()->id, 'author_id' => $author->id],
+                ['updated_at' => now(), 'created_at' => now()]
+            );
+            $following = true;
+            $message = 'Author followed successfully.';
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'following' => $following,
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 
     public function myPosts(Request $request): View

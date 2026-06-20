@@ -32,6 +32,7 @@
 @section('meta_image', asset('assets/images/logo_soilnwater.webp'))
 
 @push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
     .community-hub {
         background: #eef2f6;
@@ -763,9 +764,19 @@
 @include('community.partials.share-modal')
 @endsection
 
-@include('community.partials.toastr')
-
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+    if (window.toastr) {
+        window.toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 3500,
+            extendedTimeOut: 2000,
+        };
+    }
+</script>
 <script>
     (function () {
         const postsGrid = document.getElementById('communityPostsGrid');

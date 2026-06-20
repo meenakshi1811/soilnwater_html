@@ -27,6 +27,7 @@
 @endif
 
 @push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
     .community-featured-gallery {
         display: grid;
@@ -298,12 +299,18 @@
 
 @section('content')
 @php
-    $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
+    $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => [], 'followed_author_ids' => []];
     $isSaved = auth()->check() && in_array($post->id, $engagement['saved_post_ids'] ?? [], true);
+    $subscriptionContentType = $post->subscriptionContentType();
+    $subscriptionCategory = $post->subscriptionCategory();
     $isCategorySubscribed = auth()->check() && collect($engagement['subscribed_categories'] ?? [])->contains(
-        fn (array $subscription): bool => ($subscription['content_type'] ?? null) === $post->content_type
-            && ($subscription['category'] ?? null) === $post->category
+        fn (array $subscription): bool => ($subscription['content_type'] ?? null) === $subscriptionContentType
+            && ($subscription['category'] ?? null) === $subscriptionCategory
     );
+    $isFollowingAuthor = auth()->check()
+        && $post->user_id
+        && auth()->id() !== $post->user_id
+        && in_array($post->user_id, $engagement['followed_author_ids'] ?? [], true);
     $followedTopics = collect($engagement['followed_topics'] ?? [])->map(fn ($topic) => \App\Models\CommunityTopicFollow::normalizeTopic((string) $topic))->all();
 @endphp
 <div class="about-page">
@@ -486,8 +493,8 @@
                         <button type="button"
                             class="community-banner-action js-community-subscribe-category {{ $isCategorySubscribed ? 'is-subscribed' : '' }}"
                             data-url="{{ route('community.subscriptions.category.toggle') }}"
-                            data-content-type="{{ $post->content_type }}"
-                            data-category="{{ $post->category }}"
+                            data-content-type="{{ $subscriptionContentType }}"
+                            data-category="{{ $subscriptionCategory }}"
                             data-label-subscribed="Subscribed to category"
                             data-label-unsubscribed="Subscribe to category">
                             {{ $isCategorySubscribed ? 'Subscribed to category' : 'Subscribe to category' }}
@@ -983,10 +990,13 @@
                             </form>
                         @endforeach
                         @if($post->showsAuthorProfileLink() && auth()->id() !== $post->user_id)
-                            <form method="POST" action="{{ route('community.authors.follow', $post->user) }}">
-                                @csrf
-                                <button type="submit" class="btn btn-success btn-sm">Follow Author</button>
-                            </form>
+                            <button type="button"
+                                class="btn btn-sm js-community-follow-author {{ $isFollowingAuthor ? 'btn-success is-following' : 'btn-outline-success' }}"
+                                data-url="{{ route('community.authors.follow', $post->user) }}"
+                                data-label-following="Unfollow"
+                                data-label-unfollowed="Follow Author">
+                                {{ $isFollowingAuthor ? 'Unfollow' : 'Follow Author' }}
+                            </button>
                         @endif
                     </div>
                 @else
@@ -1205,9 +1215,19 @@
 </style>
 @endpush
 
-@include('community.partials.toastr')
-
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+    if (window.toastr) {
+        window.toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 3500,
+            extendedTimeOut: 2000,
+        };
+    }
+</script>
 <script>
     (function () {
         const protectedSelector = '[data-community-body-protected]';

@@ -1101,6 +1101,42 @@ class CommunityPost extends Model
         return data_get($this->meta, 'awareness_category') ?: $this->category;
     }
 
+    public function subscriptionContentType(): string
+    {
+        if ($this->content_type === 'reports' && $this->category === 'Community Problem Report') {
+            return 'my-area';
+        }
+
+        return (string) $this->content_type;
+    }
+
+    public function subscriptionCategory(): string
+    {
+        if ($this->isAwarenessPost()) {
+            return (string) ($this->awarenessCategoryLabel() ?: $this->category);
+        }
+
+        if ($this->isBusinessPost()) {
+            $category = (string) ($this->businessCategoryLabel() ?: $this->category);
+
+            return match ($category) {
+                'Startups' => 'Startup',
+                default => $category,
+            };
+        }
+
+        if ($this->isChildrensCornerPost()) {
+            $category = (string) ($this->childrensCornerShareType() ?: $this->category);
+
+            return match ($category) {
+                'Stories' => 'Story',
+                default => $category,
+            };
+        }
+
+        return (string) $this->category;
+    }
+
     public function awarenessCampaignPeriodForDisplay(): ?string
     {
         if (! $this->isAwarenessPost()) {

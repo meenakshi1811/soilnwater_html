@@ -62,6 +62,31 @@
         button.textContent = subscribed ? subscribedLabel : unsubscribedLabel;
     }
 
+    function updateFollowAuthorButton(button, following) {
+        button.classList.toggle('is-following', following);
+        button.classList.toggle('btn-success', following);
+        button.classList.toggle('btn-outline-success', !following);
+
+        const followingLabel = button.dataset.labelFollowing || 'Unfollow';
+        const unfollowedLabel = button.dataset.labelUnfollowed || 'Follow Author';
+        button.textContent = following ? followingLabel : unfollowedLabel;
+    }
+
+    function extractErrorMessage(data, fallback) {
+        if (data?.message) {
+            return data.message;
+        }
+
+        if (data?.errors) {
+            const firstError = Object.values(data.errors).flat()[0];
+            if (firstError) {
+                return firstError;
+            }
+        }
+
+        return fallback;
+    }
+
     async function postJson(url, payload) {
         const response = await fetch(url, {
             method: 'POST',
@@ -71,13 +96,36 @@
                 'X-CSRF-TOKEN': csrfToken(),
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({
+                _token: csrfToken(),
+                ...payload,
+            }),
         });
 
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-            throw new Error(data.message || 'Request failed.');
+            throw new Error(extractErrorMessage(data, 'Request failed.'));
+        }
+
+        return data;
+    }
+
+    async function postForm(url) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+            },
+            body: new URLSearchParams({ _token: csrfToken() }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(extractErrorMessage(data, 'Request failed.'));
         }
 
         return data;
@@ -90,20 +138,7 @@
             saveButton.disabled = true;
 
             try {
-                const response = await fetch(saveButton.dataset.url, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken(),
-                    },
-                    body: new URLSearchParams({ _token: csrfToken() }),
-                });
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.message || 'Unable to save post.');
-                }
+                const data = await postForm(saveButton.dataset.url);
 
                 updateSaveButton(saveButton, Boolean(data.saved));
                 notify('success', data.message);
@@ -111,6 +146,25 @@
                 notify('error', error.message || 'Unable to save post.');
             } finally {
                 saveButton.disabled = false;
+            }
+
+            return;
+        }
+
+        const followAuthorButton = event.target.closest('.js-community-follow-author');
+        if (followAuthorButton) {
+            event.preventDefault();
+            followAuthorButton.disabled = true;
+
+            try {
+                const data = await postForm(followAuthorButton.dataset.url);
+
+                updateFollowAuthorButton(followAuthorButton, Boolean(data.following));
+                notify('success', data.message);
+            } catch (error) {
+                notify('error', error.message || 'Unable to update author follow.');
+            } finally {
+                followAuthorButton.disabled = false;
             }
 
             return;
@@ -149,7 +203,11 @@
                 });
 
                 topicButton.classList.toggle('is-following', Boolean(data.following));
-                topicButton.textContent = data.following ? 'Following' : 'Follow topic';
+                topicButton.classList.toggle('btn-success', Boolean(data.following));
+                topicButton.classList.toggle('btn-outline-success', !data.following);
+                topicButton.textContent = data.following
+                    ? (topicButton.dataset.labelFollowing || 'Following')
+                    : (topicButton.dataset.labelUnfollowed || 'Follow topic');
                 notify('success', data.message);
             } catch (error) {
                 notify('error', error.message || 'Unable to update topic follow.');
