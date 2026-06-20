@@ -316,6 +316,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::prefix('approvals')->name('approvals.')->group(function () {
             Route::get('/', [ApprovalCenterController::class, 'index'])->name('index');
+            Route::get('/data', [ApprovalCenterController::class, 'data'])->name('data');
             Route::post('/{type}/{id}/approve', [ApprovalCenterController::class, 'approve'])->name('approve');
             Route::post('/{type}/{id}/decline', [ApprovalCenterController::class, 'decline'])->name('decline');
         });

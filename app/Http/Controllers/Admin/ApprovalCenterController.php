@@ -15,9 +15,9 @@ use App\Models\VendorProduct;
 use App\Services\PortalNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
+use Yajra\DataTables\Facades\DataTables;
 
 class ApprovalCenterController extends Controller
 {
@@ -27,6 +27,21 @@ class ApprovalCenterController extends Controller
         $approvals = $this->approvalItems();
         $moduleCounts = $approvals->groupBy('module_key')->map->count();
 
+        return view('backend.admin.approvals.index', [
+            'moduleCounts' => $moduleCounts,
+            'activeModule' => $filter ?: 'all',
+            'totalPendingApprovals' => $approvals->count(),
+            'moduleFilters' => $this->moduleFilters(),
+        ]);
+    }
+
+    public function data(Request $request): JsonResponse
+    {
+        abort_unless($request->ajax(), 404);
+
+        $filter = $request->string('module')->toString();
+        $approvals = $this->approvalItems();
+
         if ($filter !== '' && $filter !== 'all') {
             $approvals = $approvals->where('module_key', $filter)->values();
         }
@@ -35,23 +50,37 @@ class ApprovalCenterController extends Controller
             ->sortByDesc(fn (array $item) => $item['requested_at']?->timestamp ?? 0)
             ->values();
 
-        $perPage = 15;
-        $page = LengthAwarePaginator::resolveCurrentPage();
-        $paginated = new LengthAwarePaginator(
-            $approvals->forPage($page, $perPage)->values(),
-            $approvals->count(),
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
+        return DataTables::of($approvals)
+            ->addColumn('module_display', function (array $row): string {
+                return '<span class="approval-module-badge bg-success-subtle text-success">'
+                    .'<i class="fa-solid '.e($row['icon']).'" aria-hidden="true"></i> '
+                    .e($row['module_label'])
+                    .'</span>'
+                    .'<div class="small text-muted mt-1">'.e($row['description']).'</div>';
+            })
+            ->addColumn('request_display', function (array $row): string {
+                return '<div class="fw-semibold">'.e($row['title']).'</div>'
+                    .'<div class="small text-muted">Request #'.e((string) $row['id']).'</div>';
+            })
+            ->editColumn('owner', fn (array $row): string => e($row['owner']))
+            ->editColumn('requested_at', function (array $row): string {
+                $timestamp = $row['requested_at'] ?? null;
 
-        return view('backend.admin.approvals.index', [
-            'approvals' => $paginated,
-            'moduleCounts' => $moduleCounts,
-            'activeModule' => $filter ?: 'all',
-            'totalPendingApprovals' => $this->approvalItems()->count(),
-            'moduleFilters' => $this->moduleFilters(),
-        ]);
+                return $timestamp
+                    ? $timestamp->timezone(config('app.timezone'))->format('d M Y, h:i A')
+                    : '-';
+            })
+            ->addColumn('actions', function (array $row): string {
+                return '<div class="d-inline-flex gap-2 flex-wrap justify-content-end">'
+                    .'<a href="'.e($row['view_url']).'" class="btn btn-sm btn-outline-primary" title="View details">'
+                    .'<i class="fa-solid fa-eye" aria-hidden="true"></i>'
+                    .'</a>'
+                    .'<button type="button" class="btn btn-sm btn-success js-review-approval" data-action-url="'.e($row['approve_url']).'" data-action-label="approve">Approve</button>'
+                    .'<button type="button" class="btn btn-sm btn-outline-danger js-review-approval" data-action-url="'.e($row['decline_url']).'" data-action-label="decline">Decline</button>'
+                    .'</div>';
+            })
+            ->rawColumns(['module_display', 'request_display', 'actions'])
+            ->make(true);
     }
 
     public function approve(Request $request, string $type, int $id): JsonResponse

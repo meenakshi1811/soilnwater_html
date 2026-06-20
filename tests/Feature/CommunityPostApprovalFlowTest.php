@@ -53,11 +53,12 @@ class CommunityPostApprovalFlowTest extends TestCase
             'published_at' => null,
         ]);
 
-        $response = $this->actingAs($admin)->get(route('admin.approvals.index', ['module' => 'community-posts']));
+        $response = $this->actingAs($admin)->getJson(route('admin.approvals.data', ['module' => 'community-posts']), [
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
 
         $response->assertOk();
-        $response->assertSee($post->title);
-        $response->assertSee('Community Post');
+        $response->assertJsonPath('data.0.title', $post->title);
     }
 
     public function test_admin_can_approve_from_community_approval_page_and_notify_author(): void
