@@ -15,9 +15,13 @@
     $poetInitials = $post->exists
         ? $post->authorInitials()
         : (collect(preg_split('/\s+/', trim($poetName)) ?: [])->filter()->take(2)->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->implode('') ?: 'P');
+    $flowPlacement = $placement ?? 'all';
+    $showPoetrySetup = in_array($flowPlacement, ['all', 'setup'], true);
+    $showPoetryRest = in_array($flowPlacement, ['all', 'rest'], true);
 @endphp
 
-<div class="news-flow-card story-flow-card story-flow-card--theme border rounded-3 p-3 p-md-4 bg-light mb-3">
+@if($showPoetrySetup)
+<div class="news-flow-card story-flow-card story-flow-card--theme border rounded-3 p-3 p-md-4 bg-light mb-3 community-flow-checklist">
     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
         <div>
             <h5 class="mb-1">Theme</h5>
@@ -25,7 +29,7 @@
         </div>
         <span class="badge bg-primary text-white">Multiple selection</span>
     </div>
-    <div class="row g-2">
+    <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::poetryThemes() as $theme)
             <div class="col-md-6 col-lg-4">
                 <label class="form-check border rounded p-2 bg-white h-100 mb-0">
@@ -51,7 +55,7 @@
         </div>
         <span class="badge bg-secondary-subtle text-secondary border">Optional</span>
     </div>
-    <div class="row g-2">
+    <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::poetryTargetAudiences() as $audience)
             <div class="col-md-6 col-lg-4">
                 <label class="form-check border rounded p-2 bg-light h-100 mb-0">
@@ -68,7 +72,9 @@
         @endforeach
     </div>
 </div>
+@endif
 
+@if($showPoetryRest)
 <div class="news-flow-card story-flow-card story-flow-card--audio border rounded-3 p-3 p-md-4 bg-white mb-3">
     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
         <div>
@@ -243,3 +249,4 @@
         <span class="badge bg-warning text-dark">Optional for readers</span>
     </div>
 </div>
+@endif

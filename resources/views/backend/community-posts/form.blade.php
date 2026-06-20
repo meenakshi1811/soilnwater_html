@@ -344,6 +344,12 @@
                     ];
                 })->values()->all();
             @endphp
+            <div class="col-12 type-extra poetry-flow" data-for="poetry">
+                @include('backend.community-posts.partials.poetry-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
+            <div class="col-12 type-extra awareness-flow" data-for="awareness">
+                @include('backend.community-posts.partials.awareness-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -570,6 +576,10 @@ The mountains keep.</pre>
                     </div>
                 </div>
                 <div id="bodyEditorMount" class="community-body-editor-mount border rounded-3 bg-white p-2">
+                    <div id="bodyEditorPlaceholder" class="community-body-editor-placeholder">
+                        <i class="fa-solid fa-pen-to-square fa-2x mb-3 text-primary" aria-hidden="true"></i>
+                        <p class="mb-0 fw-semibold">Select a post type above to load the rich text editor.</p>
+                    </div>
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 px-1" id="editorLanguageWrap">
                         <div>
                             <label for="editorLanguageSelect" class="form-label mb-0 small fw-semibold" id="editorLanguageLabel">Editor language</label>
@@ -591,7 +601,7 @@ The mountains keep.</pre>
                 </div>
             </div>
             <div class="col-12 type-extra poetry-flow" data-for="poetry">
-                @include('backend.community-posts.partials.poetry-flow-fields', ['post' => $post])
+                @include('backend.community-posts.partials.poetry-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
             <div class="col-12 type-extra autobiography-flow life-story-flow-section" data-for="biography,autobiography">
                 @include('backend.community-posts.partials.autobiography-flow-fields', ['post' => $post])
@@ -600,7 +610,7 @@ The mountains keep.</pre>
                 @include('backend.community-posts.partials.childrens-corner-flow-fields', ['post' => $post])
             </div>
             <div class="col-12 type-extra awareness-flow" data-for="awareness">
-                @include('backend.community-posts.partials.awareness-flow-fields', ['post' => $post])
+                @include('backend.community-posts.partials.awareness-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
@@ -2015,6 +2025,77 @@ The mountains keep.</pre>
         border-left-color: #0d6efd !important;
         background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
     }
+    .community-flow-checklist label.form-check,
+    .news-flow-card label.form-check,
+    .story-flow-card label.form-check,
+    .awareness-flow label.form-check {
+        align-items: flex-start;
+        cursor: pointer;
+        display: flex;
+        gap: 0.65rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+    .community-flow-checklist label.form-check:hover,
+    .news-flow-card label.form-check:hover,
+    .story-flow-card label.form-check:hover,
+    .awareness-flow label.form-check:hover {
+        border-color: rgba(13, 110, 253, 0.35) !important;
+    }
+    .community-flow-checklist label.form-check:has(.form-check-input:checked),
+    .news-flow-card label.form-check:has(.form-check-input:checked),
+    .story-flow-card label.form-check:has(.form-check-input:checked),
+    .awareness-flow label.form-check:has(.form-check-input:checked) {
+        background: #f0fdf4 !important;
+        border-color: rgba(25, 135, 84, 0.45) !important;
+        box-shadow: 0 0 0 1px rgba(25, 135, 84, 0.12);
+    }
+    .community-flow-checklist .form-check-input,
+    .news-flow-card .form-check-input,
+    .story-flow-card .form-check-input,
+    .awareness-flow .form-check-input {
+        border: 2px solid #64748b;
+        cursor: pointer;
+        flex-shrink: 0;
+        height: 1.1rem;
+        margin-top: 0.15rem;
+        width: 1.1rem;
+    }
+    .community-flow-checklist .form-check-input:checked,
+    .news-flow-card .form-check-input:checked,
+    .story-flow-card .form-check-input:checked,
+    .awareness-flow .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    .community-flow-checklist .form-check-label,
+    .news-flow-card .form-check-label,
+    .story-flow-card .form-check-label,
+    .awareness-flow .form-check-label {
+        cursor: pointer;
+        line-height: 1.35;
+    }
+    #bodyContentSection.is-waiting-for-type #bodyEditorMount {
+        display: block !important;
+    }
+    #bodyContentSection.is-waiting-for-type #editorLanguageWrap,
+    #bodyContentSection.is-waiting-for-type #bodyEditor,
+    #bodyContentSection.is-waiting-for-type .ck-editor {
+        display: none !important;
+    }
+    #bodyContentSection.is-waiting-for-type #bodyEditorMount {
+        min-height: auto;
+    }
+    #bodyContentSection .community-body-editor-mount {
+        min-height: 360px;
+    }
+    #bodyContentSection .community-body-editor-placeholder {
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: 0.85rem;
+        color: #64748b;
+        padding: 2rem 1.25rem;
+        text-align: center;
+    }
     .story-flow-card--achievements {
         border-left-color: #198754 !important;
         background: linear-gradient(180deg, #f8fff9 0%, #ffffff 100%);
@@ -2404,6 +2485,7 @@ The mountains keep.</pre>
         refreshChildrensCornerQuizRequiredState(isChildrensCorner && mode === 'quiz');
         mountChildrensCornerFeaturedImage(shareType);
         syncChildrensCornerCommentsSettings(isChildrensCorner);
+        refreshBodyEditorVisibility(contentType);
     }
 
     function syncChildrensCornerCommentsSettings(isChildrensCorner) {
@@ -3404,6 +3486,14 @@ The mountains keep.</pre>
                 bodyEditorMount?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             });
         }
+
+        refreshBodyEditorVisibility(selectedType).then(function () {
+            if (['poetry', 'awareness', 'news'].includes(selectedType)) {
+                window.requestAnimationFrame(function () {
+                    document.getElementById('bodyEditorMount')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            }
+        });
     }
 
     function isBookContentType(type) {
@@ -3688,6 +3778,7 @@ The mountains keep.</pre>
     document.getElementById('contentType').addEventListener('change', function () {
         document.getElementById('categorySelect').dataset.selected = '';
         refreshCommunityCategories();
+        refreshBodyEditorVisibility(this.value);
         if (window.communityBodyEditor) {
             refreshBookLayoutMode(this.value);
         }
@@ -3975,29 +4066,86 @@ The mountains keep.</pre>
         });
     }
 
+    function contentTypeUsesBodyEditor(contentType) {
+        if (!contentType) {
+            return false;
+        }
+
+        if (contentType === 'childrens-corner') {
+            const shareType = document.getElementById('childShareType')?.value || '';
+            const mode = getChildrensCornerContentMode(shareType);
+
+            return mode === 'rich_text' || mode === 'poem';
+        }
+
+        return true;
+    }
+
+    function refreshBodyEditorVisibility(contentType) {
+        const bodyContentSection = document.getElementById('bodyContentSection');
+        const bodyEditorMount = document.getElementById('bodyEditorMount');
+        const bodyEditorPlaceholder = document.getElementById('bodyEditorPlaceholder');
+        const usesEditor = contentTypeUsesBodyEditor(contentType);
+
+        if (bodyContentSection) {
+            bodyContentSection.classList.toggle('is-waiting-for-type', !usesEditor);
+        }
+
+        if (bodyEditorPlaceholder) {
+            bodyEditorPlaceholder.style.display = usesEditor ? 'none' : '';
+        }
+
+        if (bodyEditorMount && usesEditor) {
+            bodyEditorMount.style.display = '';
+        }
+
+        if (!usesEditor) {
+            return Promise.resolve(null);
+        }
+
+        return initCommunityBodyEditor().then(function (editor) {
+            if (editor && bodyEditorMount) {
+                refreshBookLayoutMode(contentType);
+                refreshPoetryEditorMode(contentType);
+            }
+
+            return editor;
+        });
+    }
+
+    let communityBodyEditorInitPromise = null;
+
     function initCommunityBodyEditor() {
         const bodyEditor = document.querySelector('#bodyEditor');
         const bodyEditorMount = document.getElementById('bodyEditorMount');
 
         if (!bodyEditor || !bodyEditorMount) {
             console.error('Community body editor mount was not found.');
-            return;
+            return Promise.resolve(null);
+        }
+
+        if (!contentTypeUsesBodyEditor(document.getElementById('contentType')?.value || '')) {
+            return Promise.resolve(null);
         }
 
         bodyEditor.disabled = false;
         bodyEditorMount.style.display = '';
 
+        if (window.communityBodyEditor) {
+            return Promise.resolve(window.communityBodyEditor);
+        }
+
+        if (communityBodyEditorInitPromise) {
+            return communityBodyEditorInitPromise;
+        }
+
         if (typeof ClassicEditor === 'undefined') {
             console.error('CKEditor failed to load.');
             notify('error', 'Rich text editor failed to load. Please refresh the page or check your internet connection.');
-            return;
+            return Promise.resolve(null);
         }
 
-        if (window.communityBodyEditor) {
-            return;
-        }
-
-        ClassicEditor.create(bodyEditor, {
+        communityBodyEditorInitPromise = ClassicEditor.create(bodyEditor, {
             extraPlugins: [communityUploadAdapterPlugin, communityImageTextFlowPlugin],
             toolbar: {
                 items: [
@@ -4050,17 +4198,25 @@ The mountains keep.</pre>
                 });
                 refreshBookLayoutMode(document.getElementById('contentType').value);
                 refreshPoetryEditorMode(document.getElementById('contentType').value);
+
+                return editor;
             })
             .catch((error) => {
+                communityBodyEditorInitPromise = null;
                 console.error(error);
                 notify('error', 'Unable to load the body editor.');
+                return null;
             });
+
+        return communityBodyEditorInitPromise;
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCommunityBodyEditor);
+        document.addEventListener('DOMContentLoaded', function () {
+            refreshBodyEditorVisibility(document.getElementById('contentType')?.value || '');
+        });
     } else {
-        initCommunityBodyEditor();
+        refreshBodyEditorVisibility(document.getElementById('contentType')?.value || '');
     }
 
     const tagInput = document.getElementById('tagInput');

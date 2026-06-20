@@ -29,7 +29,7 @@
         required
     >{{ old('awareness_call_to_action', data_get($post->meta, 'awareness_call_to_action')) }}</textarea>
     <label class="form-label d-block mt-3">Suggested action items</label>
-    <div class="row g-2">
+    <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::awarenessCallToActionExamples() as $actionItem)
             <div class="col-md-4 col-sm-6">
                 <label class="form-check border rounded p-2 bg-white h-100 mb-0">
@@ -127,7 +127,7 @@
         </div>
         <span class="badge bg-light text-dark border">Optional</span>
     </div>
-    <div class="row g-2">
+    <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::awarenessSocialImpactCategories() as $category)
             <div class="col-md-4 col-sm-6">
                 <label class="form-check border rounded p-2 bg-light h-100 mb-0">

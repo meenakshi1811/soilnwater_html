@@ -1,8 +1,12 @@
 @php
     $selectedAwarenessCategory = old('awareness_category', data_get($post->meta, 'awareness_category', $post->category));
     $selectedAwarenessAudiences = old('awareness_target_audience', data_get($post->meta, 'awareness_target_audience', []));
+    $flowPlacement = $placement ?? 'all';
+    $showAwarenessSetup = in_array($flowPlacement, ['all', 'setup'], true);
+    $showAwarenessRest = in_array($flowPlacement, ['all', 'rest'], true);
 @endphp
 
+@if($showAwarenessSetup)
 <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white mb-3">
     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
         <div>
@@ -52,7 +56,7 @@
         </div>
         <span class="badge bg-secondary-subtle text-secondary border">Multiple selection</span>
     </div>
-    <div class="row g-2">
+    <div class="row g-2 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::awarenessTargetAudiences() as $audience)
             <div class="col-md-4 col-sm-6">
                 <label class="form-check border rounded p-2 bg-light h-100 mb-0">
@@ -86,7 +90,9 @@
         @endforeach
     </select>
 </div>
+@endif
 
+@if($showAwarenessRest)
 <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white mb-3">
     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
         <div>
@@ -110,7 +116,7 @@
         <span class="badge bg-secondary-subtle text-secondary border">Posted by required</span>
     </div>
     <label class="form-label d-block">Posted by <span class="text-danger">*</span></label>
-    <div class="row g-2 mb-3">
+    <div class="row g-2 mb-3 community-flow-checklist">
         @foreach(\App\Support\CommunityContentTaxonomy::awarenessPostedByOptions() as $postedByOption)
             <div class="col-md-4 col-sm-6">
                 <label class="form-check border rounded p-2 bg-white h-100 mb-0">
@@ -276,3 +282,4 @@
 </div>
 
 @include('backend.community-posts.partials.awareness-engagement-fields', ['post' => $post])
+@endif
