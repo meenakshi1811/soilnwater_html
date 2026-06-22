@@ -353,6 +353,9 @@
             <div class="col-12 type-extra business-flow" data-for="business">
                 @include('backend.community-posts.partials.business-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            <div class="col-12 type-extra womens-world-flow" data-for="womens-world">
+                @include('backend.community-posts.partials.womens-world-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -524,6 +527,51 @@ The mountains keep.</pre>
                                     <h6 class="story-content-panel__title">Suggested structure</h6>
                                     <ul class="story-content-structure list-unstyled small mb-0">
                                         @foreach(\App\Support\CommunityContentTaxonomy::businessContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="womensWorldContentGuide" class="story-content-guide mb-3 womens-world-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Women's World content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full story, article, or advice post.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Women's World only</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field on the form. Use the editor below for the full post.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Text</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Documents</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Tables</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Quotes</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertWomensWorldStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::womensWorldContentStructure() as $heading => $hint)
                                             <li class="mb-2">
                                                 <strong>{{ $heading }}</strong>
                                                 <span class="text-muted d-block">{{ $hint }}</span>
@@ -2083,6 +2131,7 @@ The mountains keep.</pre>
     .story-flow-card label.form-check,
     .awareness-flow label.form-check,
     .business-flow label.form-check,
+    .womens-world-flow label.form-check,
     .childrens-corner-flow label.form-check {
         align-items: center;
         cursor: pointer;
@@ -2098,7 +2147,8 @@ The mountains keep.</pre>
     .community-flow-stack label.form-check,
     .childrens-corner-flow .community-flow-stack label.form-check,
     .awareness-flow .community-flow-stack label.form-check,
-    .business-flow .community-flow-stack label.form-check {
+    .business-flow .community-flow-stack label.form-check,
+    .womens-world-flow .community-flow-stack label.form-check {
         align-items: flex-start;
     }
     .community-flow-checklist label.form-check:hover,
@@ -2107,6 +2157,7 @@ The mountains keep.</pre>
     .story-flow-card label.form-check:hover,
     .awareness-flow label.form-check:hover,
     .business-flow label.form-check:hover,
+    .womens-world-flow label.form-check:hover,
     .childrens-corner-flow label.form-check:hover {
         border-color: rgba(13, 110, 253, 0.35) !important;
     }
@@ -2116,6 +2167,7 @@ The mountains keep.</pre>
     .story-flow-card label.form-check:has(.form-check-input[type="checkbox"]:checked),
     .awareness-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
     .business-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
+    .womens-world-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
     .childrens-corner-flow label.form-check:has(.form-check-input[type="checkbox"]:checked) {
         background: #f0fdf4 !important;
         border-color: rgba(25, 135, 84, 0.45) !important;
@@ -2125,6 +2177,7 @@ The mountains keep.</pre>
     .community-flow-stack label.form-check:has(.form-check-input[type="radio"]:checked),
     .awareness-flow label.form-check:has(.form-check-input[type="radio"]:checked),
     .business-flow label.form-check:has(.form-check-input[type="radio"]:checked),
+    .womens-world-flow label.form-check:has(.form-check-input[type="radio"]:checked),
     .childrens-corner-flow label.form-check:has(.form-check-input[type="radio"]:checked) {
         background: #eff6ff !important;
         border-color: rgba(37, 99, 235, 0.45) !important;
@@ -2136,6 +2189,7 @@ The mountains keep.</pre>
     .story-flow-card .form-check-input,
     .awareness-flow .form-check-input,
     .business-flow .form-check-input,
+    .womens-world-flow .form-check-input,
     .childrens-corner-flow .form-check-input {
         appearance: none;
         -webkit-appearance: none;
@@ -2158,7 +2212,8 @@ The mountains keep.</pre>
     .community-flow-stack .form-check-input,
     .childrens-corner-flow .community-flow-stack .form-check-input,
     .awareness-flow .community-flow-stack .form-check-input,
-    .business-flow .community-flow-stack .form-check-input {
+    .business-flow .community-flow-stack .form-check-input,
+    .womens-world-flow .community-flow-stack .form-check-input {
         margin-top: 0.2rem !important;
     }
     .community-flow-checklist .form-check-input[type="radio"],
@@ -2167,6 +2222,7 @@ The mountains keep.</pre>
     .story-flow-card .form-check-input[type="radio"],
     .awareness-flow .form-check-input[type="radio"],
     .business-flow .form-check-input[type="radio"],
+    .womens-world-flow .form-check-input[type="radio"],
     .childrens-corner-flow .form-check-input[type="radio"] {
         border-radius: 50%;
     }
@@ -2176,6 +2232,7 @@ The mountains keep.</pre>
     .story-flow-card .form-check-input[type="checkbox"]:checked,
     .awareness-flow .form-check-input[type="checkbox"]:checked,
     .business-flow .form-check-input[type="checkbox"]:checked,
+    .womens-world-flow .form-check-input[type="checkbox"]:checked,
     .childrens-corner-flow .form-check-input[type="checkbox"]:checked {
         background-color: #198754;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3 6-6'/%3e%3c/svg%3e");
@@ -2187,6 +2244,7 @@ The mountains keep.</pre>
     .story-flow-card .form-check-input[type="radio"]:checked,
     .awareness-flow .form-check-input[type="radio"]:checked,
     .business-flow .form-check-input[type="radio"]:checked,
+    .womens-world-flow .form-check-input[type="radio"]:checked,
     .childrens-corner-flow .form-check-input[type="radio"]:checked {
         background-color: #fff;
         background-image: radial-gradient(circle, #2563eb 0%, #2563eb 38%, transparent 42%, transparent 100%);
@@ -2199,6 +2257,7 @@ The mountains keep.</pre>
     .story-flow-card .form-check-input:focus,
     .awareness-flow .form-check-input:focus,
     .business-flow .form-check-input:focus,
+    .womens-world-flow .form-check-input:focus,
     .childrens-corner-flow .form-check-input:focus {
         border-color: #2563eb;
         box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
@@ -2210,6 +2269,7 @@ The mountains keep.</pre>
     .story-flow-card .form-check-label,
     .awareness-flow .form-check-label,
     .business-flow .form-check-label,
+    .womens-world-flow .form-check-label,
     .childrens-corner-flow .form-check-label {
         cursor: pointer;
         flex: 1 1 auto;
@@ -2509,6 +2569,20 @@ The mountains keep.</pre>
 
     document.getElementById('businessCategory')?.addEventListener('change', syncBusinessCategory);
 
+    function syncWomensWorldCategory() {
+        const womensWorldCategory = document.getElementById('womensWorldCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'womens-world') {
+            return;
+        }
+
+        categorySelect.value = womensWorldCategory;
+        categorySelect.dataset.selected = womensWorldCategory;
+    }
+
+    document.getElementById('womensWorldCategory')?.addEventListener('change', syncWomensWorldCategory);
+
     document.getElementById('insertAwarenessStructureBtn')?.addEventListener('click', function () {
         const structureHtml = [
             '<h2>Problem</h2>',
@@ -2551,6 +2625,36 @@ The mountains keep.</pre>
             '<p>Key takeaways</p>',
             '<h2>Recommendations</h2>',
             '<p>Advice to others</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    document.getElementById('insertWomensWorldStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Background</h2>',
+            '<p>Set the context for your story or topic.</p>',
+            '<h2>Challenge</h2>',
+            '<p>Describe the difficulty, situation, or issue faced.</p>',
+            '<h2>Experience</h2>',
+            '<p>Share what happened and how you navigated it.</p>',
+            '<h2>Lessons Learned</h2>',
+            '<p>Key takeaways from your journey.</p>',
+            '<h2>Advice to Others</h2>',
+            '<p>Practical guidance for readers in similar situations.</p>',
+            '<h2>Conclusion</h2>',
+            '<p>Closing message, reflection, or call to action.</p>',
         ].join('');
 
         if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
@@ -3428,7 +3532,7 @@ The mountains keep.</pre>
         const selectedType = typeSelect.value;
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business'].includes(selectedType);
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -3449,6 +3553,7 @@ The mountains keep.</pre>
         const isChildrensCorner = selectedType === 'childrens-corner';
         const isAwareness = selectedType === 'awareness';
         const isBusiness = selectedType === 'business';
+        const isWomensWorld = selectedType === 'womens-world';
 
         if (isChildrensCorner) {
             categoryWrap.style.display = 'none';
@@ -3465,6 +3570,11 @@ The mountains keep.</pre>
             categorySelect.required = false;
             categorySelect.disabled = true;
             syncBusinessCategory();
+        } else if (isWomensWorld) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncWomensWorldCategory();
         } else {
             categoryWrap.style.display = '';
             categorySelect.disabled = false;
@@ -3578,6 +3688,10 @@ The mountains keep.</pre>
             field.required = isBusiness;
         });
 
+        document.querySelectorAll('.womens-world-required').forEach((field) => {
+            field.required = isWomensWorld;
+        });
+
         document.querySelectorAll('.awareness-flow input, .awareness-flow textarea, .awareness-flow select').forEach((field) => {
             if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
                 return;
@@ -3592,6 +3706,14 @@ The mountains keep.</pre>
             }
 
             field.disabled = !isBusiness;
+        });
+
+        document.querySelectorAll('.womens-world-flow input, .womens-world-flow textarea, .womens-world-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isWomensWorld;
         });
 
         const childSchoolName = document.getElementById('childSchoolName');
@@ -3676,6 +3798,14 @@ The mountains keep.</pre>
             bodyHelp: 'Use the rich text editor for Business Problem, Background, Solution, Results, Lessons Learned, and Recommendations.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Enter country, state, district, and city. Use Google Places search to auto-fill fields.',
+        } : (isWomensWorld ? {
+            excerptLabel: 'Summary',
+            excerptPlaceholder: 'Summarize your story, advice, or topic in one or two sentences.',
+            excerptHelp: 'A concise standfirst shown in Women\'s World listings.',
+            bodyLabel: 'Content <span class="text-danger">*</span>',
+            bodyHelp: 'Use the rich text editor for Background, Challenge, Experience, Lessons Learned, Advice to Others, and Conclusion.',
+            locationLabel: 'Location <span class="text-danger">*</span>',
+            locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -3684,7 +3814,7 @@ The mountains keep.</pre>
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        }))));
+        })))));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -3716,6 +3846,11 @@ The mountains keep.</pre>
         const businessContentGuide = document.getElementById('businessContentGuide');
         if (businessContentGuide) {
             businessContentGuide.style.display = isBusiness ? '' : 'none';
+        }
+
+        const womensWorldContentGuide = document.getElementById('womensWorldContentGuide');
+        if (womensWorldContentGuide) {
+            womensWorldContentGuide.style.display = isWomensWorld ? '' : 'none';
         }
 
         refreshPoetrySeriesFields();
@@ -5972,6 +6107,29 @@ The mountains keep.</pre>
                     document.getElementById('businessPollQuestion')?.focus();
                     return;
                 }
+            }
+        }
+
+        if (contentType === 'womens-world') {
+            syncWomensWorldCategory();
+
+            const womensWorldCategory = document.getElementById('womensWorldCategory')?.value || '';
+            if (!womensWorldCategory) {
+                notify('error', 'Please select a main category for this Women\'s World post.');
+                document.getElementById('womensWorldCategory')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('womensWorldContentType')?.value) {
+                notify('error', 'Please select a content type.');
+                document.getElementById('womensWorldContentType')?.focus();
+                return;
+            }
+
+            const womensWorldAudienceCount = document.querySelectorAll('input[name="womens_world_target_audience[]"]:checked').length;
+            if (!womensWorldAudienceCount) {
+                notify('error', 'Please select at least one target audience.');
+                return;
             }
         }
 

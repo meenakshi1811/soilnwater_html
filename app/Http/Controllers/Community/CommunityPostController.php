@@ -1045,6 +1045,7 @@ class CommunityPostController extends Controller
         $isChildrensCorner = CommunityPost::usesChildrensCornerFlow(is_string($contentType) ? $contentType : null);
         $isAwareness = CommunityPost::usesAwarenessFlow(is_string($contentType) ? $contentType : null);
         $isBusiness = CommunityPost::usesBusinessFlow(is_string($contentType) ? $contentType : null);
+        $isWomensWorld = CommunityPost::usesWomensWorldFlow(is_string($contentType) ? $contentType : null);
         $childShareType = $request->input('child_share_type');
         $childContentMode = CommunityContentTaxonomy::childrensCornerContentMode(is_string($childShareType) ? $childShareType : null);
 
@@ -1058,6 +1059,10 @@ class CommunityPostController extends Controller
 
         if ($isBusiness && $request->filled('business_category')) {
             $request->merge(['category' => $request->input('business_category')]);
+        }
+
+        if ($isWomensWorld && $request->filled('womens_world_category')) {
+            $request->merge(['category' => $request->input('womens_world_category')]);
         }
 
         $rules = [
@@ -1855,6 +1860,29 @@ class CommunityPostController extends Controller
                 'string',
                 'max:255',
             ],
+            'womens_world_category' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::womensWorldMainCategories()),
+            ],
+            'womens_world_content_type' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::womensWorldContentTypes()),
+            ],
+            'womens_world_target_audience' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'required',
+                'array',
+                'min:1',
+            ],
+            'womens_world_target_audience.*' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'string',
+                Rule::in(CommunityContentTaxonomy::womensWorldTargetAudiences()),
+            ],
             'childrens_corner_submitted_through' => [
                 Rule::excludeIf(fn () => ! $isChildrensCorner),
                 'nullable',
@@ -2092,6 +2120,10 @@ class CommunityPostController extends Controller
 
         if ($isBusiness) {
             $validated['category'] = (string) ($validated['business_category'] ?? $request->input('business_category'));
+        }
+
+        if ($isWomensWorld) {
+            $validated['category'] = (string) ($validated['womens_world_category'] ?? $request->input('womens_world_category'));
         }
 
         if (CommunityPost::isBookContentType($contentType)) {

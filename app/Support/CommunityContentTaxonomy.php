@@ -122,8 +122,8 @@ class CommunityContentTaxonomy
             ],
             'womens-world' => [
                 'label' => "Women's World",
-                'description' => 'A powerful community section.',
-                'categories' => ['Working Women', 'Homemakers', 'Health', 'Entrepreneurship', 'Parenting', 'Self Development'],
+                'description' => 'Stories, guidance, and empowerment content for women.',
+                'categories' => self::womensWorldMainCategories(),
             ],
             'senior-citizens-forum' => [
                 'label' => 'Senior Citizens Forum',
@@ -1275,6 +1275,100 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Women's World main category groups for the create/edit form.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function womensWorldCategoryGroups(): array
+    {
+        return [
+            'Life & growth' => [
+                'Personal Experiences',
+                'Career & Professional Growth',
+                'Women Entrepreneurship',
+                'Health & Wellness',
+                'Motherhood & Parenting',
+                'Education',
+            ],
+            'Empowerment & skills' => [
+                'Financial Independence',
+                'Self Development',
+                'Relationships & Family',
+                'Women Empowerment',
+                'Success Stories',
+                'Life Skills',
+            ],
+            'Rights & safety' => [
+                'Social Issues',
+                'Legal Awareness',
+                'Safety & Security',
+                "Senior Women's Corner",
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldMainCategories(): array
+    {
+        return array_values(array_merge(...array_values(self::womensWorldCategoryGroups())));
+    }
+
+    /**
+     * Women's World content type groups for the create/edit form.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function womensWorldContentTypeGroups(): array
+    {
+        return [
+            'Stories & guidance' => [
+                'Personal Story',
+                'Advice & Guidance',
+                'Success Story',
+                'Awareness Post',
+            ],
+            'Articles & analysis' => [
+                'Educational Article',
+                'Opinion Piece',
+                'Motivational Content',
+                'Case Study',
+            ],
+            'Community' => [
+                'Interview',
+                'Question & Discussion',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldContentTypes(): array
+    {
+        return array_values(array_merge(...array_values(self::womensWorldContentTypeGroups())));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldTargetAudiences(): array
+    {
+        return [
+            'Students',
+            'Working Women',
+            'Homemakers',
+            'Entrepreneurs',
+            'Mothers',
+            'Young Women',
+            'Senior Women',
+            'Professionals',
+            'General Public',
+        ];
+    }
+
+    /**
      * Main category choices for business posts.
      *
      * @return list<string>
@@ -1560,6 +1654,23 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Recommended Women's World content sections for the rich text editor.
+     *
+     * @return array<string, string>
+     */
+    public static function womensWorldContentStructure(): array
+    {
+        return [
+            'Background' => 'Set the context for your story or topic.',
+            'Challenge' => 'Describe the difficulty, situation, or issue faced.',
+            'Experience' => 'Share what happened and how you navigated it.',
+            'Lessons Learned' => 'Key takeaways from your journey.',
+            'Advice to Others' => 'Practical guidance for readers in similar situations.',
+            'Conclusion' => 'Closing message, reflection, or call to action.',
+        ];
+    }
+
+    /**
      * Legacy civic issue report types for older My Area posts.
      *
      * @return list<string>
@@ -1602,6 +1713,10 @@ class CommunityContentTaxonomy
 
         if ($type === 'business') {
             return in_array($category, self::businessMainCategories(), true);
+        }
+
+        if ($type === 'womens-world') {
+            return in_array($category, self::womensWorldMainCategories(), true);
         }
 
         return in_array($category, self::categoriesFor($type), true);

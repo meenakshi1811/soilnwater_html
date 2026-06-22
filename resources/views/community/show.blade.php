@@ -751,6 +751,12 @@
                     'business_video_type',
                     'author_bio',
                 ]);
+                $additionalWomensWorldMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::womensWorldStructuredMetaKeys(),
+                    'author_bio',
+                    'focus_area',
+                    'perspective_summary',
+                ]);
             @endphp
             @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
                 @include('community.partials.report-meta-details', ['post' => $post, 'includeLocation' => true])
@@ -817,6 +823,12 @@
                 @include('community.partials.business-meta-details', ['post' => $post])
                 @php
                     $visibleMeta = $additionalBusinessMeta;
+                @endphp
+            @endif
+            @if($post->isWomensWorldPost())
+                @include('community.partials.womens-world-meta-details', ['post' => $post])
+                @php
+                    $visibleMeta = $additionalWomensWorldMeta;
                 @endphp
             @endif
             @if($post->content_type === 'my-voice' && $orderedMyVoiceMeta->isNotEmpty())

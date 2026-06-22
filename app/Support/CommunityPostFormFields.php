@@ -37,10 +37,7 @@ class CommunityPostFormFields
                 self::checkbox('medical_disclaimer_ack', 'I confirm this is general wellness information, not medical advice'),
                 self::textarea('wellness_summary', 'Key wellness takeaway', 2000, true),
             ]),
-            'womens-world' => self::section("Women's World details", "Women's World", 'Audience-focused context for women-centric stories and advice.', [
-                self::select('focus_area', 'Focus area', ['Working Women', 'Homemakers', 'Health', 'Entrepreneurship', 'Parenting', 'Self Development'], true),
-                self::textarea('perspective_summary', 'Perspective / angle', 2000, true),
-            ]),
+            'womens-world' => self::section("Women's World details", "Women's World", 'Use the dedicated Women\'s World flow fields on the form.', []),
             'senior-citizens-forum' => self::section('Senior Citizens details', 'Senior Citizens', 'Share life experience context for senior readers.', [
                 self::text('life_experience_area', 'Life experience area', 120, true, 'e.g. Retirement planning, Health'),
                 self::text('advice_category', 'Advice category', 120, false, 'e.g. Advice to youth'),
@@ -378,6 +375,15 @@ class CommunityPostFormFields
             }
         }
 
+        if (CommunityPost::usesWomensWorldFlow($contentType)) {
+            $payload['womens_world_category'] = $request->input('womens_world_category');
+            $payload['womens_world_content_type'] = $request->input('womens_world_content_type');
+            $payload['womens_world_target_audience'] = array_values(array_intersect(
+                (array) $request->input('womens_world_target_audience', []),
+                CommunityContentTaxonomy::womensWorldTargetAudiences()
+            ));
+        }
+
         if (CommunityPost::usesChildrensCornerFlow($contentType)) {
             $payload['child_share_type'] = $request->input('child_share_type');
             $payload['child_first_name'] = $request->input('child_first_name');
@@ -452,6 +458,7 @@ class CommunityPostFormFields
                     'business_themes',
                     'business_contact_options',
                     'business_poll_options',
+                    'womens_world_target_audience',
                 ], true)) {
                     return true;
                 }
@@ -929,6 +936,48 @@ class CommunityPostFormFields
     }
 
     /**
+     * @return array<string, string>
+     */
+    public static function womensWorldDetailMetaOrder(): array
+    {
+        return [
+            'womens_world_category' => 'Main category',
+            'womens_world_content_type' => 'Content type',
+            'womens_world_target_audience' => 'Target audience',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldStructuredMetaKeys(): array
+    {
+        return array_keys(self::womensWorldDetailMetaOrder());
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedWomensWorldMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::womensWorldDetailMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if ($key === 'womens_world_category' && blank($value)) {
+                    $value = $post->category;
+                }
+
+                if (is_array($value)) {
+                    $value = implode(', ', array_values(array_filter($value)));
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value));
+    }
+
+    /**
      * @return list<string>
      */
     public static function businessEngagementStructuredMetaKeys(): array
@@ -1319,8 +1368,6 @@ class CommunityPostFormFields
             'wellness_topic' => 'Wellness topic',
             'medical_disclaimer_ack' => 'Medical disclaimer acknowledged',
             'wellness_summary' => 'Wellness summary',
-            'focus_area' => 'Focus area',
-            'perspective_summary' => 'Perspective',
             'life_experience_area' => 'Life experience area',
             'advice_category' => 'Advice category',
             'experience_summary' => 'Experience summary',

@@ -1005,6 +1005,11 @@ class CommunityPost extends Model
         return $contentType === 'business';
     }
 
+    public static function usesWomensWorldFlow(?string $contentType): bool
+    {
+        return $contentType === 'womens-world';
+    }
+
     public function isChildrensCornerPost(): bool
     {
         return self::usesChildrensCornerFlow($this->content_type);
@@ -1018,6 +1023,11 @@ class CommunityPost extends Model
     public function isBusinessPost(): bool
     {
         return self::usesBusinessFlow($this->content_type);
+    }
+
+    public function isWomensWorldPost(): bool
+    {
+        return self::usesWomensWorldFlow($this->content_type);
     }
 
     public function businessCategoryLabel(): ?string
