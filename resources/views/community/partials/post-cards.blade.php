@@ -6,9 +6,17 @@
         $authorAvatarUrl = $post->authorAvatarUrl();
         $reportStatus = $post->reportStatus();
         $reportTrustScore = $post->isReportContent() ? $post->reportTrustScore() : null;
-        $categoryLabel = filled(data_get($post->meta, 'report_type'))
-            ? data_get($post->meta, 'report_type', $post->category)
-            : $post->category;
+        $sectionLabel = $post->typeLabel();
+        $categoryLabel = match (true) {
+            $post->isAwarenessPost() && filled($post->awarenessCategoryLabel()) => $post->awarenessCategoryLabel(),
+            $post->isBusinessPost() && filled($post->businessCategoryLabel()) => $post->businessCategoryLabel(),
+            filled(data_get($post->meta, 'report_type')) => data_get($post->meta, 'report_type', $post->category),
+            filled($post->category) => $post->category,
+            default => null,
+        };
+        if ($categoryLabel === $sectionLabel) {
+            $categoryLabel = null;
+        }
         $excerpt = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 160);
         $locationLabel = $post->location ?? data_get($post->meta, 'location');
         $promotionLabels = $post->adminPromotionLabels();
@@ -35,8 +43,11 @@
                     </div>
                 @endif
                 <div class="community-post-card__media-overlay"></div>
-                @if ($categoryLabel || $reportStatus || $reportTrustScore !== null || $promotionLabels !== [] || $scoreBadges !== [])
+                @if ($sectionLabel || $categoryLabel || $reportStatus || $reportTrustScore !== null || $promotionLabels !== [] || $scoreBadges !== [])
                     <div class="community-post-card__badges">
+                        @if ($sectionLabel)
+                            <span class="community-post-card__badge community-post-card__badge--section">{{ $sectionLabel }}</span>
+                        @endif
                         @foreach($scoreBadges as $badge)
                             <span class="community-post-card__badge community-post-card__badge--score {{ $badge['class'] }}">{{ $badge['label'] }}</span>
                         @endforeach

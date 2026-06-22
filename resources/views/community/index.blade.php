@@ -385,6 +385,11 @@
         padding: 0.28rem 0.65rem;
     }
 
+    .community-post-card__badge--section {
+        background: rgba(46, 125, 50, 0.92);
+        color: #fff;
+    }
+
     .community-post-card__badge--promotion {
         background: rgba(31, 102, 180, 0.92);
         color: #fff;
