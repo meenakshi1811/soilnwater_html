@@ -138,35 +138,47 @@
     }
 
     .community-toolbar {
-        background: linear-gradient(180deg, #ffffff 0%, #f7fafd 100%);
-        border: 1px solid #c8d9ea;
-        border-radius: 16px;
-        box-shadow: 0 10px 28px rgba(15, 47, 85, 0.07);
+        background: linear-gradient(135deg, #0f2f55 0%, #174a7a 55%, #1a5c42 100%);
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 14px 36px rgba(15, 47, 85, 0.22);
         margin-bottom: 1.25rem;
-        padding: 1.1rem 1.2rem;
+        overflow: hidden;
+        padding: 1.25rem 1.35rem 1.35rem;
+        position: relative;
+    }
+
+    .community-toolbar::before {
+        background: radial-gradient(circle at 92% 8%, rgba(255, 255, 255, 0.12), transparent 42%);
+        content: "";
+        inset: 0;
+        pointer-events: none;
+        position: absolute;
     }
 
     .community-toolbar__head {
         align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
         display: flex;
         flex-wrap: wrap;
         gap: 0.75rem;
         justify-content: space-between;
-        margin-bottom: 0.95rem;
-        padding-bottom: 0.85rem;
-        border-bottom: 1px solid #e3edf6;
+        margin-bottom: 1rem;
+        padding-bottom: 0.9rem;
+        position: relative;
+        z-index: 1;
     }
 
     .community-toolbar__title {
-        color: #0f2f55;
-        font-size: 1.02rem;
+        color: #fff;
+        font-size: 1.05rem;
         font-weight: 700;
         letter-spacing: 0.01em;
         margin: 0;
     }
 
     .community-toolbar__hint {
-        color: #5a7490;
+        color: rgba(255, 255, 255, 0.72);
         font-size: 0.86rem;
         margin: 0;
     }
@@ -174,42 +186,46 @@
     .community-filter-scroll {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.6rem;
+        gap: 0.55rem;
+        position: relative;
+        z-index: 1;
     }
 
     .community-filter-pill {
-        background: #fff;
-        border: 1.5px solid #c5d8ea;
+        backdrop-filter: blur(6px);
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.22);
         border-radius: 999px;
-        color: #1a4570;
-        font-size: 0.84rem;
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 0.83rem;
         font-weight: 600;
-        padding: 0.48rem 1rem;
+        padding: 0.46rem 0.95rem;
         text-decoration: none;
-        transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
     .community-filter-pill:hover {
-        background: #eef5fc;
-        border-color: #7eb3db;
-        box-shadow: 0 4px 12px rgba(31, 102, 180, 0.1);
-        color: #0f3d6e;
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.42);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        color: #fff;
         transform: translateY(-1px);
     }
 
     .community-filter-pill.is-active {
-        background: linear-gradient(135deg, #163f72 0%, #1f66b4 52%, #2a7a3e 100%);
-        border-color: transparent;
-        box-shadow: 0 8px 20px rgba(31, 102, 180, 0.28);
-        color: #fff;
+        background: #fff;
+        border-color: #fff;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+        color: #0f2f55;
+        font-weight: 700;
         transform: none;
     }
 
     .community-filter-pill.is-active:hover {
-        background: linear-gradient(135deg, #163f72 0%, #1f66b4 52%, #2a7a3e 100%);
-        border-color: transparent;
-        box-shadow: 0 8px 22px rgba(31, 102, 180, 0.34);
-        color: #fff;
+        background: #f4faf5;
+        border-color: #f4faf5;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+        color: #1b5e20;
         transform: none;
     }
 
