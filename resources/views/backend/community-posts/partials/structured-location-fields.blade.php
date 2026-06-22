@@ -69,7 +69,7 @@
                 placeholder="e.g. Jaipur"
             >
         </div>
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-4" id="communityLocationLocalityWrap">
             <label class="form-label" for="communityLocationLocality" id="communityLocationLocalityLabel">Locality</label>
             <input
                 type="text"
@@ -83,7 +83,7 @@
         </div>
     </div>
 
-    <div class="community-structured-location__map mt-4 pt-3 border-top">
+    <div class="community-structured-location__map mt-4 pt-3 border-top" id="communityStructuredLocationMapWrap">
         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
             <div>
                 <h6 class="mb-1">Map location</h6>

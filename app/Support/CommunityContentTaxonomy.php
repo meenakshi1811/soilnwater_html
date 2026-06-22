@@ -1369,6 +1369,286 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Featured topic groups for Women's World posts (optional multi-select).
+     *
+     * @return array<string, list<string>>
+     */
+    public static function womensWorldFeaturedTopicGroups(): array
+    {
+        return [
+            'Career & wellbeing' => [
+                'Career Growth',
+                'Work-Life Balance',
+                'Mental Health',
+            ],
+            'Family & finance' => [
+                'Parenting',
+                'Financial Planning',
+                'Self Confidence',
+            ],
+            'Growth & leadership' => [
+                'Leadership',
+                'Skill Development',
+            ],
+            'Rights & health' => [
+                "Women's Rights",
+                'Health Awareness',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldFeaturedTopics(): array
+    {
+        return array_values(array_merge(...array_values(self::womensWorldFeaturedTopicGroups())));
+    }
+
+    /**
+     * Women's World video type groups for the create/edit form.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function womensWorldVideoTypeGroups(): array
+    {
+        return [
+            'Talks & introductions' => [
+                'Motivational Talk',
+                'Business Introduction',
+                'Workshop Recording',
+            ],
+            'Awareness & interviews' => [
+                'Awareness Video',
+                'Interview',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldVideoTypes(): array
+    {
+        return array_values(array_merge(...array_values(self::womensWorldVideoTypeGroups())));
+    }
+
+    /**
+     * Life stage options for Women's World posts.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function womensWorldLifeStageGroups(): array
+    {
+        return [
+            'Early life' => [
+                'Student',
+                'Young Professional',
+                'Newly Married',
+            ],
+            'Mid life' => [
+                'Mother',
+                'Entrepreneur',
+            ],
+            'Later life' => [
+                'Retired',
+                'Senior Citizen',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldLifeStages(): array
+    {
+        return array_values(array_merge(...array_values(self::womensWorldLifeStageGroups())));
+    }
+
+    /**
+     * Theme groups for Women's World posts.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function womensWorldThemeGroups(): array
+    {
+        return [
+            'Empowerment & career' => [
+                'Women Empowerment',
+                'Education',
+                'Leadership',
+                'Business',
+                'Career',
+            ],
+            'Wellness & family' => [
+                'Health',
+                'Fitness',
+                'Mental Wellness',
+                'Parenting',
+                'Relationships',
+            ],
+            'Community & growth' => [
+                'Community Service',
+                'Environment',
+                'Financial Independence',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldThemes(): array
+    {
+        return array_values(array_merge(...array_values(self::womensWorldThemeGroups())));
+    }
+
+    /**
+     * Business category choices for Women's World entrepreneur posts.
+     *
+     * @return list<string>
+     */
+    public static function womensWorldBusinessCategories(): array
+    {
+        return self::businessMainCategories();
+    }
+
+    /**
+     * Default poll options for Women's World posts.
+     *
+     * @return list<string>
+     */
+    public static function womensWorldDefaultPollOptions(): array
+    {
+        return [
+            'Work-Life Balance',
+            'Child Care',
+            'Career Growth',
+            'Financial Independence',
+        ];
+    }
+
+    /**
+     * Support request choices for Women's World posts.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function womensWorldSupportRequestGroups(): array
+    {
+        return [
+            'Guidance' => [
+                'Looking for Advice',
+                'Looking for Mentorship',
+            ],
+            'Professional support' => [
+                'Looking for Business Guidance',
+                'Looking for Career Guidance',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldSupportRequests(): array
+    {
+        return array_values(array_merge(...array_values(self::womensWorldSupportRequestGroups())));
+    }
+
+    /**
+     * Community group tags for Women's World posts.
+     *
+     * @return list<string>
+     */
+    public static function womensWorldCommunityGroups(): array
+    {
+        return [
+            'Working Women',
+            'Women Entrepreneurs',
+            'Homemakers',
+            'Mothers',
+            'Teachers',
+            'Students',
+            'Senior Women',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldTagExamples(): array
+    {
+        return [
+            'Women',
+            'Leadership',
+            'Entrepreneurship',
+            'Parenting',
+            'Career',
+            'Health',
+        ];
+    }
+
+    /**
+     * Publish-as labels for Women's World posts.
+     *
+     * @return array<string, string>
+     */
+    public static function womensWorldPublishAsOptions(): array
+    {
+        return [
+            \App\Models\CommunityPost::PUBLISH_AS_PUBLIC_PROFILE => 'Real Name',
+            \App\Models\CommunityPost::PUBLISH_AS_PEN_NAME => 'Pen Name',
+            \App\Models\CommunityPost::PUBLISH_AS_ANONYMOUS => 'Anonymous',
+        ];
+    }
+
+    /**
+     * Visibility settings for Women's World posts.
+     *
+     * @return array<string, string>
+     */
+    public static function womensWorldVisibilitySettings(): array
+    {
+        return [
+            'public' => 'Public',
+            'registered_users' => 'Registered Users',
+            'women_community_only' => 'Women Community Only',
+            'private_link' => 'Private Link',
+        ];
+    }
+
+    public static function womensWorldDefaultVisibilitySetting(): string
+    {
+        return 'public';
+    }
+
+    /**
+     * Positive reaction options for Women's World posts.
+     *
+     * @return array<string, string>
+     */
+    public static function womensWorldReactionOptions(): array
+    {
+        return [
+            'Inspiring' => 'fa-solid fa-lightbulb',
+            'Strong' => 'fa-solid fa-dumbbell',
+            'Message' => 'fa-solid fa-message',
+            'Empowering' => 'fa-solid fa-venus',
+            'Helpful' => 'fa-solid fa-hand-holding-heart',
+            'Respect' => 'fa-solid fa-hands-praying',
+            'Excellent' => 'fa-solid fa-star',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldReactionLabels(): array
+    {
+        return array_keys(self::womensWorldReactionOptions());
+    }
+
+    /**
      * Main category choices for business posts.
      *
      * @return list<string>

@@ -16,6 +16,8 @@ use App\Services\CommunityPostParticipationNotificationService;
 use App\Services\CommunityReportEngagementNotificationService;
 use App\Services\CommunityStoryAchievementService;
 use App\Services\CommunityStoryEngagementNotificationService;
+use App\Services\CommunityEngagementNotificationService;
+use App\Services\CommunityWomensWorldEngagementNotificationService;
 use App\Services\CommunityArticleScoreService;
 use App\Services\CommunityReportTrustScoreService;
 use App\Services\PortalNotificationService;
@@ -51,6 +53,8 @@ class CommunityPostController extends Controller
     private const MAX_BUSINESS_DOCUMENTS = 6;
 
     private const MAX_BUSINESS_GALLERY = 10;
+
+    private const MAX_WOMENS_WORLD_GALLERY = 10;
 
     private const MAX_STORY_AUDIO_KB = 20480;
 
@@ -103,13 +107,14 @@ class CommunityPostController extends Controller
     {
         $viewer = auth()->user();
         $canManagePreview = $viewer !== null && ($viewer->id === $post->user_id || $viewer->isAdmin());
+        $privateLinkAccess = $post->allowsWomensWorldPrivateLinkAccess($request->query('access'));
 
         abort_unless(
             $post->isPubliclyVisible() || $canManagePreview,
             404
         );
 
-        if ($post->isPubliclyVisible() && ! $post->isVisibleInCommunityTo($viewer) && ! $canManagePreview) {
+        if ($post->isPubliclyVisible() && ! $privateLinkAccess && ! $post->isVisibleInCommunityTo($viewer) && ! $canManagePreview) {
             return view('community.privacy-gate', [
                 'post' => $post,
                 'types' => CommunityContentTaxonomy::formTypes(),
@@ -270,6 +275,14 @@ class CommunityPostController extends Controller
             CommunityStoryEngagementNotificationService::notifyAuthorOfInspiringReaction(
                 $post,
                 $request->user()
+            );
+        }
+
+        if ($post->isWomensWorldPost() && $active) {
+            CommunityWomensWorldEngagementNotificationService::notifyAuthorOfReaction(
+                $post,
+                $request->user(),
+                $data['reaction']
             );
         }
 
@@ -586,6 +599,7 @@ class CommunityPostController extends Controller
 
         $this->deleteStoryAudioFile(data_get($post->meta, 'story_audio'));
         $this->deleteStoryAudioFile(data_get($post->meta, 'poetry_audio'));
+        $this->deleteStoryAudioFile(data_get($post->meta, 'womens_world_audio'));
 
         $this->deleteVideoFile($post->videoData());
         $post->delete();
@@ -645,6 +659,7 @@ class CommunityPostController extends Controller
         $data['slug'] = $this->uniqueSlug($data['title']);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
+        $data['meta'] = $this->applyWomensWorldPrivacyMeta($data['meta'], $request);
         $this->mergeBookPagesIntoMeta($request, $data);
 
         if ($request->hasFile('issue_attachments')) {
@@ -740,6 +755,18 @@ class CommunityPostController extends Controller
         if ($businessGallery !== null) {
             $data['meta']['business_gallery'] = $businessGallery;
         }
+        $womensWorldGallery = $this->resolveWomensWorldGallery($request);
+        if ($womensWorldGallery !== null) {
+            $data['meta']['womens_world_gallery'] = $womensWorldGallery;
+        }
+        $womensWorldAudio = $this->resolveWomensWorldAudio($request);
+        if ($womensWorldAudio !== null || ($request->input('content_type') === 'womens-world' && $request->input('womens_world_audio_source_type') === 'none')) {
+            if ($womensWorldAudio !== null) {
+                $data['meta']['womens_world_audio'] = $womensWorldAudio;
+            } else {
+                unset($data['meta']['womens_world_audio']);
+            }
+        }
         if (CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
             $data['allow_comments'] = $this->shouldAllowComments($request);
         }
@@ -765,6 +792,9 @@ class CommunityPostController extends Controller
 
         if ($post->isPendingApproval()) {
             $this->notifyAdminsOfPendingPost($post);
+        } elseif ($post->isWomensWorldPost() && $post->isPubliclyVisible()) {
+            CommunityWomensWorldEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
+            CommunityEngagementNotificationService::notifySubscribersOfPublishedPost($post->fresh());
         } elseif (in_array($post->content_type, ['poetry', 'biography', 'autobiography'], true) && $post->isPubliclyVisible()) {
             CommunityStoryEngagementNotificationService::notifyAuthorOfPublishedWithoutAudio($post->fresh());
         }
@@ -803,6 +833,7 @@ class CommunityPostController extends Controller
         CommunityPostAuditLogger::stripAcceptanceFields($data);
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
+        $data['meta'] = $this->applyWomensWorldPrivacyMeta($data['meta'], $request, $post);
         $this->mergeBookPagesIntoMeta($request, $data);
 
         if ($request->hasFile('issue_attachments')) {
@@ -953,6 +984,22 @@ class CommunityPostController extends Controller
             unset($data['meta']['business_gallery']);
         }
 
+        $womensWorldGallery = $this->resolveWomensWorldGallery($request, $post);
+        if ($womensWorldGallery !== null) {
+            $data['meta']['womens_world_gallery'] = $womensWorldGallery;
+        } elseif (data_get($post->meta, 'womens_world_gallery')) {
+            unset($data['meta']['womens_world_gallery']);
+        }
+
+        $womensWorldAudio = $this->resolveWomensWorldAudio($request, $post);
+        if ($womensWorldAudio !== null) {
+            $data['meta']['womens_world_audio'] = $womensWorldAudio;
+        } elseif ($request->input('content_type') === 'womens-world' && $request->input('womens_world_audio_source_type') === 'none') {
+            unset($data['meta']['womens_world_audio']);
+        } elseif ($request->boolean('remove_womens_world_audio')) {
+            unset($data['meta']['womens_world_audio']);
+        }
+
         $data = $this->applyPoetryRegionalLocation($data);
         $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['allow_questions'] = $this->shouldAllowQuestions($request);
@@ -992,6 +1039,14 @@ class CommunityPostController extends Controller
 
         if ($post->isPendingApproval() && ! $wasPending) {
             $this->notifyAdminsOfPendingPost($post->fresh());
+        } elseif (
+            $post->isWomensWorldPost()
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityWomensWorldEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
+            CommunityEngagementNotificationService::notifySubscribersOfPublishedPost($post->fresh());
         } elseif (
             in_array($post->content_type, ['poetry', 'autobiography'], true)
             && $post->isPubliclyVisible()
@@ -1042,6 +1097,7 @@ class CommunityPostController extends Controller
         $contentType = $request->input('content_type');
         $isReport = $contentType === 'reports';
         $usesStructuredLocation = CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null);
+        $mountsStructuredLocation = CommunityPost::mountsStructuredLocationFields(is_string($contentType) ? $contentType : null);
         $isChildrensCorner = CommunityPost::usesChildrensCornerFlow(is_string($contentType) ? $contentType : null);
         $isAwareness = CommunityPost::usesAwarenessFlow(is_string($contentType) ? $contentType : null);
         $isBusiness = CommunityPost::usesBusinessFlow(is_string($contentType) ? $contentType : null);
@@ -1163,11 +1219,11 @@ class CommunityPostController extends Controller
                 'string',
                 'max:500',
             ],
-            'location_type' => ($usesStructuredLocation || $isChildrensCorner)
+            'location_type' => ($usesStructuredLocation || $mountsStructuredLocation || $isChildrensCorner)
                 ? ['nullable', Rule::in(array_keys(CommunityPost::locationTypeOptions($contentType)))]
                 : ['required', Rule::in(array_keys(CommunityPost::locationTypeOptions($contentType)))],
             'location' => ['nullable', 'string', 'max:160'],
-            'location_lat' => $usesStructuredLocation
+            'location_lat' => ($usesStructuredLocation || $mountsStructuredLocation)
                 ? ['nullable', 'numeric', 'between:-90,90']
                 : [
                     Rule::requiredIf(fn () => ! $isChildrensCorner && in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
@@ -1175,7 +1231,7 @@ class CommunityPostController extends Controller
                     'numeric',
                     'between:-90,90',
                 ],
-            'location_lng' => $usesStructuredLocation
+            'location_lng' => ($usesStructuredLocation || $mountsStructuredLocation)
                 ? ['nullable', 'numeric', 'between:-180,180']
                 : [
                     Rule::requiredIf(fn () => ! $isChildrensCorner && in_array($request->input('location_type'), CommunityPost::locationTypesRequiringPlace(), true)),
@@ -1291,25 +1347,25 @@ class CommunityPostController extends Controller
             'keep_existing_poetry_audio' => ['nullable', 'boolean'],
             'remove_poetry_audio' => ['nullable', 'boolean'],
             'location_country' => [
-                Rule::requiredIf(fn () => CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null)),
+                Rule::requiredIf(fn () => $usesStructuredLocation),
                 'nullable',
                 'string',
                 'max:120',
             ],
             'location_state' => [
-                Rule::requiredIf(fn () => CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null)),
+                Rule::requiredIf(fn () => $usesStructuredLocation),
                 'nullable',
                 'string',
                 'max:120',
             ],
             'location_district' => [
-                Rule::requiredIf(fn () => CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null)),
+                Rule::requiredIf(fn () => $usesStructuredLocation),
                 'nullable',
                 'string',
                 'max:120',
             ],
             'location_city' => [
-                Rule::requiredIf(fn () => CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null)),
+                Rule::requiredIf(fn () => $usesStructuredLocation),
                 'nullable',
                 'string',
                 'max:120',
@@ -1883,6 +1939,191 @@ class CommunityPostController extends Controller
                 'string',
                 Rule::in(CommunityContentTaxonomy::womensWorldTargetAudiences()),
             ],
+            'womens_world_featured_topics' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'array',
+            ],
+            'womens_world_featured_topics.*' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'string',
+                Rule::in(CommunityContentTaxonomy::womensWorldFeaturedTopics()),
+            ],
+            'womens_world_video_type' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::womensWorldVideoTypes()),
+            ],
+            'womens_world_gallery' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'array',
+                'max:'.self::MAX_WOMENS_WORLD_GALLERY,
+            ],
+            'womens_world_gallery.*' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'image',
+                'max:4096',
+            ],
+            'removed_womens_world_gallery' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'array',
+            ],
+            'removed_womens_world_gallery.*' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'string',
+                'max:255',
+            ],
+            'womens_world_life_stage' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::womensWorldLifeStages()),
+            ],
+            'womens_world_themes' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'array',
+            ],
+            'womens_world_themes.*' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'string',
+                Rule::in(CommunityContentTaxonomy::womensWorldThemes()),
+            ],
+            'womens_world_audio_source_type' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                Rule::in(['none', 'upload', 'recording']),
+            ],
+            'womens_world_audio_file' => [
+                Rule::requiredIf(fn () => $isWomensWorld
+                    && $request->input('womens_world_audio_source_type') === 'upload'
+                    && ! $request->boolean('keep_existing_womens_world_audio')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'womens_world_audio_recording' => [
+                Rule::requiredIf(fn () => $isWomensWorld
+                    && $request->input('womens_world_audio_source_type') === 'recording'
+                    && ! $request->boolean('keep_existing_womens_world_audio')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'keep_existing_womens_world_audio' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'boolean',
+            ],
+            'remove_womens_world_audio' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'boolean',
+            ],
+            'womens_world_business_name' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'womens_world_business_category' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::womensWorldBusinessCategories()),
+            ],
+            'womens_world_website_url' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'url',
+                'max:255',
+            ],
+            'womens_world_vendor_profile_url' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'url',
+                'max:255',
+            ],
+            'womens_world_ask_community' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                'max:500',
+            ],
+            'womens_world_poll_question' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                'max:255',
+                Rule::requiredIf(fn () => $isWomensWorld && $request->boolean('allow_poll')),
+            ],
+            'womens_world_poll_options' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+            'womens_world_support_requests' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'array',
+            ],
+            'womens_world_support_requests.*' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'string',
+                Rule::in(CommunityContentTaxonomy::womensWorldSupportRequests()),
+            ],
+            'womens_world_community_groups' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'array',
+            ],
+            'womens_world_community_groups.*' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'string',
+                Rule::in(CommunityContentTaxonomy::womensWorldCommunityGroups()),
+            ],
+            'womens_world_visibility' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'required',
+                'string',
+                Rule::in(array_keys(CommunityContentTaxonomy::womensWorldVisibilitySettings())),
+            ],
+            'womens_world_useful_websites' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'womens_world_government_schemes' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'womens_world_training_programs' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'womens_world_scholarships' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'womens_world_support_organizations' => [
+                Rule::excludeIf(fn () => ! $isWomensWorld),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
             'childrens_corner_submitted_through' => [
                 Rule::excludeIf(fn () => ! $isChildrensCorner),
                 'nullable',
@@ -2148,6 +2389,8 @@ class CommunityPostController extends Controller
 
         if ($isChildrensCorner) {
             $validated = $this->applyChildrensCornerBroadLocation($validated, $request);
+        } elseif ($isWomensWorld) {
+            $validated = $this->applyWomensWorldOptionalLocation($validated, $request);
         } elseif ($usesStructuredLocation) {
             $validated = $this->applyStructuredLocation($validated, $request);
         } elseif ($validated['location_type'] === CommunityPost::LOCATION_TYPE_GPS) {
@@ -2175,6 +2418,31 @@ class CommunityPostController extends Controller
         if (! ($validated['allow_poll'] ?? false)) {
             $validated['poll_subject'] = null;
         }
+
+        return $validated;
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function applyWomensWorldOptionalLocation(array $validated, Request $request): array
+    {
+        $structuredFields = $request->only([
+            'location_country',
+            'location_state',
+            'location_district',
+            'location_city',
+        ]);
+
+        if (! collect($structuredFields)->contains(fn (mixed $value): bool => filled($value))) {
+            return array_merge($validated, CommunityPost::defaultLocationForType(CommunityPost::LOCATION_TYPE_GLOBAL));
+        }
+
+        $validated['location_type'] = CommunityPost::inferLocationTypeFromStructured($structuredFields);
+        $validated['location'] = CommunityPost::composeStructuredLocation($structuredFields);
+        $validated['location_lat'] = null;
+        $validated['location_lng'] = null;
 
         return $validated;
     }
@@ -2321,6 +2589,31 @@ class CommunityPostController extends Controller
         }
 
         return array_filter($payload, fn ($value) => filled($value) || is_bool($value));
+    }
+
+    private function applyWomensWorldPrivacyMeta(array $meta, Request $request, ?CommunityPost $post = null): array
+    {
+        if ($request->input('content_type') !== 'womens-world') {
+            return $meta;
+        }
+
+        $visibility = array_key_exists(
+            (string) $request->input('womens_world_visibility'),
+            CommunityContentTaxonomy::womensWorldVisibilitySettings()
+        )
+            ? (string) $request->input('womens_world_visibility')
+            : CommunityContentTaxonomy::womensWorldDefaultVisibilitySetting();
+
+        if ($visibility === 'private_link') {
+            $existing = data_get($post?->meta, 'womens_world_private_link_token');
+            $meta['womens_world_private_link_token'] = filled($existing)
+                ? $existing
+                : \Illuminate\Support\Str::random(48);
+        } else {
+            unset($meta['womens_world_private_link_token']);
+        }
+
+        return $meta;
     }
 
     private function shouldAllowComments(Request $request): bool
@@ -2666,6 +2959,49 @@ class CommunityPostController extends Controller
     }
 
     /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeWomensWorldGallery(Request $request): array
+    {
+        return collect($request->file('womens_world_gallery', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'womens-world-gallery'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveWomensWorldGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesWomensWorldFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'womens_world_gallery', []);
+        $removed = (array) $request->input('removed_womens_world_gallery', []);
+
+        if ($existing === [] && ! $request->hasFile('womens_world_gallery')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $image): bool => in_array((string) data_get($image, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('womens_world_gallery')) {
+            $kept = array_values(array_merge($kept, $this->storeWomensWorldGallery($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_WOMENS_WORLD_GALLERY));
+    }
+
+    /**
      * @return list<array{year: string, title: string, description: string, photo: array{path: string, url: string, name: string, type: string}|null}>|null
      */
     private function resolveLifeTimeline(Request $request, ?CommunityPost $post = null): ?array
@@ -2793,6 +3129,48 @@ class CommunityPostController extends Controller
         }
 
         return data_get($post?->meta, 'story_audio');
+    }
+
+    /**
+     * @return array{type: string, path: string, name: string, url: string}|null
+     */
+    private function resolveWomensWorldAudio(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesWomensWorldFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        if ($request->boolean('remove_womens_world_audio')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'womens_world_audio'));
+
+            return null;
+        }
+
+        $sourceType = $request->input('womens_world_audio_source_type', 'none');
+
+        if ($sourceType === 'upload' && $request->hasFile('womens_world_audio_file')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'womens_world_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('womens_world_audio_file'), 'upload');
+        }
+
+        if ($sourceType === 'recording' && $request->hasFile('womens_world_audio_recording')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'womens_world_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('womens_world_audio_recording'), 'recording');
+        }
+
+        if ($request->boolean('keep_existing_womens_world_audio') && data_get($post?->meta, 'womens_world_audio')) {
+            return data_get($post->meta, 'womens_world_audio');
+        }
+
+        if ($sourceType === 'none') {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'womens_world_audio'));
+
+            return null;
+        }
+
+        return data_get($post?->meta, 'womens_world_audio');
     }
 
     /**

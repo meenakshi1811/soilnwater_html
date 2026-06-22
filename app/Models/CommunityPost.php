@@ -379,16 +379,35 @@ class CommunityPost extends Model
     {
         return $query->where(function (Builder $builder) use ($viewer): void {
             $builder
-                ->where('content_type', '!=', 'childrens-corner')
+                ->where(function (Builder $nonChildrensCorner): void {
+                    $nonChildrensCorner
+                        ->where('content_type', '!=', 'childrens-corner')
+                        ->where('content_type', '!=', 'womens-world');
+                })
                 ->orWhere(function (Builder $childrensCorner) use ($viewer): void {
-                    $childrensCorner->where(function (Builder $publicPrivacy): void {
-                        $publicPrivacy
-                            ->whereNull('meta->childrens_corner_privacy_setting')
-                            ->orWhereIn('meta->childrens_corner_privacy_setting', ['public', 'public_limited']);
-                    });
+                    $childrensCorner
+                        ->where('content_type', 'childrens-corner')
+                        ->where(function (Builder $publicPrivacy): void {
+                            $publicPrivacy
+                                ->whereNull('meta->childrens_corner_privacy_setting')
+                                ->orWhereIn('meta->childrens_corner_privacy_setting', ['public', 'public_limited']);
+                        });
 
                     if ($viewer !== null) {
                         $childrensCorner->orWhereIn('meta->childrens_corner_privacy_setting', ['registered_users', 'school_community']);
+                    }
+                })
+                ->orWhere(function (Builder $womensWorld) use ($viewer): void {
+                    $womensWorld
+                        ->where('content_type', 'womens-world')
+                        ->where(function (Builder $publicVisibility): void {
+                            $publicVisibility
+                                ->whereNull('meta->womens_world_visibility')
+                                ->orWhere('meta->womens_world_visibility', 'public');
+                        });
+
+                    if ($viewer !== null) {
+                        $womensWorld->orWhereIn('meta->womens_world_visibility', ['registered_users', 'women_community_only']);
                     }
                 });
         });
@@ -580,6 +599,17 @@ class CommunityPost extends Model
         return in_array($contentType, ['news', 'reports', 'awareness', 'business'], true);
     }
 
+    public static function usesWomensWorldOptionalStructuredLocation(?string $contentType): bool
+    {
+        return $contentType === 'womens-world';
+    }
+
+    public static function mountsStructuredLocationFields(?string $contentType): bool
+    {
+        return self::usesStructuredLocation($contentType)
+            || self::usesWomensWorldOptionalStructuredLocation($contentType);
+    }
+
     public static function supportsStarRating(?string $contentType): bool
     {
         return in_array($contentType, ['stories', 'poetry', 'autobiography'], true);
@@ -667,6 +697,15 @@ class CommunityPost extends Model
      */
     public static function structuredLocationLabelsFor(?string $contentType): array
     {
+        if ($contentType === 'womens-world') {
+            return [
+                'location_country' => 'Country',
+                'location_state' => 'State',
+                'location_district' => 'District',
+                'location_city' => 'City',
+            ];
+        }
+
         return [
             'location_country' => 'Country',
             'location_state' => 'State',
@@ -817,6 +856,11 @@ class CommunityPost extends Model
                 && $this->businessPollOptionsForDisplay() !== [];
         }
 
+        if ($this->isWomensWorldPost()) {
+            return filled(data_get($this->meta, 'womens_world_poll_question'))
+                && $this->womensWorldPollOptionsForDisplay() !== [];
+        }
+
         return filled($this->poll_subject);
     }
 
@@ -832,6 +876,10 @@ class CommunityPost extends Model
 
         if ($this->isBusinessPost()) {
             return (string) data_get($this->meta, 'business_poll_question');
+        }
+
+        if ($this->isWomensWorldPost()) {
+            return (string) data_get($this->meta, 'womens_world_poll_question');
         }
 
         return 'Do you support '.$this->poll_subject.'?';
@@ -860,6 +908,26 @@ class CommunityPost extends Model
     /**
      * @return array<string, string>
      */
+    public function womensWorldPollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'womens_world_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::womensWorldDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
     public function pollOptionsForDisplay(): array
     {
         if ($this->isAwarenessPost()) {
@@ -872,6 +940,10 @@ class CommunityPost extends Model
 
         if ($this->isBusinessPost()) {
             return $this->businessPollOptionsForDisplay();
+        }
+
+        if ($this->isWomensWorldPost()) {
+            return $this->womensWorldPollOptionsForDisplay();
         }
 
         return self::POLL_OPTIONS;
@@ -1030,6 +1102,40 @@ class CommunityPost extends Model
         return self::usesWomensWorldFlow($this->content_type);
     }
 
+    public function womensWorldAudioData(): ?array
+    {
+        $audio = data_get($this->meta, 'womens_world_audio');
+
+        return is_array($audio) && filled($audio['url'] ?? null)
+            ? $audio
+            : null;
+    }
+
+    public function womensWorldAudioUrl(): ?string
+    {
+        return $this->womensWorldAudioData()['url'] ?? null;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function womensWorldGallery(): array
+    {
+        return array_values((array) data_get($this->meta, 'womens_world_gallery', []));
+    }
+
+    public function isWomensWorldGalleryImage(array $file): bool
+    {
+        $mime = strtolower((string) data_get($file, 'type', ''));
+        if (str_starts_with($mime, 'image/')) {
+            return true;
+        }
+
+        $extension = strtolower(pathinfo((string) data_get($file, 'name', ''), PATHINFO_EXTENSION));
+
+        return in_array($extension, ['png', 'jpg', 'jpeg', 'webp', 'gif'], true);
+    }
+
     public function businessCategoryLabel(): ?string
     {
         if (! $this->isBusinessPost()) {
@@ -1097,6 +1203,10 @@ class CommunityPost extends Model
 
         if ($this->isBusinessPost()) {
             return \App\Support\CommunityContentTaxonomy::businessReactionLabels();
+        }
+
+        if ($this->isWomensWorldPost()) {
+            return \App\Support\CommunityContentTaxonomy::womensWorldReactionLabels();
         }
 
         return ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'];
@@ -1262,6 +1372,19 @@ class CommunityPost extends Model
 
     public function isVisibleInCommunityTo(?User $viewer): bool
     {
+        if ($this->isWomensWorldPost()) {
+            if ($viewer !== null && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
+                return true;
+            }
+
+            return match ($this->womensWorldVisibilitySetting()) {
+                'public' => true,
+                'registered_users', 'women_community_only' => $viewer !== null,
+                'private_link' => false,
+                default => true,
+            };
+        }
+
         if (! $this->isChildrensCornerPost()) {
             return true;
         }
@@ -1280,11 +1403,65 @@ class CommunityPost extends Model
 
     public function requiresAuthenticationForCommunityView(): bool
     {
+        if ($this->isWomensWorldPost()) {
+            return in_array($this->womensWorldVisibilitySetting(), ['registered_users', 'women_community_only'], true);
+        }
+
         if (! $this->isChildrensCornerPost()) {
             return false;
         }
 
         return in_array($this->childrensCornerPrivacySetting(), ['registered_users', 'school_community'], true);
+    }
+
+    public function requiresWomensWorldPrivateLink(): bool
+    {
+        return $this->isWomensWorldPost() && $this->womensWorldVisibilitySetting() === 'private_link';
+    }
+
+    public function womensWorldVisibilitySetting(): string
+    {
+        if (! $this->isWomensWorldPost()) {
+            return \App\Support\CommunityContentTaxonomy::womensWorldDefaultVisibilitySetting();
+        }
+
+        $setting = (string) data_get($this->meta, 'womens_world_visibility', '');
+
+        return array_key_exists($setting, \App\Support\CommunityContentTaxonomy::womensWorldVisibilitySettings())
+            ? $setting
+            : \App\Support\CommunityContentTaxonomy::womensWorldDefaultVisibilitySetting();
+    }
+
+    public function womensWorldVisibilityLabel(): string
+    {
+        return \App\Support\CommunityContentTaxonomy::womensWorldVisibilitySettings()[$this->womensWorldVisibilitySetting()]
+            ?? 'Public';
+    }
+
+    public function allowsWomensWorldPrivateLinkAccess(?string $accessToken): bool
+    {
+        if (! $this->requiresWomensWorldPrivateLink()) {
+            return false;
+        }
+
+        $token = (string) data_get($this->meta, 'womens_world_private_link_token', '');
+
+        return filled($token) && filled($accessToken) && hash_equals($token, $accessToken);
+    }
+
+    public function womensWorldPrivateLinkUrl(): ?string
+    {
+        if (! $this->requiresWomensWorldPrivateLink()) {
+            return null;
+        }
+
+        $token = (string) data_get($this->meta, 'womens_world_private_link_token', '');
+
+        if (blank($token)) {
+            return null;
+        }
+
+        return route('community.show', $this).'?access='.$token;
     }
 
     public function commentIsVisibleTo(?User $viewer, CommunityPostComment $comment): bool

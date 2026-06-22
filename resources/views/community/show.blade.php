@@ -373,6 +373,14 @@
                     </span>
                 @endif
             @endif
+            @if($post->isWomensWorldPost())
+                @foreach((array) data_get($post->meta, 'womens_world_themes', []) as $theme)
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $theme }}</span>
+                @endforeach
+                @foreach((array) data_get($post->meta, 'womens_world_community_groups', []) as $group)
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $group }}</span>
+                @endforeach
+            @endif
             @foreach($post->adminPromotionLabels() as $promotionLabel)
                 <span class="badge bg-warning text-dark community-post-banner-tag">{{ $promotionLabel }}</span>
             @endforeach
@@ -563,6 +571,10 @@
                 ])
             @endif
 
+            @if($post->isWomensWorldPost())
+                @include('community.partials.womens-world-show-sections', ['post' => $post])
+            @endif
+
             @if($post->isReportContent())
                 <div class="mb-4">
                     @include('community.partials.report-trust-score', ['post' => $post])
@@ -588,7 +600,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost())
+            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -753,6 +765,17 @@
                 ]);
                 $additionalWomensWorldMeta = $visibleMeta->except([
                     ...\App\Support\CommunityPostFormFields::womensWorldStructuredMetaKeys(),
+                    ...\App\Support\CommunityPostFormFields::womensWorldEngagementStructuredMetaKeys(),
+                    'womens_world_gallery',
+                    'womens_world_video_type',
+                    'womens_world_audio',
+                    'womens_world_visibility',
+                    'womens_world_private_link_token',
+                    'location_country',
+                    'location_state',
+                    'location_district',
+                    'location_city',
+                    'location_locality',
                     'author_bio',
                     'focus_area',
                     'perspective_summary',
@@ -826,7 +849,6 @@
                 @endphp
             @endif
             @if($post->isWomensWorldPost())
-                @include('community.partials.womens-world-meta-details', ['post' => $post])
                 @php
                     $visibleMeta = $additionalWomensWorldMeta;
                 @endphp
@@ -849,7 +871,11 @@
                     $visibleMeta = $additionalMyVoiceMeta;
                 @endphp
             @endif
-            @if(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
+            @if($post->isWomensWorldPost() && $post->structuredLocationForDisplay()->isNotEmpty())
+                @php
+                    $visibleMeta = $additionalWomensWorldMeta;
+                @endphp
+            @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Location information</h4>
                     <div class="row g-3">
@@ -966,6 +992,8 @@
                     $userReactions = auth()->check() ? $post->reactions->where('user_id', auth()->id())->pluck('reaction')->all() : [];
                     $reactionOptions = $post->usesChildFriendlyReactions()
                         ? \App\Support\CommunityContentTaxonomy::childrensCornerReactionOptions()
+                        : ($post->isWomensWorldPost()
+                        ? \App\Support\CommunityContentTaxonomy::womensWorldReactionOptions()
                         : ($post->isBusinessPost()
                         ? [
                             'Informative' => 'fa-solid fa-circle-info',
@@ -987,7 +1015,7 @@
                             'Excellent' => 'fa-solid fa-star',
                             'Informative' => 'fa-solid fa-circle-info',
                             'Dislike' => 'fa-solid fa-thumbs-down',
-                        ]));
+                        ]))));
                 @endphp
                 @auth
                     <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
@@ -1103,7 +1131,7 @@
 @if($post->isAwarenessPost())
 @include('community.partials.awareness-styles')
 @endif
-@if($post->isBusinessPost())
+@if($post->isBusinessPost() || $post->isWomensWorldPost())
 @include('community.partials.business-styles')
 @endif
 <style>

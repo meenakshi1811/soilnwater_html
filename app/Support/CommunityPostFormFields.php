@@ -139,7 +139,7 @@ class CommunityPostFormFields
             $rules[$field['name']] = self::rulesForField($field, $contentType);
         }
 
-        if (CommunityPost::usesStructuredLocation($contentType)) {
+        if (CommunityPost::mountsStructuredLocationFields($contentType)) {
             foreach (self::structuredLocationFields($contentType) as $field) {
                 $rules[$field['name']] = self::rulesForField($field, $contentType);
             }
@@ -187,7 +187,7 @@ class CommunityPostFormFields
             ]);
         }
 
-        if (CommunityPost::usesStructuredLocation($contentType)) {
+        if (CommunityPost::mountsStructuredLocationFields($contentType)) {
             $allowedKeys = array_merge($allowedKeys, CommunityPost::structuredLocationMetaKeys());
         }
 
@@ -382,6 +382,58 @@ class CommunityPostFormFields
                 (array) $request->input('womens_world_target_audience', []),
                 CommunityContentTaxonomy::womensWorldTargetAudiences()
             ));
+            $payload['womens_world_featured_topics'] = array_values(array_intersect(
+                (array) $request->input('womens_world_featured_topics', []),
+                CommunityContentTaxonomy::womensWorldFeaturedTopics()
+            ));
+            $payload['womens_world_life_stage'] = $request->input('womens_world_life_stage');
+            $payload['womens_world_themes'] = array_values(array_intersect(
+                (array) $request->input('womens_world_themes', []),
+                CommunityContentTaxonomy::womensWorldThemes()
+            ));
+            $payload['womens_world_video_type'] = $request->input('womens_world_video_type');
+            $payload['womens_world_business_name'] = $request->input('womens_world_business_name');
+            $payload['womens_world_business_category'] = $request->input('womens_world_business_category');
+            $payload['womens_world_website_url'] = $request->input('womens_world_website_url');
+            $payload['womens_world_vendor_profile_url'] = $request->input('womens_world_vendor_profile_url');
+            $payload['womens_world_ask_community'] = $request->input('womens_world_ask_community');
+            $payload['womens_world_poll_question'] = $request->input('womens_world_poll_question');
+            $payload['womens_world_poll_options'] = collect(preg_split('/\R/', (string) $request->input('womens_world_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+
+            if (! $request->boolean('allow_poll')) {
+                unset($payload['womens_world_poll_question'], $payload['womens_world_poll_options']);
+            }
+
+            $payload['womens_world_support_requests'] = array_values(array_intersect(
+                (array) $request->input('womens_world_support_requests', []),
+                CommunityContentTaxonomy::womensWorldSupportRequests()
+            ));
+            $payload['womens_world_community_groups'] = array_values(array_intersect(
+                (array) $request->input('womens_world_community_groups', []),
+                CommunityContentTaxonomy::womensWorldCommunityGroups()
+            ));
+            $payload['womens_world_visibility'] = array_key_exists(
+                (string) $request->input('womens_world_visibility'),
+                CommunityContentTaxonomy::womensWorldVisibilitySettings()
+            )
+                ? (string) $request->input('womens_world_visibility')
+                : CommunityContentTaxonomy::womensWorldDefaultVisibilitySetting();
+            $payload['womens_world_useful_websites'] = $request->input('womens_world_useful_websites');
+            $payload['womens_world_government_schemes'] = $request->input('womens_world_government_schemes');
+            $payload['womens_world_training_programs'] = $request->input('womens_world_training_programs');
+            $payload['womens_world_scholarships'] = $request->input('womens_world_scholarships');
+            $payload['womens_world_support_organizations'] = $request->input('womens_world_support_organizations');
+
+            foreach (['location_country', 'location_state', 'location_district', 'location_city'] as $locationKey) {
+                if ($request->has($locationKey)) {
+                    $payload[$locationKey] = $request->input($locationKey);
+                }
+            }
+            unset($payload['location_locality']);
         }
 
         if (CommunityPost::usesChildrensCornerFlow($contentType)) {
@@ -459,6 +511,11 @@ class CommunityPostFormFields
                     'business_contact_options',
                     'business_poll_options',
                     'womens_world_target_audience',
+                    'womens_world_featured_topics',
+                    'womens_world_themes',
+                    'womens_world_poll_options',
+                    'womens_world_support_requests',
+                    'womens_world_community_groups',
                 ], true)) {
                     return true;
                 }
@@ -944,6 +1001,10 @@ class CommunityPostFormFields
             'womens_world_category' => 'Main category',
             'womens_world_content_type' => 'Content type',
             'womens_world_target_audience' => 'Target audience',
+            'womens_world_featured_topics' => 'Featured topics',
+            'womens_world_life_stage' => 'Life stage',
+            'womens_world_themes' => 'Themes',
+            'womens_world_video_type' => 'Video type',
         ];
     }
 
@@ -953,6 +1014,81 @@ class CommunityPostFormFields
     public static function womensWorldStructuredMetaKeys(): array
     {
         return array_keys(self::womensWorldDetailMetaOrder());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function womensWorldEngagementStructuredMetaKeys(): array
+    {
+        return [
+            'womens_world_business_name',
+            'womens_world_business_category',
+            'womens_world_website_url',
+            'womens_world_vendor_profile_url',
+            'womens_world_ask_community',
+            'womens_world_poll_question',
+            'womens_world_poll_options',
+            'womens_world_support_requests',
+            'womens_world_community_groups',
+            'womens_world_visibility',
+            'womens_world_private_link_token',
+            'womens_world_useful_websites',
+            'womens_world_government_schemes',
+            'womens_world_training_programs',
+            'womens_world_scholarships',
+            'womens_world_support_organizations',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function womensWorldAdminMetaOrder(): array
+    {
+        return array_merge(self::womensWorldDetailMetaOrder(), [
+            'womens_world_visibility' => 'Visibility',
+            'womens_world_business_name' => 'Business name',
+            'womens_world_business_category' => 'Business category',
+            'womens_world_website_url' => 'Website / profile',
+            'womens_world_vendor_profile_url' => 'Vendor profile',
+            'womens_world_ask_community' => 'Ask the community',
+            'womens_world_poll_question' => 'Poll question',
+            'womens_world_poll_options' => 'Poll options',
+            'womens_world_support_requests' => 'Support requests',
+            'womens_world_community_groups' => 'Community groups',
+            'womens_world_useful_websites' => 'Useful websites',
+            'womens_world_government_schemes' => 'Government schemes',
+            'womens_world_training_programs' => 'Training programs',
+            'womens_world_scholarships' => 'Scholarships',
+            'womens_world_support_organizations' => 'Support organizations',
+        ]);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedWomensWorldAdminMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::womensWorldAdminMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if ($key === 'womens_world_category' && blank($value)) {
+                    $value = $post->category;
+                }
+
+                if ($key === 'womens_world_visibility' && filled($value)) {
+                    $value = \App\Support\CommunityContentTaxonomy::womensWorldVisibilitySettings()[(string) $value] ?? $value;
+                }
+
+                if (is_array($value)) {
+                    $value = implode(', ', array_values(array_filter($value)));
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value));
     }
 
     /**

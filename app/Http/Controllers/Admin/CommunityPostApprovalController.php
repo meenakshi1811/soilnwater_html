@@ -12,6 +12,7 @@ use App\Services\CommunityArticleScoreService;
 use App\Services\CommunityReportTrustScoreService;
 use App\Services\CommunityEngagementNotificationService;
 use App\Services\CommunityReportEngagementNotificationService;
+use App\Services\CommunityWomensWorldEngagementNotificationService;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
 use Illuminate\Http\JsonResponse;
@@ -150,6 +151,9 @@ class CommunityPostApprovalController extends Controller
             $post = $post->fresh('user');
             $this->notifyOwnerOfReview($post, 'approved');
             CommunityEngagementNotificationService::notifySubscribersOfPublishedPost($post);
+            if ($post->isWomensWorldPost()) {
+                CommunityWomensWorldEngagementNotificationService::notifyAuthorOfPublishedPost($post);
+            }
             CommunityReportEngagementNotificationService::notifyFollowersOfReportUpdate(
                 $post,
                 'This report has been reviewed and published.'

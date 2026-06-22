@@ -711,6 +711,9 @@ The mountains keep.</pre>
             <div class="col-12 type-extra business-flow" data-for="business">
                 @include('backend.community-posts.partials.business-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            <div class="col-12 type-extra womens-world-flow" data-for="womens-world">
+                @include('backend.community-posts.partials.womens-world-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
                     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -2970,6 +2973,7 @@ The mountains keep.</pre>
     const COMMUNITY_LOCATION_TYPE_GPS = @json(\App\Models\CommunityPost::LOCATION_TYPE_GPS);
     const COMMUNITY_BASE_LOCATION_TYPES = @json(\App\Models\CommunityPost::locationTypeOptions());
     const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness', 'business'];
+    const COMMUNITY_OPTIONAL_STRUCTURED_LOCATION_TYPES = ['womens-world'];
     let communityGpsMap = null;
     let communityGpsMarker = null;
     let communityGpsMapInitialized = false;
@@ -2984,6 +2988,11 @@ The mountains keep.</pre>
     }
 
     function usesStructuredCommunityLocation(contentType) {
+        return COMMUNITY_STRUCTURED_LOCATION_TYPES.includes(contentType)
+            || COMMUNITY_OPTIONAL_STRUCTURED_LOCATION_TYPES.includes(contentType);
+    }
+
+    function requiresStructuredCommunityLocation(contentType) {
         return COMMUNITY_STRUCTURED_LOCATION_TYPES.includes(contentType);
     }
 
@@ -3021,6 +3030,7 @@ The mountains keep.</pre>
         const reportSlot = document.getElementById('communityReportLocationSlot');
         const awarenessSlot = document.getElementById('communityAwarenessLocationSlot');
         const businessSlot = document.getElementById('communityBusinessLocationSlot');
+        const womensWorldSlot = document.getElementById('communityWomensWorldLocationSlot');
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
 
         if (!wrapper) {
@@ -3031,7 +3041,9 @@ The mountains keep.</pre>
         const isReport = contentType === 'reports';
         const isAwareness = contentType === 'awareness';
         const isBusiness = contentType === 'business';
+        const isWomensWorld = contentType === 'womens-world';
         const usesStructured = usesStructuredCommunityLocation(contentType);
+        const requiresStructured = requiresStructuredCommunityLocation(contentType);
         let targetSlot = hiddenSlot;
 
         if (isNews) {
@@ -3042,6 +3054,8 @@ The mountains keep.</pre>
             targetSlot = awarenessSlot;
         } else if (isBusiness) {
             targetSlot = businessSlot;
+        } else if (isWomensWorld) {
+            targetSlot = womensWorldSlot;
         }
 
         if (targetSlot && wrapper.parentElement !== targetSlot) {
@@ -3056,16 +3070,37 @@ The mountains keep.</pre>
         }
 
         document.querySelectorAll('.structured-location-required').forEach((field) => {
-            field.required = usesStructured;
+            field.required = requiresStructured;
             field.disabled = !usesStructured;
         });
+
+        ['communityLocationCountry', 'communityLocationState', 'communityLocationDistrict', 'communityLocationCity'].forEach((fieldId) => {
+            const label = document.querySelector(`label[for="${fieldId}"]`);
+            if (!label) {
+                return;
+            }
+
+            const baseText = label.textContent.replace(/\s*\*$/, '').trim();
+            label.innerHTML = requiresStructured
+                ? `${baseText} <span class="text-danger">*</span>`
+                : baseText;
+        });
+
+        const localityWrap = document.getElementById('communityLocationLocalityWrap');
+        const mapWrap = document.getElementById('communityStructuredLocationMapWrap');
+        if (localityWrap) {
+            localityWrap.style.display = isWomensWorld ? 'none' : '';
+        }
+        if (mapWrap) {
+            mapWrap.style.display = isWomensWorld ? 'none' : '';
+        }
 
         const localityField = document.getElementById('communityLocationLocality');
         const localityLabel = document.getElementById('communityLocationLocalityLabel');
 
         if (localityField) {
-            localityField.required = usesStructured && (isAwareness || isBusiness);
-            localityField.disabled = !usesStructured;
+            localityField.required = requiresStructured && (isAwareness || isBusiness);
+            localityField.disabled = !usesStructured || isWomensWorld;
 
             if (isAwareness || isBusiness) {
                 localityField.classList.add('structured-location-required');
@@ -3092,7 +3127,7 @@ The mountains keep.</pre>
         }
     }
 
-    function mountNewsParticipationFields(isNews, isAwareness, isBusiness) {
+    function mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld) {
         const publicParticipationWrap = document.getElementById('publicParticipationWrap');
         const newsParticipationWrap = document.getElementById('newsParticipationWrap');
         const allowSharingWrap = document.getElementById('allowSharingWrap');
@@ -3103,11 +3138,14 @@ The mountains keep.</pre>
         const businessParticipationWrap = document.getElementById('businessParticipationWrap');
         const businessPollWrap = document.getElementById('businessPollWrap');
         const businessPollFields = document.getElementById('businessPollFields');
+        const womensWorldParticipationWrap = document.getElementById('womensWorldParticipationWrap');
+        const womensWorldPollWrap = document.getElementById('womensWorldPollWrap');
+        const womensWorldPollFields = document.getElementById('womensWorldPollFields');
 
         if (publicParticipationWrap) {
-            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness) ? 'none' : '';
+            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness || isWomensWorld) ? 'none' : '';
             publicParticipationWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isNews || isAwareness || isBusiness;
+                field.disabled = isNews || isAwareness || isBusiness || isWomensWorld;
             });
         }
 
@@ -3116,16 +3154,16 @@ The mountains keep.</pre>
         }
 
         if (allowSharingWrap) {
-            allowSharingWrap.style.display = (isAwareness || isBusiness) ? 'none' : '';
+            allowSharingWrap.style.display = (isAwareness || isBusiness || isWomensWorld) ? 'none' : '';
             allowSharingWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness || isBusiness;
+                field.disabled = isAwareness || isBusiness || isWomensWorld;
             });
         }
 
         if (allowPollWrap) {
-            allowPollWrap.style.display = (isAwareness || isBusiness || isNews) ? 'none' : '';
+            allowPollWrap.style.display = (isAwareness || isBusiness || isNews || isWomensWorld) ? 'none' : '';
             allowPollWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness || isBusiness || isNews;
+                field.disabled = isAwareness || isBusiness || isNews || isWomensWorld;
             });
         }
 
@@ -3143,6 +3181,14 @@ The mountains keep.</pre>
 
         if (businessPollWrap) {
             businessPollWrap.style.display = isBusiness ? '' : 'none';
+        }
+
+        if (womensWorldParticipationWrap) {
+            womensWorldParticipationWrap.style.display = isWomensWorld ? '' : 'none';
+        }
+
+        if (womensWorldPollWrap) {
+            womensWorldPollWrap.style.display = isWomensWorld ? '' : 'none';
         }
 
         const awarenessAllowPoll = document.getElementById('awarenessAllowPoll');
@@ -3171,6 +3217,21 @@ The mountains keep.</pre>
             }
         }
 
+        const womensWorldAllowPoll = document.getElementById('womensWorldAllowPoll');
+        if (womensWorldPollFields) {
+            const womensWorldPollEnabled = isWomensWorld && womensWorldAllowPoll?.checked;
+            womensWorldPollFields.style.display = womensWorldPollEnabled ? '' : 'none';
+            const womensWorldPollQuestion = document.getElementById('womensWorldPollQuestion');
+            if (womensWorldPollQuestion) {
+                womensWorldPollQuestion.required = Boolean(womensWorldPollEnabled);
+                womensWorldPollQuestion.disabled = !womensWorldPollEnabled;
+            }
+            const womensWorldPollOptions = document.getElementById('womensWorldPollOptions');
+            if (womensWorldPollOptions) {
+                womensWorldPollOptions.disabled = !womensWorldPollEnabled;
+            }
+        }
+
         const awarenessHasEvent = document.getElementById('awarenessHasEvent');
         const awarenessEventFields = document.getElementById('awarenessEventFields');
         if (awarenessEventFields) {
@@ -3178,19 +3239,22 @@ The mountains keep.</pre>
         }
     }
 
-    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness) {
+    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld) {
         const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
         const featuredSlot = document.getElementById('communityNewsFeaturedImagesSlot');
         const storyFeaturedSlot = document.getElementById('communityStoryFeaturedImagesSlot');
         const awarenessFeaturedSlot = document.getElementById('communityAwarenessFeaturedImagesSlot');
         const businessFeaturedSlot = document.getElementById('communityBusinessFeaturedImagesSlot');
+        const womensWorldFeaturedSlot = document.getElementById('communityWomensWorldFeaturedImagesSlot');
         const businessTagsSlot = document.getElementById('communityBusinessTagsSlot');
+        const womensWorldTagsSlot = document.getElementById('communityWomensWorldTagsSlot');
         const tagsCol = document.getElementById('communityTagsWrap');
         const videoWrap = document.getElementById('communityVideoWrap');
         const videoSlot = document.getElementById('communityNewsVideoSlot');
         const storyVideoSlot = document.getElementById('communityStoryVideoSlot');
         const awarenessVideoSlot = document.getElementById('communityAwarenessVideoSlot');
         const businessVideoSlot = document.getElementById('communityBusinessVideoSlot');
+        const womensWorldVideoSlot = document.getElementById('communityWomensWorldVideoSlot');
         const videoAnchor = document.getElementById('communityVideoHiddenSlot');
         const videoFieldLabel = document.getElementById('videoFieldLabel');
         const featuredLabel = document.getElementById('featuredImagesLabel');
@@ -3206,7 +3270,7 @@ The mountains keep.</pre>
                 videoWrap.style.display = 'none';
             }
         } else {
-            window.communityFeaturedImages.max = (isAwareness || isBusiness) ? 1 : 5;
+            window.communityFeaturedImages.max = (isAwareness || isBusiness || isWomensWorld) ? 1 : 5;
             if (videoWrap) {
                 videoWrap.style.display = '';
             }
@@ -3225,6 +3289,9 @@ The mountains keep.</pre>
                 } else if (isBusiness && businessFeaturedSlot) {
                     businessFeaturedSlot.appendChild(featuredWrap);
                     featuredWrap.classList.remove('col-md-6');
+                } else if (isWomensWorld && womensWorldFeaturedSlot) {
+                    womensWorldFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
                 } else {
                     tagsCol.parentElement.insertBefore(featuredWrap, tagsCol);
                     featuredWrap.classList.add('col-md-6');
@@ -3234,6 +3301,10 @@ The mountains keep.</pre>
             if (tagsCol) {
                 if (isBusiness && businessTagsSlot) {
                     businessTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isWomensWorld && womensWorldTagsSlot) {
+                    womensWorldTagsSlot.appendChild(tagsCol);
                     tagsCol.classList.remove('col-md-6');
                     tagsCol.style.display = '';
                 } else if (communityTagsDefaultParent) {
@@ -3261,7 +3332,10 @@ The mountains keep.</pre>
             } else if (isBusiness && businessVideoSlot) {
                 businessVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
-            } else if (! isAwareness && ! isBusiness) {
+            } else if (isWomensWorld && womensWorldVideoSlot) {
+                womensWorldVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (! isAwareness && ! isBusiness && ! isWomensWorld) {
                 videoAnchor.insertAdjacentElement('afterend', videoWrap);
                 videoWrap.classList.add('col-md-6');
             } else {
@@ -3274,6 +3348,8 @@ The mountains keep.</pre>
                 videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
             } else if (isBusiness) {
                 videoFieldLabel.innerHTML = 'Business video <span class="text-muted fw-normal">(optional)</span>';
+            } else if (isWomensWorld) {
+                videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
             } else {
                 videoFieldLabel.innerHTML = isStories
                     ? 'Video story <span class="text-muted fw-normal">(optional)</span>'
@@ -3285,6 +3361,8 @@ The mountains keep.</pre>
             if (isAwareness) {
                 featuredLabel.innerHTML = 'Campaign banner <span class="text-danger">*</span> <span class="text-muted fw-normal">(recommended)</span>';
             } else if (isBusiness) {
+                featuredLabel.innerHTML = 'Cover image <span class="text-muted fw-normal">(recommended)</span>';
+            } else if (isWomensWorld) {
                 featuredLabel.innerHTML = 'Cover image <span class="text-muted fw-normal">(recommended)</span>';
             } else if (isStories) {
                 featuredLabel.textContent = 'Cover image (recommended)';
@@ -3300,6 +3378,8 @@ The mountains keep.</pre>
                 featuredHelp.textContent = 'Used for homepage, social media, and awareness listings. JPG, PNG, or WebP, max 4 MB.';
             } else if (isBusiness) {
                 featuredHelp.textContent = 'Recommended size: 1200 × 630 px. Used for listings, social sharing, and homepage. JPG, PNG, or WebP, max 4 MB.';
+            } else if (isWomensWorld) {
+                featuredHelp.textContent = 'Used for homepage cards, category listings, and social sharing. JPG, PNG, or WebP, max 4 MB.';
             } else if (isStories) {
                 featuredHelp.textContent = 'Used for story cards, social sharing, and homepage. Upload your cover image first. JPG, PNG, or WebP, max 4 MB each.';
             } else if (isNews) {
@@ -3313,6 +3393,8 @@ The mountains keep.</pre>
             if (isAwareness) {
                 featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add campaign banner';
             } else if (isBusiness) {
+                featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
+            } else if (isWomensWorld) {
                 featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
             } else if (isStories) {
                 featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
@@ -3641,11 +3723,11 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness) ? 'none' : '';
+            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld) ? 'none' : '';
         });
 
         document.querySelectorAll('.general-extra input, .general-extra textarea, .general-extra select').forEach((field) => {
-            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness;
+            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -3859,18 +3941,18 @@ The mountains keep.</pre>
         mountStructuredLocationFields(selectedType);
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
         if (commonLocationSlot) {
-            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness) ? 'none' : '';
+            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld) ? 'none' : '';
             commonLocationSlot.querySelectorAll('input, select, textarea').forEach((field) => {
                 if (isChildrensCorner) {
                     field.disabled = true;
                     field.required = false;
-                } else if (!isNews && !isReport && !isAwareness && !isBusiness) {
+                } else if (!isNews && !isReport && !isAwareness && !isBusiness && !isWomensWorld) {
                     field.disabled = false;
                 }
             });
         }
-        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness);
-        mountNewsParticipationFields(isNews, isAwareness, isBusiness);
+        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld);
+        mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld);
         refreshCommunityLocationTypeOptions(isReport);
         refreshBookLayoutMode(selectedType);
         refreshCommunityLocationFields(fieldCopy.locationHelp);
@@ -3882,7 +3964,7 @@ The mountains keep.</pre>
         const allowPollWrap = document.getElementById('allowPollWrap');
         const allowPoll = document.getElementById('allowPoll');
         if (allowPollWrap) {
-            allowPollWrap.style.display = (isReport || isAwareness || isBusiness) ? 'none' : '';
+            allowPollWrap.style.display = (isReport || isAwareness || isBusiness || isWomensWorld) ? 'none' : '';
         }
         if (isReport && allowPoll) {
             allowPoll.checked = false;
@@ -3904,6 +3986,13 @@ The mountains keep.</pre>
                 });
             }
         });
+
+        if (typeof refreshPublishAsFields === 'function') {
+            refreshPublishAsFields();
+        }
+        if (typeof refreshWomensWorldPrivacyFields === 'function') {
+            refreshWomensWorldPrivacyFields();
+        }
     }
 
     function isBookContentType(type) {
@@ -4213,31 +4302,80 @@ The mountains keep.</pre>
         const publishWrap = document.getElementById('publishAsWrap');
         const penNameWrap = document.getElementById('penNameWrap');
         const penNameInput = document.getElementById('penNameInput');
+        const womensWorldPublishWrap = document.getElementById('womensWorldPublishAsWrap');
+        const womensWorldPenNameWrap = document.getElementById('womensWorldPenNameWrap');
+        const womensWorldPenNameInput = document.getElementById('womensWorldPenNameInput');
+        const contentType = document.getElementById('contentType')?.value || '';
+        const isWomensWorld = contentType === 'womens-world';
 
-        if (!statusSelect || !publishWrap) {
+        if (!statusSelect) {
             return;
         }
 
         const isPublishing = statusSelect.value === 'published';
-        publishWrap.style.display = isPublishing ? '' : 'none';
+
+        if (publishWrap) {
+            publishWrap.style.display = (isPublishing && !isWomensWorld) ? '' : 'none';
+        }
+
+        if (womensWorldPublishWrap) {
+            womensWorldPublishWrap.style.display = (isPublishing && isWomensWorld) ? '' : 'none';
+        }
 
         document.querySelectorAll('input[name="publish_as"]').forEach((input) => {
-            input.required = isPublishing;
-            input.disabled = !isPublishing;
+            const inWomensWorldFlow = Boolean(input.closest('#womensWorldPublishAsWrap'));
+            const enabled = isPublishing && ((isWomensWorld && inWomensWorldFlow) || (!isWomensWorld && !inWomensWorldFlow));
+            input.required = enabled;
+            input.disabled = !enabled;
         });
 
-        const selectedPublishAs = document.querySelector('input[name="publish_as"]:checked')?.value || 'public_profile';
+        const selectedPublishAs = document.querySelector('input[name="publish_as"]:checked:not(:disabled)')?.value || 'public_profile';
         const showPenName = isPublishing && selectedPublishAs === 'pen_name';
 
         if (penNameWrap) {
-            penNameWrap.style.display = showPenName ? '' : 'none';
+            penNameWrap.style.display = (showPenName && !isWomensWorld) ? '' : 'none';
+        }
+
+        if (womensWorldPenNameWrap) {
+            womensWorldPenNameWrap.style.display = (showPenName && isWomensWorld) ? '' : 'none';
         }
 
         if (penNameInput) {
-            penNameInput.required = showPenName;
-            penNameInput.disabled = !showPenName;
+            penNameInput.required = showPenName && !isWomensWorld;
+            penNameInput.disabled = !showPenName || isWomensWorld;
+        }
+
+        if (womensWorldPenNameInput) {
+            womensWorldPenNameInput.required = showPenName && isWomensWorld;
+            womensWorldPenNameInput.disabled = !showPenName || !isWomensWorld;
         }
     }
+
+    function refreshWomensWorldPrivacyFields() {
+        const visibilitySelect = document.getElementById('womensWorldVisibility');
+        const privateLinkInfo = document.getElementById('womensWorldPrivateLinkInfo');
+        if (!visibilitySelect || !privateLinkInfo) {
+            return;
+        }
+
+        privateLinkInfo.style.display = visibilitySelect.value === 'private_link' ? '' : 'none';
+    }
+
+    document.getElementById('womensWorldVisibility')?.addEventListener('change', refreshWomensWorldPrivacyFields);
+    document.getElementById('womensWorldCopyPrivateLinkBtn')?.addEventListener('click', function () {
+        const input = document.getElementById('womensWorldPrivateLinkUrl');
+        if (!input?.value) {
+            return;
+        }
+        navigator.clipboard?.writeText(input.value).then(function () {
+            notify('success', 'Private link copied.');
+        }).catch(function () {
+            input.select();
+            document.execCommand('copy');
+            notify('success', 'Private link copied.');
+        });
+    });
+    refreshWomensWorldPrivacyFields();
 
     document.getElementById('communityPostStatus')?.addEventListener('change', refreshPublishAsFields);
     document.querySelectorAll('input[name="publish_as"]').forEach((input) => {
@@ -4275,15 +4413,20 @@ The mountains keep.</pre>
     document.getElementById('pollSubjectInput')?.addEventListener('input', refreshPollFields);
     refreshPollFields();
 
-    document.getElementById('awarenessAllowPoll')?.addEventListener('change', function () {
-        mountNewsParticipationFields(false, document.getElementById('contentType')?.value === 'awareness', document.getElementById('contentType')?.value === 'business');
-    });
-    document.getElementById('awarenessHasEvent')?.addEventListener('change', function () {
-        mountNewsParticipationFields(false, document.getElementById('contentType')?.value === 'awareness', document.getElementById('contentType')?.value === 'business');
-    });
-    document.getElementById('businessAllowPoll')?.addEventListener('change', function () {
-        mountNewsParticipationFields(false, document.getElementById('contentType')?.value === 'awareness', document.getElementById('contentType')?.value === 'business');
-    });
+    function refreshTypeParticipationFields() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        mountNewsParticipationFields(
+            contentType === 'news',
+            contentType === 'awareness',
+            contentType === 'business',
+            contentType === 'womens-world'
+        );
+    }
+
+    document.getElementById('awarenessAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
+    document.getElementById('awarenessHasEvent')?.addEventListener('change', refreshTypeParticipationFields);
+    document.getElementById('businessAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
+    document.getElementById('womensWorldAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
 
     function formatObservationDate(value) {
         if (!value) {
@@ -5025,6 +5168,138 @@ The mountains keep.</pre>
     });
 
     refreshStoryAudioPanels();
+
+    const womensWorldAudioUploadWrap = document.getElementById('womensWorldAudioUploadWrap');
+    const womensWorldAudioRecordingWrap = document.getElementById('womensWorldAudioRecordingWrap');
+    const womensWorldAudioFileInput = document.getElementById('womensWorldAudioFile');
+    const keepExistingWomensWorldAudioInput = document.getElementById('keepExistingWomensWorldAudio');
+    const womensWorldAudioRecordBtn = document.getElementById('womensWorldAudioRecordBtn');
+    const womensWorldAudioStopBtn = document.getElementById('womensWorldAudioStopBtn');
+    const womensWorldAudioClearRecordingBtn = document.getElementById('womensWorldAudioClearRecordingBtn');
+    const womensWorldAudioRecordingStatus = document.getElementById('womensWorldAudioRecordingStatus');
+    const womensWorldAudioRecordingPreview = document.getElementById('womensWorldAudioRecordingPreview');
+    let womensWorldAudioRecorder = null;
+    let womensWorldAudioStream = null;
+    let womensWorldAudioChunks = [];
+    let womensWorldAudioBlob = null;
+
+    function refreshWomensWorldAudioPanels() {
+        const selected = document.querySelector('input[name="womens_world_audio_source_type"]:checked')?.value || 'none';
+        womensWorldAudioUploadWrap?.classList.toggle('is-active', selected === 'upload');
+        womensWorldAudioRecordingWrap?.classList.toggle('is-active', selected === 'recording');
+    }
+
+    document.querySelectorAll('input[name="womens_world_audio_source_type"]').forEach((input) => {
+        input.addEventListener('change', refreshWomensWorldAudioPanels);
+    });
+
+    document.getElementById('removeWomensWorldAudio')?.addEventListener('change', function () {
+        if (this.checked) {
+            document.getElementById('womensWorldAudioSourceNone')?.click();
+        }
+    });
+
+    womensWorldAudioFileInput?.addEventListener('change', function () {
+        if (keepExistingWomensWorldAudioInput) {
+            keepExistingWomensWorldAudioInput.value = this.files?.length ? '0' : '1';
+        }
+    });
+
+    function resetWomensWorldAudioRecordingUi() {
+        if (womensWorldAudioStream) {
+            womensWorldAudioStream.getTracks().forEach((track) => track.stop());
+            womensWorldAudioStream = null;
+        }
+
+        womensWorldAudioRecorder = null;
+        womensWorldAudioChunks = [];
+        womensWorldAudioBlob = null;
+
+        if (womensWorldAudioRecordingPreview) {
+            womensWorldAudioRecordingPreview.removeAttribute('src');
+            womensWorldAudioRecordingPreview.style.display = 'none';
+            womensWorldAudioRecordingPreview.load();
+        }
+
+        if (womensWorldAudioRecordBtn) {
+            womensWorldAudioRecordBtn.disabled = false;
+        }
+        if (womensWorldAudioStopBtn) {
+            womensWorldAudioStopBtn.disabled = true;
+        }
+        if (womensWorldAudioClearRecordingBtn) {
+            womensWorldAudioClearRecordingBtn.disabled = true;
+        }
+        if (womensWorldAudioRecordingStatus) {
+            womensWorldAudioRecordingStatus.textContent = 'Ready to record.';
+        }
+    }
+
+    womensWorldAudioRecordBtn?.addEventListener('click', async function () {
+        if (!navigator.mediaDevices?.getUserMedia) {
+            notify('error', 'Voice recording is not supported in this browser.');
+            return;
+        }
+
+        try {
+            womensWorldAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            womensWorldAudioChunks = [];
+            womensWorldAudioRecorder = new MediaRecorder(womensWorldAudioStream);
+            womensWorldAudioRecorder.addEventListener('dataavailable', function (event) {
+                if (event.data.size > 0) {
+                    womensWorldAudioChunks.push(event.data);
+                }
+            });
+            womensWorldAudioRecorder.addEventListener('stop', function () {
+                womensWorldAudioBlob = new Blob(womensWorldAudioChunks, { type: 'audio/webm' });
+                const previewUrl = URL.createObjectURL(womensWorldAudioBlob);
+
+                if (womensWorldAudioRecordingPreview) {
+                    womensWorldAudioRecordingPreview.src = previewUrl;
+                    womensWorldAudioRecordingPreview.style.display = '';
+                    womensWorldAudioRecordingPreview.load();
+                }
+
+                if (womensWorldAudioClearRecordingBtn) {
+                    womensWorldAudioClearRecordingBtn.disabled = false;
+                }
+                if (womensWorldAudioRecordingStatus) {
+                    womensWorldAudioRecordingStatus.textContent = 'Recording ready. Submit the form to save it.';
+                }
+
+                if (keepExistingWomensWorldAudioInput) {
+                    keepExistingWomensWorldAudioInput.value = '0';
+                }
+            });
+
+            womensWorldAudioRecorder.start();
+            womensWorldAudioRecordBtn.disabled = true;
+            womensWorldAudioStopBtn.disabled = false;
+            womensWorldAudioRecordingStatus.textContent = 'Recording...';
+        } catch (error) {
+            notify('error', 'Microphone access is required for voice recording.');
+        }
+    });
+
+    womensWorldAudioStopBtn?.addEventListener('click', function () {
+        if (womensWorldAudioRecorder && womensWorldAudioRecorder.state !== 'inactive') {
+            womensWorldAudioRecorder.stop();
+        }
+
+        if (womensWorldAudioStream) {
+            womensWorldAudioStream.getTracks().forEach((track) => track.stop());
+            womensWorldAudioStream = null;
+        }
+
+        womensWorldAudioRecordBtn.disabled = false;
+        womensWorldAudioStopBtn.disabled = true;
+    });
+
+    womensWorldAudioClearRecordingBtn?.addEventListener('click', function () {
+        resetWomensWorldAudioRecordingUi();
+    });
+
+    refreshWomensWorldAudioPanels();
 
     const lifeTimelineEntries = document.getElementById('lifeTimelineEntries');
     const lifeTimelineTemplate = document.getElementById('lifeTimelineEntryTemplate');
@@ -6131,6 +6406,15 @@ The mountains keep.</pre>
                 notify('error', 'Please select at least one target audience.');
                 return;
             }
+
+            if (document.getElementById('womensWorldAllowPoll')?.checked) {
+                const womensWorldPollQuestion = document.getElementById('womensWorldPollQuestion')?.value.trim() || '';
+                if (!womensWorldPollQuestion) {
+                    notify('error', 'Please enter a poll question for this Women\'s World post.');
+                    document.getElementById('womensWorldPollQuestion')?.focus();
+                    return;
+                }
+            }
         }
 
         if (contentType === 'awareness') {
@@ -6234,9 +6518,14 @@ The mountains keep.</pre>
                 return;
             }
 
-            if (publishAs === 'pen_name' && !document.getElementById('penNameInput')?.value.trim()) {
-                notify('error', 'Please enter a pen name.');
-                return;
+            if (publishAs === 'pen_name') {
+                const penNameValue = document.getElementById('contentType')?.value === 'womens-world'
+                    ? document.getElementById('womensWorldPenNameInput')?.value.trim()
+                    : document.getElementById('penNameInput')?.value.trim();
+                if (!penNameValue) {
+                    notify('error', 'Please enter a pen name.');
+                    return;
+                }
             }
         }
 
@@ -6309,6 +6598,36 @@ The mountains keep.</pre>
             }
         }
 
+        if (contentType === 'womens-world') {
+            const womensWorldAudioSource = document.querySelector('input[name="womens_world_audio_source_type"]:checked')?.value || 'none';
+            if (womensWorldAudioSource === 'upload') {
+                const hasNewAudio = (womensWorldAudioFileInput?.files?.length || 0) > 0;
+                const keepingExistingAudio = keepExistingWomensWorldAudioInput?.value === '1';
+                if (!hasNewAudio && !keepingExistingAudio) {
+                    notify('error', 'Please choose an audio file or switch to another audio option.');
+                    return;
+                }
+
+                if (hasNewAudio && womensWorldAudioFileInput.files[0].size > maxStoryAudioBytes) {
+                    notify('error', 'Audio file must be 20 MB or smaller.');
+                    return;
+                }
+            }
+
+            if (womensWorldAudioSource === 'recording') {
+                const keepingExistingAudio = keepExistingWomensWorldAudioInput?.value === '1';
+                if (!womensWorldAudioBlob && !keepingExistingAudio) {
+                    notify('error', 'Please record your audio message or switch to another audio option.');
+                    return;
+                }
+
+                if (womensWorldAudioBlob && womensWorldAudioBlob.size > maxStoryAudioBytes) {
+                    notify('error', 'Recorded audio must be 20 MB or smaller.');
+                    return;
+                }
+            }
+        }
+
         submitButton.disabled = true;
         submitButton.innerHTML = 'Saving...';
 
@@ -6350,6 +6669,14 @@ The mountains keep.</pre>
             const childrensAudioSource = document.querySelector('input[name="childrens_corner_audio_source_type"]:checked')?.value || 'none';
             if (childrensAudioSource === 'recording' && window.childrensCornerAudioBlob) {
                 formData.append('childrens_corner_audio_recording', window.childrensCornerAudioBlob, 'childrens-corner-recording.webm');
+            }
+        }
+
+        if (document.getElementById('contentType').value === 'womens-world') {
+            formData.delete('womens_world_audio_recording');
+            const womensWorldAudioSource = document.querySelector('input[name="womens_world_audio_source_type"]:checked')?.value || 'none';
+            if (womensWorldAudioSource === 'recording' && womensWorldAudioBlob) {
+                formData.append('womens_world_audio_recording', womensWorldAudioBlob, 'womens-world-recording.webm');
             }
         }
 

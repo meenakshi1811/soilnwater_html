@@ -33,6 +33,11 @@
         @include('community.partials.business-styles')
     @endpush
 @endif
+@if($post->isWomensWorldPost())
+    @push('styles')
+        @include('community.partials.business-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
@@ -119,6 +124,15 @@
                 ])
             @endif
 
+            @if($post->isWomensWorldPost())
+                @include('community.partials.womens-world-show-sections', ['post' => $post])
+                @include('community.partials.womens-world-meta-details', [
+                    'post' => $post,
+                    'heading' => "Saved Women's World metadata",
+                    'includeAdmin' => true,
+                ])
+            @endif
+
             @if($post->isAwarenessPost() && ($post->allowsAwarenessCauseSupport() || $post->allowsAwarenessPledges() || $post->allowsCampaignJoin()))
                 <div class="mb-4" id="awareness-campaign-activity">
                     @include('backend.community-posts.partials.awareness-portal-activity', [
@@ -142,6 +156,12 @@
                 </div>
             @endif
 
+            @if($post->isWomensWorldPost())
+                <div class="mb-4" id="womens-world-portal-activity">
+                    @include('backend.community-posts.partials.womens-world-portal-activity', ['post' => $post])
+                </div>
+            @endif
+
             <div class="chart-card p-3 p-lg-4 mb-4">
                 <h5 class="mb-3">Comments &amp; discussion settings</h5>
                 <ul class="list-unstyled small mb-0">
@@ -151,6 +171,11 @@
                         <li class="mb-1"><strong>Safety declaration:</strong> {{ data_get($post->meta, 'childrens_corner_safety_confirmed') ? 'Confirmed' : 'Not recorded' }}</li>
                         <li class="mb-1"><strong>Comments moderated:</strong> {{ $post->commentsModerated() ? 'Yes — approval required' : 'No' }}</li>
                         <li class="mb-1"><strong>Reactions:</strong> Child-friendly only</li>
+                    @elseif($post->isWomensWorldPost())
+                        <li class="mb-1"><strong>Publish as:</strong> {{ \App\Support\CommunityContentTaxonomy::womensWorldPublishAsOptions()[$post->resolvedPublishAs()] ?? $post->publishAsLabel() }}</li>
+                        <li class="mb-1"><strong>Visibility:</strong> {{ $post->womensWorldVisibilityLabel() }}</li>
+                        <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Reactions:</strong> Women's World positive reactions</li>
                     @endif
                     <li class="mb-1"><strong>Questions:</strong> {{ $post->allow_questions ? 'Enabled' : 'Disabled' }}</li>
                     <li class="mb-0"><strong>Suggestions:</strong> {{ $post->allow_suggestions ? 'Enabled' : 'Disabled' }}</li>
