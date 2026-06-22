@@ -138,12 +138,12 @@
     }
 
     .community-toolbar {
-        background: #fff;
-        border: 1px solid #dce6f3;
+        background: linear-gradient(180deg, #ffffff 0%, #f7fafd 100%);
+        border: 1px solid #c8d9ea;
         border-radius: 16px;
-        box-shadow: 0 10px 28px rgba(18, 57, 95, 0.06);
+        box-shadow: 0 10px 28px rgba(15, 47, 85, 0.07);
         margin-bottom: 1.25rem;
-        padding: 1rem 1.1rem;
+        padding: 1.1rem 1.2rem;
     }
 
     .community-toolbar__head {
@@ -152,18 +152,21 @@
         flex-wrap: wrap;
         gap: 0.75rem;
         justify-content: space-between;
-        margin-bottom: 0.85rem;
+        margin-bottom: 0.95rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid #e3edf6;
     }
 
     .community-toolbar__title {
-        color: #12395f;
-        font-size: 1rem;
+        color: #0f2f55;
+        font-size: 1.02rem;
         font-weight: 700;
+        letter-spacing: 0.01em;
         margin: 0;
     }
 
     .community-toolbar__hint {
-        color: #6c849c;
+        color: #5a7490;
         font-size: 0.86rem;
         margin: 0;
     }
@@ -171,60 +174,123 @@
     .community-filter-scroll {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.55rem;
+        gap: 0.6rem;
     }
 
     .community-filter-pill {
-        background: #f4f8fc;
-        border: 1px solid #d7e3f0;
+        background: #fff;
+        border: 1.5px solid #c5d8ea;
         border-radius: 999px;
-        color: #24527a;
+        color: #1a4570;
         font-size: 0.84rem;
         font-weight: 600;
-        padding: 0.45rem 0.95rem;
+        padding: 0.48rem 1rem;
         text-decoration: none;
-        transition: all 0.18s ease;
+        transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
     }
 
     .community-filter-pill:hover {
-        background: #e8f3ea;
-        border-color: #9fd0a8;
-        color: #1f5f2d;
+        background: #eef5fc;
+        border-color: #7eb3db;
+        box-shadow: 0 4px 12px rgba(31, 102, 180, 0.1);
+        color: #0f3d6e;
+        transform: translateY(-1px);
     }
 
     .community-filter-pill.is-active {
-        background: linear-gradient(135deg, #2e7d32, #3d9a45);
+        background: linear-gradient(135deg, #163f72 0%, #1f66b4 52%, #2a7a3e 100%);
         border-color: transparent;
-        box-shadow: 0 8px 18px rgba(46, 125, 50, 0.22);
+        box-shadow: 0 8px 20px rgba(31, 102, 180, 0.28);
         color: #fff;
+        transform: none;
+    }
+
+    .community-filter-pill.is-active:hover {
+        background: linear-gradient(135deg, #163f72 0%, #1f66b4 52%, #2a7a3e 100%);
+        border-color: transparent;
+        box-shadow: 0 8px 22px rgba(31, 102, 180, 0.34);
+        color: #fff;
+        transform: none;
     }
 
     .community-type-panel {
-        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-        border: 1px solid #d9e7f5;
-        border-left: 4px solid #2e7d32;
+        background: linear-gradient(180deg, #f5f9fd 0%, #ffffff 100%);
+        border: 1px solid #c8d9ea;
+        border-left: 4px solid #1f66b4;
         border-radius: 14px;
         margin-bottom: 1.25rem;
         padding: 1rem 1.1rem;
     }
 
     .community-type-panel__title {
-        color: #12395f;
+        color: #0f2f55;
         font-size: 1rem;
         font-weight: 700;
         margin-bottom: 0.35rem;
     }
 
     .community-type-panel__text {
-        color: #4f6780;
+        color: #4a6480;
         font-size: 0.92rem;
         line-height: 1.6;
         margin-bottom: 0.5rem;
     }
 
     .community-type-panel__categories {
-        color: #6c849c;
+        align-items: flex-start;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.35rem;
+    }
+
+    .community-type-panel__categories > strong {
+        color: #0f2f55;
+        flex: 0 0 100%;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.15rem;
+        text-transform: uppercase;
+    }
+
+    .community-category-chip {
+        align-items: center;
+        background: linear-gradient(180deg, #f3f8fd 0%, #eaf2fa 100%);
+        border: 1px solid #b8cfe6;
+        border-radius: 10px;
+        display: inline-flex;
+        gap: 0.45rem;
+        padding: 0.35rem 0.55rem 0.35rem 0.7rem;
+    }
+
+    .community-category-chip__label {
+        color: #1a4570;
         font-size: 0.82rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    .community-category-chip .btn-outline-success {
+        border-color: #2e7d32;
+        color: #2e7d32;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.15rem 0.5rem;
+    }
+
+    .community-category-chip .btn-outline-success:hover {
+        background: #2e7d32;
+        border-color: #2e7d32;
+        color: #fff;
+    }
+
+    .community-category-chip .btn-success {
+        background: linear-gradient(135deg, #256b2a, #2e7d32);
+        border-color: transparent;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.15rem 0.5rem;
     }
 
     .community-post-card {
@@ -709,8 +775,8 @@
                                     && ($subscription['category'] ?? null) === $categoryName
                             );
                         @endphp
-                        <span class="d-inline-flex align-items-center gap-1 me-2 mb-1">
-                            <span>{{ $categoryName }}</span>
+                        <span class="community-category-chip">
+                            <span class="community-category-chip__label">{{ $categoryName }}</span>
                             @auth
                                 <button type="button"
                                     class="btn btn-sm {{ $isSubscribed ? 'btn-success' : 'btn-outline-success' }} js-community-subscribe-category {{ $isSubscribed ? 'is-subscribed' : '' }}"
