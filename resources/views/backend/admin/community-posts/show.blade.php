@@ -125,6 +125,12 @@
 @if($post->isBusinessPost())
 @include('community.partials.business-styles')
 @endif
+@if($post->isWomensWorldPost())
+@include('community.partials.business-styles')
+@endif
+@if($post->isSeniorCitizensForumPost())
+@include('community.partials.senior-citizens-forum-styles')
+@endif
 @endpush
 
 @section('content')
@@ -334,6 +340,25 @@
                                 'heading' => 'Business metadata',
                             ])
                         @endif
+
+                        @if($post->isWomensWorldPost())
+                            @include('community.partials.womens-world-show-sections', ['post' => $post])
+                            @include('community.partials.womens-world-meta-details', [
+                                'post' => $post,
+                                'heading' => "Women's World metadata",
+                                'includeAdmin' => true,
+                            ])
+                        @endif
+
+                        @if($post->isSeniorCitizensForumPost())
+                            @include('community.partials.senior-citizens-forum-show-sections', ['post' => $post])
+                            @include('community.partials.senior-citizens-forum-after-content', ['post' => $post])
+                            @include('community.partials.senior-citizens-forum-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Senior Citizens Forum metadata',
+                                'includeAdmin' => true,
+                            ])
+                        @endif
                     </div>
                 </div>
 
@@ -402,6 +427,10 @@
                             'businessEngagementActivity' => $businessEngagementActivity,
                             'showQueryContacts' => true,
                         ])
+                    @endif
+
+                    @if($post->isSeniorCitizensForumPost())
+                        @include('backend.community-posts.partials.senior-citizens-forum-portal-activity', ['post' => $post])
                     @endif
 
                     @if(($participationSuggestions ?? collect())->isNotEmpty() || ($participationFeedback ?? collect())->isNotEmpty() || ($post->content_type === 'news' && ($post->allow_comments || $post->allow_questions)))
@@ -689,11 +718,23 @@
                             $businessMetaKeys = $post->isBusinessPost()
                                 ? \App\Support\CommunityPostFormFields::businessStructuredMetaKeys()
                                 : [];
-                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, $childrensCornerMetaKeys, $awarenessMetaKeys, $businessMetaKeys, [
+                            $womensWorldMetaKeys = $post->isWomensWorldPost()
+                                ? \App\Support\CommunityPostFormFields::womensWorldStructuredMetaKeys()
+                                : [];
+                            $seniorCitizensForumMetaKeys = $post->isSeniorCitizensForumPost()
+                                ? \App\Support\CommunityPostFormFields::seniorCitizensForumStructuredMetaKeys()
+                                : [];
+                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, $childrensCornerMetaKeys, $awarenessMetaKeys, $businessMetaKeys, $womensWorldMetaKeys, $seniorCitizensForumMetaKeys, [
                                 'story_gallery',
                                 'story_audio',
                                 'poetry_audio',
                                 'book_pages',
+                                'senior_citizens_forum_achievements',
+                                'senior_citizens_forum_audio',
+                                'senior_citizens_forum_private_link_token',
+                                'womens_world_gallery',
+                                'womens_world_audio',
+                                'womens_world_private_link_token',
                             ]);
                         @endphp
                         <div class="chart-card p-3 p-lg-4">

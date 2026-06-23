@@ -17,6 +17,7 @@ use App\Services\CommunityReportEngagementNotificationService;
 use App\Services\CommunityStoryAchievementService;
 use App\Services\CommunityStoryEngagementNotificationService;
 use App\Services\CommunityEngagementNotificationService;
+use App\Services\CommunitySeniorCitizensForumEngagementNotificationService;
 use App\Services\CommunityWomensWorldEngagementNotificationService;
 use App\Services\CommunityArticleScoreService;
 use App\Services\CommunityReportTrustScoreService;
@@ -43,6 +44,8 @@ class CommunityPostController extends Controller
     private const MAX_LIFE_TIMELINE = 30;
 
     private const MAX_AUTOBIOGRAPHY_ACHIEVEMENTS = 15;
+
+    private const MAX_SENIOR_CITIZENS_FORUM_ACHIEVEMENTS = 15;
 
     private const MAX_AUTOBIOGRAPHY_DOCUMENTS = 10;
 
@@ -107,7 +110,8 @@ class CommunityPostController extends Controller
     {
         $viewer = auth()->user();
         $canManagePreview = $viewer !== null && ($viewer->id === $post->user_id || $viewer->isAdmin());
-        $privateLinkAccess = $post->allowsWomensWorldPrivateLinkAccess($request->query('access'));
+        $privateLinkAccess = $post->allowsWomensWorldPrivateLinkAccess($request->query('access'))
+            || $post->allowsSeniorCitizensForumPrivateLinkAccess($request->query('access'));
 
         abort_unless(
             $post->isPubliclyVisible() || $canManagePreview,
@@ -280,6 +284,14 @@ class CommunityPostController extends Controller
 
         if ($post->isWomensWorldPost() && $active) {
             CommunityWomensWorldEngagementNotificationService::notifyAuthorOfReaction(
+                $post,
+                $request->user(),
+                $data['reaction']
+            );
+        }
+
+        if ($post->isSeniorCitizensForumPost() && $active) {
+            CommunitySeniorCitizensForumEngagementNotificationService::notifyAuthorOfReaction(
                 $post,
                 $request->user(),
                 $data['reaction']
@@ -600,6 +612,8 @@ class CommunityPostController extends Controller
         $this->deleteStoryAudioFile(data_get($post->meta, 'story_audio'));
         $this->deleteStoryAudioFile(data_get($post->meta, 'poetry_audio'));
         $this->deleteStoryAudioFile(data_get($post->meta, 'womens_world_audio'));
+        $this->deleteStoryAudioFile(data_get($post->meta, 'senior_citizens_forum_audio'));
+        $this->deleteSeniorCitizensForumAchievementFiles((array) data_get($post->meta, 'senior_citizens_forum_achievements', []));
 
         $this->deleteVideoFile($post->videoData());
         $post->delete();
@@ -660,6 +674,7 @@ class CommunityPostController extends Controller
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
         $data['meta'] = $this->applyWomensWorldPrivacyMeta($data['meta'], $request);
+        $data['meta'] = $this->applySeniorCitizensForumPrivacyMeta($data['meta'], $request);
         $this->mergeBookPagesIntoMeta($request, $data);
 
         if ($request->hasFile('issue_attachments')) {
@@ -767,6 +782,18 @@ class CommunityPostController extends Controller
                 unset($data['meta']['womens_world_audio']);
             }
         }
+        $seniorCitizensForumAudio = $this->resolveSeniorCitizensForumAudio($request);
+        if ($seniorCitizensForumAudio !== null || ($request->input('content_type') === 'senior-citizens-forum' && $request->input('senior_citizens_forum_audio_source_type') === 'none')) {
+            if ($seniorCitizensForumAudio !== null) {
+                $data['meta']['senior_citizens_forum_audio'] = $seniorCitizensForumAudio;
+            } else {
+                unset($data['meta']['senior_citizens_forum_audio']);
+            }
+        }
+        $seniorCitizensForumAchievements = $this->resolveSeniorCitizensForumAchievements($request);
+        if ($seniorCitizensForumAchievements !== null) {
+            $data['meta']['senior_citizens_forum_achievements'] = $seniorCitizensForumAchievements;
+        }
         if (CommunityPost::usesChildrensCornerFlow($request->input('content_type'))) {
             $data['allow_comments'] = $this->shouldAllowComments($request);
         }
@@ -795,6 +822,8 @@ class CommunityPostController extends Controller
         } elseif ($post->isWomensWorldPost() && $post->isPubliclyVisible()) {
             CommunityWomensWorldEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
             CommunityEngagementNotificationService::notifySubscribersOfPublishedPost($post->fresh());
+        } elseif ($post->isSeniorCitizensForumPost() && $post->isPubliclyVisible()) {
+            CommunitySeniorCitizensForumEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
         } elseif (in_array($post->content_type, ['poetry', 'biography', 'autobiography'], true) && $post->isPubliclyVisible()) {
             CommunityStoryEngagementNotificationService::notifyAuthorOfPublishedWithoutAudio($post->fresh());
         }
@@ -834,6 +863,7 @@ class CommunityPostController extends Controller
         $data['tags'] = $this->normalizeTags($data['tags'] ?? null);
         $data['meta'] = $this->metaPayload($request);
         $data['meta'] = $this->applyWomensWorldPrivacyMeta($data['meta'], $request, $post);
+        $data['meta'] = $this->applySeniorCitizensForumPrivacyMeta($data['meta'], $request, $post);
         $this->mergeBookPagesIntoMeta($request, $data);
 
         if ($request->hasFile('issue_attachments')) {
@@ -1000,6 +1030,22 @@ class CommunityPostController extends Controller
             unset($data['meta']['womens_world_audio']);
         }
 
+        $seniorCitizensForumAudio = $this->resolveSeniorCitizensForumAudio($request, $post);
+        if ($seniorCitizensForumAudio !== null) {
+            $data['meta']['senior_citizens_forum_audio'] = $seniorCitizensForumAudio;
+        } elseif ($request->input('content_type') === 'senior-citizens-forum' && $request->input('senior_citizens_forum_audio_source_type') === 'none') {
+            unset($data['meta']['senior_citizens_forum_audio']);
+        } elseif ($request->boolean('remove_senior_citizens_forum_audio')) {
+            unset($data['meta']['senior_citizens_forum_audio']);
+        }
+
+        $seniorCitizensForumAchievements = $this->resolveSeniorCitizensForumAchievements($request, $post);
+        if ($seniorCitizensForumAchievements !== null) {
+            $data['meta']['senior_citizens_forum_achievements'] = $seniorCitizensForumAchievements;
+        } elseif (CommunityPost::usesSeniorCitizensForumFlow($request->input('content_type')) && data_get($post->meta, 'senior_citizens_forum_achievements')) {
+            unset($data['meta']['senior_citizens_forum_achievements']);
+        }
+
         $data = $this->applyPoetryRegionalLocation($data);
         $data['allow_comments'] = $this->shouldAllowComments($request);
         $data['allow_questions'] = $this->shouldAllowQuestions($request);
@@ -1047,6 +1093,13 @@ class CommunityPostController extends Controller
         ) {
             CommunityWomensWorldEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
             CommunityEngagementNotificationService::notifySubscribersOfPublishedPost($post->fresh());
+        } elseif (
+            $post->isSeniorCitizensForumPost()
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunitySeniorCitizensForumEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
         } elseif (
             in_array($post->content_type, ['poetry', 'autobiography'], true)
             && $post->isPubliclyVisible()
@@ -1102,6 +1155,7 @@ class CommunityPostController extends Controller
         $isAwareness = CommunityPost::usesAwarenessFlow(is_string($contentType) ? $contentType : null);
         $isBusiness = CommunityPost::usesBusinessFlow(is_string($contentType) ? $contentType : null);
         $isWomensWorld = CommunityPost::usesWomensWorldFlow(is_string($contentType) ? $contentType : null);
+        $isSeniorCitizensForum = CommunityPost::usesSeniorCitizensForumFlow(is_string($contentType) ? $contentType : null);
         $childShareType = $request->input('child_share_type');
         $childContentMode = CommunityContentTaxonomy::childrensCornerContentMode(is_string($childShareType) ? $childShareType : null);
 
@@ -1119,6 +1173,10 @@ class CommunityPostController extends Controller
 
         if ($isWomensWorld && $request->filled('womens_world_category')) {
             $request->merge(['category' => $request->input('womens_world_category')]);
+        }
+
+        if ($isSeniorCitizensForum && $request->filled('senior_citizens_forum_category')) {
+            $request->merge(['category' => $request->input('senior_citizens_forum_category')]);
         }
 
         $rules = [
@@ -1928,6 +1986,212 @@ class CommunityPostController extends Controller
                 'string',
                 Rule::in(CommunityContentTaxonomy::womensWorldContentTypes()),
             ],
+            'senior_citizens_forum_category' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::seniorCitizensForumMainCategories()),
+            ],
+            'senior_citizens_forum_content_type' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::seniorCitizensForumContentTypes()),
+            ],
+            'senior_citizens_forum_age_group' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::seniorCitizensForumAgeGroups()),
+            ],
+            'senior_citizens_forum_life_journey_categories' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'array',
+            ],
+            'senior_citizens_forum_life_journey_categories.*' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'string',
+                Rule::in(CommunityContentTaxonomy::seniorCitizensForumLifeJourneyCategories()),
+            ],
+            'senior_citizens_forum_key_lessons' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'array',
+                'max:15',
+            ],
+            'senior_citizens_forum_key_lessons.*' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:300',
+            ],
+            'senior_citizens_forum_audio_source_type' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                Rule::in(['none', 'upload', 'recording']),
+            ],
+            'senior_citizens_forum_audio_file' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum
+                    || $request->input('senior_citizens_forum_audio_source_type') !== 'upload'
+                    || $request->boolean('keep_existing_senior_citizens_forum_audio')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'senior_citizens_forum_audio_recording' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum
+                    || $request->input('senior_citizens_forum_audio_source_type') !== 'recording'
+                    || $request->boolean('keep_existing_senior_citizens_forum_audio')),
+                'nullable',
+                'file',
+                'max:'.self::MAX_STORY_AUDIO_KB,
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-m4a,audio/wav,audio/webm,audio/ogg,audio/x-wav',
+            ],
+            'keep_existing_senior_citizens_forum_audio' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'boolean',
+            ],
+            'remove_senior_citizens_forum_audio' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'boolean',
+            ],
+            'senior_citizens_forum_video_type' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::seniorCitizensForumVideoTypes()),
+            ],
+            'senior_citizens_forum_family_background' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:3000',
+            ],
+            'senior_citizens_forum_traditions' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:3000',
+            ],
+            'senior_citizens_forum_cultural_practices' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:3000',
+            ],
+            'senior_citizens_forum_family_values' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:3000',
+            ],
+            'senior_citizens_forum_themes' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'array',
+            ],
+            'senior_citizens_forum_themes.*' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'string',
+                Rule::in(CommunityContentTaxonomy::seniorCitizensForumThemes()),
+            ],
+            'senior_citizens_forum_advice_to_youth' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'senior_citizens_forum_community_contributions' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'array',
+            ],
+            'senior_citizens_forum_community_contributions.*' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'string',
+                Rule::in(CommunityContentTaxonomy::seniorCitizensForumCommunityContributions()),
+            ],
+            'senior_citizens_forum_achievements' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'array',
+                'max:'.self::MAX_SENIOR_CITIZENS_FORUM_ACHIEVEMENTS,
+            ],
+            'senior_citizens_forum_achievements.*.award_name' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:160',
+            ],
+            'senior_citizens_forum_achievements.*.year' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:10',
+            ],
+            'senior_citizens_forum_achievements.*.description' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+            'senior_citizens_forum_achievements.*.existing_photo_path' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'senior_citizens_forum_achievements.*.existing_certificate_path' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'senior_citizens_forum_achievements.*.photo' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'image',
+                'max:4096',
+                'mimes:jpg,jpeg,png,webp,gif',
+            ],
+            'senior_citizens_forum_achievements.*.certificate' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'file',
+                'max:10240',
+                'mimes:pdf,jpg,jpeg,png,webp',
+            ],
+            'senior_citizens_forum_ask_community' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'string',
+                'max:500',
+            ],
+            'senior_citizens_forum_visibility' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'required',
+                'string',
+                Rule::in(array_keys(CommunityContentTaxonomy::seniorCitizensForumVisibilitySettings())),
+            ],
+            'senior_citizens_forum_intergenerational_connections' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'array',
+            ],
+            'senior_citizens_forum_intergenerational_connections.*' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'string',
+                Rule::in(CommunityContentTaxonomy::seniorCitizensForumIntergenerationalConnections()),
+            ],
+            'senior_citizens_forum_preserve_digital_legacy' => [
+                Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
+                'nullable',
+                'boolean',
+            ],
             'womens_world_target_audience' => [
                 Rule::excludeIf(fn () => ! $isWomensWorld),
                 'required',
@@ -2367,6 +2631,10 @@ class CommunityPostController extends Controller
             $validated['category'] = (string) ($validated['womens_world_category'] ?? $request->input('womens_world_category'));
         }
 
+        if ($isSeniorCitizensForum) {
+            $validated['category'] = (string) ($validated['senior_citizens_forum_category'] ?? $request->input('senior_citizens_forum_category'));
+        }
+
         if (CommunityPost::isBookContentType($contentType)) {
             $bookPages = $this->normalizeBookPages(
                 $validated['book_pages'] ?? [],
@@ -2389,7 +2657,7 @@ class CommunityPostController extends Controller
 
         if ($isChildrensCorner) {
             $validated = $this->applyChildrensCornerBroadLocation($validated, $request);
-        } elseif ($isWomensWorld) {
+        } elseif ($isWomensWorld || $isSeniorCitizensForum) {
             $validated = $this->applyWomensWorldOptionalLocation($validated, $request);
         } elseif ($usesStructuredLocation) {
             $validated = $this->applyStructuredLocation($validated, $request);
@@ -2611,6 +2879,31 @@ class CommunityPostController extends Controller
                 : \Illuminate\Support\Str::random(48);
         } else {
             unset($meta['womens_world_private_link_token']);
+        }
+
+        return $meta;
+    }
+
+    private function applySeniorCitizensForumPrivacyMeta(array $meta, Request $request, ?CommunityPost $post = null): array
+    {
+        if ($request->input('content_type') !== 'senior-citizens-forum') {
+            return $meta;
+        }
+
+        $visibility = array_key_exists(
+            (string) $request->input('senior_citizens_forum_visibility'),
+            CommunityContentTaxonomy::seniorCitizensForumVisibilitySettings()
+        )
+            ? (string) $request->input('senior_citizens_forum_visibility')
+            : CommunityContentTaxonomy::seniorCitizensForumDefaultVisibilitySetting();
+
+        if ($visibility === 'private_link') {
+            $existing = data_get($post?->meta, 'senior_citizens_forum_private_link_token');
+            $meta['senior_citizens_forum_private_link_token'] = filled($existing)
+                ? $existing
+                : \Illuminate\Support\Str::random(48);
+        } else {
+            unset($meta['senior_citizens_forum_private_link_token']);
         }
 
         return $meta;
@@ -3171,6 +3464,187 @@ class CommunityPostController extends Controller
         }
 
         return data_get($post?->meta, 'womens_world_audio');
+    }
+
+    /**
+     * @return array{type: string, path: string, name: string, url: string}|null
+     */
+    private function resolveSeniorCitizensForumAudio(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesSeniorCitizensForumFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        if ($request->boolean('remove_senior_citizens_forum_audio')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'senior_citizens_forum_audio'));
+
+            return null;
+        }
+
+        $sourceType = $request->input('senior_citizens_forum_audio_source_type', 'none');
+
+        if ($sourceType === 'upload' && $request->hasFile('senior_citizens_forum_audio_file')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'senior_citizens_forum_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('senior_citizens_forum_audio_file'), 'upload');
+        }
+
+        if ($sourceType === 'recording' && $request->hasFile('senior_citizens_forum_audio_recording')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'senior_citizens_forum_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('senior_citizens_forum_audio_recording'), 'recording');
+        }
+
+        if ($request->boolean('keep_existing_senior_citizens_forum_audio') && data_get($post?->meta, 'senior_citizens_forum_audio')) {
+            return data_get($post->meta, 'senior_citizens_forum_audio');
+        }
+
+        if ($sourceType === 'none') {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'senior_citizens_forum_audio'));
+
+            return null;
+        }
+
+        return data_get($post?->meta, 'senior_citizens_forum_audio');
+    }
+
+    /**
+     * @return list<array{award_name: string, year: string, description: string, photo: array{path: string, url: string, name: string, type: string}|null, certificate: array{path: string, url: string, name: string, type: string}|null}>|null
+     */
+    private function resolveSeniorCitizensForumAchievements(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesSeniorCitizensForumFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $entries = collect($request->input('senior_citizens_forum_achievements', []))
+            ->filter(function (mixed $entry): bool {
+                if (! is_array($entry)) {
+                    return false;
+                }
+
+                return filled($entry['award_name'] ?? null)
+                    || filled($entry['year'] ?? null)
+                    || filled($entry['description'] ?? null)
+                    || filled($entry['existing_photo_path'] ?? null)
+                    || filled($entry['existing_certificate_path'] ?? null);
+            })
+            ->values();
+
+        if ($entries->isEmpty()) {
+            $this->deleteSeniorCitizensForumAchievementFiles((array) data_get($post?->meta, 'senior_citizens_forum_achievements', []));
+
+            return null;
+        }
+
+        $existingByPhotoPath = collect((array) data_get($post?->meta, 'senior_citizens_forum_achievements', []))
+            ->mapWithKeys(function (mixed $entry): array {
+                $path = (string) data_get($entry, 'photo.path', '');
+
+                return filled($path) ? [$path => $entry] : [];
+            });
+
+        $existingByCertificatePath = collect((array) data_get($post?->meta, 'senior_citizens_forum_achievements', []))
+            ->mapWithKeys(function (mixed $entry): array {
+                $path = (string) data_get($entry, 'certificate.path', '');
+
+                return filled($path) ? [$path => $entry] : [];
+            });
+
+        $resolved = $entries
+            ->take(self::MAX_SENIOR_CITIZENS_FORUM_ACHIEVEMENTS)
+            ->map(function (array $entry, int $index) use ($request, $existingByPhotoPath, $existingByCertificatePath): array {
+                $photo = null;
+                $uploadedPhoto = $request->file("senior_citizens_forum_achievements.$index.photo");
+
+                if ($uploadedPhoto) {
+                    $existingPath = (string) ($entry['existing_photo_path'] ?? '');
+                    if (filled($existingPath)) {
+                        CommunityPostFileUploader::deleteIfExists($existingPath);
+                    }
+
+                    $photo = CommunityPostFileUploader::storeAttachment($uploadedPhoto, 'senior-citizens-forum-achievement-photos');
+                } elseif (filled($entry['existing_photo_path'] ?? null)) {
+                    $existingPath = (string) $entry['existing_photo_path'];
+                    $existingImage = data_get($existingByPhotoPath->get($existingPath), 'photo');
+
+                    if (is_array($existingImage)) {
+                        $photo = $existingImage;
+                    }
+                }
+
+                $certificate = null;
+                $uploadedCertificate = $request->file("senior_citizens_forum_achievements.$index.certificate");
+
+                if ($uploadedCertificate) {
+                    $existingPath = (string) ($entry['existing_certificate_path'] ?? '');
+                    if (filled($existingPath)) {
+                        CommunityPostFileUploader::deleteIfExists($existingPath);
+                    }
+
+                    $certificate = CommunityPostFileUploader::storeAttachment($uploadedCertificate, 'senior-citizens-forum-certificates');
+                } elseif (filled($entry['existing_certificate_path'] ?? null)) {
+                    $existingPath = (string) $entry['existing_certificate_path'];
+                    $existingCertificate = data_get($existingByCertificatePath->get($existingPath), 'certificate');
+
+                    if (is_array($existingCertificate)) {
+                        $certificate = $existingCertificate;
+                    }
+                }
+
+                return [
+                    'award_name' => trim((string) ($entry['award_name'] ?? '')),
+                    'year' => trim((string) ($entry['year'] ?? '')),
+                    'description' => trim((string) ($entry['description'] ?? '')),
+                    'photo' => $photo,
+                    'certificate' => $certificate,
+                ];
+            })
+            ->filter(fn (array $entry): bool => filled($entry['award_name']) || filled($entry['description']))
+            ->values()
+            ->all();
+
+        if ($resolved === []) {
+            $this->deleteSeniorCitizensForumAchievementFiles((array) data_get($post?->meta, 'senior_citizens_forum_achievements', []));
+
+            return null;
+        }
+
+        $keptPhotoPaths = collect($resolved)
+            ->map(fn (array $entry): string => (string) data_get($entry, 'photo.path', ''))
+            ->filter()
+            ->all();
+
+        $keptCertificatePaths = collect($resolved)
+            ->map(fn (array $entry): string => (string) data_get($entry, 'certificate.path', ''))
+            ->filter()
+            ->all();
+
+        collect((array) data_get($post?->meta, 'senior_citizens_forum_achievements', []))
+            ->each(function (mixed $entry) use ($keptPhotoPaths, $keptCertificatePaths): void {
+                $photoPath = (string) data_get($entry, 'photo.path', '');
+                if (filled($photoPath) && ! in_array($photoPath, $keptPhotoPaths, true)) {
+                    CommunityPostFileUploader::deleteIfExists($photoPath);
+                }
+
+                $certificatePath = (string) data_get($entry, 'certificate.path', '');
+                if (filled($certificatePath) && ! in_array($certificatePath, $keptCertificatePaths, true)) {
+                    CommunityPostFileUploader::deleteIfExists($certificatePath);
+                }
+            });
+
+        return $resolved;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $entries
+     */
+    private function deleteSeniorCitizensForumAchievementFiles(array $entries): void
+    {
+        foreach ($entries as $entry) {
+            CommunityPostFileUploader::deleteIfExists((string) data_get($entry, 'photo.path', ''));
+            CommunityPostFileUploader::deleteIfExists((string) data_get($entry, 'certificate.path', ''));
+        }
     }
 
     /**

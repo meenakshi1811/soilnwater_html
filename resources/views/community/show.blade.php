@@ -575,6 +575,10 @@
                 @include('community.partials.womens-world-show-sections', ['post' => $post])
             @endif
 
+            @if($post->isSeniorCitizensForumPost())
+                @include('community.partials.senior-citizens-forum-show-sections', ['post' => $post])
+            @endif
+
             @if($post->isReportContent())
                 <div class="mb-4">
                     @include('community.partials.report-trust-score', ['post' => $post])
@@ -600,7 +604,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost())
+            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -666,6 +670,10 @@
 
             @if($post->content_type === 'autobiography')
                 @include('community.partials.autobiography-after-content', ['post' => $post])
+            @endif
+
+            @if($post->isSeniorCitizensForumPost())
+                @include('community.partials.senior-citizens-forum-after-content', ['post' => $post])
             @endif
 
             @if($post->isChildrensCornerPost())
@@ -780,6 +788,19 @@
                     'focus_area',
                     'perspective_summary',
                 ]);
+                $additionalSeniorCitizensForumMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::seniorCitizensForumStructuredMetaKeys(),
+                    'senior_citizens_forum_achievements',
+                    'senior_citizens_forum_audio',
+                    'senior_citizens_forum_private_link_token',
+                    'senior_citizens_forum_video_type',
+                    'location_country',
+                    'location_state',
+                    'location_district',
+                    'location_city',
+                    'location_locality',
+                    'author_bio',
+                ]);
             @endphp
             @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
                 @include('community.partials.report-meta-details', ['post' => $post, 'includeLocation' => true])
@@ -853,6 +874,11 @@
                     $visibleMeta = $additionalWomensWorldMeta;
                 @endphp
             @endif
+            @if($post->isSeniorCitizensForumPost())
+                @php
+                    $visibleMeta = $additionalSeniorCitizensForumMeta;
+                @endphp
+            @endif
             @if($post->content_type === 'my-voice' && $orderedMyVoiceMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>My Voice details</h4>
@@ -875,7 +901,7 @@
                 @php
                     $visibleMeta = $additionalWomensWorldMeta;
                 @endphp
-            @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
+            @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Location information</h4>
                     <div class="row g-3">
@@ -994,6 +1020,8 @@
                         ? \App\Support\CommunityContentTaxonomy::childrensCornerReactionOptions()
                         : ($post->isWomensWorldPost()
                         ? \App\Support\CommunityContentTaxonomy::womensWorldReactionOptions()
+                        : ($post->isSeniorCitizensForumPost()
+                        ? \App\Support\CommunityContentTaxonomy::seniorCitizensForumReactionOptions()
                         : ($post->isBusinessPost()
                         ? [
                             'Informative' => 'fa-solid fa-circle-info',
@@ -1133,6 +1161,9 @@
 @endif
 @if($post->isBusinessPost() || $post->isWomensWorldPost())
 @include('community.partials.business-styles')
+@endif
+@if($post->isSeniorCitizensForumPost())
+@include('community.partials.senior-citizens-forum-styles')
 @endif
 <style>
     .community-post-body {

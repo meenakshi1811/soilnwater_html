@@ -38,11 +38,7 @@ class CommunityPostFormFields
                 self::textarea('wellness_summary', 'Key wellness takeaway', 2000, true),
             ]),
             'womens-world' => self::section("Women's World details", "Women's World", 'Use the dedicated Women\'s World flow fields on the form.', []),
-            'senior-citizens-forum' => self::section('Senior Citizens details', 'Senior Citizens', 'Share life experience context for senior readers.', [
-                self::text('life_experience_area', 'Life experience area', 120, true, 'e.g. Retirement planning, Health'),
-                self::text('advice_category', 'Advice category', 120, false, 'e.g. Advice to youth'),
-                self::textarea('experience_summary', 'Experience summary', 2000, true),
-            ]),
+            'senior-citizens-forum' => self::section('Senior Citizens Forum details', 'Senior Citizens Forum', 'Use the dedicated Senior Citizens Forum flow fields on the form.', []),
             'youth-corner' => self::section('Youth Corner details', 'Youth Corner', 'Youth-focused metadata for age group and topic.', [
                 self::select('youth_topic', 'Youth topic', ['Career', 'Startups', 'Technology', 'Relationships', 'Motivation', 'Fitness', 'Education'], true),
                 self::select('age_group', 'Target age group', ['13-17', '18-21', '22-25', '26-30'], true),
@@ -482,6 +478,54 @@ class CommunityPostFormFields
             ));
         }
 
+        if (CommunityPost::usesSeniorCitizensForumFlow($contentType)) {
+            $payload['senior_citizens_forum_category'] = $request->input('senior_citizens_forum_category');
+            $payload['senior_citizens_forum_content_type'] = $request->input('senior_citizens_forum_content_type');
+            $payload['senior_citizens_forum_age_group'] = $request->input('senior_citizens_forum_age_group');
+            $payload['senior_citizens_forum_life_journey_categories'] = array_values(array_intersect(
+                (array) $request->input('senior_citizens_forum_life_journey_categories', []),
+                CommunityContentTaxonomy::seniorCitizensForumLifeJourneyCategories()
+            ));
+            $payload['senior_citizens_forum_key_lessons'] = collect((array) $request->input('senior_citizens_forum_key_lessons', []))
+                ->map(fn (mixed $lesson): string => trim((string) $lesson))
+                ->filter()
+                ->values()
+                ->all();
+            $payload['senior_citizens_forum_themes'] = array_values(array_intersect(
+                (array) $request->input('senior_citizens_forum_themes', []),
+                CommunityContentTaxonomy::seniorCitizensForumThemes()
+            ));
+            $payload['senior_citizens_forum_advice_to_youth'] = $request->input('senior_citizens_forum_advice_to_youth');
+            $payload['senior_citizens_forum_community_contributions'] = array_values(array_intersect(
+                (array) $request->input('senior_citizens_forum_community_contributions', []),
+                CommunityContentTaxonomy::seniorCitizensForumCommunityContributions()
+            ));
+            $payload['senior_citizens_forum_ask_community'] = $request->input('senior_citizens_forum_ask_community');
+            $payload['senior_citizens_forum_visibility'] = array_key_exists(
+                (string) $request->input('senior_citizens_forum_visibility'),
+                CommunityContentTaxonomy::seniorCitizensForumVisibilitySettings()
+            )
+                ? (string) $request->input('senior_citizens_forum_visibility')
+                : CommunityContentTaxonomy::seniorCitizensForumDefaultVisibilitySetting();
+            $payload['senior_citizens_forum_intergenerational_connections'] = array_values(array_intersect(
+                (array) $request->input('senior_citizens_forum_intergenerational_connections', []),
+                CommunityContentTaxonomy::seniorCitizensForumIntergenerationalConnections()
+            ));
+            $payload['senior_citizens_forum_preserve_digital_legacy'] = $request->boolean('senior_citizens_forum_preserve_digital_legacy');
+
+            foreach (['location_country', 'location_state', 'location_district', 'location_city'] as $locationKey) {
+                if ($request->has($locationKey)) {
+                    $payload[$locationKey] = $request->input($locationKey);
+                }
+            }
+            unset($payload['location_locality']);
+
+            $payload['senior_citizens_forum_video_type'] = $request->input('senior_citizens_forum_video_type');
+            foreach (array_keys(CommunityContentTaxonomy::seniorCitizensForumFamilyHeritageFields()) as $heritageKey) {
+                $payload[$heritageKey] = $request->input($heritageKey);
+            }
+        }
+
         return collect($payload)
             ->filter(function (mixed $value, string $key): bool {
                 if (in_array($key, [
@@ -516,6 +560,11 @@ class CommunityPostFormFields
                     'womens_world_poll_options',
                     'womens_world_support_requests',
                     'womens_world_community_groups',
+                    'senior_citizens_forum_life_journey_categories',
+                    'senior_citizens_forum_key_lessons',
+                    'senior_citizens_forum_themes',
+                    'senior_citizens_forum_community_contributions',
+                    'senior_citizens_forum_intergenerational_connections',
                 ], true)) {
                     return true;
                 }
@@ -1014,6 +1063,82 @@ class CommunityPostFormFields
     public static function womensWorldStructuredMetaKeys(): array
     {
         return array_keys(self::womensWorldDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function seniorCitizensForumDetailMetaOrder(): array
+    {
+        return [
+            'senior_citizens_forum_category' => 'Main category',
+            'senior_citizens_forum_content_type' => 'Content type',
+            'senior_citizens_forum_age_group' => 'Age group',
+            'senior_citizens_forum_life_journey_categories' => 'Life journey category',
+            'senior_citizens_forum_key_lessons' => 'Key lessons',
+            'senior_citizens_forum_themes' => 'Themes',
+            'senior_citizens_forum_advice_to_youth' => 'Advice to youth',
+            'senior_citizens_forum_community_contributions' => 'Community contribution',
+            'senior_citizens_forum_ask_community' => 'Ask the community',
+            'senior_citizens_forum_visibility' => 'Visibility',
+            'senior_citizens_forum_intergenerational_connections' => 'Intergenerational connections',
+            'senior_citizens_forum_preserve_digital_legacy' => 'Digital legacy',
+            'senior_citizens_forum_video_type' => 'Video type',
+            'senior_citizens_forum_family_background' => 'Family background',
+            'senior_citizens_forum_traditions' => 'Traditions',
+            'senior_citizens_forum_cultural_practices' => 'Cultural practices',
+            'senior_citizens_forum_family_values' => 'Family values',
+            'location_country' => 'Country',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City/Village',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumStructuredMetaKeys(): array
+    {
+        return array_keys(self::seniorCitizensForumDetailMetaOrder());
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedSeniorCitizensForumMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::seniorCitizensForumDetailMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if ($key === 'senior_citizens_forum_category' && blank($value)) {
+                    $value = $post->category;
+                }
+
+                if ($key === 'senior_citizens_forum_life_journey_categories' && is_array($value)) {
+                    $value = implode(', ', array_values(array_filter($value)));
+                }
+
+                if ($key === 'senior_citizens_forum_key_lessons' && is_array($value)) {
+                    $value = implode('; ', array_values(array_filter($value)));
+                }
+
+                if (in_array($key, ['senior_citizens_forum_themes', 'senior_citizens_forum_community_contributions', 'senior_citizens_forum_intergenerational_connections'], true) && is_array($value)) {
+                    $value = implode(', ', array_values(array_filter($value)));
+                }
+
+                if ($key === 'senior_citizens_forum_visibility' && filled($value)) {
+                    $value = \App\Support\CommunityContentTaxonomy::seniorCitizensForumVisibilitySettings()[(string) $value] ?? $value;
+                }
+
+                if ($key === 'senior_citizens_forum_preserve_digital_legacy') {
+                    $value = $value ? 'Preserve as Digital Legacy' : null;
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value));
     }
 
     /**

@@ -382,7 +382,8 @@ class CommunityPost extends Model
                 ->where(function (Builder $nonChildrensCorner): void {
                     $nonChildrensCorner
                         ->where('content_type', '!=', 'childrens-corner')
-                        ->where('content_type', '!=', 'womens-world');
+                        ->where('content_type', '!=', 'womens-world')
+                        ->where('content_type', '!=', 'senior-citizens-forum');
                 })
                 ->orWhere(function (Builder $childrensCorner) use ($viewer): void {
                     $childrensCorner
@@ -408,6 +409,19 @@ class CommunityPost extends Model
 
                     if ($viewer !== null) {
                         $womensWorld->orWhereIn('meta->womens_world_visibility', ['registered_users', 'women_community_only']);
+                    }
+                })
+                ->orWhere(function (Builder $seniorCitizensForum) use ($viewer): void {
+                    $seniorCitizensForum
+                        ->where('content_type', 'senior-citizens-forum')
+                        ->where(function (Builder $publicVisibility): void {
+                            $publicVisibility
+                                ->whereNull('meta->senior_citizens_forum_visibility')
+                                ->orWhere('meta->senior_citizens_forum_visibility', 'public');
+                        });
+
+                    if ($viewer !== null) {
+                        $seniorCitizensForum->orWhereIn('meta->senior_citizens_forum_visibility', ['registered_users', 'senior_citizens_community']);
                     }
                 });
         });
@@ -607,7 +621,8 @@ class CommunityPost extends Model
     public static function mountsStructuredLocationFields(?string $contentType): bool
     {
         return self::usesStructuredLocation($contentType)
-            || self::usesWomensWorldOptionalStructuredLocation($contentType);
+            || self::usesWomensWorldOptionalStructuredLocation($contentType)
+            || self::usesSeniorCitizensForumFlow($contentType);
     }
 
     public static function supportsStarRating(?string $contentType): bool
@@ -703,6 +718,15 @@ class CommunityPost extends Model
                 'location_state' => 'State',
                 'location_district' => 'District',
                 'location_city' => 'City',
+            ];
+        }
+
+        if ($contentType === 'senior-citizens-forum') {
+            return [
+                'location_country' => 'Country',
+                'location_state' => 'State',
+                'location_district' => 'District',
+                'location_city' => 'City/Village',
             ];
         }
 
@@ -1082,6 +1106,11 @@ class CommunityPost extends Model
         return $contentType === 'womens-world';
     }
 
+    public static function usesSeniorCitizensForumFlow(?string $contentType): bool
+    {
+        return $contentType === 'senior-citizens-forum';
+    }
+
     public function isChildrensCornerPost(): bool
     {
         return self::usesChildrensCornerFlow($this->content_type);
@@ -1100,6 +1129,25 @@ class CommunityPost extends Model
     public function isWomensWorldPost(): bool
     {
         return self::usesWomensWorldFlow($this->content_type);
+    }
+
+    public function isSeniorCitizensForumPost(): bool
+    {
+        return self::usesSeniorCitizensForumFlow($this->content_type);
+    }
+
+    public function seniorCitizensForumAudioData(): ?array
+    {
+        $audio = data_get($this->meta, 'senior_citizens_forum_audio');
+
+        return is_array($audio) && filled($audio['url'] ?? null)
+            ? $audio
+            : null;
+    }
+
+    public function seniorCitizensForumAudioUrl(): ?string
+    {
+        return $this->seniorCitizensForumAudioData()['url'] ?? null;
     }
 
     public function womensWorldAudioData(): ?array
@@ -1207,6 +1255,10 @@ class CommunityPost extends Model
 
         if ($this->isWomensWorldPost()) {
             return \App\Support\CommunityContentTaxonomy::womensWorldReactionLabels();
+        }
+
+        if ($this->isSeniorCitizensForumPost()) {
+            return \App\Support\CommunityContentTaxonomy::seniorCitizensForumReactionLabels();
         }
 
         return ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'];
@@ -1385,6 +1437,19 @@ class CommunityPost extends Model
             };
         }
 
+        if ($this->isSeniorCitizensForumPost()) {
+            if ($viewer !== null && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
+                return true;
+            }
+
+            return match ($this->seniorCitizensForumVisibilitySetting()) {
+                'public' => true,
+                'registered_users', 'senior_citizens_community' => $viewer !== null,
+                'private_link' => false,
+                default => true,
+            };
+        }
+
         if (! $this->isChildrensCornerPost()) {
             return true;
         }
@@ -1405,6 +1470,10 @@ class CommunityPost extends Model
     {
         if ($this->isWomensWorldPost()) {
             return in_array($this->womensWorldVisibilitySetting(), ['registered_users', 'women_community_only'], true);
+        }
+
+        if ($this->isSeniorCitizensForumPost()) {
+            return in_array($this->seniorCitizensForumVisibilitySetting(), ['registered_users', 'senior_citizens_community'], true);
         }
 
         if (! $this->isChildrensCornerPost()) {
@@ -1456,6 +1525,56 @@ class CommunityPost extends Model
         }
 
         $token = (string) data_get($this->meta, 'womens_world_private_link_token', '');
+
+        if (blank($token)) {
+            return null;
+        }
+
+        return route('community.show', $this).'?access='.$token;
+    }
+
+    public function seniorCitizensForumVisibilitySetting(): string
+    {
+        if (! $this->isSeniorCitizensForumPost()) {
+            return \App\Support\CommunityContentTaxonomy::seniorCitizensForumDefaultVisibilitySetting();
+        }
+
+        $setting = (string) data_get($this->meta, 'senior_citizens_forum_visibility', '');
+
+        return array_key_exists($setting, \App\Support\CommunityContentTaxonomy::seniorCitizensForumVisibilitySettings())
+            ? $setting
+            : \App\Support\CommunityContentTaxonomy::seniorCitizensForumDefaultVisibilitySetting();
+    }
+
+    public function seniorCitizensForumVisibilityLabel(): string
+    {
+        return \App\Support\CommunityContentTaxonomy::seniorCitizensForumVisibilitySettings()[$this->seniorCitizensForumVisibilitySetting()]
+            ?? 'Public';
+    }
+
+    public function requiresSeniorCitizensForumPrivateLink(): bool
+    {
+        return $this->isSeniorCitizensForumPost() && $this->seniorCitizensForumVisibilitySetting() === 'private_link';
+    }
+
+    public function allowsSeniorCitizensForumPrivateLinkAccess(?string $accessToken): bool
+    {
+        if (! $this->requiresSeniorCitizensForumPrivateLink()) {
+            return false;
+        }
+
+        $token = (string) data_get($this->meta, 'senior_citizens_forum_private_link_token', '');
+
+        return filled($token) && filled($accessToken) && hash_equals($token, $accessToken);
+    }
+
+    public function seniorCitizensForumPrivateLinkUrl(): ?string
+    {
+        if (! $this->requiresSeniorCitizensForumPrivateLink()) {
+            return null;
+        }
+
+        $token = (string) data_get($this->meta, 'senior_citizens_forum_private_link_token', '');
 
         if (blank($token)) {
             return null;

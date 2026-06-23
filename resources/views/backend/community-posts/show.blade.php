@@ -133,6 +133,16 @@
                 ])
             @endif
 
+            @if($post->isSeniorCitizensForumPost())
+                @include('community.partials.senior-citizens-forum-show-sections', ['post' => $post])
+                @include('community.partials.senior-citizens-forum-after-content', ['post' => $post])
+                @include('community.partials.senior-citizens-forum-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved Senior Citizens Forum metadata',
+                    'includeAdmin' => true,
+                ])
+            @endif
+
             @if($post->isAwarenessPost() && ($post->allowsAwarenessCauseSupport() || $post->allowsAwarenessPledges() || $post->allowsCampaignJoin()))
                 <div class="mb-4" id="awareness-campaign-activity">
                     @include('backend.community-posts.partials.awareness-portal-activity', [
@@ -162,6 +172,12 @@
                 </div>
             @endif
 
+            @if($post->isSeniorCitizensForumPost())
+                <div class="mb-4" id="senior-citizens-forum-portal-activity">
+                    @include('backend.community-posts.partials.senior-citizens-forum-portal-activity', ['post' => $post])
+                </div>
+            @endif
+
             <div class="chart-card p-3 p-lg-4 mb-4">
                 <h5 class="mb-3">Comments &amp; discussion settings</h5>
                 <ul class="list-unstyled small mb-0">
@@ -176,6 +192,11 @@
                         <li class="mb-1"><strong>Visibility:</strong> {{ $post->womensWorldVisibilityLabel() }}</li>
                         <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
                         <li class="mb-1"><strong>Reactions:</strong> Women's World positive reactions</li>
+                    @elseif($post->isSeniorCitizensForumPost())
+                        <li class="mb-1"><strong>Visibility:</strong> {{ $post->seniorCitizensForumVisibilityLabel() }}</li>
+                        <li class="mb-1"><strong>Digital legacy:</strong> {{ data_get($post->meta, 'senior_citizens_forum_preserve_digital_legacy') ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Reactions:</strong> Senior Citizens Forum positive reactions</li>
                     @endif
                     <li class="mb-1"><strong>Questions:</strong> {{ $post->allow_questions ? 'Enabled' : 'Disabled' }}</li>
                     <li class="mb-0"><strong>Suggestions:</strong> {{ $post->allow_suggestions ? 'Enabled' : 'Disabled' }}</li>

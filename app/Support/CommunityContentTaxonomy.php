@@ -128,7 +128,7 @@ class CommunityContentTaxonomy
             'senior-citizens-forum' => [
                 'label' => 'Senior Citizens Forum',
                 'description' => 'A highly underserved audience.',
-                'categories' => ['Life Experiences', 'Health', 'Retirement Planning', 'Memoirs', 'Advice to Youth', 'Social Activities'],
+                'categories' => self::seniorCitizensForumMainCategories(),
             ],
             'youth-corner' => [
                 'label' => 'Youth Corner',
@@ -1649,6 +1649,264 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Main category choices for Senior Citizens Forum posts.
+     *
+     * @return list<string>
+     */
+    public static function seniorCitizensForumMainCategories(): array
+    {
+        return [
+            'Life Experiences',
+            'Advice to Youth',
+            'Retirement Life',
+            'Health & Wellness',
+            'Family Values',
+            'Memoirs',
+            'Village Memories',
+            'Career Experiences',
+            'Social Issues',
+            'Spirituality',
+            'Culture & Heritage',
+            'Community Service',
+            'Agriculture Experiences',
+            'Water & Environment',
+            'Inspirational Stories',
+        ];
+    }
+
+    /**
+     * Content type groups for Senior Citizens Forum posts.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function seniorCitizensForumContentTypeGroups(): array
+    {
+        return [
+            'Personal & reflective' => [
+                'Personal Experience',
+                'Memoir',
+                'Advice',
+                'Opinion',
+                'Story',
+                'Awareness',
+            ],
+            'Documentation' => [
+                'Historical Account',
+                'Cultural Documentation',
+            ],
+            'Community' => [
+                'Success Story',
+                'Question & Discussion',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumContentTypes(): array
+    {
+        return array_values(array_merge(...array_values(self::seniorCitizensForumContentTypeGroups())));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumAgeGroups(): array
+    {
+        return [
+            '60–65 Years',
+            '66–70 Years',
+            '71–75 Years',
+            '76–80 Years',
+            '80+ Years',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumLifeJourneyCategories(): array
+    {
+        return [
+            'Teacher',
+            'Farmer',
+            'Government Employee',
+            'Business Owner',
+            'Homemaker',
+            'Military Personnel',
+            'Engineer',
+            'Doctor',
+            'Social Worker',
+            'Entrepreneur',
+            'Retired Professional',
+        ];
+    }
+
+    /**
+     * Example key lessons shown on the create/edit form.
+     *
+     * @return list<string>
+     */
+    public static function seniorCitizensForumKeyLessonExamples(): array
+    {
+        return [
+            'Respect your parents.',
+            'Save regularly.',
+            'Education is the best investment.',
+            'Health is more important than wealth.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumAudioMemoryExamples(): array
+    {
+        return [
+            'Life stories',
+            'Memories',
+            'Advice',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumVideoTypes(): array
+    {
+        return [
+            'Personal Interview',
+            'Life Story Recording',
+            'Family Message',
+            'Community History',
+        ];
+    }
+
+    /**
+     * Family heritage field labels for Senior Citizens Forum posts.
+     *
+     * @return array<string, string>
+     */
+    public static function seniorCitizensForumFamilyHeritageFields(): array
+    {
+        return [
+            'senior_citizens_forum_family_background' => 'Family background',
+            'senior_citizens_forum_traditions' => 'Traditions',
+            'senior_citizens_forum_cultural_practices' => 'Cultural practices',
+            'senior_citizens_forum_family_values' => 'Family values',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumThemes(): array
+    {
+        return [
+            'Family Values',
+            'Education',
+            'Health',
+            'Agriculture',
+            'Patriotism',
+            'Community Service',
+            'Water Conservation',
+            'Environment',
+            'Leadership',
+            'Culture',
+            'Spirituality',
+            'Retirement',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumCommunityContributions(): array
+    {
+        return [
+            'Teacher',
+            'Volunteer',
+            'Social Worker',
+            'Community Leader',
+            'Farmer',
+            'Environmental Activist',
+        ];
+    }
+
+    /**
+     * Visibility settings for Senior Citizens Forum posts.
+     *
+     * @return array<string, string>
+     */
+    public static function seniorCitizensForumVisibilitySettings(): array
+    {
+        return [
+            'public' => 'Public',
+            'registered_users' => 'Registered Users',
+            'senior_citizens_community' => 'Senior Citizens Community',
+            'private_link' => 'Private Link',
+        ];
+    }
+
+    public static function seniorCitizensForumDefaultVisibilitySetting(): string
+    {
+        return 'public';
+    }
+
+    /**
+     * Positive reaction options for Senior Citizens Forum posts.
+     *
+     * @return array<string, string>
+     */
+    public static function seniorCitizensForumReactionOptions(): array
+    {
+        return [
+            'Respect' => 'fa-solid fa-hands-praying',
+            'Inspiring' => 'fa-solid fa-lightbulb',
+            'Valuable Wisdom' => 'fa-solid fa-book-open',
+            'Remarkable Journey' => 'fa-solid fa-road',
+            'Helpful Advice' => 'fa-solid fa-hand-holding-heart',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumReactionLabels(): array
+    {
+        return array_keys(self::seniorCitizensForumReactionOptions());
+    }
+
+    /**
+     * Intergenerational connection tags for Senior Citizens Forum posts.
+     *
+     * @return list<string>
+     */
+    public static function seniorCitizensForumIntergenerationalConnections(): array
+    {
+        return [
+            'Advice for Students',
+            'Advice for Entrepreneurs',
+            'Advice for Parents',
+            'Advice for Society',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function seniorCitizensForumDigitalLegacyBenefits(): array
+    {
+        return [
+            'Permanent archive',
+            'Family access',
+            'Printable PDF',
+            'eBook generation',
+        ];
+    }
+
+    /**
      * Main category choices for business posts.
      *
      * @return list<string>
@@ -1951,6 +2209,22 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Recommended Senior Citizens Forum content sections for the rich text editor.
+     *
+     * @return array<string, string>
+     */
+    public static function seniorCitizensForumContentStructure(): array
+    {
+        return [
+            'Background' => 'Set the context — time, place, and situation.',
+            'Experience' => 'Share what happened and how you lived through it.',
+            'Lessons Learned' => 'Key takeaways from your journey.',
+            'Advice' => 'Practical guidance for younger readers or the community.',
+            'Conclusion' => 'Closing reflection or message.',
+        ];
+    }
+
+    /**
      * Legacy civic issue report types for older My Area posts.
      *
      * @return list<string>
@@ -1997,6 +2271,10 @@ class CommunityContentTaxonomy
 
         if ($type === 'womens-world') {
             return in_array($category, self::womensWorldMainCategories(), true);
+        }
+
+        if ($type === 'senior-citizens-forum') {
+            return in_array($category, self::seniorCitizensForumMainCategories(), true);
         }
 
         return in_array($category, self::categoriesFor($type), true);

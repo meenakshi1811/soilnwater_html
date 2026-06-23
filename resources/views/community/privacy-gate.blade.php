@@ -6,11 +6,15 @@
 @section('content')
 @php
     $isWomensWorld = $post->isWomensWorldPost();
+    $isSeniorCitizensForum = $post->isSeniorCitizensForumPost();
     $isChildrensCorner = $post->isChildrensCornerPost();
     $privacyLabel = $isWomensWorld
         ? $post->womensWorldVisibilityLabel()
-        : $post->childrensCornerPrivacyLabel();
-    $requiresPrivateLink = $isWomensWorld && $post->requiresWomensWorldPrivateLink();
+        : ($isSeniorCitizensForum
+            ? $post->seniorCitizensForumVisibilityLabel()
+            : $post->childrensCornerPrivacyLabel());
+    $requiresPrivateLink = ($isWomensWorld && $post->requiresWomensWorldPrivateLink())
+        || ($isSeniorCitizensForum && $post->requiresSeniorCitizensForumPrivateLink());
     $requiresLogin = ! $requiresPrivateLink && $post->requiresAuthenticationForCommunityView();
 @endphp
 <div class="about-page">
@@ -20,7 +24,13 @@
             <h1 class="h2">{{ $post->title }}</h1>
             <p class="lead mb-0">
                 @if($requiresPrivateLink)
-                    This Women's World post is only available through its private link.
+                    @if($isSeniorCitizensForum)
+                        This Senior Citizens Forum post is only available through its private link.
+                    @else
+                        This Women's World post is only available through its private link.
+                    @endif
+                @elseif($isSeniorCitizensForum)
+                    This Senior Citizens Forum post has restricted visibility.
                 @elseif($isWomensWorld)
                     This Women's World post has restricted visibility.
                 @else
@@ -50,6 +60,8 @@
                                 @endif
                                 community and is available to registered SoilnWater members.
                             </p>
+                        @elseif($isSeniorCitizensForum && $post->seniorCitizensForumVisibilitySetting() === 'senior_citizens_community')
+                            <p class="text-muted mb-0">This post is available to registered members of the Senior Citizens Community.</p>
                         @elseif($isWomensWorld && $post->womensWorldVisibilitySetting() === 'women_community_only')
                             <p class="text-muted mb-0">This post is available to registered members of the Women's Community.</p>
                         @else
@@ -76,7 +88,7 @@
                         <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="btn btn-success">Login to view</a>
                         <a href="{{ route('register') }}" class="btn btn-outline-success">Create an account</a>
                     @endif
-                    <a href="{{ route('community.index', ['type' => $isWomensWorld ? 'womens-world' : 'childrens-corner']) }}" class="btn btn-outline-secondary">
+                    <a href="{{ route('community.index', ['type' => $isWomensWorld ? 'womens-world' : ($isSeniorCitizensForum ? 'senior-citizens-forum' : 'childrens-corner')]) }}" class="btn btn-outline-secondary">
                         Back to {{ $isWomensWorld ? "Women's World" : "Children's Corner" }}
                     </a>
                 </div>

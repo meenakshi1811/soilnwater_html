@@ -356,6 +356,9 @@
             <div class="col-12 type-extra womens-world-flow" data-for="womens-world">
                 @include('backend.community-posts.partials.womens-world-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            <div class="col-12 type-extra senior-citizens-forum-flow" data-for="senior-citizens-forum">
+                @include('backend.community-posts.partials.senior-citizens-forum-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -583,6 +586,51 @@ The mountains keep.</pre>
                         </div>
                     </div>
                 </div>
+                <div id="seniorCitizensForumContentGuide" class="story-content-guide mb-3 senior-citizens-forum-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full post. Large font mode is enabled for easier reading and writing.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Senior Citizens Forum</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field on the form. Use the editor below for the full post.</p>
+                                    <p class="small mb-1 fw-semibold">Features:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Text</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Audio</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Documents</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Quotes</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Basic formatting</li>
+                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertSeniorCitizensForumStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::seniorCitizensForumContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="autobiographyContentGuide" class="story-content-guide mb-3 life-story-flow-section" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -713,6 +761,9 @@ The mountains keep.</pre>
             </div>
             <div class="col-12 type-extra womens-world-flow" data-for="womens-world">
                 @include('backend.community-posts.partials.womens-world-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra senior-citizens-forum-flow" data-for="senior-citizens-forum">
+                @include('backend.community-posts.partials.senior-citizens-forum-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
@@ -1870,6 +1921,17 @@ The mountains keep.</pre>
         min-height: 480px;
     }
 
+    #bodyEditorMount.is-senior-citizens-forum-mode .ck-editor__editable_inline {
+        font-size: 1.2rem;
+        line-height: 1.75;
+        min-height: 400px;
+    }
+
+    #bodyEditorMount.is-senior-citizens-forum-mode .ck.ck-toolbar .ck-button .ck-button__label,
+    #bodyEditorMount.is-senior-citizens-forum-mode .ck.ck-toolbar .ck-dropdown .ck-button .ck-button__label {
+        font-size: 0.95rem;
+    }
+
     .poetry-content-example {
         background: #f8fafc;
         border: 1px dashed #cbd5e1;
@@ -2586,6 +2648,20 @@ The mountains keep.</pre>
 
     document.getElementById('womensWorldCategory')?.addEventListener('change', syncWomensWorldCategory);
 
+    function syncSeniorCitizensForumCategory() {
+        const seniorCitizensForumCategory = document.getElementById('seniorCitizensForumCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'senior-citizens-forum') {
+            return;
+        }
+
+        categorySelect.value = seniorCitizensForumCategory;
+        categorySelect.dataset.selected = seniorCitizensForumCategory;
+    }
+
+    document.getElementById('seniorCitizensForumCategory')?.addEventListener('change', syncSeniorCitizensForumCategory);
+
     document.getElementById('insertAwarenessStructureBtn')?.addEventListener('click', function () {
         const structureHtml = [
             '<h2>Problem</h2>',
@@ -2658,6 +2734,34 @@ The mountains keep.</pre>
             '<p>Practical guidance for readers in similar situations.</p>',
             '<h2>Conclusion</h2>',
             '<p>Closing message, reflection, or call to action.</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    document.getElementById('insertSeniorCitizensForumStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Background</h2>',
+            '<p>Set the context — time, place, and situation.</p>',
+            '<h2>Experience</h2>',
+            '<p>Share what happened and how you lived through it.</p>',
+            '<h2>Lessons Learned</h2>',
+            '<p>Key takeaways from your journey.</p>',
+            '<h2>Advice</h2>',
+            '<p>Practical guidance for younger readers or the community.</p>',
+            '<h2>Conclusion</h2>',
+            '<p>Closing reflection or message.</p>',
         ].join('');
 
         if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
@@ -2894,9 +2998,11 @@ The mountains keep.</pre>
     function refreshPoetryEditorMode(contentType) {
         const editorMount = document.getElementById('bodyEditorMount');
         const isPoetry = contentType === 'poetry';
+        const isSeniorCitizensForum = contentType === 'senior-citizens-forum';
 
         if (editorMount) {
             editorMount.classList.toggle('is-poetry-mode', isPoetry);
+            editorMount.classList.toggle('is-senior-citizens-forum-mode', isSeniorCitizensForum);
         }
 
         refreshEditorLanguageOptions(contentType);
@@ -2973,7 +3079,7 @@ The mountains keep.</pre>
     const COMMUNITY_LOCATION_TYPE_GPS = @json(\App\Models\CommunityPost::LOCATION_TYPE_GPS);
     const COMMUNITY_BASE_LOCATION_TYPES = @json(\App\Models\CommunityPost::locationTypeOptions());
     const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness', 'business'];
-    const COMMUNITY_OPTIONAL_STRUCTURED_LOCATION_TYPES = ['womens-world'];
+    const COMMUNITY_OPTIONAL_STRUCTURED_LOCATION_TYPES = ['womens-world', 'senior-citizens-forum'];
     let communityGpsMap = null;
     let communityGpsMarker = null;
     let communityGpsMapInitialized = false;
@@ -3031,6 +3137,7 @@ The mountains keep.</pre>
         const awarenessSlot = document.getElementById('communityAwarenessLocationSlot');
         const businessSlot = document.getElementById('communityBusinessLocationSlot');
         const womensWorldSlot = document.getElementById('communityWomensWorldLocationSlot');
+        const seniorCitizensForumSlot = document.getElementById('communitySeniorCitizensForumLocationSlot');
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
 
         if (!wrapper) {
@@ -3042,8 +3149,10 @@ The mountains keep.</pre>
         const isAwareness = contentType === 'awareness';
         const isBusiness = contentType === 'business';
         const isWomensWorld = contentType === 'womens-world';
+        const isSeniorCitizensForum = contentType === 'senior-citizens-forum';
         const usesStructured = usesStructuredCommunityLocation(contentType);
         const requiresStructured = requiresStructuredCommunityLocation(contentType);
+        const usesOptionalStructuredLocation = COMMUNITY_OPTIONAL_STRUCTURED_LOCATION_TYPES.includes(contentType);
         let targetSlot = hiddenSlot;
 
         if (isNews) {
@@ -3056,6 +3165,8 @@ The mountains keep.</pre>
             targetSlot = businessSlot;
         } else if (isWomensWorld) {
             targetSlot = womensWorldSlot;
+        } else if (isSeniorCitizensForum) {
+            targetSlot = seniorCitizensForumSlot;
         }
 
         if (targetSlot && wrapper.parentElement !== targetSlot) {
@@ -3080,7 +3191,11 @@ The mountains keep.</pre>
                 return;
             }
 
-            const baseText = label.textContent.replace(/\s*\*$/, '').trim();
+            let baseText = label.textContent.replace(/\s*\*$/, '').trim();
+            if (fieldId === 'communityLocationCity' && isSeniorCitizensForum) {
+                baseText = 'City/Village';
+            }
+
             label.innerHTML = requiresStructured
                 ? `${baseText} <span class="text-danger">*</span>`
                 : baseText;
@@ -3089,10 +3204,10 @@ The mountains keep.</pre>
         const localityWrap = document.getElementById('communityLocationLocalityWrap');
         const mapWrap = document.getElementById('communityStructuredLocationMapWrap');
         if (localityWrap) {
-            localityWrap.style.display = isWomensWorld ? 'none' : '';
+            localityWrap.style.display = usesOptionalStructuredLocation ? 'none' : '';
         }
         if (mapWrap) {
-            mapWrap.style.display = isWomensWorld ? 'none' : '';
+            mapWrap.style.display = usesOptionalStructuredLocation ? 'none' : '';
         }
 
         const localityField = document.getElementById('communityLocationLocality');
@@ -3100,7 +3215,7 @@ The mountains keep.</pre>
 
         if (localityField) {
             localityField.required = requiresStructured && (isAwareness || isBusiness);
-            localityField.disabled = !usesStructured || isWomensWorld;
+            localityField.disabled = !usesStructured || usesOptionalStructuredLocation;
 
             if (isAwareness || isBusiness) {
                 localityField.classList.add('structured-location-required');
@@ -3239,7 +3354,7 @@ The mountains keep.</pre>
         }
     }
 
-    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld) {
+    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum) {
         const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
         const featuredSlot = document.getElementById('communityNewsFeaturedImagesSlot');
         const storyFeaturedSlot = document.getElementById('communityStoryFeaturedImagesSlot');
@@ -3255,6 +3370,7 @@ The mountains keep.</pre>
         const awarenessVideoSlot = document.getElementById('communityAwarenessVideoSlot');
         const businessVideoSlot = document.getElementById('communityBusinessVideoSlot');
         const womensWorldVideoSlot = document.getElementById('communityWomensWorldVideoSlot');
+        const seniorCitizensForumVideoSlot = document.getElementById('communitySeniorCitizensForumVideoSlot');
         const videoAnchor = document.getElementById('communityVideoHiddenSlot');
         const videoFieldLabel = document.getElementById('videoFieldLabel');
         const featuredLabel = document.getElementById('featuredImagesLabel');
@@ -3335,7 +3451,10 @@ The mountains keep.</pre>
             } else if (isWomensWorld && womensWorldVideoSlot) {
                 womensWorldVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
-            } else if (! isAwareness && ! isBusiness && ! isWomensWorld) {
+            } else if (isSeniorCitizensForum && seniorCitizensForumVideoSlot) {
+                seniorCitizensForumVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (! isAwareness && ! isBusiness && ! isWomensWorld && ! isSeniorCitizensForum) {
                 videoAnchor.insertAdjacentElement('afterend', videoWrap);
                 videoWrap.classList.add('col-md-6');
             } else {
@@ -3349,6 +3468,8 @@ The mountains keep.</pre>
             } else if (isBusiness) {
                 videoFieldLabel.innerHTML = 'Business video <span class="text-muted fw-normal">(optional)</span>';
             } else if (isWomensWorld) {
+                videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
+            } else if (isSeniorCitizensForum) {
                 videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
             } else {
                 videoFieldLabel.innerHTML = isStories
@@ -3614,7 +3735,7 @@ The mountains keep.</pre>
         const selectedType = typeSelect.value;
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world'].includes(selectedType);
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -3636,6 +3757,7 @@ The mountains keep.</pre>
         const isAwareness = selectedType === 'awareness';
         const isBusiness = selectedType === 'business';
         const isWomensWorld = selectedType === 'womens-world';
+        const isSeniorCitizensForum = selectedType === 'senior-citizens-forum';
 
         if (isChildrensCorner) {
             categoryWrap.style.display = 'none';
@@ -3657,6 +3779,11 @@ The mountains keep.</pre>
             categorySelect.required = false;
             categorySelect.disabled = true;
             syncWomensWorldCategory();
+        } else if (isSeniorCitizensForum) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncSeniorCitizensForumCategory();
         } else {
             categoryWrap.style.display = '';
             categorySelect.disabled = false;
@@ -3723,11 +3850,11 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld) ? 'none' : '';
+            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum) ? 'none' : '';
         });
 
         document.querySelectorAll('.general-extra input, .general-extra textarea, .general-extra select').forEach((field) => {
-            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld;
+            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -3774,6 +3901,10 @@ The mountains keep.</pre>
             field.required = isWomensWorld;
         });
 
+        document.querySelectorAll('.senior-citizens-forum-required').forEach((field) => {
+            field.required = isSeniorCitizensForum;
+        });
+
         document.querySelectorAll('.awareness-flow input, .awareness-flow textarea, .awareness-flow select').forEach((field) => {
             if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
                 return;
@@ -3796,6 +3927,14 @@ The mountains keep.</pre>
             }
 
             field.disabled = !isWomensWorld;
+        });
+
+        document.querySelectorAll('.senior-citizens-forum-flow input, .senior-citizens-forum-flow textarea, .senior-citizens-forum-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isSeniorCitizensForum;
         });
 
         const childSchoolName = document.getElementById('childSchoolName');
@@ -3888,6 +4027,14 @@ The mountains keep.</pre>
             bodyHelp: 'Use the rich text editor for Background, Challenge, Experience, Lessons Learned, Advice to Others, and Conclusion.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
+        } : (isSeniorCitizensForum ? {
+            excerptLabel: 'Summary',
+            excerptPlaceholder: 'Summarize your experience, advice, or story in one or two sentences.',
+            excerptHelp: 'A concise standfirst shown in Senior Citizens Forum listings.',
+            bodyLabel: 'Rich text editor <span class="text-danger">*</span>',
+            bodyHelp: 'Large font mode is enabled. Use the editor for Background, Experience, Lessons Learned, Advice, and Conclusion.',
+            locationLabel: 'Location',
+            locationHelp: 'Optional — enter country, state, district, and city/village for local heritage and community stories.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -3896,7 +4043,7 @@ The mountains keep.</pre>
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        })))));
+        })))))));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -3935,23 +4082,29 @@ The mountains keep.</pre>
             womensWorldContentGuide.style.display = isWomensWorld ? '' : 'none';
         }
 
+        const seniorCitizensForumContentGuide = document.getElementById('seniorCitizensForumContentGuide');
+        if (seniorCitizensForumContentGuide) {
+            seniorCitizensForumContentGuide.style.display = isSeniorCitizensForum ? '' : 'none';
+        }
+
+        refreshPoetryEditorMode(selectedType);
         refreshPoetrySeriesFields();
         refreshChildrensCornerContentMode();
 
         mountStructuredLocationFields(selectedType);
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
         if (commonLocationSlot) {
-            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld) ? 'none' : '';
+            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum) ? 'none' : '';
             commonLocationSlot.querySelectorAll('input, select, textarea').forEach((field) => {
                 if (isChildrensCorner) {
                     field.disabled = true;
                     field.required = false;
-                } else if (!isNews && !isReport && !isAwareness && !isBusiness && !isWomensWorld) {
+                } else if (!isNews && !isReport && !isAwareness && !isBusiness && !isWomensWorld && !isSeniorCitizensForum) {
                     field.disabled = false;
                 }
             });
         }
-        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld);
+        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum);
         mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld);
         refreshCommunityLocationTypeOptions(isReport);
         refreshBookLayoutMode(selectedType);
@@ -4376,6 +4529,32 @@ The mountains keep.</pre>
         });
     });
     refreshWomensWorldPrivacyFields();
+
+    function refreshSeniorCitizensForumPrivacyFields() {
+        const visibilitySelect = document.getElementById('seniorCitizensForumVisibility');
+        const privateLinkInfo = document.getElementById('seniorCitizensForumPrivateLinkInfo');
+        if (!visibilitySelect || !privateLinkInfo) {
+            return;
+        }
+
+        privateLinkInfo.style.display = visibilitySelect.value === 'private_link' ? '' : 'none';
+    }
+
+    document.getElementById('seniorCitizensForumVisibility')?.addEventListener('change', refreshSeniorCitizensForumPrivacyFields);
+    document.getElementById('seniorCitizensForumCopyPrivateLinkBtn')?.addEventListener('click', function () {
+        const input = document.getElementById('seniorCitizensForumPrivateLinkUrl');
+        if (!input?.value) {
+            return;
+        }
+        navigator.clipboard?.writeText(input.value).then(function () {
+            notify('success', 'Private link copied.');
+        }).catch(function () {
+            input.select();
+            document.execCommand('copy');
+            notify('success', 'Private link copied.');
+        });
+    });
+    refreshSeniorCitizensForumPrivacyFields();
 
     document.getElementById('communityPostStatus')?.addEventListener('change', refreshPublishAsFields);
     document.querySelectorAll('input[name="publish_as"]').forEach((input) => {
@@ -5301,6 +5480,138 @@ The mountains keep.</pre>
 
     refreshWomensWorldAudioPanels();
 
+    const seniorCitizensForumAudioUploadWrap = document.getElementById('seniorCitizensForumAudioUploadWrap');
+    const seniorCitizensForumAudioRecordingWrap = document.getElementById('seniorCitizensForumAudioRecordingWrap');
+    const seniorCitizensForumAudioFileInput = document.getElementById('seniorCitizensForumAudioFile');
+    const keepExistingSeniorCitizensForumAudioInput = document.getElementById('keepExistingSeniorCitizensForumAudio');
+    const seniorCitizensForumAudioRecordBtn = document.getElementById('seniorCitizensForumAudioRecordBtn');
+    const seniorCitizensForumAudioStopBtn = document.getElementById('seniorCitizensForumAudioStopBtn');
+    const seniorCitizensForumAudioClearRecordingBtn = document.getElementById('seniorCitizensForumAudioClearRecordingBtn');
+    const seniorCitizensForumAudioRecordingStatus = document.getElementById('seniorCitizensForumAudioRecordingStatus');
+    const seniorCitizensForumAudioRecordingPreview = document.getElementById('seniorCitizensForumAudioRecordingPreview');
+    let seniorCitizensForumAudioRecorder = null;
+    let seniorCitizensForumAudioStream = null;
+    let seniorCitizensForumAudioChunks = [];
+    let seniorCitizensForumAudioBlob = null;
+
+    function refreshSeniorCitizensForumAudioPanels() {
+        const selected = document.querySelector('input[name="senior_citizens_forum_audio_source_type"]:checked')?.value || 'none';
+        seniorCitizensForumAudioUploadWrap?.classList.toggle('is-active', selected === 'upload');
+        seniorCitizensForumAudioRecordingWrap?.classList.toggle('is-active', selected === 'recording');
+    }
+
+    document.querySelectorAll('input[name="senior_citizens_forum_audio_source_type"]').forEach((input) => {
+        input.addEventListener('change', refreshSeniorCitizensForumAudioPanels);
+    });
+
+    document.getElementById('removeSeniorCitizensForumAudio')?.addEventListener('change', function () {
+        if (this.checked) {
+            document.getElementById('seniorCitizensForumAudioSourceNone')?.click();
+        }
+    });
+
+    seniorCitizensForumAudioFileInput?.addEventListener('change', function () {
+        if (keepExistingSeniorCitizensForumAudioInput) {
+            keepExistingSeniorCitizensForumAudioInput.value = this.files?.length ? '0' : '1';
+        }
+    });
+
+    function resetSeniorCitizensForumAudioRecordingUi() {
+        if (seniorCitizensForumAudioStream) {
+            seniorCitizensForumAudioStream.getTracks().forEach((track) => track.stop());
+            seniorCitizensForumAudioStream = null;
+        }
+
+        seniorCitizensForumAudioRecorder = null;
+        seniorCitizensForumAudioChunks = [];
+        seniorCitizensForumAudioBlob = null;
+
+        if (seniorCitizensForumAudioRecordingPreview) {
+            seniorCitizensForumAudioRecordingPreview.removeAttribute('src');
+            seniorCitizensForumAudioRecordingPreview.style.display = 'none';
+            seniorCitizensForumAudioRecordingPreview.load();
+        }
+
+        if (seniorCitizensForumAudioRecordBtn) {
+            seniorCitizensForumAudioRecordBtn.disabled = false;
+        }
+        if (seniorCitizensForumAudioStopBtn) {
+            seniorCitizensForumAudioStopBtn.disabled = true;
+        }
+        if (seniorCitizensForumAudioClearRecordingBtn) {
+            seniorCitizensForumAudioClearRecordingBtn.disabled = true;
+        }
+        if (seniorCitizensForumAudioRecordingStatus) {
+            seniorCitizensForumAudioRecordingStatus.textContent = 'Ready to record.';
+        }
+    }
+
+    seniorCitizensForumAudioRecordBtn?.addEventListener('click', async function () {
+        if (!navigator.mediaDevices?.getUserMedia) {
+            notify('error', 'Voice recording is not supported in this browser.');
+            return;
+        }
+
+        try {
+            seniorCitizensForumAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            seniorCitizensForumAudioChunks = [];
+            seniorCitizensForumAudioRecorder = new MediaRecorder(seniorCitizensForumAudioStream);
+            seniorCitizensForumAudioRecorder.addEventListener('dataavailable', function (event) {
+                if (event.data.size > 0) {
+                    seniorCitizensForumAudioChunks.push(event.data);
+                }
+            });
+            seniorCitizensForumAudioRecorder.addEventListener('stop', function () {
+                seniorCitizensForumAudioBlob = new Blob(seniorCitizensForumAudioChunks, { type: 'audio/webm' });
+                const previewUrl = URL.createObjectURL(seniorCitizensForumAudioBlob);
+
+                if (seniorCitizensForumAudioRecordingPreview) {
+                    seniorCitizensForumAudioRecordingPreview.src = previewUrl;
+                    seniorCitizensForumAudioRecordingPreview.style.display = '';
+                    seniorCitizensForumAudioRecordingPreview.load();
+                }
+
+                if (seniorCitizensForumAudioClearRecordingBtn) {
+                    seniorCitizensForumAudioClearRecordingBtn.disabled = false;
+                }
+                if (seniorCitizensForumAudioRecordingStatus) {
+                    seniorCitizensForumAudioRecordingStatus.textContent = 'Recording ready. Submit the form to save it.';
+                }
+
+                if (keepExistingSeniorCitizensForumAudioInput) {
+                    keepExistingSeniorCitizensForumAudioInput.value = '0';
+                }
+            });
+
+            seniorCitizensForumAudioRecorder.start();
+            seniorCitizensForumAudioRecordBtn.disabled = true;
+            seniorCitizensForumAudioStopBtn.disabled = false;
+            seniorCitizensForumAudioRecordingStatus.textContent = 'Recording...';
+        } catch (error) {
+            notify('error', 'Microphone access is required for voice recording.');
+        }
+    });
+
+    seniorCitizensForumAudioStopBtn?.addEventListener('click', function () {
+        if (seniorCitizensForumAudioRecorder && seniorCitizensForumAudioRecorder.state !== 'inactive') {
+            seniorCitizensForumAudioRecorder.stop();
+        }
+
+        if (seniorCitizensForumAudioStream) {
+            seniorCitizensForumAudioStream.getTracks().forEach((track) => track.stop());
+            seniorCitizensForumAudioStream = null;
+        }
+
+        seniorCitizensForumAudioRecordBtn.disabled = false;
+        seniorCitizensForumAudioStopBtn.disabled = true;
+    });
+
+    seniorCitizensForumAudioClearRecordingBtn?.addEventListener('click', function () {
+        resetSeniorCitizensForumAudioRecordingUi();
+    });
+
+    refreshSeniorCitizensForumAudioPanels();
+
     const lifeTimelineEntries = document.getElementById('lifeTimelineEntries');
     const lifeTimelineTemplate = document.getElementById('lifeTimelineEntryTemplate');
     const addLifeTimelineEntryBtn = document.getElementById('addLifeTimelineEntryBtn');
@@ -5640,6 +5951,20 @@ The mountains keep.</pre>
     });
 
     createListBuilder({
+        containerId: 'seniorCitizensForumKeyLessonsEntries',
+        templateId: 'seniorCitizensForumKeyLessonTemplate',
+        addButtonId: 'addSeniorCitizensForumKeyLessonBtn',
+        initialData: window.communitySeniorCitizensForumKeyLessons || [],
+        emptyEntry: '',
+        populate: function (entry, value) {
+            const input = entry.querySelector('.js-senior-citizens-forum-key-lesson-input');
+            if (input) {
+                input.value = typeof value === 'string' ? value : '';
+            }
+        },
+    });
+
+    createListBuilder({
         containerId: 'relatedPeopleEntries',
         templateId: 'relatedPersonTemplate',
         addButtonId: 'addRelatedPersonBtn',
@@ -5761,6 +6086,143 @@ The mountains keep.</pre>
     });
 
     initAutobiographyAchievements();
+
+    const seniorCitizensForumAchievementEntries = document.getElementById('seniorCitizensForumAchievementEntries');
+    const seniorCitizensForumAchievementTemplate = document.getElementById('seniorCitizensForumAchievementTemplate');
+    const addSeniorCitizensForumAchievementBtn = document.getElementById('addSeniorCitizensForumAchievementBtn');
+    let seniorCitizensForumAchievementNextIndex = 0;
+
+    function syncSeniorCitizensForumAchievementFieldNames(entry, index) {
+        entry.dataset.achievementIndex = String(index);
+        entry.querySelector('.senior-citizens-forum-achievement-entry__title').textContent = 'Achievement ' + (index + 1);
+        entry.querySelectorAll('[data-name]').forEach((field) => {
+            const fieldName = field.dataset.name.replace(/__INDEX__/g, String(index));
+            field.name = fieldName;
+            field.id = fieldName.replace(/[\[\]]/g, '_');
+        });
+    }
+
+    function bindSeniorCitizensForumAchievementEntry(entry) {
+        const photoInput = entry.querySelector('.js-scf-achievement-photo');
+        const photoPreviewWrap = entry.querySelector('.js-scf-achievement-photo-preview');
+        const photoPreviewImage = photoPreviewWrap?.querySelector('img');
+        const existingPhotoPathInput = entry.querySelector('.js-scf-achievement-existing-photo-path');
+        const certificateInput = entry.querySelector('.js-scf-achievement-certificate');
+        const certificatePreview = entry.querySelector('.js-scf-achievement-certificate-preview');
+        const existingCertificatePathInput = entry.querySelector('.js-scf-achievement-existing-certificate-path');
+
+        entry.querySelector('.js-remove-senior-citizens-forum-achievement-entry')?.addEventListener('click', function () {
+            entry.remove();
+            reindexSeniorCitizensForumAchievements();
+        });
+
+        photoInput?.addEventListener('change', function () {
+            const file = photoInput.files?.[0];
+            if (!file || !photoPreviewWrap || !photoPreviewImage) {
+                return;
+            }
+
+            photoPreviewImage.src = URL.createObjectURL(file);
+            photoPreviewWrap.style.display = '';
+            if (existingPhotoPathInput) {
+                existingPhotoPathInput.value = '';
+            }
+        });
+
+        certificateInput?.addEventListener('change', function () {
+            const file = certificateInput.files?.[0];
+            if (!file || !certificatePreview) {
+                return;
+            }
+
+            certificatePreview.textContent = 'Selected: ' + file.name;
+            certificatePreview.style.display = '';
+            if (existingCertificatePathInput) {
+                existingCertificatePathInput.value = '';
+            }
+        });
+
+        if (existingPhotoPathInput?.value && photoPreviewWrap && photoPreviewImage) {
+            const existingPhotoUrl = entry.dataset.existingPhotoUrl || '';
+            if (existingPhotoUrl) {
+                photoPreviewImage.src = existingPhotoUrl;
+                photoPreviewWrap.style.display = '';
+            }
+        }
+
+        if (existingCertificatePathInput?.value && certificatePreview) {
+            const existingCertificateName = entry.dataset.existingCertificateName || 'Certificate on file';
+            certificatePreview.innerHTML = '<a href="' + (entry.dataset.existingCertificateUrl || '#') + '" target="_blank" rel="noopener">' + existingCertificateName + '</a>';
+            certificatePreview.style.display = '';
+        }
+    }
+
+    function reindexSeniorCitizensForumAchievements() {
+        if (!seniorCitizensForumAchievementEntries) {
+            return;
+        }
+
+        seniorCitizensForumAchievementEntries.querySelectorAll('.autobiography-achievement-entry').forEach((entry, index) => {
+            syncSeniorCitizensForumAchievementFieldNames(entry, index);
+        });
+        seniorCitizensForumAchievementNextIndex = seniorCitizensForumAchievementEntries.querySelectorAll('.autobiography-achievement-entry').length;
+    }
+
+    function addSeniorCitizensForumAchievement(data) {
+        if (!seniorCitizensForumAchievementEntries || !seniorCitizensForumAchievementTemplate) {
+            return;
+        }
+
+        const fragment = seniorCitizensForumAchievementTemplate.content.cloneNode(true);
+        const entry = fragment.querySelector('.autobiography-achievement-entry');
+        const index = seniorCitizensForumAchievementNextIndex;
+        syncSeniorCitizensForumAchievementFieldNames(entry, index);
+        entry.querySelector('.js-scf-achievement-award-name').value = data?.award_name || '';
+        entry.querySelector('.js-scf-achievement-year').value = data?.year || '';
+        entry.querySelector('.js-scf-achievement-description').value = data?.description || '';
+
+        const existingPhotoPathInput = entry.querySelector('.js-scf-achievement-existing-photo-path');
+        if (existingPhotoPathInput && data?.existing_photo_path) {
+            existingPhotoPathInput.value = data.existing_photo_path;
+        }
+        if (data?.existing_photo_url) {
+            entry.dataset.existingPhotoUrl = data.existing_photo_url;
+        }
+
+        const existingCertificatePathInput = entry.querySelector('.js-scf-achievement-existing-certificate-path');
+        if (existingCertificatePathInput && data?.existing_certificate_path) {
+            existingCertificatePathInput.value = data.existing_certificate_path;
+        }
+        if (data?.existing_certificate_name) {
+            entry.dataset.existingCertificateName = data.existing_certificate_name;
+        }
+        if (data?.existing_certificate_url) {
+            entry.dataset.existingCertificateUrl = data.existing_certificate_url;
+        }
+
+        bindSeniorCitizensForumAchievementEntry(entry);
+        seniorCitizensForumAchievementEntries.appendChild(entry);
+        seniorCitizensForumAchievementNextIndex += 1;
+    }
+
+    function initSeniorCitizensForumAchievements() {
+        if (!seniorCitizensForumAchievementEntries || !seniorCitizensForumAchievementTemplate) {
+            return;
+        }
+
+        seniorCitizensForumAchievementEntries.innerHTML = '';
+        seniorCitizensForumAchievementNextIndex = 0;
+        const initialEntries = Array.isArray(window.communitySeniorCitizensForumAchievements) ? window.communitySeniorCitizensForumAchievements : [];
+        if (initialEntries.length > 0) {
+            initialEntries.forEach((entry) => addSeniorCitizensForumAchievement(entry));
+        }
+    }
+
+    addSeniorCitizensForumAchievementBtn?.addEventListener('click', function () {
+        addSeniorCitizensForumAchievement({});
+    });
+
+    initSeniorCitizensForumAchievements();
 
     const autobiographyAudioUploadWrap = document.getElementById('autobiographyAudioUploadWrap');
     const autobiographyAudioRecordingWrap = document.getElementById('autobiographyAudioRecordingWrap');
@@ -6628,6 +7090,36 @@ The mountains keep.</pre>
             }
         }
 
+        if (contentType === 'senior-citizens-forum') {
+            const seniorCitizensForumAudioSource = document.querySelector('input[name="senior_citizens_forum_audio_source_type"]:checked')?.value || 'none';
+            if (seniorCitizensForumAudioSource === 'upload') {
+                const hasNewAudio = (seniorCitizensForumAudioFileInput?.files?.length || 0) > 0;
+                const keepingExistingAudio = keepExistingSeniorCitizensForumAudioInput?.value === '1';
+                if (!hasNewAudio && !keepingExistingAudio) {
+                    notify('error', 'Please choose an audio file or switch to another audio option.');
+                    return;
+                }
+
+                if (hasNewAudio && seniorCitizensForumAudioFileInput.files[0].size > maxStoryAudioBytes) {
+                    notify('error', 'Audio file must be 20 MB or smaller.');
+                    return;
+                }
+            }
+
+            if (seniorCitizensForumAudioSource === 'recording') {
+                const keepingExistingAudio = keepExistingSeniorCitizensForumAudioInput?.value === '1';
+                if (!seniorCitizensForumAudioBlob && !keepingExistingAudio) {
+                    notify('error', 'Please record your audio memory or switch to another audio option.');
+                    return;
+                }
+
+                if (seniorCitizensForumAudioBlob && seniorCitizensForumAudioBlob.size > maxStoryAudioBytes) {
+                    notify('error', 'Recorded audio must be 20 MB or smaller.');
+                    return;
+                }
+            }
+        }
+
         submitButton.disabled = true;
         submitButton.innerHTML = 'Saving...';
 
@@ -6677,6 +7169,14 @@ The mountains keep.</pre>
             const womensWorldAudioSource = document.querySelector('input[name="womens_world_audio_source_type"]:checked')?.value || 'none';
             if (womensWorldAudioSource === 'recording' && womensWorldAudioBlob) {
                 formData.append('womens_world_audio_recording', womensWorldAudioBlob, 'womens-world-recording.webm');
+            }
+        }
+
+        if (document.getElementById('contentType').value === 'senior-citizens-forum') {
+            formData.delete('senior_citizens_forum_audio_recording');
+            const seniorCitizensForumAudioSource = document.querySelector('input[name="senior_citizens_forum_audio_source_type"]:checked')?.value || 'none';
+            if (seniorCitizensForumAudioSource === 'recording' && seniorCitizensForumAudioBlob) {
+                formData.append('senior_citizens_forum_audio_recording', seniorCitizensForumAudioBlob, 'senior-citizens-forum-recording.webm');
             }
         }
 

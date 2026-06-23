@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
         $this->call(CommunityAwarenessPostSeeder::class);
         $this->call(CommunityBusinessPostSeeder::class);
         $this->call(CommunityWomensWorldPostSeeder::class);
+        $this->call(CommunitySeniorCitizensForumPostSeeder::class);
         $this->call(CommunityChildrensCornerPostSeeder::class);
     }
 }
