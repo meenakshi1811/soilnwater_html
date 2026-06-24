@@ -381,6 +381,28 @@
                     <span class="badge bg-light text-dark community-post-banner-tag">{{ $group }}</span>
                 @endforeach
             @endif
+            @if($post->isStudentCornerPost())
+                @if(filled(data_get($post->meta, 'student_corner_category')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'student_corner_category') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'student_corner_content_type')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'student_corner_content_type') }}</span>
+                @endif
+                @foreach(array_slice((array) data_get($post->meta, 'student_corner_skills', []), 0, 3) as $skill)
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $skill }}</span>
+                @endforeach
+            @endif
+            @if($post->isYouthCornerPost())
+                @if(filled(data_get($post->meta, 'youth_corner_category')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'youth_corner_category') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'youth_corner_content_type')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'youth_corner_content_type') }}</span>
+                @endif
+                @foreach(array_slice((array) data_get($post->meta, 'youth_corner_skills', []), 0, 3) as $skill)
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $skill }}</span>
+                @endforeach
+            @endif
             @foreach($post->adminPromotionLabels() as $promotionLabel)
                 <span class="badge bg-warning text-dark community-post-banner-tag">{{ $promotionLabel }}</span>
             @endforeach
@@ -579,6 +601,14 @@
                 @include('community.partials.senior-citizens-forum-show-sections', ['post' => $post])
             @endif
 
+            @if($post->isStudentCornerPost())
+                @include('community.partials.student-corner-show-sections', ['post' => $post])
+            @endif
+
+            @if($post->isYouthCornerPost())
+                @include('community.partials.youth-corner-show-sections', ['post' => $post])
+            @endif
+
             @if($post->isReportContent())
                 <div class="mb-4">
                     @include('community.partials.report-trust-score', ['post' => $post])
@@ -604,7 +634,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost())
+            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -674,6 +704,14 @@
 
             @if($post->isSeniorCitizensForumPost())
                 @include('community.partials.senior-citizens-forum-after-content', ['post' => $post])
+            @endif
+
+            @if($post->isStudentCornerPost())
+                @include('community.partials.student-corner-meta-details', ['post' => $post])
+            @endif
+
+            @if($post->isYouthCornerPost())
+                @include('community.partials.youth-corner-meta-details', ['post' => $post])
             @endif
 
             @if($post->isChildrensCornerPost())
@@ -801,6 +839,30 @@
                     'location_locality',
                     'author_bio',
                 ]);
+                $additionalStudentCornerMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::studentCornerStructuredMetaKeys(),
+                    ...\App\Support\CommunityPostFormFields::studentCornerEngagementStructuredMetaKeys(),
+                    'student_corner_video_type',
+                    'student_corner_private_link_token',
+                    'location_country',
+                    'location_state',
+                    'location_district',
+                    'location_city',
+                    'location_locality',
+                    'author_bio',
+                ]);
+                $additionalYouthCornerMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::youthCornerStructuredMetaKeys(),
+                    ...\App\Support\CommunityPostFormFields::youthCornerEngagementStructuredMetaKeys(),
+                    'youth_corner_video_type',
+                    'youth_corner_private_link_token',
+                    'location_country',
+                    'location_state',
+                    'location_district',
+                    'location_city',
+                    'location_locality',
+                    'author_bio',
+                ]);
             @endphp
             @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
                 @include('community.partials.report-meta-details', ['post' => $post, 'includeLocation' => true])
@@ -879,6 +941,16 @@
                     $visibleMeta = $additionalSeniorCitizensForumMeta;
                 @endphp
             @endif
+            @if($post->isStudentCornerPost())
+                @php
+                    $visibleMeta = $additionalStudentCornerMeta;
+                @endphp
+            @endif
+            @if($post->isYouthCornerPost())
+                @php
+                    $visibleMeta = $additionalYouthCornerMeta;
+                @endphp
+            @endif
             @if($post->content_type === 'my-voice' && $orderedMyVoiceMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>My Voice details</h4>
@@ -901,7 +973,7 @@
                 @php
                     $visibleMeta = $additionalWomensWorldMeta;
                 @endphp
-            @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
+            @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Location information</h4>
                     <div class="row g-3">
@@ -1022,6 +1094,10 @@
                         ? \App\Support\CommunityContentTaxonomy::womensWorldReactionOptions()
                         : ($post->isSeniorCitizensForumPost()
                         ? \App\Support\CommunityContentTaxonomy::seniorCitizensForumReactionOptions()
+                        : ($post->isStudentCornerPost()
+                        ? \App\Support\CommunityContentTaxonomy::studentCornerReactionOptions()
+                        : ($post->isYouthCornerPost()
+                        ? \App\Support\CommunityContentTaxonomy::youthCornerReactionOptions()
                         : ($post->isBusinessPost()
                         ? [
                             'Informative' => 'fa-solid fa-circle-info',
@@ -1043,7 +1119,7 @@
                             'Excellent' => 'fa-solid fa-star',
                             'Informative' => 'fa-solid fa-circle-info',
                             'Dislike' => 'fa-solid fa-thumbs-down',
-                        ]))));
+                        ]))))));
                 @endphp
                 @auth
                     <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
@@ -1159,7 +1235,7 @@
 @if($post->isAwarenessPost())
 @include('community.partials.awareness-styles')
 @endif
-@if($post->isBusinessPost() || $post->isWomensWorldPost())
+@if($post->isBusinessPost() || $post->isWomensWorldPost() || $post->isStudentCornerPost() || $post->isYouthCornerPost())
 @include('community.partials.business-styles')
 @endif
 @if($post->isSeniorCitizensForumPost())

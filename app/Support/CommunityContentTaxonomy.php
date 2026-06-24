@@ -105,10 +105,10 @@ class CommunityContentTaxonomy
                 'description' => 'Business knowledge, stories, and tips.',
                 'categories' => self::businessMainCategories(),
             ],
-            'education' => [
-                'label' => 'Education',
-                'description' => 'Learning and education-focused posts.',
-                'categories' => ['Career Guidance', 'Study Tips', 'Competitive Exams', 'Scholarships', 'Projects', 'Student Experiences'],
+            'student-corner' => [
+                'label' => 'Student Corner',
+                'description' => 'Educational articles, career guidance, exam preparation, skill development, and student achievements.',
+                'categories' => self::studentCornerMainCategories(),
             ],
             'career' => [
                 'label' => 'Career',
@@ -133,7 +133,7 @@ class CommunityContentTaxonomy
             'youth-corner' => [
                 'label' => 'Youth Corner',
                 'description' => 'Youth-focused career, life, and inspiration posts.',
-                'categories' => ['Career', 'Startups', 'Technology', 'Relationships', 'Motivation', 'Fitness'],
+                'categories' => self::youthCornerMainCategories(),
             ],
             'jobs-employment' => [
                 'label' => 'Jobs & Employment',
@@ -1649,6 +1649,749 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Main category choices for Student Corner posts.
+     *
+     * @return list<string>
+     */
+    public static function studentCornerMainCategories(): array
+    {
+        return [
+            'Education',
+            'Career Guidance',
+            'Competitive Exams',
+            'Scholarships',
+            'Projects',
+            'Science & Technology',
+            'Student Experiences',
+            'Study Tips',
+            'Internships',
+            'Higher Education',
+            'Skill Development',
+            'Innovation',
+            'Research',
+            'Entrepreneurship',
+            'Campus Life',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerContentTypes(): array
+    {
+        return [
+            'Article',
+            'Experience Sharing',
+            'Project Submission',
+            'Research Summary',
+            'Study Notes',
+            'Career Guidance',
+            'Question & Discussion',
+            'Success Story',
+            'Exam Strategy',
+            'Internship Experience',
+            'Book Review',
+            'Event Report',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerClassCourses(): array
+    {
+        return [
+            'Class 6-8',
+            'Class 9-10',
+            'Class 11-12',
+            'Diploma',
+            'ITI',
+            'Undergraduate',
+            'Postgraduate',
+            'Research Scholar',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerStreams(): array
+    {
+        return [
+            'Science',
+            'Commerce',
+            'Arts',
+            'Engineering',
+            'Medical',
+            'Agriculture',
+            'Management',
+            'Law',
+            'Other',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerTargetAudiences(): array
+    {
+        return [
+            'School Students',
+            'Class 10 Students',
+            'Class 12 Students',
+            'Engineering Students',
+            'Medical Aspirants',
+            'College Students',
+            'Job Aspirants',
+            'Researchers',
+            'Teachers',
+            'Parents',
+        ];
+    }
+
+    public static function studentCornerProjectContentType(): string
+    {
+        return 'Project Submission';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerProjectCategories(): array
+    {
+        return [
+            'Science Project',
+            'Engineering Project',
+            'Agriculture Project',
+            'Software Project',
+            'Research Project',
+            'Environmental Project',
+            'Social Project',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerDocumentExtensions(): array
+    {
+        return ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerGalleryExamples(): array
+    {
+        return [
+            'Project Photos',
+            'Lab Work',
+            'Field Visits',
+            'Competition Photos',
+            'Certificates',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerVideoTypes(): array
+    {
+        return [
+            'Project Demonstration',
+            'Presentation',
+            'Seminar Recording',
+            'Experiment Video',
+            'Skill Demonstration',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerStudyMaterialTypes(): array
+    {
+        return [
+            'Notes',
+            'Formula Sheet',
+            'Question Bank',
+            'Previous Year Papers',
+            'Solved Examples',
+            'Reference Material',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerCareerGuidanceTopics(): array
+    {
+        return [
+            'Higher Education',
+            'Study Abroad',
+            'Career Planning',
+            'Job Preparation',
+            'Skill Development',
+            'Interview Preparation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerSkills(): array
+    {
+        return [
+            'Programming',
+            'Communication',
+            'Public Speaking',
+            'Design',
+            'Leadership',
+            'Writing',
+            'Research',
+            'Marketing',
+            'AI & Technology',
+            'Agriculture',
+            'Electronics',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerMentorshipRequests(): array
+    {
+        return [
+            'Need Career Guidance',
+            'Need Project Guidance',
+            'Need Exam Preparation Advice',
+            'Need Internship Guidance',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerCompetitionCategories(): array
+    {
+        return [
+            'Essay Writing',
+            'Science Project',
+            'Innovation Challenge',
+            'Coding Competition',
+            'Photography',
+            'Poetry',
+            'Story Writing',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerSocialImpactCategories(): array
+    {
+        return [
+            'Environment',
+            'Water Conservation',
+            'Education',
+            'Agriculture',
+            'Community Service',
+            'Technology',
+            'Health',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerTagExamples(): array
+    {
+        return ['JEE', 'Scholarship', 'Science', 'Project', 'Career', 'Education'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerDefaultPollOptions(): array
+    {
+        return ['JEE', 'NEET', 'NDA', 'CUET', 'Other'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function studentCornerPublishAsOptions(): array
+    {
+        return [
+            \App\Models\CommunityPost::PUBLISH_AS_PUBLIC_PROFILE => 'Real Name',
+            \App\Models\CommunityPost::PUBLISH_AS_FIRST_NAME_ONLY => 'First Name Only',
+            \App\Models\CommunityPost::PUBLISH_AS_PEN_NAME => 'Pen Name',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function studentCornerVisibilitySettings(): array
+    {
+        return [
+            'public' => 'Public',
+            'registered_users' => 'Registered Users',
+            'students_only' => 'Students Only',
+            'private_link' => 'Private Link',
+        ];
+    }
+
+    public static function studentCornerDefaultVisibilitySetting(): string
+    {
+        return 'public';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function studentCornerReactionOptions(): array
+    {
+        return [
+            'Informative' => 'fa-solid fa-circle-info',
+            'Excellent' => 'fa-solid fa-star',
+            'Helpful' => 'fa-solid fa-hand-holding-heart',
+            'Inspiring' => 'fa-solid fa-lightbulb',
+            'Outstanding' => 'fa-solid fa-trophy',
+            'Great Work' => 'fa-solid fa-thumbs-up',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerReactionLabels(): array
+    {
+        return array_keys(self::studentCornerReactionOptions());
+    }
+
+    /**
+     * Main category choices for Youth Corner posts.
+     *
+     * @return list<string>
+     */
+    public static function youthCornerMainCategories(): array
+    {
+        return [
+            'Career & Jobs',
+            'Skill Development',
+            'Entrepreneurship',
+            'Startups',
+            'Technology',
+            'Innovation',
+            'Youth Leadership',
+            'Motivation',
+            'Education',
+            'Competitive Exams',
+            'Financial Literacy',
+            'Sports & Fitness',
+            'Mental Health',
+            'Social Issues',
+            'Travel & Exploration',
+            'Community Service',
+            'Agriculture & Rural',
+            'Development',
+            'Digital Creator Corner',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerContentTypes(): array
+    {
+        return [
+            'Experience Sharing',
+            'Success Story',
+            'Failure Story',
+            'Career Advice',
+            'Motivational Article',
+            'Question & Discussion',
+            'Startup Story',
+            'Project Showcase',
+            'Opinion Piece',
+            'Research Summary',
+            'Event Report',
+            'Awareness Post',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerAgeGroups(): array
+    {
+        return [
+            '13-18',
+            '19-25',
+            '26-30',
+            '31-35',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerOccupations(): array
+    {
+        return [
+            'Student',
+            'Job Seeker',
+            'Professional',
+            'Entrepreneur',
+            'Farmer',
+            'Freelancer',
+            'Content Creator',
+            'Social Worker',
+            'Other',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerEducationLevels(): array
+    {
+        return [
+            'School',
+            'Diploma',
+            'ITI',
+            'Undergraduate',
+            'Graduate',
+            'Postgraduate',
+            'Professional Course',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerTargetAudiences(): array
+    {
+        return [
+            'Students',
+            'Job Seekers',
+            'Young Professionals',
+            'Entrepreneurs',
+            'Freelancers',
+            'Youth Leaders',
+            'Farmers',
+            'General Public',
+        ];
+    }
+
+    public static function youthCornerProjectContentType(): string
+    {
+        return 'Project Showcase';
+    }
+
+    /**
+     * Recommended Youth Corner content sections for the rich text editor.
+     *
+     * @return array<string, string>
+     */
+    public static function youthCornerContentStructure(): array
+    {
+        return [
+            'Problem/Challenge' => 'Describe the challenge or situation you faced.',
+            'Experience/Story' => 'Share your personal experience or journey.',
+            'Actions Taken' => 'Explain the steps you took to address it.',
+            'Results' => 'Highlight outcomes and impact.',
+            'Lessons Learned' => 'Key takeaways from your experience.',
+            'Advice for Others' => 'Practical guidance for fellow youth.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerOpportunityTypes(): array
+    {
+        return [
+            'Job Opportunity',
+            'Internship',
+            'Scholarship',
+            'Training Program',
+            'Startup Opportunity',
+            'Freelance Work',
+            'Volunteer Opportunity',
+            'Government Scheme',
+            'Competition',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerSkills(): array
+    {
+        return [
+            'Communication',
+            'Leadership',
+            'Programming',
+            'Digital Marketing',
+            'Public Speaking',
+            'AI & Technology',
+            'Agriculture',
+            'Design',
+            'Writing',
+            'Finance',
+            'Sales',
+            'Management',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerCareerAreas(): array
+    {
+        return [
+            'Engineering',
+            'Medical',
+            'Government Services',
+            'Business',
+            'Agriculture',
+            'Technology',
+            'Education',
+            'Arts',
+            'Commerce',
+            'Law',
+            'Defense',
+            'Merchant Navy',
+            'Others',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerFundingStages(): array
+    {
+        return [
+            'Idea Stage',
+            'Bootstrapped',
+            'Seed Funding',
+            'Angel Investment',
+            'Venture Capital',
+            'Government Grant',
+            'Crowdfunding',
+            'Revenue Generating',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerProjectCategories(): array
+    {
+        return [
+            'Technology',
+            'Agriculture',
+            'Environment',
+            'Business',
+            'Education',
+            'Social Impact',
+            'Water Conservation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerDocumentExtensions(): array
+    {
+        return ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerGalleryExamples(): array
+    {
+        return [
+            'Event Photos',
+            'Project Photos',
+            'Workshop Images',
+            'Achievement Photos',
+            'Community Activity',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerVideoTypes(): array
+    {
+        return [
+            'Motivational Talk',
+            'Project Demo',
+            'Interview',
+            'Workshop Recording',
+            'Startup Pitch',
+            'Skill Demonstration',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerMentorshipRequests(): array
+    {
+        return [
+            'Career Guidance',
+            'Startup Guidance',
+            'Skill Development',
+            'Interview Preparation',
+            'Exam Preparation',
+            'Business Mentorship',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerCommunityServiceActivities(): array
+    {
+        return [
+            'Volunteer Work',
+            'Tree Plantation',
+            'Blood Donation Camp',
+            'Teaching / Tutoring',
+            'Clean-up Drive',
+            'Fundraising',
+            'Awareness Campaign',
+            'Community Development',
+            'Disaster Relief',
+            'Elder Care Support',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerCommunityServiceExamples(): array
+    {
+        return [
+            'Beach Clean-up',
+            'Food Distribution',
+            'Digital Literacy Camp',
+            'Water Conservation Drive',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerThemes(): array
+    {
+        return [
+            'Leadership',
+            'Innovation',
+            'Entrepreneurship',
+            'Motivation',
+            'Technology',
+            'Environment',
+            'Agriculture',
+            'Education',
+            'Fitness',
+            'Mental Health',
+            'Financial Literacy',
+            'Community',
+            'Development',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerNetworkingOptions(): array
+    {
+        return [
+            'Connect With Me',
+            'Discuss Opportunities',
+            'Join Project',
+            'Seek Guidance',
+            'Offer Mentorship',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerTagExamples(): array
+    {
+        return ['Career', 'Startup', 'Internship', 'Skills', 'Motivation', 'Youth'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerDefaultPollOptions(): array
+    {
+        return ['Employment', 'Skills', 'Finance', 'Mental Health', 'Education'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function youthCornerPublishAsOptions(): array
+    {
+        return [
+            \App\Models\CommunityPost::PUBLISH_AS_PUBLIC_PROFILE => 'Real Name',
+            \App\Models\CommunityPost::PUBLISH_AS_FIRST_NAME_ONLY => 'First Name Only',
+            \App\Models\CommunityPost::PUBLISH_AS_PEN_NAME => 'Pen Name',
+            \App\Models\CommunityPost::PUBLISH_AS_ANONYMOUS => 'Anonymous',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function youthCornerVisibilitySettings(): array
+    {
+        return [
+            'public' => 'Public',
+            'registered_users' => 'Registered Users',
+            'youth_community' => 'Youth Community',
+            'private_link' => 'Private Link',
+        ];
+    }
+
+    public static function youthCornerDefaultVisibilitySetting(): string
+    {
+        return 'public';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function youthCornerReactionOptions(): array
+    {
+        return [
+            'Inspiring' => 'fa-solid fa-lightbulb',
+            'Innovative' => 'fa-solid fa-rocket',
+            'Excellent' => 'fa-solid fa-star',
+            'Outstanding' => 'fa-solid fa-trophy',
+            'Helpful' => 'fa-solid fa-hand-holding-heart',
+            'Motivating' => 'fa-solid fa-fire',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerReactionLabels(): array
+    {
+        return array_keys(self::youthCornerReactionOptions());
+    }
+
+    /**
      * Main category choices for Senior Citizens Forum posts.
      *
      * @return list<string>
@@ -2225,6 +2968,23 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Recommended Student Corner content sections for the rich text editor.
+     *
+     * @return array<string, string>
+     */
+    public static function studentCornerContentStructure(): array
+    {
+        return [
+            'Introduction' => 'Introduce the topic and why it matters to students.',
+            'Objective' => 'State what readers will learn or achieve.',
+            'Main Content' => 'Share the core information, explanation, or experience.',
+            'Learnings' => 'Highlight key takeaways from your study, project, or journey.',
+            'Tips / Recommendations' => 'Practical advice for fellow students.',
+            'Conclusion' => 'Closing summary, reflection, or call to action.',
+        ];
+    }
+
+    /**
      * Legacy civic issue report types for older My Area posts.
      *
      * @return list<string>
@@ -2275,6 +3035,14 @@ class CommunityContentTaxonomy
 
         if ($type === 'senior-citizens-forum') {
             return in_array($category, self::seniorCitizensForumMainCategories(), true);
+        }
+
+        if ($type === 'student-corner') {
+            return in_array($category, self::studentCornerMainCategories(), true);
+        }
+
+        if ($type === 'youth-corner') {
+            return in_array($category, self::youthCornerMainCategories(), true);
         }
 
         return in_array($category, self::categoriesFor($type), true);

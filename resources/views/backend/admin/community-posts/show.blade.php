@@ -128,6 +128,12 @@
 @if($post->isWomensWorldPost())
 @include('community.partials.business-styles')
 @endif
+@if($post->isStudentCornerPost())
+@include('community.partials.business-styles')
+@endif
+@if($post->isYouthCornerPost())
+@include('community.partials.business-styles')
+@endif
 @if($post->isSeniorCitizensForumPost())
 @include('community.partials.senior-citizens-forum-styles')
 @endif
@@ -359,6 +365,24 @@
                                 'includeAdmin' => true,
                             ])
                         @endif
+
+                        @if($post->isStudentCornerPost())
+                            @include('community.partials.student-corner-show-sections', ['post' => $post])
+                            @include('community.partials.student-corner-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Student Corner metadata',
+                                'includeAdmin' => true,
+                            ])
+                        @endif
+
+                        @if($post->isYouthCornerPost())
+                            @include('community.partials.youth-corner-show-sections', ['post' => $post])
+                            @include('community.partials.youth-corner-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Youth Corner metadata',
+                                'includeAdmin' => true,
+                            ])
+                        @endif
                     </div>
                 </div>
 
@@ -431,6 +455,14 @@
 
                     @if($post->isSeniorCitizensForumPost())
                         @include('backend.community-posts.partials.senior-citizens-forum-portal-activity', ['post' => $post])
+                    @endif
+
+                    @if($post->isStudentCornerPost())
+                        @include('backend.community-posts.partials.student-corner-portal-activity', ['post' => $post])
+                    @endif
+
+                    @if($post->isYouthCornerPost())
+                        @include('backend.community-posts.partials.youth-corner-portal-activity', ['post' => $post])
                     @endif
 
                     @if(($participationSuggestions ?? collect())->isNotEmpty() || ($participationFeedback ?? collect())->isNotEmpty() || ($post->content_type === 'news' && ($post->allow_comments || $post->allow_questions)))
@@ -724,7 +756,13 @@
                             $seniorCitizensForumMetaKeys = $post->isSeniorCitizensForumPost()
                                 ? \App\Support\CommunityPostFormFields::seniorCitizensForumStructuredMetaKeys()
                                 : [];
-                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, $childrensCornerMetaKeys, $awarenessMetaKeys, $businessMetaKeys, $womensWorldMetaKeys, $seniorCitizensForumMetaKeys, [
+                            $studentCornerMetaKeys = $post->isStudentCornerPost()
+                                ? \App\Support\CommunityPostFormFields::studentCornerStructuredMetaKeys()
+                                : [];
+                            $youthCornerMetaKeys = $post->isYouthCornerPost()
+                                ? \App\Support\CommunityPostFormFields::youthCornerStructuredMetaKeys()
+                                : [];
+                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, $childrensCornerMetaKeys, $awarenessMetaKeys, $businessMetaKeys, $womensWorldMetaKeys, $seniorCitizensForumMetaKeys, $studentCornerMetaKeys, $youthCornerMetaKeys, [
                                 'story_gallery',
                                 'story_audio',
                                 'poetry_audio',
@@ -735,6 +773,14 @@
                                 'womens_world_gallery',
                                 'womens_world_audio',
                                 'womens_world_private_link_token',
+                                'student_corner_gallery',
+                                'student_corner_documents',
+                                'student_corner_achievements',
+                                'student_corner_private_link_token',
+                                'youth_corner_gallery',
+                                'youth_corner_documents',
+                                'youth_corner_achievements',
+                                'youth_corner_private_link_token',
                             ]);
                         @endphp
                         <div class="chart-card p-3 p-lg-4">

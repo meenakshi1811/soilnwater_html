@@ -7,15 +7,37 @@
 @php
     $isWomensWorld = $post->isWomensWorldPost();
     $isSeniorCitizensForum = $post->isSeniorCitizensForumPost();
+    $isStudentCorner = $post->isStudentCornerPost();
+    $isYouthCorner = $post->isYouthCornerPost();
     $isChildrensCorner = $post->isChildrensCornerPost();
     $privacyLabel = $isWomensWorld
         ? $post->womensWorldVisibilityLabel()
         : ($isSeniorCitizensForum
             ? $post->seniorCitizensForumVisibilityLabel()
-            : $post->childrensCornerPrivacyLabel());
+            : ($isStudentCorner
+                ? $post->studentCornerVisibilityLabel()
+                : ($isYouthCorner
+                    ? $post->youthCornerVisibilityLabel()
+                    : $post->childrensCornerPrivacyLabel())));
     $requiresPrivateLink = ($isWomensWorld && $post->requiresWomensWorldPrivateLink())
-        || ($isSeniorCitizensForum && $post->requiresSeniorCitizensForumPrivateLink());
+        || ($isSeniorCitizensForum && $post->requiresSeniorCitizensForumPrivateLink())
+        || ($isStudentCorner && $post->requiresStudentCornerPrivateLink())
+        || ($isYouthCorner && $post->requiresYouthCornerPrivateLink());
     $requiresLogin = ! $requiresPrivateLink && $post->requiresAuthenticationForCommunityView();
+    $backType = match (true) {
+        $isWomensWorld => 'womens-world',
+        $isSeniorCitizensForum => 'senior-citizens-forum',
+        $isStudentCorner => 'student-corner',
+        $isYouthCorner => 'youth-corner',
+        default => 'childrens-corner',
+    };
+    $backLabel = match (true) {
+        $isWomensWorld => "Women's World",
+        $isSeniorCitizensForum => 'Senior Citizens Forum',
+        $isStudentCorner => 'Student Corner',
+        $isYouthCorner => 'Youth Corner',
+        default => "Children's Corner",
+    };
 @endphp
 <div class="about-page">
     <section class="about-banner text-center">
@@ -26,11 +48,19 @@
                 @if($requiresPrivateLink)
                     @if($isSeniorCitizensForum)
                         This Senior Citizens Forum post is only available through its private link.
+                    @elseif($isStudentCorner)
+                        This Student Corner post is only available through its private link.
+                    @elseif($isYouthCorner)
+                        This Youth Corner post is only available through its private link.
                     @else
                         This Women's World post is only available through its private link.
                     @endif
                 @elseif($isSeniorCitizensForum)
                     This Senior Citizens Forum post has restricted visibility.
+                @elseif($isStudentCorner)
+                    This Student Corner post has restricted visibility.
+                @elseif($isYouthCorner)
+                    This Youth Corner post has restricted visibility.
                 @elseif($isWomensWorld)
                     This Women's World post has restricted visibility.
                 @else
@@ -64,6 +94,10 @@
                             <p class="text-muted mb-0">This post is available to registered members of the Senior Citizens Community.</p>
                         @elseif($isWomensWorld && $post->womensWorldVisibilitySetting() === 'women_community_only')
                             <p class="text-muted mb-0">This post is available to registered members of the Women's Community.</p>
+                        @elseif($isStudentCorner && $post->studentCornerVisibilitySetting() === 'students_only')
+                            <p class="text-muted mb-0">This post is available to registered student members only.</p>
+                        @elseif($isYouthCorner && $post->youthCornerVisibilitySetting() === 'youth_community')
+                            <p class="text-muted mb-0">This post is available to registered members of the Youth Community.</p>
                         @else
                             <p class="text-muted mb-0">This post is available to registered SoilnWater members only.</p>
                         @endif
@@ -75,6 +109,12 @@
                         @if($isWomensWorld)
                             <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Privacy settings protect sensitive Women's World stories.</li>
                             <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Anonymous posting is available when authors choose it.</li>
+                        @elseif($isStudentCorner)
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Privacy settings protect student submissions and personal details.</li>
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Authors can publish with a pen name or first name only.</li>
+                        @elseif($isYouthCorner)
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Privacy settings protect youth submissions and personal details.</li>
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Authors can publish with a pen name or first name only.</li>
                         @else
                             <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Child safety and privacy settings are applied to this post.</li>
                             <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Personal contact details are never shown on public pages.</li>
@@ -88,8 +128,8 @@
                         <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="btn btn-success">Login to view</a>
                         <a href="{{ route('register') }}" class="btn btn-outline-success">Create an account</a>
                     @endif
-                    <a href="{{ route('community.index', ['type' => $isWomensWorld ? 'womens-world' : ($isSeniorCitizensForum ? 'senior-citizens-forum' : 'childrens-corner')]) }}" class="btn btn-outline-secondary">
-                        Back to {{ $isWomensWorld ? "Women's World" : "Children's Corner" }}
+                    <a href="{{ route('community.index', ['type' => $backType]) }}" class="btn btn-outline-secondary">
+                        Back to {{ $backLabel }}
                     </a>
                 </div>
             </div>

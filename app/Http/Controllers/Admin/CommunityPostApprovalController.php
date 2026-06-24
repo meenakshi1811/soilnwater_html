@@ -13,6 +13,8 @@ use App\Services\CommunityReportTrustScoreService;
 use App\Services\CommunityEngagementNotificationService;
 use App\Services\CommunityReportEngagementNotificationService;
 use App\Services\CommunitySeniorCitizensForumEngagementNotificationService;
+use App\Services\CommunityStudentCornerEngagementNotificationService;
+use App\Services\CommunityYouthCornerEngagementNotificationService;
 use App\Services\CommunityWomensWorldEngagementNotificationService;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
@@ -157,6 +159,12 @@ class CommunityPostApprovalController extends Controller
             }
             if ($post->isSeniorCitizensForumPost()) {
                 CommunitySeniorCitizensForumEngagementNotificationService::notifyAuthorOfPublishedPost($post);
+            }
+            if ($post->isStudentCornerPost()) {
+                CommunityStudentCornerEngagementNotificationService::notifyAuthorOfPublishedPost($post);
+            }
+            if ($post->isYouthCornerPost()) {
+                CommunityYouthCornerEngagementNotificationService::notifyAuthorOfPublishedPost($post);
             }
             CommunityReportEngagementNotificationService::notifyFollowersOfReportUpdate(
                 $post,

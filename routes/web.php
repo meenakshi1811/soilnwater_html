@@ -275,6 +275,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/create', [CommunityPostController::class, 'create'])->name('create');
         Route::patch('/author-url', [CommunityPostController::class, 'updateAuthorUrl'])->name('author-url.update');
         Route::post('/uploads/image', [CommunityPostController::class, 'uploadInlineImage'])->name('uploads.image');
+        Route::post('/uploads/attachment', [CommunityPostController::class, 'uploadInlineAttachment'])->name('uploads.attachment');
         Route::post('/', [CommunityPostController::class, 'store'])->name('store');
         Route::get('/{post:slug}/manage', [CommunityPostController::class, 'authorShow'])->name('manage');
         Route::get('/{post:slug}', [CommunityPostController::class, 'show'])->name('show');

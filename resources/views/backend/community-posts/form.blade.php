@@ -359,6 +359,12 @@
             <div class="col-12 type-extra senior-citizens-forum-flow" data-for="senior-citizens-forum">
                 @include('backend.community-posts.partials.senior-citizens-forum-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            <div class="col-12 type-extra student-corner-flow" data-for="student-corner">
+                @include('backend.community-posts.partials.student-corner-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
+            <div class="col-12 type-extra youth-corner-flow" data-for="youth-corner">
+                @include('backend.community-posts.partials.youth-corner-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -631,6 +637,96 @@ The mountains keep.</pre>
                         </div>
                     </div>
                 </div>
+                <div id="studentCornerContentGuide" class="story-content-guide mb-3 student-corner-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full Student Corner post.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Student Corner</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field on the form. Use the editor below for the full post.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Text</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Documents</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Tables</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Charts</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Polls</li>
+                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertStudentCornerStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::studentCornerContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="youthCornerContentGuide" class="story-content-guide mb-3 youth-corner-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full Youth Corner post.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Youth Corner</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field on the form. Use the editor below for the full post.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Text</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Documents</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Tables</li>
+                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertYouthCornerStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::youthCornerContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="autobiographyContentGuide" class="story-content-guide mb-3 life-story-flow-section" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -764,6 +860,12 @@ The mountains keep.</pre>
             </div>
             <div class="col-12 type-extra senior-citizens-forum-flow" data-for="senior-citizens-forum">
                 @include('backend.community-posts.partials.senior-citizens-forum-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra student-corner-flow" data-for="student-corner">
+                @include('backend.community-posts.partials.student-corner-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra youth-corner-flow" data-for="youth-corner">
+                @include('backend.community-posts.partials.youth-corner-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
@@ -2197,6 +2299,8 @@ The mountains keep.</pre>
     .awareness-flow label.form-check,
     .business-flow label.form-check,
     .womens-world-flow label.form-check,
+    .student-corner-flow label.form-check,
+    .youth-corner-flow label.form-check,
     .childrens-corner-flow label.form-check {
         align-items: center;
         cursor: pointer;
@@ -2213,7 +2317,9 @@ The mountains keep.</pre>
     .childrens-corner-flow .community-flow-stack label.form-check,
     .awareness-flow .community-flow-stack label.form-check,
     .business-flow .community-flow-stack label.form-check,
-    .womens-world-flow .community-flow-stack label.form-check {
+    .womens-world-flow .community-flow-stack label.form-check,
+    .student-corner-flow .community-flow-stack label.form-check,
+    .youth-corner-flow .community-flow-stack label.form-check {
         align-items: flex-start;
     }
     .community-flow-checklist label.form-check:hover,
@@ -2223,6 +2329,8 @@ The mountains keep.</pre>
     .awareness-flow label.form-check:hover,
     .business-flow label.form-check:hover,
     .womens-world-flow label.form-check:hover,
+    .student-corner-flow label.form-check:hover,
+    .youth-corner-flow label.form-check:hover,
     .childrens-corner-flow label.form-check:hover {
         border-color: rgba(13, 110, 253, 0.35) !important;
     }
@@ -2233,6 +2341,8 @@ The mountains keep.</pre>
     .awareness-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
     .business-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
     .womens-world-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
+    .student-corner-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
+    .youth-corner-flow label.form-check:has(.form-check-input[type="checkbox"]:checked),
     .childrens-corner-flow label.form-check:has(.form-check-input[type="checkbox"]:checked) {
         background: #f0fdf4 !important;
         border-color: rgba(25, 135, 84, 0.45) !important;
@@ -2243,6 +2353,8 @@ The mountains keep.</pre>
     .awareness-flow label.form-check:has(.form-check-input[type="radio"]:checked),
     .business-flow label.form-check:has(.form-check-input[type="radio"]:checked),
     .womens-world-flow label.form-check:has(.form-check-input[type="radio"]:checked),
+    .student-corner-flow label.form-check:has(.form-check-input[type="radio"]:checked),
+    .youth-corner-flow label.form-check:has(.form-check-input[type="radio"]:checked),
     .childrens-corner-flow label.form-check:has(.form-check-input[type="radio"]:checked) {
         background: #eff6ff !important;
         border-color: rgba(37, 99, 235, 0.45) !important;
@@ -2255,6 +2367,8 @@ The mountains keep.</pre>
     .awareness-flow .form-check-input,
     .business-flow .form-check-input,
     .womens-world-flow .form-check-input,
+    .student-corner-flow .form-check-input,
+    .youth-corner-flow .form-check-input,
     .childrens-corner-flow .form-check-input {
         appearance: none;
         -webkit-appearance: none;
@@ -2278,7 +2392,9 @@ The mountains keep.</pre>
     .childrens-corner-flow .community-flow-stack .form-check-input,
     .awareness-flow .community-flow-stack .form-check-input,
     .business-flow .community-flow-stack .form-check-input,
-    .womens-world-flow .community-flow-stack .form-check-input {
+    .womens-world-flow .community-flow-stack .form-check-input,
+    .student-corner-flow .community-flow-stack .form-check-input,
+    .youth-corner-flow .community-flow-stack .form-check-input {
         margin-top: 0.2rem !important;
     }
     .community-flow-checklist .form-check-input[type="radio"],
@@ -2288,6 +2404,8 @@ The mountains keep.</pre>
     .awareness-flow .form-check-input[type="radio"],
     .business-flow .form-check-input[type="radio"],
     .womens-world-flow .form-check-input[type="radio"],
+    .student-corner-flow .form-check-input[type="radio"],
+    .youth-corner-flow .form-check-input[type="radio"],
     .childrens-corner-flow .form-check-input[type="radio"] {
         border-radius: 50%;
     }
@@ -2298,6 +2416,8 @@ The mountains keep.</pre>
     .awareness-flow .form-check-input[type="checkbox"]:checked,
     .business-flow .form-check-input[type="checkbox"]:checked,
     .womens-world-flow .form-check-input[type="checkbox"]:checked,
+    .student-corner-flow .form-check-input[type="checkbox"]:checked,
+    .youth-corner-flow .form-check-input[type="checkbox"]:checked,
     .childrens-corner-flow .form-check-input[type="checkbox"]:checked {
         background-color: #198754;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3 6-6'/%3e%3c/svg%3e");
@@ -2310,6 +2430,8 @@ The mountains keep.</pre>
     .awareness-flow .form-check-input[type="radio"]:checked,
     .business-flow .form-check-input[type="radio"]:checked,
     .womens-world-flow .form-check-input[type="radio"]:checked,
+    .student-corner-flow .form-check-input[type="radio"]:checked,
+    .youth-corner-flow .form-check-input[type="radio"]:checked,
     .childrens-corner-flow .form-check-input[type="radio"]:checked {
         background-color: #fff;
         background-image: radial-gradient(circle, #2563eb 0%, #2563eb 38%, transparent 42%, transparent 100%);
@@ -2323,6 +2445,8 @@ The mountains keep.</pre>
     .awareness-flow .form-check-input:focus,
     .business-flow .form-check-input:focus,
     .womens-world-flow .form-check-input:focus,
+    .student-corner-flow .form-check-input:focus,
+    .youth-corner-flow .form-check-input:focus,
     .childrens-corner-flow .form-check-input:focus {
         border-color: #2563eb;
         box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
@@ -2335,6 +2459,8 @@ The mountains keep.</pre>
     .awareness-flow .form-check-label,
     .business-flow .form-check-label,
     .womens-world-flow .form-check-label,
+    .student-corner-flow .form-check-label,
+    .youth-corner-flow .form-check-label,
     .childrens-corner-flow .form-check-label {
         cursor: pointer;
         flex: 1 1 auto;
@@ -2541,7 +2667,7 @@ The mountains keep.</pre>
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 <script>
     window.communityTypes = @json($types);
     window.communityBookTypes = @json(\App\Models\CommunityPost::BOOK_CONTENT_TYPES);
@@ -2662,6 +2788,82 @@ The mountains keep.</pre>
 
     document.getElementById('seniorCitizensForumCategory')?.addEventListener('change', syncSeniorCitizensForumCategory);
 
+    function syncStudentCornerCategory() {
+        const studentCornerCategory = document.getElementById('studentCornerCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'student-corner') {
+            return;
+        }
+
+        categorySelect.value = studentCornerCategory;
+        categorySelect.dataset.selected = studentCornerCategory;
+    }
+
+    document.getElementById('studentCornerCategory')?.addEventListener('change', syncStudentCornerCategory);
+
+    function syncYouthCornerCategory() {
+        const youthCornerCategory = document.getElementById('youthCornerCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'youth-corner') {
+            return;
+        }
+
+        categorySelect.value = youthCornerCategory;
+        categorySelect.dataset.selected = youthCornerCategory;
+    }
+
+    document.getElementById('youthCornerCategory')?.addEventListener('change', syncYouthCornerCategory);
+
+    const STUDENT_CORNER_PROJECT_CONTENT_TYPE = 'Project Submission';
+
+    function refreshStudentCornerProjectSection() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const studentCornerContentType = document.getElementById('studentCornerContentType')?.value || '';
+        const isStudentCorner = contentType === 'student-corner';
+        const isProjectSubmission = isStudentCorner && studentCornerContentType === STUDENT_CORNER_PROJECT_CONTENT_TYPE;
+        const projectSection = document.getElementById('studentCornerProjectSection');
+
+        if (projectSection) {
+            projectSection.style.display = isProjectSubmission ? '' : 'none';
+        }
+
+        document.querySelectorAll('.student-corner-project-required').forEach((field) => {
+            field.required = isProjectSubmission;
+        });
+
+        document.querySelectorAll('.student-corner-project-field').forEach((field) => {
+            field.disabled = !isProjectSubmission;
+        });
+    }
+
+    document.getElementById('studentCornerContentType')?.addEventListener('change', refreshStudentCornerProjectSection);
+
+    const YOUTH_CORNER_PROJECT_CONTENT_TYPE = 'Project Showcase';
+
+    function refreshYouthCornerProjectSection() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const youthCornerContentType = document.getElementById('youthCornerContentType')?.value || '';
+        const isYouthCorner = contentType === 'youth-corner';
+        const isProjectShowcase = isYouthCorner && youthCornerContentType === YOUTH_CORNER_PROJECT_CONTENT_TYPE;
+        const projectSection = document.getElementById('youthCornerProjectSection');
+
+        if (projectSection) {
+            projectSection.style.display = isProjectShowcase ? '' : 'none';
+        }
+
+        document.querySelectorAll('.youth-corner-project-required').forEach((field) => {
+            field.required = isProjectShowcase;
+        });
+
+        document.querySelectorAll('.youth-corner-project-field').forEach((field) => {
+            field.disabled = !isProjectShowcase;
+        });
+    }
+
+    document.getElementById('youthCornerContentType')?.addEventListener('change', refreshYouthCornerProjectSection);
+
     document.getElementById('insertAwarenessStructureBtn')?.addEventListener('click', function () {
         const structureHtml = [
             '<h2>Problem</h2>',
@@ -2762,6 +2964,66 @@ The mountains keep.</pre>
             '<p>Practical guidance for younger readers or the community.</p>',
             '<h2>Conclusion</h2>',
             '<p>Closing reflection or message.</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    document.getElementById('insertStudentCornerStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Introduction</h2>',
+            '<p>Introduce the topic and why it matters to students.</p>',
+            '<h2>Objective</h2>',
+            '<p>State what readers will learn or achieve.</p>',
+            '<h2>Main Content</h2>',
+            '<p>Share the core information, explanation, or experience.</p>',
+            '<h2>Learnings</h2>',
+            '<p>Highlight key takeaways from your study, project, or journey.</p>',
+            '<h2>Tips / Recommendations</h2>',
+            '<p>Practical advice for fellow students.</p>',
+            '<h2>Conclusion</h2>',
+            '<p>Closing summary, reflection, or call to action.</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    document.getElementById('insertYouthCornerStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Problem/Challenge</h2>',
+            '<p>Describe the challenge or situation you faced.</p>',
+            '<h2>Experience/Story</h2>',
+            '<p>Share your personal experience or journey.</p>',
+            '<h2>Actions Taken</h2>',
+            '<p>Explain the steps you took to address it.</p>',
+            '<h2>Results</h2>',
+            '<p>Highlight outcomes and impact.</p>',
+            '<h2>Lessons Learned</h2>',
+            '<p>Key takeaways from your experience.</p>',
+            '<h2>Advice for Others</h2>',
+            '<p>Practical guidance for fellow youth.</p>',
         ].join('');
 
         if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
@@ -3079,7 +3341,7 @@ The mountains keep.</pre>
     const COMMUNITY_LOCATION_TYPE_GPS = @json(\App\Models\CommunityPost::LOCATION_TYPE_GPS);
     const COMMUNITY_BASE_LOCATION_TYPES = @json(\App\Models\CommunityPost::locationTypeOptions());
     const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness', 'business'];
-    const COMMUNITY_OPTIONAL_STRUCTURED_LOCATION_TYPES = ['womens-world', 'senior-citizens-forum'];
+    const COMMUNITY_OPTIONAL_STRUCTURED_LOCATION_TYPES = ['womens-world', 'student-corner', 'youth-corner', 'senior-citizens-forum'];
     let communityGpsMap = null;
     let communityGpsMarker = null;
     let communityGpsMapInitialized = false;
@@ -3137,6 +3399,8 @@ The mountains keep.</pre>
         const awarenessSlot = document.getElementById('communityAwarenessLocationSlot');
         const businessSlot = document.getElementById('communityBusinessLocationSlot');
         const womensWorldSlot = document.getElementById('communityWomensWorldLocationSlot');
+        const studentCornerSlot = document.getElementById('communityStudentCornerLocationSlot');
+        const youthCornerSlot = document.getElementById('communityYouthCornerLocationSlot');
         const seniorCitizensForumSlot = document.getElementById('communitySeniorCitizensForumLocationSlot');
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
 
@@ -3149,6 +3413,8 @@ The mountains keep.</pre>
         const isAwareness = contentType === 'awareness';
         const isBusiness = contentType === 'business';
         const isWomensWorld = contentType === 'womens-world';
+        const isStudentCorner = contentType === 'student-corner';
+        const isYouthCorner = contentType === 'youth-corner';
         const isSeniorCitizensForum = contentType === 'senior-citizens-forum';
         const usesStructured = usesStructuredCommunityLocation(contentType);
         const requiresStructured = requiresStructuredCommunityLocation(contentType);
@@ -3165,6 +3431,10 @@ The mountains keep.</pre>
             targetSlot = businessSlot;
         } else if (isWomensWorld) {
             targetSlot = womensWorldSlot;
+        } else if (isStudentCorner) {
+            targetSlot = studentCornerSlot;
+        } else if (isYouthCorner) {
+            targetSlot = youthCornerSlot;
         } else if (isSeniorCitizensForum) {
             targetSlot = seniorCitizensForumSlot;
         }
@@ -3242,7 +3512,7 @@ The mountains keep.</pre>
         }
     }
 
-    function mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld) {
+    function mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld, isStudentCorner, isYouthCorner) {
         const publicParticipationWrap = document.getElementById('publicParticipationWrap');
         const newsParticipationWrap = document.getElementById('newsParticipationWrap');
         const allowSharingWrap = document.getElementById('allowSharingWrap');
@@ -3256,11 +3526,17 @@ The mountains keep.</pre>
         const womensWorldParticipationWrap = document.getElementById('womensWorldParticipationWrap');
         const womensWorldPollWrap = document.getElementById('womensWorldPollWrap');
         const womensWorldPollFields = document.getElementById('womensWorldPollFields');
+        const studentCornerParticipationWrap = document.getElementById('studentCornerParticipationWrap');
+        const studentCornerPollWrap = document.getElementById('studentCornerPollWrap');
+        const studentCornerPollFields = document.getElementById('studentCornerPollFields');
+        const youthCornerParticipationWrap = document.getElementById('youthCornerParticipationWrap');
+        const youthCornerPollWrap = document.getElementById('youthCornerPollWrap');
+        const youthCornerPollFields = document.getElementById('youthCornerPollFields');
 
         if (publicParticipationWrap) {
-            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness || isWomensWorld) ? 'none' : '';
+            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner) ? 'none' : '';
             publicParticipationWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isNews || isAwareness || isBusiness || isWomensWorld;
+                field.disabled = isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner;
             });
         }
 
@@ -3269,16 +3545,16 @@ The mountains keep.</pre>
         }
 
         if (allowSharingWrap) {
-            allowSharingWrap.style.display = (isAwareness || isBusiness || isWomensWorld) ? 'none' : '';
+            allowSharingWrap.style.display = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner) ? 'none' : '';
             allowSharingWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness || isBusiness || isWomensWorld;
+                field.disabled = isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner;
             });
         }
 
         if (allowPollWrap) {
-            allowPollWrap.style.display = (isAwareness || isBusiness || isNews || isWomensWorld) ? 'none' : '';
+            allowPollWrap.style.display = (isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner) ? 'none' : '';
             allowPollWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness || isBusiness || isNews || isWomensWorld;
+                field.disabled = isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner;
             });
         }
 
@@ -3304,6 +3580,22 @@ The mountains keep.</pre>
 
         if (womensWorldPollWrap) {
             womensWorldPollWrap.style.display = isWomensWorld ? '' : 'none';
+        }
+
+        if (studentCornerParticipationWrap) {
+            studentCornerParticipationWrap.style.display = isStudentCorner ? '' : 'none';
+        }
+
+        if (studentCornerPollWrap) {
+            studentCornerPollWrap.style.display = isStudentCorner ? '' : 'none';
+        }
+
+        if (youthCornerParticipationWrap) {
+            youthCornerParticipationWrap.style.display = isYouthCorner ? '' : 'none';
+        }
+
+        if (youthCornerPollWrap) {
+            youthCornerPollWrap.style.display = isYouthCorner ? '' : 'none';
         }
 
         const awarenessAllowPoll = document.getElementById('awarenessAllowPoll');
@@ -3347,6 +3639,36 @@ The mountains keep.</pre>
             }
         }
 
+        const studentCornerAllowPoll = document.getElementById('studentCornerAllowPoll');
+        if (studentCornerPollFields) {
+            const studentCornerPollEnabled = isStudentCorner && studentCornerAllowPoll?.checked;
+            studentCornerPollFields.style.display = studentCornerPollEnabled ? '' : 'none';
+            const studentCornerPollQuestion = document.getElementById('studentCornerPollQuestion');
+            if (studentCornerPollQuestion) {
+                studentCornerPollQuestion.required = Boolean(studentCornerPollEnabled);
+                studentCornerPollQuestion.disabled = !studentCornerPollEnabled;
+            }
+            const studentCornerPollOptions = document.getElementById('studentCornerPollOptions');
+            if (studentCornerPollOptions) {
+                studentCornerPollOptions.disabled = !studentCornerPollEnabled;
+            }
+        }
+
+        const youthCornerAllowPoll = document.getElementById('youthCornerAllowPoll');
+        if (youthCornerPollFields) {
+            const youthCornerPollEnabled = isYouthCorner && youthCornerAllowPoll?.checked;
+            youthCornerPollFields.style.display = youthCornerPollEnabled ? '' : 'none';
+            const youthCornerPollQuestion = document.getElementById('youthCornerPollQuestion');
+            if (youthCornerPollQuestion) {
+                youthCornerPollQuestion.required = Boolean(youthCornerPollEnabled);
+                youthCornerPollQuestion.disabled = !youthCornerPollEnabled;
+            }
+            const youthCornerPollOptions = document.getElementById('youthCornerPollOptions');
+            if (youthCornerPollOptions) {
+                youthCornerPollOptions.disabled = !youthCornerPollEnabled;
+            }
+        }
+
         const awarenessHasEvent = document.getElementById('awarenessHasEvent');
         const awarenessEventFields = document.getElementById('awarenessEventFields');
         if (awarenessEventFields) {
@@ -3354,15 +3676,19 @@ The mountains keep.</pre>
         }
     }
 
-    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum) {
+    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum, isStudentCorner, isYouthCorner) {
         const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
         const featuredSlot = document.getElementById('communityNewsFeaturedImagesSlot');
         const storyFeaturedSlot = document.getElementById('communityStoryFeaturedImagesSlot');
         const awarenessFeaturedSlot = document.getElementById('communityAwarenessFeaturedImagesSlot');
         const businessFeaturedSlot = document.getElementById('communityBusinessFeaturedImagesSlot');
         const womensWorldFeaturedSlot = document.getElementById('communityWomensWorldFeaturedImagesSlot');
+        const studentCornerFeaturedSlot = document.getElementById('communityStudentCornerFeaturedImagesSlot');
+        const youthCornerFeaturedSlot = document.getElementById('communityYouthCornerFeaturedImagesSlot');
         const businessTagsSlot = document.getElementById('communityBusinessTagsSlot');
         const womensWorldTagsSlot = document.getElementById('communityWomensWorldTagsSlot');
+        const studentCornerTagsSlot = document.getElementById('communityStudentCornerTagsSlot');
+        const youthCornerTagsSlot = document.getElementById('communityYouthCornerTagsSlot');
         const tagsCol = document.getElementById('communityTagsWrap');
         const videoWrap = document.getElementById('communityVideoWrap');
         const videoSlot = document.getElementById('communityNewsVideoSlot');
@@ -3371,6 +3697,8 @@ The mountains keep.</pre>
         const businessVideoSlot = document.getElementById('communityBusinessVideoSlot');
         const womensWorldVideoSlot = document.getElementById('communityWomensWorldVideoSlot');
         const seniorCitizensForumVideoSlot = document.getElementById('communitySeniorCitizensForumVideoSlot');
+        const studentCornerVideoSlot = document.getElementById('communityStudentCornerVideoSlot');
+        const youthCornerVideoSlot = document.getElementById('communityYouthCornerVideoSlot');
         const videoAnchor = document.getElementById('communityVideoHiddenSlot');
         const videoFieldLabel = document.getElementById('videoFieldLabel');
         const featuredLabel = document.getElementById('featuredImagesLabel');
@@ -3386,7 +3714,7 @@ The mountains keep.</pre>
                 videoWrap.style.display = 'none';
             }
         } else {
-            window.communityFeaturedImages.max = (isAwareness || isBusiness || isWomensWorld) ? 1 : 5;
+            window.communityFeaturedImages.max = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner) ? 1 : 5;
             if (videoWrap) {
                 videoWrap.style.display = '';
             }
@@ -3408,6 +3736,12 @@ The mountains keep.</pre>
                 } else if (isWomensWorld && womensWorldFeaturedSlot) {
                     womensWorldFeaturedSlot.appendChild(featuredWrap);
                     featuredWrap.classList.remove('col-md-6');
+                } else if (isStudentCorner && studentCornerFeaturedSlot) {
+                    studentCornerFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
+                } else if (isYouthCorner && youthCornerFeaturedSlot) {
+                    youthCornerFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
                 } else {
                     tagsCol.parentElement.insertBefore(featuredWrap, tagsCol);
                     featuredWrap.classList.add('col-md-6');
@@ -3421,6 +3755,14 @@ The mountains keep.</pre>
                     tagsCol.style.display = '';
                 } else if (isWomensWorld && womensWorldTagsSlot) {
                     womensWorldTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isStudentCorner && studentCornerTagsSlot) {
+                    studentCornerTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isYouthCorner && youthCornerTagsSlot) {
+                    youthCornerTagsSlot.appendChild(tagsCol);
                     tagsCol.classList.remove('col-md-6');
                     tagsCol.style.display = '';
                 } else if (communityTagsDefaultParent) {
@@ -3451,10 +3793,16 @@ The mountains keep.</pre>
             } else if (isWomensWorld && womensWorldVideoSlot) {
                 womensWorldVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
+            } else if (isStudentCorner && studentCornerVideoSlot) {
+                studentCornerVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (isYouthCorner && youthCornerVideoSlot) {
+                youthCornerVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
             } else if (isSeniorCitizensForum && seniorCitizensForumVideoSlot) {
                 seniorCitizensForumVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
-            } else if (! isAwareness && ! isBusiness && ! isWomensWorld && ! isSeniorCitizensForum) {
+            } else if (! isAwareness && ! isBusiness && ! isWomensWorld && ! isStudentCorner && ! isYouthCorner && ! isSeniorCitizensForum) {
                 videoAnchor.insertAdjacentElement('afterend', videoWrap);
                 videoWrap.classList.add('col-md-6');
             } else {
@@ -3468,6 +3816,10 @@ The mountains keep.</pre>
             } else if (isBusiness) {
                 videoFieldLabel.innerHTML = 'Business video <span class="text-muted fw-normal">(optional)</span>';
             } else if (isWomensWorld) {
+                videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
+            } else if (isStudentCorner) {
+                videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
+            } else if (isYouthCorner) {
                 videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
             } else if (isSeniorCitizensForum) {
                 videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
@@ -3485,6 +3837,10 @@ The mountains keep.</pre>
                 featuredLabel.innerHTML = 'Cover image <span class="text-muted fw-normal">(recommended)</span>';
             } else if (isWomensWorld) {
                 featuredLabel.innerHTML = 'Cover image <span class="text-muted fw-normal">(recommended)</span>';
+            } else if (isStudentCorner) {
+                featuredLabel.innerHTML = 'Cover image <span class="text-muted fw-normal">(recommended)</span>';
+            } else if (isYouthCorner) {
+                featuredLabel.innerHTML = 'Cover image <span class="text-muted fw-normal">(recommended)</span>';
             } else if (isStories) {
                 featuredLabel.textContent = 'Cover image (recommended)';
             } else if (isNews) {
@@ -3501,6 +3857,10 @@ The mountains keep.</pre>
                 featuredHelp.textContent = 'Recommended size: 1200 × 630 px. Used for listings, social sharing, and homepage. JPG, PNG, or WebP, max 4 MB.';
             } else if (isWomensWorld) {
                 featuredHelp.textContent = 'Used for homepage cards, category listings, and social sharing. JPG, PNG, or WebP, max 4 MB.';
+            } else if (isStudentCorner) {
+                featuredHelp.textContent = 'Used for homepage cards, category listings, and social sharing. JPG, PNG, or WebP, max 4 MB.';
+            } else if (isYouthCorner) {
+                featuredHelp.textContent = 'Used for homepage cards, category listings, and social sharing. JPG, PNG, or WebP, max 4 MB.';
             } else if (isStories) {
                 featuredHelp.textContent = 'Used for story cards, social sharing, and homepage. Upload your cover image first. JPG, PNG, or WebP, max 4 MB each.';
             } else if (isNews) {
@@ -3516,6 +3876,10 @@ The mountains keep.</pre>
             } else if (isBusiness) {
                 featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
             } else if (isWomensWorld) {
+                featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
+            } else if (isStudentCorner) {
+                featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
+            } else if (isYouthCorner) {
                 featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
             } else if (isStories) {
                 featuredAddBtn.innerHTML = '<i class="fa-solid fa-image me-1"></i>Add cover image';
@@ -3735,7 +4099,7 @@ The mountains keep.</pre>
         const selectedType = typeSelect.value;
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum'].includes(selectedType);
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -3758,6 +4122,8 @@ The mountains keep.</pre>
         const isBusiness = selectedType === 'business';
         const isWomensWorld = selectedType === 'womens-world';
         const isSeniorCitizensForum = selectedType === 'senior-citizens-forum';
+        const isStudentCorner = selectedType === 'student-corner';
+        const isYouthCorner = selectedType === 'youth-corner';
 
         if (isChildrensCorner) {
             categoryWrap.style.display = 'none';
@@ -3784,6 +4150,16 @@ The mountains keep.</pre>
             categorySelect.required = false;
             categorySelect.disabled = true;
             syncSeniorCitizensForumCategory();
+        } else if (isStudentCorner) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncStudentCornerCategory();
+        } else if (isYouthCorner) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncYouthCornerCategory();
         } else {
             categoryWrap.style.display = '';
             categorySelect.disabled = false;
@@ -3850,11 +4226,11 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum) ? 'none' : '';
+            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner) ? 'none' : '';
         });
 
         document.querySelectorAll('.general-extra input, .general-extra textarea, .general-extra select').forEach((field) => {
-            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum;
+            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -3905,6 +4281,14 @@ The mountains keep.</pre>
             field.required = isSeniorCitizensForum;
         });
 
+        document.querySelectorAll('.student-corner-required').forEach((field) => {
+            field.required = isStudentCorner;
+        });
+
+        document.querySelectorAll('.youth-corner-required').forEach((field) => {
+            field.required = isYouthCorner;
+        });
+
         document.querySelectorAll('.awareness-flow input, .awareness-flow textarea, .awareness-flow select').forEach((field) => {
             if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
                 return;
@@ -3935,6 +4319,22 @@ The mountains keep.</pre>
             }
 
             field.disabled = !isSeniorCitizensForum;
+        });
+
+        document.querySelectorAll('.student-corner-flow input, .student-corner-flow textarea, .student-corner-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isStudentCorner;
+        });
+
+        document.querySelectorAll('.youth-corner-flow input, .youth-corner-flow textarea, .youth-corner-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isYouthCorner;
         });
 
         const childSchoolName = document.getElementById('childSchoolName');
@@ -4035,6 +4435,22 @@ The mountains keep.</pre>
             bodyHelp: 'Large font mode is enabled. Use the editor for Background, Experience, Lessons Learned, Advice, and Conclusion.',
             locationLabel: 'Location',
             locationHelp: 'Optional — enter country, state, district, and city/village for local heritage and community stories.',
+        } : (isStudentCorner ? {
+            excerptLabel: 'Summary',
+            excerptPlaceholder: 'Summarize your topic, project, or learning in one or two sentences.',
+            excerptHelp: 'A concise standfirst shown in Student Corner listings.',
+            bodyLabel: 'Rich text editor <span class="text-danger">*</span>',
+            bodyHelp: 'Use the rich text editor for Introduction, Objective, Main Content, Learnings, Tips / Recommendations, and Conclusion.',
+            locationLabel: 'Location <span class="text-danger">*</span>',
+            locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
+        } : (isYouthCorner ? {
+            excerptLabel: 'Summary',
+            excerptPlaceholder: 'Summarize your experience, opportunity, or insight in one or two sentences.',
+            excerptHelp: 'A concise standfirst shown in Youth Corner listings.',
+            bodyLabel: 'Rich text editor <span class="text-danger">*</span>',
+            bodyHelp: 'Use the rich text editor for Problem/Challenge, Experience/Story, Actions Taken, Results, Lessons Learned, and Advice for Others.',
+            locationLabel: 'Location',
+            locationHelp: 'Optional — enter country, state, district, and city for local opportunities and regional youth stories.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -4043,7 +4459,7 @@ The mountains keep.</pre>
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        })))))));
+        })))))))));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -4087,6 +4503,19 @@ The mountains keep.</pre>
             seniorCitizensForumContentGuide.style.display = isSeniorCitizensForum ? '' : 'none';
         }
 
+        const studentCornerContentGuide = document.getElementById('studentCornerContentGuide');
+        if (studentCornerContentGuide) {
+            studentCornerContentGuide.style.display = isStudentCorner ? '' : 'none';
+        }
+
+        const youthCornerContentGuide = document.getElementById('youthCornerContentGuide');
+        if (youthCornerContentGuide) {
+            youthCornerContentGuide.style.display = isYouthCorner ? '' : 'none';
+        }
+
+        refreshStudentCornerProjectSection();
+        refreshYouthCornerProjectSection();
+
         refreshPoetryEditorMode(selectedType);
         refreshPoetrySeriesFields();
         refreshChildrensCornerContentMode();
@@ -4094,18 +4523,18 @@ The mountains keep.</pre>
         mountStructuredLocationFields(selectedType);
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
         if (commonLocationSlot) {
-            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum) ? 'none' : '';
+            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner) ? 'none' : '';
             commonLocationSlot.querySelectorAll('input, select, textarea').forEach((field) => {
                 if (isChildrensCorner) {
                     field.disabled = true;
                     field.required = false;
-                } else if (!isNews && !isReport && !isAwareness && !isBusiness && !isWomensWorld && !isSeniorCitizensForum) {
+                } else if (!isNews && !isReport && !isAwareness && !isBusiness && !isWomensWorld && !isSeniorCitizensForum && !isStudentCorner && !isYouthCorner) {
                     field.disabled = false;
                 }
             });
         }
-        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum);
-        mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld);
+        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum, isStudentCorner, isYouthCorner);
+        mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld, isStudentCorner, isYouthCorner);
         refreshCommunityLocationTypeOptions(isReport);
         refreshBookLayoutMode(selectedType);
         refreshCommunityLocationFields(fieldCopy.locationHelp);
@@ -4117,7 +4546,7 @@ The mountains keep.</pre>
         const allowPollWrap = document.getElementById('allowPollWrap');
         const allowPoll = document.getElementById('allowPoll');
         if (allowPollWrap) {
-            allowPollWrap.style.display = (isReport || isAwareness || isBusiness || isWomensWorld) ? 'none' : '';
+            allowPollWrap.style.display = (isReport || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner) ? 'none' : '';
         }
         if (isReport && allowPoll) {
             allowPoll.checked = false;
@@ -4458,8 +4887,16 @@ The mountains keep.</pre>
         const womensWorldPublishWrap = document.getElementById('womensWorldPublishAsWrap');
         const womensWorldPenNameWrap = document.getElementById('womensWorldPenNameWrap');
         const womensWorldPenNameInput = document.getElementById('womensWorldPenNameInput');
+        const studentCornerPublishWrap = document.getElementById('studentCornerPublishAsWrap');
+        const studentCornerPenNameWrap = document.getElementById('studentCornerPenNameWrap');
+        const studentCornerPenNameInput = document.getElementById('studentCornerPenNameInput');
+        const youthCornerPublishWrap = document.getElementById('youthCornerPublishAsWrap');
+        const youthCornerPenNameWrap = document.getElementById('youthCornerPenNameWrap');
+        const youthCornerPenNameInput = document.getElementById('youthCornerPenNameInput');
         const contentType = document.getElementById('contentType')?.value || '';
         const isWomensWorld = contentType === 'womens-world';
+        const isStudentCorner = contentType === 'student-corner';
+        const isYouthCorner = contentType === 'youth-corner';
 
         if (!statusSelect) {
             return;
@@ -4468,16 +4905,31 @@ The mountains keep.</pre>
         const isPublishing = statusSelect.value === 'published';
 
         if (publishWrap) {
-            publishWrap.style.display = (isPublishing && !isWomensWorld) ? '' : 'none';
+            publishWrap.style.display = (isPublishing && !isWomensWorld && !isStudentCorner && !isYouthCorner) ? '' : 'none';
         }
 
         if (womensWorldPublishWrap) {
             womensWorldPublishWrap.style.display = (isPublishing && isWomensWorld) ? '' : 'none';
         }
 
+        if (studentCornerPublishWrap) {
+            studentCornerPublishWrap.style.display = (isPublishing && isStudentCorner) ? '' : 'none';
+        }
+
+        if (youthCornerPublishWrap) {
+            youthCornerPublishWrap.style.display = (isPublishing && isYouthCorner) ? '' : 'none';
+        }
+
         document.querySelectorAll('input[name="publish_as"]').forEach((input) => {
             const inWomensWorldFlow = Boolean(input.closest('#womensWorldPublishAsWrap'));
-            const enabled = isPublishing && ((isWomensWorld && inWomensWorldFlow) || (!isWomensWorld && !inWomensWorldFlow));
+            const inStudentCornerFlow = Boolean(input.closest('#studentCornerPublishAsWrap'));
+            const inYouthCornerFlow = Boolean(input.closest('#youthCornerPublishAsWrap'));
+            const enabled = isPublishing && (
+                (isWomensWorld && inWomensWorldFlow)
+                || (isStudentCorner && inStudentCornerFlow)
+                || (isYouthCorner && inYouthCornerFlow)
+                || (!isWomensWorld && !isStudentCorner && !isYouthCorner && !inWomensWorldFlow && !inStudentCornerFlow && !inYouthCornerFlow)
+            );
             input.required = enabled;
             input.disabled = !enabled;
         });
@@ -4486,21 +4938,39 @@ The mountains keep.</pre>
         const showPenName = isPublishing && selectedPublishAs === 'pen_name';
 
         if (penNameWrap) {
-            penNameWrap.style.display = (showPenName && !isWomensWorld) ? '' : 'none';
+            penNameWrap.style.display = (showPenName && !isWomensWorld && !isStudentCorner && !isYouthCorner) ? '' : 'none';
         }
 
         if (womensWorldPenNameWrap) {
             womensWorldPenNameWrap.style.display = (showPenName && isWomensWorld) ? '' : 'none';
         }
 
+        if (studentCornerPenNameWrap) {
+            studentCornerPenNameWrap.style.display = (showPenName && isStudentCorner) ? '' : 'none';
+        }
+
+        if (youthCornerPenNameWrap) {
+            youthCornerPenNameWrap.style.display = (showPenName && isYouthCorner) ? '' : 'none';
+        }
+
         if (penNameInput) {
-            penNameInput.required = showPenName && !isWomensWorld;
-            penNameInput.disabled = !showPenName || isWomensWorld;
+            penNameInput.required = showPenName && !isWomensWorld && !isStudentCorner && !isYouthCorner;
+            penNameInput.disabled = !showPenName || isWomensWorld || isStudentCorner || isYouthCorner;
         }
 
         if (womensWorldPenNameInput) {
             womensWorldPenNameInput.required = showPenName && isWomensWorld;
             womensWorldPenNameInput.disabled = !showPenName || !isWomensWorld;
+        }
+
+        if (studentCornerPenNameInput) {
+            studentCornerPenNameInput.required = showPenName && isStudentCorner;
+            studentCornerPenNameInput.disabled = !showPenName || !isStudentCorner;
+        }
+
+        if (youthCornerPenNameInput) {
+            youthCornerPenNameInput.required = showPenName && isYouthCorner;
+            youthCornerPenNameInput.disabled = !showPenName || !isYouthCorner;
         }
     }
 
@@ -4556,6 +5026,58 @@ The mountains keep.</pre>
     });
     refreshSeniorCitizensForumPrivacyFields();
 
+    function refreshStudentCornerPrivacyFields() {
+        const visibilitySelect = document.getElementById('studentCornerVisibility');
+        const privateLinkInfo = document.getElementById('studentCornerPrivateLinkInfo');
+        if (!visibilitySelect || !privateLinkInfo) {
+            return;
+        }
+
+        privateLinkInfo.style.display = visibilitySelect.value === 'private_link' ? '' : 'none';
+    }
+
+    document.getElementById('studentCornerVisibility')?.addEventListener('change', refreshStudentCornerPrivacyFields);
+    document.getElementById('studentCornerCopyPrivateLinkBtn')?.addEventListener('click', function () {
+        const input = document.getElementById('studentCornerPrivateLinkUrl');
+        if (!input?.value) {
+            return;
+        }
+        navigator.clipboard?.writeText(input.value).then(function () {
+            notify('success', 'Private link copied.');
+        }).catch(function () {
+            input.select();
+            document.execCommand('copy');
+            notify('success', 'Private link copied.');
+        });
+    });
+    refreshStudentCornerPrivacyFields();
+
+    function refreshYouthCornerPrivacyFields() {
+        const visibilitySelect = document.getElementById('youthCornerVisibility');
+        const privateLinkInfo = document.getElementById('youthCornerPrivateLinkInfo');
+        if (!visibilitySelect || !privateLinkInfo) {
+            return;
+        }
+
+        privateLinkInfo.style.display = visibilitySelect.value === 'private_link' ? '' : 'none';
+    }
+
+    document.getElementById('youthCornerVisibility')?.addEventListener('change', refreshYouthCornerPrivacyFields);
+    document.getElementById('youthCornerCopyPrivateLinkBtn')?.addEventListener('click', function () {
+        const input = document.getElementById('youthCornerPrivateLinkUrl');
+        if (!input?.value) {
+            return;
+        }
+        navigator.clipboard?.writeText(input.value).then(function () {
+            notify('success', 'Private link copied.');
+        }).catch(function () {
+            input.select();
+            document.execCommand('copy');
+            notify('success', 'Private link copied.');
+        });
+    });
+    refreshYouthCornerPrivacyFields();
+
     document.getElementById('communityPostStatus')?.addEventListener('change', refreshPublishAsFields);
     document.querySelectorAll('input[name="publish_as"]').forEach((input) => {
         input.addEventListener('change', refreshPublishAsFields);
@@ -4598,7 +5120,9 @@ The mountains keep.</pre>
             contentType === 'news',
             contentType === 'awareness',
             contentType === 'business',
-            contentType === 'womens-world'
+            contentType === 'womens-world',
+            contentType === 'student-corner',
+            contentType === 'youth-corner'
         );
     }
 
@@ -4606,6 +5130,8 @@ The mountains keep.</pre>
     document.getElementById('awarenessHasEvent')?.addEventListener('change', refreshTypeParticipationFields);
     document.getElementById('businessAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
     document.getElementById('womensWorldAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
+    document.getElementById('studentCornerAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
+    document.getElementById('youthCornerAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
 
     function formatObservationDate(value) {
         if (!value) {
@@ -4801,6 +5327,324 @@ The mountains keep.</pre>
         });
     }
 
+    function escapeCommunityEditorHtml(value) {
+        return String(value).replace(/[&<>"']/g, function (char) {
+            return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char];
+        });
+    }
+
+    function insertCommunityEditorHtml(editor, html) {
+        editor.model.change(() => {
+            const viewFragment = editor.data.processor.toView(html);
+            const modelFragment = editor.data.toModel(viewFragment);
+            editor.model.insertContent(modelFragment);
+        });
+    }
+
+    function uploadCommunityEditorAttachment(file) {
+        const data = new FormData();
+        data.append('upload', file);
+
+        return fetch('{{ route('community.posts.uploads.attachment') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: data,
+        }).then(async (response) => {
+            const payload = await response.json();
+            if (!response.ok || !payload.url) {
+                throw new Error(payload.message || 'Unable to upload file.');
+            }
+
+            return payload;
+        });
+    }
+
+    function createCommunityEditorFileButtonPlugin(pluginName, buttonName, label, accept, onFile) {
+        const CK = window.CKEDITOR || {};
+
+        return class extends CK.Plugin {
+            static get pluginName() {
+                return pluginName;
+            }
+
+            init() {
+                const editor = this.editor;
+
+                editor.ui.componentFactory.add(buttonName, (locale) => {
+                    const button = new CK.ButtonView(locale);
+                    button.set({
+                        label,
+                        withText: true,
+                        tooltip: true,
+                    });
+
+                    button.on('execute', () => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = accept;
+                        input.style.display = 'none';
+                        document.body.appendChild(input);
+
+                        input.addEventListener('change', () => {
+                            const file = input.files?.[0];
+                            input.remove();
+
+                            if (!file) {
+                                return;
+                            }
+
+                            onFile(editor, file).catch((error) => {
+                                console.error(error);
+                                notify('error', error.message || 'Unable to upload file.');
+                            });
+                        }, { once: true });
+
+                        input.click();
+                    });
+
+                    return button;
+                });
+            }
+        };
+    }
+
+    function createCommunityEditorPromptButtonPlugin(pluginName, buttonName, label, onExecute) {
+        const CK = window.CKEDITOR || {};
+
+        return class extends CK.Plugin {
+            static get pluginName() {
+                return pluginName;
+            }
+
+            init() {
+                const editor = this.editor;
+
+                editor.ui.componentFactory.add(buttonName, (locale) => {
+                    const button = new CK.ButtonView(locale);
+                    button.set({
+                        label,
+                        withText: true,
+                        tooltip: true,
+                    });
+
+                    button.on('execute', () => {
+                        try {
+                            onExecute(editor);
+                        } catch (error) {
+                            console.error(error);
+                            notify('error', error.message || 'Unable to insert content.');
+                        }
+                    });
+
+                    return button;
+                });
+            }
+        };
+    }
+
+    function getCommunityBodyEditorPlugins() {
+        const CK = window.CKEDITOR || {};
+
+        return [
+            CK.Essentials,
+            CK.Paragraph,
+            CK.Heading,
+            CK.Bold,
+            CK.Italic,
+            CK.Link,
+            CK.List,
+            CK.BlockQuote,
+            CK.Image,
+            CK.ImageCaption,
+            CK.ImageStyle,
+            CK.ImageToolbar,
+            CK.ImageUpload,
+            CK.Table,
+            CK.TableToolbar,
+            CK.MediaEmbed,
+            CK.GeneralHtmlSupport,
+            CK.Undo,
+        ].filter(Boolean);
+    }
+
+    function getCommunityBodyEditorExtraPlugins() {
+        const InsertDocumentPlugin = createCommunityEditorFileButtonPlugin(
+            'CommunityInsertDocument',
+            'insertDocument',
+            'Document',
+            '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip',
+            (editor, file) => uploadCommunityEditorAttachment(file).then((payload) => {
+                insertCommunityEditorHtml(
+                    editor,
+                    '<p><a class="community-inline-document" href="' + escapeCommunityEditorHtml(payload.url) + '" target="_blank" rel="noopener noreferrer">' + escapeCommunityEditorHtml(payload.name || 'Download document') + '</a></p>'
+                );
+            })
+        );
+
+        const UploadVideoPlugin = createCommunityEditorFileButtonPlugin(
+            'CommunityUploadVideo',
+            'uploadVideo',
+            'Video file',
+            'video/*,.mp4,.webm,.mov,.avi,.mkv',
+            (editor, file) => uploadCommunityEditorAttachment(file).then((payload) => {
+                insertCommunityEditorHtml(
+                    editor,
+                    '<figure class="media community-inline-video"><video controls preload="metadata" src="' + escapeCommunityEditorHtml(payload.url) + '"></video></figure>'
+                );
+            })
+        );
+
+        const InsertChartPlugin = createCommunityEditorPromptButtonPlugin(
+            'CommunityInsertChart',
+            'insertChart',
+            'Chart',
+            (editor) => {
+                const title = window.prompt('Chart title');
+                if (title === null) {
+                    return;
+                }
+
+                const rawRows = window.prompt('Enter chart rows as Label:Value (one per line)', 'Category A:40\nCategory B:65\nCategory C:25');
+                if (rawRows === null) {
+                    return;
+                }
+
+                const rows = rawRows.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+                if (rows.length === 0) {
+                    throw new Error('Please add at least one chart row.');
+                }
+
+                let maxValue = 0;
+                const parsedRows = rows.map((line) => {
+                    const separatorIndex = line.indexOf(':');
+                    const label = separatorIndex >= 0 ? line.slice(0, separatorIndex).trim() : line;
+                    const value = separatorIndex >= 0 ? Number(line.slice(separatorIndex + 1).trim()) : 0;
+                    const safeValue = Number.isFinite(value) ? Math.max(0, value) : 0;
+                    maxValue = Math.max(maxValue, safeValue);
+
+                    return { label, value: safeValue };
+                });
+
+                const chartRows = parsedRows.map((row) => {
+                    const width = maxValue > 0 ? Math.round((row.value / maxValue) * 100) : 0;
+
+                    return '<tr><th scope="row">' + escapeCommunityEditorHtml(row.label) + '</th><td><div class="community-inline-chart__bar" style="width:' + width + '%"></div><span class="community-inline-chart__value">' + escapeCommunityEditorHtml(String(row.value)) + '</span></td></tr>';
+                }).join('');
+
+                insertCommunityEditorHtml(
+                    editor,
+                    '<div class="community-inline-chart"><p class="community-inline-chart__title"><strong>' + escapeCommunityEditorHtml(title.trim() || 'Chart') + '</strong></p><table class="community-inline-chart__table"><tbody>' + chartRows + '</tbody></table></div>'
+                );
+            }
+        );
+
+        const InsertPollPlugin = createCommunityEditorPromptButtonPlugin(
+            'CommunityInsertPoll',
+            'insertPoll',
+            'Poll',
+            (editor) => {
+                const question = window.prompt('Poll question');
+                if (question === null || question.trim() === '') {
+                    return;
+                }
+
+                const rawOptions = window.prompt('Poll options (comma separated)', 'Yes, No, Not sure');
+                if (rawOptions === null) {
+                    return;
+                }
+
+                const options = rawOptions.split(',').map((option) => option.trim()).filter(Boolean);
+                if (options.length < 2) {
+                    throw new Error('Please provide at least two poll options.');
+                }
+
+                const optionItems = options.map((option) => {
+                    return '<li>' + escapeCommunityEditorHtml(option) + '</li>';
+                }).join('');
+
+                insertCommunityEditorHtml(
+                    editor,
+                    '<div class="community-inline-poll"><p class="community-inline-poll__question"><strong>' + escapeCommunityEditorHtml(question.trim()) + '</strong></p><ul class="community-inline-poll__options">' + optionItems + '</ul></div>'
+                );
+            }
+        );
+
+        return [
+            communityUploadAdapterPlugin,
+            communityImageTextFlowPlugin,
+            InsertDocumentPlugin,
+            UploadVideoPlugin,
+            InsertChartPlugin,
+            InsertPollPlugin,
+        ];
+    }
+
+    function getCommunityBodyEditorConfig() {
+        return {
+            plugins: getCommunityBodyEditorPlugins(),
+            extraPlugins: getCommunityBodyEditorExtraPlugins(),
+            toolbar: {
+                items: [
+                    'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                    'uploadImage', 'mediaEmbed', 'uploadVideo', 'insertDocument', 'insertTable', 'insertChart', 'insertPoll', '|',
+                    'blockQuote', '|', 'undo', 'redo',
+                ],
+                shouldNotGroupWhenFull: true,
+            },
+            mediaEmbed: {
+                previewsInData: true,
+            },
+            htmlSupport: {
+                allow: [
+                    { name: 'div', classes: ['community-inline-chart', 'community-inline-poll', 'community-inline-chart__bar'] },
+                    { name: 'p', classes: ['community-inline-chart__title', 'community-inline-poll__question'] },
+                    { name: 'ul', classes: ['community-inline-poll__options'] },
+                    { name: 'li', classes: true },
+                    { name: 'table', classes: ['community-inline-chart__table'] },
+                    { name: 'tbody', classes: true },
+                    { name: 'tr', classes: true },
+                    { name: 'th', classes: true, attributes: { scope: true } },
+                    { name: 'td', classes: true },
+                    { name: 'figure', classes: ['media', 'community-inline-video'] },
+                    { name: 'video', attributes: { controls: true, preload: true, src: true } },
+                    { name: 'a', classes: ['community-inline-document'], attributes: { href: true, target: true, rel: true } },
+                    { name: 'span', classes: ['community-inline-chart__value'] },
+                    { name: 'strong', classes: true },
+                ],
+            },
+            image: {
+                toolbar: [
+                    'imageTextAlternative',
+                    'toggleImageCaption',
+                    '|',
+                    'imageStyle:inline',
+                    'imageStyle:alignLeft',
+                    'imageStyle:alignRight',
+                    'imageStyle:alignCenter',
+                    'imageStyle:block',
+                    'imageStyle:side',
+                ],
+                styles: {
+                    options: [
+                        'inline',
+                        'alignLeft',
+                        'alignRight',
+                        'alignCenter',
+                        'block',
+                        'side',
+                    ],
+                },
+            },
+            table: {
+                contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
+            },
+        };
+    }
+
     function contentTypeUsesBodyEditor(contentType) {
         if (!contentType) {
             return false;
@@ -4882,38 +5726,7 @@ The mountains keep.</pre>
 
         const EditorClass = (window.CKEDITOR && window.CKEDITOR.ClassicEditor) || window.ClassicEditor;
 
-        communityBodyEditorInitPromise = EditorClass.create(bodyEditor, {
-            extraPlugins: [communityUploadAdapterPlugin, communityImageTextFlowPlugin],
-            toolbar: {
-                items: [
-                    'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
-                    'uploadImage', 'insertTable', 'blockQuote', '|', 'undo', 'redo',
-                ],
-            },
-            image: {
-                toolbar: [
-                    'imageTextAlternative',
-                    'toggleImageCaption',
-                    '|',
-                    'imageStyle:inline',
-                    'imageStyle:alignLeft',
-                    'imageStyle:alignRight',
-                    'imageStyle:alignCenter',
-                    'imageStyle:block',
-                    'imageStyle:side',
-                ],
-                styles: {
-                    options: [
-                        'inline',
-                        'alignLeft',
-                        'alignRight',
-                        'alignCenter',
-                        'block',
-                        'side',
-                    ],
-                },
-            },
-        })
+        communityBodyEditorInitPromise = EditorClass.create(bodyEditor, getCommunityBodyEditorConfig())
             .then((editor) => {
                 window.communityBodyEditor = editor;
                 const contentType = document.getElementById('contentType').value;
@@ -6224,6 +7037,212 @@ The mountains keep.</pre>
 
     initSeniorCitizensForumAchievements();
 
+    const studentCornerAchievementEntries = document.getElementById('studentCornerAchievementEntries');
+    const studentCornerAchievementTemplate = document.getElementById('studentCornerAchievementTemplate');
+    const addStudentCornerAchievementBtn = document.getElementById('addStudentCornerAchievementBtn');
+    let studentCornerAchievementNextIndex = 0;
+
+    function syncStudentCornerAchievementFieldNames(entry, index) {
+        entry.dataset.achievementIndex = String(index);
+        entry.querySelector('.student-corner-achievement-entry__title').textContent = 'Achievement ' + (index + 1);
+        entry.querySelectorAll('[data-name]').forEach((field) => {
+            const fieldName = field.dataset.name.replace(/__INDEX__/g, String(index));
+            field.name = fieldName;
+            field.id = fieldName.replace(/[\[\]]/g, '_');
+        });
+    }
+
+    function bindStudentCornerAchievementEntry(entry) {
+        const certificateInput = entry.querySelector('.js-sc-achievement-certificate');
+        const certificatePreview = entry.querySelector('.js-sc-achievement-certificate-preview');
+        const existingCertificatePathInput = entry.querySelector('.js-sc-achievement-existing-certificate-path');
+
+        entry.querySelector('.js-remove-student-corner-achievement-entry')?.addEventListener('click', function () {
+            entry.remove();
+            reindexStudentCornerAchievements();
+        });
+
+        certificateInput?.addEventListener('change', function () {
+            const file = certificateInput.files?.[0];
+            if (!file || !certificatePreview) {
+                return;
+            }
+
+            certificatePreview.textContent = 'Selected: ' + file.name;
+            certificatePreview.style.display = '';
+            if (existingCertificatePathInput) {
+                existingCertificatePathInput.value = '';
+            }
+        });
+
+        if (existingCertificatePathInput?.value && certificatePreview) {
+            const existingCertificateName = entry.dataset.existingCertificateName || 'Certificate on file';
+            certificatePreview.innerHTML = '<a href="' + (entry.dataset.existingCertificateUrl || '#') + '" target="_blank" rel="noopener">' + existingCertificateName + '</a>';
+            certificatePreview.style.display = '';
+        }
+    }
+
+    function reindexStudentCornerAchievements() {
+        if (!studentCornerAchievementEntries) {
+            return;
+        }
+
+        studentCornerAchievementEntries.querySelectorAll('.student-corner-achievement-entry').forEach((entry, index) => {
+            syncStudentCornerAchievementFieldNames(entry, index);
+        });
+        studentCornerAchievementNextIndex = studentCornerAchievementEntries.querySelectorAll('.student-corner-achievement-entry').length;
+    }
+
+    function addStudentCornerAchievement(data) {
+        if (!studentCornerAchievementEntries || !studentCornerAchievementTemplate) {
+            return;
+        }
+
+        const fragment = studentCornerAchievementTemplate.content.cloneNode(true);
+        const entry = fragment.querySelector('.student-corner-achievement-entry');
+        const index = studentCornerAchievementNextIndex;
+        syncStudentCornerAchievementFieldNames(entry, index);
+        entry.querySelector('.js-sc-achievement-title').value = data?.achievement_title || '';
+        entry.querySelector('.js-sc-achievement-year').value = data?.year || '';
+
+        const existingCertificatePathInput = entry.querySelector('.js-sc-achievement-existing-certificate-path');
+        if (existingCertificatePathInput && data?.existing_certificate_path) {
+            existingCertificatePathInput.value = data.existing_certificate_path;
+        }
+        if (data?.existing_certificate_name) {
+            entry.dataset.existingCertificateName = data.existing_certificate_name;
+        }
+        if (data?.existing_certificate_url) {
+            entry.dataset.existingCertificateUrl = data.existing_certificate_url;
+        }
+
+        bindStudentCornerAchievementEntry(entry);
+        studentCornerAchievementEntries.appendChild(entry);
+        studentCornerAchievementNextIndex += 1;
+    }
+
+    function initStudentCornerAchievements() {
+        if (!studentCornerAchievementEntries || !studentCornerAchievementTemplate) {
+            return;
+        }
+
+        studentCornerAchievementEntries.innerHTML = '';
+        studentCornerAchievementNextIndex = 0;
+        const initialEntries = Array.isArray(window.communityStudentCornerAchievements) ? window.communityStudentCornerAchievements : [];
+        if (initialEntries.length > 0) {
+            initialEntries.forEach((entry) => addStudentCornerAchievement(entry));
+        }
+    }
+
+    addStudentCornerAchievementBtn?.addEventListener('click', function () {
+        addStudentCornerAchievement({});
+    });
+
+    initStudentCornerAchievements();
+
+    const youthCornerAchievementEntries = document.getElementById('youthCornerAchievementEntries');
+    const youthCornerAchievementTemplate = document.getElementById('youthCornerAchievementTemplate');
+    const addYouthCornerAchievementBtn = document.getElementById('addYouthCornerAchievementBtn');
+    let youthCornerAchievementNextIndex = 0;
+
+    function syncYouthCornerAchievementFieldNames(entry, index) {
+        entry.dataset.achievementIndex = String(index);
+        entry.querySelector('.youth-corner-achievement-entry__title').textContent = 'Achievement ' + (index + 1);
+        entry.querySelectorAll('[data-name]').forEach((field) => {
+            const fieldName = field.dataset.name.replace(/__INDEX__/g, String(index));
+            field.name = fieldName;
+            field.id = fieldName.replace(/[\[\]]/g, '_');
+        });
+    }
+
+    function bindYouthCornerAchievementEntry(entry) {
+        const certificateInput = entry.querySelector('.js-yc-achievement-certificate');
+        const certificatePreview = entry.querySelector('.js-yc-achievement-certificate-preview');
+        const existingCertificatePathInput = entry.querySelector('.js-yc-achievement-existing-certificate-path');
+
+        entry.querySelector('.js-remove-youth-corner-achievement-entry')?.addEventListener('click', function () {
+            entry.remove();
+            reindexYouthCornerAchievements();
+        });
+
+        certificateInput?.addEventListener('change', function () {
+            const file = certificateInput.files?.[0];
+            if (!file || !certificatePreview) {
+                return;
+            }
+
+            certificatePreview.textContent = 'Selected: ' + file.name;
+            certificatePreview.style.display = '';
+            if (existingCertificatePathInput) {
+                existingCertificatePathInput.value = '';
+            }
+        });
+
+        if (existingCertificatePathInput?.value && certificatePreview) {
+            const existingCertificateName = entry.dataset.existingCertificateName || 'Certificate on file';
+            certificatePreview.innerHTML = '<a href="' + (entry.dataset.existingCertificateUrl || '#') + '" target="_blank" rel="noopener">' + existingCertificateName + '</a>';
+            certificatePreview.style.display = '';
+        }
+    }
+
+    function reindexYouthCornerAchievements() {
+        if (!youthCornerAchievementEntries) {
+            return;
+        }
+
+        youthCornerAchievementEntries.querySelectorAll('.youth-corner-achievement-entry').forEach((entry, index) => {
+            syncYouthCornerAchievementFieldNames(entry, index);
+        });
+        youthCornerAchievementNextIndex = youthCornerAchievementEntries.querySelectorAll('.youth-corner-achievement-entry').length;
+    }
+
+    function addYouthCornerAchievement(data) {
+        if (!youthCornerAchievementEntries || !youthCornerAchievementTemplate) {
+            return;
+        }
+
+        const fragment = youthCornerAchievementTemplate.content.cloneNode(true);
+        const entry = fragment.querySelector('.youth-corner-achievement-entry');
+        const index = youthCornerAchievementNextIndex;
+        syncYouthCornerAchievementFieldNames(entry, index);
+        entry.querySelector('.js-yc-achievement-title').value = data?.achievement_title || '';
+        entry.querySelector('.js-yc-achievement-year').value = data?.year || '';
+
+        const existingCertificatePathInput = entry.querySelector('.js-yc-achievement-existing-certificate-path');
+        if (existingCertificatePathInput && data?.existing_certificate_path) {
+            existingCertificatePathInput.value = data.existing_certificate_path;
+        }
+        if (data?.existing_certificate_name) {
+            entry.dataset.existingCertificateName = data.existing_certificate_name;
+        }
+        if (data?.existing_certificate_url) {
+            entry.dataset.existingCertificateUrl = data.existing_certificate_url;
+        }
+
+        bindYouthCornerAchievementEntry(entry);
+        youthCornerAchievementEntries.appendChild(entry);
+        youthCornerAchievementNextIndex += 1;
+    }
+
+    function initYouthCornerAchievements() {
+        if (!youthCornerAchievementEntries || !youthCornerAchievementTemplate) {
+            return;
+        }
+
+        youthCornerAchievementEntries.innerHTML = '';
+        youthCornerAchievementNextIndex = 0;
+        const initialEntries = Array.isArray(window.communityYouthCornerAchievements) ? window.communityYouthCornerAchievements : [];
+        if (initialEntries.length > 0) {
+            initialEntries.forEach((entry) => addYouthCornerAchievement(entry));
+        }
+    }
+
+    addYouthCornerAchievementBtn?.addEventListener('click', function () {
+        addYouthCornerAchievement({});
+    });
+
+    initYouthCornerAchievements();
+
     const autobiographyAudioUploadWrap = document.getElementById('autobiographyAudioUploadWrap');
     const autobiographyAudioRecordingWrap = document.getElementById('autobiographyAudioRecordingWrap');
     const autobiographyAudioFileInput = document.getElementById('autobiographyAudioFile');
@@ -6981,9 +8000,12 @@ The mountains keep.</pre>
             }
 
             if (publishAs === 'pen_name') {
-                const penNameValue = document.getElementById('contentType')?.value === 'womens-world'
+                const contentTypeForPenName = document.getElementById('contentType')?.value || '';
+                const penNameValue = contentTypeForPenName === 'womens-world'
                     ? document.getElementById('womensWorldPenNameInput')?.value.trim()
-                    : document.getElementById('penNameInput')?.value.trim();
+                    : contentTypeForPenName === 'student-corner'
+                        ? document.getElementById('studentCornerPenNameInput')?.value.trim()
+                        : document.getElementById('penNameInput')?.value.trim();
                 if (!penNameValue) {
                     notify('error', 'Please enter a pen name.');
                     return;
@@ -7120,8 +8142,68 @@ The mountains keep.</pre>
             }
         }
 
+        if (contentType === 'student-corner') {
+            syncStudentCornerCategory();
+
+            if (!document.getElementById('studentCornerCategory')?.value) {
+                notify('error', 'Please select a Student Corner main category.');
+                document.getElementById('studentCornerCategory')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('studentCornerContentType')?.value) {
+                notify('error', 'Please select a Student Corner content type.');
+                document.getElementById('studentCornerContentType')?.focus();
+                return;
+            }
+
+            if (document.getElementById('studentCornerContentType')?.value === STUDENT_CORNER_PROJECT_CONTENT_TYPE) {
+                if (!document.getElementById('studentCornerProjectTitle')?.value.trim()) {
+                    notify('error', 'Please enter a project title.');
+                    document.getElementById('studentCornerProjectTitle')?.focus();
+                    return;
+                }
+
+                if (!document.getElementById('studentCornerProjectCategory')?.value) {
+                    notify('error', 'Please select a project category.');
+                    document.getElementById('studentCornerProjectCategory')?.focus();
+                    return;
+                }
+
+                if (!document.getElementById('studentCornerProjectDescription')?.value.trim()) {
+                    notify('error', 'Please enter a project description.');
+                    document.getElementById('studentCornerProjectDescription')?.focus();
+                    return;
+                }
+            }
+        }
+
+        if (contentType === 'youth-corner') {
+            syncYouthCornerCategory();
+
+            if (!document.getElementById('youthCornerCategory')?.value) {
+                notify('error', 'Please select a Youth Corner main category.');
+                document.getElementById('youthCornerCategory')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('youthCornerContentType')?.value) {
+                notify('error', 'Please select a Youth Corner content type.');
+                document.getElementById('youthCornerContentType')?.focus();
+                return;
+            }
+        }
+
         submitButton.disabled = true;
         submitButton.innerHTML = 'Saving...';
+
+        if (contentType === 'student-corner') {
+            reindexStudentCornerAchievements();
+        }
+
+        if (contentType === 'youth-corner') {
+            reindexYouthCornerAchievements();
+        }
 
         const formData = new FormData(form);
         formData.delete('featured_images[]');

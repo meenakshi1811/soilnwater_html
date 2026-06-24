@@ -31,7 +31,7 @@ class CommunityPostSeeder extends Seeder
         'childrens-corner' => 'The little seed that saved a garden',
         'awareness' => 'Save every drop this summer',
         'business' => 'Building a local water-testing startup',
-        'education' => 'Understanding groundwater recharge in school science',
+        'student-corner' => 'Understanding groundwater recharge in school science',
         'career' => 'Career paths in environmental engineering',
         'health-wellness' => 'Hydration and heat safety during summer',
         'womens-world' => 'Women leading rooftop rainwater projects',

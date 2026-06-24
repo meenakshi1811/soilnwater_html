@@ -22,12 +22,7 @@ class CommunityPostFormFields
             'childrens-corner' => self::section("Children's Corner details", "Children's Corner", 'Use the dedicated Children\'s Corner flow fields on the form.', []),
             'awareness' => self::section('Awareness details', 'Awareness', 'Use the dedicated awareness flow fields on the form.', []),
             'business' => self::section('Business details', 'Business', 'Use the dedicated business flow fields on the form.', []),
-            'education' => self::section('Education details', 'Education', 'Learning content metadata for courses, guides, and study material.', [
-                self::select('education_level', 'Education level', ['School', 'College', 'Competitive Exams', 'Professional', 'Lifelong Learning'], true),
-                self::text('subject_area', 'Subject / topic area', 120, true, 'e.g. Mathematics, UPSC, Coding'),
-                self::textarea('learning_outcome', 'Learning outcome', 2000, true, 'What the reader will learn'),
-                self::text('reading_time', 'Estimated reading time (minutes)', 10, false),
-            ]),
+            'student-corner' => self::section('Student Corner details', 'Student Corner', 'Use the dedicated Student Corner flow fields on the form.', []),
             'career' => self::section('Career details', 'Career', 'Career guidance fields used on professional development platforms.', self::professionalTipFields('career_stage', [
                 'Entry Level', 'Mid Career', 'Senior Level', 'Career Change', 'Student', 'Other',
             ])),
@@ -39,11 +34,7 @@ class CommunityPostFormFields
             ]),
             'womens-world' => self::section("Women's World details", "Women's World", 'Use the dedicated Women\'s World flow fields on the form.', []),
             'senior-citizens-forum' => self::section('Senior Citizens Forum details', 'Senior Citizens Forum', 'Use the dedicated Senior Citizens Forum flow fields on the form.', []),
-            'youth-corner' => self::section('Youth Corner details', 'Youth Corner', 'Youth-focused metadata for age group and topic.', [
-                self::select('youth_topic', 'Youth topic', ['Career', 'Startups', 'Technology', 'Relationships', 'Motivation', 'Fitness', 'Education'], true),
-                self::select('age_group', 'Target age group', ['13-17', '18-21', '22-25', '26-30'], true),
-                self::textarea('youth_message', 'Core message for youth', 2000, true),
-            ]),
+            'youth-corner' => self::section('Youth Corner details', 'Youth Corner', 'Use the dedicated Youth Corner flow fields on the form.', []),
             'jobs-employment' => self::section('Job & employment details', 'Jobs & Employment', 'Job board style fields for alerts and opportunities.', [
                 self::select('job_type', 'Employment type', ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance', 'Government'], true),
                 self::text('experience_required', 'Experience required', 120, true, 'e.g. 0-2 years, Fresher'),
@@ -526,6 +517,158 @@ class CommunityPostFormFields
             }
         }
 
+        if (CommunityPost::usesStudentCornerFlow($contentType)) {
+            $payload['student_corner_category'] = $request->input('student_corner_category');
+            $payload['student_corner_content_type'] = $request->input('student_corner_content_type');
+            $payload['student_corner_profile_name'] = $request->input('student_corner_profile_name');
+            $payload['student_corner_class_course'] = $request->input('student_corner_class_course');
+            $payload['student_corner_stream'] = $request->input('student_corner_stream');
+            $payload['student_corner_institution_name'] = $request->input('student_corner_institution_name');
+            $payload['student_corner_target_audience'] = array_values(array_intersect(
+                (array) $request->input('student_corner_target_audience', []),
+                CommunityContentTaxonomy::studentCornerTargetAudiences()
+            ));
+            $payload['student_corner_video_type'] = $request->input('student_corner_video_type');
+            $payload['student_corner_study_material_types'] = array_values(array_intersect(
+                (array) $request->input('student_corner_study_material_types', []),
+                CommunityContentTaxonomy::studentCornerStudyMaterialTypes()
+            ));
+            $payload['student_corner_career_guidance_topics'] = array_values(array_intersect(
+                (array) $request->input('student_corner_career_guidance_topics', []),
+                CommunityContentTaxonomy::studentCornerCareerGuidanceTopics()
+            ));
+            $payload['student_corner_scholarship_name'] = $request->input('student_corner_scholarship_name');
+            $payload['student_corner_eligibility'] = $request->input('student_corner_eligibility');
+            $payload['student_corner_application_deadline'] = $request->input('student_corner_application_deadline');
+            $payload['student_corner_official_website'] = $request->input('student_corner_official_website');
+            $payload['student_corner_exam_name'] = $request->input('student_corner_exam_name');
+            $payload['student_corner_preparation_strategy'] = $request->input('student_corner_preparation_strategy');
+            $payload['student_corner_resources_used'] = $request->input('student_corner_resources_used');
+            $payload['student_corner_marks_rank'] = $request->input('student_corner_marks_rank');
+            $payload['student_corner_lessons_learned'] = $request->input('student_corner_lessons_learned');
+            $payload['student_corner_skills'] = array_values(array_intersect(
+                (array) $request->input('student_corner_skills', []),
+                CommunityContentTaxonomy::studentCornerSkills()
+            ));
+            $payload['student_corner_social_impact_categories'] = array_values(array_intersect(
+                (array) $request->input('student_corner_social_impact_categories', []),
+                CommunityContentTaxonomy::studentCornerSocialImpactCategories()
+            ));
+            $payload['student_corner_ask_community'] = $request->input('student_corner_ask_community');
+            $payload['student_corner_poll_question'] = $request->input('student_corner_poll_question');
+            $payload['student_corner_poll_options'] = collect(preg_split('/\R/', (string) $request->input('student_corner_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('allow_poll')) {
+                unset($payload['student_corner_poll_question'], $payload['student_corner_poll_options']);
+            }
+            $payload['student_corner_mentorship_requests'] = array_values(array_intersect(
+                (array) $request->input('student_corner_mentorship_requests', []),
+                CommunityContentTaxonomy::studentCornerMentorshipRequests()
+            ));
+            $payload['student_corner_submit_to_competition'] = $request->boolean('student_corner_submit_to_competition');
+            $payload['student_corner_competition_categories'] = array_values(array_intersect(
+                (array) $request->input('student_corner_competition_categories', []),
+                CommunityContentTaxonomy::studentCornerCompetitionCategories()
+            ));
+            $payload['student_corner_visibility'] = array_key_exists(
+                (string) $request->input('student_corner_visibility'),
+                CommunityContentTaxonomy::studentCornerVisibilitySettings()
+            )
+                ? (string) $request->input('student_corner_visibility')
+                : CommunityContentTaxonomy::studentCornerDefaultVisibilitySetting();
+
+            foreach (['location_country', 'location_state', 'location_district', 'location_city'] as $locationKey) {
+                if ($request->has($locationKey)) {
+                    $payload[$locationKey] = $request->input($locationKey);
+                }
+            }
+            unset($payload['location_locality']);
+
+            if ($request->input('student_corner_content_type') === CommunityContentTaxonomy::studentCornerProjectContentType()) {
+                $payload['student_corner_project_title'] = $request->input('student_corner_project_title');
+                $payload['student_corner_project_category'] = $request->input('student_corner_project_category');
+                $payload['student_corner_project_description'] = $request->input('student_corner_project_description');
+                $payload['student_corner_project_outcome'] = $request->input('student_corner_project_outcome');
+            }
+        }
+
+        if (CommunityPost::usesYouthCornerFlow($contentType)) {
+            $payload['youth_corner_category'] = $request->input('youth_corner_category');
+            $payload['youth_corner_content_type'] = $request->input('youth_corner_content_type');
+            $payload['youth_corner_age_group'] = $request->input('youth_corner_age_group');
+            $payload['youth_corner_occupation'] = $request->input('youth_corner_occupation');
+            $payload['youth_corner_education_level'] = $request->input('youth_corner_education_level');
+            $payload['youth_corner_target_audience'] = array_values(array_intersect(
+                (array) $request->input('youth_corner_target_audience', []),
+                CommunityContentTaxonomy::youthCornerTargetAudiences()
+            ));
+            $payload['youth_corner_video_type'] = $request->input('youth_corner_video_type');
+            $payload['youth_corner_opportunity_types'] = array_values(array_intersect(
+                (array) $request->input('youth_corner_opportunity_types', []),
+                CommunityContentTaxonomy::youthCornerOpportunityTypes()
+            ));
+            $payload['youth_corner_skills'] = array_values(array_intersect(
+                (array) $request->input('youth_corner_skills', []),
+                CommunityContentTaxonomy::youthCornerSkills()
+            ));
+            $payload['youth_corner_career_area'] = $request->input('youth_corner_career_area');
+            $payload['youth_corner_startup_name'] = $request->input('youth_corner_startup_name');
+            $payload['youth_corner_startup_industry'] = $request->input('youth_corner_startup_industry');
+            $payload['youth_corner_business_idea'] = $request->input('youth_corner_business_idea');
+            $payload['youth_corner_funding_stage'] = $request->input('youth_corner_funding_stage');
+            $payload['youth_corner_startup_challenges'] = $request->input('youth_corner_startup_challenges');
+            $payload['youth_corner_startup_lessons'] = $request->input('youth_corner_startup_lessons');
+            $payload['youth_corner_themes'] = array_values(array_intersect(
+                (array) $request->input('youth_corner_themes', []),
+                CommunityContentTaxonomy::youthCornerThemes()
+            ));
+            $payload['youth_corner_community_service'] = array_values(array_intersect(
+                (array) $request->input('youth_corner_community_service', []),
+                CommunityContentTaxonomy::youthCornerCommunityServiceActivities()
+            ));
+            $payload['youth_corner_networking_options'] = array_values(array_intersect(
+                (array) $request->input('youth_corner_networking_options', []),
+                CommunityContentTaxonomy::youthCornerNetworkingOptions()
+            ));
+            $payload['youth_corner_ask_community'] = $request->input('youth_corner_ask_community');
+            $payload['youth_corner_poll_question'] = $request->input('youth_corner_poll_question');
+            $payload['youth_corner_poll_options'] = collect(preg_split('/\R/', (string) $request->input('youth_corner_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('allow_poll')) {
+                unset($payload['youth_corner_poll_question'], $payload['youth_corner_poll_options']);
+            }
+            $payload['youth_corner_mentorship_requests'] = array_values(array_intersect(
+                (array) $request->input('youth_corner_mentorship_requests', []),
+                CommunityContentTaxonomy::youthCornerMentorshipRequests()
+            ));
+            $payload['youth_corner_visibility'] = array_key_exists(
+                (string) $request->input('youth_corner_visibility'),
+                CommunityContentTaxonomy::youthCornerVisibilitySettings()
+            )
+                ? (string) $request->input('youth_corner_visibility')
+                : CommunityContentTaxonomy::youthCornerDefaultVisibilitySetting();
+
+            foreach (['location_country', 'location_state', 'location_district', 'location_city'] as $locationKey) {
+                if ($request->has($locationKey)) {
+                    $payload[$locationKey] = $request->input($locationKey);
+                }
+            }
+            unset($payload['location_locality']);
+
+            if ($request->input('youth_corner_content_type') === CommunityContentTaxonomy::youthCornerProjectContentType()) {
+                $payload['youth_corner_project_title'] = $request->input('youth_corner_project_title');
+                $payload['youth_corner_project_category'] = $request->input('youth_corner_project_category');
+                $payload['youth_corner_project_description'] = $request->input('youth_corner_project_description');
+                $payload['youth_corner_project_outcome'] = $request->input('youth_corner_project_outcome');
+            }
+        }
+
         return collect($payload)
             ->filter(function (mixed $value, string $key): bool {
                 if (in_array($key, [
@@ -565,6 +708,22 @@ class CommunityPostFormFields
                     'senior_citizens_forum_themes',
                     'senior_citizens_forum_community_contributions',
                     'senior_citizens_forum_intergenerational_connections',
+                    'student_corner_target_audience',
+                    'student_corner_study_material_types',
+                    'student_corner_career_guidance_topics',
+                    'student_corner_skills',
+                    'student_corner_social_impact_categories',
+                    'student_corner_poll_options',
+                    'student_corner_mentorship_requests',
+                    'student_corner_competition_categories',
+                    'youth_corner_target_audience',
+                    'youth_corner_opportunity_types',
+                    'youth_corner_skills',
+                    'youth_corner_themes',
+                    'youth_corner_community_service',
+                    'youth_corner_networking_options',
+                    'youth_corner_poll_options',
+                    'youth_corner_mentorship_requests',
                 ], true)) {
                     return true;
                 }
@@ -1063,6 +1222,367 @@ class CommunityPostFormFields
     public static function womensWorldStructuredMetaKeys(): array
     {
         return array_keys(self::womensWorldDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function youthCornerDetailMetaOrder(): array
+    {
+        return [
+            'youth_corner_category' => 'Main category',
+            'youth_corner_content_type' => 'Content type',
+            'youth_corner_age_group' => 'Age group',
+            'youth_corner_occupation' => 'Occupation',
+            'youth_corner_education_level' => 'Education level',
+            'youth_corner_target_audience' => 'Target audience',
+            'youth_corner_video_type' => 'Video type',
+            'youth_corner_opportunity_types' => 'Opportunity types',
+            'youth_corner_skills' => 'Skills',
+            'youth_corner_career_area' => 'Career area',
+            'youth_corner_startup_name' => 'Startup name',
+            'youth_corner_startup_industry' => 'Industry',
+            'youth_corner_business_idea' => 'Business idea',
+            'youth_corner_funding_stage' => 'Funding stage',
+            'youth_corner_startup_challenges' => 'Challenges faced',
+            'youth_corner_startup_lessons' => 'Lessons learned',
+            'youth_corner_project_title' => 'Project title',
+            'youth_corner_project_category' => 'Project category',
+            'youth_corner_project_description' => 'Project description',
+            'youth_corner_project_outcome' => 'Project outcome',
+            'youth_corner_themes' => 'Themes',
+            'youth_corner_community_service' => 'Community service',
+            'youth_corner_networking_options' => 'Networking options',
+            'youth_corner_mentorship_requests' => 'Mentorship requests',
+            'youth_corner_ask_community' => 'Ask the community',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City',
+            'youth_corner_visibility' => 'Visibility',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerStructuredMetaKeys(): array
+    {
+        return array_keys(self::youthCornerDetailMetaOrder());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerIntroMetaKeys(): array
+    {
+        return [
+            'youth_corner_category',
+            'youth_corner_content_type',
+            'youth_corner_age_group',
+            'youth_corner_occupation',
+            'youth_corner_education_level',
+            'youth_corner_target_audience',
+            'youth_corner_video_type',
+            'youth_corner_opportunity_types',
+            'youth_corner_skills',
+            'youth_corner_career_area',
+            'youth_corner_startup_name',
+            'youth_corner_startup_industry',
+            'youth_corner_business_idea',
+            'youth_corner_funding_stage',
+            'youth_corner_startup_challenges',
+            'youth_corner_startup_lessons',
+            'youth_corner_project_title',
+            'youth_corner_project_category',
+            'youth_corner_project_description',
+            'youth_corner_project_outcome',
+            'youth_corner_themes',
+            'youth_corner_community_service',
+            'youth_corner_networking_options',
+            'youth_corner_mentorship_requests',
+            'youth_corner_ask_community',
+            'location_state',
+            'location_district',
+            'location_city',
+            'youth_corner_visibility',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function youthCornerEngagementStructuredMetaKeys(): array
+    {
+        return [
+            'youth_corner_poll_question',
+            'youth_corner_poll_options',
+            'youth_corner_gallery',
+            'youth_corner_achievements',
+            'youth_corner_documents',
+            'youth_corner_private_link_token',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function youthCornerAdminMetaOrder(): array
+    {
+        return array_merge(self::youthCornerDetailMetaOrder(), [
+            'youth_corner_poll_question' => 'Poll question',
+            'youth_corner_poll_options' => 'Poll options',
+        ]);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedYouthCornerAdminMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::youthCornerAdminMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if ($key === 'youth_corner_category' && blank($value)) {
+                    $value = $post->category;
+                }
+
+                if (in_array($key, [
+                    'youth_corner_target_audience',
+                    'youth_corner_opportunity_types',
+                    'youth_corner_skills',
+                    'youth_corner_themes',
+                    'youth_corner_community_service',
+                    'youth_corner_networking_options',
+                    'youth_corner_mentorship_requests',
+                    'youth_corner_poll_options',
+                ], true) && is_array($value)) {
+                    $value = implode(', ', array_values(array_filter($value)));
+                }
+
+                if ($key === 'youth_corner_visibility' && filled($value)) {
+                    $value = CommunityContentTaxonomy::youthCornerVisibilitySettings()[(string) $value] ?? $value;
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value));
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedYouthCornerMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::youthCornerDetailMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if ($key === 'youth_corner_category' && blank($value)) {
+                    $value = $post->category;
+                }
+
+                if (in_array($key, [
+                    'youth_corner_target_audience',
+                    'youth_corner_opportunity_types',
+                    'youth_corner_skills',
+                    'youth_corner_themes',
+                    'youth_corner_community_service',
+                    'youth_corner_networking_options',
+                    'youth_corner_mentorship_requests',
+                ], true) && is_array($value)) {
+                    $value = implode(', ', array_values(array_filter($value)));
+                }
+
+                if ($key === 'youth_corner_visibility' && filled($value)) {
+                    $value = CommunityContentTaxonomy::youthCornerVisibilitySettings()[(string) $value] ?? $value;
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerIntroMetaKeys(): array
+    {
+        return [
+            'student_corner_category',
+            'student_corner_content_type',
+            'student_corner_profile_name',
+            'student_corner_class_course',
+            'student_corner_stream',
+            'student_corner_institution_name',
+            'student_corner_target_audience',
+            'student_corner_video_type',
+            'student_corner_study_material_types',
+            'student_corner_career_guidance_topics',
+            'student_corner_skills',
+            'student_corner_social_impact_categories',
+            'student_corner_mentorship_requests',
+            'student_corner_submit_to_competition',
+            'student_corner_competition_categories',
+            'student_corner_ask_community',
+            'location_state',
+            'location_district',
+            'location_city',
+            'student_corner_visibility',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function studentCornerAdminMetaOrder(): array
+    {
+        return array_merge(self::studentCornerDetailMetaOrder(), [
+            'student_corner_poll_question' => 'Poll question',
+            'student_corner_poll_options' => 'Poll options',
+        ]);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedStudentCornerAdminMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::studentCornerAdminMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if ($key === 'student_corner_category' && blank($value)) {
+                    $value = $post->category;
+                }
+
+                if (in_array($key, [
+                    'student_corner_target_audience',
+                    'student_corner_study_material_types',
+                    'student_corner_career_guidance_topics',
+                    'student_corner_skills',
+                    'student_corner_social_impact_categories',
+                    'student_corner_mentorship_requests',
+                    'student_corner_competition_categories',
+                    'student_corner_poll_options',
+                ], true) && is_array($value)) {
+                    $value = implode(', ', array_values(array_filter($value)));
+                }
+
+                if ($key === 'student_corner_submit_to_competition') {
+                    $value = $value ? 'Yes' : null;
+                }
+
+                if ($key === 'student_corner_visibility' && filled($value)) {
+                    $value = CommunityContentTaxonomy::studentCornerVisibilitySettings()[(string) $value] ?? $value;
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function studentCornerDetailMetaOrder(): array
+    {
+        return [
+            'student_corner_category' => 'Main category',
+            'student_corner_content_type' => 'Content type',
+            'student_corner_profile_name' => 'Student name',
+            'student_corner_class_course' => 'Class / course',
+            'student_corner_stream' => 'Stream',
+            'student_corner_institution_name' => 'Institution',
+            'student_corner_target_audience' => 'Target audience',
+            'student_corner_video_type' => 'Video type',
+            'student_corner_study_material_types' => 'Study material type',
+            'student_corner_career_guidance_topics' => 'Career guidance topics',
+            'student_corner_scholarship_name' => 'Scholarship name',
+            'student_corner_eligibility' => 'Eligibility',
+            'student_corner_application_deadline' => 'Application deadline',
+            'student_corner_official_website' => 'Official website',
+            'student_corner_exam_name' => 'Exam name',
+            'student_corner_preparation_strategy' => 'Preparation strategy',
+            'student_corner_resources_used' => 'Resources used',
+            'student_corner_marks_rank' => 'Marks / rank',
+            'student_corner_lessons_learned' => 'Lessons learned',
+            'student_corner_skills' => 'Skills',
+            'student_corner_social_impact_categories' => 'Social impact',
+            'student_corner_ask_community' => 'Ask the community',
+            'student_corner_mentorship_requests' => 'Mentorship requests',
+            'student_corner_submit_to_competition' => 'Competition entry',
+            'student_corner_competition_categories' => 'Competition categories',
+            'student_corner_project_title' => 'Project title',
+            'student_corner_project_category' => 'Project category',
+            'student_corner_project_description' => 'Project description',
+            'student_corner_project_outcome' => 'Project outcome',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City',
+            'student_corner_visibility' => 'Visibility',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerEngagementStructuredMetaKeys(): array
+    {
+        return [
+            'student_corner_poll_question',
+            'student_corner_poll_options',
+            'student_corner_gallery',
+            'student_corner_achievements',
+            'student_corner_documents',
+            'student_corner_private_link_token',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function studentCornerStructuredMetaKeys(): array
+    {
+        return array_keys(self::studentCornerDetailMetaOrder());
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, mixed>
+     */
+    public static function orderedStudentCornerMetaForDisplay(\App\Models\CommunityPost $post): \Illuminate\Support\Collection
+    {
+        return collect(self::studentCornerDetailMetaOrder())
+            ->mapWithKeys(function (string $label, string $key) use ($post): array {
+                $value = data_get($post->meta, $key);
+
+                if ($key === 'student_corner_category' && blank($value)) {
+                    $value = $post->category;
+                }
+
+                if (in_array($key, [
+                    'student_corner_target_audience',
+                    'student_corner_study_material_types',
+                    'student_corner_career_guidance_topics',
+                    'student_corner_skills',
+                    'student_corner_social_impact_categories',
+                    'student_corner_mentorship_requests',
+                    'student_corner_competition_categories',
+                ], true) && is_array($value)) {
+                    $value = implode(', ', array_values(array_filter($value)));
+                }
+
+                if ($key === 'student_corner_submit_to_competition') {
+                    $value = $value ? 'Yes' : null;
+                }
+
+                if ($key === 'student_corner_visibility' && filled($value)) {
+                    $value = CommunityContentTaxonomy::studentCornerVisibilitySettings()[(string) $value] ?? $value;
+                }
+
+                return [$key => $value];
+            })
+            ->filter(fn (mixed $value): bool => filled($value));
     }
 
     /**

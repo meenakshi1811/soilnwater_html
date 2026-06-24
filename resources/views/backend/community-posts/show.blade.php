@@ -38,6 +38,16 @@
         @include('community.partials.business-styles')
     @endpush
 @endif
+@if($post->isStudentCornerPost())
+    @push('styles')
+        @include('community.partials.business-styles')
+    @endpush
+@endif
+@if($post->isYouthCornerPost())
+    @push('styles')
+        @include('community.partials.business-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
@@ -143,6 +153,24 @@
                 ])
             @endif
 
+            @if($post->isStudentCornerPost())
+                @include('community.partials.student-corner-show-sections', ['post' => $post])
+                @include('community.partials.student-corner-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved Student Corner metadata',
+                    'includeAdmin' => true,
+                ])
+            @endif
+
+            @if($post->isYouthCornerPost())
+                @include('community.partials.youth-corner-show-sections', ['post' => $post])
+                @include('community.partials.youth-corner-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved Youth Corner metadata',
+                    'includeAdmin' => true,
+                ])
+            @endif
+
             @if($post->isAwarenessPost() && ($post->allowsAwarenessCauseSupport() || $post->allowsAwarenessPledges() || $post->allowsCampaignJoin()))
                 <div class="mb-4" id="awareness-campaign-activity">
                     @include('backend.community-posts.partials.awareness-portal-activity', [
@@ -178,6 +206,18 @@
                 </div>
             @endif
 
+            @if($post->isStudentCornerPost())
+                <div class="mb-4" id="student-corner-portal-activity">
+                    @include('backend.community-posts.partials.student-corner-portal-activity', ['post' => $post])
+                </div>
+            @endif
+
+            @if($post->isYouthCornerPost())
+                <div class="mb-4" id="youth-corner-portal-activity">
+                    @include('backend.community-posts.partials.youth-corner-portal-activity', ['post' => $post])
+                </div>
+            @endif
+
             <div class="chart-card p-3 p-lg-4 mb-4">
                 <h5 class="mb-3">Comments &amp; discussion settings</h5>
                 <ul class="list-unstyled small mb-0">
@@ -197,6 +237,19 @@
                         <li class="mb-1"><strong>Digital legacy:</strong> {{ data_get($post->meta, 'senior_citizens_forum_preserve_digital_legacy') ? 'Enabled' : 'Disabled' }}</li>
                         <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
                         <li class="mb-1"><strong>Reactions:</strong> Senior Citizens Forum positive reactions</li>
+                    @elseif($post->isStudentCornerPost())
+                        <li class="mb-1"><strong>Publish as:</strong> {{ \App\Support\CommunityContentTaxonomy::studentCornerPublishAsOptions()[$post->resolvedPublishAs()] ?? $post->publishAsLabel() }}</li>
+                        <li class="mb-1"><strong>Visibility:</strong> {{ $post->studentCornerVisibilityLabel() }}</li>
+                        <li class="mb-1"><strong>Peer discussion:</strong> {{ $post->allow_feedback ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Competition entry:</strong> {{ data_get($post->meta, 'student_corner_submit_to_competition') ? 'Submitted' : 'Not submitted' }}</li>
+                        <li class="mb-1"><strong>Reactions:</strong> Student Corner positive reactions</li>
+                    @elseif($post->isYouthCornerPost())
+                        <li class="mb-1"><strong>Publish as:</strong> {{ \App\Support\CommunityContentTaxonomy::youthCornerPublishAsOptions()[$post->resolvedPublishAs()] ?? $post->publishAsLabel() }}</li>
+                        <li class="mb-1"><strong>Visibility:</strong> {{ $post->youthCornerVisibilityLabel() }}</li>
+                        <li class="mb-1"><strong>Peer discussion:</strong> {{ $post->allow_feedback ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Reactions:</strong> Youth Corner positive reactions</li>
                     @endif
                     <li class="mb-1"><strong>Questions:</strong> {{ $post->allow_questions ? 'Enabled' : 'Disabled' }}</li>
                     <li class="mb-0"><strong>Suggestions:</strong> {{ $post->allow_suggestions ? 'Enabled' : 'Disabled' }}</li>

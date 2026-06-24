@@ -62,11 +62,14 @@ class CommunityPost extends Model
 
     public const PUBLISH_AS_PEN_NAME = 'pen_name';
 
+    public const PUBLISH_AS_FIRST_NAME_ONLY = 'first_name_only';
+
     /** @var array<string, string> */
     public const PUBLISH_AS_OPTIONS = [
         self::PUBLISH_AS_PUBLIC_PROFILE => 'Public Profile',
         self::PUBLISH_AS_ANONYMOUS => 'Anonymous',
         self::PUBLISH_AS_PEN_NAME => 'Pen Name',
+        self::PUBLISH_AS_FIRST_NAME_ONLY => 'First Name Only',
     ];
 
     public const POLL_OPTION_YES = 'yes';
@@ -383,7 +386,8 @@ class CommunityPost extends Model
                     $nonChildrensCorner
                         ->where('content_type', '!=', 'childrens-corner')
                         ->where('content_type', '!=', 'womens-world')
-                        ->where('content_type', '!=', 'senior-citizens-forum');
+                        ->where('content_type', '!=', 'senior-citizens-forum')
+                        ->where('content_type', '!=', 'student-corner');
                 })
                 ->orWhere(function (Builder $childrensCorner) use ($viewer): void {
                     $childrensCorner
@@ -422,6 +426,32 @@ class CommunityPost extends Model
 
                     if ($viewer !== null) {
                         $seniorCitizensForum->orWhereIn('meta->senior_citizens_forum_visibility', ['registered_users', 'senior_citizens_community']);
+                    }
+                })
+                ->orWhere(function (Builder $studentCorner) use ($viewer): void {
+                    $studentCorner
+                        ->where('content_type', 'student-corner')
+                        ->where(function (Builder $publicVisibility): void {
+                            $publicVisibility
+                                ->whereNull('meta->student_corner_visibility')
+                                ->orWhere('meta->student_corner_visibility', 'public');
+                        });
+
+                    if ($viewer !== null) {
+                        $studentCorner->orWhereIn('meta->student_corner_visibility', ['registered_users', 'students_only']);
+                    }
+                })
+                ->orWhere(function (Builder $youthCorner) use ($viewer): void {
+                    $youthCorner
+                        ->where('content_type', 'youth-corner')
+                        ->where(function (Builder $publicVisibility): void {
+                            $publicVisibility
+                                ->whereNull('meta->youth_corner_visibility')
+                                ->orWhere('meta->youth_corner_visibility', 'public');
+                        });
+
+                    if ($viewer !== null) {
+                        $youthCorner->orWhereIn('meta->youth_corner_visibility', ['registered_users', 'youth_community']);
                     }
                 });
         });
@@ -618,10 +648,22 @@ class CommunityPost extends Model
         return $contentType === 'womens-world';
     }
 
+    public static function usesStudentCornerOptionalStructuredLocation(?string $contentType): bool
+    {
+        return $contentType === 'student-corner';
+    }
+
+    public static function usesYouthCornerOptionalStructuredLocation(?string $contentType): bool
+    {
+        return $contentType === 'youth-corner';
+    }
+
     public static function mountsStructuredLocationFields(?string $contentType): bool
     {
         return self::usesStructuredLocation($contentType)
             || self::usesWomensWorldOptionalStructuredLocation($contentType)
+            || self::usesStudentCornerOptionalStructuredLocation($contentType)
+            || self::usesYouthCornerOptionalStructuredLocation($contentType)
             || self::usesSeniorCitizensForumFlow($contentType);
     }
 
@@ -827,6 +869,7 @@ class CommunityPost extends Model
         return match ($this->resolvedPublishAs()) {
             self::PUBLISH_AS_ANONYMOUS => 'Anonymous',
             self::PUBLISH_AS_PEN_NAME => filled($this->pen_name) ? (string) $this->pen_name : 'Pen Name',
+            self::PUBLISH_AS_FIRST_NAME_ONLY => collect(preg_split('/\s+/', trim((string) ($this->user?->name ?: $this->user?->full_name ?: ''))) ?: [])->filter()->first() ?: 'Student',
             default => $this->user?->name ?? $this->user?->full_name ?? 'Community author',
         };
     }
@@ -885,6 +928,16 @@ class CommunityPost extends Model
                 && $this->womensWorldPollOptionsForDisplay() !== [];
         }
 
+        if ($this->isStudentCornerPost()) {
+            return filled(data_get($this->meta, 'student_corner_poll_question'))
+                && $this->studentCornerPollOptionsForDisplay() !== [];
+        }
+
+        if ($this->isYouthCornerPost()) {
+            return filled(data_get($this->meta, 'youth_corner_poll_question'))
+                && $this->youthCornerPollOptionsForDisplay() !== [];
+        }
+
         return filled($this->poll_subject);
     }
 
@@ -904,6 +957,14 @@ class CommunityPost extends Model
 
         if ($this->isWomensWorldPost()) {
             return (string) data_get($this->meta, 'womens_world_poll_question');
+        }
+
+        if ($this->isStudentCornerPost()) {
+            return (string) data_get($this->meta, 'student_corner_poll_question');
+        }
+
+        if ($this->isYouthCornerPost()) {
+            return (string) data_get($this->meta, 'youth_corner_poll_question');
         }
 
         return 'Do you support '.$this->poll_subject.'?';
@@ -952,6 +1013,46 @@ class CommunityPost extends Model
     /**
      * @return array<string, string>
      */
+    public function studentCornerPollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'student_corner_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::studentCornerDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function youthCornerPollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'youth_corner_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::youthCornerDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
     public function pollOptionsForDisplay(): array
     {
         if ($this->isAwarenessPost()) {
@@ -968,6 +1069,14 @@ class CommunityPost extends Model
 
         if ($this->isWomensWorldPost()) {
             return $this->womensWorldPollOptionsForDisplay();
+        }
+
+        if ($this->isStudentCornerPost()) {
+            return $this->studentCornerPollOptionsForDisplay();
+        }
+
+        if ($this->isYouthCornerPost()) {
+            return $this->youthCornerPollOptionsForDisplay();
         }
 
         return self::POLL_OPTIONS;
@@ -1111,6 +1220,16 @@ class CommunityPost extends Model
         return $contentType === 'senior-citizens-forum';
     }
 
+    public static function usesStudentCornerFlow(?string $contentType): bool
+    {
+        return $contentType === 'student-corner';
+    }
+
+    public static function usesYouthCornerFlow(?string $contentType): bool
+    {
+        return $contentType === 'youth-corner';
+    }
+
     public function isChildrensCornerPost(): bool
     {
         return self::usesChildrensCornerFlow($this->content_type);
@@ -1134,6 +1253,188 @@ class CommunityPost extends Model
     public function isSeniorCitizensForumPost(): bool
     {
         return self::usesSeniorCitizensForumFlow($this->content_type);
+    }
+
+    public function isStudentCornerPost(): bool
+    {
+        return self::usesStudentCornerFlow($this->content_type);
+    }
+
+    public function isYouthCornerPost(): bool
+    {
+        return self::usesYouthCornerFlow($this->content_type);
+    }
+
+    public function isStudentCornerProjectPost(): bool
+    {
+        return $this->isStudentCornerPost()
+            && data_get($this->meta, 'student_corner_content_type') === \App\Support\CommunityContentTaxonomy::studentCornerProjectContentType();
+    }
+
+    public function isYouthCornerProjectPost(): bool
+    {
+        return $this->isYouthCornerPost()
+            && data_get($this->meta, 'youth_corner_content_type') === \App\Support\CommunityContentTaxonomy::youthCornerProjectContentType();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function studentCornerDocuments(): array
+    {
+        return array_values((array) data_get($this->meta, 'student_corner_documents', []));
+    }
+
+    public function studentCornerGallery(): array
+    {
+        return array_values((array) data_get($this->meta, 'student_corner_gallery', []));
+    }
+
+    public function studentCornerAchievements(): array
+    {
+        return array_values((array) data_get($this->meta, 'student_corner_achievements', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function youthCornerDocuments(): array
+    {
+        return array_values((array) data_get($this->meta, 'youth_corner_documents', []));
+    }
+
+    public function youthCornerGallery(): array
+    {
+        return array_values((array) data_get($this->meta, 'youth_corner_gallery', []));
+    }
+
+    public function youthCornerAchievements(): array
+    {
+        return array_values((array) data_get($this->meta, 'youth_corner_achievements', []));
+    }
+
+    public function studentCornerVisibilitySetting(): string
+    {
+        if (! $this->isStudentCornerPost()) {
+            return CommunityContentTaxonomy::studentCornerDefaultVisibilitySetting();
+        }
+
+        $setting = (string) data_get($this->meta, 'student_corner_visibility', '');
+
+        return array_key_exists($setting, CommunityContentTaxonomy::studentCornerVisibilitySettings())
+            ? $setting
+            : CommunityContentTaxonomy::studentCornerDefaultVisibilitySetting();
+    }
+
+    public function studentCornerVisibilityLabel(): string
+    {
+        return CommunityContentTaxonomy::studentCornerVisibilitySettings()[$this->studentCornerVisibilitySetting()]
+            ?? Str::headline($this->studentCornerVisibilitySetting());
+    }
+
+    public function requiresStudentCornerPrivateLink(): bool
+    {
+        return $this->isStudentCornerPost() && $this->studentCornerVisibilitySetting() === 'private_link';
+    }
+
+    public function allowsStudentCornerPrivateLinkAccess(?string $accessToken): bool
+    {
+        if (! $this->requiresStudentCornerPrivateLink()) {
+            return false;
+        }
+
+        $token = (string) data_get($this->meta, 'student_corner_private_link_token', '');
+
+        return filled($token) && filled($accessToken) && hash_equals($token, $accessToken);
+    }
+
+    public function studentCornerPrivateLinkUrl(): ?string
+    {
+        if (! $this->requiresStudentCornerPrivateLink()) {
+            return null;
+        }
+
+        $token = (string) data_get($this->meta, 'student_corner_private_link_token', '');
+
+        if (blank($token)) {
+            return null;
+        }
+
+        return route('community.show', $this).'?access='.$token;
+    }
+
+    public function youthCornerVisibilitySetting(): string
+    {
+        if (! $this->isYouthCornerPost()) {
+            return CommunityContentTaxonomy::youthCornerDefaultVisibilitySetting();
+        }
+
+        $setting = (string) data_get($this->meta, 'youth_corner_visibility', '');
+
+        return array_key_exists($setting, CommunityContentTaxonomy::youthCornerVisibilitySettings())
+            ? $setting
+            : CommunityContentTaxonomy::youthCornerDefaultVisibilitySetting();
+    }
+
+    public function youthCornerVisibilityLabel(): string
+    {
+        return CommunityContentTaxonomy::youthCornerVisibilitySettings()[$this->youthCornerVisibilitySetting()]
+            ?? Str::headline($this->youthCornerVisibilitySetting());
+    }
+
+    public function requiresYouthCornerPrivateLink(): bool
+    {
+        return $this->isYouthCornerPost() && $this->youthCornerVisibilitySetting() === 'private_link';
+    }
+
+    public function allowsYouthCornerPrivateLinkAccess(?string $accessToken): bool
+    {
+        if (! $this->requiresYouthCornerPrivateLink()) {
+            return false;
+        }
+
+        $token = (string) data_get($this->meta, 'youth_corner_private_link_token', '');
+
+        return filled($token) && filled($accessToken) && hash_equals($token, $accessToken);
+    }
+
+    public function youthCornerPrivateLinkUrl(): ?string
+    {
+        if (! $this->requiresYouthCornerPrivateLink()) {
+            return null;
+        }
+
+        $token = (string) data_get($this->meta, 'youth_corner_private_link_token', '');
+
+        if (blank($token)) {
+            return null;
+        }
+
+        return route('community.show', $this).'?access='.$token;
+    }
+
+    public function isStudentCornerGalleryImage(array $file): bool
+    {
+        $mime = strtolower((string) data_get($file, 'type', ''));
+        if (str_starts_with($mime, 'image/')) {
+            return true;
+        }
+
+        $extension = strtolower(pathinfo((string) data_get($file, 'name', ''), PATHINFO_EXTENSION));
+
+        return in_array($extension, ['png', 'jpg', 'jpeg', 'webp', 'gif'], true);
+    }
+
+    public function isYouthCornerGalleryImage(array $file): bool
+    {
+        $mime = strtolower((string) data_get($file, 'type', ''));
+        if (str_starts_with($mime, 'image/')) {
+            return true;
+        }
+
+        $extension = strtolower(pathinfo((string) data_get($file, 'name', ''), PATHINFO_EXTENSION));
+
+        return in_array($extension, ['png', 'jpg', 'jpeg', 'webp', 'gif'], true);
     }
 
     public function seniorCitizensForumAudioData(): ?array
@@ -1259,6 +1560,14 @@ class CommunityPost extends Model
 
         if ($this->isSeniorCitizensForumPost()) {
             return \App\Support\CommunityContentTaxonomy::seniorCitizensForumReactionLabels();
+        }
+
+        if ($this->isStudentCornerPost()) {
+            return \App\Support\CommunityContentTaxonomy::studentCornerReactionLabels();
+        }
+
+        if ($this->isYouthCornerPost()) {
+            return \App\Support\CommunityContentTaxonomy::youthCornerReactionLabels();
         }
 
         return ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'];
@@ -1450,6 +1759,32 @@ class CommunityPost extends Model
             };
         }
 
+        if ($this->isStudentCornerPost()) {
+            if ($viewer !== null && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
+                return true;
+            }
+
+            return match ($this->studentCornerVisibilitySetting()) {
+                'public' => true,
+                'registered_users', 'students_only' => $viewer !== null,
+                'private_link' => false,
+                default => true,
+            };
+        }
+
+        if ($this->isYouthCornerPost()) {
+            if ($viewer !== null && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
+                return true;
+            }
+
+            return match ($this->youthCornerVisibilitySetting()) {
+                'public' => true,
+                'registered_users', 'youth_community' => $viewer !== null,
+                'private_link' => false,
+                default => true,
+            };
+        }
+
         if (! $this->isChildrensCornerPost()) {
             return true;
         }
@@ -1474,6 +1809,14 @@ class CommunityPost extends Model
 
         if ($this->isSeniorCitizensForumPost()) {
             return in_array($this->seniorCitizensForumVisibilitySetting(), ['registered_users', 'senior_citizens_community'], true);
+        }
+
+        if ($this->isStudentCornerPost()) {
+            return in_array($this->studentCornerVisibilitySetting(), ['registered_users', 'students_only'], true);
+        }
+
+        if ($this->isYouthCornerPost()) {
+            return in_array($this->youthCornerVisibilitySetting(), ['registered_users', 'youth_community'], true);
         }
 
         if (! $this->isChildrensCornerPost()) {

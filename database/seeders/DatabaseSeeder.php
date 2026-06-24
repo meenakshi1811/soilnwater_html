@@ -34,6 +34,8 @@ class DatabaseSeeder extends Seeder
         $this->call(CommunityBusinessPostSeeder::class);
         $this->call(CommunityWomensWorldPostSeeder::class);
         $this->call(CommunitySeniorCitizensForumPostSeeder::class);
+        $this->call(CommunityStudentCornerPostSeeder::class);
+        $this->call(CommunityYouthCornerPostSeeder::class);
         $this->call(CommunityChildrensCornerPostSeeder::class);
     }
 }

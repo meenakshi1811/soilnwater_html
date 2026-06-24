@@ -18,6 +18,8 @@ use App\Services\CommunityStoryAchievementService;
 use App\Services\CommunityStoryEngagementNotificationService;
 use App\Services\CommunityEngagementNotificationService;
 use App\Services\CommunitySeniorCitizensForumEngagementNotificationService;
+use App\Services\CommunityStudentCornerEngagementNotificationService;
+use App\Services\CommunityYouthCornerEngagementNotificationService;
 use App\Services\CommunityWomensWorldEngagementNotificationService;
 use App\Services\CommunityArticleScoreService;
 use App\Services\CommunityReportTrustScoreService;
@@ -54,6 +56,18 @@ class CommunityPostController extends Controller
     private const MAX_AWARENESS_DOCUMENTS = 6;
 
     private const MAX_BUSINESS_DOCUMENTS = 6;
+
+    private const MAX_STUDENT_CORNER_DOCUMENTS = 6;
+
+    private const MAX_STUDENT_CORNER_GALLERY = 10;
+
+    private const MAX_STUDENT_CORNER_ACHIEVEMENTS = 10;
+
+    private const MAX_YOUTH_CORNER_DOCUMENTS = 6;
+
+    private const MAX_YOUTH_CORNER_GALLERY = 10;
+
+    private const MAX_YOUTH_CORNER_ACHIEVEMENTS = 10;
 
     private const MAX_BUSINESS_GALLERY = 10;
 
@@ -111,7 +125,9 @@ class CommunityPostController extends Controller
         $viewer = auth()->user();
         $canManagePreview = $viewer !== null && ($viewer->id === $post->user_id || $viewer->isAdmin());
         $privateLinkAccess = $post->allowsWomensWorldPrivateLinkAccess($request->query('access'))
-            || $post->allowsSeniorCitizensForumPrivateLinkAccess($request->query('access'));
+            || $post->allowsSeniorCitizensForumPrivateLinkAccess($request->query('access'))
+            || $post->allowsStudentCornerPrivateLinkAccess($request->query('access'))
+            || $post->allowsYouthCornerPrivateLinkAccess($request->query('access'));
 
         abort_unless(
             $post->isPubliclyVisible() || $canManagePreview,
@@ -292,6 +308,22 @@ class CommunityPostController extends Controller
 
         if ($post->isSeniorCitizensForumPost() && $active) {
             CommunitySeniorCitizensForumEngagementNotificationService::notifyAuthorOfReaction(
+                $post,
+                $request->user(),
+                $data['reaction']
+            );
+        }
+
+        if ($post->isStudentCornerPost() && $active) {
+            CommunityStudentCornerEngagementNotificationService::notifyAuthorOfReaction(
+                $post,
+                $request->user(),
+                $data['reaction']
+            );
+        }
+
+        if ($post->isYouthCornerPost() && $active) {
+            CommunityYouthCornerEngagementNotificationService::notifyAuthorOfReaction(
                 $post,
                 $request->user(),
                 $data['reaction']
@@ -590,6 +622,26 @@ class CommunityPostController extends Controller
             CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
         }
 
+        foreach ((array) data_get($post->meta, 'student_corner_documents', []) as $document) {
+            CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+        }
+
+        foreach ((array) data_get($post->meta, 'student_corner_gallery', []) as $image) {
+            CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+        }
+
+        $this->deleteStudentCornerAchievementFiles((array) data_get($post->meta, 'student_corner_achievements', []));
+
+        foreach ((array) data_get($post->meta, 'youth_corner_documents', []) as $document) {
+            CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+        }
+
+        foreach ((array) data_get($post->meta, 'youth_corner_gallery', []) as $image) {
+            CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+        }
+
+        $this->deleteYouthCornerAchievementFiles((array) data_get($post->meta, 'youth_corner_achievements', []));
+
         foreach ((array) data_get($post->meta, 'business_gallery', []) as $image) {
             CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
         }
@@ -675,6 +727,8 @@ class CommunityPostController extends Controller
         $data['meta'] = $this->metaPayload($request);
         $data['meta'] = $this->applyWomensWorldPrivacyMeta($data['meta'], $request);
         $data['meta'] = $this->applySeniorCitizensForumPrivacyMeta($data['meta'], $request);
+        $data['meta'] = $this->applyStudentCornerPrivacyMeta($data['meta'], $request);
+        $data['meta'] = $this->applyYouthCornerPrivacyMeta($data['meta'], $request);
         $this->mergeBookPagesIntoMeta($request, $data);
 
         if ($request->hasFile('issue_attachments')) {
@@ -766,6 +820,30 @@ class CommunityPostController extends Controller
         if ($businessDocuments !== null) {
             $data['meta']['business_documents'] = $businessDocuments;
         }
+        $studentCornerDocuments = $this->resolveStudentCornerDocuments($request);
+        if ($studentCornerDocuments !== null) {
+            $data['meta']['student_corner_documents'] = $studentCornerDocuments;
+        }
+        $studentCornerGallery = $this->resolveStudentCornerGallery($request);
+        if ($studentCornerGallery !== null) {
+            $data['meta']['student_corner_gallery'] = $studentCornerGallery;
+        }
+        $studentCornerAchievements = $this->resolveStudentCornerAchievements($request);
+        if ($studentCornerAchievements !== null) {
+            $data['meta']['student_corner_achievements'] = $studentCornerAchievements;
+        }
+        $youthCornerDocuments = $this->resolveYouthCornerDocuments($request);
+        if ($youthCornerDocuments !== null) {
+            $data['meta']['youth_corner_documents'] = $youthCornerDocuments;
+        }
+        $youthCornerGallery = $this->resolveYouthCornerGallery($request);
+        if ($youthCornerGallery !== null) {
+            $data['meta']['youth_corner_gallery'] = $youthCornerGallery;
+        }
+        $youthCornerAchievements = $this->resolveYouthCornerAchievements($request);
+        if ($youthCornerAchievements !== null) {
+            $data['meta']['youth_corner_achievements'] = $youthCornerAchievements;
+        }
         $businessGallery = $this->resolveBusinessGallery($request);
         if ($businessGallery !== null) {
             $data['meta']['business_gallery'] = $businessGallery;
@@ -824,6 +902,10 @@ class CommunityPostController extends Controller
             CommunityEngagementNotificationService::notifySubscribersOfPublishedPost($post->fresh());
         } elseif ($post->isSeniorCitizensForumPost() && $post->isPubliclyVisible()) {
             CommunitySeniorCitizensForumEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
+        } elseif ($post->isStudentCornerPost() && $post->isPubliclyVisible()) {
+            CommunityStudentCornerEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
+        } elseif ($post->isYouthCornerPost() && $post->isPubliclyVisible()) {
+            CommunityYouthCornerEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
         } elseif (in_array($post->content_type, ['poetry', 'biography', 'autobiography'], true) && $post->isPubliclyVisible()) {
             CommunityStoryEngagementNotificationService::notifyAuthorOfPublishedWithoutAudio($post->fresh());
         }
@@ -864,6 +946,8 @@ class CommunityPostController extends Controller
         $data['meta'] = $this->metaPayload($request);
         $data['meta'] = $this->applyWomensWorldPrivacyMeta($data['meta'], $request, $post);
         $data['meta'] = $this->applySeniorCitizensForumPrivacyMeta($data['meta'], $request, $post);
+        $data['meta'] = $this->applyStudentCornerPrivacyMeta($data['meta'], $request, $post);
+        $data['meta'] = $this->applyYouthCornerPrivacyMeta($data['meta'], $request, $post);
         $this->mergeBookPagesIntoMeta($request, $data);
 
         if ($request->hasFile('issue_attachments')) {
@@ -1007,6 +1091,86 @@ class CommunityPostController extends Controller
             unset($data['meta']['business_documents']);
         }
 
+        $studentCornerDocuments = $this->resolveStudentCornerDocuments($request, $post);
+        if ($studentCornerDocuments !== null) {
+            $data['meta']['student_corner_documents'] = $studentCornerDocuments;
+        } elseif (data_get($post->meta, 'student_corner_documents')) {
+            foreach ((array) data_get($post->meta, 'student_corner_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['student_corner_documents']);
+        }
+
+        if (CommunityPost::usesStudentCornerFlow($request->input('content_type'))
+            && $request->input('student_corner_content_type') !== CommunityContentTaxonomy::studentCornerProjectContentType()) {
+            foreach ([
+                'student_corner_project_title',
+                'student_corner_project_category',
+                'student_corner_project_description',
+                'student_corner_project_outcome',
+            ] as $projectMetaKey) {
+                unset($data['meta'][$projectMetaKey]);
+            }
+        }
+
+        $studentCornerGallery = $this->resolveStudentCornerGallery($request, $post);
+        if ($studentCornerGallery !== null) {
+            $data['meta']['student_corner_gallery'] = $studentCornerGallery;
+        } elseif (data_get($post->meta, 'student_corner_gallery')) {
+            foreach ((array) data_get($post->meta, 'student_corner_gallery', []) as $image) {
+                CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+            }
+            unset($data['meta']['student_corner_gallery']);
+        }
+
+        $studentCornerAchievements = $this->resolveStudentCornerAchievements($request, $post);
+        if ($studentCornerAchievements !== null) {
+            $data['meta']['student_corner_achievements'] = $studentCornerAchievements;
+        } elseif (data_get($post->meta, 'student_corner_achievements')) {
+            $this->deleteStudentCornerAchievementFiles((array) data_get($post->meta, 'student_corner_achievements', []));
+            unset($data['meta']['student_corner_achievements']);
+        }
+
+        $youthCornerDocuments = $this->resolveYouthCornerDocuments($request, $post);
+        if ($youthCornerDocuments !== null) {
+            $data['meta']['youth_corner_documents'] = $youthCornerDocuments;
+        } elseif (data_get($post->meta, 'youth_corner_documents')) {
+            foreach ((array) data_get($post->meta, 'youth_corner_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['youth_corner_documents']);
+        }
+
+        if (CommunityPost::usesYouthCornerFlow($request->input('content_type'))
+            && $request->input('youth_corner_content_type') !== CommunityContentTaxonomy::youthCornerProjectContentType()) {
+            foreach ([
+                'youth_corner_project_title',
+                'youth_corner_project_category',
+                'youth_corner_project_description',
+                'youth_corner_project_outcome',
+            ] as $projectMetaKey) {
+                unset($data['meta'][$projectMetaKey]);
+            }
+        }
+
+        $youthCornerGallery = $this->resolveYouthCornerGallery($request, $post);
+        if ($youthCornerGallery !== null) {
+            $data['meta']['youth_corner_gallery'] = $youthCornerGallery;
+        } elseif (data_get($post->meta, 'youth_corner_gallery')) {
+            foreach ((array) data_get($post->meta, 'youth_corner_gallery', []) as $image) {
+                CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+            }
+            unset($data['meta']['youth_corner_gallery']);
+        }
+
+        $youthCornerAchievements = $this->resolveYouthCornerAchievements($request, $post);
+        if ($youthCornerAchievements !== null) {
+            $data['meta']['youth_corner_achievements'] = $youthCornerAchievements;
+        } elseif (data_get($post->meta, 'youth_corner_achievements')) {
+            $this->deleteYouthCornerAchievementFiles((array) data_get($post->meta, 'youth_corner_achievements', []));
+            unset($data['meta']['youth_corner_achievements']);
+        }
+
         $businessGallery = $this->resolveBusinessGallery($request, $post);
         if ($businessGallery !== null) {
             $data['meta']['business_gallery'] = $businessGallery;
@@ -1101,6 +1265,20 @@ class CommunityPostController extends Controller
         ) {
             CommunitySeniorCitizensForumEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
         } elseif (
+            $post->isStudentCornerPost()
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityStudentCornerEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
+        } elseif (
+            $post->isYouthCornerPost()
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityYouthCornerEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
+        } elseif (
             in_array($post->content_type, ['poetry', 'autobiography'], true)
             && $post->isPubliclyVisible()
             && ! $wasPending
@@ -1141,6 +1319,32 @@ class CommunityPostController extends Controller
         ]);
     }
 
+    public function uploadInlineAttachment(Request $request): JsonResponse
+    {
+        $request->validate([
+            'upload' => [
+                'required',
+                'file',
+                'max:20480',
+                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,mp4,webm,mov,avi,mkv',
+            ],
+        ]);
+
+        $file = $request->file('upload');
+        $mimeType = (string) $file->getMimeType();
+        $isVideo = str_starts_with($mimeType, 'video/');
+        $attachment = CommunityPostFileUploader::storeAttachment(
+            $file,
+            $isVideo ? 'inline-videos' : 'inline-documents'
+        );
+
+        return response()->json([
+            'url' => $attachment['url'],
+            'name' => $attachment['name'],
+            'type' => $isVideo ? 'video' : 'document',
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -1156,6 +1360,12 @@ class CommunityPostController extends Controller
         $isBusiness = CommunityPost::usesBusinessFlow(is_string($contentType) ? $contentType : null);
         $isWomensWorld = CommunityPost::usesWomensWorldFlow(is_string($contentType) ? $contentType : null);
         $isSeniorCitizensForum = CommunityPost::usesSeniorCitizensForumFlow(is_string($contentType) ? $contentType : null);
+        $isStudentCorner = CommunityPost::usesStudentCornerFlow(is_string($contentType) ? $contentType : null);
+        $isYouthCorner = CommunityPost::usesYouthCornerFlow(is_string($contentType) ? $contentType : null);
+        $isStudentCornerProject = $isStudentCorner
+            && $request->input('student_corner_content_type') === CommunityContentTaxonomy::studentCornerProjectContentType();
+        $isYouthCornerProject = $isYouthCorner
+            && $request->input('youth_corner_content_type') === CommunityContentTaxonomy::youthCornerProjectContentType();
         $childShareType = $request->input('child_share_type');
         $childContentMode = CommunityContentTaxonomy::childrensCornerContentMode(is_string($childShareType) ? $childShareType : null);
 
@@ -1177,6 +1387,14 @@ class CommunityPostController extends Controller
 
         if ($isSeniorCitizensForum && $request->filled('senior_citizens_forum_category')) {
             $request->merge(['category' => $request->input('senior_citizens_forum_category')]);
+        }
+
+        if ($isStudentCorner && $request->filled('student_corner_category')) {
+            $request->merge(['category' => $request->input('student_corner_category')]);
+        }
+
+        if ($isYouthCorner && $request->filled('youth_corner_category')) {
+            $request->merge(['category' => $request->input('youth_corner_category')]);
         }
 
         $rules = [
@@ -1998,6 +2216,263 @@ class CommunityPostController extends Controller
                 'string',
                 Rule::in(CommunityContentTaxonomy::seniorCitizensForumContentTypes()),
             ],
+            'student_corner_category' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::studentCornerMainCategories()),
+            ],
+            'student_corner_content_type' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::studentCornerContentTypes()),
+            ],
+            'student_corner_profile_name' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'nullable',
+                'string',
+                'max:120',
+            ],
+            'student_corner_class_course' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::studentCornerClassCourses()),
+            ],
+            'student_corner_stream' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::studentCornerStreams()),
+            ],
+            'student_corner_institution_name' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'nullable',
+                'string',
+                'max:200',
+            ],
+            'student_corner_target_audience' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'nullable',
+                'array',
+            ],
+            'student_corner_target_audience.*' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'string',
+                Rule::in(CommunityContentTaxonomy::studentCornerTargetAudiences()),
+            ],
+            'student_corner_project_title' => [
+                Rule::excludeIf(fn () => ! $isStudentCornerProject),
+                'required',
+                'string',
+                'max:200',
+            ],
+            'student_corner_project_category' => [
+                Rule::excludeIf(fn () => ! $isStudentCornerProject),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::studentCornerProjectCategories()),
+            ],
+            'student_corner_project_description' => [
+                Rule::excludeIf(fn () => ! $isStudentCornerProject),
+                'required',
+                'string',
+                'max:5000',
+            ],
+            'student_corner_project_outcome' => [
+                Rule::excludeIf(fn () => ! $isStudentCornerProject),
+                'nullable',
+                'string',
+                'max:3000',
+            ],
+            'student_corner_documents' => [
+                Rule::excludeIf(fn () => ! $isStudentCornerProject),
+                'nullable',
+                'array',
+                'max:'.self::MAX_STUDENT_CORNER_DOCUMENTS,
+            ],
+            'student_corner_documents.*' => [
+                Rule::excludeIf(fn () => ! $isStudentCornerProject),
+                'file',
+                'max:20480',
+                'mimes:'.implode(',', CommunityContentTaxonomy::studentCornerDocumentExtensions()),
+            ],
+            'removed_student_corner_documents' => [
+                Rule::excludeIf(fn () => ! $isStudentCornerProject),
+                'nullable',
+                'array',
+            ],
+            'removed_student_corner_documents.*' => [
+                Rule::excludeIf(fn () => ! $isStudentCornerProject),
+                'string',
+                'max:255',
+            ],
+            'student_corner_video_type' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::studentCornerVideoTypes()),
+            ],
+            'student_corner_gallery' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'nullable',
+                'array',
+                'max:'.self::MAX_STUDENT_CORNER_GALLERY,
+            ],
+            'student_corner_gallery.*' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'image',
+                'max:4096',
+            ],
+            'removed_student_corner_gallery' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'nullable',
+                'array',
+            ],
+            'removed_student_corner_gallery.*' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'string',
+                'max:255',
+            ],
+            'student_corner_study_material_types' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'nullable',
+                'array',
+            ],
+            'student_corner_study_material_types.*' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'string',
+                Rule::in(CommunityContentTaxonomy::studentCornerStudyMaterialTypes()),
+            ],
+            'student_corner_career_guidance_topics' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'nullable',
+                'array',
+            ],
+            'student_corner_career_guidance_topics.*' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'string',
+                Rule::in(CommunityContentTaxonomy::studentCornerCareerGuidanceTopics()),
+            ],
+            'student_corner_scholarship_name' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:200'],
+            'student_corner_eligibility' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:2000'],
+            'student_corner_application_deadline' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:120'],
+            'student_corner_official_website' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'url', 'max:255'],
+            'student_corner_exam_name' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:160'],
+            'student_corner_preparation_strategy' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:3000'],
+            'student_corner_resources_used' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:3000'],
+            'student_corner_marks_rank' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:120'],
+            'student_corner_lessons_learned' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:3000'],
+            'student_corner_skills' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'array'],
+            'student_corner_skills.*' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'string', Rule::in(CommunityContentTaxonomy::studentCornerSkills())],
+            'student_corner_social_impact_categories' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'array'],
+            'student_corner_social_impact_categories.*' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'string', Rule::in(CommunityContentTaxonomy::studentCornerSocialImpactCategories())],
+            'student_corner_ask_community' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:500'],
+            'student_corner_poll_question' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:255'],
+            'student_corner_poll_options' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:2000'],
+            'student_corner_mentorship_requests' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'array'],
+            'student_corner_mentorship_requests.*' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'string', Rule::in(CommunityContentTaxonomy::studentCornerMentorshipRequests())],
+            'student_corner_submit_to_competition' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'boolean'],
+            'student_corner_competition_categories' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'array'],
+            'student_corner_competition_categories.*' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'string', Rule::in(CommunityContentTaxonomy::studentCornerCompetitionCategories())],
+            'student_corner_visibility' => [
+                Rule::excludeIf(fn () => ! $isStudentCorner),
+                'required',
+                'string',
+                Rule::in(array_keys(CommunityContentTaxonomy::studentCornerVisibilitySettings())),
+            ],
+            'student_corner_achievements' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'array', 'max:'.self::MAX_STUDENT_CORNER_ACHIEVEMENTS],
+            'student_corner_achievements.*.achievement_title' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:160'],
+            'student_corner_achievements.*.year' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:10'],
+            'student_corner_achievements.*.certificate' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'file', 'max:4096', 'mimes:pdf,jpg,jpeg,png,webp'],
+            'student_corner_achievements.*.existing_certificate_path' => [Rule::excludeIf(fn () => ! $isStudentCorner), 'nullable', 'string', 'max:255'],
+            'youth_corner_category' => [
+                Rule::excludeIf(fn () => ! $isYouthCorner),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::youthCornerMainCategories()),
+            ],
+            'youth_corner_content_type' => [
+                Rule::excludeIf(fn () => ! $isYouthCorner),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::youthCornerContentTypes()),
+            ],
+            'youth_corner_age_group' => [
+                Rule::excludeIf(fn () => ! $isYouthCorner),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::youthCornerAgeGroups()),
+            ],
+            'youth_corner_occupation' => [
+                Rule::excludeIf(fn () => ! $isYouthCorner),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::youthCornerOccupations()),
+            ],
+            'youth_corner_education_level' => [
+                Rule::excludeIf(fn () => ! $isYouthCorner),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::youthCornerEducationLevels()),
+            ],
+            'youth_corner_target_audience' => [
+                Rule::excludeIf(fn () => ! $isYouthCorner),
+                'nullable',
+                'array',
+            ],
+            'youth_corner_target_audience.*' => [
+                Rule::excludeIf(fn () => ! $isYouthCorner),
+                'string',
+                Rule::in(CommunityContentTaxonomy::youthCornerTargetAudiences()),
+            ],
+            'youth_corner_opportunity_types' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array'],
+            'youth_corner_opportunity_types.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'string', Rule::in(CommunityContentTaxonomy::youthCornerOpportunityTypes())],
+            'youth_corner_skills' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array'],
+            'youth_corner_skills.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'string', Rule::in(CommunityContentTaxonomy::youthCornerSkills())],
+            'youth_corner_career_area' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::youthCornerCareerAreas())],
+            'youth_corner_startup_name' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:200'],
+            'youth_corner_startup_industry' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:160'],
+            'youth_corner_business_idea' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:3000'],
+            'youth_corner_funding_stage' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::youthCornerFundingStages())],
+            'youth_corner_startup_challenges' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:3000'],
+            'youth_corner_startup_lessons' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:3000'],
+            'youth_corner_project_title' => [Rule::excludeIf(fn () => ! $isYouthCornerProject), 'required', 'string', 'max:200'],
+            'youth_corner_project_category' => [Rule::excludeIf(fn () => ! $isYouthCornerProject), 'required', 'string', Rule::in(CommunityContentTaxonomy::youthCornerProjectCategories())],
+            'youth_corner_project_description' => [Rule::excludeIf(fn () => ! $isYouthCornerProject), 'required', 'string', 'max:5000'],
+            'youth_corner_project_outcome' => [Rule::excludeIf(fn () => ! $isYouthCornerProject), 'nullable', 'string', 'max:3000'],
+            'youth_corner_documents' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array', 'max:'.self::MAX_YOUTH_CORNER_DOCUMENTS],
+            'youth_corner_documents.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'file', 'max:20480', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip'],
+            'removed_youth_corner_documents' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array'],
+            'removed_youth_corner_documents.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'string', 'max:255'],
+            'youth_corner_video_type' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::youthCornerVideoTypes())],
+            'youth_corner_gallery' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array', 'max:'.self::MAX_YOUTH_CORNER_GALLERY],
+            'youth_corner_gallery.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'image', 'max:4096'],
+            'removed_youth_corner_gallery' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array'],
+            'removed_youth_corner_gallery.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'string', 'max:255'],
+            'youth_corner_themes' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array'],
+            'youth_corner_themes.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'string', Rule::in(CommunityContentTaxonomy::youthCornerThemes())],
+            'youth_corner_community_service' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array'],
+            'youth_corner_community_service.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'string', Rule::in(CommunityContentTaxonomy::youthCornerCommunityServiceActivities())],
+            'youth_corner_networking_options' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array'],
+            'youth_corner_networking_options.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'string', Rule::in(CommunityContentTaxonomy::youthCornerNetworkingOptions())],
+            'youth_corner_ask_community' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:500'],
+            'youth_corner_poll_question' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:255'],
+            'youth_corner_poll_options' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:2000'],
+            'youth_corner_mentorship_requests' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array'],
+            'youth_corner_mentorship_requests.*' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'string', Rule::in(CommunityContentTaxonomy::youthCornerMentorshipRequests())],
+            'youth_corner_visibility' => [
+                Rule::excludeIf(fn () => ! $isYouthCorner),
+                'required',
+                'string',
+                Rule::in(array_keys(CommunityContentTaxonomy::youthCornerVisibilitySettings())),
+            ],
+            'youth_corner_achievements' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'array', 'max:'.self::MAX_YOUTH_CORNER_ACHIEVEMENTS],
+            'youth_corner_achievements.*.achievement_title' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:160'],
+            'youth_corner_achievements.*.year' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:10'],
+            'youth_corner_achievements.*.certificate' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'file', 'max:4096', 'mimes:pdf,jpg,jpeg,png,webp'],
+            'youth_corner_achievements.*.existing_certificate_path' => [Rule::excludeIf(fn () => ! $isYouthCorner), 'nullable', 'string', 'max:255'],
             'senior_citizens_forum_age_group' => [
                 Rule::excludeIf(fn () => ! $isSeniorCitizensForum),
                 'nullable',
@@ -2909,6 +3384,56 @@ class CommunityPostController extends Controller
         return $meta;
     }
 
+    private function applyStudentCornerPrivacyMeta(array $meta, Request $request, ?CommunityPost $post = null): array
+    {
+        if ($request->input('content_type') !== 'student-corner') {
+            return $meta;
+        }
+
+        $visibility = array_key_exists(
+            (string) $request->input('student_corner_visibility'),
+            CommunityContentTaxonomy::studentCornerVisibilitySettings()
+        )
+            ? (string) $request->input('student_corner_visibility')
+            : CommunityContentTaxonomy::studentCornerDefaultVisibilitySetting();
+
+        if ($visibility === 'private_link') {
+            $existing = data_get($post?->meta, 'student_corner_private_link_token');
+            $meta['student_corner_private_link_token'] = filled($existing)
+                ? $existing
+                : \Illuminate\Support\Str::random(48);
+        } else {
+            unset($meta['student_corner_private_link_token']);
+        }
+
+        return $meta;
+    }
+
+    private function applyYouthCornerPrivacyMeta(array $meta, Request $request, ?CommunityPost $post = null): array
+    {
+        if ($request->input('content_type') !== 'youth-corner') {
+            return $meta;
+        }
+
+        $visibility = array_key_exists(
+            (string) $request->input('youth_corner_visibility'),
+            CommunityContentTaxonomy::youthCornerVisibilitySettings()
+        )
+            ? (string) $request->input('youth_corner_visibility')
+            : CommunityContentTaxonomy::youthCornerDefaultVisibilitySetting();
+
+        if ($visibility === 'private_link') {
+            $existing = data_get($post?->meta, 'youth_corner_private_link_token');
+            $meta['youth_corner_private_link_token'] = filled($existing)
+                ? $existing
+                : \Illuminate\Support\Str::random(48);
+        } else {
+            unset($meta['youth_corner_private_link_token']);
+        }
+
+        return $meta;
+    }
+
     private function shouldAllowComments(Request $request): bool
     {
         return $request->boolean('allow_comments');
@@ -3206,6 +3731,359 @@ class CommunityPostController extends Controller
         }
 
         return array_values(array_slice($kept, 0, self::MAX_BUSINESS_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeStudentCornerDocuments(Request $request): array
+    {
+        return collect($request->file('student_corner_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'student-corner-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveStudentCornerDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesStudentCornerFlow($request->input('content_type'))
+            || $request->input('student_corner_content_type') !== CommunityContentTaxonomy::studentCornerProjectContentType()) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'student_corner_documents', []);
+        $removed = (array) $request->input('removed_student_corner_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('student_corner_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('student_corner_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeStudentCornerDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_STUDENT_CORNER_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeStudentCornerGallery(Request $request): array
+    {
+        return collect($request->file('student_corner_gallery', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'student-corner-gallery'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveStudentCornerGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesStudentCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'student_corner_gallery', []);
+        $removed = (array) $request->input('removed_student_corner_gallery', []);
+
+        if ($existing === [] && ! $request->hasFile('student_corner_gallery')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $image): bool => in_array((string) data_get($image, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('student_corner_gallery')) {
+            $kept = array_values(array_merge($kept, $this->storeStudentCornerGallery($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_STUDENT_CORNER_GALLERY));
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $achievements
+     */
+    private function deleteStudentCornerAchievementFiles(array $achievements): void
+    {
+        foreach ($achievements as $achievement) {
+            CommunityPostFileUploader::deleteIfExists(data_get($achievement, 'certificate.path'));
+        }
+    }
+
+    /**
+     * @return list<array{achievement_title: string, year: string, certificate: array{path: string, url: string, name: string, type: string}|null}>|null
+     */
+    private function resolveStudentCornerAchievements(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesStudentCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $entries = collect($request->input('student_corner_achievements', []))
+            ->filter(function (mixed $entry): bool {
+                if (! is_array($entry)) {
+                    return false;
+                }
+
+                return filled($entry['achievement_title'] ?? null)
+                    || filled($entry['year'] ?? null)
+                    || filled($entry['existing_certificate_path'] ?? null);
+            })
+            ->values();
+
+        if ($entries->isEmpty()) {
+            $this->deleteStudentCornerAchievementFiles((array) data_get($post?->meta, 'student_corner_achievements', []));
+
+            return null;
+        }
+
+        $existingByCertificatePath = collect((array) data_get($post?->meta, 'student_corner_achievements', []))
+            ->mapWithKeys(function (mixed $entry): array {
+                $path = (string) data_get($entry, 'certificate.path', '');
+
+                return filled($path) ? [$path => $entry] : [];
+            });
+
+        $resolved = $entries
+            ->take(self::MAX_STUDENT_CORNER_ACHIEVEMENTS)
+            ->map(function (array $entry, int $index) use ($request, $existingByCertificatePath): array {
+                $certificate = null;
+                $uploadedCertificate = $request->file("student_corner_achievements.$index.certificate");
+
+                if ($uploadedCertificate) {
+                    $existingPath = (string) ($entry['existing_certificate_path'] ?? '');
+                    if (filled($existingPath)) {
+                        CommunityPostFileUploader::deleteIfExists($existingPath);
+                    }
+
+                    $certificate = CommunityPostFileUploader::storeAttachment($uploadedCertificate, 'student-corner-certificates');
+                } elseif (filled($entry['existing_certificate_path'] ?? null)) {
+                    $existingPath = (string) $entry['existing_certificate_path'];
+                    $existingCertificate = data_get($existingByCertificatePath->get($existingPath), 'certificate');
+
+                    if (is_array($existingCertificate)) {
+                        $certificate = $existingCertificate;
+                    }
+                }
+
+                return [
+                    'achievement_title' => trim((string) ($entry['achievement_title'] ?? '')),
+                    'year' => trim((string) ($entry['year'] ?? '')),
+                    'certificate' => $certificate,
+                ];
+            })
+            ->values()
+            ->all();
+
+        $keptPaths = collect($resolved)
+            ->map(fn (array $entry): string => (string) data_get($entry, 'certificate.path', ''))
+            ->filter()
+            ->all();
+
+        foreach ((array) data_get($post?->meta, 'student_corner_achievements', []) as $existingEntry) {
+            $path = (string) data_get($existingEntry, 'certificate.path', '');
+            if (filled($path) && ! in_array($path, $keptPaths, true)) {
+                CommunityPostFileUploader::deleteIfExists($path);
+            }
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeYouthCornerDocuments(Request $request): array
+    {
+        return collect($request->file('youth_corner_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'youth-corner-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveYouthCornerDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesYouthCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'youth_corner_documents', []);
+        $removed = (array) $request->input('removed_youth_corner_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('youth_corner_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('youth_corner_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeYouthCornerDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_YOUTH_CORNER_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeYouthCornerGallery(Request $request): array
+    {
+        return collect($request->file('youth_corner_gallery', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'youth-corner-gallery'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveYouthCornerGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesYouthCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'youth_corner_gallery', []);
+        $removed = (array) $request->input('removed_youth_corner_gallery', []);
+
+        if ($existing === [] && ! $request->hasFile('youth_corner_gallery')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $image): bool => in_array((string) data_get($image, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('youth_corner_gallery')) {
+            $kept = array_values(array_merge($kept, $this->storeYouthCornerGallery($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_YOUTH_CORNER_GALLERY));
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $achievements
+     */
+    private function deleteYouthCornerAchievementFiles(array $achievements): void
+    {
+        foreach ($achievements as $achievement) {
+            CommunityPostFileUploader::deleteIfExists(data_get($achievement, 'certificate.path'));
+        }
+    }
+
+    /**
+     * @return list<array{achievement_title: string, year: string, certificate: array{path: string, url: string, name: string, type: string}|null}>|null
+     */
+    private function resolveYouthCornerAchievements(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesYouthCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $entries = collect($request->input('youth_corner_achievements', []))
+            ->filter(function (mixed $entry): bool {
+                if (! is_array($entry)) {
+                    return false;
+                }
+
+                return filled($entry['achievement_title'] ?? null)
+                    || filled($entry['year'] ?? null)
+                    || filled($entry['existing_certificate_path'] ?? null);
+            })
+            ->values();
+
+        if ($entries->isEmpty()) {
+            $this->deleteYouthCornerAchievementFiles((array) data_get($post?->meta, 'youth_corner_achievements', []));
+
+            return null;
+        }
+
+        $existingByCertificatePath = collect((array) data_get($post?->meta, 'youth_corner_achievements', []))
+            ->mapWithKeys(function (mixed $entry): array {
+                $path = (string) data_get($entry, 'certificate.path', '');
+
+                return filled($path) ? [$path => $entry] : [];
+            });
+
+        $resolved = $entries
+            ->take(self::MAX_YOUTH_CORNER_ACHIEVEMENTS)
+            ->map(function (array $entry, int $index) use ($request, $existingByCertificatePath): array {
+                $certificate = null;
+                $uploadedCertificate = $request->file("youth_corner_achievements.$index.certificate");
+
+                if ($uploadedCertificate) {
+                    $existingPath = (string) ($entry['existing_certificate_path'] ?? '');
+                    if (filled($existingPath)) {
+                        CommunityPostFileUploader::deleteIfExists($existingPath);
+                    }
+
+                    $certificate = CommunityPostFileUploader::storeAttachment($uploadedCertificate, 'youth-corner-certificates');
+                } elseif (filled($entry['existing_certificate_path'] ?? null)) {
+                    $existingPath = (string) $entry['existing_certificate_path'];
+                    $existingCertificate = data_get($existingByCertificatePath->get($existingPath), 'certificate');
+
+                    if (is_array($existingCertificate)) {
+                        $certificate = $existingCertificate;
+                    }
+                }
+
+                return [
+                    'achievement_title' => trim((string) ($entry['achievement_title'] ?? '')),
+                    'year' => trim((string) ($entry['year'] ?? '')),
+                    'certificate' => $certificate,
+                ];
+            })
+            ->values()
+            ->all();
+
+        $keptPaths = collect($resolved)
+            ->map(fn (array $entry): string => (string) data_get($entry, 'certificate.path', ''))
+            ->filter()
+            ->all();
+
+        foreach ((array) data_get($post?->meta, 'youth_corner_achievements', []) as $existingEntry) {
+            $path = (string) data_get($existingEntry, 'certificate.path', '');
+            if (filled($path) && ! in_array($path, $keptPaths, true)) {
+                CommunityPostFileUploader::deleteIfExists($path);
+            }
+        }
+
+        return $resolved;
     }
 
     /**
