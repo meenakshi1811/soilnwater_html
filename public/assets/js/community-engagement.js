@@ -280,6 +280,40 @@
         }
     }
 
+    function updateLocalVoiceEngagementStats(engagement) {
+        if (!engagement) {
+            return;
+        }
+
+        const map = {
+            supports: engagement.supports_count,
+            follows: engagement.follows_count,
+        };
+
+        Object.entries(map).forEach(([key, value]) => {
+            const el = document.querySelector(`[data-local-voice-stat="${key}"]`);
+            if (el) {
+                el.textContent = Number(value || 0).toLocaleString();
+            }
+        });
+    }
+
+    function setLocalVoiceToggleState(button, active, action) {
+        const labels = {
+            support: active ? 'Supported' : 'I support this',
+            follow: active ? 'Following' : 'Follow issue',
+        };
+
+        button.classList.toggle('btn-success', active);
+        button.classList.toggle('btn-outline-success', !active);
+        button.dataset.active = active ? '1' : '0';
+
+        const label = button.querySelector('.js-local-voice-action-label');
+        if (label) {
+            label.textContent = labels[action] || label.textContent;
+        }
+    }
+
     function appendParticipationTextEntry(list, entry) {
         if (!list) {
             return;
@@ -332,6 +366,41 @@
                 notify('error', error.message || 'Unable to update report engagement.');
             } finally {
                 toggleButton.disabled = false;
+            }
+
+            return;
+        }
+
+        const localVoiceToggleButton = event.target.closest('.js-local-voice-engagement-toggle');
+        if (localVoiceToggleButton) {
+            event.preventDefault();
+            localVoiceToggleButton.disabled = true;
+
+            try {
+                const response = await fetch(localVoiceToggleButton.dataset.url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                    },
+                    body: new URLSearchParams({ _token: csrfToken() }),
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Unable to update local voice engagement.');
+                }
+
+                const action = localVoiceToggleButton.dataset.action;
+                const active = Boolean(data.supported ?? data.following);
+                setLocalVoiceToggleState(localVoiceToggleButton, active, action);
+                updateLocalVoiceEngagementStats(data.engagement);
+                notify('success', data.message);
+            } catch (error) {
+                notify('error', error.message || 'Unable to update local voice engagement.');
+            } finally {
+                localVoiceToggleButton.disabled = false;
             }
 
             return;

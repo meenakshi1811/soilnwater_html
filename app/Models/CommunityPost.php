@@ -254,6 +254,16 @@ class CommunityPost extends Model
         return $this->hasMany(CommunityReportFollow::class);
     }
 
+    public function localVoiceSupports(): HasMany
+    {
+        return $this->hasMany(CommunityLocalVoiceSupport::class);
+    }
+
+    public function localVoiceFollows(): HasMany
+    {
+        return $this->hasMany(CommunityLocalVoiceFollow::class);
+    }
+
     public function reportEvidence(): HasMany
     {
         return $this->hasMany(CommunityReportEvidence::class);
@@ -453,6 +463,45 @@ class CommunityPost extends Model
                     if ($viewer !== null) {
                         $youthCorner->orWhereIn('meta->youth_corner_visibility', ['registered_users', 'youth_community']);
                     }
+                })
+                ->orWhere(function (Builder $localVoices) use ($viewer): void {
+                    $localVoices
+                        ->where('content_type', 'local-voices')
+                        ->where(function (Builder $publicVisibility): void {
+                            $publicVisibility
+                                ->whereNull('meta->local_voice_visibility')
+                                ->orWhere('meta->local_voice_visibility', 'public');
+                        });
+
+                    if ($viewer !== null) {
+                        $localVoices->orWhereIn('meta->local_voice_visibility', ['registered_users', 'local_community']);
+                    }
+                })
+                ->orWhere(function (Builder $myArea) use ($viewer): void {
+                    $myArea
+                        ->where('content_type', 'my-area')
+                        ->where(function (Builder $publicVisibility): void {
+                            $publicVisibility
+                                ->whereNull('meta->my_area_visibility')
+                                ->orWhere('meta->my_area_visibility', 'public');
+                        });
+
+                    if ($viewer !== null) {
+                        $myArea->orWhereIn('meta->my_area_visibility', ['registered_users', 'local_community']);
+                    }
+                })
+                ->orWhere(function (Builder $communityIssues) use ($viewer): void {
+                    $communityIssues
+                        ->where('content_type', 'community-issues')
+                        ->where(function (Builder $publicVisibility): void {
+                            $publicVisibility
+                                ->whereNull('meta->community_issue_visibility')
+                                ->orWhere('meta->community_issue_visibility', 'public');
+                        });
+
+                    if ($viewer !== null) {
+                        $communityIssues->orWhereIn('meta->community_issue_visibility', ['registered_users', 'local_community']);
+                    }
                 });
         });
     }
@@ -640,7 +689,7 @@ class CommunityPost extends Model
 
     public static function usesStructuredLocation(?string $contentType): bool
     {
-        return in_array($contentType, ['news', 'reports', 'awareness', 'business'], true);
+        return in_array($contentType, ['news', 'reports', 'awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture'], true);
     }
 
     public static function usesWomensWorldOptionalStructuredLocation(?string $contentType): bool
@@ -769,6 +818,46 @@ class CommunityPost extends Model
                 'location_state' => 'State',
                 'location_district' => 'District',
                 'location_city' => 'City/Village',
+            ];
+        }
+
+        if ($contentType === 'local-voices') {
+            return [
+                'location_country' => 'Country',
+                'location_state' => 'State',
+                'location_district' => 'District',
+                'location_city' => 'City/Town/Village',
+                'location_locality' => 'Locality / Area',
+            ];
+        }
+
+        if ($contentType === 'my-area') {
+            return [
+                'location_country' => 'Country',
+                'location_state' => 'State',
+                'location_district' => 'District',
+                'location_city' => 'City/Town/Village',
+                'location_locality' => 'Locality / Area',
+            ];
+        }
+
+        if ($contentType === 'community-issues') {
+            return [
+                'location_country' => 'Country',
+                'location_state' => 'State',
+                'location_district' => 'District',
+                'location_city' => 'City/Town/Village',
+                'location_locality' => 'Locality / Area',
+                'location_landmark' => 'Landmark',
+            ];
+        }
+
+        if ($contentType === 'agriculture') {
+            return [
+                'location_country' => 'Country',
+                'location_state' => 'State',
+                'location_district' => 'District',
+                'location_city' => 'City/Town/Village',
             ];
         }
 
@@ -938,6 +1027,26 @@ class CommunityPost extends Model
                 && $this->youthCornerPollOptionsForDisplay() !== [];
         }
 
+        if ($this->isLocalVoicesPost()) {
+            return filled(data_get($this->meta, 'local_voice_poll_question'))
+                && $this->localVoicePollOptionsForDisplay() !== [];
+        }
+
+        if ($this->isMyAreaPost()) {
+            return filled(data_get($this->meta, 'my_area_poll_question'))
+                && $this->myAreaPollOptionsForDisplay() !== [];
+        }
+
+        if ($this->isCommunityIssuesPost()) {
+            return filled(data_get($this->meta, 'community_issue_poll_question'))
+                && $this->communityIssuePollOptionsForDisplay() !== [];
+        }
+
+        if ($this->isAgriculturePost()) {
+            return filled(data_get($this->meta, 'agriculture_poll_question'))
+                && $this->agriculturePollOptionsForDisplay() !== [];
+        }
+
         return filled($this->poll_subject);
     }
 
@@ -965,6 +1074,22 @@ class CommunityPost extends Model
 
         if ($this->isYouthCornerPost()) {
             return (string) data_get($this->meta, 'youth_corner_poll_question');
+        }
+
+        if ($this->isLocalVoicesPost()) {
+            return (string) data_get($this->meta, 'local_voice_poll_question');
+        }
+
+        if ($this->isMyAreaPost()) {
+            return (string) data_get($this->meta, 'my_area_poll_question');
+        }
+
+        if ($this->isCommunityIssuesPost()) {
+            return (string) data_get($this->meta, 'community_issue_poll_question');
+        }
+
+        if ($this->isAgriculturePost()) {
+            return (string) data_get($this->meta, 'agriculture_poll_question');
         }
 
         return 'Do you support '.$this->poll_subject.'?';
@@ -1053,6 +1178,86 @@ class CommunityPost extends Model
     /**
      * @return array<string, string>
      */
+    public function localVoicePollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'local_voice_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::localVoiceDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function myAreaPollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'my_area_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::myAreaDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function communityIssuePollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'community_issue_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::communityIssueDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function agriculturePollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'agriculture_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::agricultureDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
     public function pollOptionsForDisplay(): array
     {
         if ($this->isAwarenessPost()) {
@@ -1077,6 +1282,22 @@ class CommunityPost extends Model
 
         if ($this->isYouthCornerPost()) {
             return $this->youthCornerPollOptionsForDisplay();
+        }
+
+        if ($this->isLocalVoicesPost()) {
+            return $this->localVoicePollOptionsForDisplay();
+        }
+
+        if ($this->isMyAreaPost()) {
+            return $this->myAreaPollOptionsForDisplay();
+        }
+
+        if ($this->isCommunityIssuesPost()) {
+            return $this->communityIssuePollOptionsForDisplay();
+        }
+
+        if ($this->isAgriculturePost()) {
+            return $this->agriculturePollOptionsForDisplay();
         }
 
         return self::POLL_OPTIONS;
@@ -1230,6 +1451,26 @@ class CommunityPost extends Model
         return $contentType === 'youth-corner';
     }
 
+    public static function usesLocalVoicesFlow(?string $contentType): bool
+    {
+        return $contentType === 'local-voices';
+    }
+
+    public static function usesMyAreaFlow(?string $contentType): bool
+    {
+        return $contentType === 'my-area';
+    }
+
+    public static function usesCommunityIssuesFlow(?string $contentType): bool
+    {
+        return $contentType === 'community-issues';
+    }
+
+    public static function usesAgricultureFlow(?string $contentType): bool
+    {
+        return $contentType === 'agriculture';
+    }
+
     public function isChildrensCornerPost(): bool
     {
         return self::usesChildrensCornerFlow($this->content_type);
@@ -1263,6 +1504,281 @@ class CommunityPost extends Model
     public function isYouthCornerPost(): bool
     {
         return self::usesYouthCornerFlow($this->content_type);
+    }
+
+    public function isLocalVoicesPost(): bool
+    {
+        return self::usesLocalVoicesFlow($this->content_type);
+    }
+
+    public function isMyAreaPost(): bool
+    {
+        return self::usesMyAreaFlow($this->content_type);
+    }
+
+    public function isCommunityIssuesPost(): bool
+    {
+        return self::usesCommunityIssuesFlow($this->content_type);
+    }
+
+    public function isAgriculturePost(): bool
+    {
+        return self::usesAgricultureFlow($this->content_type);
+    }
+
+    public function communityIssueVisibilitySetting(): string
+    {
+        if (! $this->isCommunityIssuesPost()) {
+            return CommunityContentTaxonomy::communityIssueDefaultVisibilitySetting();
+        }
+
+        $setting = (string) data_get($this->meta, 'community_issue_visibility', '');
+
+        return array_key_exists($setting, CommunityContentTaxonomy::communityIssueVisibilitySettings())
+            ? $setting
+            : CommunityContentTaxonomy::communityIssueDefaultVisibilitySetting();
+    }
+
+    public function communityIssueVisibilityLabel(): string
+    {
+        return CommunityContentTaxonomy::communityIssueVisibilitySettings()[$this->communityIssueVisibilitySetting()]
+            ?? Str::headline($this->communityIssueVisibilitySetting());
+    }
+
+    public function requiresCommunityIssuePrivateLink(): bool
+    {
+        return $this->isCommunityIssuesPost() && $this->communityIssueVisibilitySetting() === 'private_link';
+    }
+
+    public function allowsCommunityIssuePrivateLinkAccess(?string $accessToken): bool
+    {
+        if (! $this->requiresCommunityIssuePrivateLink()) {
+            return false;
+        }
+
+        $token = (string) data_get($this->meta, 'community_issue_private_link_token', '');
+
+        return filled($token) && filled($accessToken) && hash_equals($token, $accessToken);
+    }
+
+    public function communityIssuePrivateLinkUrl(): ?string
+    {
+        if (! $this->requiresCommunityIssuePrivateLink()) {
+            return null;
+        }
+
+        $token = (string) data_get($this->meta, 'community_issue_private_link_token', '');
+
+        if (blank($token)) {
+            return null;
+        }
+
+        return route('community.show', $this).'?access='.$token;
+    }
+
+    public function allowsCommunityIssueSupport(): bool
+    {
+        return $this->isCommunityIssuesPost()
+            && (bool) data_get($this->meta, 'community_issue_allow_support', true);
+    }
+
+    public function allowsCommunityIssueFollow(): bool
+    {
+        return $this->isCommunityIssuesPost()
+            && (bool) data_get($this->meta, 'community_issue_allow_follow', true);
+    }
+
+    public function allowsCommunityIssueVerification(): bool
+    {
+        return $this->isCommunityIssuesPost()
+            && (bool) data_get($this->meta, 'community_issue_allow_verification', true);
+    }
+
+    public function communityIssueEscalationThreshold(): int
+    {
+        $threshold = (int) data_get($this->meta, 'community_issue_escalation_threshold', CommunityContentTaxonomy::communityIssueDefaultEscalationThreshold());
+
+        return max(10, min(10000, $threshold));
+    }
+
+    public function isCommunityIssueEscalated(int $supportCount): bool
+    {
+        return $this->isCommunityIssuesPost()
+            && (bool) data_get($this->meta, 'community_issue_allow_campaign', true)
+            && $supportCount >= $this->communityIssueEscalationThreshold();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function communityIssuePhotoEvidence(): array
+    {
+        return array_values((array) data_get($this->meta, 'community_issue_photo_evidence', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function communityIssueDocuments(): array
+    {
+        return array_values((array) data_get($this->meta, 'community_issue_documents', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function agricultureProblemPhotos(): array
+    {
+        return array_values((array) data_get($this->meta, 'agriculture_problem_photos', []));
+    }
+
+    /**
+     * @return array<string, list<array<string, mixed>>>
+     */
+    public function agricultureGallery(): array
+    {
+        return (array) data_get($this->meta, 'agriculture_gallery', []);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function agricultureDocuments(): array
+    {
+        return array_values((array) data_get($this->meta, 'agriculture_documents', []));
+    }
+
+    /**
+     * @return list<array{category: string, label: string, photo: array<string, mixed>}>
+     */
+    public function agricultureGalleryItemsForDisplay(): array
+    {
+        if (! $this->isAgriculturePost()) {
+            return [];
+        }
+
+        $labels = CommunityContentTaxonomy::agricultureGalleryCategories();
+        $items = [];
+
+        foreach ($this->agricultureGallery() as $category => $photos) {
+            $label = $labels[$category] ?? Str::headline((string) $category);
+
+            foreach ((array) $photos as $photo) {
+                if (filled(data_get($photo, 'url'))) {
+                    $items[] = [
+                        'category' => (string) $category,
+                        'label' => $label,
+                        'photo' => $photo,
+                    ];
+                }
+            }
+        }
+
+        return $items;
+    }
+
+    public function enablesAgricultureKnowledgeExchange(): bool
+    {
+        return $this->isAgriculturePost()
+            && (bool) data_get($this->meta, 'agriculture_enable_knowledge_exchange', false);
+    }
+
+    public function enablesAgricultureCropDoctor(): bool
+    {
+        return $this->isAgriculturePost()
+            && (bool) data_get($this->meta, 'agriculture_enable_crop_doctor', false);
+    }
+
+    public function agricultureNeedsExpertAssistance(): bool
+    {
+        return $this->isAgriculturePost()
+            && data_get($this->meta, 'agriculture_expert_assistance') === 'yes';
+    }
+
+    public function agricultureShareTypeLabel(): ?string
+    {
+        if (! $this->isAgriculturePost()) {
+            return null;
+        }
+
+        $shareType = (string) (data_get($this->meta, 'agriculture_share_type') ?: $this->writing_purpose);
+
+        return filled($shareType) ? $shareType : null;
+    }
+
+    public function agricultureCategoryLabel(): ?string
+    {
+        if (! $this->isAgriculturePost()) {
+            return null;
+        }
+
+        $category = (string) (data_get($this->meta, 'agriculture_category') ?: $this->category);
+
+        return filled($category) ? $category : null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function agricultureTargetAudiences(): array
+    {
+        if (! $this->isAgriculturePost()) {
+            return [];
+        }
+
+        return array_values(array_filter((array) data_get($this->meta, 'agriculture_target_audiences', [])));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function agricultureWaterConservationPractices(): array
+    {
+        if (! $this->isAgriculturePost()) {
+            return [];
+        }
+
+        return array_values(array_filter((array) data_get($this->meta, 'agriculture_water_conservation_practices', [])));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function agricultureLivestockTypes(): array
+    {
+        if (! $this->isAgriculturePost()) {
+            return [];
+        }
+
+        return array_values(array_filter((array) data_get($this->meta, 'agriculture_livestock_types', [])));
+    }
+
+    public function agricultureHasWaterManagementDetails(): bool
+    {
+        if (! $this->isAgriculturePost()) {
+            return false;
+        }
+
+        return filled(data_get($this->meta, 'agriculture_irrigation_method'))
+            || filled(data_get($this->meta, 'agriculture_water_source'))
+            || $this->agricultureWaterConservationPractices() !== [];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function communityIssueResolutionTimelineEntries(): array
+    {
+        return collect(preg_split('/\R/', (string) data_get($this->meta, 'community_issue_resolution_timeline', '')))
+            ->map(fn (mixed $line): string => trim((string) $line))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    public function supportsCivicEngagement(): bool
+    {
+        return $this->isReportContent() || $this->isMyAreaPost() || $this->isCommunityIssuesPost();
     }
 
     public function isStudentCornerProjectPost(): bool
@@ -1411,6 +1927,178 @@ class CommunityPost extends Model
         }
 
         return route('community.show', $this).'?access='.$token;
+    }
+
+    public function localVoiceVisibilitySetting(): string
+    {
+        if (! $this->isLocalVoicesPost()) {
+            return CommunityContentTaxonomy::localVoiceDefaultVisibilitySetting();
+        }
+
+        $setting = (string) data_get($this->meta, 'local_voice_visibility', '');
+
+        return array_key_exists($setting, CommunityContentTaxonomy::localVoiceVisibilitySettings())
+            ? $setting
+            : CommunityContentTaxonomy::localVoiceDefaultVisibilitySetting();
+    }
+
+    public function localVoiceVisibilityLabel(): string
+    {
+        return CommunityContentTaxonomy::localVoiceVisibilitySettings()[$this->localVoiceVisibilitySetting()]
+            ?? Str::headline($this->localVoiceVisibilitySetting());
+    }
+
+    public function requiresLocalVoicePrivateLink(): bool
+    {
+        return $this->isLocalVoicesPost() && $this->localVoiceVisibilitySetting() === 'private_link';
+    }
+
+    public function allowsLocalVoicePrivateLinkAccess(?string $accessToken): bool
+    {
+        if (! $this->requiresLocalVoicePrivateLink()) {
+            return false;
+        }
+
+        $token = (string) data_get($this->meta, 'local_voice_private_link_token', '');
+
+        return filled($token) && filled($accessToken) && hash_equals($token, $accessToken);
+    }
+
+    public function localVoicePrivateLinkUrl(): ?string
+    {
+        if (! $this->requiresLocalVoicePrivateLink()) {
+            return null;
+        }
+
+        $token = (string) data_get($this->meta, 'local_voice_private_link_token', '');
+
+        if (blank($token)) {
+            return null;
+        }
+
+        return route('community.show', $this).'?access='.$token;
+    }
+
+    public function allowsLocalVoiceSupport(): bool
+    {
+        return $this->isLocalVoicesPost()
+            && (bool) data_get($this->meta, 'local_voice_allow_support', true);
+    }
+
+    public function allowsLocalVoiceFollow(): bool
+    {
+        return $this->isLocalVoicesPost()
+            && (bool) data_get($this->meta, 'local_voice_allow_follow', true);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function localVoicePhotoEvidence(): array
+    {
+        return array_values((array) data_get($this->meta, 'local_voice_photo_evidence', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function localVoiceDocuments(): array
+    {
+        return array_values((array) data_get($this->meta, 'local_voice_documents', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function localVoiceHeroImages(): array
+    {
+        return array_values((array) data_get($this->meta, 'local_voice_hero_images', []));
+    }
+
+    public function myAreaVisibilitySetting(): string
+    {
+        if (! $this->isMyAreaPost()) {
+            return CommunityContentTaxonomy::myAreaDefaultVisibilitySetting();
+        }
+
+        $setting = (string) data_get($this->meta, 'my_area_visibility', '');
+
+        return array_key_exists($setting, CommunityContentTaxonomy::myAreaVisibilitySettings())
+            ? $setting
+            : CommunityContentTaxonomy::myAreaDefaultVisibilitySetting();
+    }
+
+    public function myAreaVisibilityLabel(): string
+    {
+        return CommunityContentTaxonomy::myAreaVisibilitySettings()[$this->myAreaVisibilitySetting()]
+            ?? Str::headline($this->myAreaVisibilitySetting());
+    }
+
+    public function requiresMyAreaPrivateLink(): bool
+    {
+        return $this->isMyAreaPost() && $this->myAreaVisibilitySetting() === 'private_link';
+    }
+
+    public function allowsMyAreaPrivateLinkAccess(?string $accessToken): bool
+    {
+        if (! $this->requiresMyAreaPrivateLink()) {
+            return false;
+        }
+
+        $token = (string) data_get($this->meta, 'my_area_private_link_token', '');
+
+        return filled($token) && filled($accessToken) && hash_equals($token, $accessToken);
+    }
+
+    public function myAreaPrivateLinkUrl(): ?string
+    {
+        if (! $this->requiresMyAreaPrivateLink()) {
+            return null;
+        }
+
+        $token = (string) data_get($this->meta, 'my_area_private_link_token', '');
+
+        if (blank($token)) {
+            return null;
+        }
+
+        return route('community.show', $this).'?access='.$token;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function myAreaPhotoEvidence(): array
+    {
+        return array_values((array) data_get($this->meta, 'my_area_photo_evidence', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function myAreaDocuments(): array
+    {
+        return array_values((array) data_get($this->meta, 'my_area_documents', []));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function myAreaHeroImages(): array
+    {
+        return array_values((array) data_get($this->meta, 'my_area_hero_images', []));
+    }
+
+    public function myAreaActivityType(): ?string
+    {
+        return filled(data_get($this->meta, 'my_area_activity_type'))
+            ? (string) data_get($this->meta, 'my_area_activity_type')
+            : null;
+    }
+
+    public function myAreaTopicCategory(): ?string
+    {
+        return (string) (data_get($this->meta, 'my_area_topic_category') ?: $this->category ?: '');
     }
 
     public function isStudentCornerGalleryImage(array $file): bool
@@ -1570,6 +2258,22 @@ class CommunityPost extends Model
             return \App\Support\CommunityContentTaxonomy::youthCornerReactionLabels();
         }
 
+        if ($this->isLocalVoicesPost()) {
+            return \App\Support\CommunityContentTaxonomy::localVoiceReactionLabels();
+        }
+
+        if ($this->isMyAreaPost()) {
+            return \App\Support\CommunityContentTaxonomy::myAreaReactionLabels();
+        }
+
+        if ($this->isCommunityIssuesPost()) {
+            return \App\Support\CommunityContentTaxonomy::communityIssueReactionLabels();
+        }
+
+        if ($this->isAgriculturePost()) {
+            return \App\Support\CommunityContentTaxonomy::agricultureReactionLabels();
+        }
+
         return ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'];
     }
 
@@ -1584,6 +2288,10 @@ class CommunityPost extends Model
 
     public function subscriptionContentType(): string
     {
+        if ($this->isMyAreaPost()) {
+            return 'my-area';
+        }
+
         if ($this->content_type === 'reports' && $this->category === 'Community Problem Report') {
             return 'my-area';
         }
@@ -1785,6 +2493,45 @@ class CommunityPost extends Model
             };
         }
 
+        if ($this->isLocalVoicesPost()) {
+            if ($viewer !== null && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
+                return true;
+            }
+
+            return match ($this->localVoiceVisibilitySetting()) {
+                'public' => true,
+                'registered_users', 'local_community' => $viewer !== null,
+                'private_link' => false,
+                default => true,
+            };
+        }
+
+        if ($this->isMyAreaPost()) {
+            if ($viewer !== null && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
+                return true;
+            }
+
+            return match ($this->myAreaVisibilitySetting()) {
+                'public' => true,
+                'registered_users', 'local_community' => $viewer !== null,
+                'private_link' => false,
+                default => true,
+            };
+        }
+
+        if ($this->isCommunityIssuesPost()) {
+            if ($viewer !== null && ($viewer->id === $this->user_id || $viewer->isAdmin())) {
+                return true;
+            }
+
+            return match ($this->communityIssueVisibilitySetting()) {
+                'public' => true,
+                'registered_users', 'local_community' => $viewer !== null,
+                'private_link' => false,
+                default => true,
+            };
+        }
+
         if (! $this->isChildrensCornerPost()) {
             return true;
         }
@@ -1817,6 +2564,18 @@ class CommunityPost extends Model
 
         if ($this->isYouthCornerPost()) {
             return in_array($this->youthCornerVisibilitySetting(), ['registered_users', 'youth_community'], true);
+        }
+
+        if ($this->isLocalVoicesPost()) {
+            return in_array($this->localVoiceVisibilitySetting(), ['registered_users', 'local_community'], true);
+        }
+
+        if ($this->isMyAreaPost()) {
+            return in_array($this->myAreaVisibilitySetting(), ['registered_users', 'local_community'], true);
+        }
+
+        if ($this->isCommunityIssuesPost()) {
+            return in_array($this->communityIssueVisibilitySetting(), ['registered_users', 'local_community'], true);
         }
 
         if (! $this->isChildrensCornerPost()) {
@@ -2343,6 +3102,16 @@ class CommunityPost extends Model
                     ? (string) data_get($this->meta, 'report_type')
                     : $this->category,
                 $this->reportStatus(),
+            ]);
+
+            return $parts !== [] ? implode(' · ', $parts) : (string) $this->category;
+        }
+
+        if ($this->isMyAreaPost()) {
+            $parts = array_filter([
+                $this->myAreaActivityType(),
+                data_get($this->meta, 'my_area_status_tracker'),
+                $this->myAreaTopicCategory(),
             ]);
 
             return $parts !== [] ? implode(' · ', $parts) : (string) $this->category;

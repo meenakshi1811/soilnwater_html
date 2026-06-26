@@ -209,7 +209,7 @@
 </section>
 
 
-<div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true" data-open-on-error="{{ old('google_registration') === '1' && ($errors->has('role') || $errors->has('address') || $errors->has('city') || $errors->has('pincode') || $errors->has('date_of_birth')) ? 'true' : 'false' }}">
+<div class="modal fade role-picker-modal" id="googleRoleModal" tabindex="-1" aria-labelledby="googleRoleModalLabel" aria-hidden="true" data-bs-focus="false" data-open-on-error="{{ old('google_registration') === '1' && ($errors->has('role') || $errors->has('whatsapp_number') || $errors->has('address') || $errors->has('city') || $errors->has('pincode') || $errors->has('date_of_birth')) ? 'true' : 'false' }}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -238,8 +238,19 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="google_whatsapp_number" class="form-label">WhatsApp Number</label>
+                        <input id="google_whatsapp_number" type="tel" class="form-control @error('whatsapp_number') is-invalid @enderror" name="whatsapp_number" value="{{ old('whatsapp_number') }}" required autocomplete="tel" inputmode="numeric">
+                        @error('whatsapp_number')
+                            <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
                         <label for="google_address" class="form-label">Address</label>
                         <input id="google_address" type="text" class="form-control @error('address') is-invalid @enderror" name="address" value="{{ old('address') }}" required autocomplete="street-address" placeholder="Search and select your address">
+                        <small class="text-muted">Start typing and choose a Google address to auto-fill city and pincode, or type your address manually. You can edit city and pincode.</small>
+                        <input type="hidden" id="google_latitude" name="latitude" value="{{ old('latitude') }}">
+                        <input type="hidden" id="google_longitude" name="longitude" value="{{ old('longitude') }}">
                         @error('address')
                             <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
                         @enderror

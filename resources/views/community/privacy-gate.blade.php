@@ -10,21 +10,31 @@
     $isStudentCorner = $post->isStudentCornerPost();
     $isYouthCorner = $post->isYouthCornerPost();
     $isChildrensCorner = $post->isChildrensCornerPost();
-    $privacyLabel = $isWomensWorld
-        ? $post->womensWorldVisibilityLabel()
-        : ($isSeniorCitizensForum
-            ? $post->seniorCitizensForumVisibilityLabel()
-            : ($isStudentCorner
-                ? $post->studentCornerVisibilityLabel()
-                : ($isYouthCorner
-                    ? $post->youthCornerVisibilityLabel()
-                    : $post->childrensCornerPrivacyLabel())));
+    $isMyArea = $post->isMyAreaPost();
+    $isLocalVoices = $post->isLocalVoicesPost();
+    $privacyLabel = $isMyArea
+        ? $post->myAreaVisibilityLabel()
+        : ($isLocalVoices
+            ? $post->localVoiceVisibilityLabel()
+            : ($isWomensWorld
+                ? $post->womensWorldVisibilityLabel()
+                : ($isSeniorCitizensForum
+                    ? $post->seniorCitizensForumVisibilityLabel()
+                    : ($isStudentCorner
+                        ? $post->studentCornerVisibilityLabel()
+                        : ($isYouthCorner
+                            ? $post->youthCornerVisibilityLabel()
+                            : $post->childrensCornerPrivacyLabel())))));
     $requiresPrivateLink = ($isWomensWorld && $post->requiresWomensWorldPrivateLink())
         || ($isSeniorCitizensForum && $post->requiresSeniorCitizensForumPrivateLink())
         || ($isStudentCorner && $post->requiresStudentCornerPrivateLink())
-        || ($isYouthCorner && $post->requiresYouthCornerPrivateLink());
+        || ($isYouthCorner && $post->requiresYouthCornerPrivateLink())
+        || ($isMyArea && $post->requiresMyAreaPrivateLink())
+        || ($isLocalVoices && $post->requiresLocalVoicePrivateLink());
     $requiresLogin = ! $requiresPrivateLink && $post->requiresAuthenticationForCommunityView();
     $backType = match (true) {
+        $isMyArea => 'my-area',
+        $isLocalVoices => 'local-voices',
         $isWomensWorld => 'womens-world',
         $isSeniorCitizensForum => 'senior-citizens-forum',
         $isStudentCorner => 'student-corner',
@@ -32,12 +42,15 @@
         default => 'childrens-corner',
     };
     $backLabel = match (true) {
+        $isMyArea => 'My Area',
+        $isLocalVoices => 'Local Voices',
         $isWomensWorld => "Women's World",
         $isSeniorCitizensForum => 'Senior Citizens Forum',
         $isStudentCorner => 'Student Corner',
         $isYouthCorner => 'Youth Corner',
         default => "Children's Corner",
     };
+    $backRoute = $isMyArea ? route('community.my-area.index') : route('community.index', ['type' => $backType]);
 @endphp
 <div class="about-page">
     <section class="about-banner text-center">
@@ -46,7 +59,11 @@
             <h1 class="h2">{{ $post->title }}</h1>
             <p class="lead mb-0">
                 @if($requiresPrivateLink)
-                    @if($isSeniorCitizensForum)
+                    @if($isMyArea)
+                        This My Area post is only available through its private link.
+                    @elseif($isLocalVoices)
+                        This Local Voices post is only available through its private link.
+                    @elseif($isSeniorCitizensForum)
                         This Senior Citizens Forum post is only available through its private link.
                     @elseif($isStudentCorner)
                         This Student Corner post is only available through its private link.
@@ -55,6 +72,10 @@
                     @else
                         This Women's World post is only available through its private link.
                     @endif
+                @elseif($isMyArea)
+                    This My Area post has restricted visibility for your local community.
+                @elseif($isLocalVoices)
+                    This Local Voices post has restricted visibility.
                 @elseif($isSeniorCitizensForum)
                     This Senior Citizens Forum post has restricted visibility.
                 @elseif($isStudentCorner)
@@ -80,7 +101,9 @@
                         <p class="text-muted mb-0">Ask the author for the full private link to open this post.</p>
                     @else
                         <h2 class="h4 mb-2">Sign in to continue</h2>
-                        @if($isChildrensCorner && $post->childrensCornerPrivacySetting() === 'school_community')
+                        @if($isMyArea && $post->myAreaVisibilitySetting() === 'local_community')
+                            <p class="text-muted mb-0">This post is shared with your local community and is available to registered SoilnWater members.</p>
+                        @elseif($isChildrensCorner && $post->childrensCornerPrivacySetting() === 'school_community')
                             <p class="text-muted mb-0">
                                 This submission is shared with the
                                 @if(filled(data_get($post->meta, 'child_school_name')))
@@ -106,7 +129,13 @@
 
                 @if(! $requiresPrivateLink)
                     <ul class="list-unstyled small text-muted mb-4">
-                        @if($isWomensWorld)
+                        @if($isMyArea)
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>My Area privacy settings protect sensitive local posts.</li>
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Authors can publish anonymously or with a pen name.</li>
+                        @elseif($isLocalVoices)
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Local Voices privacy settings protect sensitive community stories.</li>
+                            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Authors can publish anonymously or with a pen name.</li>
+                        @elseif($isWomensWorld)
                             <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Privacy settings protect sensitive Women's World stories.</li>
                             <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i>Anonymous posting is available when authors choose it.</li>
                         @elseif($isStudentCorner)
@@ -128,7 +157,7 @@
                         <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="btn btn-success">Login to view</a>
                         <a href="{{ route('register') }}" class="btn btn-outline-success">Create an account</a>
                     @endif
-                    <a href="{{ route('community.index', ['type' => $backType]) }}" class="btn btn-outline-secondary">
+                    <a href="{{ $backRoute }}" class="btn btn-outline-secondary">
                         Back to {{ $backLabel }}
                     </a>
                 </div>

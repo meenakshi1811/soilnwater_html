@@ -7,6 +7,7 @@ use App\Models\CommunityPost;
 use App\Models\CommunityReportAgreement;
 use App\Models\CommunityReportFollow;
 use App\Models\CommunityReportSupport;
+use App\Services\CommunityCommunityIssuesEngagementNotificationService;
 use App\Services\CommunityReportEngagementNotificationService;
 use App\Services\CommunityReportTrustScoreService;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,9 @@ class CommunityReportEngagementController extends Controller
 {
     public function toggleSupport(Request $request, CommunityPost $post): JsonResponse
     {
-        $this->authorizeReportEngagement($post, $request);
+        $this->authorizeReportEngagement($post, $request, 'support');
+
+        $previousSupportCount = $post->reportSupports()->count();
 
         $existing = CommunityReportSupport::query()
             ->where('community_post_id', $post->id)
@@ -35,6 +38,7 @@ class CommunityReportEngagementController extends Controller
             $active = true;
             $message = 'Thank you for supporting this report.';
             CommunityReportEngagementNotificationService::notifyAuthorOfSupport($post, $request->user());
+            CommunityCommunityIssuesEngagementNotificationService::maybeNotifyEscalation($post->fresh(), $previousSupportCount);
         }
 
         return $this->engagementResponse($post, $request, $message, [
@@ -44,7 +48,7 @@ class CommunityReportEngagementController extends Controller
 
     public function toggleAgree(Request $request, CommunityPost $post): JsonResponse
     {
-        $this->authorizeReportEngagement($post, $request);
+        $this->authorizeReportEngagement($post, $request, 'agree');
 
         $existing = CommunityReportAgreement::query()
             ->where('community_post_id', $post->id)
@@ -72,7 +76,7 @@ class CommunityReportEngagementController extends Controller
 
     public function toggleFollow(Request $request, CommunityPost $post): JsonResponse
     {
-        $this->authorizeReportEngagement($post, $request);
+        $this->authorizeReportEngagement($post, $request, 'follow');
 
         $existing = CommunityReportFollow::query()
             ->where('community_post_id', $post->id)
@@ -98,11 +102,20 @@ class CommunityReportEngagementController extends Controller
         ]);
     }
 
-    private function authorizeReportEngagement(CommunityPost $post, Request $request): void
+    private function authorizeReportEngagement(CommunityPost $post, Request $request, string $action): void
     {
         abort_unless($post->isPubliclyVisible(), 404);
-        abort_unless($post->isReportContent(), 404);
-        abort_if($post->user_id === $request->user()->id, 422, 'You cannot use community reporting actions on your own report.');
+        abort_unless($post->isReportContent() || $post->isMyAreaPost() || $post->isCommunityIssuesPost(), 404);
+        abort_if($post->user_id === $request->user()->id, 422, 'You cannot use community reporting actions on your own post.');
+
+        if ($post->isCommunityIssuesPost()) {
+            match ($action) {
+                'support' => abort_unless($post->allowsCommunityIssueSupport(), 404),
+                'agree' => abort_unless($post->allowsCommunityIssueVerification(), 404),
+                'follow' => abort_unless($post->allowsCommunityIssueFollow(), 404),
+                default => null,
+            };
+        }
     }
 
     /**

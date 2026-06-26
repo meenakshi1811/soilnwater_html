@@ -376,10 +376,22 @@
             this.initOtpTimer(selector);
         },
 
-        initRegisterPlaceAutocomplete: function () {
-            var addressInput = document.getElementById('address');
-            var cityInput = document.getElementById('city');
-            var pincodeInput = document.getElementById('pincode');
+        placeAutocompleteComponentValue: function (components, type) {
+            var match = (components || []).find(function (component) {
+                return component.types.indexOf(type) !== -1;
+            });
+
+            return match ? match.long_name : '';
+        },
+
+        bindRegisterPlaceAutocomplete: function (options) {
+            var addressInput = document.getElementById(options.addressInputId);
+            var cityInput = options.cityInputId ? document.getElementById(options.cityInputId) : null;
+            var pincodeInput = options.pincodeInputId ? document.getElementById(options.pincodeInputId) : null;
+            var latitudeInput = options.latitudeInputId ? document.getElementById(options.latitudeInputId) : null;
+            var longitudeInput = options.longitudeInputId ? document.getElementById(options.longitudeInputId) : null;
+            var retryMethod = options.retryMethod;
+            var onPlaceChanged = typeof options.onPlaceChanged === 'function' ? options.onPlaceChanged : null;
 
             if (!addressInput || addressInput.dataset.googlePlacesReady === 'true') {
                 return;
@@ -393,8 +405,8 @@
 
                 addressInput.dataset.googlePlacesAttempts = String(attempts + 1);
                 window.setTimeout(function () {
-                    if (window.FormHelper) {
-                        window.FormHelper.initRegisterPlaceAutocomplete();
+                    if (window.FormHelper && retryMethod) {
+                        window.FormHelper[retryMethod](options.onPlaceChanged);
                     }
                 }, 500);
                 return;
@@ -402,19 +414,18 @@
 
             addressInput.dataset.googlePlacesReady = 'true';
 
+            var fields = ['address_components', 'formatted_address'];
+            if (latitudeInput && longitudeInput) {
+                fields.push('geometry');
+            }
+
             var autocomplete = new google.maps.places.Autocomplete(addressInput, {
                 componentRestrictions: { country: 'in' },
-                fields: ['address_components', 'formatted_address'],
+                fields: fields,
                 types: ['geocode']
             });
 
-            var componentValue = function (components, type) {
-                var match = components.find(function (component) {
-                    return component.types.indexOf(type) !== -1;
-                });
-
-                return match ? match.long_name : '';
-            };
+            var self = this;
 
             autocomplete.addListener('place_changed', function () {
                 var place = autocomplete.getPlace();
@@ -424,11 +435,11 @@
                     addressInput.value = place.formatted_address;
                 }
 
-                var city = componentValue(components, 'locality')
-                    || componentValue(components, 'postal_town')
-                    || componentValue(components, 'administrative_area_level_3')
-                    || componentValue(components, 'administrative_area_level_2');
-                var pincode = componentValue(components, 'postal_code');
+                var city = self.placeAutocompleteComponentValue(components, 'locality')
+                    || self.placeAutocompleteComponentValue(components, 'postal_town')
+                    || self.placeAutocompleteComponentValue(components, 'administrative_area_level_3')
+                    || self.placeAutocompleteComponentValue(components, 'administrative_area_level_2');
+                var pincode = self.placeAutocompleteComponentValue(components, 'postal_code');
 
                 if (cityInput && city) {
                     cityInput.value = city;
@@ -440,7 +451,47 @@
                     $(pincodeInput).trigger('input').trigger('change');
                 }
 
+                if (latitudeInput && longitudeInput && place.geometry && place.geometry.location) {
+                    var lat = place.geometry.location.lat();
+                    var lng = place.geometry.location.lng();
+
+                    if (typeof lat === 'number' && Number.isFinite(lat)) {
+                        latitudeInput.value = String(lat);
+                    }
+
+                    if (typeof lng === 'number' && Number.isFinite(lng)) {
+                        longitudeInput.value = String(lng);
+                    }
+
+                    addressInput.dataset.placeJustSelected = '1';
+                }
+
                 $(addressInput).trigger('input').trigger('change');
+
+                if (onPlaceChanged) {
+                    onPlaceChanged();
+                }
+            });
+        },
+
+        initRegisterPlaceAutocomplete: function () {
+            this.bindRegisterPlaceAutocomplete({
+                addressInputId: 'address',
+                cityInputId: 'city',
+                pincodeInputId: 'pincode',
+                retryMethod: 'initRegisterPlaceAutocomplete'
+            });
+        },
+
+        initGoogleRegisterPlaceAutocomplete: function (onPlaceChanged) {
+            this.bindRegisterPlaceAutocomplete({
+                addressInputId: 'google_address',
+                cityInputId: 'google_city',
+                pincodeInputId: 'google_pincode',
+                latitudeInputId: 'google_latitude',
+                longitudeInputId: 'google_longitude',
+                retryMethod: 'initGoogleRegisterPlaceAutocomplete',
+                onPlaceChanged: onPlaceChanged
             });
         },
 

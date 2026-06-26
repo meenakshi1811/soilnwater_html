@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\GoogleGeocoder;
 use App\Mail\ConsultantStatusMail;
 use App\Mail\ServiceProviderStatusMail;
 use App\Mail\OtpMail;
@@ -369,33 +370,58 @@ class LoginController extends Controller
         $request->session()->put('google_auth.intent', 'login');
         $request->session()->forget(['google_auth.role', 'google_auth.registration']);
 
-        return Socialite::driver('google')->redirect();
+        $stateToken = $this->storeGoogleAuthState([
+            'intent' => 'login',
+        ]);
+
+        return Socialite::driver('google')
+            ->stateless()
+            ->with(['state' => $stateToken])
+            ->redirect();
     }
 
     public function googleRegister(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider'],
+            'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
         ], [
             'role.required' => 'Please select a role before continuing with Google.',
+            'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
             'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
         ]);
 
-        $request->session()->put('google_auth.intent', 'register');
-        $request->session()->put('google_auth.role', $data['role']);
-        $request->session()->put('google_auth.registration', [
+        $registrationPayload = [
+            'whatsapp_number' => $data['whatsapp_number'],
             'address' => $data['address'],
             'city' => $data['city'],
             'pincode' => $data['pincode'],
+            'latitude' => $data['latitude'] ?? null,
+            'longitude' => $data['longitude'] ?? null,
             'date_of_birth' => $data['date_of_birth'],
+        ];
+
+        $request->session()->put('google_auth.intent', 'register');
+        $request->session()->put('google_auth.role', $data['role']);
+        $request->session()->put('google_auth.registration', $registrationPayload);
+
+        $stateToken = $this->storeGoogleAuthState([
+            'intent' => 'register',
+            'role' => $data['role'],
+            'registration' => $registrationPayload,
         ]);
 
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')
+            ->stateless()
+            ->with(['state' => $stateToken])
+            ->redirect();
     }
 
     public function googleCallback(Request $request): RedirectResponse
@@ -403,16 +429,17 @@ class LoginController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
         } catch (\Throwable $exception) {
-            dd($exception->getMessage());
-
             return redirect()->route('login')->withErrors([
                 'google' => 'Google authentication failed. Please try again.',
             ]);
         }
 
-        $intent = (string) $request->session()->pull('google_auth.intent', 'login');
-        $roleFromRegisterFlow = $request->session()->pull('google_auth.role');
-        $registrationFromRegisterFlow = $request->session()->pull('google_auth.registration', []);
+        $authState = $this->resolveGoogleAuthState($request);
+        $intent = (string) ($authState['intent'] ?? 'login');
+        $roleFromRegisterFlow = $authState['role'] ?? null;
+        $registrationFromRegisterFlow = is_array($authState['registration'] ?? null)
+            ? $authState['registration']
+            : [];
         $email = strtolower((string) $googleUser->getEmail());
 
         if ($email === '') {
@@ -424,8 +451,9 @@ class LoginController extends Controller
         $user = User::where('email', $email)->first();
 
         if ($intent === 'register' && ! $user) {
-            $missingRegistrationDetails = ! is_array($registrationFromRegisterFlow)
+            $missingRegistrationDetails = $registrationFromRegisterFlow === []
                 || ! isset(
+                    $registrationFromRegisterFlow['whatsapp_number'],
                     $registrationFromRegisterFlow['address'],
                     $registrationFromRegisterFlow['city'],
                     $registrationFromRegisterFlow['pincode'],
@@ -439,26 +467,33 @@ class LoginController extends Controller
             }
         }
 
+        if ($intent === 'register' && $registrationFromRegisterFlow !== []) {
+            $registrationFromRegisterFlow = $this->resolveGoogleRegistrationCoordinates($registrationFromRegisterFlow);
+        }
+
         $createdUser = false;
         if (! $user) {
             $displayName = trim((string) ($googleUser->getName() ?: 'Google User'));
             $role = $intent === 'register' ? $roleFromRegisterFlow : 'user';
 
-            $googleRegistrationDetails = is_array($registrationFromRegisterFlow) ? $registrationFromRegisterFlow : [];
-
             $user = User::create([
                 'name' => $displayName,
                 'full_name' => $displayName,
                 'email' => $email,
-                'address' => $googleRegistrationDetails['address'] ?? null,
-                'city' => $googleRegistrationDetails['city'] ?? null,
-                'pincode' => $googleRegistrationDetails['pincode'] ?? null,
+                'whatsapp_number' => $registrationFromRegisterFlow['whatsapp_number'] ?? null,
+                'address' => $registrationFromRegisterFlow['address'] ?? null,
+                'city' => $registrationFromRegisterFlow['city'] ?? null,
+                'pincode' => $registrationFromRegisterFlow['pincode'] ?? null,
+                'latitude' => $registrationFromRegisterFlow['latitude'] ?? null,
+                'longitude' => $registrationFromRegisterFlow['longitude'] ?? null,
                 'role' => $role,
-                'date_of_birth' => $googleRegistrationDetails['date_of_birth'] ?? null,
+                'date_of_birth' => $registrationFromRegisterFlow['date_of_birth'] ?? null,
                 'password' => Hash::make(str()->random(40)),
                 'email_verified_at' => now(),
             ]);
             $createdUser = true;
+        } elseif ($intent === 'register') {
+            $this->applyGoogleRegistrationDetails($user, $roleFromRegisterFlow, $registrationFromRegisterFlow);
         }
 
         if ($user->isGeneralUser() && ! $user->phone_verified_at) {
@@ -725,5 +760,84 @@ class LoginController extends Controller
     private function otpCacheKey(int $userId): string
     {
         return 'login_otp_'.$userId;
+    }
+
+    private function googleAuthCacheKey(string $token): string
+    {
+        return 'google_auth_state_'.$token;
+    }
+
+    private function storeGoogleAuthState(array $payload): string
+    {
+        $stateToken = str()->random(64);
+        Cache::put($this->googleAuthCacheKey($stateToken), $payload, now()->addMinutes(20));
+
+        return $stateToken;
+    }
+
+    private function resolveGoogleAuthState(Request $request): array
+    {
+        $stateToken = (string) $request->query('state', '');
+
+        if ($stateToken !== '') {
+            $cached = Cache::pull($this->googleAuthCacheKey($stateToken));
+            if (is_array($cached) && $cached !== []) {
+                return $cached;
+            }
+        }
+
+        return [
+            'intent' => $request->session()->pull('google_auth.intent', 'login'),
+            'role' => $request->session()->pull('google_auth.role'),
+            'registration' => $request->session()->pull('google_auth.registration', []),
+        ];
+    }
+
+    private function applyGoogleRegistrationDetails(User $user, ?string $role, array $details): void
+    {
+        if ($details === [] || ! isset($details['whatsapp_number'], $details['address'], $details['city'], $details['pincode'], $details['date_of_birth'])) {
+            return;
+        }
+
+        $details = $this->resolveGoogleRegistrationCoordinates($details);
+
+        $fill = [
+            'whatsapp_number' => $details['whatsapp_number'],
+            'address' => $details['address'],
+            'city' => $details['city'],
+            'pincode' => $details['pincode'],
+            'date_of_birth' => $details['date_of_birth'],
+        ];
+
+        if (isset($details['latitude'], $details['longitude'])) {
+            $fill['latitude'] = $details['latitude'];
+            $fill['longitude'] = $details['longitude'];
+        }
+
+        if (in_array($role, ['user', 'vendor', 'builder', 'developer', 'consultant', 'service_provider'], true)) {
+            $fill['role'] = $role;
+        }
+
+        $user->forceFill($fill)->save();
+    }
+
+    private function resolveGoogleRegistrationCoordinates(array $details): array
+    {
+        if (filled($details['latitude'] ?? null) && filled($details['longitude'] ?? null)) {
+            return $details;
+        }
+
+        $coordinates = GoogleGeocoder::coordinatesForAddress(
+            (string) ($details['address'] ?? ''),
+            isset($details['city']) ? (string) $details['city'] : null,
+            isset($details['pincode']) ? (string) $details['pincode'] : null,
+        );
+
+        if ($coordinates['latitude'] !== null && $coordinates['longitude'] !== null) {
+            $details['latitude'] = $coordinates['latitude'];
+            $details['longitude'] = $coordinates['longitude'];
+        }
+
+        return $details;
     }
 }

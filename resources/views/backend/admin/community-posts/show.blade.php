@@ -383,13 +383,56 @@
                                 'includeAdmin' => true,
                             ])
                         @endif
+
+                        @if($post->isLocalVoicesPost())
+                            @include('community.partials.local-voices-show-sections', ['post' => $post])
+                        @endif
+
+                        @if($post->isMyAreaPost())
+                            @include('community.partials.my-area-show-sections', ['post' => $post])
+                            @include('community.partials.my-area-meta-details', [
+                                'post' => $post,
+                                'heading' => 'My Area metadata',
+                                'includeAdmin' => true,
+                            ])
+                        @endif
+
+                        @if($post->isCommunityIssuesPost())
+                            @include('community.partials.community-issues-show-sections', [
+                                'post' => $post,
+                                'reportEngagement' => $reportEngagement,
+                            ])
+                            @include('community.partials.community-issues-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Community Issues metadata',
+                                'includeAdmin' => true,
+                                'reportEngagement' => $reportEngagement,
+                            ])
+                        @endif
+
+                        @if($post->isAgriculturePost())
+                            @include('community.partials.agriculture-show-sections', ['post' => $post])
+                            @include('community.partials.agriculture-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Agriculture metadata',
+                                'includeAdmin' => true,
+                            ])
+                        @endif
                     </div>
                 </div>
 
                 <div class="col-lg-4">
-                    @if($post->isReportContent() && $reportEngagement)
+                    @if($post->supportsCivicEngagement() && $reportEngagement)
                         <div class="chart-card p-3 p-lg-4 mb-4">
-                            <h5 class="mb-3">Community reporting activity</h5>
+                            <h5 class="mb-3">
+                                @if($post->isMyAreaPost())
+                                    My Area community activity
+                                @elseif($post->isCommunityIssuesPost())
+                                    Community Issues engagement
+                                @else
+                                    Community reporting activity
+                                @endif
+                            </h5>
                             <div class="row g-2 mb-3 small">
                                 <div class="col-6"><strong>Supports:</strong> {{ number_format($reportEngagement['supports_count']) }}</div>
                                 <div class="col-6"><strong>I Agree:</strong> {{ number_format($reportEngagement['agreements_count']) }}</div>
@@ -399,8 +442,8 @@
 
                             @if($reportEngagementActivity)
                                 @foreach([
-                                    'supports' => 'Recent supporters',
-                                    'agreements' => 'Recent agreements',
+                                    'supports' => $post->isCommunityIssuesPost() ? 'Recent supporters' : 'Recent supporters',
+                                    'agreements' => $post->isCommunityIssuesPost() ? 'Recent verifications' : 'Recent agreements',
                                     'follows' => 'Recent followers',
                                 ] as $key => $label)
                                     @if($reportEngagementActivity[$key]->isNotEmpty())
@@ -762,7 +805,13 @@
                             $youthCornerMetaKeys = $post->isYouthCornerPost()
                                 ? \App\Support\CommunityPostFormFields::youthCornerStructuredMetaKeys()
                                 : [];
-                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, $childrensCornerMetaKeys, $awarenessMetaKeys, $businessMetaKeys, $womensWorldMetaKeys, $seniorCitizensForumMetaKeys, $studentCornerMetaKeys, $youthCornerMetaKeys, [
+                            $localVoicesMetaKeys = $post->isLocalVoicesPost()
+                                ? \App\Support\CommunityPostFormFields::localVoiceStructuredMetaKeys()
+                                : [];
+                            $myAreaMetaKeys = $post->isMyAreaPost()
+                                ? \App\Support\CommunityPostFormFields::myAreaStructuredMetaKeys()
+                                : [];
+                            $skipMetaKeys = array_merge($reportMetaKeys, $storyMetaKeys, $poetryMetaKeys, $autobiographyMetaKeys, $childrensCornerMetaKeys, $awarenessMetaKeys, $businessMetaKeys, $womensWorldMetaKeys, $seniorCitizensForumMetaKeys, $studentCornerMetaKeys, $youthCornerMetaKeys, $localVoicesMetaKeys, $myAreaMetaKeys, [
                                 'story_gallery',
                                 'story_audio',
                                 'poetry_audio',
@@ -781,6 +830,10 @@
                                 'youth_corner_documents',
                                 'youth_corner_achievements',
                                 'youth_corner_private_link_token',
+                                'my_area_photo_evidence',
+                                'my_area_documents',
+                                'my_area_hero_images',
+                                'my_area_private_link_token',
                             ]);
                         @endphp
                         <div class="chart-card p-3 p-lg-4">

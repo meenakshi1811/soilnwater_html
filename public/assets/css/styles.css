@@ -2901,6 +2901,11 @@
     }
   }
 
+/* Google Places suggestions must sit above Bootstrap modals */
+.pac-container {
+  z-index: 2000 !important;
+}
+
 /* Register Google role modal */
 .role-picker-modal .modal-content {
   border: 1px solid #dbe6f3;

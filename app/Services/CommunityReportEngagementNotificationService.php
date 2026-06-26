@@ -9,23 +9,22 @@ use App\Models\CommunityReportFollow;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class CommunityReportEngagementNotificationService
 {
     public static function notifyAuthorOfSupport(CommunityPost $post, User $actor): void
     {
-        self::notifyAuthor($post, $actor, 'Report supported', 'supported your report');
+        self::notifyAuthor($post, $actor, self::authorTitle($post, 'supported'), self::authorActionPhrase($post, 'supported'));
     }
 
     public static function notifyAuthorOfAgreement(CommunityPost $post, User $actor): void
     {
-        self::notifyAuthor($post, $actor, 'Community agreement', 'agreed with your report');
+        self::notifyAuthor($post, $actor, self::authorTitle($post, 'agreed'), self::authorActionPhrase($post, 'agreed'));
     }
 
     public static function notifyAuthorOfFollow(CommunityPost $post, User $actor): void
     {
-        self::notifyAuthor($post, $actor, 'Issue followed', 'is following your report for updates');
+        self::notifyAuthor($post, $actor, self::authorTitle($post, 'followed'), self::authorActionPhrase($post, 'followed'));
     }
 
     public static function notifyAuthorOfEvidence(CommunityPost $post, User $actor, int $fileCount): void
@@ -35,7 +34,7 @@ class CommunityReportEngagementNotificationService
 
     public static function notifyFollowersOfReportUpdate(CommunityPost $post, string $updateMessage): void
     {
-        if (! $post->isReportContent()) {
+        if (! $post->supportsCivicEngagement()) {
             return;
         }
 
@@ -49,14 +48,36 @@ class CommunityReportEngagementNotificationService
             ->pluck('user')
             ->filter();
 
+        $subject = match (true) {
+            $post->isCommunityIssuesPost() => 'Community issue update',
+            $post->isMyAreaPost() => 'My Area update',
+            default => 'Report update',
+        };
+        $noun = match (true) {
+            $post->isCommunityIssuesPost() => 'community issue',
+            $post->isMyAreaPost() => 'My Area post',
+            default => 'report',
+        };
+
         foreach ($followers as $follower) {
             PortalNotificationService::notifyUser(
                 $follower,
-                'Report update',
-                'The report "'.$post->title.'" you follow has been updated: '.$updateMessage,
+                $subject,
+                'The '.$noun.' "'.$post->title.'" you follow has been updated: '.$updateMessage,
                 route('community.show', $post),
                 'community'
             );
+
+            $recipient = $follower->email;
+            if (filled($recipient)) {
+                Mail::to($recipient)->send(new CommunityPostParticipationReceivedMail(
+                    $post,
+                    $post->user ?? new User(['name' => 'SoilnWater']),
+                    $subject,
+                    'The '.$noun.' "'.$post->title.'" you follow has been updated: '.$updateMessage,
+                    route('community.show', $post)
+                ));
+            }
         }
     }
 
@@ -142,5 +163,61 @@ class CommunityReportEngagementNotificationService
                 route('community.show', $post)
             ));
         }
+    }
+
+    private static function authorTitle(CommunityPost $post, string $action): string
+    {
+        if ($post->isMyAreaPost()) {
+            return match ($action) {
+                'supported' => 'My Area support',
+                'agreed' => 'Community agreement',
+                'followed' => 'Resolution followed',
+                default => 'My Area activity',
+            };
+        }
+
+        if ($post->isCommunityIssuesPost()) {
+            return match ($action) {
+                'supported' => 'Issue supported',
+                'agreed' => 'Issue verified',
+                'followed' => 'Issue followed',
+                default => 'Community issue activity',
+            };
+        }
+
+        return match ($action) {
+            'supported' => 'Report supported',
+            'agreed' => 'Community agreement',
+            'followed' => 'Issue followed',
+            default => 'Report activity',
+        };
+    }
+
+    private static function authorActionPhrase(CommunityPost $post, string $action): string
+    {
+        if ($post->isMyAreaPost()) {
+            return match ($action) {
+                'supported' => 'supported your My Area post',
+                'agreed' => 'agreed with your My Area post',
+                'followed' => 'is following your My Area post for resolution updates',
+                default => 'engaged with your My Area post',
+            };
+        }
+
+        if ($post->isCommunityIssuesPost()) {
+            return match ($action) {
+                'supported' => 'supported your community issue',
+                'agreed' => 'verified your community issue',
+                'followed' => 'is following your community issue for updates',
+                default => 'engaged with your community issue',
+            };
+        }
+
+        return match ($action) {
+            'supported' => 'supported your report',
+            'agreed' => 'agreed with your report',
+            'followed' => 'is following your report for updates',
+            default => 'engaged with your report',
+        };
     }
 }

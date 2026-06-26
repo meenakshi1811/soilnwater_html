@@ -732,7 +732,7 @@
                         Browse published stories, reports, and updates from {{ $authorName }}.
                     </p>
                 @else
-                    <p class="community-hero__subtitle">Community Hub, Knowledge Centre, Local Voices Network</p>
+                    <p class="community-hero__subtitle">Community Hub, Knowledge Centre, Local Voices Network, My Area</p>
                 @endif
             @endif
             <div class="community-hero__actions">
@@ -740,6 +740,11 @@
                     <a href="{{ route('community.posts.create') }}" class="btn btn-light">
                         <i class="fa-solid fa-pen-to-square me-2"></i>Create a Post
                     </a>
+                    @if (!isset($activeAuthor))
+                        <a href="{{ route('community.my-area.index') }}" class="btn btn-outline-light">
+                            <i class="fa-solid fa-location-dot me-2"></i>My Area
+                        </a>
+                    @endif
                     <a href="{{ route('community.saved.index') }}" class="btn btn-outline-light">
                         <i class="fa-solid fa-bookmark me-2"></i>Saved Posts
                     </a>

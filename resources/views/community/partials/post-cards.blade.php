@@ -8,6 +8,7 @@
         $reportTrustScore = $post->isReportContent() ? $post->reportTrustScore() : null;
         $sectionLabel = $post->typeLabel();
         $categoryLabel = match (true) {
+            $post->isMyAreaPost() && filled($post->listingCategoryLabel()) => $post->listingCategoryLabel(),
             $post->isAwarenessPost() && filled($post->awarenessCategoryLabel()) => $post->awarenessCategoryLabel(),
             $post->isBusinessPost() && filled($post->businessCategoryLabel()) => $post->businessCategoryLabel(),
             filled(data_get($post->meta, 'report_type')) => data_get($post->meta, 'report_type', $post->category),
@@ -31,6 +32,15 @@
         $businessStage = $isBusiness ? data_get($post->meta, 'business_stage') : null;
         $poetryRating = $isPoetry ? $post->averageStarRating() : null;
         $hasPoetryAudio = $isPoetry && $post->poetryAudioUrl();
+        $isMyArea = $post->isMyAreaPost();
+        $myAreaActivity = $isMyArea ? $post->myAreaActivityType() : null;
+        $myAreaStatus = $isMyArea ? data_get($post->meta, 'my_area_status_tracker') : null;
+        $myAreaImpact = $isMyArea ? data_get($post->meta, 'my_area_impact_level') : null;
+        $myAreaLocation = $isMyArea ? trim(implode(', ', array_filter([
+            data_get($post->meta, 'location_locality'),
+            data_get($post->meta, 'location_city'),
+            data_get($post->meta, 'location_district'),
+        ]))) : null;
     @endphp
     <div class="col">
         <article class="community-post-card h-100 {{ $post->is_highlighted ? 'community-post-card--highlighted' : '' }}">
@@ -107,6 +117,19 @@
                         @endforeach
                     </div>
                 @endif
+                @if($isMyArea && ($myAreaActivity || $myAreaStatus || $myAreaImpact))
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        @if($myAreaActivity)
+                            <span class="badge bg-success text-white">{{ $myAreaActivity }}</span>
+                        @endif
+                        @if($myAreaStatus)
+                            <span class="badge bg-primary">{{ $myAreaStatus }}</span>
+                        @endif
+                        @if($myAreaImpact)
+                            <span class="badge bg-danger">{{ $myAreaImpact }} impact</span>
+                        @endif
+                    </div>
+                @endif
                 <h2 class="community-post-card__title">
                     <a href="{{ route('community.show', $post) }}">{{ $post->title }}</a>
                 </h2>
@@ -115,10 +138,10 @@
                     <p class="community-post-card__excerpt">{{ $excerpt }}</p>
                 @endif
 
-                @if (filled($locationLabel))
+                @if (filled($locationLabel) || filled($myAreaLocation))
                     <p class="community-post-card__location">
                         <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                        {{ \Illuminate\Support\Str::limit($locationLabel, 60) }}
+                        {{ \Illuminate\Support\Str::limit(filled($myAreaLocation) ? $myAreaLocation : $locationLabel, 60) }}
                     </p>
                 @endif
 

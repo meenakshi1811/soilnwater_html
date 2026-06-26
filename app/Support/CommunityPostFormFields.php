@@ -66,24 +66,12 @@ class CommunityPostFormFields
                 self::select('practice_type', 'Practice type', ['Meditation', 'Temple Information', 'Festival', 'Scripture', 'Devotional', 'Guidance'], true),
                 self::textarea('spiritual_guidance', 'Guidance summary', 2000, false),
             ]),
-            'agriculture' => self::section('Agriculture details', 'Agriculture', 'Farmer-focused practical content metadata.', [
-                self::text('crop_or_practice', 'Crop / farming practice', 120, true, 'e.g. Wheat, drip irrigation'),
-                self::text('farming_season', 'Season / timing', 120, false, 'e.g. Rabi, Kharif'),
-                self::textarea('practical_tips', 'Practical tips / guidance', 2000, true),
-            ]),
+            'agriculture' => self::section('Agriculture details', 'Agriculture', 'Use the dedicated Agriculture flow fields on the form.', []),
             'environment' => self::section('Environment details', 'Environment', 'Environmental reporting and action content fields.', self::environmentFields()),
             'technology' => self::section('Technology details', 'Technology', 'Tech article metadata for domain and innovation stage.', self::techScienceFields('tech_domain', 'tech_summary')),
             'science' => self::section('Science details', 'Science', 'Science communication fields for field and findings.', self::techScienceFields('scientific_field', 'key_findings')),
-            'local-voices' => self::section('Local voice details', 'Local Voices', 'Neighbourhood issue context for local discussions.', [
-                self::text('local_issue_type', 'Local issue type', 120, true, 'e.g. Road problems, water issues'),
-                self::text('affected_area', 'Affected area / neighbourhood', 160, true),
-                self::textarea('community_impact', 'Community impact', 2000, true),
-            ]),
-            'community-issues' => self::section('Community issue details', 'Community Issues', 'Civic issue tracking with urgency and proposed solutions.', [
-                self::select('issue_category', 'Issue category', ['Civic Issue', 'Public Suggestion', 'Public Grievance', 'Community Project', 'Social Campaign'], true),
-                self::select('issue_urgency', 'Urgency', ['Low', 'Medium', 'High', 'Critical'], true),
-                self::textarea('proposed_solution', 'Proposed solution / action', 2000, true),
-            ]),
+            'local-voices' => self::section('Local voice details', 'Local Voices', 'Use the dedicated Local Voices flow fields on the form.', []),
+            'community-issues' => self::section('Community issue details', 'Community Issues', 'Use the dedicated Community Issues flow fields on the form.', []),
             'creative-corner' => self::section('Creative work details', 'Creative Corner', 'Portfolio-style metadata for creative submissions.', [
                 self::select('creative_medium', 'Creative medium', ['Photography', 'Sketch', 'Painting', 'Craft', 'DIY Project', 'Digital Art'], true),
                 self::text('tools_used', 'Tools / materials used', 160, false),
@@ -595,6 +583,238 @@ class CommunityPostFormFields
             }
         }
 
+        if (CommunityPost::usesLocalVoicesFlow($contentType)) {
+            $payload['local_voice_type'] = $request->input('local_voice_type');
+            $payload['local_voice_category'] = $request->input('local_voice_category');
+            $payload['local_voice_issue_type'] = $request->input('local_voice_issue_type');
+            $payload['local_voice_affected_communities'] = array_values(array_intersect(
+                (array) $request->input('local_voice_affected_communities', []),
+                CommunityContentTaxonomy::localVoiceAffectedCommunities()
+            ));
+            $payload['local_voice_impact_level'] = $request->input('local_voice_impact_level');
+            $payload['local_voice_video_type'] = $request->input('local_voice_video_type');
+            $payload['local_voice_suggested_solution'] = $request->input('local_voice_suggested_solution');
+            $payload['local_voice_estimated_benefit'] = $request->input('local_voice_estimated_benefit');
+            $payload['local_voice_authorities'] = array_values(array_intersect(
+                (array) $request->input('local_voice_authorities', []),
+                CommunityContentTaxonomy::localVoiceAuthorities()
+            ));
+            $payload['local_voice_call_for_action'] = array_values(array_intersect(
+                (array) $request->input('local_voice_call_for_action', []),
+                CommunityContentTaxonomy::localVoiceCallForActionExamples()
+            ));
+            $payload['local_voice_status_tracker'] = $request->input('local_voice_status_tracker');
+            $payload['local_voice_poll_question'] = $request->input('local_voice_poll_question');
+            $payload['local_voice_poll_options'] = collect(preg_split('/\R/', (string) $request->input('local_voice_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('allow_poll')) {
+                unset($payload['local_voice_poll_question'], $payload['local_voice_poll_options']);
+            }
+            $payload['local_voice_allow_support'] = $request->boolean('local_voice_allow_support');
+            $payload['local_voice_allow_follow'] = $request->boolean('local_voice_allow_follow');
+            $payload['local_voice_hero_name'] = $request->input('local_voice_hero_name');
+            $payload['local_voice_hero_location'] = $request->input('local_voice_hero_location');
+            $payload['local_voice_hero_contribution'] = $request->input('local_voice_hero_contribution');
+            $payload['local_voice_hero_achievements'] = $request->input('local_voice_hero_achievements');
+            $payload['local_voice_initiatives'] = array_values(array_intersect(
+                (array) $request->input('local_voice_initiatives', []),
+                CommunityContentTaxonomy::localVoiceInitiativeExamples()
+            ));
+            $payload['local_voice_event_date'] = $request->input('local_voice_event_date');
+            $payload['local_voice_event_time'] = $request->input('local_voice_event_time');
+            $payload['local_voice_event_venue'] = $request->input('local_voice_event_venue');
+            $payload['local_voice_event_organizer'] = $request->input('local_voice_event_organizer');
+            $payload['local_voice_visibility'] = array_key_exists(
+                (string) $request->input('local_voice_visibility'),
+                CommunityContentTaxonomy::localVoiceVisibilitySettings()
+            )
+                ? (string) $request->input('local_voice_visibility')
+                : CommunityContentTaxonomy::localVoiceDefaultVisibilitySetting();
+
+            foreach (CommunityPost::structuredLocationMetaKeys() as $locationKey) {
+                if ($request->has($locationKey)) {
+                    $payload[$locationKey] = $request->input($locationKey);
+                }
+            }
+        }
+
+        if (CommunityPost::usesMyAreaFlow($contentType)) {
+            $payload['my_area_activity_type'] = $request->input('my_area_activity_type');
+            $payload['my_area_topic_category'] = $request->input('my_area_topic_category');
+            $payload['my_area_impact_level'] = $request->input('my_area_impact_level');
+            $payload['my_area_affected_communities'] = array_values(array_intersect(
+                (array) $request->input('my_area_affected_communities', []),
+                CommunityContentTaxonomy::myAreaAffectedCommunities()
+            ));
+            $payload['my_area_status_tracker'] = $request->input('my_area_status_tracker');
+            $payload['my_area_authorities'] = array_values(array_intersect(
+                (array) $request->input('my_area_authorities', []),
+                CommunityContentTaxonomy::myAreaAuthorities()
+            ));
+            $payload['my_area_suggested_solution'] = $request->input('my_area_suggested_solution');
+            $payload['my_area_hero_name'] = $request->input('my_area_hero_name');
+            $payload['my_area_hero_location'] = $request->input('my_area_hero_location');
+            $payload['my_area_hero_contribution'] = $request->input('my_area_hero_contribution');
+            $payload['my_area_achievement_title'] = $request->input('my_area_achievement_title');
+            $payload['my_area_achievement_description'] = $request->input('my_area_achievement_description');
+            $payload['my_area_poll_question'] = $request->input('my_area_poll_question');
+            $payload['my_area_poll_options'] = collect(preg_split('/\R/', (string) $request->input('my_area_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('allow_poll')) {
+                unset($payload['my_area_poll_question'], $payload['my_area_poll_options']);
+            }
+            $payload['my_area_visibility'] = array_key_exists(
+                (string) $request->input('my_area_visibility'),
+                CommunityContentTaxonomy::myAreaVisibilitySettings()
+            )
+                ? (string) $request->input('my_area_visibility')
+                : CommunityContentTaxonomy::myAreaDefaultVisibilitySetting();
+
+            foreach (CommunityPost::structuredLocationMetaKeys() as $locationKey) {
+                if ($request->has($locationKey)) {
+                    $payload[$locationKey] = $request->input($locationKey);
+                }
+            }
+        }
+
+        if (CommunityPost::usesCommunityIssuesFlow($contentType)) {
+            $payload['community_issue_category'] = $request->input('community_issue_category');
+            $payload['community_issue_type'] = $request->input('community_issue_type');
+            $payload['community_issue_severity'] = $request->input('community_issue_severity');
+            $payload['community_issue_affected_population'] = $request->input('community_issue_affected_population');
+            $payload['community_issue_affected_groups'] = array_values(array_intersect(
+                (array) $request->input('community_issue_affected_groups', []),
+                CommunityContentTaxonomy::communityIssueAffectedGroups()
+            ));
+            $payload['location_landmark'] = $request->input('location_landmark');
+            $payload['community_issue_first_noticed_on'] = $request->input('community_issue_first_noticed_on');
+            $payload['community_issue_is_recurring'] = $request->input('community_issue_is_recurring');
+            $payload['community_issue_frequency'] = $request->input('community_issue_frequency');
+            $payload['community_issue_authority'] = $request->input('community_issue_authority');
+            $payload['community_issue_already_reported'] = $request->input('community_issue_already_reported');
+            $payload['community_issue_complaint_number'] = $request->input('community_issue_complaint_number');
+            $payload['community_issue_complaint_date'] = $request->input('community_issue_complaint_date');
+            $payload['community_issue_department_contacted'] = $request->input('community_issue_department_contacted');
+            $payload['community_issue_suggested_solution'] = $request->input('community_issue_suggested_solution');
+            $payload['community_issue_support_requests'] = array_values(array_intersect(
+                (array) $request->input('community_issue_support_requests', []),
+                CommunityContentTaxonomy::communityIssueSupportRequests()
+            ));
+            $payload['community_issue_status_tracker'] = $request->input('community_issue_status_tracker');
+            $payload['community_issue_resolution_timeline'] = $request->input('community_issue_resolution_timeline');
+            $payload['community_issue_allow_campaign'] = $request->boolean('community_issue_allow_campaign');
+            $payload['community_issue_allow_support'] = $request->boolean('community_issue_allow_support');
+            $payload['community_issue_allow_follow'] = $request->boolean('community_issue_allow_follow');
+            $payload['community_issue_allow_verification'] = $request->boolean('community_issue_allow_verification');
+            $payload['community_issue_escalation_threshold'] = $request->input('community_issue_escalation_threshold');
+            $payload['community_issue_poll_question'] = $request->input('community_issue_poll_question');
+            $payload['community_issue_poll_options'] = collect(preg_split('/\R/', (string) $request->input('community_issue_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('allow_poll')) {
+                unset($payload['community_issue_poll_question'], $payload['community_issue_poll_options']);
+            }
+            $payload['community_issue_visibility'] = array_key_exists(
+                (string) $request->input('community_issue_visibility'),
+                CommunityContentTaxonomy::communityIssueVisibilitySettings()
+            )
+                ? (string) $request->input('community_issue_visibility')
+                : CommunityContentTaxonomy::communityIssueDefaultVisibilitySetting();
+
+            foreach (CommunityPost::structuredLocationMetaKeys() as $locationKey) {
+                if ($request->has($locationKey)) {
+                    $payload[$locationKey] = $request->input($locationKey);
+                }
+            }
+        }
+
+        if (CommunityPost::usesAgricultureFlow($contentType)) {
+            $payload['agriculture_share_type'] = $request->input('agriculture_share_type');
+            $payload['agriculture_category'] = $request->input('agriculture_category');
+            $payload['agriculture_crop_name'] = $request->input('agriculture_crop_name');
+            $payload['agriculture_crop_variety'] = $request->input('agriculture_crop_variety');
+            $payload['agriculture_sowing_date'] = $request->input('agriculture_sowing_date');
+            $payload['agriculture_harvest_date'] = $request->input('agriculture_harvest_date');
+            $payload['agriculture_growing_season'] = $request->input('agriculture_growing_season');
+            $payload['agriculture_climate_zone'] = $request->input('agriculture_climate_zone');
+            $payload['agriculture_soil_type'] = $request->input('agriculture_soil_type');
+            $payload['agriculture_farm_size'] = $request->input('agriculture_farm_size');
+            $payload['agriculture_farming_type'] = $request->input('agriculture_farming_type');
+            $payload['agriculture_irrigation_method'] = $request->input('agriculture_irrigation_method');
+            $payload['agriculture_water_source'] = $request->input('agriculture_water_source');
+            $payload['agriculture_water_conservation_practices'] = array_values(array_intersect(
+                (array) $request->input('agriculture_water_conservation_practices', []),
+                CommunityContentTaxonomy::agricultureWaterConservationPractices()
+            ));
+            $payload['agriculture_soil_test_conducted'] = $request->input('agriculture_soil_test_conducted');
+            $payload['agriculture_soil_ph'] = $request->input('agriculture_soil_ph');
+            $payload['agriculture_soil_organic_carbon'] = $request->input('agriculture_soil_organic_carbon');
+            $payload['agriculture_soil_nitrogen'] = $request->input('agriculture_soil_nitrogen');
+            $payload['agriculture_soil_phosphorus'] = $request->input('agriculture_soil_phosphorus');
+            $payload['agriculture_soil_potassium'] = $request->input('agriculture_soil_potassium');
+            $payload['agriculture_soil_recommendations'] = $request->input('agriculture_soil_recommendations');
+            $payload['agriculture_problem_type'] = $request->input('agriculture_problem_type');
+            $payload['agriculture_expert_assistance'] = $request->input('agriculture_expert_assistance');
+            $payload['agriculture_equipment_name'] = $request->input('agriculture_equipment_name');
+            $payload['agriculture_equipment_manufacturer'] = $request->input('agriculture_equipment_manufacturer');
+            $payload['agriculture_equipment_experience'] = $request->input('agriculture_equipment_experience');
+            $payload['agriculture_equipment_cost'] = $request->input('agriculture_equipment_cost');
+            $payload['agriculture_equipment_benefits'] = $request->input('agriculture_equipment_benefits');
+            $payload['agriculture_scheme_name'] = $request->input('agriculture_scheme_name');
+            $payload['agriculture_scheme_department'] = $request->input('agriculture_scheme_department');
+            $payload['agriculture_scheme_eligibility'] = $request->input('agriculture_scheme_eligibility');
+            $payload['agriculture_scheme_subsidy'] = $request->input('agriculture_scheme_subsidy');
+            $payload['agriculture_scheme_application_link'] = $request->input('agriculture_scheme_application_link');
+            $payload['agriculture_scheme_last_date'] = $request->input('agriculture_scheme_last_date');
+            $payload['agriculture_market_commodity'] = $request->input('agriculture_market_commodity');
+            $payload['agriculture_market_name'] = $request->input('agriculture_market_name');
+            $payload['agriculture_market_price'] = $request->input('agriculture_market_price');
+            $payload['agriculture_market_date'] = $request->input('agriculture_market_date');
+            $payload['agriculture_market_price_trend'] = $request->input('agriculture_market_price_trend');
+            $payload['agriculture_livestock_types'] = array_values(array_intersect(
+                (array) $request->input('agriculture_livestock_types', []),
+                CommunityContentTaxonomy::agricultureLivestockTypes()
+            ));
+            $payload['agriculture_innovation_name'] = $request->input('agriculture_innovation_name');
+            $payload['agriculture_innovation_description'] = $request->input('agriculture_innovation_description');
+            $payload['agriculture_innovation_benefits'] = $request->input('agriculture_innovation_benefits');
+            $payload['agriculture_innovation_results'] = $request->input('agriculture_innovation_results');
+            $payload['agriculture_agri_business_type'] = $request->input('agriculture_agri_business_type');
+            $payload['agriculture_weather_impact'] = $request->input('agriculture_weather_impact');
+            $payload['agriculture_video_type'] = $request->input('agriculture_video_type');
+            $payload['agriculture_ask_community'] = $request->input('agriculture_ask_community');
+            $payload['agriculture_enable_knowledge_exchange'] = $request->boolean('agriculture_enable_knowledge_exchange');
+            $payload['agriculture_enable_crop_doctor'] = $request->boolean('agriculture_enable_crop_doctor');
+            $payload['agriculture_target_audiences'] = array_values(array_intersect(
+                (array) $request->input('agriculture_target_audiences', []),
+                CommunityContentTaxonomy::agricultureTargetAudiences()
+            ));
+            $payload['agriculture_poll_question'] = $request->input('agriculture_poll_question');
+            $payload['agriculture_poll_options'] = collect(preg_split('/\R/', (string) $request->input('agriculture_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('allow_poll')) {
+                unset($payload['agriculture_poll_question'], $payload['agriculture_poll_options']);
+            }
+
+            foreach (CommunityPost::structuredLocationMetaKeys() as $locationKey) {
+                if ($request->has($locationKey)) {
+                    $payload[$locationKey] = $request->input($locationKey);
+                }
+            }
+            unset($payload['location_locality']);
+        }
+
         if (CommunityPost::usesYouthCornerFlow($contentType)) {
             $payload['youth_corner_category'] = $request->input('youth_corner_category');
             $payload['youth_corner_content_type'] = $request->input('youth_corner_content_type');
@@ -724,6 +944,16 @@ class CommunityPostFormFields
                     'youth_corner_networking_options',
                     'youth_corner_poll_options',
                     'youth_corner_mentorship_requests',
+                    'local_voice_affected_communities',
+                    'local_voice_authorities',
+                    'local_voice_call_for_action',
+                    'local_voice_poll_options',
+                    'local_voice_initiatives',
+                    'local_voice_allow_support',
+                    'local_voice_allow_follow',
+                    'my_area_affected_communities',
+                    'my_area_authorities',
+                    'my_area_poll_options',
                 ], true)) {
                     return true;
                 }
@@ -1222,6 +1452,212 @@ class CommunityPostFormFields
     public static function womensWorldStructuredMetaKeys(): array
     {
         return array_keys(self::womensWorldDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function localVoiceDetailMetaOrder(): array
+    {
+        return [
+            'local_voice_type' => 'Voice type',
+            'local_voice_category' => 'Main category',
+            'local_voice_issue_type' => 'Issue type',
+            'local_voice_affected_communities' => 'Affected community',
+            'local_voice_impact_level' => 'Impact level',
+            'local_voice_video_type' => 'Video type',
+            'local_voice_suggested_solution' => 'Suggested solution',
+            'local_voice_estimated_benefit' => 'Estimated benefit',
+            'local_voice_authorities' => 'Authority concerned',
+            'local_voice_call_for_action' => 'Call for action',
+            'local_voice_status_tracker' => 'Status tracker',
+            'local_voice_poll_question' => 'Poll question',
+            'local_voice_poll_options' => 'Poll options',
+            'local_voice_allow_support' => 'Community support',
+            'local_voice_allow_follow' => 'Follow issue',
+            'local_voice_hero_name' => 'Local hero name',
+            'local_voice_hero_location' => 'Local hero location',
+            'local_voice_hero_contribution' => 'Local hero contribution',
+            'local_voice_hero_achievements' => 'Local hero achievements',
+            'local_voice_initiatives' => 'Community initiatives',
+            'local_voice_event_date' => 'Event date',
+            'local_voice_event_time' => 'Event time',
+            'local_voice_event_venue' => 'Event venue',
+            'local_voice_event_organizer' => 'Event organizer',
+            'location_country' => 'Country',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City/Town/Village',
+            'location_locality' => 'Locality / Area',
+            'local_voice_visibility' => 'Visibility',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceStructuredMetaKeys(): array
+    {
+        return array_keys(self::localVoiceDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function communityIssueDetailMetaOrder(): array
+    {
+        return [
+            'community_issue_category' => 'Issue category',
+            'community_issue_type' => 'Issue type',
+            'community_issue_severity' => 'Issue severity',
+            'community_issue_affected_population' => 'Affected population',
+            'community_issue_affected_groups' => 'Affected groups',
+            'location_country' => 'Country',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City/Town/Village',
+            'location_locality' => 'Locality / Area',
+            'location_landmark' => 'Landmark',
+            'community_issue_first_noticed_on' => 'First noticed on',
+            'community_issue_is_recurring' => 'Recurring issue',
+            'community_issue_frequency' => 'Frequency',
+            'community_issue_authority' => 'Responsible authority',
+            'community_issue_already_reported' => 'Already reported',
+            'community_issue_complaint_number' => 'Complaint number',
+            'community_issue_complaint_date' => 'Complaint date',
+            'community_issue_department_contacted' => 'Department contacted',
+            'community_issue_suggested_solution' => 'Suggested solution',
+            'community_issue_support_requests' => 'Support requests',
+            'community_issue_status_tracker' => 'Status',
+            'community_issue_resolution_timeline' => 'Resolution timeline',
+            'community_issue_allow_campaign' => 'Support campaign',
+            'community_issue_allow_support' => 'Community support',
+            'community_issue_allow_follow' => 'Follow issue',
+            'community_issue_allow_verification' => 'Community verification',
+            'community_issue_escalation_threshold' => 'Escalation threshold',
+            'community_issue_poll_question' => 'Poll question',
+            'community_issue_poll_options' => 'Poll options',
+            'community_issue_visibility' => 'Visibility',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueStructuredMetaKeys(): array
+    {
+        return array_keys(self::communityIssueDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function agricultureDetailMetaOrder(): array
+    {
+        return [
+            'agriculture_share_type' => 'Share type',
+            'agriculture_category' => 'Main category',
+            'agriculture_crop_name' => 'Crop name',
+            'agriculture_crop_variety' => 'Crop variety',
+            'agriculture_sowing_date' => 'Sowing date',
+            'agriculture_harvest_date' => 'Harvest date',
+            'agriculture_growing_season' => 'Growing season',
+            'agriculture_climate_zone' => 'Climate zone',
+            'agriculture_soil_type' => 'Soil type',
+            'agriculture_farm_size' => 'Farm size',
+            'agriculture_farming_type' => 'Farming type',
+            'location_country' => 'Country',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City/Town/Village',
+            'agriculture_irrigation_method' => 'Irrigation method',
+            'agriculture_water_source' => 'Water source',
+            'agriculture_water_conservation_practices' => 'Water conservation practices',
+            'agriculture_soil_test_conducted' => 'Soil test conducted',
+            'agriculture_soil_ph' => 'Soil pH',
+            'agriculture_soil_organic_carbon' => 'Organic carbon',
+            'agriculture_soil_nitrogen' => 'Nitrogen',
+            'agriculture_soil_phosphorus' => 'Phosphorus',
+            'agriculture_soil_potassium' => 'Potassium',
+            'agriculture_soil_recommendations' => 'Soil recommendations',
+            'agriculture_problem_type' => 'Problem type',
+            'agriculture_expert_assistance' => 'Expert assistance requested',
+            'agriculture_equipment_name' => 'Equipment name',
+            'agriculture_equipment_manufacturer' => 'Equipment manufacturer',
+            'agriculture_equipment_experience' => 'Equipment experience',
+            'agriculture_equipment_cost' => 'Equipment cost',
+            'agriculture_equipment_benefits' => 'Equipment benefits',
+            'agriculture_scheme_name' => 'Scheme name',
+            'agriculture_scheme_department' => 'Scheme department',
+            'agriculture_scheme_eligibility' => 'Scheme eligibility',
+            'agriculture_scheme_subsidy' => 'Scheme subsidy',
+            'agriculture_scheme_application_link' => 'Application link',
+            'agriculture_scheme_last_date' => 'Scheme last date',
+            'agriculture_market_commodity' => 'Market commodity',
+            'agriculture_market_name' => 'Market name',
+            'agriculture_market_price' => 'Market price',
+            'agriculture_market_date' => 'Market date',
+            'agriculture_market_price_trend' => 'Price trend',
+            'agriculture_livestock_types' => 'Livestock types',
+            'agriculture_innovation_name' => 'Innovation name',
+            'agriculture_innovation_description' => 'Innovation description',
+            'agriculture_innovation_benefits' => 'Innovation benefits',
+            'agriculture_innovation_results' => 'Innovation results',
+            'agriculture_agri_business_type' => 'Agri-business type',
+            'agriculture_weather_impact' => 'Weather impact',
+            'agriculture_video_type' => 'Video type',
+            'agriculture_ask_community' => 'Ask the community',
+            'agriculture_enable_knowledge_exchange' => 'Farmer knowledge exchange',
+            'agriculture_enable_crop_doctor' => 'Crop Doctor',
+            'agriculture_target_audiences' => 'Target audiences',
+            'agriculture_poll_question' => 'Poll question',
+            'agriculture_poll_options' => 'Poll options',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureStructuredMetaKeys(): array
+    {
+        return array_keys(self::agricultureDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function myAreaDetailMetaOrder(): array
+    {
+        return [
+            'my_area_activity_type' => 'Activity type',
+            'my_area_topic_category' => 'Topic category',
+            'my_area_impact_level' => 'Impact level',
+            'my_area_affected_communities' => 'Affected community',
+            'my_area_status_tracker' => 'Status tracker',
+            'my_area_authorities' => 'Authority concerned',
+            'my_area_suggested_solution' => 'Suggested solution',
+            'my_area_hero_name' => 'Local hero name',
+            'my_area_hero_location' => 'Local hero location',
+            'my_area_hero_contribution' => 'Local hero contribution',
+            'my_area_achievement_title' => 'Achievement title',
+            'my_area_achievement_description' => 'Achievement description',
+            'my_area_poll_question' => 'Poll question',
+            'my_area_poll_options' => 'Poll options',
+            'my_area_visibility' => 'Visibility',
+            'location_country' => 'Country',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City/Town/Village',
+            'location_locality' => 'Locality / Area',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function myAreaStructuredMetaKeys(): array
+    {
+        return array_keys(self::myAreaDetailMetaOrder());
     }
 
     /**
@@ -2189,12 +2625,10 @@ class CommunityPostFormFields
             'tech_summary' => 'Technology summary',
             'scientific_field' => 'Scientific field',
             'research_type' => 'Research type',
-            'local_issue_type' => 'Local issue type',
-            'affected_area' => 'Affected area',
-            'community_impact' => 'Community impact',
-            'issue_category' => 'Issue category',
-            'issue_urgency' => 'Urgency',
-            'proposed_solution' => 'Proposed solution',
+            'local_voice_type' => 'Voice type',
+            'local_voice_category' => 'Main category',
+            'community_issue_category' => 'Issue category',
+            'community_issue_type' => 'Issue type',
             'creative_medium' => 'Creative medium',
             'tools_used' => 'Tools used',
             'creative_inspiration' => 'Inspiration',
@@ -2245,14 +2679,20 @@ class CommunityPostFormFields
      */
     public static function structuredLocationFields(?string $contentType = null): array
     {
-        $requiresArea = $contentType === 'awareness';
+        $requiresArea = in_array($contentType, ['awareness', 'local-voices'], true);
+        $cityLabel = $contentType === 'local-voices' ? 'City/Town/Village' : 'City';
+        $localityLabel = match ($contentType) {
+            'awareness' => 'Area',
+            'local-voices' => 'Locality / Area',
+            default => 'Locality',
+        };
 
         return [
             self::text('location_country', 'Country', 120, true),
             self::text('location_state', 'State', 120, true),
             self::text('location_district', 'District', 120, true),
-            self::text('location_city', 'City', 120, true),
-            self::text('location_locality', $requiresArea ? 'Area' : 'Locality', 120, $requiresArea),
+            self::text('location_city', $cityLabel, 120, true),
+            self::text('location_locality', $localityLabel, 120, $requiresArea),
         ];
     }
 

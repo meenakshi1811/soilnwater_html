@@ -16,6 +16,7 @@ use App\Services\CommunitySeniorCitizensForumEngagementNotificationService;
 use App\Services\CommunityStudentCornerEngagementNotificationService;
 use App\Services\CommunityYouthCornerEngagementNotificationService;
 use App\Services\CommunityWomensWorldEngagementNotificationService;
+use App\Services\CommunityAgricultureEngagementNotificationService;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
 use Illuminate\Http\JsonResponse;
@@ -97,7 +98,7 @@ class CommunityPostApprovalController extends Controller
             'types' => CommunityContentTaxonomy::formTypes(),
             'scoreMetrics' => CommunityArticleScoreService::metricSummary($post),
             'scoreBreakdown' => CommunityArticleScoreService::breakdown($post),
-            'reportEngagementActivity' => $post->isReportContent()
+            'reportEngagementActivity' => $post->supportsCivicEngagement()
                 ? [
                     'supports' => $post->reportSupports()->with('user:id,name,full_name')->latest()->limit(10)->get(),
                     'agreements' => $post->reportAgreements()->with('user:id,name,full_name')->latest()->limit(10)->get(),
@@ -166,9 +167,14 @@ class CommunityPostApprovalController extends Controller
             if ($post->isYouthCornerPost()) {
                 CommunityYouthCornerEngagementNotificationService::notifyAuthorOfPublishedPost($post);
             }
+            if ($post->isAgriculturePost()) {
+                CommunityAgricultureEngagementNotificationService::notifyOnPublishedPost($post);
+            }
             CommunityReportEngagementNotificationService::notifyFollowersOfReportUpdate(
                 $post,
-                'This report has been reviewed and published.'
+                $post->isMyAreaPost()
+                    ? 'This My Area post has been reviewed and published.'
+                    : 'This report has been reviewed and published.'
             );
             CommunityArticleScoreService::recalculate($post);
             CommunityReportTrustScoreService::syncToMeta($post);

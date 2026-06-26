@@ -48,6 +48,16 @@
         @include('community.partials.business-styles')
     @endpush
 @endif
+@if($post->isCommunityIssuesPost())
+    @push('styles')
+        @include('community.partials.business-styles')
+    @endpush
+@endif
+@if($post->isAgriculturePost())
+    @push('styles')
+        @include('community.partials.agriculture-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
@@ -171,6 +181,41 @@
                 ])
             @endif
 
+            @if($post->isLocalVoicesPost())
+                @include('community.partials.local-voices-show-sections', ['post' => $post])
+            @endif
+
+            @if($post->isMyAreaPost())
+                @include('community.partials.my-area-show-sections', ['post' => $post])
+                @include('community.partials.my-area-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved My Area metadata',
+                    'includeAdmin' => true,
+                ])
+            @endif
+
+            @if($post->isCommunityIssuesPost())
+                @include('community.partials.community-issues-show-sections', [
+                    'post' => $post,
+                    'reportEngagement' => $reportEngagement,
+                ])
+                @include('community.partials.community-issues-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved Community Issues metadata',
+                    'includeAdmin' => true,
+                    'reportEngagement' => $reportEngagement,
+                ])
+            @endif
+
+            @if($post->isAgriculturePost())
+                @include('community.partials.agriculture-show-sections', ['post' => $post])
+                @include('community.partials.agriculture-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved Agriculture metadata',
+                    'includeAdmin' => true,
+                ])
+            @endif
+
             @if($post->isAwarenessPost() && ($post->allowsAwarenessCauseSupport() || $post->allowsAwarenessPledges() || $post->allowsCampaignJoin()))
                 <div class="mb-4" id="awareness-campaign-activity">
                     @include('backend.community-posts.partials.awareness-portal-activity', [
@@ -218,6 +263,26 @@
                 </div>
             @endif
 
+            @if($post->isMyAreaPost())
+                <div class="mb-4" id="my-area-portal-activity">
+                    @include('backend.community-posts.partials.my-area-portal-activity', [
+                        'post' => $post,
+                        'reportEngagement' => $reportEngagement,
+                        'reportEngagementActivity' => $reportEngagementActivity ?? null,
+                    ])
+                </div>
+            @endif
+
+            @if($post->isCommunityIssuesPost())
+                <div class="mb-4" id="community-issues-portal-activity">
+                    @include('backend.community-posts.partials.community-issues-portal-activity', [
+                        'post' => $post,
+                        'reportEngagement' => $reportEngagement,
+                        'reportEngagementActivity' => $reportEngagementActivity ?? null,
+                    ])
+                </div>
+            @endif
+
             <div class="chart-card p-3 p-lg-4 mb-4">
                 <h5 class="mb-3">Comments &amp; discussion settings</h5>
                 <ul class="list-unstyled small mb-0">
@@ -250,6 +315,26 @@
                         <li class="mb-1"><strong>Peer discussion:</strong> {{ $post->allow_feedback ? 'Enabled' : 'Disabled' }}</li>
                         <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
                         <li class="mb-1"><strong>Reactions:</strong> Youth Corner positive reactions</li>
+                    @elseif($post->isMyAreaPost())
+                        <li class="mb-1"><strong>Activity:</strong> {{ $post->myAreaActivityType() ?: '—' }}</li>
+                        <li class="mb-1"><strong>Publish as:</strong> {{ \App\Support\CommunityContentTaxonomy::myAreaPublishAsOptions()[$post->resolvedPublishAs()] ?? $post->publishAsLabel() }}</li>
+                        <li class="mb-1"><strong>Visibility:</strong> {{ $post->myAreaVisibilityLabel() }}</li>
+                        <li class="mb-1"><strong>Status tracker:</strong> {{ data_get($post->meta, 'my_area_status_tracker') ?: '—' }}</li>
+                        <li class="mb-1"><strong>Community voting:</strong> {{ $post->allow_poll ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Reactions:</strong> My Area civic reactions</li>
+                    @elseif($post->isCommunityIssuesPost())
+                        <li class="mb-1"><strong>Issue category:</strong> {{ data_get($post->meta, 'community_issue_category') ?: '—' }}</li>
+                        <li class="mb-1"><strong>Issue type:</strong> {{ data_get($post->meta, 'community_issue_type') ?: '—' }}</li>
+                        <li class="mb-1"><strong>Severity:</strong> {{ data_get($post->meta, 'community_issue_severity') ?: '—' }}</li>
+                        <li class="mb-1"><strong>Publish as:</strong> {{ \App\Support\CommunityContentTaxonomy::communityIssuePublishAsOptions()[$post->resolvedPublishAs()] ?? $post->publishAsLabel() }}</li>
+                        <li class="mb-1"><strong>Visibility:</strong> {{ $post->communityIssueVisibilityLabel() }}</li>
+                        <li class="mb-1"><strong>Status tracker:</strong> {{ data_get($post->meta, 'community_issue_status_tracker') ?: '—' }}</li>
+                        <li class="mb-1"><strong>Support campaign:</strong> {{ data_get($post->meta, 'community_issue_allow_campaign', true) ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Community verification:</strong> {{ $post->allowsCommunityIssueVerification() ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Poll:</strong> {{ $post->allow_poll ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Reactions:</strong> Community Issues civic reactions</li>
                     @endif
                     <li class="mb-1"><strong>Questions:</strong> {{ $post->allow_questions ? 'Enabled' : 'Disabled' }}</li>
                     <li class="mb-0"><strong>Suggestions:</strong> {{ $post->allow_suggestions ? 'Enabled' : 'Disabled' }}</li>

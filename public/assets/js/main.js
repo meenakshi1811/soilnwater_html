@@ -451,51 +451,19 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
   const addressInput = document.getElementById('google_address');
   const cityInput = document.getElementById('google_city');
   const pincodeInput = document.getElementById('google_pincode');
+  const whatsappInput = document.getElementById('google_whatsapp_number');
+  const latitudeInput = document.getElementById('google_latitude');
+  const longitudeInput = document.getElementById('google_longitude');
   const dateOfBirthInput = document.getElementById('google_date_of_birth');
 
   if (!trigger || !modalElement || !roleSelect || !continueBtn) return;
   if (typeof bootstrap === 'undefined' || !bootstrap.Modal) return;
 
   const roleModal = new bootstrap.Modal(modalElement);
-  const requiredInputs = [roleSelect, addressInput, cityInput, pincodeInput, dateOfBirthInput].filter(Boolean);
+  const requiredInputs = [roleSelect, whatsappInput, addressInput, cityInput, pincodeInput, dateOfBirthInput].filter(Boolean);
 
   const syncContinueState = () => {
     continueBtn.disabled = requiredInputs.some((input) => input.value.trim() === '');
-  };
-
-  const readAddressPart = (components, type) => {
-    const component = (components || []).find((item) => item.types && item.types.includes(type));
-    return component ? component.long_name : '';
-  };
-
-  const initGoogleAddressAutocomplete = () => {
-    if (!addressInput || addressInput.dataset.googlePlacesReady === 'true') return;
-    if (!window.google || !google.maps || !google.maps.places) return;
-
-    addressInput.dataset.googlePlacesReady = 'true';
-    const autocomplete = new google.maps.places.Autocomplete(addressInput, {
-      fields: ['address_components', 'formatted_address'],
-      types: ['geocode'],
-    });
-
-    autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
-      const components = place.address_components || [];
-
-      if (place.formatted_address) {
-        addressInput.value = place.formatted_address;
-      }
-
-      if (cityInput) {
-        cityInput.value = readAddressPart(components, 'locality') || readAddressPart(components, 'administrative_area_level_2') || cityInput.value;
-      }
-
-      if (pincodeInput) {
-        pincodeInput.value = readAddressPart(components, 'postal_code') || pincodeInput.value;
-      }
-
-      syncContinueState();
-    });
   };
 
   if (registerRoleSelect && registerRoleSelect.value) {
@@ -530,8 +498,22 @@ window.initHeaderLocationAutocomplete = window.initHeaderLocationAutocomplete ||
     });
   });
 
+  if (addressInput) {
+    addressInput.addEventListener('input', () => {
+      if (addressInput.dataset.placeJustSelected === '1') {
+        delete addressInput.dataset.placeJustSelected;
+        return;
+      }
+
+      if (latitudeInput) latitudeInput.value = '';
+      if (longitudeInput) longitudeInput.value = '';
+    });
+  }
+
   modalElement.addEventListener('shown.bs.modal', () => {
-    initGoogleAddressAutocomplete();
+    if (window.FormHelper && typeof window.FormHelper.initGoogleRegisterPlaceAutocomplete === 'function') {
+      window.FormHelper.initGoogleRegisterPlaceAutocomplete(syncContinueState);
+    }
     roleSelect.focus();
   });
 })();

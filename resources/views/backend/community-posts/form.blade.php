@@ -365,6 +365,18 @@
             <div class="col-12 type-extra youth-corner-flow" data-for="youth-corner">
                 @include('backend.community-posts.partials.youth-corner-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            <div class="col-12 type-extra local-voices-flow" data-for="local-voices">
+                @include('backend.community-posts.partials.local-voices-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
+            <div class="col-12 type-extra my-area-flow" data-for="my-area">
+                @include('backend.community-posts.partials.my-area-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
+            <div class="col-12 type-extra community-issues-flow" data-for="community-issues">
+                @include('backend.community-posts.partials.community-issues-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
+            <div class="col-12 type-extra agriculture-flow" data-for="agriculture">
+                @include('backend.community-posts.partials.agriculture-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -727,6 +739,174 @@ The mountains keep.</pre>
                         </div>
                     </div>
                 </div>
+                <div id="localVoicesContentGuide" class="story-content-guide mb-3 local-voices-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full Local Voices post.</p>
+                            </div>
+                            <span class="badge bg-primary text-white">Local Voices</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field on the form. Use the editor below for your local story, concern, or feedback.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Text</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Documents</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Quotes</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Polls</li>
+                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertLocalVoicesStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::localVoiceContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="myAreaContentGuide" class="story-content-guide mb-3 my-area-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full My Area post.</p>
+                            </div>
+                            <span class="badge bg-success text-white">My Area</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">Report issues, recognize heroes, share achievements, or raise awareness for your neighbourhood.</p>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertMyAreaStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::myAreaContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="communityIssuesContentGuide" class="story-content-guide mb-3 community-issues-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Issue description</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below to describe the community issue in detail.</p>
+                            </div>
+                            <span class="badge bg-danger text-white">Community Issues</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field on the form. Use the editor below for your full issue description.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Text</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Documents</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertCommunityIssuesStructureBtn">
+                                        Insert recommended structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Recommended structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::communityIssueContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="agricultureContentGuide" class="story-content-guide mb-3 agriculture-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full agriculture post.</p>
+                            </div>
+                            <span class="badge bg-success text-white">Agriculture</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field on the form. Use the editor below for your farming experience, advisory, or article.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Text</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Tables</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Documents</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Charts</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertAgricultureStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::agricultureContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="autobiographyContentGuide" class="story-content-guide mb-3 life-story-flow-section" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -866,6 +1046,18 @@ The mountains keep.</pre>
             </div>
             <div class="col-12 type-extra youth-corner-flow" data-for="youth-corner">
                 @include('backend.community-posts.partials.youth-corner-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra local-voices-flow" data-for="local-voices">
+                @include('backend.community-posts.partials.local-voices-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra my-area-flow" data-for="my-area">
+                @include('backend.community-posts.partials.my-area-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra community-issues-flow" data-for="community-issues">
+                @include('backend.community-posts.partials.community-issues-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra agriculture-flow" data-for="agriculture">
+                @include('backend.community-posts.partials.agriculture-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
@@ -1476,7 +1668,7 @@ The mountains keep.</pre>
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label">Report status <span class="text-danger">*</span></label>
-                                <select name="report_status" class="form-select my-area-required">
+                                <select name="report_status" class="form-select report-required">
                                     <option value="">Select report status</option>
                                     @foreach(\App\Support\CommunityContentTaxonomy::reportStatuses() as $reportStatus)
                                         <option value="{{ $reportStatus }}" @selected(old('report_status', data_get($post->meta, 'report_status')) === $reportStatus)>{{ $reportStatus }}</option>
@@ -1486,7 +1678,7 @@ The mountains keep.</pre>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Report type <span class="text-danger">*</span></label>
-                                <select name="report_type" class="form-select my-area-required">
+                                <select name="report_type" class="form-select report-required">
                                     <option value="">Select report type</option>
                                     @foreach(\App\Support\CommunityContentTaxonomy::reportTypes() as $reportType)
                                         <option value="{{ $reportType }}" @selected(old('report_type', data_get($post->meta, 'report_type')) === $reportType)>{{ $reportType }}</option>
@@ -1496,7 +1688,7 @@ The mountains keep.</pre>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Priority <span class="text-danger">*</span></label>
-                                <select name="issue_priority" class="form-select my-area-required">
+                                <select name="issue_priority" class="form-select report-required">
                                     <option value="">Select priority</option>
                                     @foreach(['Low', 'Medium', 'High', 'Urgent'] as $priority)
                                         <option value="{{ $priority }}" @selected(old('issue_priority', data_get($post->meta, 'issue_priority')) === $priority)>{{ $priority }}</option>
@@ -1595,7 +1787,7 @@ The mountains keep.</pre>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="reportAuthorType">Author type <span class="text-danger">*</span></label>
-                                <select name="report_author_type" id="reportAuthorType" class="form-select my-area-required">
+                                <select name="report_author_type" id="reportAuthorType" class="form-select report-required">
                                     <option value="">Select author type</option>
                                     @foreach(\App\Support\CommunityContentTaxonomy::reportAuthorTypes() as $authorType)
                                         <option value="{{ $authorType }}" @selected(old('report_author_type', data_get($post->meta, 'report_author_type')) === $authorType)>{{ $authorType }}</option>
@@ -2816,6 +3008,182 @@ The mountains keep.</pre>
 
     document.getElementById('youthCornerCategory')?.addEventListener('change', syncYouthCornerCategory);
 
+    function syncLocalVoicesCategory() {
+        const localVoiceCategory = document.getElementById('localVoiceCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'local-voices') {
+            return;
+        }
+
+        categorySelect.value = localVoiceCategory;
+        categorySelect.dataset.selected = localVoiceCategory;
+    }
+
+    document.getElementById('localVoiceCategory')?.addEventListener('change', syncLocalVoicesCategory);
+
+    function syncCommunityIssuesCategory() {
+        const issueCategory = document.getElementById('communityIssueCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'community-issues') {
+            return;
+        }
+
+        categorySelect.value = issueCategory;
+        categorySelect.dataset.selected = issueCategory;
+    }
+
+    document.getElementById('communityIssueCategory')?.addEventListener('change', syncCommunityIssuesCategory);
+
+    function syncAgricultureCategory() {
+        const agricultureCategory = document.getElementById('agricultureCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'agriculture') {
+            return;
+        }
+
+        categorySelect.value = agricultureCategory;
+        categorySelect.dataset.selected = agricultureCategory;
+    }
+
+    document.getElementById('agricultureCategory')?.addEventListener('change', syncAgricultureCategory);
+
+    const AGRICULTURE_CROP_RELEVANT_CATEGORIES = @json(\App\Support\CommunityContentTaxonomy::agricultureCropRelevantCategories());
+    const AGRICULTURE_CROP_ADVISORY_SHARE_TYPE = 'Crop Advisory';
+    const AGRICULTURE_LIVESTOCK_CATEGORIES = ['Livestock', 'Dairy Farming', 'Poultry Farming', 'Fish Farming', 'Beekeeping'];
+
+    function refreshAgricultureCropSection() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const cropSection = document.getElementById('agricultureCropSection');
+        if (!cropSection || contentType !== 'agriculture') {
+            if (cropSection) {
+                cropSection.style.display = 'none';
+            }
+            return;
+        }
+
+        const category = document.getElementById('agricultureCategory')?.value || '';
+        const shareType = document.getElementById('agricultureShareType')?.value || '';
+        const showCropDetails = AGRICULTURE_CROP_RELEVANT_CATEGORIES.includes(category)
+            || shareType === AGRICULTURE_CROP_ADVISORY_SHARE_TYPE;
+        cropSection.style.display = showCropDetails ? '' : 'none';
+    }
+
+    function refreshAgricultureSoilParameters() {
+        const soilSection = document.getElementById('agricultureSoilParametersSection');
+        const conducted = document.querySelector('input[name="agriculture_soil_test_conducted"]:checked')?.value || '';
+        if (soilSection) {
+            soilSection.style.display = conducted === 'yes' ? '' : 'none';
+        }
+    }
+
+    document.querySelectorAll('input[name="agriculture_soil_test_conducted"]').forEach((field) => {
+        field.addEventListener('change', refreshAgricultureSoilParameters);
+    });
+    refreshAgricultureSoilParameters();
+
+    function refreshAgricultureConditionalSections() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        if (contentType !== 'agriculture') {
+            [
+                'agricultureProblemSection',
+                'agricultureMachinerySection',
+                'agricultureSchemeSection',
+                'agricultureMarketSection',
+                'agricultureLivestockSection',
+                'agricultureInnovationSection',
+                'agricultureAgriBusinessSection',
+            ].forEach((sectionId) => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.style.display = 'none';
+                }
+            });
+            return;
+        }
+
+        const category = document.getElementById('agricultureCategory')?.value || '';
+        const shareType = document.getElementById('agricultureShareType')?.value || '';
+
+        const problemSection = document.getElementById('agricultureProblemSection');
+        if (problemSection) {
+            const showProblem = ['Problem & Solution', 'Question & Discussion', 'Crop Advisory'].includes(shareType);
+            problemSection.style.display = showProblem ? '' : 'none';
+        }
+
+        const machinerySection = document.getElementById('agricultureMachinerySection');
+        if (machinerySection) {
+            machinerySection.style.display = (category === 'Farm Machinery' || shareType === 'Equipment Review') ? '' : 'none';
+        }
+
+        const schemeSection = document.getElementById('agricultureSchemeSection');
+        if (schemeSection) {
+            schemeSection.style.display = (category === 'Government Schemes' || shareType === 'Government Scheme') ? '' : 'none';
+        }
+
+        const marketSection = document.getElementById('agricultureMarketSection');
+        if (marketSection) {
+            marketSection.style.display = shareType === 'Market Information' ? '' : 'none';
+        }
+
+        const livestockSection = document.getElementById('agricultureLivestockSection');
+        if (livestockSection) {
+            livestockSection.style.display = (AGRICULTURE_LIVESTOCK_CATEGORIES.includes(category) || shareType === 'Livestock Management') ? '' : 'none';
+        }
+
+        const innovationSection = document.getElementById('agricultureInnovationSection');
+        if (innovationSection) {
+            innovationSection.style.display = shareType === 'Agricultural Innovation' ? '' : 'none';
+        }
+
+        const agriBusinessSection = document.getElementById('agricultureAgriBusinessSection');
+        if (agriBusinessSection) {
+            agriBusinessSection.style.display = (category === 'Agri-Business' || shareType === 'Agri-Business Opportunity') ? '' : 'none';
+        }
+
+        refreshAgricultureCropSection();
+    }
+
+    document.getElementById('agricultureCategory')?.addEventListener('change', refreshAgricultureConditionalSections);
+    document.getElementById('agricultureShareType')?.addEventListener('change', refreshAgricultureConditionalSections);
+    refreshAgricultureConditionalSections();
+
+    function syncMyAreaCategory() {
+        const categorySelect = document.getElementById('categorySelect');
+        const topicCategory = document.getElementById('myAreaTopicCategory')?.value || '';
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'my-area') {
+            return;
+        }
+        categorySelect.value = topicCategory;
+        categorySelect.dataset.selected = topicCategory;
+    }
+
+    document.getElementById('myAreaTopicCategory')?.addEventListener('change', syncMyAreaCategory);
+
+    function refreshMyAreaConditionalSections() {
+        const activity = document.getElementById('myAreaActivityType')?.value || '';
+        const heroSection = document.getElementById('myAreaHeroSection');
+        const achievementSection = document.getElementById('myAreaAchievementSection');
+        if (heroSection) heroSection.style.display = activity === 'Recognize Heroes' ? '' : 'none';
+        if (achievementSection) achievementSection.style.display = activity === 'Share Local Achievements' ? '' : 'none';
+    }
+
+    document.getElementById('myAreaActivityType')?.addEventListener('change', refreshMyAreaConditionalSections);
+    refreshMyAreaConditionalSections();
+
+    function refreshMyAreaPrivacyFields() {
+        const visibilitySelect = document.getElementById('myAreaVisibility');
+        const privateLinkInfo = document.getElementById('myAreaPrivateLinkInfo');
+        if (visibilitySelect && privateLinkInfo) {
+            privateLinkInfo.style.display = visibilitySelect.value === 'private_link' ? '' : 'none';
+        }
+    }
+
+    document.getElementById('myAreaVisibility')?.addEventListener('change', refreshMyAreaPrivacyFields);
+    refreshMyAreaPrivacyFields();
+
     const STUDENT_CORNER_PROJECT_CONTENT_TYPE = 'Project Submission';
 
     function refreshStudentCornerProjectSection() {
@@ -3039,6 +3407,216 @@ The mountains keep.</pre>
                 : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
         }
     });
+
+    document.getElementById('insertLocalVoicesStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Issue / Topic</h2>',
+            '<p>State the main issue or topic clearly.</p>',
+            '<h2>Background</h2>',
+            '<p>Provide context and history.</p>',
+            '<h2>Current Situation</h2>',
+            '<p>Describe what is happening now.</p>',
+            '<h2>Impact on Community</h2>',
+            '<p>Explain who is affected and how.</p>',
+            '<h2>Suggested Solution</h2>',
+            '<p>Share practical ideas or requests.</p>',
+            '<h2>Call for Action</h2>',
+            '<p>Tell readers what they can do next.</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    document.getElementById('insertCommunityIssuesStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>What is the Issue?</h2>',
+            '<p>Describe the problem clearly.</p>',
+            '<h2>When Did It Start?</h2>',
+            '<p>When did you first notice it?</p>',
+            '<h2>Who Is Affected?</h2>',
+            '<p>Residents, students, businesses, or other groups.</p>',
+            '<h2>What Is the Impact?</h2>',
+            '<p>Explain how this affects daily life or safety.</p>',
+            '<h2>What Action Has Been Taken So Far?</h2>',
+            '<p>Complaints filed, authorities contacted, or community steps.</p>',
+            '<h2>Suggested Solution</h2>',
+            '<p>Practical ideas or requests for resolution.</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    document.getElementById('insertAgricultureStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Background</h2>',
+            '<p>Set the context for your farming topic or experience.</p>',
+            '<h2>Problem</h2>',
+            '<p>Describe the challenge, pest, weather, or market issue.</p>',
+            '<h2>Method Used</h2>',
+            '<p>Explain practices, inputs, or techniques applied.</p>',
+            '<h2>Results</h2>',
+            '<p>Share outcomes, yields, savings, or improvements.</p>',
+            '<h2>Challenges</h2>',
+            '<p>Note difficulties faced during the process.</p>',
+            '<h2>Recommendations</h2>',
+            '<p>Offer advice for other farmers or readers.</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    document.getElementById('insertMyAreaStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Issue / Topic</h2>',
+            '<p>What is happening in your area?</p>',
+            '<h2>Background</h2>',
+            '<p>Provide local context.</p>',
+            '<h2>Current Situation</h2>',
+            '<p>Describe the present condition.</p>',
+            '<h2>Impact on Community</h2>',
+            '<p>Who is affected and how?</p>',
+            '<h2>Suggested Solution</h2>',
+            '<p>Practical ideas or requests.</p>',
+            '<h2>Call for Action</h2>',
+            '<p>What should neighbours or authorities do?</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    function refreshLocalVoicesConditionalSections() {
+        const voiceType = document.getElementById('localVoiceType')?.value || '';
+        const heroSection = document.getElementById('localVoiceHeroSection');
+        const initiativeSection = document.getElementById('localVoiceInitiativeSection');
+
+        if (heroSection) {
+            heroSection.style.display = voiceType === 'Local Hero' ? '' : 'none';
+        }
+
+        if (initiativeSection) {
+            initiativeSection.style.display = voiceType === 'Community Initiative' ? '' : 'none';
+        }
+    }
+
+    document.getElementById('localVoiceType')?.addEventListener('change', refreshLocalVoicesConditionalSections);
+    refreshLocalVoicesConditionalSections();
+
+    function refreshLocalVoicesPrivacyFields() {
+        const visibilitySelect = document.getElementById('localVoiceVisibility');
+        const privateLinkInfo = document.getElementById('localVoicePrivateLinkInfo');
+        if (!visibilitySelect || !privateLinkInfo) {
+            return;
+        }
+
+        privateLinkInfo.style.display = visibilitySelect.value === 'private_link' ? '' : 'none';
+    }
+
+    document.getElementById('localVoiceVisibility')?.addEventListener('change', refreshLocalVoicesPrivacyFields);
+    document.getElementById('localVoiceCopyPrivateLinkBtn')?.addEventListener('click', function () {
+        const input = document.getElementById('localVoicePrivateLinkUrl');
+        if (!input?.value) {
+            return;
+        }
+        navigator.clipboard?.writeText(input.value).then(function () {
+            notify('success', 'Private link copied.');
+        }).catch(function () {
+            input.select();
+            document.execCommand('copy');
+            notify('success', 'Private link copied.');
+        });
+    });
+    refreshLocalVoicesPrivacyFields();
+
+    function refreshCommunityIssuesPrivacyFields() {
+        const visibilitySelect = document.getElementById('communityIssueVisibility');
+        const privateLinkInfo = document.getElementById('communityIssuePrivateLinkInfo');
+        const penNameWrap = document.getElementById('communityIssuePenNameWrap');
+        const selectedPublishAs = document.querySelector('#communityIssuePublishAsWrap input[name="publish_as"]:checked')?.value || '';
+
+        if (visibilitySelect && privateLinkInfo) {
+            privateLinkInfo.style.display = visibilitySelect.value === 'private_link' ? '' : 'none';
+        }
+
+        if (penNameWrap) {
+            penNameWrap.style.display = selectedPublishAs === 'pen_name' ? '' : 'none';
+        }
+    }
+
+    function refreshCommunityIssuesPriorReportFields() {
+        const reportedYes = document.getElementById('communityIssueReportedYes')?.checked;
+        const priorFields = document.getElementById('communityIssuePriorReportFields');
+        if (priorFields) {
+            priorFields.style.display = reportedYes ? '' : 'none';
+        }
+    }
+
+    document.getElementById('communityIssueVisibility')?.addEventListener('change', refreshCommunityIssuesPrivacyFields);
+    document.querySelectorAll('#communityIssuePublishAsWrap input[name="publish_as"]').forEach((input) => {
+        input.addEventListener('change', refreshCommunityIssuesPrivacyFields);
+    });
+    document.getElementById('communityIssueCopyPrivateLinkBtn')?.addEventListener('click', function () {
+        const input = document.getElementById('communityIssuePrivateLinkUrl');
+        if (!input?.value) {
+            return;
+        }
+        navigator.clipboard?.writeText(input.value).then(function () {
+            notify('success', 'Private link copied.');
+        }).catch(function () {
+            input.select();
+            document.execCommand('copy');
+            notify('success', 'Private link copied.');
+        });
+    });
+    document.getElementById('communityIssueReportedYes')?.addEventListener('change', refreshCommunityIssuesPriorReportFields);
+    document.getElementById('communityIssueReportedNo')?.addEventListener('change', refreshCommunityIssuesPriorReportFields);
+    document.getElementById('communityIssueAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
+    document.getElementById('agricultureAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
+    refreshCommunityIssuesPrivacyFields();
+    refreshCommunityIssuesPriorReportFields();
 
     const CHILDRENS_CORNER_CONTENT_GUIDE = {
         rich_text: {
@@ -3340,7 +3918,7 @@ The mountains keep.</pre>
     const COMMUNITY_LOCATION_TYPES_REQUIRING_PLACE = @json(\App\Models\CommunityPost::locationTypesRequiringPlace());
     const COMMUNITY_LOCATION_TYPE_GPS = @json(\App\Models\CommunityPost::LOCATION_TYPE_GPS);
     const COMMUNITY_BASE_LOCATION_TYPES = @json(\App\Models\CommunityPost::locationTypeOptions());
-    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness', 'business'];
+    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture'];
     const COMMUNITY_OPTIONAL_STRUCTURED_LOCATION_TYPES = ['womens-world', 'student-corner', 'youth-corner', 'senior-citizens-forum'];
     let communityGpsMap = null;
     let communityGpsMarker = null;
@@ -3401,6 +3979,10 @@ The mountains keep.</pre>
         const womensWorldSlot = document.getElementById('communityWomensWorldLocationSlot');
         const studentCornerSlot = document.getElementById('communityStudentCornerLocationSlot');
         const youthCornerSlot = document.getElementById('communityYouthCornerLocationSlot');
+        const localVoicesSlot = document.getElementById('communityLocalVoicesLocationSlot');
+        const myAreaSlot = document.getElementById('communityMyAreaLocationSlot');
+        const communityIssuesSlot = document.getElementById('communityCommunityIssuesLocationSlot');
+        const agricultureSlot = document.getElementById('communityAgricultureLocationSlot');
         const seniorCitizensForumSlot = document.getElementById('communitySeniorCitizensForumLocationSlot');
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
 
@@ -3415,6 +3997,10 @@ The mountains keep.</pre>
         const isWomensWorld = contentType === 'womens-world';
         const isStudentCorner = contentType === 'student-corner';
         const isYouthCorner = contentType === 'youth-corner';
+        const isLocalVoices = contentType === 'local-voices';
+        const isMyArea = contentType === 'my-area';
+        const isCommunityIssues = contentType === 'community-issues';
+        const isAgriculture = contentType === 'agriculture';
         const isSeniorCitizensForum = contentType === 'senior-citizens-forum';
         const usesStructured = usesStructuredCommunityLocation(contentType);
         const requiresStructured = requiresStructuredCommunityLocation(contentType);
@@ -3435,6 +4021,14 @@ The mountains keep.</pre>
             targetSlot = studentCornerSlot;
         } else if (isYouthCorner) {
             targetSlot = youthCornerSlot;
+        } else if (isLocalVoices) {
+            targetSlot = localVoicesSlot;
+        } else if (isMyArea) {
+            targetSlot = myAreaSlot;
+        } else if (isCommunityIssues) {
+            targetSlot = communityIssuesSlot;
+        } else if (isAgriculture) {
+            targetSlot = agricultureSlot;
         } else if (isSeniorCitizensForum) {
             targetSlot = seniorCitizensForumSlot;
         }
@@ -3462,8 +4056,11 @@ The mountains keep.</pre>
             }
 
             let baseText = label.textContent.replace(/\s*\*$/, '').trim();
-            if (fieldId === 'communityLocationCity' && isSeniorCitizensForum) {
-                baseText = 'City/Village';
+            if (fieldId === 'communityLocationCity' && (isSeniorCitizensForum || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture)) {
+                baseText = 'City/Town/Village';
+            }
+            if (fieldId === 'communityLocationCity' && isAgriculture) {
+                baseText = 'Village / Town';
             }
 
             label.innerHTML = requiresStructured
@@ -3474,20 +4071,20 @@ The mountains keep.</pre>
         const localityWrap = document.getElementById('communityLocationLocalityWrap');
         const mapWrap = document.getElementById('communityStructuredLocationMapWrap');
         if (localityWrap) {
-            localityWrap.style.display = usesOptionalStructuredLocation ? 'none' : '';
+            localityWrap.style.display = (usesOptionalStructuredLocation || isAgriculture) ? 'none' : '';
         }
         if (mapWrap) {
-            mapWrap.style.display = usesOptionalStructuredLocation ? 'none' : '';
+            mapWrap.style.display = (usesOptionalStructuredLocation || isAgriculture) ? 'none' : '';
         }
 
         const localityField = document.getElementById('communityLocationLocality');
         const localityLabel = document.getElementById('communityLocationLocalityLabel');
 
         if (localityField) {
-            localityField.required = requiresStructured && (isAwareness || isBusiness);
-            localityField.disabled = !usesStructured || usesOptionalStructuredLocation;
+            localityField.required = requiresStructured && (isAwareness || isBusiness || isLocalVoices || isMyArea || isCommunityIssues);
+            localityField.disabled = !usesStructured || usesOptionalStructuredLocation || isAgriculture;
 
-            if (isAwareness || isBusiness) {
+            if (isAwareness || isBusiness || isLocalVoices || isMyArea || isCommunityIssues) {
                 localityField.classList.add('structured-location-required');
             } else {
                 localityField.classList.remove('structured-location-required');
@@ -3496,9 +4093,13 @@ The mountains keep.</pre>
         }
 
         if (localityLabel) {
-            localityLabel.innerHTML = (isAwareness || isBusiness)
-                ? 'Area <span class="text-danger">*</span>'
-                : 'Locality';
+            if (isLocalVoices || isMyArea || isCommunityIssues) {
+                localityLabel.innerHTML = 'Locality / Area <span class="text-danger">*</span>';
+            } else {
+                localityLabel.innerHTML = (isAwareness || isBusiness)
+                    ? 'Area <span class="text-danger">*</span>'
+                    : 'Locality';
+            }
         }
 
         document.querySelectorAll('#communityStructuredLocationWrapper input[name="location_lat"], #communityStructuredLocationWrapper input[name="location_lng"]').forEach((field) => {
@@ -3512,7 +4113,9 @@ The mountains keep.</pre>
         }
     }
 
-    function mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld, isStudentCorner, isYouthCorner) {
+    function mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld, isStudentCorner, isYouthCorner, isLocalVoices, isMyArea) {
+        const isCommunityIssues = document.getElementById('contentType')?.value === 'community-issues';
+        const isAgriculture = document.getElementById('contentType')?.value === 'agriculture';
         const publicParticipationWrap = document.getElementById('publicParticipationWrap');
         const newsParticipationWrap = document.getElementById('newsParticipationWrap');
         const allowSharingWrap = document.getElementById('allowSharingWrap');
@@ -3532,11 +4135,23 @@ The mountains keep.</pre>
         const youthCornerParticipationWrap = document.getElementById('youthCornerParticipationWrap');
         const youthCornerPollWrap = document.getElementById('youthCornerPollWrap');
         const youthCornerPollFields = document.getElementById('youthCornerPollFields');
+        const localVoiceParticipationWrap = document.getElementById('localVoiceParticipationWrap');
+        const localVoicePollWrap = document.getElementById('localVoicePollWrap');
+        const localVoicePollFields = document.getElementById('localVoicePollFields');
+        const myAreaParticipationWrap = document.getElementById('myAreaParticipationWrap');
+        const myAreaPollWrap = document.getElementById('myAreaPollWrap');
+        const myAreaPollFields = document.getElementById('myAreaPollFields');
+        const communityIssueParticipationWrap = document.getElementById('communityIssueParticipationWrap');
+        const communityIssuePollWrap = document.getElementById('communityIssuePollWrap');
+        const communityIssuePollFields = document.getElementById('communityIssuePollFields');
+        const agricultureParticipationWrap = document.getElementById('agricultureParticipationWrap');
+        const agriculturePollWrap = document.getElementById('agriculturePollWrap');
+        const agriculturePollFields = document.getElementById('agriculturePollFields');
 
         if (publicParticipationWrap) {
-            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner) ? 'none' : '';
+            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
             publicParticipationWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner;
+                field.disabled = isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture;
             });
         }
 
@@ -3545,16 +4160,16 @@ The mountains keep.</pre>
         }
 
         if (allowSharingWrap) {
-            allowSharingWrap.style.display = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner) ? 'none' : '';
+            allowSharingWrap.style.display = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
             allowSharingWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner;
+                field.disabled = isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture;
             });
         }
 
         if (allowPollWrap) {
-            allowPollWrap.style.display = (isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner) ? 'none' : '';
+            allowPollWrap.style.display = (isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
             allowPollWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner;
+                field.disabled = isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture;
             });
         }
 
@@ -3596,6 +4211,38 @@ The mountains keep.</pre>
 
         if (youthCornerPollWrap) {
             youthCornerPollWrap.style.display = isYouthCorner ? '' : 'none';
+        }
+
+        if (localVoiceParticipationWrap) {
+            localVoiceParticipationWrap.style.display = isLocalVoices ? '' : 'none';
+        }
+
+        if (localVoicePollWrap) {
+            localVoicePollWrap.style.display = isLocalVoices ? '' : 'none';
+        }
+
+        if (myAreaParticipationWrap) {
+            myAreaParticipationWrap.style.display = isMyArea ? '' : 'none';
+        }
+
+        if (myAreaPollWrap) {
+            myAreaPollWrap.style.display = isMyArea ? '' : 'none';
+        }
+
+        if (communityIssueParticipationWrap) {
+            communityIssueParticipationWrap.style.display = isCommunityIssues ? '' : 'none';
+        }
+
+        if (communityIssuePollWrap) {
+            communityIssuePollWrap.style.display = isCommunityIssues ? '' : 'none';
+        }
+
+        if (agricultureParticipationWrap) {
+            agricultureParticipationWrap.style.display = isAgriculture ? '' : 'none';
+        }
+
+        if (agriculturePollWrap) {
+            agriculturePollWrap.style.display = isAgriculture ? '' : 'none';
         }
 
         const awarenessAllowPoll = document.getElementById('awarenessAllowPoll');
@@ -3669,6 +4316,66 @@ The mountains keep.</pre>
             }
         }
 
+        const localVoiceAllowPoll = document.getElementById('localVoiceAllowPoll');
+        if (localVoicePollFields) {
+            const localVoicePollEnabled = isLocalVoices && localVoiceAllowPoll?.checked;
+            localVoicePollFields.style.display = localVoicePollEnabled ? '' : 'none';
+            const localVoicePollQuestion = document.getElementById('localVoicePollQuestion');
+            if (localVoicePollQuestion) {
+                localVoicePollQuestion.required = Boolean(localVoicePollEnabled);
+                localVoicePollQuestion.disabled = !localVoicePollEnabled;
+            }
+            const localVoicePollOptions = document.getElementById('localVoicePollOptions');
+            if (localVoicePollOptions) {
+                localVoicePollOptions.disabled = !localVoicePollEnabled;
+            }
+        }
+
+        const myAreaAllowPoll = document.getElementById('myAreaAllowPoll');
+        if (myAreaPollFields) {
+            const myAreaPollEnabled = isMyArea && myAreaAllowPoll?.checked;
+            myAreaPollFields.style.display = myAreaPollEnabled ? '' : 'none';
+            const myAreaPollQuestion = myAreaPollFields.querySelector('input[name="my_area_poll_question"]');
+            if (myAreaPollQuestion) {
+                myAreaPollQuestion.required = Boolean(myAreaPollEnabled);
+                myAreaPollQuestion.disabled = !myAreaPollEnabled;
+            }
+            const myAreaPollOptions = myAreaPollFields.querySelector('textarea[name="my_area_poll_options"]');
+            if (myAreaPollOptions) {
+                myAreaPollOptions.disabled = !myAreaPollEnabled;
+            }
+        }
+
+        const communityIssueAllowPoll = document.getElementById('communityIssueAllowPoll');
+        if (communityIssuePollFields) {
+            const communityIssuePollEnabled = isCommunityIssues && communityIssueAllowPoll?.checked;
+            communityIssuePollFields.style.display = communityIssuePollEnabled ? '' : 'none';
+            const communityIssuePollQuestion = document.getElementById('communityIssuePollQuestion');
+            if (communityIssuePollQuestion) {
+                communityIssuePollQuestion.required = Boolean(communityIssuePollEnabled);
+                communityIssuePollQuestion.disabled = !communityIssuePollEnabled;
+            }
+            const communityIssuePollOptions = document.getElementById('communityIssuePollOptions');
+            if (communityIssuePollOptions) {
+                communityIssuePollOptions.disabled = !communityIssuePollEnabled;
+            }
+        }
+
+        const agricultureAllowPoll = document.getElementById('agricultureAllowPoll');
+        if (agriculturePollFields) {
+            const agriculturePollEnabled = isAgriculture && agricultureAllowPoll?.checked;
+            agriculturePollFields.style.display = agriculturePollEnabled ? '' : 'none';
+            const agriculturePollQuestion = document.getElementById('agriculturePollQuestion');
+            if (agriculturePollQuestion) {
+                agriculturePollQuestion.required = Boolean(agriculturePollEnabled);
+                agriculturePollQuestion.disabled = !agriculturePollEnabled;
+            }
+            const agriculturePollOptions = document.getElementById('agriculturePollOptions');
+            if (agriculturePollOptions) {
+                agriculturePollOptions.disabled = !agriculturePollEnabled;
+            }
+        }
+
         const awarenessHasEvent = document.getElementById('awarenessHasEvent');
         const awarenessEventFields = document.getElementById('awarenessEventFields');
         if (awarenessEventFields) {
@@ -3676,7 +4383,9 @@ The mountains keep.</pre>
         }
     }
 
-    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum, isStudentCorner, isYouthCorner) {
+    function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum, isStudentCorner, isYouthCorner, isLocalVoices, isMyArea) {
+        const isCommunityIssues = document.getElementById('contentType')?.value === 'community-issues';
+        const isAgriculture = document.getElementById('contentType')?.value === 'agriculture';
         const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
         const featuredSlot = document.getElementById('communityNewsFeaturedImagesSlot');
         const storyFeaturedSlot = document.getElementById('communityStoryFeaturedImagesSlot');
@@ -3685,10 +4394,18 @@ The mountains keep.</pre>
         const womensWorldFeaturedSlot = document.getElementById('communityWomensWorldFeaturedImagesSlot');
         const studentCornerFeaturedSlot = document.getElementById('communityStudentCornerFeaturedImagesSlot');
         const youthCornerFeaturedSlot = document.getElementById('communityYouthCornerFeaturedImagesSlot');
+        const localVoicesFeaturedSlot = document.getElementById('communityLocalVoicesFeaturedImagesSlot');
+        const myAreaFeaturedSlot = document.getElementById('communityMyAreaFeaturedImagesSlot');
+        const communityIssuesFeaturedSlot = document.getElementById('communityCommunityIssuesFeaturedImagesSlot');
+        const agricultureFeaturedSlot = document.getElementById('communityAgricultureFeaturedImagesSlot');
         const businessTagsSlot = document.getElementById('communityBusinessTagsSlot');
         const womensWorldTagsSlot = document.getElementById('communityWomensWorldTagsSlot');
         const studentCornerTagsSlot = document.getElementById('communityStudentCornerTagsSlot');
         const youthCornerTagsSlot = document.getElementById('communityYouthCornerTagsSlot');
+        const localVoicesTagsSlot = document.getElementById('communityLocalVoicesTagsSlot');
+        const myAreaTagsSlot = document.getElementById('communityMyAreaTagsSlot');
+        const communityIssuesTagsSlot = document.getElementById('communityCommunityIssuesTagsSlot');
+        const agricultureTagsSlot = document.getElementById('communityAgricultureTagsSlot');
         const tagsCol = document.getElementById('communityTagsWrap');
         const videoWrap = document.getElementById('communityVideoWrap');
         const videoSlot = document.getElementById('communityNewsVideoSlot');
@@ -3699,6 +4416,10 @@ The mountains keep.</pre>
         const seniorCitizensForumVideoSlot = document.getElementById('communitySeniorCitizensForumVideoSlot');
         const studentCornerVideoSlot = document.getElementById('communityStudentCornerVideoSlot');
         const youthCornerVideoSlot = document.getElementById('communityYouthCornerVideoSlot');
+        const localVoicesVideoSlot = document.getElementById('communityLocalVoicesVideoSlot');
+        const myAreaVideoSlot = document.getElementById('communityMyAreaVideoSlot');
+        const communityIssuesVideoSlot = document.getElementById('communityCommunityIssuesVideoSlot');
+        const agricultureVideoSlot = document.getElementById('communityAgricultureVideoSlot');
         const videoAnchor = document.getElementById('communityVideoHiddenSlot');
         const videoFieldLabel = document.getElementById('videoFieldLabel');
         const featuredLabel = document.getElementById('featuredImagesLabel');
@@ -3714,7 +4435,7 @@ The mountains keep.</pre>
                 videoWrap.style.display = 'none';
             }
         } else {
-            window.communityFeaturedImages.max = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner) ? 1 : 5;
+            window.communityFeaturedImages.max = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 1 : 5;
             if (videoWrap) {
                 videoWrap.style.display = '';
             }
@@ -3742,6 +4463,18 @@ The mountains keep.</pre>
                 } else if (isYouthCorner && youthCornerFeaturedSlot) {
                     youthCornerFeaturedSlot.appendChild(featuredWrap);
                     featuredWrap.classList.remove('col-md-6');
+                } else if (isLocalVoices && localVoicesFeaturedSlot) {
+                    localVoicesFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
+                } else if (isMyArea && myAreaFeaturedSlot) {
+                    myAreaFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
+                } else if (isCommunityIssues && communityIssuesFeaturedSlot) {
+                    communityIssuesFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
+                } else if (isAgriculture && agricultureFeaturedSlot) {
+                    agricultureFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
                 } else {
                     tagsCol.parentElement.insertBefore(featuredWrap, tagsCol);
                     featuredWrap.classList.add('col-md-6');
@@ -3763,6 +4496,22 @@ The mountains keep.</pre>
                     tagsCol.style.display = '';
                 } else if (isYouthCorner && youthCornerTagsSlot) {
                     youthCornerTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isLocalVoices && localVoicesTagsSlot) {
+                    localVoicesTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isMyArea && myAreaTagsSlot) {
+                    myAreaTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isCommunityIssues && communityIssuesTagsSlot) {
+                    communityIssuesTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isAgriculture && agricultureTagsSlot) {
+                    agricultureTagsSlot.appendChild(tagsCol);
                     tagsCol.classList.remove('col-md-6');
                     tagsCol.style.display = '';
                 } else if (communityTagsDefaultParent) {
@@ -3799,10 +4548,22 @@ The mountains keep.</pre>
             } else if (isYouthCorner && youthCornerVideoSlot) {
                 youthCornerVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
+            } else if (isLocalVoices && localVoicesVideoSlot) {
+                localVoicesVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (isMyArea && myAreaVideoSlot) {
+                myAreaVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (isCommunityIssues && communityIssuesVideoSlot) {
+                communityIssuesVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (isAgriculture && agricultureVideoSlot) {
+                agricultureVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
             } else if (isSeniorCitizensForum && seniorCitizensForumVideoSlot) {
                 seniorCitizensForumVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
-            } else if (! isAwareness && ! isBusiness && ! isWomensWorld && ! isStudentCorner && ! isYouthCorner && ! isSeniorCitizensForum) {
+            } else if (! isAwareness && ! isBusiness && ! isWomensWorld && ! isStudentCorner && ! isYouthCorner && ! isLocalVoices && ! isMyArea && ! isCommunityIssues && ! isAgriculture && ! isSeniorCitizensForum) {
                 videoAnchor.insertAdjacentElement('afterend', videoWrap);
                 videoWrap.classList.add('col-md-6');
             } else {
@@ -3821,6 +4582,14 @@ The mountains keep.</pre>
                 videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
             } else if (isYouthCorner) {
                 videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
+            } else if (isLocalVoices) {
+                videoFieldLabel.innerHTML = 'Video evidence <span class="text-muted fw-normal">(optional)</span>';
+            } else if (isMyArea) {
+                videoFieldLabel.innerHTML = 'Video evidence <span class="text-muted fw-normal">(optional)</span>';
+            } else if (isCommunityIssues) {
+                videoFieldLabel.innerHTML = 'Video evidence <span class="text-muted fw-normal">(optional)</span>';
+            } else if (isAgriculture) {
+                videoFieldLabel.innerHTML = 'Farm video <span class="text-muted fw-normal">(highly recommended)</span>';
             } else if (isSeniorCitizensForum) {
                 videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
             } else {
@@ -3841,6 +4610,8 @@ The mountains keep.</pre>
                 featuredLabel.innerHTML = 'Cover image <span class="text-muted fw-normal">(recommended)</span>';
             } else if (isYouthCorner) {
                 featuredLabel.innerHTML = 'Cover image <span class="text-muted fw-normal">(recommended)</span>';
+            } else if (isLocalVoices || isMyArea || isCommunityIssues) {
+                featuredLabel.innerHTML = 'Featured image <span class="text-muted fw-normal">(recommended)</span>';
             } else if (isStories) {
                 featuredLabel.textContent = 'Cover image (recommended)';
             } else if (isNews) {
@@ -4099,7 +4870,7 @@ The mountains keep.</pre>
         const selectedType = typeSelect.value;
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner'].includes(selectedType);
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -4124,6 +4895,10 @@ The mountains keep.</pre>
         const isSeniorCitizensForum = selectedType === 'senior-citizens-forum';
         const isStudentCorner = selectedType === 'student-corner';
         const isYouthCorner = selectedType === 'youth-corner';
+        const isLocalVoices = selectedType === 'local-voices';
+        const isMyArea = selectedType === 'my-area';
+        const isCommunityIssues = selectedType === 'community-issues';
+        const isAgriculture = selectedType === 'agriculture';
 
         if (isChildrensCorner) {
             categoryWrap.style.display = 'none';
@@ -4160,6 +4935,26 @@ The mountains keep.</pre>
             categorySelect.required = false;
             categorySelect.disabled = true;
             syncYouthCornerCategory();
+        } else if (isLocalVoices) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncLocalVoicesCategory();
+        } else if (isMyArea) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncMyAreaCategory();
+        } else if (isCommunityIssues) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncCommunityIssuesCategory();
+        } else if (isAgriculture) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncAgricultureCategory();
         } else {
             categoryWrap.style.display = '';
             categorySelect.disabled = false;
@@ -4226,11 +5021,11 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner) ? 'none' : '';
+            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
         });
 
         document.querySelectorAll('.general-extra input, .general-extra textarea, .general-extra select').forEach((field) => {
-            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner;
+            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -4289,6 +5084,26 @@ The mountains keep.</pre>
             field.required = isYouthCorner;
         });
 
+        document.querySelectorAll('.local-voices-required').forEach((field) => {
+            field.required = isLocalVoices;
+        });
+
+        document.querySelectorAll('.my-area-required').forEach((field) => {
+            field.required = isMyArea;
+        });
+
+        document.querySelectorAll('.community-issues-required').forEach((field) => {
+            field.required = isCommunityIssues;
+        });
+
+        document.querySelectorAll('.agriculture-required').forEach((field) => {
+            field.required = isAgriculture;
+        });
+
+        document.querySelectorAll('.report-required').forEach((field) => {
+            field.required = isReport;
+        });
+
         document.querySelectorAll('.awareness-flow input, .awareness-flow textarea, .awareness-flow select').forEach((field) => {
             if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
                 return;
@@ -4337,6 +5152,38 @@ The mountains keep.</pre>
             field.disabled = !isYouthCorner;
         });
 
+        document.querySelectorAll('.local-voices-flow input, .local-voices-flow textarea, .local-voices-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isLocalVoices;
+        });
+
+        document.querySelectorAll('.my-area-flow input, .my-area-flow textarea, .my-area-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isMyArea;
+        });
+
+        document.querySelectorAll('.community-issues-flow input, .community-issues-flow textarea, .community-issues-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isCommunityIssues;
+        });
+
+        document.querySelectorAll('.agriculture-flow input, .agriculture-flow textarea, .agriculture-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isAgriculture;
+        });
+
         const childSchoolName = document.getElementById('childSchoolName');
         const schoolPrivacySelected = document.querySelector('input[name="childrens_corner_privacy_setting"][value="school_community"]')?.checked;
         if (childSchoolName) {
@@ -4369,10 +5216,6 @@ The mountains keep.</pre>
         if (bodyEditorField) {
             bodyEditorField.disabled = false;
         }
-
-        document.querySelectorAll('.my-area-required').forEach((field) => {
-            field.required = isReport;
-        });
 
         document.querySelectorAll('.type-field-required').forEach((field) => {
             const section = field.closest('.type-fields-flow');
@@ -4451,6 +5294,30 @@ The mountains keep.</pre>
             bodyHelp: 'Use the rich text editor for Problem/Challenge, Experience/Story, Actions Taken, Results, Lessons Learned, and Advice for Others.',
             locationLabel: 'Location',
             locationHelp: 'Optional — enter country, state, district, and city for local opportunities and regional youth stories.',
+        } : (isMyArea ? {
+            excerptLabel: 'Summary',
+            excerptPlaceholder: 'Summarize your local issue, achievement, or call for neighbours.',
+            excerptHelp: 'A concise standfirst shown in My Area listings.',
+            bodyLabel: 'Rich text editor <span class="text-danger">*</span>',
+            bodyHelp: 'Share full details for your neighbours — what happened, who is affected, and what should happen next.',
+            locationLabel: 'Location',
+            locationHelp: 'Enter country, state, district, city/town/village, and locality / area.',
+        } : (isLocalVoices ? {
+            excerptLabel: 'Summary',
+            excerptPlaceholder: 'Summarize your local issue, opinion, or story in one or two sentences.',
+            excerptHelp: 'A concise standfirst shown in Local Voices listings.',
+            bodyLabel: 'Rich text editor <span class="text-danger">*</span>',
+            bodyHelp: 'Use the toolbar for text, images, videos, documents, links, quotes, and polls.',
+            locationLabel: 'Location',
+            locationHelp: 'Enter country, state, district, city/town/village, and locality / area.',
+        } : (isCommunityIssues ? {
+            excerptLabel: 'Summary',
+            excerptPlaceholder: 'Summarize the issue, who is affected, and what action is needed.',
+            excerptHelp: 'A concise standfirst shown in Community Issues listings.',
+            bodyLabel: 'Issue description <span class="text-danger">*</span>',
+            bodyHelp: 'Use the rich text editor for What is the Issue?, When Did It Start?, Who Is Affected?, What Is the Impact?, What Action Has Been Taken So Far?, and Suggested Solution.',
+            locationLabel: 'Location <span class="text-danger">*</span>',
+            locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -4459,7 +5326,7 @@ The mountains keep.</pre>
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        })))))))));
+        })))))))))))));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -4513,8 +5380,32 @@ The mountains keep.</pre>
             youthCornerContentGuide.style.display = isYouthCorner ? '' : 'none';
         }
 
+        const localVoicesContentGuide = document.getElementById('localVoicesContentGuide');
+        if (localVoicesContentGuide) {
+            localVoicesContentGuide.style.display = isLocalVoices ? '' : 'none';
+        }
+
+        const myAreaContentGuide = document.getElementById('myAreaContentGuide');
+        if (myAreaContentGuide) {
+            myAreaContentGuide.style.display = isMyArea ? '' : 'none';
+        }
+
+        const communityIssuesContentGuide = document.getElementById('communityIssuesContentGuide');
+        if (communityIssuesContentGuide) {
+            communityIssuesContentGuide.style.display = isCommunityIssues ? '' : 'none';
+        }
+
+        const agricultureContentGuide = document.getElementById('agricultureContentGuide');
+        if (agricultureContentGuide) {
+            agricultureContentGuide.style.display = isAgriculture ? '' : 'none';
+        }
+
         refreshStudentCornerProjectSection();
         refreshYouthCornerProjectSection();
+        refreshLocalVoicesConditionalSections();
+        refreshMyAreaConditionalSections();
+        refreshAgricultureConditionalSections();
+        refreshAgricultureSoilParameters();
 
         refreshPoetryEditorMode(selectedType);
         refreshPoetrySeriesFields();
@@ -4523,18 +5414,18 @@ The mountains keep.</pre>
         mountStructuredLocationFields(selectedType);
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
         if (commonLocationSlot) {
-            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner) ? 'none' : '';
+            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
             commonLocationSlot.querySelectorAll('input, select, textarea').forEach((field) => {
                 if (isChildrensCorner) {
                     field.disabled = true;
                     field.required = false;
-                } else if (!isNews && !isReport && !isAwareness && !isBusiness && !isWomensWorld && !isSeniorCitizensForum && !isStudentCorner && !isYouthCorner) {
+                } else if (!isNews && !isReport && !isAwareness && !isBusiness && !isWomensWorld && !isSeniorCitizensForum && !isStudentCorner && !isYouthCorner && !isLocalVoices && !isMyArea && !isCommunityIssues && !isAgriculture) {
                     field.disabled = false;
                 }
             });
         }
-        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum, isStudentCorner, isYouthCorner);
-        mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld, isStudentCorner, isYouthCorner);
+        mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum, isStudentCorner, isYouthCorner, isLocalVoices, isMyArea);
+        mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld, isStudentCorner, isYouthCorner, isLocalVoices, isMyArea);
         refreshCommunityLocationTypeOptions(isReport);
         refreshBookLayoutMode(selectedType);
         refreshCommunityLocationFields(fieldCopy.locationHelp);
@@ -4546,7 +5437,7 @@ The mountains keep.</pre>
         const allowPollWrap = document.getElementById('allowPollWrap');
         const allowPoll = document.getElementById('allowPoll');
         if (allowPollWrap) {
-            allowPollWrap.style.display = (isReport || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner) ? 'none' : '';
+            allowPollWrap.style.display = (isReport || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
         }
         if (isReport && allowPoll) {
             allowPoll.checked = false;
@@ -4574,6 +5465,12 @@ The mountains keep.</pre>
         }
         if (typeof refreshWomensWorldPrivacyFields === 'function') {
             refreshWomensWorldPrivacyFields();
+        }
+        if (typeof refreshCommunityIssuesPrivacyFields === 'function') {
+            refreshCommunityIssuesPrivacyFields();
+        }
+        if (typeof refreshCommunityIssuesPriorReportFields === 'function') {
+            refreshCommunityIssuesPriorReportFields();
         }
     }
 
@@ -4893,10 +5790,22 @@ The mountains keep.</pre>
         const youthCornerPublishWrap = document.getElementById('youthCornerPublishAsWrap');
         const youthCornerPenNameWrap = document.getElementById('youthCornerPenNameWrap');
         const youthCornerPenNameInput = document.getElementById('youthCornerPenNameInput');
+        const localVoicePublishWrap = document.getElementById('localVoicePublishAsWrap');
+        const localVoicePenNameWrap = document.getElementById('localVoicePenNameWrap');
+        const localVoicePenNameInput = document.getElementById('localVoicePenNameInput');
+        const myAreaPublishWrap = document.getElementById('myAreaPublishAsWrap');
+        const myAreaPenNameWrap = document.getElementById('myAreaPenNameWrap');
+        const myAreaPenNameInput = document.getElementById('myAreaPenNameInput');
+        const communityIssuePublishWrap = document.getElementById('communityIssuePublishAsWrap');
+        const communityIssuePenNameWrap = document.getElementById('communityIssuePenNameWrap');
+        const communityIssuePenNameInput = document.getElementById('communityIssuePenNameInput');
         const contentType = document.getElementById('contentType')?.value || '';
         const isWomensWorld = contentType === 'womens-world';
         const isStudentCorner = contentType === 'student-corner';
         const isYouthCorner = contentType === 'youth-corner';
+        const isLocalVoices = contentType === 'local-voices';
+        const isMyArea = contentType === 'my-area';
+        const isCommunityIssues = contentType === 'community-issues';
 
         if (!statusSelect) {
             return;
@@ -4905,7 +5814,7 @@ The mountains keep.</pre>
         const isPublishing = statusSelect.value === 'published';
 
         if (publishWrap) {
-            publishWrap.style.display = (isPublishing && !isWomensWorld && !isStudentCorner && !isYouthCorner) ? '' : 'none';
+            publishWrap.style.display = (isPublishing && !isWomensWorld && !isStudentCorner && !isYouthCorner && !isLocalVoices && !isMyArea && !isCommunityIssues) ? '' : 'none';
         }
 
         if (womensWorldPublishWrap) {
@@ -4920,15 +5829,33 @@ The mountains keep.</pre>
             youthCornerPublishWrap.style.display = (isPublishing && isYouthCorner) ? '' : 'none';
         }
 
+        if (localVoicePublishWrap) {
+            localVoicePublishWrap.style.display = (isPublishing && isLocalVoices) ? '' : 'none';
+        }
+
+        if (myAreaPublishWrap) {
+            myAreaPublishWrap.style.display = (isPublishing && isMyArea) ? '' : 'none';
+        }
+
+        if (communityIssuePublishWrap) {
+            communityIssuePublishWrap.style.display = (isPublishing && isCommunityIssues) ? '' : 'none';
+        }
+
         document.querySelectorAll('input[name="publish_as"]').forEach((input) => {
             const inWomensWorldFlow = Boolean(input.closest('#womensWorldPublishAsWrap'));
             const inStudentCornerFlow = Boolean(input.closest('#studentCornerPublishAsWrap'));
             const inYouthCornerFlow = Boolean(input.closest('#youthCornerPublishAsWrap'));
+            const inLocalVoicesFlow = Boolean(input.closest('#localVoicePublishAsWrap'));
+            const inMyAreaFlow = Boolean(input.closest('#myAreaPublishAsWrap'));
+            const inCommunityIssuesFlow = Boolean(input.closest('#communityIssuePublishAsWrap'));
             const enabled = isPublishing && (
                 (isWomensWorld && inWomensWorldFlow)
                 || (isStudentCorner && inStudentCornerFlow)
                 || (isYouthCorner && inYouthCornerFlow)
-                || (!isWomensWorld && !isStudentCorner && !isYouthCorner && !inWomensWorldFlow && !inStudentCornerFlow && !inYouthCornerFlow)
+                || (isLocalVoices && inLocalVoicesFlow)
+                || (isMyArea && inMyAreaFlow)
+                || (isCommunityIssues && inCommunityIssuesFlow)
+                || (!isWomensWorld && !isStudentCorner && !isYouthCorner && !isLocalVoices && !isMyArea && !isCommunityIssues && !inWomensWorldFlow && !inStudentCornerFlow && !inYouthCornerFlow && !inLocalVoicesFlow && !inMyAreaFlow && !inCommunityIssuesFlow)
             );
             input.required = enabled;
             input.disabled = !enabled;
@@ -4938,7 +5865,7 @@ The mountains keep.</pre>
         const showPenName = isPublishing && selectedPublishAs === 'pen_name';
 
         if (penNameWrap) {
-            penNameWrap.style.display = (showPenName && !isWomensWorld && !isStudentCorner && !isYouthCorner) ? '' : 'none';
+            penNameWrap.style.display = (showPenName && !isWomensWorld && !isStudentCorner && !isYouthCorner && !isLocalVoices && !isMyArea && !isCommunityIssues) ? '' : 'none';
         }
 
         if (womensWorldPenNameWrap) {
@@ -4953,9 +5880,21 @@ The mountains keep.</pre>
             youthCornerPenNameWrap.style.display = (showPenName && isYouthCorner) ? '' : 'none';
         }
 
+        if (localVoicePenNameWrap) {
+            localVoicePenNameWrap.style.display = (showPenName && isLocalVoices) ? '' : 'none';
+        }
+
+        if (myAreaPenNameWrap) {
+            myAreaPenNameWrap.style.display = (showPenName && isMyArea) ? '' : 'none';
+        }
+
+        if (communityIssuePenNameWrap) {
+            communityIssuePenNameWrap.style.display = (showPenName && isCommunityIssues) ? '' : 'none';
+        }
+
         if (penNameInput) {
-            penNameInput.required = showPenName && !isWomensWorld && !isStudentCorner && !isYouthCorner;
-            penNameInput.disabled = !showPenName || isWomensWorld || isStudentCorner || isYouthCorner;
+            penNameInput.required = showPenName && !isWomensWorld && !isStudentCorner && !isYouthCorner && !isLocalVoices && !isMyArea && !isCommunityIssues;
+            penNameInput.disabled = !showPenName || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues;
         }
 
         if (womensWorldPenNameInput) {
@@ -4971,6 +5910,21 @@ The mountains keep.</pre>
         if (youthCornerPenNameInput) {
             youthCornerPenNameInput.required = showPenName && isYouthCorner;
             youthCornerPenNameInput.disabled = !showPenName || !isYouthCorner;
+        }
+
+        if (localVoicePenNameInput) {
+            localVoicePenNameInput.required = showPenName && isLocalVoices;
+            localVoicePenNameInput.disabled = !showPenName || !isLocalVoices;
+        }
+
+        if (myAreaPenNameInput) {
+            myAreaPenNameInput.required = showPenName && isMyArea;
+            myAreaPenNameInput.disabled = !showPenName || !isMyArea;
+        }
+
+        if (communityIssuePenNameInput) {
+            communityIssuePenNameInput.required = showPenName && isCommunityIssues;
+            communityIssuePenNameInput.disabled = !showPenName || !isCommunityIssues;
         }
     }
 
@@ -5122,7 +6076,9 @@ The mountains keep.</pre>
             contentType === 'business',
             contentType === 'womens-world',
             contentType === 'student-corner',
-            contentType === 'youth-corner'
+            contentType === 'youth-corner',
+            contentType === 'local-voices',
+            contentType === 'my-area'
         );
     }
 
@@ -5132,6 +6088,8 @@ The mountains keep.</pre>
     document.getElementById('womensWorldAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
     document.getElementById('studentCornerAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
     document.getElementById('youthCornerAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
+    document.getElementById('localVoiceAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
+    document.getElementById('myAreaAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
 
     function formatObservationDate(value) {
         if (!value) {
@@ -5475,7 +6433,7 @@ The mountains keep.</pre>
         const InsertDocumentPlugin = createCommunityEditorFileButtonPlugin(
             'CommunityInsertDocument',
             'insertDocument',
-            'Document',
+            'Documents',
             '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip',
             (editor, file) => uploadCommunityEditorAttachment(file).then((payload) => {
                 insertCommunityEditorHtml(
@@ -5488,7 +6446,7 @@ The mountains keep.</pre>
         const UploadVideoPlugin = createCommunityEditorFileButtonPlugin(
             'CommunityUploadVideo',
             'uploadVideo',
-            'Video file',
+            'Video',
             'video/*,.mp4,.webm,.mov,.avi,.mkv',
             (editor, file) => uploadCommunityEditorAttachment(file).then((payload) => {
                 insertCommunityEditorHtml(
@@ -5545,7 +6503,7 @@ The mountains keep.</pre>
         const InsertPollPlugin = createCommunityEditorPromptButtonPlugin(
             'CommunityInsertPoll',
             'insertPoll',
-            'Poll',
+            'Polls',
             (editor) => {
                 const question = window.prompt('Poll question');
                 if (question === null || question.trim() === '') {
@@ -5589,9 +6547,16 @@ The mountains keep.</pre>
             extraPlugins: getCommunityBodyEditorExtraPlugins(),
             toolbar: {
                 items: [
-                    'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
-                    'uploadImage', 'mediaEmbed', 'uploadVideo', 'insertDocument', 'insertTable', 'insertChart', 'insertPoll', '|',
-                    'blockQuote', '|', 'undo', 'redo',
+                    'heading', '|',
+                    'bold', 'italic', 'bulletedList', 'numberedList', '|',
+                    'uploadImage', '|',
+                    'mediaEmbed', 'uploadVideo', '|',
+                    'insertDocument', '|',
+                    'link', '|',
+                    'blockQuote', '|',
+                    'insertPoll', '|',
+                    'insertTable', 'insertChart', '|',
+                    'undo', 'redo',
                 ],
                 shouldNotGroupWhenFull: true,
             },
@@ -7975,10 +8940,21 @@ The mountains keep.</pre>
                 requiredStructuredFields.push(document.getElementById('communityLocationLocality'));
             }
 
+            if (contentType === 'local-voices' || contentType === 'my-area' || contentType === 'community-issues') {
+                requiredStructuredFields.push(document.getElementById('communityLocationLocality'));
+            }
+
             if (requiredStructuredFields.some((field) => !field?.value.trim())) {
-                notify('error', contentType === 'awareness'
+                const locationMessage = contentType === 'awareness'
                     ? 'Please complete country, state, district, city, and area for this awareness post.'
-                    : 'Please complete country, state, district, and city for this post.');
+                    : (contentType === 'community-issues'
+                        ? 'Please complete country, state, district, city, and locality for this community issue.'
+                        : (contentType === 'agriculture'
+                            ? 'Please complete country, state, district, and village/town for this agriculture post.'
+                            : (contentType === 'local-voices' || contentType === 'my-area'
+                                ? 'Please complete country, state, district, city, and locality for this post.'
+                                : 'Please complete country, state, district, and city for this post.')));
+                notify('error', locationMessage);
                 return;
             }
         } else {
@@ -8005,7 +8981,15 @@ The mountains keep.</pre>
                     ? document.getElementById('womensWorldPenNameInput')?.value.trim()
                     : contentTypeForPenName === 'student-corner'
                         ? document.getElementById('studentCornerPenNameInput')?.value.trim()
-                        : document.getElementById('penNameInput')?.value.trim();
+                        : contentTypeForPenName === 'youth-corner'
+                            ? document.getElementById('youthCornerPenNameInput')?.value.trim()
+                            : contentTypeForPenName === 'local-voices'
+                                ? document.getElementById('localVoicePenNameInput')?.value.trim()
+                                : contentTypeForPenName === 'my-area'
+                                    ? document.getElementById('myAreaPenNameInput')?.value.trim()
+                                    : contentTypeForPenName === 'community-issues'
+                                        ? document.getElementById('communityIssuePenNameInput')?.value.trim()
+                                        : document.getElementById('penNameInput')?.value.trim();
                 if (!penNameValue) {
                     notify('error', 'Please enter a pen name.');
                     return;
@@ -8190,6 +9174,60 @@ The mountains keep.</pre>
             if (!document.getElementById('youthCornerContentType')?.value) {
                 notify('error', 'Please select a Youth Corner content type.');
                 document.getElementById('youthCornerContentType')?.focus();
+                return;
+            }
+        }
+
+        if (contentType === 'local-voices') {
+            syncLocalVoicesCategory();
+
+            if (!document.getElementById('localVoiceType')?.value) {
+                notify('error', 'Please select what you would like to share.');
+                document.getElementById('localVoiceType')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('localVoiceCategory')?.value) {
+                notify('error', 'Please select a Local Voices main category.');
+                document.getElementById('localVoiceCategory')?.focus();
+                return;
+            }
+        }
+
+        if (contentType === 'community-issues') {
+            syncCommunityIssuesCategory();
+
+            if (!document.getElementById('communityIssueCategory')?.value) {
+                notify('error', 'Please select an issue category.');
+                document.getElementById('communityIssueCategory')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('communityIssueType')?.value) {
+                notify('error', 'Please select an issue type.');
+                document.getElementById('communityIssueType')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('communityIssueSeverity')?.value) {
+                notify('error', 'Please select issue severity.');
+                document.getElementById('communityIssueSeverity')?.focus();
+                return;
+            }
+        }
+
+        if (contentType === 'agriculture') {
+            syncAgricultureCategory();
+
+            if (!document.getElementById('agricultureShareType')?.value) {
+                notify('error', 'Please select what you would like to share.');
+                document.getElementById('agricultureShareType')?.focus();
+                return;
+            }
+
+            if (!document.getElementById('agricultureCategory')?.value) {
+                notify('error', 'Please select an agriculture main category.');
+                document.getElementById('agricultureCategory')?.focus();
                 return;
             }
         }

@@ -12,6 +12,8 @@ use App\Models\CommunityPostPollVote;
 use App\Models\CommunityPostStarRating;
 use App\Models\CommunityPostReaction;
 use App\Models\User;
+use App\Services\CommunityCommunityIssuesEngagementNotificationService;
+use App\Services\CommunityAgricultureEngagementNotificationService;
 use App\Services\CommunityPostParticipationNotificationService;
 use App\Services\CommunityReportEngagementNotificationService;
 use App\Services\CommunityStoryAchievementService;
@@ -68,6 +70,28 @@ class CommunityPostController extends Controller
     private const MAX_YOUTH_CORNER_GALLERY = 10;
 
     private const MAX_YOUTH_CORNER_ACHIEVEMENTS = 10;
+
+    private const MAX_LOCAL_VOICE_PHOTO_EVIDENCE = 10;
+
+    private const MAX_LOCAL_VOICE_DOCUMENTS = 6;
+
+    private const MAX_LOCAL_VOICE_HERO_IMAGES = 6;
+
+    private const MAX_MY_AREA_PHOTO_EVIDENCE = 10;
+
+    private const MAX_MY_AREA_DOCUMENTS = 6;
+
+    private const MAX_MY_AREA_HERO_IMAGES = 6;
+
+    private const MAX_COMMUNITY_ISSUE_PHOTO_EVIDENCE = 10;
+
+    private const MAX_COMMUNITY_ISSUE_DOCUMENTS = 6;
+
+    private const MAX_AGRICULTURE_PROBLEM_PHOTOS = 10;
+
+    private const MAX_AGRICULTURE_GALLERY_PER_CATEGORY = 6;
+
+    private const MAX_AGRICULTURE_DOCUMENTS = 8;
 
     private const MAX_BUSINESS_GALLERY = 10;
 
@@ -127,7 +151,10 @@ class CommunityPostController extends Controller
         $privateLinkAccess = $post->allowsWomensWorldPrivateLinkAccess($request->query('access'))
             || $post->allowsSeniorCitizensForumPrivateLinkAccess($request->query('access'))
             || $post->allowsStudentCornerPrivateLinkAccess($request->query('access'))
-            || $post->allowsYouthCornerPrivateLinkAccess($request->query('access'));
+            || $post->allowsYouthCornerPrivateLinkAccess($request->query('access'))
+            || $post->allowsLocalVoicePrivateLinkAccess($request->query('access'))
+            || $post->allowsMyAreaPrivateLinkAccess($request->query('access'))
+            || $post->allowsCommunityIssuePrivateLinkAccess($request->query('access'));
 
         abort_unless(
             $post->isPubliclyVisible() || $canManagePreview,
@@ -148,7 +175,7 @@ class CommunityPostController extends Controller
             'starRatings',
             'discussionComments.user',
             'discussionComments.replies.user',
-        ])->loadCount(['starRatings', 'awarenessSupports', 'awarenessPledges', 'awarenessVolunteers', 'businessQueries']);
+        ])->loadCount(['starRatings', 'awarenessSupports', 'awarenessPledges', 'awarenessVolunteers', 'businessQueries', 'localVoiceSupports', 'localVoiceFollows']);
 
         if ($post->isPubliclyVisible()) {
             $this->recordPostView($request, $post);
@@ -206,8 +233,15 @@ class CommunityPostController extends Controller
     public function participationViewData(CommunityPost $post, int $limit = 20): array
     {
         return [
-            'reportEngagement' => $post->isReportContent()
+            'reportEngagement' => $post->supportsCivicEngagement()
                 ? CommunityReportEngagementNotificationService::stateForPost($post, auth()->id())
+                : null,
+            'reportEngagementActivity' => $post->supportsCivicEngagement()
+                ? [
+                    'supports' => $post->reportSupports()->with('user:id,name,full_name')->latest()->limit(10)->get(),
+                    'agreements' => $post->reportAgreements()->with('user:id,name,full_name')->latest()->limit(10)->get(),
+                    'follows' => $post->reportFollows()->with('user:id,name,full_name')->latest()->limit(10)->get(),
+                ]
                 : null,
             'awarenessEngagement' => $post->isAwarenessPost()
                 ? \App\Services\CommunityAwarenessEngagementService::stateForPost($post, auth()->id())
@@ -223,6 +257,9 @@ class CommunityPostController extends Controller
                 : null,
             'businessEngagementActivity' => $post->isBusinessPost()
                 ? \App\Services\CommunityBusinessEngagementService::activityForPost($post)
+                : null,
+            'localVoiceEngagement' => $post->isLocalVoicesPost()
+                ? \App\Services\CommunityLocalVoiceEngagementService::stateForPost($post, auth()->id())
                 : null,
             'communityParticipationEvidence' => $post->allow_additional_evidence
                 ? CommunityReportEngagementNotificationService::recentEvidence($post, $limit)
@@ -324,6 +361,14 @@ class CommunityPostController extends Controller
 
         if ($post->isYouthCornerPost() && $active) {
             CommunityYouthCornerEngagementNotificationService::notifyAuthorOfReaction(
+                $post,
+                $request->user(),
+                $data['reaction']
+            );
+        }
+
+        if ($post->isAgriculturePost() && $active) {
+            CommunityAgricultureEngagementNotificationService::notifyAuthorOfReaction(
                 $post,
                 $request->user(),
                 $data['reaction']
@@ -467,6 +512,15 @@ class CommunityPostController extends Controller
             $data['body'],
             filled($data['parent_id'] ?? null)
         );
+
+        if ($post->isAgriculturePost()) {
+            CommunityAgricultureEngagementNotificationService::notifyAuthorOfCommunityResponse(
+                $post,
+                $request->user(),
+                $data['body'],
+                filled($data['parent_id'] ?? null)
+            );
+        }
 
         $this->syncReportTrustScore($post->fresh());
 
@@ -707,10 +761,23 @@ class CommunityPostController extends Controller
         return back()->with('success', 'Author profile updated successfully.');
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
+        $post = new CommunityPost([
+            'status' => CommunityPost::STATUS_PUBLISHED,
+            'allow_comments' => true,
+            'allow_questions' => true,
+            'allow_sharing' => true,
+            'allow_poll' => false,
+        ]);
+
+        $requestedType = $request->string('type')->toString();
+        if ($requestedType !== '' && array_key_exists($requestedType, CommunityContentTaxonomy::formTypes())) {
+            $post->content_type = $requestedType;
+        }
+
         return view('backend.community-posts.form', [
-            'post' => new CommunityPost(['status' => CommunityPost::STATUS_PUBLISHED, 'allow_comments' => true, 'allow_questions' => true, 'allow_sharing' => true, 'allow_poll' => false]),
+            'post' => $post,
             'types' => CommunityContentTaxonomy::formTypes(),
             'mode' => 'create',
         ]);
@@ -729,6 +796,9 @@ class CommunityPostController extends Controller
         $data['meta'] = $this->applySeniorCitizensForumPrivacyMeta($data['meta'], $request);
         $data['meta'] = $this->applyStudentCornerPrivacyMeta($data['meta'], $request);
         $data['meta'] = $this->applyYouthCornerPrivacyMeta($data['meta'], $request);
+        $data['meta'] = $this->applyLocalVoicePrivacyMeta($data['meta'], $request);
+        $data['meta'] = $this->applyMyAreaPrivacyMeta($data['meta'], $request);
+        $data['meta'] = $this->applyCommunityIssuePrivacyMeta($data['meta'], $request);
         $this->mergeBookPagesIntoMeta($request, $data);
 
         if ($request->hasFile('issue_attachments')) {
@@ -844,6 +914,50 @@ class CommunityPostController extends Controller
         if ($youthCornerAchievements !== null) {
             $data['meta']['youth_corner_achievements'] = $youthCornerAchievements;
         }
+        $localVoicePhotoEvidence = $this->resolveLocalVoicePhotoEvidence($request);
+        if ($localVoicePhotoEvidence !== null) {
+            $data['meta']['local_voice_photo_evidence'] = $localVoicePhotoEvidence;
+        }
+        $localVoiceDocuments = $this->resolveLocalVoiceDocuments($request);
+        if ($localVoiceDocuments !== null) {
+            $data['meta']['local_voice_documents'] = $localVoiceDocuments;
+        }
+        $localVoiceHeroImages = $this->resolveLocalVoiceHeroImages($request);
+        if ($localVoiceHeroImages !== null) {
+            $data['meta']['local_voice_hero_images'] = $localVoiceHeroImages;
+        }
+        $myAreaPhotoEvidence = $this->resolveMyAreaPhotoEvidence($request);
+        if ($myAreaPhotoEvidence !== null) {
+            $data['meta']['my_area_photo_evidence'] = $myAreaPhotoEvidence;
+        }
+        $myAreaDocuments = $this->resolveMyAreaDocuments($request);
+        if ($myAreaDocuments !== null) {
+            $data['meta']['my_area_documents'] = $myAreaDocuments;
+        }
+        $myAreaHeroImages = $this->resolveMyAreaHeroImages($request);
+        if ($myAreaHeroImages !== null) {
+            $data['meta']['my_area_hero_images'] = $myAreaHeroImages;
+        }
+        $communityIssuePhotoEvidence = $this->resolveCommunityIssuePhotoEvidence($request);
+        if ($communityIssuePhotoEvidence !== null) {
+            $data['meta']['community_issue_photo_evidence'] = $communityIssuePhotoEvidence;
+        }
+        $communityIssueDocuments = $this->resolveCommunityIssueDocuments($request);
+        if ($communityIssueDocuments !== null) {
+            $data['meta']['community_issue_documents'] = $communityIssueDocuments;
+        }
+        $agricultureProblemPhotos = $this->resolveAgricultureProblemPhotos($request);
+        if ($agricultureProblemPhotos !== null) {
+            $data['meta']['agriculture_problem_photos'] = $agricultureProblemPhotos;
+        }
+        $agricultureGallery = $this->resolveAgricultureGallery($request);
+        if ($agricultureGallery !== null) {
+            $data['meta']['agriculture_gallery'] = $agricultureGallery;
+        }
+        $agricultureDocuments = $this->resolveAgricultureDocuments($request);
+        if ($agricultureDocuments !== null) {
+            $data['meta']['agriculture_documents'] = $agricultureDocuments;
+        }
         $businessGallery = $this->resolveBusinessGallery($request);
         if ($businessGallery !== null) {
             $data['meta']['business_gallery'] = $businessGallery;
@@ -908,6 +1022,8 @@ class CommunityPostController extends Controller
             CommunityYouthCornerEngagementNotificationService::notifyAuthorOfPublishedPost($post->fresh());
         } elseif (in_array($post->content_type, ['poetry', 'biography', 'autobiography'], true) && $post->isPubliclyVisible()) {
             CommunityStoryEngagementNotificationService::notifyAuthorOfPublishedWithoutAudio($post->fresh());
+        } elseif ($post->isAgriculturePost() && $post->isPubliclyVisible()) {
+            CommunityAgricultureEngagementNotificationService::notifyOnPublishedPost($post->fresh());
         }
 
         $message = $post->isPendingApproval()
@@ -948,6 +1064,9 @@ class CommunityPostController extends Controller
         $data['meta'] = $this->applySeniorCitizensForumPrivacyMeta($data['meta'], $request, $post);
         $data['meta'] = $this->applyStudentCornerPrivacyMeta($data['meta'], $request, $post);
         $data['meta'] = $this->applyYouthCornerPrivacyMeta($data['meta'], $request, $post);
+        $data['meta'] = $this->applyLocalVoicePrivacyMeta($data['meta'], $request, $post);
+        $data['meta'] = $this->applyMyAreaPrivacyMeta($data['meta'], $request, $post);
+        $data['meta'] = $this->applyCommunityIssuePrivacyMeta($data['meta'], $request, $post);
         $this->mergeBookPagesIntoMeta($request, $data);
 
         if ($request->hasFile('issue_attachments')) {
@@ -1171,6 +1290,118 @@ class CommunityPostController extends Controller
             unset($data['meta']['youth_corner_achievements']);
         }
 
+        $localVoicePhotoEvidence = $this->resolveLocalVoicePhotoEvidence($request, $post);
+        if ($localVoicePhotoEvidence !== null) {
+            $data['meta']['local_voice_photo_evidence'] = $localVoicePhotoEvidence;
+        } elseif (data_get($post->meta, 'local_voice_photo_evidence')) {
+            foreach ((array) data_get($post->meta, 'local_voice_photo_evidence', []) as $photo) {
+                CommunityPostFileUploader::deleteIfExists(data_get($photo, 'path'));
+            }
+            unset($data['meta']['local_voice_photo_evidence']);
+        }
+
+        $localVoiceDocuments = $this->resolveLocalVoiceDocuments($request, $post);
+        if ($localVoiceDocuments !== null) {
+            $data['meta']['local_voice_documents'] = $localVoiceDocuments;
+        } elseif (data_get($post->meta, 'local_voice_documents')) {
+            foreach ((array) data_get($post->meta, 'local_voice_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['local_voice_documents']);
+        }
+
+        $localVoiceHeroImages = $this->resolveLocalVoiceHeroImages($request, $post);
+        if ($localVoiceHeroImages !== null) {
+            $data['meta']['local_voice_hero_images'] = $localVoiceHeroImages;
+        } elseif (data_get($post->meta, 'local_voice_hero_images')) {
+            foreach ((array) data_get($post->meta, 'local_voice_hero_images', []) as $image) {
+                CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+            }
+            unset($data['meta']['local_voice_hero_images']);
+        }
+
+        $myAreaPhotoEvidence = $this->resolveMyAreaPhotoEvidence($request, $post);
+        if ($myAreaPhotoEvidence !== null) {
+            $data['meta']['my_area_photo_evidence'] = $myAreaPhotoEvidence;
+        } elseif (data_get($post->meta, 'my_area_photo_evidence')) {
+            foreach ((array) data_get($post->meta, 'my_area_photo_evidence', []) as $photo) {
+                CommunityPostFileUploader::deleteIfExists(data_get($photo, 'path'));
+            }
+            unset($data['meta']['my_area_photo_evidence']);
+        }
+
+        $myAreaDocuments = $this->resolveMyAreaDocuments($request, $post);
+        if ($myAreaDocuments !== null) {
+            $data['meta']['my_area_documents'] = $myAreaDocuments;
+        } elseif (data_get($post->meta, 'my_area_documents')) {
+            foreach ((array) data_get($post->meta, 'my_area_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['my_area_documents']);
+        }
+
+        $myAreaHeroImages = $this->resolveMyAreaHeroImages($request, $post);
+        if ($myAreaHeroImages !== null) {
+            $data['meta']['my_area_hero_images'] = $myAreaHeroImages;
+        } elseif (data_get($post->meta, 'my_area_hero_images')) {
+            foreach ((array) data_get($post->meta, 'my_area_hero_images', []) as $image) {
+                CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+            }
+            unset($data['meta']['my_area_hero_images']);
+        }
+
+        $communityIssuePhotoEvidence = $this->resolveCommunityIssuePhotoEvidence($request, $post);
+        if ($communityIssuePhotoEvidence !== null) {
+            $data['meta']['community_issue_photo_evidence'] = $communityIssuePhotoEvidence;
+        } elseif (data_get($post->meta, 'community_issue_photo_evidence')) {
+            foreach ((array) data_get($post->meta, 'community_issue_photo_evidence', []) as $photo) {
+                CommunityPostFileUploader::deleteIfExists(data_get($photo, 'path'));
+            }
+            unset($data['meta']['community_issue_photo_evidence']);
+        }
+
+        $communityIssueDocuments = $this->resolveCommunityIssueDocuments($request, $post);
+        if ($communityIssueDocuments !== null) {
+            $data['meta']['community_issue_documents'] = $communityIssueDocuments;
+        } elseif (data_get($post->meta, 'community_issue_documents')) {
+            foreach ((array) data_get($post->meta, 'community_issue_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['community_issue_documents']);
+        }
+
+        $agricultureProblemPhotos = $this->resolveAgricultureProblemPhotos($request, $post);
+        if ($agricultureProblemPhotos !== null) {
+            $data['meta']['agriculture_problem_photos'] = $agricultureProblemPhotos;
+        } elseif (data_get($post->meta, 'agriculture_problem_photos')) {
+            foreach ((array) data_get($post->meta, 'agriculture_problem_photos', []) as $photo) {
+                CommunityPostFileUploader::deleteIfExists(data_get($photo, 'path'));
+            }
+            unset($data['meta']['agriculture_problem_photos']);
+        }
+
+        $agricultureGallery = $this->resolveAgricultureGallery($request, $post);
+        if ($agricultureGallery !== null) {
+            $data['meta']['agriculture_gallery'] = $agricultureGallery;
+        } elseif (data_get($post->meta, 'agriculture_gallery')) {
+            foreach ((array) data_get($post->meta, 'agriculture_gallery', []) as $categoryPhotos) {
+                foreach ((array) $categoryPhotos as $photo) {
+                    CommunityPostFileUploader::deleteIfExists(data_get($photo, 'path'));
+                }
+            }
+            unset($data['meta']['agriculture_gallery']);
+        }
+
+        $agricultureDocuments = $this->resolveAgricultureDocuments($request, $post);
+        if ($agricultureDocuments !== null) {
+            $data['meta']['agriculture_documents'] = $agricultureDocuments;
+        } elseif (data_get($post->meta, 'agriculture_documents')) {
+            foreach ((array) data_get($post->meta, 'agriculture_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['agriculture_documents']);
+        }
+
         $businessGallery = $this->resolveBusinessGallery($request, $post);
         if ($businessGallery !== null) {
             $data['meta']['business_gallery'] = $businessGallery;
@@ -1234,17 +1465,56 @@ class CommunityPostController extends Controller
         }
 
         $originalAttributes = $post->getOriginal();
+        $originalMeta = is_array($originalAttributes['meta'] ?? null)
+            ? $originalAttributes['meta']
+            : (json_decode((string) ($originalAttributes['meta'] ?? ''), true) ?: []);
         $post->update($data);
 
         $this->syncReportTrustScore($post->fresh());
 
         CommunityPostAuditLogger::logUpdated($post, $request, $originalAttributes);
 
-        if ($post->isReportContent() && $post->isPubliclyVisible()) {
-            CommunityReportEngagementNotificationService::notifyFollowersOfReportUpdate(
-                $post->fresh(),
-                'The author published an update to this report.'
-            );
+        if ($post->supportsCivicEngagement() && $post->isPubliclyVisible()) {
+            $updateMessage = 'The author published an update to this '.match (true) {
+                $post->isCommunityIssuesPost() => 'community issue',
+                $post->isMyAreaPost() => 'My Area post',
+                default => 'report',
+            }.'.';
+            $communityIssueFollowersNotified = false;
+
+            if ($post->isMyAreaPost()) {
+                $newStatus = data_get($post->meta, 'my_area_status_tracker');
+                $oldStatus = data_get($originalMeta, 'my_area_status_tracker');
+                if (filled($newStatus) && $newStatus !== $oldStatus) {
+                    $updateMessage = 'Resolution status updated to: '.$newStatus.'.';
+                }
+            }
+
+            if ($post->isCommunityIssuesPost()) {
+                $newStatus = data_get($post->meta, 'community_issue_status_tracker');
+                $oldStatus = data_get($originalMeta, 'community_issue_status_tracker');
+                $newTimeline = (string) data_get($post->meta, 'community_issue_resolution_timeline', '');
+                $oldTimeline = (string) data_get($originalMeta, 'community_issue_resolution_timeline', '');
+
+                if (filled($newStatus) && $newStatus !== $oldStatus) {
+                    CommunityCommunityIssuesEngagementNotificationService::notifyFollowersOfStatusChange(
+                        $post->fresh(),
+                        is_string($oldStatus) ? $oldStatus : null,
+                        $newStatus
+                    );
+                    $communityIssueFollowersNotified = true;
+                } elseif (filled($newTimeline) && $newTimeline !== $oldTimeline) {
+                    CommunityCommunityIssuesEngagementNotificationService::notifyFollowersOfTimelineUpdate($post->fresh());
+                    $communityIssueFollowersNotified = true;
+                }
+            }
+
+            if (! $communityIssueFollowersNotified) {
+                CommunityReportEngagementNotificationService::notifyFollowersOfReportUpdate(
+                    $post->fresh(),
+                    $updateMessage
+                );
+            }
         }
 
         if ($post->isPendingApproval() && ! $wasPending) {
@@ -1285,6 +1555,22 @@ class CommunityPostController extends Controller
             && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
         ) {
             CommunityStoryEngagementNotificationService::notifyAuthorOfPublishedWithoutAudio($post->fresh());
+        } elseif (
+            $post->isAgriculturePost()
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityAgricultureEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        }
+
+        if (
+            $post->isAgriculturePost()
+            && $post->isPubliclyVisible()
+            && $originalAttributes['status'] === \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityAgricultureEngagementNotificationService::maybeNotifyCropDoctorRequestOnUpdate($post->fresh(), $originalMeta);
+            CommunityAgricultureEngagementNotificationService::maybeNotifyAskCommunityOnUpdate($post->fresh(), $originalMeta);
         }
 
         $message = $post->isPendingApproval()
@@ -1362,6 +1648,10 @@ class CommunityPostController extends Controller
         $isSeniorCitizensForum = CommunityPost::usesSeniorCitizensForumFlow(is_string($contentType) ? $contentType : null);
         $isStudentCorner = CommunityPost::usesStudentCornerFlow(is_string($contentType) ? $contentType : null);
         $isYouthCorner = CommunityPost::usesYouthCornerFlow(is_string($contentType) ? $contentType : null);
+        $isLocalVoices = CommunityPost::usesLocalVoicesFlow(is_string($contentType) ? $contentType : null);
+        $isMyArea = CommunityPost::usesMyAreaFlow(is_string($contentType) ? $contentType : null);
+        $isCommunityIssues = CommunityPost::usesCommunityIssuesFlow(is_string($contentType) ? $contentType : null);
+        $isAgriculture = CommunityPost::usesAgricultureFlow(is_string($contentType) ? $contentType : null);
         $isStudentCornerProject = $isStudentCorner
             && $request->input('student_corner_content_type') === CommunityContentTaxonomy::studentCornerProjectContentType();
         $isYouthCornerProject = $isYouthCorner
@@ -1395,6 +1685,26 @@ class CommunityPostController extends Controller
 
         if ($isYouthCorner && $request->filled('youth_corner_category')) {
             $request->merge(['category' => $request->input('youth_corner_category')]);
+        }
+
+        if ($isLocalVoices && $request->filled('local_voice_category')) {
+            $request->merge(['category' => $request->input('local_voice_category')]);
+        }
+
+        if ($isMyArea && $request->filled('my_area_topic_category')) {
+            $request->merge(['category' => $request->input('my_area_topic_category')]);
+        }
+
+        if ($isCommunityIssues && $request->filled('community_issue_category')) {
+            $request->merge(['category' => $request->input('community_issue_category')]);
+        }
+
+        if ($isAgriculture && $request->filled('agriculture_category')) {
+            $request->merge(['category' => $request->input('agriculture_category')]);
+        }
+
+        if ($isMyArea && $request->filled('my_area_activity_type')) {
+            $request->merge(['writing_purpose' => $request->input('my_area_activity_type')]);
         }
 
         $rules = [
@@ -1647,7 +1957,7 @@ class CommunityPostController extends Controller
                 'max:120',
             ],
             'location_locality' => [
-                Rule::requiredIf(fn () => (string) $contentType === 'awareness'),
+                Rule::requiredIf(fn () => in_array((string) $contentType, ['awareness', 'local-voices'], true)),
                 'nullable',
                 'string',
                 'max:120',
@@ -2393,6 +2703,326 @@ class CommunityPostController extends Controller
                 'string',
                 Rule::in(CommunityContentTaxonomy::youthCornerMainCategories()),
             ],
+            'local_voice_type' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::localVoiceTypes()),
+            ],
+            'local_voice_category' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::localVoiceMainCategories()),
+            ],
+            'community_issue_category' => [
+                Rule::excludeIf(fn () => ! $isCommunityIssues),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::communityIssueMainCategories()),
+            ],
+            'community_issue_type' => [
+                Rule::excludeIf(fn () => ! $isCommunityIssues),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::communityIssueTypes()),
+            ],
+            'agriculture_share_type' => [
+                Rule::excludeIf(fn () => ! $isAgriculture),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::agricultureShareTypes()),
+            ],
+            'agriculture_category' => [
+                Rule::excludeIf(fn () => ! $isAgriculture),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::agricultureMainCategories()),
+            ],
+            'agriculture_crop_name' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:120'],
+            'agriculture_crop_variety' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:120'],
+            'agriculture_sowing_date' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'date'],
+            'agriculture_harvest_date' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'date'],
+            'agriculture_growing_season' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureGrowingSeasons())],
+            'agriculture_climate_zone' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:120'],
+            'agriculture_soil_type' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureSoilTypes())],
+            'agriculture_farm_size' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureFarmSizes())],
+            'agriculture_farming_type' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureFarmingTypes())],
+            'agriculture_irrigation_method' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureIrrigationMethods())],
+            'agriculture_water_source' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureWaterSources())],
+            'agriculture_water_conservation_practices' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'array'],
+            'agriculture_water_conservation_practices.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'string', Rule::in(CommunityContentTaxonomy::agricultureWaterConservationPractices())],
+            'agriculture_soil_test_conducted' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', Rule::in(['yes', 'no'])],
+            'agriculture_soil_ph' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:40'],
+            'agriculture_soil_organic_carbon' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:40'],
+            'agriculture_soil_nitrogen' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:40'],
+            'agriculture_soil_phosphorus' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:40'],
+            'agriculture_soil_potassium' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:40'],
+            'agriculture_soil_recommendations' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:3000'],
+            'agriculture_problem_type' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureProblemTypes())],
+            'agriculture_expert_assistance' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', Rule::in(['yes', 'no'])],
+            'agriculture_problem_photos' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'array', 'max:'.self::MAX_AGRICULTURE_PROBLEM_PHOTOS],
+            'agriculture_problem_photos.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'image', 'max:4096'],
+            'removed_agriculture_problem_photos' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'array'],
+            'removed_agriculture_problem_photos.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'string', 'max:255'],
+            'agriculture_equipment_name' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:160'],
+            'agriculture_equipment_manufacturer' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:160'],
+            'agriculture_equipment_experience' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:3000'],
+            'agriculture_equipment_cost' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:120'],
+            'agriculture_equipment_benefits' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:2000'],
+            'agriculture_scheme_name' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:160'],
+            'agriculture_scheme_department' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:160'],
+            'agriculture_scheme_eligibility' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:2000'],
+            'agriculture_scheme_subsidy' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:120'],
+            'agriculture_scheme_application_link' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'url', 'max:255'],
+            'agriculture_scheme_last_date' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'date'],
+            'agriculture_market_commodity' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:120'],
+            'agriculture_market_name' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:160'],
+            'agriculture_market_price' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:80'],
+            'agriculture_market_date' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'date'],
+            'agriculture_market_price_trend' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agriculturePriceTrends())],
+            'agriculture_livestock_types' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'array'],
+            'agriculture_livestock_types.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'string', Rule::in(CommunityContentTaxonomy::agricultureLivestockTypes())],
+            'agriculture_innovation_name' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:160'],
+            'agriculture_innovation_description' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:3000'],
+            'agriculture_innovation_benefits' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:2000'],
+            'agriculture_innovation_results' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:2000'],
+            'agriculture_agri_business_type' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureAgriBusinessTypes())],
+            'agriculture_weather_impact' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureWeatherImpacts())],
+            'agriculture_video_type' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::agricultureVideoExamples())],
+            'agriculture_ask_community' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:500'],
+            'agriculture_enable_knowledge_exchange' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'boolean'],
+            'agriculture_enable_crop_doctor' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'boolean'],
+            'agriculture_target_audiences' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'array'],
+            'agriculture_target_audiences.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'string', Rule::in(CommunityContentTaxonomy::agricultureTargetAudiences())],
+            'agriculture_poll_question' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:255'],
+            'agriculture_poll_options' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'string', 'max:2000'],
+            'agriculture_documents' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'array', 'max:'.self::MAX_AGRICULTURE_DOCUMENTS],
+            'agriculture_documents.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx', 'max:20480'],
+            'removed_agriculture_documents' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'array'],
+            'removed_agriculture_documents.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'string', 'max:255'],
+            'community_issue_severity' => [
+                Rule::excludeIf(fn () => ! $isCommunityIssues),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::communityIssueSeverityLevels()),
+            ],
+            'community_issue_affected_population' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::communityIssueAffectedPopulationRanges())],
+            'community_issue_affected_groups' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'array'],
+            'community_issue_affected_groups.*' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'string', Rule::in(CommunityContentTaxonomy::communityIssueAffectedGroups())],
+            'location_landmark' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', 'max:160'],
+            'community_issue_first_noticed_on' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'date'],
+            'community_issue_is_recurring' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', Rule::in(['yes', 'no'])],
+            'community_issue_frequency' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::communityIssueRecurringFrequencies())],
+            'community_issue_authority' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::communityIssueAuthorities())],
+            'community_issue_already_reported' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', Rule::in(['yes', 'no'])],
+            'community_issue_complaint_number' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', 'max:120'],
+            'community_issue_complaint_date' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'date'],
+            'community_issue_department_contacted' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', 'max:160'],
+            'community_issue_suggested_solution' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', 'max:3000'],
+            'community_issue_support_requests' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'array'],
+            'community_issue_support_requests.*' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'string', Rule::in(CommunityContentTaxonomy::communityIssueSupportRequests())],
+            'community_issue_status_tracker' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::communityIssueStatusSteps())],
+            'community_issue_resolution_timeline' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', 'max:4000'],
+            'community_issue_allow_campaign' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'boolean'],
+            'community_issue_allow_support' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'boolean'],
+            'community_issue_allow_follow' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'boolean'],
+            'community_issue_allow_verification' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'boolean'],
+            'community_issue_escalation_threshold' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'integer', 'min:10', 'max:10000'],
+            'community_issue_poll_question' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', 'max:255'],
+            'community_issue_poll_options' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'string', 'max:2000'],
+            'community_issue_visibility' => [
+                Rule::excludeIf(fn () => ! $isCommunityIssues),
+                'required',
+                'string',
+                Rule::in(array_keys(CommunityContentTaxonomy::communityIssueVisibilitySettings())),
+            ],
+            'community_issue_photo_evidence' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'array', 'max:'.self::MAX_COMMUNITY_ISSUE_PHOTO_EVIDENCE],
+            'community_issue_photo_evidence.*' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'image', 'max:4096'],
+            'removed_community_issue_photo_evidence' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'array'],
+            'removed_community_issue_photo_evidence.*' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'string', 'max:255'],
+            'community_issue_documents' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'array', 'max:'.self::MAX_COMMUNITY_ISSUE_DOCUMENTS],
+            'community_issue_documents.*' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'file', 'mimes:pdf,doc,docx', 'max:20480'],
+            'removed_community_issue_documents' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'nullable', 'array'],
+            'removed_community_issue_documents.*' => [Rule::excludeIf(fn () => ! $isCommunityIssues), 'string', 'max:255'],
+            'local_voice_issue_type' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::localVoiceIssueTypes()),
+            ],
+            'local_voice_affected_communities' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'array'],
+            'local_voice_affected_communities.*' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'string',
+                Rule::in(CommunityContentTaxonomy::localVoiceAffectedCommunities()),
+            ],
+            'local_voice_impact_level' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::localVoiceImpactLevels()),
+            ],
+            'local_voice_photo_evidence' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'nullable',
+                'array',
+                'max:'.self::MAX_LOCAL_VOICE_PHOTO_EVIDENCE,
+            ],
+            'local_voice_photo_evidence.*' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'image',
+                'max:4096',
+            ],
+            'removed_local_voice_photo_evidence' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'array'],
+            'removed_local_voice_photo_evidence.*' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'string', 'max:255'],
+            'local_voice_video_type' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::localVoiceVideoTypes()),
+            ],
+            'local_voice_documents' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'nullable',
+                'array',
+                'max:'.self::MAX_LOCAL_VOICE_DOCUMENTS,
+            ],
+            'local_voice_documents.*' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'file',
+                'max:20480',
+                'mimes:pdf,doc,docx',
+            ],
+            'removed_local_voice_documents' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'array'],
+            'removed_local_voice_documents.*' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'string', 'max:255'],
+            'local_voice_suggested_solution' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:3000'],
+            'local_voice_estimated_benefit' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:500'],
+            'local_voice_authorities' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'array'],
+            'local_voice_authorities.*' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'string',
+                Rule::in(CommunityContentTaxonomy::localVoiceAuthorities()),
+            ],
+            'local_voice_call_for_action' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'array'],
+            'local_voice_call_for_action.*' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'string',
+                Rule::in(CommunityContentTaxonomy::localVoiceCallForActionExamples()),
+            ],
+            'local_voice_status_tracker' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::localVoiceStatusTrackerSteps()),
+            ],
+            'local_voice_poll_question' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:255'],
+            'local_voice_poll_options' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:2000'],
+            'local_voice_allow_support' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'boolean'],
+            'local_voice_allow_follow' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'boolean'],
+            'local_voice_hero_name' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:160'],
+            'local_voice_hero_location' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:160'],
+            'local_voice_hero_contribution' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:2000'],
+            'local_voice_hero_achievements' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:2000'],
+            'local_voice_hero_images' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'nullable',
+                'array',
+                'max:'.self::MAX_LOCAL_VOICE_HERO_IMAGES,
+            ],
+            'local_voice_hero_images.*' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'image', 'max:4096'],
+            'removed_local_voice_hero_images' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'array'],
+            'removed_local_voice_hero_images.*' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'string', 'max:255'],
+            'local_voice_initiatives' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'array'],
+            'local_voice_initiatives.*' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'string',
+                Rule::in(CommunityContentTaxonomy::localVoiceInitiativeExamples()),
+            ],
+            'local_voice_event_date' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'date'],
+            'local_voice_event_time' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:40'],
+            'local_voice_event_venue' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:160'],
+            'local_voice_event_organizer' => [Rule::excludeIf(fn () => ! $isLocalVoices), 'nullable', 'string', 'max:160'],
+            'local_voice_visibility' => [
+                Rule::excludeIf(fn () => ! $isLocalVoices),
+                'required',
+                'string',
+                Rule::in(array_keys(CommunityContentTaxonomy::localVoiceVisibilitySettings())),
+            ],
+            'my_area_activity_type' => [
+                Rule::excludeIf(fn () => ! $isMyArea),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::myAreaActivityTypes()),
+            ],
+            'my_area_topic_category' => [
+                Rule::excludeIf(fn () => ! $isMyArea),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::myAreaTopicCategories()),
+            ],
+            'my_area_impact_level' => [
+                Rule::excludeIf(fn () => ! $isMyArea),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::myAreaImpactLevels()),
+            ],
+            'my_area_affected_communities' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'array'],
+            'my_area_affected_communities.*' => [
+                Rule::excludeIf(fn () => ! $isMyArea),
+                'string',
+                Rule::in(CommunityContentTaxonomy::myAreaAffectedCommunities()),
+            ],
+            'my_area_status_tracker' => [
+                Rule::excludeIf(fn () => ! $isMyArea),
+                'nullable',
+                'string',
+                Rule::in(CommunityContentTaxonomy::myAreaStatusTrackerSteps()),
+            ],
+            'my_area_authorities' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'array'],
+            'my_area_authorities.*' => [
+                Rule::excludeIf(fn () => ! $isMyArea),
+                'string',
+                Rule::in(CommunityContentTaxonomy::myAreaAuthorities()),
+            ],
+            'my_area_suggested_solution' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'string', 'max:3000'],
+            'my_area_hero_name' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'string', 'max:160'],
+            'my_area_hero_location' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'string', 'max:160'],
+            'my_area_hero_contribution' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'string', 'max:2000'],
+            'my_area_achievement_title' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'string', 'max:200'],
+            'my_area_achievement_description' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'string', 'max:3000'],
+            'my_area_poll_question' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'string', 'max:255'],
+            'my_area_poll_options' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'string', 'max:2000'],
+            'my_area_photo_evidence' => [
+                Rule::excludeIf(fn () => ! $isMyArea),
+                'nullable',
+                'array',
+                'max:'.self::MAX_MY_AREA_PHOTO_EVIDENCE,
+            ],
+            'my_area_photo_evidence.*' => [Rule::excludeIf(fn () => ! $isMyArea), 'image', 'max:4096'],
+            'removed_my_area_photo_evidence' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'array'],
+            'my_area_documents' => [
+                Rule::excludeIf(fn () => ! $isMyArea),
+                'nullable',
+                'array',
+                'max:'.self::MAX_MY_AREA_DOCUMENTS,
+            ],
+            'my_area_documents.*' => [Rule::excludeIf(fn () => ! $isMyArea), 'file', 'max:20480', 'mimes:pdf,doc,docx'],
+            'removed_my_area_documents' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'array'],
+            'my_area_hero_images' => [
+                Rule::excludeIf(fn () => ! $isMyArea),
+                'nullable',
+                'array',
+                'max:'.self::MAX_MY_AREA_HERO_IMAGES,
+            ],
+            'my_area_hero_images.*' => [Rule::excludeIf(fn () => ! $isMyArea), 'image', 'max:4096'],
+            'removed_my_area_hero_images' => [Rule::excludeIf(fn () => ! $isMyArea), 'nullable', 'array'],
+            'my_area_visibility' => [
+                Rule::excludeIf(fn () => ! $isMyArea),
+                'required',
+                'string',
+                Rule::in(array_keys(CommunityContentTaxonomy::myAreaVisibilitySettings())),
+            ],
             'youth_corner_content_type' => [
                 Rule::excludeIf(fn () => ! $isYouthCorner),
                 'required',
@@ -3098,6 +3728,14 @@ class CommunityPostController extends Controller
             $validated['category'] = (string) ($validated['awareness_category'] ?? $request->input('awareness_category'));
         }
 
+        if ($isCommunityIssues) {
+            $validated['category'] = (string) ($validated['community_issue_category'] ?? $request->input('community_issue_category'));
+        }
+
+        if ($isAgriculture) {
+            $validated['category'] = (string) ($validated['agriculture_category'] ?? $request->input('agriculture_category'));
+        }
+
         if ($isBusiness) {
             $validated['category'] = (string) ($validated['business_category'] ?? $request->input('business_category'));
         }
@@ -3429,6 +4067,81 @@ class CommunityPostController extends Controller
                 : \Illuminate\Support\Str::random(48);
         } else {
             unset($meta['youth_corner_private_link_token']);
+        }
+
+        return $meta;
+    }
+
+    private function applyLocalVoicePrivacyMeta(array $meta, Request $request, ?CommunityPost $post = null): array
+    {
+        if ($request->input('content_type') !== 'local-voices') {
+            return $meta;
+        }
+
+        $visibility = array_key_exists(
+            (string) $request->input('local_voice_visibility'),
+            CommunityContentTaxonomy::localVoiceVisibilitySettings()
+        )
+            ? (string) $request->input('local_voice_visibility')
+            : CommunityContentTaxonomy::localVoiceDefaultVisibilitySetting();
+
+        if ($visibility === 'private_link') {
+            $existing = data_get($post?->meta, 'local_voice_private_link_token');
+            $meta['local_voice_private_link_token'] = filled($existing)
+                ? $existing
+                : \Illuminate\Support\Str::random(48);
+        } else {
+            unset($meta['local_voice_private_link_token']);
+        }
+
+        return $meta;
+    }
+
+    private function applyMyAreaPrivacyMeta(array $meta, Request $request, ?CommunityPost $post = null): array
+    {
+        if ($request->input('content_type') !== 'my-area') {
+            return $meta;
+        }
+
+        $visibility = array_key_exists(
+            (string) $request->input('my_area_visibility'),
+            CommunityContentTaxonomy::myAreaVisibilitySettings()
+        )
+            ? (string) $request->input('my_area_visibility')
+            : CommunityContentTaxonomy::myAreaDefaultVisibilitySetting();
+
+        if ($visibility === 'private_link') {
+            $existing = data_get($post?->meta, 'my_area_private_link_token');
+            $meta['my_area_private_link_token'] = filled($existing)
+                ? $existing
+                : \Illuminate\Support\Str::random(48);
+        } else {
+            unset($meta['my_area_private_link_token']);
+        }
+
+        return $meta;
+    }
+
+    private function applyCommunityIssuePrivacyMeta(array $meta, Request $request, ?CommunityPost $post = null): array
+    {
+        if ($request->input('content_type') !== 'community-issues') {
+            return $meta;
+        }
+
+        $visibility = array_key_exists(
+            (string) $request->input('community_issue_visibility'),
+            CommunityContentTaxonomy::communityIssueVisibilitySettings()
+        )
+            ? (string) $request->input('community_issue_visibility')
+            : CommunityContentTaxonomy::communityIssueDefaultVisibilitySetting();
+
+        if ($visibility === 'private_link') {
+            $existing = data_get($post?->meta, 'community_issue_private_link_token');
+            $meta['community_issue_private_link_token'] = filled($existing)
+                ? $existing
+                : \Illuminate\Support\Str::random(48);
+        } else {
+            unset($meta['community_issue_private_link_token']);
         }
 
         return $meta;
@@ -4084,6 +4797,490 @@ class CommunityPostController extends Controller
         }
 
         return $resolved;
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeLocalVoicePhotoEvidence(Request $request): array
+    {
+        return collect($request->file('local_voice_photo_evidence', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'local-voice-photo-evidence'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveLocalVoicePhotoEvidence(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesLocalVoicesFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'local_voice_photo_evidence', []);
+        $removed = (array) $request->input('removed_local_voice_photo_evidence', []);
+
+        if ($existing === [] && ! $request->hasFile('local_voice_photo_evidence')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $photo): bool => in_array((string) data_get($photo, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('local_voice_photo_evidence')) {
+            $kept = array_values(array_merge($kept, $this->storeLocalVoicePhotoEvidence($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_LOCAL_VOICE_PHOTO_EVIDENCE));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeLocalVoiceDocuments(Request $request): array
+    {
+        return collect($request->file('local_voice_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'local-voice-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveLocalVoiceDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesLocalVoicesFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'local_voice_documents', []);
+        $removed = (array) $request->input('removed_local_voice_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('local_voice_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('local_voice_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeLocalVoiceDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_LOCAL_VOICE_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeLocalVoiceHeroImages(Request $request): array
+    {
+        return collect($request->file('local_voice_hero_images', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'local-voice-hero-images'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveLocalVoiceHeroImages(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesLocalVoicesFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'local_voice_hero_images', []);
+        $removed = (array) $request->input('removed_local_voice_hero_images', []);
+
+        if ($existing === [] && ! $request->hasFile('local_voice_hero_images')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $image): bool => in_array((string) data_get($image, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('local_voice_hero_images')) {
+            $kept = array_values(array_merge($kept, $this->storeLocalVoiceHeroImages($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_LOCAL_VOICE_HERO_IMAGES));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeMyAreaPhotoEvidence(Request $request): array
+    {
+        return collect($request->file('my_area_photo_evidence', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'my-area-photo-evidence'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveMyAreaPhotoEvidence(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesMyAreaFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'my_area_photo_evidence', []);
+        $removed = (array) $request->input('removed_my_area_photo_evidence', []);
+
+        if ($existing === [] && ! $request->hasFile('my_area_photo_evidence')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $photo): bool => in_array((string) data_get($photo, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('my_area_photo_evidence')) {
+            $kept = array_values(array_merge($kept, $this->storeMyAreaPhotoEvidence($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_MY_AREA_PHOTO_EVIDENCE));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeMyAreaDocuments(Request $request): array
+    {
+        return collect($request->file('my_area_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'my-area-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveMyAreaDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesMyAreaFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'my_area_documents', []);
+        $removed = (array) $request->input('removed_my_area_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('my_area_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('my_area_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeMyAreaDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_MY_AREA_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeMyAreaHeroImages(Request $request): array
+    {
+        return collect($request->file('my_area_hero_images', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'my-area-hero-images'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveMyAreaHeroImages(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesMyAreaFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'my_area_hero_images', []);
+        $removed = (array) $request->input('removed_my_area_hero_images', []);
+
+        if ($existing === [] && ! $request->hasFile('my_area_hero_images')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $image): bool => in_array((string) data_get($image, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('my_area_hero_images')) {
+            $kept = array_values(array_merge($kept, $this->storeMyAreaHeroImages($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_MY_AREA_HERO_IMAGES));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeCommunityIssuePhotoEvidence(Request $request): array
+    {
+        return collect($request->file('community_issue_photo_evidence', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'community-issue-photo-evidence'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveCommunityIssuePhotoEvidence(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesCommunityIssuesFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'community_issue_photo_evidence', []);
+        $removed = (array) $request->input('removed_community_issue_photo_evidence', []);
+
+        if ($existing === [] && ! $request->hasFile('community_issue_photo_evidence')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $photo): bool => in_array((string) data_get($photo, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('community_issue_photo_evidence')) {
+            $kept = array_values(array_merge($kept, $this->storeCommunityIssuePhotoEvidence($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_COMMUNITY_ISSUE_PHOTO_EVIDENCE));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeCommunityIssueDocuments(Request $request): array
+    {
+        return collect($request->file('community_issue_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'community-issue-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveCommunityIssueDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesCommunityIssuesFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'community_issue_documents', []);
+        $removed = (array) $request->input('removed_community_issue_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('community_issue_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('community_issue_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeCommunityIssueDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_COMMUNITY_ISSUE_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeAgricultureProblemPhotos(Request $request): array
+    {
+        return collect($request->file('agriculture_problem_photos', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'agriculture-problem-photos'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveAgricultureProblemPhotos(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesAgricultureFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'agriculture_problem_photos', []);
+        $removed = (array) $request->input('removed_agriculture_problem_photos', []);
+
+        if ($existing === [] && ! $request->hasFile('agriculture_problem_photos')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $photo): bool => in_array((string) data_get($photo, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('agriculture_problem_photos')) {
+            $kept = array_values(array_merge($kept, $this->storeAgricultureProblemPhotos($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_AGRICULTURE_PROBLEM_PHOTOS));
+    }
+
+    /**
+     * @return array<string, list<array{path: string, url: string, name: string, type: string}>>|null
+     */
+    private function resolveAgricultureGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesAgricultureFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'agriculture_gallery', []);
+        $gallery = [];
+        $hasUploads = false;
+
+        foreach (array_keys(CommunityContentTaxonomy::agricultureGalleryCategories()) as $categoryKey) {
+            $inputName = 'agriculture_gallery_'.$categoryKey;
+            $removedInput = 'removed_agriculture_gallery_'.$categoryKey;
+            $categoryExisting = (array) data_get($existing, $categoryKey, []);
+            $removed = (array) $request->input($removedInput, []);
+
+            if ($categoryExisting === [] && ! $request->hasFile($inputName)) {
+                continue;
+            }
+
+            $kept = collect($categoryExisting)
+                ->reject(fn (array $photo): bool => in_array((string) data_get($photo, 'path'), $removed, true))
+                ->values()
+                ->all();
+
+            foreach ($removed as $path) {
+                CommunityPostFileUploader::deleteIfExists($path);
+            }
+
+            if ($request->hasFile($inputName)) {
+                $hasUploads = true;
+                $uploaded = collect($request->file($inputName, []))
+                    ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'agriculture-gallery-'.$categoryKey))
+                    ->values()
+                    ->all();
+                $kept = array_values(array_merge($kept, $uploaded));
+            }
+
+            $kept = array_values(array_slice($kept, 0, self::MAX_AGRICULTURE_GALLERY_PER_CATEGORY));
+            if ($kept !== []) {
+                $gallery[$categoryKey] = $kept;
+            }
+        }
+
+        if ($gallery === [] && ! $hasUploads && $existing === []) {
+            return null;
+        }
+
+        return $gallery === [] ? null : $gallery;
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeAgricultureDocuments(Request $request): array
+    {
+        return collect($request->file('agriculture_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'agriculture-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveAgricultureDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesAgricultureFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'agriculture_documents', []);
+        $removed = (array) $request->input('removed_agriculture_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('agriculture_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('agriculture_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeAgricultureDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_AGRICULTURE_DOCUMENTS));
     }
 
     /**

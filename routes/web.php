@@ -88,6 +88,9 @@ Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-p
 Route::view('/community-posting-policy', 'frontend.community-posting-policy')->name('frontend.community-posting-policy');
 
 Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
+Route::get('/community/my-area', [\App\Http\Controllers\Community\CommunityMyAreaController::class, 'index'])->name('community.my-area.index');
+Route::get('/community/community-issues', [\App\Http\Controllers\Community\CommunityCommunityIssuesController::class, 'index'])->name('community.community-issues.index');
+Route::get('/community/community-issues/heat-map', [\App\Http\Controllers\Community\CommunityCommunityIssuesController::class, 'heatMapData'])->name('community.community-issues.heat-map');
 Route::get('/auther/{uniqueName}', [CommunityPostController::class, 'author'])->name('community.authors.show');
 Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
 Route::post('/community/{post:slug}/share', [CommunityEngagementController::class, 'trackShare'])->name('community.share.track');
@@ -255,6 +258,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/community/{post:slug}/report-engagement/support', [CommunityReportEngagementController::class, 'toggleSupport'])->name('community.report-engagement.support');
     Route::post('/community/{post:slug}/report-engagement/agree', [CommunityReportEngagementController::class, 'toggleAgree'])->name('community.report-engagement.agree');
     Route::post('/community/{post:slug}/report-engagement/follow', [CommunityReportEngagementController::class, 'toggleFollow'])->name('community.report-engagement.follow');
+    Route::post('/community/{post:slug}/local-voice-engagement/support', [\App\Http\Controllers\Community\CommunityLocalVoiceEngagementController::class, 'toggleSupport'])->name('community.local-voice-engagement.support');
+    Route::post('/community/{post:slug}/local-voice-engagement/follow', [\App\Http\Controllers\Community\CommunityLocalVoiceEngagementController::class, 'toggleFollow'])->name('community.local-voice-engagement.follow');
     Route::post('/community/{post:slug}/awareness-engagement/support', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'toggleSupport'])->name('community.awareness-engagement.support');
     Route::post('/community/{post:slug}/awareness-engagement/pledge', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'pledge'])->name('community.awareness-engagement.pledge');
     Route::post('/community/{post:slug}/report', [CommunityEngagementController::class, 'report'])->name('community.report');

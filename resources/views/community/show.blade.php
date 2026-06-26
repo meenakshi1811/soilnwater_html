@@ -205,6 +205,18 @@
         padding: 1.5rem;
     }
 
+    .my-area-community-panel {
+        background: linear-gradient(180deg, #f8fdf9 0%, #ffffff 100%);
+        border-color: rgba(27, 67, 50, 0.14);
+    }
+
+    .my-area-community-panel .report-community-panel__kicker {
+        color: #1b4332;
+    }
+
+    @include('community.partials.community-issues-styles')
+    @include('community.partials.agriculture-styles')
+
     .report-community-panel__header {
         display: flex;
         gap: 1.25rem;
@@ -339,9 +351,9 @@
     @endif
     <section class="about-banner">
         <div class="community-post-back-wrap">
-            <a href="{{ route('community.index') }}" class="community-post-back">
+            <a href="{{ $post->isMyAreaPost() ? route('community.my-area.index') : route('community.index') }}" class="community-post-back">
                 <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-                Back to Community
+                {{ $post->isMyAreaPost() ? 'Back to My Area' : 'Back to Community' }}
             </a>
         </div>
         <div class="community-post-banner-tags">
@@ -402,6 +414,68 @@
                 @foreach(array_slice((array) data_get($post->meta, 'youth_corner_skills', []), 0, 3) as $skill)
                     <span class="badge bg-light text-dark community-post-banner-tag">{{ $skill }}</span>
                 @endforeach
+            @endif
+            @if($post->isLocalVoicesPost())
+                @if(filled(data_get($post->meta, 'local_voice_type')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'local_voice_type') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'local_voice_category')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'local_voice_category') }}</span>
+                @endif
+            @endif
+            @if($post->isMyAreaPost())
+                @if(filled($post->myAreaActivityType()))
+                    <span class="badge bg-success text-white community-post-banner-tag">{{ $post->myAreaActivityType() }}</span>
+                @endif
+                @if(filled($post->myAreaTopicCategory()))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->myAreaTopicCategory() }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'my_area_impact_level')))
+                    <span class="badge bg-danger community-post-banner-tag">{{ data_get($post->meta, 'my_area_impact_level') }} impact</span>
+                @endif
+                @if(filled(data_get($post->meta, 'my_area_status_tracker')))
+                    <span class="badge bg-primary community-post-banner-tag">{{ data_get($post->meta, 'my_area_status_tracker') }}</span>
+                @endif
+            @endif
+            @if($post->isCommunityIssuesPost())
+                @if(filled(data_get($post->meta, 'community_issue_category')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'community_issue_category') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'community_issue_type')))
+                    <span class="badge bg-danger text-white community-post-banner-tag">{{ data_get($post->meta, 'community_issue_type') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'community_issue_severity')))
+                    <span class="badge bg-warning text-dark community-post-banner-tag">{{ data_get($post->meta, 'community_issue_severity') }} severity</span>
+                @endif
+                @if(filled(data_get($post->meta, 'community_issue_status_tracker')))
+                    <span class="badge bg-primary community-post-banner-tag">{{ data_get($post->meta, 'community_issue_status_tracker') }}</span>
+                @endif
+                @php
+                    $communityIssueSupportCount = (int) data_get($reportEngagement ?? [], 'supports_count', 0);
+                @endphp
+                @if($post->isCommunityIssueEscalated($communityIssueSupportCount))
+                    <span class="badge bg-danger community-post-banner-tag">High priority</span>
+                @endif
+            @endif
+            @if($post->isAgriculturePost())
+                @if(filled($post->agricultureShareTypeLabel()))
+                    <span class="badge bg-success text-white community-post-banner-tag">{{ $post->agricultureShareTypeLabel() }}</span>
+                @endif
+                @if(filled($post->agricultureCategoryLabel()))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->agricultureCategoryLabel() }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'agriculture_crop_name')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'agriculture_crop_name') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'agriculture_irrigation_method')))
+                    <span class="badge bg-info text-white community-post-banner-tag">{{ data_get($post->meta, 'agriculture_irrigation_method') }}</span>
+                @endif
+                @if($post->enablesAgricultureCropDoctor())
+                    <span class="badge bg-warning text-dark community-post-banner-tag">Crop Doctor</span>
+                @endif
+                @if($post->agricultureNeedsExpertAssistance())
+                    <span class="badge bg-danger community-post-banner-tag">Expert help requested</span>
+                @endif
             @endif
             @foreach($post->adminPromotionLabels() as $promotionLabel)
                 <span class="badge bg-warning text-dark community-post-banner-tag">{{ $promotionLabel }}</span>
@@ -609,6 +683,38 @@
                 @include('community.partials.youth-corner-show-sections', ['post' => $post])
             @endif
 
+            @if($post->isMyAreaPost())
+                @include('community.partials.my-area-show-sections', ['post' => $post])
+                @include('community.partials.my-area-community-actions', [
+                    'post' => $post,
+                    'reportEngagement' => $reportEngagement,
+                ])
+            @endif
+
+            @if($post->isCommunityIssuesPost())
+                @include('community.partials.community-issues-show-sections', [
+                    'post' => $post,
+                    'reportEngagement' => $reportEngagement,
+                ])
+                @include('community.partials.community-issues-community-actions', [
+                    'post' => $post,
+                    'reportEngagement' => $reportEngagement,
+                ])
+            @endif
+
+            @if($post->isAgriculturePost())
+                @include('community.partials.agriculture-show-sections', ['post' => $post])
+                @include('community.partials.agriculture-community-actions', ['post' => $post])
+            @endif
+
+            @if($post->isLocalVoicesPost())
+                @include('community.partials.local-voices-show-sections', ['post' => $post])
+                @include('community.partials.local-voices-community-actions', [
+                    'post' => $post,
+                    'localVoiceEngagement' => $localVoiceEngagement,
+                ])
+            @endif
+
             @if($post->isReportContent())
                 <div class="mb-4">
                     @include('community.partials.report-trust-score', ['post' => $post])
@@ -634,7 +740,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost())
+            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -734,9 +840,7 @@
                     'recommendations' => 'Recommendations',
                     'location' => 'Coverage / study area',
                 ];
-                $myAreaMetaLabels = \App\Support\CommunityPostFormFields::reportDetailMetaOrder() + [
-                    'location' => 'GPS issue location',
-                ];
+                $myAreaMetaLabels = \App\Support\CommunityPostFormFields::myAreaDetailMetaOrder();
                 $myVoiceMetaLabels = [
                     'voice_topic' => 'Topic',
                     'voice_perspective' => 'Perspective',
@@ -783,7 +887,14 @@
                     'poetry_part_of_series',
                     'author_bio',
                 ]);
-                $additionalMyAreaMeta = $visibleMeta->except([...$myAreaMetaOrder, 'report_format', 'issue_attachments', 'author_bio']);
+                $additionalMyAreaMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::myAreaStructuredMetaKeys(),
+                    'my_area_photo_evidence',
+                    'my_area_documents',
+                    'my_area_hero_images',
+                    'my_area_private_link_token',
+                    'author_bio',
+                ]);
                 $additionalMyVoiceMeta = $visibleMeta->except([...$myVoiceMetaOrder, 'author_bio']);
                 $childrensCornerMetaOrder = array_keys(\App\Support\CommunityPostFormFields::childrensCornerPublicMetaOrder());
                 $additionalChildrensCornerMeta = $visibleMeta->except([
@@ -863,11 +974,20 @@
                     'location_locality',
                     'author_bio',
                 ]);
+                $additionalLocalVoicesMeta = $visibleMeta->except([
+                    ...\App\Support\CommunityPostFormFields::localVoiceStructuredMetaKeys(),
+                    'location_country',
+                    'location_state',
+                    'location_district',
+                    'location_city',
+                    'location_locality',
+                    'author_bio',
+                ]);
             @endphp
             @if($post->content_type === 'reports' && (filled(data_get($post->meta, 'report_type')) || filled(data_get($post->meta, 'report_status'))))
                 @include('community.partials.report-meta-details', ['post' => $post, 'includeLocation' => true])
                 @php
-                    $visibleMeta = $additionalMyAreaMeta;
+                    $visibleMeta = $additionalReportMeta;
                 @endphp
             @elseif($post->content_type === 'reports' && blank(data_get($post->meta, 'report_type')) && $orderedReportMeta->isNotEmpty())
                 <div class="about-box mt-4">
@@ -951,6 +1071,16 @@
                     $visibleMeta = $additionalYouthCornerMeta;
                 @endphp
             @endif
+            @if($post->isLocalVoicesPost())
+                @php
+                    $visibleMeta = $additionalLocalVoicesMeta;
+                @endphp
+            @endif
+            @if($post->isMyAreaPost())
+                @php
+                    $visibleMeta = $additionalMyAreaMeta;
+                @endphp
+            @endif
             @if($post->content_type === 'my-voice' && $orderedMyVoiceMeta->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>My Voice details</h4>
@@ -973,7 +1103,7 @@
                 @php
                     $visibleMeta = $additionalWomensWorldMeta;
                 @endphp
-            @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
+            @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Location information</h4>
                     <div class="row g-3">
@@ -1098,6 +1228,10 @@
                         ? \App\Support\CommunityContentTaxonomy::studentCornerReactionOptions()
                         : ($post->isYouthCornerPost()
                         ? \App\Support\CommunityContentTaxonomy::youthCornerReactionOptions()
+                        : ($post->isCommunityIssuesPost()
+                        ? \App\Support\CommunityContentTaxonomy::communityIssueReactionOptions()
+                        : ($post->isAgriculturePost()
+                        ? \App\Support\CommunityContentTaxonomy::agricultureReactionOptions()
                         : ($post->isBusinessPost()
                         ? [
                             'Informative' => 'fa-solid fa-circle-info',
@@ -1119,7 +1253,7 @@
                             'Excellent' => 'fa-solid fa-star',
                             'Informative' => 'fa-solid fa-circle-info',
                             'Dislike' => 'fa-solid fa-thumbs-down',
-                        ]))))));
+                        ])))))))));
                 @endphp
                 @auth
                     <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">

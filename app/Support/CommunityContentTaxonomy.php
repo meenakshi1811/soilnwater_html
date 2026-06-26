@@ -26,9 +26,16 @@ class CommunityContentTaxonomy
             ],
             'my-area' => [
                 'label' => 'My Area',
-                'description' => 'Report local civic issues with evidence, GPS location, and community support.',
-                'categories' => ['Community Problem Report'],
-                'features' => ['Photos', 'Videos', 'Documents', 'GPS Location', 'Support', 'Comments', 'Votes'],
+                'description' => 'Your local civic hub — report issues, suggest improvements, recognize heroes, share achievements, raise awareness, and track resolutions in your area.',
+                'categories' => self::myAreaTopicCategories(),
+                'features' => [
+                    'Location-based feeds',
+                    'Area discussions',
+                    'Community voting',
+                    'Issue tracking',
+                    'Authority tagging',
+                    'Resolution monitoring',
+                ],
             ],
             'my-voice' => [
                 'label' => 'My Voice',
@@ -169,7 +176,7 @@ class CommunityContentTaxonomy
             'agriculture' => [
                 'label' => 'Agriculture',
                 'description' => 'Agriculture and farmer-focused content.',
-                'categories' => ['Organic Farming', 'Irrigation', 'Soil Health', 'Crop Management', 'Government Schemes', 'Farmer Stories'],
+                'categories' => self::agricultureMainCategories(),
             ],
             'environment' => [
                 'label' => 'Environment',
@@ -188,14 +195,14 @@ class CommunityContentTaxonomy
             ],
             'local-voices' => [
                 'label' => 'Local Voices',
-                'description' => 'A unique community section where people discuss local issues.',
-                'categories' => ['Road Problems', 'Water Issues', 'Cleanliness', 'Traffic', 'Local Achievements'],
-                'examples' => ['Road problems', 'Water issues', 'Cleanliness', 'Traffic', 'Local achievements'],
+                'description' => 'A location-centric community section where residents share opinions, concerns, and achievements.',
+                'categories' => self::localVoiceMainCategories(),
+                'examples' => ['Water issues in Prem Nagar', 'Road repair suggestion', 'Local hero story', 'Civic complaint'],
             ],
             'community-issues' => [
                 'label' => 'Community Issues',
-                'description' => 'Civic issues, suggestions, and campaigns.',
-                'categories' => ['Civic Issues', 'Public Suggestions', 'Public Grievances', 'Community Projects', 'Social Campaigns'],
+                'description' => 'Report civic issues, public concerns, and community problems with clear categories and action requests.',
+                'categories' => self::communityIssueMainCategories(),
             ],
             'creative-corner' => [
                 'label' => 'Creative Corner',
@@ -225,7 +232,7 @@ class CommunityContentTaxonomy
     public static function formTypes(): array
     {
         return collect(self::types())
-            ->except(['my-area', 'my-voice'])
+            ->except(['my-voice'])
             ->all();
     }
 
@@ -1971,6 +1978,641 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Main category choices for Community Issues posts.
+     *
+     * @return list<string>
+     */
+    public static function communityIssueMainCategories(): array
+    {
+        return [
+            'Water Issues',
+            'Roads & Transport',
+            'Electricity',
+            'Drainage & Sewage',
+            'Waste Management',
+            'Pollution',
+            'Public Safety',
+            'Healthcare',
+            'Education Infrastructure',
+            'Government Services',
+            'Agriculture Issues',
+            'Environmental Issues',
+            'Public Property Damage',
+            'Animal & Wildlife Issues',
+            "Women's Safety",
+            'Senior Citizen Issues',
+            'Public Transport',
+            'Internet & Communication',
+            'Tourism Infrastructure',
+            'Other',
+        ];
+    }
+
+    /**
+     * Issue type choices for Community Issues posts.
+     *
+     * @return list<string>
+     */
+    public static function communityIssueTypes(): array
+    {
+        return [
+            'Complaint',
+            'Public Concern',
+            'Urgent Problem',
+            'Safety Hazard',
+            'Environmental Concern',
+            'Suggestion for Improvement',
+            'Request for Action',
+            'Community Alert',
+        ];
+    }
+
+    /**
+     * Recommended Community Issues content sections for the rich text editor.
+     *
+     * @return array<string, string>
+     */
+    public static function communityIssueContentStructure(): array
+    {
+        return [
+            'What is the Issue?' => 'Describe the problem clearly.',
+            'When Did It Start?' => 'When did you first notice it?',
+            'Who Is Affected?' => 'Residents, students, businesses, or other groups.',
+            'What Is the Impact?' => 'Explain how this affects daily life or safety.',
+            'What Action Has Been Taken So Far?' => 'Complaints filed, authorities contacted, or community steps.',
+            'Suggested Solution' => 'Practical ideas or requests for resolution.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueSeverityLevels(): array
+    {
+        return ['Low', 'Medium', 'High', 'Critical', 'Emergency'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueAffectedPopulationRanges(): array
+    {
+        return ['1-10 People', '10-100 People', '100-500 People', '500+', 'Entire Community'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueAffectedGroups(): array
+    {
+        return [
+            'Residents',
+            'Students',
+            'Women',
+            'Children',
+            'Senior Citizens',
+            'Farmers',
+            'Businesses',
+            'Tourists',
+            'General Public',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssuePhotoEvidenceExamples(): array
+    {
+        return ['Road Damage', 'Water Leakage', 'Garbage Dump', 'Broken Street Light'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueDocumentExamples(): array
+    {
+        return ['Complaint Letter', 'Government Notice', 'RTI Response', 'Survey Report'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueRecurringFrequencies(): array
+    {
+        return ['Daily', 'Weekly', 'Monthly', 'Seasonal', 'Continuous'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueAuthorities(): array
+    {
+        return [
+            'Municipal Corporation',
+            'Panchayat',
+            'Water Department',
+            'Electricity Department',
+            'PWD',
+            'Police',
+            'District Administration',
+            'Health Department',
+            'School Authority',
+            'Forest Department',
+            'Other',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueSupportRequests(): array
+    {
+        return [
+            'Awareness',
+            'Community Feedback',
+            'Authority Attention',
+            'Volunteers',
+            'Funding Support',
+            'Technical Guidance',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueStatusSteps(): array
+    {
+        return [
+            'Reported',
+            'Pending Verification',
+            'Verified',
+            'Forwarded to Authority',
+            'Acknowledged',
+            'Work Started',
+            'Partially Resolved',
+            'Resolved',
+            'Closed',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueDefaultPollOptions(): array
+    {
+        return ['Yes', 'No', 'Needs Further Review'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueTagExamples(): array
+    {
+        return ['Water Leakage', 'Prem Nagar', 'Infrastructure', 'Municipality'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function communityIssuePublishAsOptions(): array
+    {
+        return [
+            \App\Models\CommunityPost::PUBLISH_AS_PUBLIC_PROFILE => 'Real Name',
+            \App\Models\CommunityPost::PUBLISH_AS_FIRST_NAME_ONLY => 'First Name Only',
+            \App\Models\CommunityPost::PUBLISH_AS_PEN_NAME => 'Pen Name',
+            \App\Models\CommunityPost::PUBLISH_AS_ANONYMOUS => 'Anonymous',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function communityIssueVisibilitySettings(): array
+    {
+        return [
+            'public' => 'Public',
+            'local_community' => 'Local Community',
+            'registered_users' => 'Registered Users',
+            'private_link' => 'Private Link',
+        ];
+    }
+
+    public static function communityIssueDefaultVisibilitySetting(): string
+    {
+        return 'public';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function communityIssueReactionOptions(): array
+    {
+        return [
+            'I Support' => 'fa-solid fa-thumbs-up',
+            'Serious Issue' => 'fa-solid fa-triangle-exclamation',
+            'Needs Attention' => 'fa-solid fa-bullhorn',
+            'Good Initiative' => 'fa-solid fa-lightbulb',
+            'Good Solution' => 'fa-solid fa-check-circle',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueReactionLabels(): array
+    {
+        return array_keys(self::communityIssueReactionOptions());
+    }
+
+    public static function communityIssueDefaultEscalationThreshold(): int
+    {
+        return 100;
+    }
+
+    /**
+     * Geographic heat map presets for the Community Issues hub.
+     *
+     * @return array<string, array{label: string, categories: list<string>, color: string}>
+     */
+    public static function communityIssueHeatMapPresets(): array
+    {
+        return [
+            'all' => [
+                'label' => 'All Issues',
+                'categories' => [],
+                'color' => '#dc3545',
+            ],
+            'water' => [
+                'label' => 'Water Issues Map',
+                'categories' => ['Water Issues', 'Drainage & Sewage'],
+                'color' => '#0d6efd',
+            ],
+            'roads' => [
+                'label' => 'Road Issues Map',
+                'categories' => ['Roads & Transport', 'Public Transport'],
+                'color' => '#fd7e14',
+            ],
+            'pollution' => [
+                'label' => 'Pollution Map',
+                'categories' => ['Pollution', 'Environmental Issues', 'Waste Management'],
+                'color' => '#198754',
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueResolvedStatuses(): array
+    {
+        return ['Partially Resolved', 'Resolved', 'Closed'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueUnderReviewStatuses(): array
+    {
+        return [
+            'Pending Verification',
+            'Verified',
+            'Forwarded to Authority',
+            'Acknowledged',
+            'Work Started',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueAuthorityRespondedStatuses(): array
+    {
+        return ['Acknowledged', 'Work Started', 'Partially Resolved', 'Resolved', 'Closed'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueAuthorityEligibleStatuses(): array
+    {
+        return ['Forwarded to Authority', 'Acknowledged', 'Work Started', 'Partially Resolved', 'Resolved', 'Closed'];
+    }
+
+    /**
+     * @return array<string, array{icon: string, color: string, description: string, threshold: int}>
+     */
+    public static function communityIssueChampionBadgeDefinitions(): array
+    {
+        return [
+            'Issue Reporter' => [
+                'icon' => 'fa-solid fa-flag',
+                'color' => 'primary',
+                'description' => 'Published civic issues that help the community stay informed.',
+                'threshold' => 1,
+            ],
+            'Community Volunteer' => [
+                'icon' => 'fa-solid fa-hand-holding-heart',
+                'color' => 'success',
+                'description' => 'Supported and verified neighbours\' community issues.',
+                'threshold' => 5,
+            ],
+            'Problem Solver' => [
+                'icon' => 'fa-solid fa-screwdriver-wrench',
+                'color' => 'warning',
+                'description' => 'Helped drive issues toward resolution.',
+                'threshold' => 1,
+            ],
+            'Water Warrior' => [
+                'icon' => 'fa-solid fa-droplet',
+                'color' => 'info',
+                'description' => 'Champion for water and drainage-related civic issues.',
+                'threshold' => 2,
+            ],
+            'Green Champion' => [
+                'icon' => 'fa-solid fa-leaf',
+                'color' => 'success',
+                'description' => 'Advocate for pollution and environmental community action.',
+                'threshold' => 2,
+            ],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueWaterCategories(): array
+    {
+        return ['Water Issues', 'Drainage & Sewage'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function communityIssueGreenCategories(): array
+    {
+        return ['Pollution', 'Environmental Issues', 'Waste Management'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceTypes(): array
+    {
+        return [
+            'Opinion',
+            'Suggestion',
+            'Community Concern',
+            'Community Achievement',
+            'Local Success Story',
+            'Local Hero',
+            'Civic Issue',
+            'Public Feedback',
+            'Community Initiative',
+            'Open Letter',
+            'Awareness Message',
+            'Question to Community',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceMainCategories(): array
+    {
+        return [
+            'Water Issues',
+            'Roads & Transport',
+            'Cleanliness & Waste',
+            'Environment',
+            'Education',
+            'Healthcare',
+            'Public Safety',
+            'Government Services',
+            'Agriculture',
+            'Business & Markets',
+            'Tourism',
+            'Culture & Heritage',
+            'Sports',
+            'Youth Development',
+            'Women Empowerment',
+            'Senior Citizen Issues',
+            'Community Development',
+            'Local Events',
+            'Infrastructure',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceIssueTypes(): array
+    {
+        return [
+            'Complaint',
+            'Suggestion',
+            'Appreciation',
+            'Discussion',
+            'Awareness',
+            'Request for Action',
+            'Success Story',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceAffectedCommunities(): array
+    {
+        return [
+            'Residents',
+            'Students',
+            'Farmers',
+            'Women',
+            'Senior Citizens',
+            'Businesses',
+            'Tourists',
+            'General Public',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceImpactLevels(): array
+    {
+        return ['Low', 'Medium', 'High', 'Critical'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function localVoiceContentStructure(): array
+    {
+        return [
+            'Issue / Topic' => 'State the main issue or topic clearly.',
+            'Background' => 'Provide context and history.',
+            'Current Situation' => 'Describe what is happening now.',
+            'Impact on Community' => 'Explain who is affected and how.',
+            'Suggested Solution' => 'Share practical ideas or requests.',
+            'Call for Action' => 'Tell readers what they can do next.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceAuthorities(): array
+    {
+        return [
+            'Municipality',
+            'Panchayat',
+            'PWD',
+            'Water Department',
+            'Electricity Department',
+            'School Authority',
+            'Police',
+            'District Administration',
+            'Others',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceCallForActionExamples(): array
+    {
+        return [
+            'Support This Initiative',
+            'Join Community Cleanup',
+            'Attend Public Meeting',
+            'Sign Petition',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceStatusTrackerSteps(): array
+    {
+        return [
+            'Reported',
+            'Under Discussion',
+            'Forwarded to Authority',
+            'Action Taken',
+            'Resolved',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceInitiativeExamples(): array
+    {
+        return [
+            'Tree Plantation',
+            'Cleanliness Drive',
+            'Blood Donation Camp',
+            'Water Conservation Project',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceVideoTypes(): array
+    {
+        return [
+            'Traffic Problems',
+            'Flooding',
+            'Public Meetings',
+            'Community Activities',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoicePhotoEvidenceExamples(): array
+    {
+        return [
+            'Road Damage',
+            'Water Leakage',
+            'Garbage Dump',
+            'Community Event',
+            'Tree Plantation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceDefaultPollOptions(): array
+    {
+        return ['Yes', 'No', 'Not Sure'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function localVoicePublishAsOptions(): array
+    {
+        return [
+            \App\Models\CommunityPost::PUBLISH_AS_PUBLIC_PROFILE => 'Real Name',
+            \App\Models\CommunityPost::PUBLISH_AS_FIRST_NAME_ONLY => 'First Name Only',
+            \App\Models\CommunityPost::PUBLISH_AS_PEN_NAME => 'Pen Name',
+            \App\Models\CommunityPost::PUBLISH_AS_ANONYMOUS => 'Anonymous',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function localVoiceVisibilitySettings(): array
+    {
+        return [
+            'public' => 'Public',
+            'registered_users' => 'Registered Users',
+            'local_community' => 'Local Community Only',
+            'private_link' => 'Private Link',
+        ];
+    }
+
+    public static function localVoiceDefaultVisibilitySetting(): string
+    {
+        return 'public';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function localVoiceReactionOptions(): array
+    {
+        return [
+            'I Agree' => 'fa-solid fa-thumbs-up',
+            'Good Suggestion' => 'fa-solid fa-lightbulb',
+            'Community Hero' => 'fa-solid fa-medal',
+            'Support' => 'fa-solid fa-hand-holding-heart',
+            'Positive Change' => 'fa-solid fa-seedling',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceReactionLabels(): array
+    {
+        return array_keys(self::localVoiceReactionOptions());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function localVoiceTagExamples(): array
+    {
+        return ['Water', 'Dehradun', 'Community', 'Roads', 'Environment'];
+    }
+
+    /**
      * Main category choices for Youth Corner posts.
      *
      * @return list<string>
@@ -2994,6 +3636,123 @@ class CommunityContentTaxonomy
         return ['Water Issue', 'Road Damage', 'Garbage Problem', 'Street Light Problem', 'Flooding', 'Illegal Dumping'];
     }
 
+    /**
+     * Primary activity types for My Area civic posts.
+     *
+     * @return list<string>
+     */
+    public static function myAreaActivityTypes(): array
+    {
+        return [
+            'Report Issues',
+            'Suggest Improvements',
+            'Recognize Heroes',
+            'Share Local Achievements',
+            'Raise Awareness',
+            'Track Resolutions',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function myAreaTopicCategories(): array
+    {
+        return self::localVoiceMainCategories();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function myAreaImpactLevels(): array
+    {
+        return self::localVoiceImpactLevels();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function myAreaAffectedCommunities(): array
+    {
+        return self::localVoiceAffectedCommunities();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function myAreaAuthorities(): array
+    {
+        return self::localVoiceAuthorities();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function myAreaStatusTrackerSteps(): array
+    {
+        return self::localVoiceStatusTrackerSteps();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function myAreaContentStructure(): array
+    {
+        return [
+            'Issue / Topic' => 'What is happening in your area?',
+            'Background' => 'Provide local context.',
+            'Current Situation' => 'Describe the present condition.',
+            'Impact on Community' => 'Who is affected and how?',
+            'Suggested Solution' => 'Practical ideas or requests.',
+            'Call for Action' => 'What should neighbours or authorities do?',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function myAreaDefaultPollOptions(): array
+    {
+        return self::localVoiceDefaultPollOptions();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function myAreaPublishAsOptions(): array
+    {
+        return self::localVoicePublishAsOptions();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function myAreaVisibilitySettings(): array
+    {
+        return self::localVoiceVisibilitySettings();
+    }
+
+    public static function myAreaDefaultVisibilitySetting(): string
+    {
+        return self::localVoiceDefaultVisibilitySetting();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function myAreaReactionOptions(): array
+    {
+        return self::localVoiceReactionOptions();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function myAreaReactionLabels(): array
+    {
+        return array_keys(self::myAreaReactionOptions());
+    }
+
     public static function labels(): array
     {
         return collect(self::types())->mapWithKeys(fn (array $type, string $key) => [$key => $type['label']])->all();
@@ -3002,6 +3761,355 @@ class CommunityContentTaxonomy
     public static function categoriesFor(string $type): array
     {
         return self::types()[$type]['categories'] ?? [];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureShareTypes(): array
+    {
+        return [
+            'Farming Experience',
+            'Crop Advisory',
+            'Agriculture Article',
+            'Success Story',
+            'Problem & Solution',
+            'Question & Discussion',
+            'Government Scheme',
+            'Market Information',
+            'Research Findings',
+            'Agricultural Innovation',
+            'Organic Farming',
+            'Livestock Management',
+            'Water Management',
+            'Equipment Review',
+            'Agri-Business Opportunity',
+            'Training Program',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureMainCategories(): array
+    {
+        return [
+            'Crop Farming',
+            'Horticulture',
+            'Organic Farming',
+            'Livestock',
+            'Dairy Farming',
+            'Poultry Farming',
+            'Fish Farming',
+            'Beekeeping',
+            'Agri-Business',
+            'Farm Machinery',
+            'Irrigation & Water Management',
+            'Soil Health',
+            'Agricultural Technology',
+            'Government Schemes',
+            'Farmer Success Stories',
+            'Climate & Weather',
+            'Agricultural Research',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureGrowingSeasons(): array
+    {
+        return ['Kharif', 'Rabi', 'Zaid', 'Perennial'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureSoilTypes(): array
+    {
+        return [
+            'Sandy',
+            'Clay',
+            'Loamy',
+            'Black Soil',
+            'Red Soil',
+            'Alluvial Soil',
+            'Laterite Soil',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureFarmSizes(): array
+    {
+        return [
+            'Less than 1 Acre',
+            '1-5 Acres',
+            '5-10 Acres',
+            '10+ Acres',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureFarmingTypes(): array
+    {
+        return [
+            'Organic',
+            'Natural Farming',
+            'Conventional',
+            'Integrated Farming',
+            'Hydroponics',
+            'Protected Cultivation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureCropRelevantCategories(): array
+    {
+        return [
+            'Crop Farming',
+            'Horticulture',
+            'Organic Farming',
+            'Soil Health',
+            'Irrigation & Water Management',
+            'Agricultural Research',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function agricultureContentStructure(): array
+    {
+        return [
+            'Background' => 'Set the context for your farming topic or experience.',
+            'Problem' => 'Describe the challenge, pest, weather, or market issue.',
+            'Method Used' => 'Explain practices, inputs, or techniques applied.',
+            'Results' => 'Share outcomes, yields, savings, or improvements.',
+            'Challenges' => 'Note difficulties faced during the process.',
+            'Recommendations' => 'Offer advice for other farmers or readers.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureIrrigationMethods(): array
+    {
+        return [
+            'Flood Irrigation',
+            'Drip Irrigation',
+            'Sprinkler',
+            'Rainfed',
+            'Micro Irrigation',
+            'Manual',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureWaterSources(): array
+    {
+        return [
+            'Canal',
+            'Borewell',
+            'River',
+            'Rainwater Harvesting',
+            'Pond',
+            'Municipal Supply',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureWaterConservationPractices(): array
+    {
+        return [
+            'Rainwater Harvesting',
+            'Mulching',
+            'Drip Irrigation',
+            'Farm Pond',
+            'Contour Bunding',
+            'Check Dam',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureProblemTypes(): array
+    {
+        return [
+            'Pest Attack',
+            'Disease',
+            'Low Yield',
+            'Water Shortage',
+            'Soil Issue',
+            'Market Problem',
+            'Weather Damage',
+            'Equipment Failure',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agriculturePriceTrends(): array
+    {
+        return ['Increasing', 'Stable', 'Decreasing'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureLivestockTypes(): array
+    {
+        return [
+            'Dairy',
+            'Poultry',
+            'Goat Farming',
+            'Sheep Farming',
+            'Fish Farming',
+            'Beekeeping',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureGalleryCategories(): array
+    {
+        return [
+            'farm_photos' => 'Farm Photos',
+            'crop_growth_stages' => 'Crop Growth Stages',
+            'equipment' => 'Equipment',
+            'irrigation_systems' => 'Irrigation Systems',
+            'harvest' => 'Harvest',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureVideoExamples(): array
+    {
+        return [
+            'Field Demonstration',
+            'Farm Tour',
+            'Irrigation Setup',
+            'Organic Farming Techniques',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureDocumentExamples(): array
+    {
+        return [
+            'Research Reports',
+            'Soil Test Reports',
+            'Government Notifications',
+            'Crop Calendars',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureWeatherImpacts(): array
+    {
+        return [
+            'Drought',
+            'Excess Rainfall',
+            'Frost',
+            'Heat Wave',
+            'Storm',
+            'Normal Conditions',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureTagExamples(): array
+    {
+        return [
+            'Wheat',
+            'Organic Farming',
+            'Water Conservation',
+            'Drip Irrigation',
+            'Agriculture',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureAgriBusinessTypes(): array
+    {
+        return [
+            'Seed Supplier',
+            'Fertilizer Dealer',
+            'Farm Machinery',
+            'Food Processing',
+            'Organic Products',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureTargetAudiences(): array
+    {
+        return [
+            'Farmers',
+            'Agriculture Students',
+            'Researchers',
+            'Agri-Entrepreneurs',
+            'Consultants',
+            'Government Officials',
+            'NGOs',
+            'General Public',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function agricultureReactionOptions(): array
+    {
+        return [
+            'Helpful' => 'fa-solid fa-thumbs-up',
+            'Practical' => 'fa-solid fa-screwdriver-wrench',
+            'Water Saving' => 'fa-solid fa-droplet',
+            'Innovative' => 'fa-solid fa-lightbulb',
+            'Excellent' => 'fa-solid fa-star',
+            'Recommended' => 'fa-solid fa-check-circle',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureReactionLabels(): array
+    {
+        return array_keys(self::agricultureReactionOptions());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function agricultureDefaultPollOptions(): array
+    {
+        return ['Drip', 'Sprinkler', 'Flood', 'Rainfed'];
     }
 
     public static function isValidCategory(string $type, string $category): bool
@@ -3043,6 +4151,22 @@ class CommunityContentTaxonomy
 
         if ($type === 'youth-corner') {
             return in_array($category, self::youthCornerMainCategories(), true);
+        }
+
+        if ($type === 'local-voices') {
+            return in_array($category, self::localVoiceMainCategories(), true);
+        }
+
+        if ($type === 'my-area') {
+            return in_array($category, self::myAreaTopicCategories(), true);
+        }
+
+        if ($type === 'community-issues') {
+            return in_array($category, self::communityIssueMainCategories(), true);
+        }
+
+        if ($type === 'agriculture') {
+            return in_array($category, self::agricultureMainCategories(), true);
         }
 
         return in_array($category, self::categoriesFor($type), true);
