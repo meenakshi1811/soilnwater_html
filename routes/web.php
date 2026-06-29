@@ -95,7 +95,9 @@ Route::get('/auther/{uniqueName}', [CommunityPostController::class, 'author'])->
 Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
 Route::post('/community/{post:slug}/share', [CommunityEngagementController::class, 'trackShare'])->name('community.share.track');
 Route::post('/community/{post:slug}/awareness-engagement/volunteer', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'volunteer'])->name('community.awareness-engagement.volunteer');
+Route::post('/community/{post:slug}/environment-engagement/volunteer', [\App\Http\Controllers\Community\CommunityEnvironmentEngagementController::class, 'volunteer'])->name('community.environment-engagement.volunteer');
 Route::post('/community/{post:slug}/business-engagement/query', [\App\Http\Controllers\Community\CommunityBusinessEngagementController::class, 'submitQuery'])->name('community.business-engagement.query');
+Route::post('/community/{post:slug}/astro-consultancy-engagement/private-query', [\App\Http\Controllers\Community\CommunityAstroConsultancyEngagementController::class, 'submitPrivateQuery'])->name('community.astro-consultancy-engagement.private-query');
 
 Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
     $data = $request->validate([
@@ -262,6 +264,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/community/{post:slug}/local-voice-engagement/follow', [\App\Http\Controllers\Community\CommunityLocalVoiceEngagementController::class, 'toggleFollow'])->name('community.local-voice-engagement.follow');
     Route::post('/community/{post:slug}/awareness-engagement/support', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'toggleSupport'])->name('community.awareness-engagement.support');
     Route::post('/community/{post:slug}/awareness-engagement/pledge', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'pledge'])->name('community.awareness-engagement.pledge');
+    Route::post('/community/{post:slug}/environment-engagement/support', [\App\Http\Controllers\Community\CommunityEnvironmentEngagementController::class, 'toggleSupport'])->name('community.environment-engagement.support');
+    Route::post('/community/{post:slug}/environment-engagement/follow', [\App\Http\Controllers\Community\CommunityEnvironmentEngagementController::class, 'toggleFollow'])->name('community.environment-engagement.follow');
     Route::post('/community/{post:slug}/report', [CommunityEngagementController::class, 'report'])->name('community.report');
     Route::post('/community/subscriptions/category', [CommunityEngagementController::class, 'toggleCategorySubscription'])->name('community.subscriptions.category.toggle');
     Route::post('/community/subscriptions/topic', [CommunityEngagementController::class, 'toggleTopicFollow'])->name('community.subscriptions.topic.toggle');

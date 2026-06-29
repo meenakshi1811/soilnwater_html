@@ -45,8 +45,7 @@ class CommunityPostSeeder extends Seeder
         'religion-spirituality' => 'Water as sacred offering in local temples',
         'agriculture' => 'Drip irrigation results on a small wheat farm',
         'environment' => 'Reviving urban lakes through citizen action',
-        'technology' => 'IoT sensors monitoring community water tanks',
-        'science' => 'Simple soil moisture experiments for farmers',
+        'science-technology' => 'Smart soil moisture monitoring with IoT sensors for farmers',
         'local-voices' => 'Residents speak up about street flooding',
         'community-issues' => 'Campaign for safer drinking water in ward 12',
         'creative-corner' => 'Photography series on monsoon clouds',
@@ -62,6 +61,10 @@ class CommunityPostSeeder extends Seeder
         ]);
 
         foreach (CommunityContentTaxonomy::formTypes() as $typeKey => $type) {
+            if (in_array($typeKey, ['environment', 'agriculture', 'astro-consultancy'], true)) {
+                continue;
+            }
+
             $topic = $this->sampleTopics[$typeKey] ?? $type['label'].' community feature overview';
             $slug = 'sample-'.$typeKey;
 

@@ -58,6 +58,11 @@
         @include('community.partials.agriculture-styles')
     @endpush
 @endif
+@if($post->isEnvironmentPost())
+    @push('styles')
+        @include('community.partials.environment-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
@@ -216,6 +221,46 @@
                 ])
             @endif
 
+            @if($post->isEnvironmentPost())
+                @include('community.partials.environment-show-sections', ['post' => $post])
+                @include('community.partials.environment-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved Environment metadata',
+                    'includeAdmin' => true,
+                ])
+            @endif
+
+            @if($post->isAstroConsultancyPost())
+                @include('community.partials.astro-consultancy-show-sections', ['post' => $post])
+                @include('community.partials.astro-consultancy-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved Astro Consultancy metadata',
+                    'includeAdmin' => true,
+                ])
+            @endif
+
+            @if($post->isAstroConsultancyPost() && $post->astroHasEngagementActions())
+                <div class="mb-4" id="astro-consultancy-activity">
+                    @include('backend.community-posts.partials.astro-consultancy-portal-activity', [
+                        'post' => $post,
+                        'astroConsultancyEngagement' => $astroConsultancyEngagement,
+                        'astroConsultancyEngagementActivity' => $astroConsultancyEngagementActivity,
+                        'showQueryContacts' => true,
+                    ])
+                </div>
+            @endif
+
+            @if($post->isEnvironmentPost() && $post->environmentHasParticipationActions())
+                <div class="mb-4" id="environment-campaign-activity">
+                    @include('backend.community-posts.partials.environment-portal-activity', [
+                        'post' => $post,
+                        'environmentEngagement' => $environmentEngagement,
+                        'environmentEngagementActivity' => $environmentEngagementActivity,
+                        'showVolunteerContacts' => true,
+                    ])
+                </div>
+            @endif
+
             @if($post->isAwarenessPost() && ($post->allowsAwarenessCauseSupport() || $post->allowsAwarenessPledges() || $post->allowsCampaignJoin()))
                 <div class="mb-4" id="awareness-campaign-activity">
                     @include('backend.community-posts.partials.awareness-portal-activity', [
@@ -335,6 +380,15 @@
                         <li class="mb-1"><strong>Poll:</strong> {{ $post->allow_poll ? 'Enabled' : 'Disabled' }}</li>
                         <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
                         <li class="mb-1"><strong>Reactions:</strong> Community Issues civic reactions</li>
+                    @elseif($post->isEnvironmentPost())
+                        <li class="mb-1"><strong>Post type:</strong> {{ $post->environmentPostTypeLabel() ?: '—' }}</li>
+                        <li class="mb-1"><strong>Category:</strong> {{ $post->environmentCategoryLabel() ?: '—' }}</li>
+                        <li class="mb-1"><strong>Green Map:</strong> {{ $post->showsOnGreenMap() ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Impact calculator:</strong> {{ $post->enablesEnvironmentImpactCalculator() ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Campaign actions:</strong> {{ $post->environmentHasParticipationActions() ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Poll:</strong> {{ $post->allow_poll ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Sharing:</strong> {{ $post->allow_sharing ? 'Enabled' : 'Disabled' }}</li>
+                        <li class="mb-1"><strong>Reactions:</strong> Environment eco reactions</li>
                     @endif
                     <li class="mb-1"><strong>Questions:</strong> {{ $post->allow_questions ? 'Enabled' : 'Disabled' }}</li>
                     <li class="mb-0"><strong>Suggestions:</strong> {{ $post->allow_suggestions ? 'Enabled' : 'Disabled' }}</li>
@@ -562,6 +616,30 @@
                             @endif
                             @if($post->allowsCampaignJoin())
                                 <span class="badge bg-info-subtle text-info border">Volunteer join enabled</span>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if($post->isEnvironmentPost())
+                <div class="chart-card p-3 p-lg-4 mb-4">
+                    <h5 class="mb-3">Environment campaign engagement</h5>
+                    <div class="row g-2 small">
+                        <div class="col-4"><strong>Supporters</strong><div>{{ number_format($environmentEngagement['supports_count'] ?? 0) }}</div></div>
+                        <div class="col-4"><strong>Followers</strong><div>{{ number_format($environmentEngagement['follows_count'] ?? 0) }}</div></div>
+                        <div class="col-4"><strong>Volunteers</strong><div>{{ number_format($environmentEngagement['volunteers_count'] ?? 0) }}</div></div>
+                    </div>
+                    @if($post->environmentHasParticipationActions())
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            @if($post->allowsEnvironmentSupportInitiative())
+                                <span class="badge bg-success-subtle text-success border">Support enabled</span>
+                            @endif
+                            @if($post->allowsEnvironmentFollowCampaign())
+                                <span class="badge bg-primary-subtle text-primary border">Follow enabled</span>
+                            @endif
+                            @if($post->allowsEnvironmentVolunteerRegistration() || $post->allowsEnvironmentJoinCampaign())
+                                <span class="badge bg-info-subtle text-info border">Volunteer registration enabled</span>
                             @endif
                         </div>
                     @endif

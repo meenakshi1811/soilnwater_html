@@ -17,6 +17,8 @@ use App\Services\CommunityStudentCornerEngagementNotificationService;
 use App\Services\CommunityYouthCornerEngagementNotificationService;
 use App\Services\CommunityWomensWorldEngagementNotificationService;
 use App\Services\CommunityAgricultureEngagementNotificationService;
+use App\Services\CommunityAstroConsultancyEngagementNotificationService;
+use App\Services\CommunityEnvironmentEngagementNotificationService;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
 use Illuminate\Http\JsonResponse;
@@ -169,6 +171,12 @@ class CommunityPostApprovalController extends Controller
             }
             if ($post->isAgriculturePost()) {
                 CommunityAgricultureEngagementNotificationService::notifyOnPublishedPost($post);
+            }
+            if ($post->isEnvironmentPost()) {
+                CommunityEnvironmentEngagementNotificationService::notifyOnPublishedPost($post);
+            }
+            if ($post->isAstroConsultancyPost()) {
+                CommunityAstroConsultancyEngagementNotificationService::notifyOnPublishedPost($post);
             }
             CommunityReportEngagementNotificationService::notifyFollowersOfReportUpdate(
                 $post,

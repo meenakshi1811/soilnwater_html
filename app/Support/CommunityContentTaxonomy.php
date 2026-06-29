@@ -164,9 +164,9 @@ class CommunityContentTaxonomy
             ],
             'astro-consultancy' => [
                 'label' => 'Astro Consultancy',
-                'description' => 'Astrology and spiritual consultation content.',
-                'categories' => ['Astrology', 'Numerology', 'Vastu', 'Palmistry', 'Horoscope', 'Spiritual Guidance'],
-                'monetization' => ['Paid consultations', 'Premium astrologer profiles'],
+                'description' => 'Educational astrology, spiritual guidance, and traditional knowledge — presented as belief, opinion, or cultural practice.',
+                'categories' => self::astroConsultancyMainCategories(),
+                'monetization' => ['Paid consultations', 'Premium astrologer profiles', 'Verified consultant directory'],
             ],
             'religion-spirituality' => [
                 'label' => 'Religion & Spirituality',
@@ -180,18 +180,13 @@ class CommunityContentTaxonomy
             ],
             'environment' => [
                 'label' => 'Environment',
-                'description' => 'Environment and conservation posts.',
-                'categories' => ['Water Conservation', 'Climate Change', 'Tree Plantation', 'Renewable Energy', 'Wildlife'],
+                'description' => 'Environmental reporting, conservation action, and geo-tagged community content.',
+                'categories' => self::environmentMainCategories(),
             ],
-            'technology' => [
-                'label' => 'Technology',
-                'description' => 'Technology, AI, and innovation content.',
-                'categories' => ['New Innovations', 'AI', 'Space', 'Electronics', 'Research'],
-            ],
-            'science' => [
-                'label' => 'Science',
-                'description' => 'Science and research content.',
-                'categories' => ['New Innovations', 'Space', 'Electronics', 'Research', 'Science Experiments'],
+            'science-technology' => [
+                'label' => 'Science & Technology',
+                'description' => 'Research, innovation, engineering, and technology content for the SoilnWater community.',
+                'categories' => self::scienceTechnologyMainCategories(),
             ],
             'local-voices' => [
                 'label' => 'Local Voices',
@@ -4169,7 +4164,1169 @@ class CommunityContentTaxonomy
             return in_array($category, self::agricultureMainCategories(), true);
         }
 
+        if ($type === 'environment') {
+            return in_array($category, self::environmentMainCategories(), true);
+        }
+
+        if ($type === 'astro-consultancy' && in_array($category, [
+            'Astrology', 'Numerology', 'Vastu', 'Palmistry', 'Horoscope', 'Spiritual Guidance',
+        ], true)) {
+            return true;
+        }
+
+        if ($type === 'astro-consultancy') {
+            return in_array($category, self::astroConsultancyMainCategories(), true);
+        }
+
         return in_array($category, self::categoriesFor($type), true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentPostTypes(): array
+    {
+        return [
+            'Awareness Article',
+            'Success Story',
+            'Community Initiative',
+            'Environmental Issue',
+            'Problem & Solution',
+            'Research Findings',
+            'Case Study',
+            'Question & Discussion',
+            'Government Scheme',
+            'Tree Plantation Drive',
+            'Water Conservation Activity',
+            'Waste Management Initiative',
+            'Climate Awareness',
+            'Biodiversity Documentation',
+            'Environmental Innovation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentMainCategories(): array
+    {
+        return [
+            'Water Conservation',
+            'Soil Conservation',
+            'Climate Change',
+            'Air Pollution',
+            'Water Pollution',
+            'Waste Management',
+            'Plastic-Free Campaign',
+            'Tree Plantation',
+            'Biodiversity',
+            'Wildlife Conservation',
+            'Forests',
+            'Renewable Energy',
+            'Sustainable Agriculture',
+            'Environmental Education',
+            'Eco Tourism',
+            'River Conservation',
+            'Wetlands',
+            'Urban Environment',
+            'Green Technology',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function environmentContentStructure(): array
+    {
+        return [
+            'Background' => 'Set the environmental context and why this topic matters.',
+            'Current Situation' => 'Describe the present condition on the ground.',
+            'Environmental Impact' => 'Explain effects on water, soil, air, wildlife, or communities.',
+            'Actions Taken' => 'Document interventions, initiatives, or responses so far.',
+            'Results' => 'Share measurable or observed outcomes.',
+            'Future Recommendations' => 'Suggest next steps for the community or authorities.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentIssueTypes(): array
+    {
+        return [
+            'Water Pollution',
+            'Air Pollution',
+            'Illegal Tree Cutting',
+            'Garbage Dumping',
+            'Plastic Pollution',
+            'River Encroachment',
+            'Forest Fire',
+            'Illegal Mining',
+            'Soil Erosion',
+            'Groundwater Depletion',
+            'Noise Pollution',
+            'Wetland Destruction',
+            'Wildlife Threat',
+            'Industrial Pollution',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentInitiativeTypes(): array
+    {
+        return [
+            'Tree Plantation',
+            'Cleanliness Drive',
+            'River Cleaning',
+            'Plastic Collection',
+            'School Awareness Program',
+            'Rainwater Harvesting',
+            'Lake Restoration',
+            'Biodiversity Survey',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentWaterSources(): array
+    {
+        return [
+            'River',
+            'Lake',
+            'Canal',
+            'Borewell',
+            'Rainwater',
+            'Spring',
+            'Pond',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentConservationMethods(): array
+    {
+        return [
+            'Rainwater Harvesting',
+            'Recharge Pit',
+            'Farm Pond',
+            'Contour Bunding',
+            'Check Dam',
+            'Percolation Tank',
+            'Drip Irrigation',
+            'Mulching',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentMapPinTypes(): array
+    {
+        return [
+            'Pond',
+            'Lake',
+            'River',
+            'Forest',
+            'Dump Site',
+            'Plantation Area',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentSoilConservationMethods(): array
+    {
+        return [
+            'Mulching',
+            'Terracing',
+            'Contour Farming',
+            'Green Cover',
+            'Organic Farming',
+            'Erosion Control',
+            'Agroforestry',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentTreeSurvivalStatuses(): array
+    {
+        return [
+            'Excellent',
+            'Good',
+            'Moderate',
+            'Needs Attention',
+            'Poor',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentWasteTypes(): array
+    {
+        return [
+            'Plastic Waste',
+            'Organic Waste',
+            'E-Waste',
+            'Construction Waste',
+            'Biomedical Waste',
+            'Hazardous Waste',
+            'Recycling',
+            'Composting',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentBiodiversityTypes(): array
+    {
+        return [
+            'Birds',
+            'Animals',
+            'Butterflies',
+            'Medicinal Plants',
+            'Native Trees',
+            'Rare Species',
+            'Wetland Species',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentClimateImpacts(): array
+    {
+        return [
+            'Heat Wave',
+            'Flood',
+            'Drought',
+            'Heavy Rainfall',
+            'Landslide',
+            'Forest Fire',
+            'Cyclone',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function environmentGalleryCategories(): array
+    {
+        return [
+            'before_after' => 'Before & After Photos',
+            'plantation' => 'Plantation Photos',
+            'river' => 'River Photos',
+            'wildlife' => 'Wildlife',
+            'pollution_evidence' => 'Pollution Evidence',
+            'community_activities' => 'Community Activities',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentVideoExamples(): array
+    {
+        return [
+            'Tree Plantation',
+            'River Cleanup',
+            'Awareness Campaign',
+            'Expert Interview',
+            'Environmental Documentary',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentDocumentExamples(): array
+    {
+        return [
+            'Research Papers',
+            'Water Reports',
+            'Environmental Surveys',
+            'Government Notifications',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentTagExamples(): array
+    {
+        return [
+            'Environment',
+            'Trees',
+            'Water',
+            'Climate',
+            'River',
+            'Plastic',
+            'Soil',
+            'Conservation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentParticipationRequests(): array
+    {
+        return [
+            'Volunteers Required',
+            'Join Campaign',
+            'Donate Plants',
+            'Donate Equipment',
+            'Become Volunteer',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentCommunityActions(): array
+    {
+        return [
+            'Join Campaign',
+            'Volunteer',
+            'Donate',
+            'Support Initiative',
+            'Share',
+            'Follow Campaign',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentImpactTrackerMetrics(): array
+    {
+        return [
+            'People Reached',
+            'Trees Planted',
+            'Volunteers Joined',
+            'Water Conserved',
+            'Waste Collected',
+            'Campaign Duration',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentGreenLeaderBadges(): array
+    {
+        return [
+            'Water Warrior',
+            'Green Champion',
+            'Tree Guardian',
+            'Eco Volunteer',
+            'River Protector',
+            'Soil Saver',
+            'Climate Advocate',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentGreenMapCategories(): array
+    {
+        return [
+            'Rainwater harvesting sites',
+            'Tree plantations',
+            'Clean-up drives',
+            'Community composting units',
+            'Biodiversity hotspots',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentEventPostTypes(): array
+    {
+        return [
+            'Community Initiative',
+            'Tree Plantation Drive',
+            'Water Conservation Activity',
+            'Waste Management Initiative',
+            'Climate Awareness',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function environmentReactionOptions(): array
+    {
+        return [
+            'Eco Friendly' => 'fa-solid fa-leaf',
+            'Water Saver' => 'fa-solid fa-droplet',
+            'Green Initiative' => 'fa-solid fa-seedling',
+            'Sustainable' => 'fa-solid fa-recycle',
+            'Inspiring' => 'fa-solid fa-lightbulb',
+            'Positive Impact' => 'fa-solid fa-heart',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentReactionLabels(): array
+    {
+        return array_keys(self::environmentReactionOptions());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentDefaultPollOptions(): array
+    {
+        return ['Yes', 'No', 'Maybe'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyPostTypes(): array
+    {
+        return [
+            'Research Article',
+            'Technical Article',
+            'Innovation',
+            'Project Showcase',
+            'Experiment',
+            'Science News',
+            'Technology News',
+            'Question & Discussion',
+            'Tutorial',
+            'Case Study',
+            'Product Review',
+            'Research Summary',
+            'Scientific Discovery',
+            'Engineering Solution',
+            'Software Development',
+            'Hardware Project',
+            'Agricultural Technology',
+            'Environmental Technology',
+            'Patent / Innovation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyMainCategories(): array
+    {
+        return [
+            'Agricultural Technology',
+            'Artificial Intelligence',
+            'Electronics',
+            'Electrical Engineering',
+            'Mechanical Engineering',
+            'Civil Engineering',
+            'Environmental Science',
+            'Water Technology',
+            'Renewable Energy',
+            'Robotics',
+            'Automation',
+            'Software Development',
+            'Mobile Applications',
+            'Internet of Things (IoT)',
+            'Cyber Security',
+            'Space Science',
+            'Physics',
+            'Chemistry',
+            'Biology',
+            'Medical Technology',
+            'Nanotechnology',
+            'Materials Science',
+            'Biotechnology',
+            '3D Printing',
+            'GIS & Remote Sensing',
+            'Climate Science',
+            'Research & Innovation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyTargetAudiences(): array
+    {
+        return [
+            'Students',
+            'Teachers',
+            'Researchers',
+            'Scientists',
+            'Engineers',
+            'Developers',
+            'Startups',
+            'Farmers',
+            'Businesses',
+            'Government Departments',
+            'General Public',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyLevels(): array
+    {
+        return ['Beginner', 'Intermediate', 'Advanced', 'Research Level'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyScientificFields(): array
+    {
+        return [
+            'Engineering',
+            'Science',
+            'Agriculture',
+            'Environment',
+            'Medicine',
+            'Education',
+            'Manufacturing',
+            'Energy',
+            'Transportation',
+            'Construction',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyProjectCategories(): array
+    {
+        return ['Electronics', 'Software', 'Robotics', 'AI', 'Agriculture', 'Renewable Energy', 'Automation'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyResearchPostTypes(): array
+    {
+        return ['Research Article', 'Research Summary', 'Scientific Discovery'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyInnovationPostTypes(): array
+    {
+        return ['Innovation', 'Patent / Innovation'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyTechnologiesUsed(): array
+    {
+        return [
+            'AI',
+            'Machine Learning',
+            'IoT',
+            'Blockchain',
+            'Cloud Computing',
+            'Big Data',
+            'GIS',
+            'Remote Sensing',
+            'Embedded Systems',
+            'Microcontrollers',
+            'PLC',
+            'SCADA',
+            'Automation',
+            'Solar',
+            'Wind Energy',
+            'Drones',
+            'Sensors',
+            'GPS',
+            'Arduino',
+            'Raspberry Pi',
+            'PIC Microcontroller',
+            'ESP32',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyProgrammingLanguages(): array
+    {
+        return ['Python', 'C', 'C++', 'Java', 'PHP', 'Laravel', 'JavaScript', 'MATLAB', 'R', 'SQL'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyPatentStatuses(): array
+    {
+        return ['Yes', 'No', 'Under Process'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyWaterSoilTopics(): array
+    {
+        return [
+            'Smart Irrigation',
+            'Water Quality Monitoring',
+            'Rainwater Harvesting',
+            'Groundwater Recharge',
+            'Soil Moisture Monitoring',
+            'Precision Agriculture',
+            'Water Sensors',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function scienceTechnologyGalleryCategories(): array
+    {
+        return [
+            'prototype' => 'Prototype',
+            'circuit' => 'Circuit',
+            'graphs' => 'Graphs',
+            'models' => 'Models',
+            'laboratory' => 'Laboratory',
+            'testing' => 'Testing',
+            'environmental_monitoring' => 'Environmental Monitoring',
+            'smart_farming' => 'Smart Farming',
+            'wastewater_treatment' => 'Wastewater Treatment',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyRenewableEnergyTypes(): array
+    {
+        return ['Solar', 'Wind', 'Biogas', 'Hydrogen', 'Micro Hydro', 'Energy Storage', 'Electric Vehicles'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyVideoExamples(): array
+    {
+        return [
+            'Project Demonstration',
+            'Tutorial',
+            'Experiment',
+            'Product Demo',
+            'Research Presentation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyFundingTypes(): array
+    {
+        return ['Government Funded', 'Self Funded', 'Industry Sponsored', 'Academic Research'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyApplicationAreas(): array
+    {
+        return [
+            'Agriculture',
+            'Healthcare',
+            'Education',
+            'Industry',
+            'Construction',
+            'Environment',
+            'Water Management',
+            'Transportation',
+            'Defence',
+            'Consumer Electronics',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyCollaborationRequests(): array
+    {
+        return [
+            'Looking for Research Partner',
+            'Looking for Startup Partner',
+            'Looking for Investor',
+            'Looking for Mentor',
+            'Looking for Students',
+            'Looking for Developers',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyOpenInnovationOptions(): array
+    {
+        return [
+            'Looking for collaborators',
+            'Looking for funding',
+            'Licensing available',
+            'Manufacturing partner required',
+            'Research partner required',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyInnovationChallengeThemes(): array
+    {
+        return [
+            'Smart Water Management',
+            'Soil Conservation Technologies',
+            'Affordable Healthcare Devices',
+            'Sustainable Agriculture',
+            'Renewable Energy',
+            'Waste Management',
+            'Rural Innovation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyCommentSettings(): array
+    {
+        return ['Questions', 'Technical Discussions', 'Suggestions', 'Collaboration Requests'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyReferenceTypes(): array
+    {
+        return ['Research Papers', 'DOI', 'Books', 'Government Reports', 'Standards', 'Web References'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyLicenseOptions(): array
+    {
+        return ['Public Domain', 'Creative Commons', 'Open Source', 'Proprietary', 'Patent Pending'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyPatentIprStatuses(): array
+    {
+        return ['Patent', 'Copyright', 'Trademark', 'Pending', 'Granted', 'Rejected'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function scienceTechnologyReactionOptions(): array
+    {
+        return [
+            'Innovative' => 'fa-solid fa-lightbulb',
+            'Breakthrough' => 'fa-solid fa-rocket',
+            'Scientific' => 'fa-solid fa-flask',
+            'Practical' => 'fa-solid fa-screwdriver-wrench',
+            'Excellent' => 'fa-solid fa-star',
+            'Recommended' => 'fa-solid fa-thumbs-up',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyTagExamples(): array
+    {
+        return ['AI', 'Electronics', 'IoT', 'Automation', 'Solar', 'Agriculture', 'Water', 'Innovation'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyDefaultPollOptions(): array
+    {
+        return ['Yes', 'No', 'Depends on Cost'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyPostTypes(): array
+    {
+        return [
+            'Educational Article',
+            'Astrology Guidance',
+            'Daily/Weekly/Monthly Horoscope',
+            'Question & Answer',
+            'Spiritual Guidance',
+            'Vastu Advice',
+            'Numerology Guidance',
+            'Palmistry Knowledge',
+            'Tarot Insights',
+            'Festival & Muhurat Information',
+            'Meditation & Spiritual Wellness',
+            'Success Story',
+            'Case Study',
+            'Discussion',
+            'Awareness Post',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyMainCategories(): array
+    {
+        return [
+            'Vedic Astrology',
+            'KP Astrology',
+            'Western Astrology',
+            'Numerology',
+            'Vastu Shastra',
+            'Palmistry',
+            'Tarot Reading',
+            'Face Reading',
+            'Gemstone Guidance',
+            'Horoscope',
+            'Muhurat',
+            'Feng Shui',
+            'Spiritual Healing',
+            'Meditation',
+            'Yoga Philosophy',
+            'Mantras',
+            'Life Guidance',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyTargetAudiences(): array
+    {
+        return [
+            'Students',
+            'Professionals',
+            'Business Owners',
+            'Couples',
+            'Parents',
+            'Senior Citizens',
+            'General Public',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyConsultationTopics(): array
+    {
+        return [
+            'Career',
+            'Education',
+            'Business',
+            'Marriage',
+            'Relationship',
+            'Family',
+            'Finance',
+            'Health',
+            'Property',
+            'Travel',
+            'Children',
+            'Spiritual Growth',
+            'Personal Development',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function astroConsultancyContentStructure(): array
+    {
+        return [
+            'Introduction' => 'Introduce the topic and what readers will learn.',
+            'Traditional Background' => 'Share cultural or scriptural context where relevant.',
+            'Astrological Concept' => 'Explain the principle, planet, sign, or tradition involved.',
+            'Interpretation' => 'Offer perspective as belief, tradition, or professional opinion — not guaranteed outcomes.',
+            'Suggested Practices' => 'Recommend rituals, remedies, or reflections readers may consider.',
+            'Conclusion' => 'Summarize key takeaways and encourage thoughtful judgment.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyContentLanguages(): array
+    {
+        return ['English', 'Hindi', 'Sanskrit', 'Regional Language'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyImageExamples(): array
+    {
+        return [
+            'Zodiac charts',
+            'Horoscope diagrams',
+            'Vastu layouts',
+            'Yantras',
+            'Educational illustrations',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyVideoExamples(): array
+    {
+        return [
+            'Educational Lecture',
+            'Daily Horoscope',
+            'Meditation Session',
+            'Vastu Tips',
+            'Festival Significance',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyDocumentTypes(): array
+    {
+        return ['PDF', 'Research Papers', 'Books', 'Presentation', 'Charts'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyZodiacSigns(): array
+    {
+        return [
+            'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+            'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyHoroscopePeriods(): array
+    {
+        return ['Daily', 'Weekly', 'Monthly', 'Yearly'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyHoroscopePostTypes(): array
+    {
+        return ['Daily/Weekly/Monthly Horoscope'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyHoroscopeCategories(): array
+    {
+        return ['Horoscope'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyVastuPostTypes(): array
+    {
+        return ['Vastu Advice'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyVastuCategories(): array
+    {
+        return ['Vastu Shastra', 'Feng Shui'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyVastuPropertyTypes(): array
+    {
+        return [
+            'Home',
+            'Office',
+            'Factory',
+            'Shop',
+            'Farm House',
+            'Apartment',
+            'Temple',
+            'Commercial Building',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyVastuAreas(): array
+    {
+        return [
+            'Entrance',
+            'Kitchen',
+            'Bedroom',
+            'Living Room',
+            'Toilet',
+            'Garden',
+            'Parking',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyNumerologyPostTypes(): array
+    {
+        return ['Numerology Guidance'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyNumerologyCategories(): array
+    {
+        return ['Numerology'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyFestivalPostTypes(): array
+    {
+        return ['Festival & Muhurat Information'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyRelatedServiceActions(): array
+    {
+        return [
+            'Book Consultation',
+            'Ask Expert',
+            'View Consultant Profile',
+            'Online Appointment',
+            'WhatsApp Consultation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyKnowledgeLibraryTopics(): array
+    {
+        return [
+            'Beginner Guides',
+            'Birth Chart Basics',
+            'Planetary Concepts',
+            'Vastu Learning',
+            'Numerology Learning',
+            'Spiritual Practices',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyPrivateQueryOptions(): array
+    {
+        return [
+            'Request Consultation',
+            'Book Appointment',
+            'Send Private Query',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyCommentSettings(): array
+    {
+        return ['Questions', 'Discussion', 'Experiences', 'Suggestions'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function astroConsultancyReactionOptions(): array
+    {
+        return [
+            'Informative' => 'fa-solid fa-circle-info',
+            'Insightful' => 'fa-solid fa-lightbulb',
+            'Educational' => 'fa-solid fa-book-open',
+            'Helpful' => 'fa-solid fa-hand-holding-heart',
+            'Thought Provoking' => 'fa-solid fa-brain',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyReactionLabels(): array
+    {
+        return array_keys(self::astroConsultancyReactionOptions());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyTagExamples(): array
+    {
+        return ['Astrology', 'Career', 'Vastu', 'Numerology', 'Meditation', 'Spirituality'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyDefaultPollOptions(): array
+    {
+        return ['Daily', 'Weekly', 'Occasionally', 'Never'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function astroConsultancyDeclarationStatements(): array
+    {
+        return [
+            'astro_consultancy_declaration_beliefs' => 'The information shared represents traditional beliefs, educational content, or my professional opinion.',
+            'astro_consultancy_declaration_no_false_claims' => 'I will not make false, misleading, or guaranteed claims.',
+            'astro_consultancy_declaration_no_fear' => 'I will not promote fear or exploit users through superstitious practices.',
+            'astro_consultancy_declaration_guidelines' => 'The content follows SoilnWater Community Guidelines.',
+        ];
+    }
+
+    public static function astroConsultancyDisclaimerText(): string
+    {
+        return 'The information provided in this section is intended for educational, cultural, and personal guidance purposes only. '
+            .'Astrological, numerological, Vastu, tarot, or other spiritual guidance should not be considered a substitute for '
+            .'professional medical, legal, financial, or psychological advice. Users are encouraged to exercise their own judgment '
+            .'before making important life decisions.';
     }
 
     public static function slugFor(string $label): string

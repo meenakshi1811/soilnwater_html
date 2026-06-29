@@ -14,6 +14,8 @@ use App\Models\CommunityPostReaction;
 use App\Models\User;
 use App\Services\CommunityCommunityIssuesEngagementNotificationService;
 use App\Services\CommunityAgricultureEngagementNotificationService;
+use App\Services\CommunityAstroConsultancyEngagementNotificationService;
+use App\Services\CommunityEnvironmentEngagementNotificationService;
 use App\Services\CommunityPostParticipationNotificationService;
 use App\Services\CommunityReportEngagementNotificationService;
 use App\Services\CommunityStoryAchievementService;
@@ -92,6 +94,16 @@ class CommunityPostController extends Controller
     private const MAX_AGRICULTURE_GALLERY_PER_CATEGORY = 6;
 
     private const MAX_AGRICULTURE_DOCUMENTS = 8;
+
+    private const MAX_ENVIRONMENT_GALLERY_PER_CATEGORY = 6;
+
+    private const MAX_ENVIRONMENT_DOCUMENTS = 8;
+
+    private const MAX_SCIENCE_TECHNOLOGY_GALLERY_PER_CATEGORY = 6;
+
+    private const MAX_SCIENCE_TECHNOLOGY_DOCUMENTS = 8;
+
+    private const MAX_ASTRO_CONSULTANCY_DOCUMENTS = 8;
 
     private const MAX_BUSINESS_GALLERY = 10;
 
@@ -175,7 +187,7 @@ class CommunityPostController extends Controller
             'starRatings',
             'discussionComments.user',
             'discussionComments.replies.user',
-        ])->loadCount(['starRatings', 'awarenessSupports', 'awarenessPledges', 'awarenessVolunteers', 'businessQueries', 'localVoiceSupports', 'localVoiceFollows']);
+        ])->loadCount(['starRatings', 'awarenessSupports', 'awarenessPledges', 'awarenessVolunteers', 'businessQueries', 'localVoiceSupports', 'localVoiceFollows', 'environmentSupports', 'environmentFollows', 'environmentVolunteers', 'astroConsultancyPrivateQueries']);
 
         if ($post->isPubliclyVisible()) {
             $this->recordPostView($request, $post);
@@ -206,6 +218,10 @@ class CommunityPostController extends Controller
             'awarenessPledges',
             'awarenessVolunteers',
             'businessQueries',
+            'environmentSupports',
+            'environmentFollows',
+            'environmentVolunteers',
+            'astroConsultancyPrivateQueries',
         ]);
 
         $participation = $this->participationViewData($post, limit: 50);
@@ -251,6 +267,18 @@ class CommunityPostController extends Controller
                 : [],
             'awarenessEngagementActivity' => $post->isAwarenessPost()
                 ? \App\Services\CommunityAwarenessEngagementService::activityForPost($post)
+                : null,
+            'environmentEngagement' => $post->isEnvironmentPost()
+                ? \App\Services\CommunityEnvironmentEngagementService::stateForPost($post, auth()->id())
+                : null,
+            'environmentEngagementActivity' => $post->isEnvironmentPost()
+                ? \App\Services\CommunityEnvironmentEngagementService::activityForPost($post)
+                : null,
+            'astroConsultancyEngagement' => $post->isAstroConsultancyPost()
+                ? \App\Services\CommunityAstroConsultancyEngagementService::stateForPost($post, auth()->id())
+                : null,
+            'astroConsultancyEngagementActivity' => $post->isAstroConsultancyPost()
+                ? \App\Services\CommunityAstroConsultancyEngagementService::activityForPost($post)
                 : null,
             'businessEngagement' => $post->isBusinessPost()
                 ? \App\Services\CommunityBusinessEngagementService::stateForPost($post, auth()->id())
@@ -369,6 +397,22 @@ class CommunityPostController extends Controller
 
         if ($post->isAgriculturePost() && $active) {
             CommunityAgricultureEngagementNotificationService::notifyAuthorOfReaction(
+                $post,
+                $request->user(),
+                $data['reaction']
+            );
+        }
+
+        if ($post->isEnvironmentPost() && $active) {
+            CommunityEnvironmentEngagementNotificationService::notifyAuthorOfReaction(
+                $post,
+                $request->user(),
+                $data['reaction']
+            );
+        }
+
+        if ($post->isAstroConsultancyPost() && $active) {
+            CommunityAstroConsultancyEngagementNotificationService::notifyAuthorOfReaction(
                 $post,
                 $request->user(),
                 $data['reaction']
@@ -515,6 +559,24 @@ class CommunityPostController extends Controller
 
         if ($post->isAgriculturePost()) {
             CommunityAgricultureEngagementNotificationService::notifyAuthorOfCommunityResponse(
+                $post,
+                $request->user(),
+                $data['body'],
+                filled($data['parent_id'] ?? null)
+            );
+        }
+
+        if ($post->isEnvironmentPost()) {
+            CommunityEnvironmentEngagementNotificationService::notifyAuthorOfCommunityResponse(
+                $post,
+                $request->user(),
+                $data['body'],
+                filled($data['parent_id'] ?? null)
+            );
+        }
+
+        if ($post->isAstroConsultancyPost()) {
+            CommunityAstroConsultancyEngagementNotificationService::notifyAuthorOfCommunityResponse(
                 $post,
                 $request->user(),
                 $data['body'],
@@ -958,6 +1020,59 @@ class CommunityPostController extends Controller
         if ($agricultureDocuments !== null) {
             $data['meta']['agriculture_documents'] = $agricultureDocuments;
         }
+        $environmentGallery = $this->resolveEnvironmentGallery($request);
+        if ($environmentGallery !== null) {
+            $data['meta']['environment_gallery'] = $environmentGallery;
+        }
+        $environmentDocuments = $this->resolveEnvironmentDocuments($request);
+        if ($environmentDocuments !== null) {
+            $data['meta']['environment_documents'] = $environmentDocuments;
+        }
+        $scienceTechnologyGallery = $this->resolveScienceTechnologyGallery($request);
+        if ($scienceTechnologyGallery !== null) {
+            $data['meta']['science_technology_gallery'] = $scienceTechnologyGallery;
+        }
+        $scienceTechnologyDocuments = $this->resolveScienceTechnologyDocuments($request);
+        if ($scienceTechnologyDocuments !== null) {
+            $data['meta']['science_technology_documents'] = $scienceTechnologyDocuments;
+        }
+        $astroConsultancyDocuments = $this->resolveAstroConsultancyDocuments($request);
+        if ($astroConsultancyDocuments !== null) {
+            $data['meta']['astro_consultancy_documents'] = $astroConsultancyDocuments;
+        }
+        $scienceTechnologySourceCode = $this->resolveScienceTechnologySingleAttachment(
+            $request,
+            null,
+            'science_technology_source_code',
+            'science_technology_source_code',
+            'science-technology-source-code',
+            'removed_science_technology_source_code'
+        );
+        if ($scienceTechnologySourceCode !== null) {
+            $data['meta']['science_technology_source_code'] = $scienceTechnologySourceCode;
+        }
+        $scienceTechnologyCircuitDiagram = $this->resolveScienceTechnologySingleAttachment(
+            $request,
+            null,
+            'science_technology_circuit_diagram',
+            'science_technology_circuit_diagram',
+            'science-technology-circuit-diagram',
+            'removed_science_technology_circuit_diagram'
+        );
+        if ($scienceTechnologyCircuitDiagram !== null) {
+            $data['meta']['science_technology_circuit_diagram'] = $scienceTechnologyCircuitDiagram;
+        }
+        $scienceTechnologyPcbDesign = $this->resolveScienceTechnologySingleAttachment(
+            $request,
+            null,
+            'science_technology_pcb_design',
+            'science_technology_pcb_design',
+            'science-technology-pcb-design',
+            'removed_science_technology_pcb_design'
+        );
+        if ($scienceTechnologyPcbDesign !== null) {
+            $data['meta']['science_technology_pcb_design'] = $scienceTechnologyPcbDesign;
+        }
         $businessGallery = $this->resolveBusinessGallery($request);
         if ($businessGallery !== null) {
             $data['meta']['business_gallery'] = $businessGallery;
@@ -1024,6 +1139,10 @@ class CommunityPostController extends Controller
             CommunityStoryEngagementNotificationService::notifyAuthorOfPublishedWithoutAudio($post->fresh());
         } elseif ($post->isAgriculturePost() && $post->isPubliclyVisible()) {
             CommunityAgricultureEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        } elseif ($post->isEnvironmentPost() && $post->isPubliclyVisible()) {
+            CommunityEnvironmentEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        } elseif ($post->isAstroConsultancyPost() && $post->isPubliclyVisible()) {
+            CommunityAstroConsultancyEngagementNotificationService::notifyOnPublishedPost($post->fresh());
         }
 
         $message = $post->isPendingApproval()
@@ -1402,6 +1521,74 @@ class CommunityPostController extends Controller
             unset($data['meta']['agriculture_documents']);
         }
 
+        $environmentGallery = $this->resolveEnvironmentGallery($request, $post);
+        if ($environmentGallery !== null) {
+            $data['meta']['environment_gallery'] = $environmentGallery;
+        } elseif (data_get($post->meta, 'environment_gallery')) {
+            foreach ((array) data_get($post->meta, 'environment_gallery', []) as $categoryPhotos) {
+                foreach ((array) $categoryPhotos as $photo) {
+                    CommunityPostFileUploader::deleteIfExists(data_get($photo, 'path'));
+                }
+            }
+            unset($data['meta']['environment_gallery']);
+        }
+
+        $environmentDocuments = $this->resolveEnvironmentDocuments($request, $post);
+        if ($environmentDocuments !== null) {
+            $data['meta']['environment_documents'] = $environmentDocuments;
+        } elseif (data_get($post->meta, 'environment_documents')) {
+            foreach ((array) data_get($post->meta, 'environment_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['environment_documents']);
+        }
+
+        $scienceTechnologyGallery = $this->resolveScienceTechnologyGallery($request, $post);
+        if ($scienceTechnologyGallery !== null) {
+            $data['meta']['science_technology_gallery'] = $scienceTechnologyGallery;
+        } elseif (data_get($post->meta, 'science_technology_gallery')) {
+            foreach ((array) data_get($post->meta, 'science_technology_gallery', []) as $categoryPhotos) {
+                foreach ((array) $categoryPhotos as $photo) {
+                    CommunityPostFileUploader::deleteIfExists(data_get($photo, 'path'));
+                }
+            }
+            unset($data['meta']['science_technology_gallery']);
+        }
+
+        $scienceTechnologyDocuments = $this->resolveScienceTechnologyDocuments($request, $post);
+        if ($scienceTechnologyDocuments !== null) {
+            $data['meta']['science_technology_documents'] = $scienceTechnologyDocuments;
+        } elseif (data_get($post->meta, 'science_technology_documents')) {
+            foreach ((array) data_get($post->meta, 'science_technology_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['science_technology_documents']);
+        }
+
+        $astroConsultancyDocuments = $this->resolveAstroConsultancyDocuments($request, $post);
+        if ($astroConsultancyDocuments !== null) {
+            $data['meta']['astro_consultancy_documents'] = $astroConsultancyDocuments;
+        } elseif (data_get($post->meta, 'astro_consultancy_documents')) {
+            foreach ((array) data_get($post->meta, 'astro_consultancy_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['astro_consultancy_documents']);
+        }
+
+        foreach ([
+            ['science_technology_source_code', 'science_technology_source_code', 'science-technology-source-code', 'removed_science_technology_source_code'],
+            ['science_technology_circuit_diagram', 'science_technology_circuit_diagram', 'science-technology-circuit-diagram', 'removed_science_technology_circuit_diagram'],
+            ['science_technology_pcb_design', 'science_technology_pcb_design', 'science-technology-pcb-design', 'removed_science_technology_pcb_design'],
+        ] as [$inputName, $metaKey, $storagePrefix, $removedInput]) {
+            $attachment = $this->resolveScienceTechnologySingleAttachment($request, $post, $inputName, $metaKey, $storagePrefix, $removedInput);
+            if ($attachment !== null) {
+                $data['meta'][$metaKey] = $attachment;
+            } elseif ($request->boolean($removedInput) && data_get($post->meta, $metaKey.'.path')) {
+                CommunityPostFileUploader::deleteIfExists(data_get($post->meta, $metaKey.'.path'));
+                unset($data['meta'][$metaKey]);
+            }
+        }
+
         $businessGallery = $this->resolveBusinessGallery($request, $post);
         if ($businessGallery !== null) {
             $data['meta']['business_gallery'] = $businessGallery;
@@ -1573,6 +1760,40 @@ class CommunityPostController extends Controller
             CommunityAgricultureEngagementNotificationService::maybeNotifyAskCommunityOnUpdate($post->fresh(), $originalMeta);
         }
 
+        if (
+            $post->isEnvironmentPost()
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityEnvironmentEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        }
+
+        if (
+            $post->isEnvironmentPost()
+            && $post->isPubliclyVisible()
+            && $originalAttributes['status'] === \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityEnvironmentEngagementNotificationService::maybeNotifyAskCommunityOnUpdate($post->fresh(), $originalMeta);
+        }
+
+        if (
+            $post->isAstroConsultancyPost()
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityAstroConsultancyEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        }
+
+        if (
+            $post->isAstroConsultancyPost()
+            && $post->isPubliclyVisible()
+            && $originalAttributes['status'] === \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityAstroConsultancyEngagementNotificationService::maybeNotifyAskCommunityOnUpdate($post->fresh(), $originalMeta);
+        }
+
         $message = $post->isPendingApproval()
             ? 'Community post submitted for admin approval.'
             : 'Community post updated successfully.';
@@ -1652,6 +1873,9 @@ class CommunityPostController extends Controller
         $isMyArea = CommunityPost::usesMyAreaFlow(is_string($contentType) ? $contentType : null);
         $isCommunityIssues = CommunityPost::usesCommunityIssuesFlow(is_string($contentType) ? $contentType : null);
         $isAgriculture = CommunityPost::usesAgricultureFlow(is_string($contentType) ? $contentType : null);
+        $isEnvironment = CommunityPost::usesEnvironmentFlow(is_string($contentType) ? $contentType : null);
+        $isScienceTechnology = CommunityPost::usesScienceTechnologyFlow(is_string($contentType) ? $contentType : null);
+        $isAstroConsultancy = CommunityPost::usesAstroConsultancyFlow(is_string($contentType) ? $contentType : null);
         $isStudentCornerProject = $isStudentCorner
             && $request->input('student_corner_content_type') === CommunityContentTaxonomy::studentCornerProjectContentType();
         $isYouthCornerProject = $isYouthCorner
@@ -1701,6 +1925,18 @@ class CommunityPostController extends Controller
 
         if ($isAgriculture && $request->filled('agriculture_category')) {
             $request->merge(['category' => $request->input('agriculture_category')]);
+        }
+
+        if ($isEnvironment && $request->filled('environment_category')) {
+            $request->merge(['category' => $request->input('environment_category')]);
+        }
+
+        if ($isScienceTechnology && $request->filled('science_technology_category')) {
+            $request->merge(['category' => $request->input('science_technology_category')]);
+        }
+
+        if ($isAstroConsultancy && $request->filled('astro_consultancy_category')) {
+            $request->merge(['category' => $request->input('astro_consultancy_category')]);
         }
 
         if ($isMyArea && $request->filled('my_area_activity_type')) {
@@ -2801,6 +3037,236 @@ class CommunityPostController extends Controller
             'agriculture_documents.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx', 'max:20480'],
             'removed_agriculture_documents' => [Rule::excludeIf(fn () => ! $isAgriculture), 'nullable', 'array'],
             'removed_agriculture_documents.*' => [Rule::excludeIf(fn () => ! $isAgriculture), 'string', 'max:255'],
+            'environment_post_type' => [
+                Rule::excludeIf(fn () => ! $isEnvironment),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::environmentPostTypes()),
+            ],
+            'environment_category' => [
+                Rule::excludeIf(fn () => ! $isEnvironment),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::environmentMainCategories()),
+            ],
+            'environment_natural_feature_name' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:160'],
+            'environment_map_pin_type' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::environmentMapPinTypes())],
+            'environment_issue_type' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::environmentIssueTypes())],
+            'environment_initiative_type' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::environmentInitiativeTypes())],
+            'environment_water_source' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::environmentWaterSources())],
+            'environment_conservation_method' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::environmentConservationMethods())],
+            'environment_water_saved' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:120'],
+            'environment_soil_conservation_methods' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'array'],
+            'environment_soil_conservation_methods.*' => [Rule::excludeIf(fn () => ! $isEnvironment), 'string', Rule::in(CommunityContentTaxonomy::environmentSoilConservationMethods())],
+            'environment_tree_count' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'integer', 'min:0', 'max:1000000'],
+            'environment_tree_species' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:255'],
+            'environment_tree_plantation_date' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'date'],
+            'environment_tree_organization' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:160'],
+            'environment_tree_survival_status' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::environmentTreeSurvivalStatuses())],
+            'environment_tree_maintenance_plan' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:2000'],
+            'environment_waste_types' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'array'],
+            'environment_waste_types.*' => [Rule::excludeIf(fn () => ! $isEnvironment), 'string', Rule::in(CommunityContentTaxonomy::environmentWasteTypes())],
+            'environment_biodiversity_types' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'array'],
+            'environment_biodiversity_types.*' => [Rule::excludeIf(fn () => ! $isEnvironment), 'string', Rule::in(CommunityContentTaxonomy::environmentBiodiversityTypes())],
+            'environment_climate_impacts' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'array'],
+            'environment_climate_impacts.*' => [Rule::excludeIf(fn () => ! $isEnvironment), 'string', Rule::in(CommunityContentTaxonomy::environmentClimateImpacts())],
+            'environment_video_type' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::environmentVideoExamples())],
+            'environment_enable_impact_calculator' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'boolean'],
+            'environment_data_trees_planted' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:80'],
+            'environment_data_area_covered' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:80'],
+            'environment_data_water_saved' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:80'],
+            'environment_data_waste_collected' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:80'],
+            'environment_data_people_participated' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:80'],
+            'environment_data_carbon_reduction' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:80'],
+            'environment_data_species_recorded' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:80'],
+            'environment_participation_requests' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'array'],
+            'environment_participation_requests.*' => [Rule::excludeIf(fn () => ! $isEnvironment), 'string', Rule::in(CommunityContentTaxonomy::environmentParticipationRequests())],
+            'environment_event_campaign_name' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:160'],
+            'environment_event_organizer' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:160'],
+            'environment_event_venue' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:160'],
+            'environment_event_date' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'date'],
+            'environment_event_time' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:40'],
+            'environment_event_registration_link' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'url', 'max:255'],
+            'environment_scheme_name' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:160'],
+            'environment_scheme_department' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:160'],
+            'environment_scheme_eligibility' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:2000'],
+            'environment_scheme_benefits' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:2000'],
+            'environment_scheme_official_link' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'url', 'max:255'],
+            'environment_ask_community' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:500'],
+            'environment_poll_question' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:255'],
+            'environment_poll_options' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'string', 'max:2000'],
+            'environment_show_on_green_map' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'boolean'],
+            'environment_enable_green_leader' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'boolean'],
+            'environment_allow_join_campaign' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'boolean'],
+            'environment_allow_volunteer' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'boolean'],
+            'environment_allow_donate' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'boolean'],
+            'environment_allow_support_initiative' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'boolean'],
+            'environment_allow_follow_campaign' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'boolean'],
+            'environment_allow_volunteer_registration' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'boolean'],
+            'environment_documents' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'array', 'max:'.self::MAX_ENVIRONMENT_DOCUMENTS],
+            'environment_documents.*' => [Rule::excludeIf(fn () => ! $isEnvironment), 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx', 'max:20480'],
+            'removed_environment_documents' => [Rule::excludeIf(fn () => ! $isEnvironment), 'nullable', 'array'],
+            'removed_environment_documents.*' => [Rule::excludeIf(fn () => ! $isEnvironment), 'string', 'max:255'],
+            'science_technology_post_type' => [
+                Rule::excludeIf(fn () => ! $isScienceTechnology),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::scienceTechnologyPostTypes()),
+            ],
+            'science_technology_category' => [
+                Rule::excludeIf(fn () => ! $isScienceTechnology),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::scienceTechnologyMainCategories()),
+            ],
+            'science_technology_target_audience' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_target_audience.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyTargetAudiences())],
+            'science_technology_level' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyLevels())],
+            'science_technology_scientific_fields' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_scientific_fields.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyScientificFields())],
+            'science_technology_project_name' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:160'],
+            'science_technology_project_category' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyProjectCategories())],
+            'science_technology_project_objective' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:3000'],
+            'science_technology_project_components' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_project_working_principle' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:3000'],
+            'science_technology_project_results' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:3000'],
+            'science_technology_project_future_improvements' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_research_area' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:160'],
+            'science_technology_research_institution' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:160'],
+            'science_technology_research_duration' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:120'],
+            'science_technology_research_abstract' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:5000'],
+            'science_technology_research_keywords' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:500'],
+            'science_technology_research_methodology' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:3000'],
+            'science_technology_research_results' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:3000'],
+            'science_technology_research_conclusion' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:3000'],
+            'science_technology_research_references' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:5000'],
+            'science_technology_experiment_objective' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_experiment_materials' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_experiment_procedure' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:4000'],
+            'science_technology_experiment_observations' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:3000'],
+            'science_technology_experiment_results' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:3000'],
+            'science_technology_experiment_safety' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_innovation_name' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:160'],
+            'science_technology_patent_filed' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyPatentStatuses())],
+            'science_technology_problem_solved' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_novel_features' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_innovation_technology' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_innovation_benefits' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_commercial_potential' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_technologies_used' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_technologies_used.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyTechnologiesUsed())],
+            'science_technology_programming_languages' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_programming_languages.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyProgrammingLanguages())],
+            'science_technology_github_repo' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'url', 'max:255'],
+            'science_technology_source_code' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'file', 'mimes:zip', 'max:20480'],
+            'removed_science_technology_source_code' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'boolean'],
+            'science_technology_hardware_components' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:3000'],
+            'science_technology_circuit_diagram' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:8192'],
+            'removed_science_technology_circuit_diagram' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'boolean'],
+            'science_technology_pcb_design' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf,zip', 'max:20480'],
+            'removed_science_technology_pcb_design' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'boolean'],
+            'science_technology_bom' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:4000'],
+            'science_technology_hardware_cost' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:120'],
+            'science_technology_water_soil_topics' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_water_soil_topics.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyWaterSoilTopics())],
+            'science_technology_renewable_energy' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_renewable_energy.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyRenewableEnergyTypes())],
+            'science_technology_patent_number' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:120'],
+            'science_technology_application_number' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:120'],
+            'science_technology_patent_status' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyPatentIprStatuses())],
+            'science_technology_funding_types' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_funding_types.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyFundingTypes())],
+            'science_technology_application_areas' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_application_areas.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyApplicationAreas())],
+            'science_technology_reference_types' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_reference_types.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyReferenceTypes())],
+            'science_technology_references' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:8000'],
+            'science_technology_license' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyLicenseOptions())],
+            'science_technology_video_type' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyVideoExamples())],
+            'science_technology_enable_innovation_showcase' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'boolean'],
+            'science_technology_enable_expert_review' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'boolean'],
+            'science_technology_open_innovation' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_open_innovation.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyOpenInnovationOptions())],
+            'science_technology_challenge_themes' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_challenge_themes.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyInnovationChallengeThemes())],
+            'science_technology_collaboration_requests' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_collaboration_requests.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyCollaborationRequests())],
+            'science_technology_ask_community' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:500'],
+            'science_technology_allow_poll' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'boolean'],
+            'science_technology_poll_question' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:255'],
+            'science_technology_poll_options' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'string', 'max:2000'],
+            'science_technology_comment_settings' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'science_technology_comment_settings.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', Rule::in(CommunityContentTaxonomy::scienceTechnologyCommentSettings())],
+            'science_technology_allow_support' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'boolean'],
+            'science_technology_allow_follow' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'boolean'],
+            'science_technology_allow_collaborate' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'boolean'],
+            'science_technology_documents' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array', 'max:'.self::MAX_SCIENCE_TECHNOLOGY_DOCUMENTS],
+            'science_technology_documents.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx', 'max:20480'],
+            'removed_science_technology_documents' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'nullable', 'array'],
+            'removed_science_technology_documents.*' => [Rule::excludeIf(fn () => ! $isScienceTechnology), 'string', 'max:255'],
+            'astro_consultancy_post_type' => [
+                Rule::excludeIf(fn () => ! $isAstroConsultancy),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::astroConsultancyPostTypes()),
+            ],
+            'astro_consultancy_category' => [
+                Rule::excludeIf(fn () => ! $isAstroConsultancy),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::astroConsultancyMainCategories()),
+            ],
+            'astro_consultancy_target_audience' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array'],
+            'astro_consultancy_target_audience.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyTargetAudiences())],
+            'astro_consultancy_consultation_topics' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array'],
+            'astro_consultancy_consultation_topics.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyConsultationTopics())],
+            'astro_consultancy_content_language' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyContentLanguages())],
+            'astro_consultancy_zodiac_sign' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyZodiacSigns())],
+            'astro_consultancy_horoscope_period' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyHoroscopePeriods())],
+            'astro_consultancy_vastu_property_types' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array'],
+            'astro_consultancy_vastu_property_types.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyVastuPropertyTypes())],
+            'astro_consultancy_vastu_areas' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array'],
+            'astro_consultancy_vastu_areas.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyVastuAreas())],
+            'astro_consultancy_life_path_number' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:40'],
+            'astro_consultancy_destiny_number' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:40'],
+            'astro_consultancy_name_number' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:40'],
+            'astro_consultancy_lucky_number' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:40'],
+            'astro_consultancy_compatibility' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:160'],
+            'astro_consultancy_gemstone' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:120'],
+            'astro_consultancy_gemstone_planet' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:80'],
+            'astro_consultancy_gemstone_benefits' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:2000'],
+            'astro_consultancy_gemstone_precautions' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:2000'],
+            'astro_consultancy_festival_name' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:160'],
+            'astro_consultancy_muhurat_type' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:120'],
+            'astro_consultancy_muhurat_date' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'date'],
+            'astro_consultancy_muhurat_time' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:120'],
+            'astro_consultancy_festival_significance' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:3000'],
+            'astro_consultancy_document_types' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array'],
+            'astro_consultancy_document_types.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyDocumentTypes())],
+            'astro_consultancy_video_type' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyVideoExamples())],
+            'astro_consultancy_consultant_profile_url' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'url', 'max:255'],
+            'astro_consultancy_related_service_actions' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array'],
+            'astro_consultancy_related_service_actions.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyRelatedServiceActions())],
+            'astro_consultancy_enable_consultant_linking' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'boolean'],
+            'astro_consultancy_knowledge_library_topics' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array'],
+            'astro_consultancy_knowledge_library_topics.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyKnowledgeLibraryTopics())],
+            'astro_consultancy_enable_live_qa' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'boolean'],
+            'astro_consultancy_private_query_options' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array'],
+            'astro_consultancy_private_query_options.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyPrivateQueryOptions())],
+            'astro_consultancy_ask_community' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:500'],
+            'astro_consultancy_allow_poll' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'boolean'],
+            'astro_consultancy_poll_question' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:255'],
+            'astro_consultancy_poll_options' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'string', 'max:2000'],
+            'astro_consultancy_comment_settings' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array'],
+            'astro_consultancy_comment_settings.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'string', Rule::in(CommunityContentTaxonomy::astroConsultancyCommentSettings())],
+            'astro_consultancy_documents' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array', 'max:'.self::MAX_ASTRO_CONSULTANCY_DOCUMENTS],
+            'astro_consultancy_documents.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'file', 'mimes:pdf,doc,docx,ppt,pptx', 'max:20480'],
+            'removed_astro_consultancy_documents' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'nullable', 'array'],
+            'removed_astro_consultancy_documents.*' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'string', 'max:255'],
+            'astro_consultancy_declaration_beliefs' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'accepted'],
+            'astro_consultancy_declaration_no_false_claims' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'accepted'],
+            'astro_consultancy_declaration_no_fear' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'accepted'],
+            'astro_consultancy_declaration_guidelines' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'accepted'],
             'community_issue_severity' => [
                 Rule::excludeIf(fn () => ! $isCommunityIssues),
                 'required',
@@ -3694,6 +4160,7 @@ class CommunityPostController extends Controller
         $validated = $request->validate($rules);
         $this->assertFeaturedImageLimit($request, $post);
         $this->assertAwarenessCampaignBanner($request, $post);
+        $this->assertEnvironmentFeaturedImage($request, $post);
 
         if ($isChildrensCorner) {
             $validated['category'] = (string) ($validated['child_share_type'] ?? $request->input('child_share_type'));
@@ -3734,6 +4201,18 @@ class CommunityPostController extends Controller
 
         if ($isAgriculture) {
             $validated['category'] = (string) ($validated['agriculture_category'] ?? $request->input('agriculture_category'));
+        }
+
+        if ($isEnvironment) {
+            $validated['category'] = (string) ($validated['environment_category'] ?? $request->input('environment_category'));
+        }
+
+        if ($isScienceTechnology) {
+            $validated['category'] = (string) ($validated['science_technology_category'] ?? $request->input('science_technology_category'));
+        }
+
+        if ($isAstroConsultancy) {
+            $validated['category'] = (string) ($validated['astro_consultancy_category'] ?? $request->input('astro_consultancy_category'));
         }
 
         if ($isBusiness) {
@@ -3848,7 +4327,10 @@ class CommunityPostController extends Controller
     {
         $contentType = $request->input('content_type');
         $isAwareness = CommunityPost::usesAwarenessFlow(is_string($contentType) ? $contentType : null);
-        $maxImages = $isAwareness ? 1 : self::MAX_FEATURED_IMAGES;
+        $isEnvironment = CommunityPost::usesEnvironmentFlow(is_string($contentType) ? $contentType : null);
+        $isScienceTechnology = CommunityPost::usesScienceTechnologyFlow(is_string($contentType) ? $contentType : null);
+        $isAstroConsultancy = CommunityPost::usesAstroConsultancyFlow(is_string($contentType) ? $contentType : null);
+        $maxImages = ($isAwareness || $isEnvironment || $isScienceTechnology || $isAstroConsultancy) ? 1 : self::MAX_FEATURED_IMAGES;
         $existing = $post ? $post->featuredImages() : [];
         $removed = (array) $request->input('removed_featured_images', []);
         $remaining = count(array_values(array_filter(
@@ -3861,7 +4343,13 @@ class CommunityPostController extends Controller
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'featured_images' => $isAwareness
                     ? 'Awareness posts can include one campaign banner image.'
-                    : 'You can upload up to '.self::MAX_FEATURED_IMAGES.' featured images.',
+                    : ($isEnvironment
+                        ? 'Environment posts can include one featured image.'
+                        : ($isScienceTechnology
+                            ? 'Science & Technology posts can include one featured image.'
+                            : ($isAstroConsultancy
+                                ? 'Astro Consultancy posts can include one featured image.'
+                                : 'You can upload up to '.self::MAX_FEATURED_IMAGES.' featured images.'))),
             ]);
         }
     }
@@ -3889,6 +4377,33 @@ class CommunityPostController extends Controller
         if (($remaining + $incoming) === 0) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'featured_images' => 'Please upload a campaign banner for this awareness post.',
+            ]);
+        }
+    }
+
+    private function assertEnvironmentFeaturedImage(Request $request, ?CommunityPost $post = null): void
+    {
+        $contentType = $request->input('content_type');
+
+        if (! CommunityPost::usesEnvironmentFlow(is_string($contentType) ? $contentType : null)) {
+            return;
+        }
+
+        if (($request->input('status') ?? CommunityPost::STATUS_DRAFT) === CommunityPost::STATUS_DRAFT) {
+            return;
+        }
+
+        $existing = $post ? $post->featuredImages() : [];
+        $removed = (array) $request->input('removed_featured_images', []);
+        $remaining = count(array_values(array_filter(
+            $existing,
+            fn (string $path) => ! in_array($path, $removed, true)
+        )));
+        $incoming = count($request->file('featured_images', []));
+
+        if (($remaining + $incoming) === 0) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'featured_images' => 'Please upload a featured image for this environment post.',
             ]);
         }
     }
@@ -4172,6 +4687,14 @@ class CommunityPostController extends Controller
 
         if ($type === 'reports') {
             return false;
+        }
+
+        if ($type === 'science-technology') {
+            return $request->boolean('science_technology_allow_poll');
+        }
+
+        if ($type === 'astro-consultancy') {
+            return $request->boolean('astro_consultancy_allow_poll');
         }
 
         return $request->boolean('allow_poll');
@@ -5281,6 +5804,277 @@ class CommunityPostController extends Controller
         }
 
         return array_values(array_slice($kept, 0, self::MAX_AGRICULTURE_DOCUMENTS));
+    }
+
+    /**
+     * @return array<string, list<array{path: string, url: string, name: string, type: string}>>|null
+     */
+    private function resolveEnvironmentGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesEnvironmentFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'environment_gallery', []);
+        $gallery = [];
+        $hasUploads = false;
+
+        foreach (array_keys(CommunityContentTaxonomy::environmentGalleryCategories()) as $categoryKey) {
+            $inputName = 'environment_gallery_'.$categoryKey;
+            $removedInput = 'removed_environment_gallery_'.$categoryKey;
+            $categoryExisting = (array) data_get($existing, $categoryKey, []);
+            $removed = (array) $request->input($removedInput, []);
+
+            if ($categoryExisting === [] && ! $request->hasFile($inputName)) {
+                continue;
+            }
+
+            $kept = collect($categoryExisting)
+                ->reject(fn (array $photo): bool => in_array((string) data_get($photo, 'path'), $removed, true))
+                ->values()
+                ->all();
+
+            foreach ($removed as $path) {
+                CommunityPostFileUploader::deleteIfExists($path);
+            }
+
+            if ($request->hasFile($inputName)) {
+                $hasUploads = true;
+                $uploaded = collect($request->file($inputName, []))
+                    ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'environment-gallery-'.$categoryKey))
+                    ->values()
+                    ->all();
+                $kept = array_values(array_merge($kept, $uploaded));
+            }
+
+            $kept = array_values(array_slice($kept, 0, self::MAX_ENVIRONMENT_GALLERY_PER_CATEGORY));
+            if ($kept !== []) {
+                $gallery[$categoryKey] = $kept;
+            }
+        }
+
+        if ($gallery === [] && ! $hasUploads && $existing === []) {
+            return null;
+        }
+
+        return $gallery === [] ? null : $gallery;
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeEnvironmentDocuments(Request $request): array
+    {
+        return collect($request->file('environment_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'environment-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveEnvironmentDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesEnvironmentFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'environment_documents', []);
+        $removed = (array) $request->input('removed_environment_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('environment_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('environment_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeEnvironmentDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_ENVIRONMENT_DOCUMENTS));
+    }
+
+    /**
+     * @return array<string, list<array{path: string, url: string, name: string, type: string}>>|null
+     */
+    private function resolveScienceTechnologyGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesScienceTechnologyFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'science_technology_gallery', []);
+        $gallery = [];
+        $hasUploads = false;
+
+        foreach (array_keys(CommunityContentTaxonomy::scienceTechnologyGalleryCategories()) as $categoryKey) {
+            $inputName = 'science_technology_gallery_'.$categoryKey;
+            $removedInput = 'removed_science_technology_gallery_'.$categoryKey;
+            $categoryExisting = (array) data_get($existing, $categoryKey, []);
+            $removed = (array) $request->input($removedInput, []);
+
+            if ($categoryExisting === [] && ! $request->hasFile($inputName)) {
+                continue;
+            }
+
+            $kept = collect($categoryExisting)
+                ->reject(fn (array $photo): bool => in_array((string) data_get($photo, 'path'), $removed, true))
+                ->values()
+                ->all();
+
+            foreach ($removed as $path) {
+                CommunityPostFileUploader::deleteIfExists($path);
+            }
+
+            if ($request->hasFile($inputName)) {
+                $hasUploads = true;
+                $uploaded = collect($request->file($inputName, []))
+                    ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'science-technology-gallery-'.$categoryKey))
+                    ->values()
+                    ->all();
+                $kept = array_values(array_merge($kept, $uploaded));
+            }
+
+            $kept = array_values(array_slice($kept, 0, self::MAX_SCIENCE_TECHNOLOGY_GALLERY_PER_CATEGORY));
+            if ($kept !== []) {
+                $gallery[$categoryKey] = $kept;
+            }
+        }
+
+        if ($gallery === [] && ! $hasUploads && $existing === []) {
+            return null;
+        }
+
+        return $gallery === [] ? null : $gallery;
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeScienceTechnologyDocuments(Request $request): array
+    {
+        return collect($request->file('science_technology_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'science-technology-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveScienceTechnologyDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesScienceTechnologyFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'science_technology_documents', []);
+        $removed = (array) $request->input('removed_science_technology_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('science_technology_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('science_technology_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeScienceTechnologyDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_SCIENCE_TECHNOLOGY_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeAstroConsultancyDocuments(Request $request): array
+    {
+        return collect($request->file('astro_consultancy_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'astro-consultancy-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveAstroConsultancyDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesAstroConsultancyFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'astro_consultancy_documents', []);
+        $removed = (array) $request->input('removed_astro_consultancy_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('astro_consultancy_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('astro_consultancy_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeAstroConsultancyDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_ASTRO_CONSULTANCY_DOCUMENTS));
+    }
+
+    /**
+     * @return array{path: string, url: string, name: string, type: string}|null
+     */
+    private function resolveScienceTechnologySingleAttachment(
+        Request $request,
+        ?CommunityPost $post,
+        string $inputName,
+        string $metaKey,
+        string $storagePrefix,
+        string $removedInput
+    ): ?array {
+        if (! CommunityPost::usesScienceTechnologyFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = data_get($post?->meta, $metaKey);
+
+        if ($request->boolean($removedInput) && is_array($existing)) {
+            CommunityPostFileUploader::deleteIfExists(data_get($existing, 'path'));
+
+            return null;
+        }
+
+        if ($request->hasFile($inputName)) {
+            if (is_array($existing)) {
+                CommunityPostFileUploader::deleteIfExists(data_get($existing, 'path'));
+            }
+
+            return CommunityPostFileUploader::storeAttachment($request->file($inputName), $storagePrefix);
+        }
+
+        return is_array($existing) ? $existing : null;
     }
 
     /**

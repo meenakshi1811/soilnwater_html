@@ -418,6 +418,33 @@
                                 'includeAdmin' => true,
                             ])
                         @endif
+
+                        @if($post->isEnvironmentPost())
+                            @include('community.partials.environment-show-sections', ['post' => $post])
+                            @include('community.partials.environment-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Environment metadata',
+                                'includeAdmin' => true,
+                            ])
+                        @endif
+
+                        @if($post->isScienceTechnologyPost())
+                            @include('community.partials.science-technology-show-sections', ['post' => $post])
+                            @include('community.partials.science-technology-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Science & Technology metadata',
+                                'includeAdmin' => true,
+                            ])
+                        @endif
+
+                        @if($post->isAstroConsultancyPost())
+                            @include('community.partials.astro-consultancy-show-sections', ['post' => $post])
+                            @include('community.partials.astro-consultancy-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Astro Consultancy metadata',
+                                'includeAdmin' => true,
+                            ])
+                        @endif
                     </div>
                 </div>
 
@@ -484,6 +511,24 @@
                             'awarenessEngagementActivity' => $awarenessEngagementActivity,
                             'awarenessPledgeCounts' => $awarenessPledgeCounts ?? [],
                             'showVolunteerContacts' => true,
+                        ])
+                    @endif
+
+                    @if($post->isEnvironmentPost() && $post->environmentHasParticipationActions())
+                        @include('backend.community-posts.partials.environment-portal-activity', [
+                            'post' => $post,
+                            'environmentEngagement' => $environmentEngagement,
+                            'environmentEngagementActivity' => $environmentEngagementActivity,
+                            'showVolunteerContacts' => true,
+                        ])
+                    @endif
+
+                    @if($post->isAstroConsultancyPost() && $post->astroHasEngagementActions())
+                        @include('backend.community-posts.partials.astro-consultancy-portal-activity', [
+                            'post' => $post,
+                            'astroConsultancyEngagement' => $astroConsultancyEngagement,
+                            'astroConsultancyEngagementActivity' => $astroConsultancyEngagementActivity,
+                            'showQueryContacts' => true,
                         ])
                     @endif
 

@@ -239,9 +239,29 @@ class CommunityPost extends Model
         return $this->hasMany(CommunityAwarenessVolunteer::class);
     }
 
+    public function environmentSupports(): HasMany
+    {
+        return $this->hasMany(CommunityEnvironmentSupport::class);
+    }
+
+    public function environmentFollows(): HasMany
+    {
+        return $this->hasMany(CommunityEnvironmentFollow::class);
+    }
+
+    public function environmentVolunteers(): HasMany
+    {
+        return $this->hasMany(CommunityEnvironmentVolunteer::class);
+    }
+
     public function businessQueries(): HasMany
     {
         return $this->hasMany(CommunityBusinessQuery::class);
+    }
+
+    public function astroConsultancyPrivateQueries(): HasMany
+    {
+        return $this->hasMany(CommunityAstroConsultancyPrivateQuery::class);
     }
 
     public function reportAgreements(): HasMany
@@ -689,7 +709,7 @@ class CommunityPost extends Model
 
     public static function usesStructuredLocation(?string $contentType): bool
     {
-        return in_array($contentType, ['news', 'reports', 'awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture'], true);
+        return in_array($contentType, ['news', 'reports', 'awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true);
     }
 
     public static function usesWomensWorldOptionalStructuredLocation(?string $contentType): bool
@@ -1047,6 +1067,16 @@ class CommunityPost extends Model
                 && $this->agriculturePollOptionsForDisplay() !== [];
         }
 
+        if ($this->isEnvironmentPost()) {
+            return filled(data_get($this->meta, 'environment_poll_question'))
+                && $this->environmentPollOptionsForDisplay() !== [];
+        }
+
+        if ($this->isAstroConsultancyPost()) {
+            return filled(data_get($this->meta, 'astro_consultancy_poll_question'))
+                && $this->astroConsultancyPollOptionsForDisplay() !== [];
+        }
+
         return filled($this->poll_subject);
     }
 
@@ -1090,6 +1120,14 @@ class CommunityPost extends Model
 
         if ($this->isAgriculturePost()) {
             return (string) data_get($this->meta, 'agriculture_poll_question');
+        }
+
+        if ($this->isEnvironmentPost()) {
+            return (string) data_get($this->meta, 'environment_poll_question');
+        }
+
+        if ($this->isAstroConsultancyPost()) {
+            return (string) data_get($this->meta, 'astro_consultancy_poll_question');
         }
 
         return 'Do you support '.$this->poll_subject.'?';
@@ -1300,6 +1338,14 @@ class CommunityPost extends Model
             return $this->agriculturePollOptionsForDisplay();
         }
 
+        if ($this->isEnvironmentPost()) {
+            return $this->environmentPollOptionsForDisplay();
+        }
+
+        if ($this->isAstroConsultancyPost()) {
+            return $this->astroConsultancyPollOptionsForDisplay();
+        }
+
         return self::POLL_OPTIONS;
     }
 
@@ -1471,6 +1517,21 @@ class CommunityPost extends Model
         return $contentType === 'agriculture';
     }
 
+    public static function usesEnvironmentFlow(?string $contentType): bool
+    {
+        return $contentType === 'environment';
+    }
+
+    public static function usesScienceTechnologyFlow(?string $contentType): bool
+    {
+        return $contentType === 'science-technology';
+    }
+
+    public static function usesAstroConsultancyFlow(?string $contentType): bool
+    {
+        return $contentType === 'astro-consultancy';
+    }
+
     public function isChildrensCornerPost(): bool
     {
         return self::usesChildrensCornerFlow($this->content_type);
@@ -1524,6 +1585,214 @@ class CommunityPost extends Model
     public function isAgriculturePost(): bool
     {
         return self::usesAgricultureFlow($this->content_type);
+    }
+
+    public function isEnvironmentPost(): bool
+    {
+        return self::usesEnvironmentFlow($this->content_type);
+    }
+
+    public function isScienceTechnologyPost(): bool
+    {
+        return self::usesScienceTechnologyFlow($this->content_type);
+    }
+
+    public function isAstroConsultancyPost(): bool
+    {
+        return self::usesAstroConsultancyFlow($this->content_type);
+    }
+
+    public function astroConsultancyPostTypeLabel(): ?string
+    {
+        if (! $this->isAstroConsultancyPost()) {
+            return null;
+        }
+
+        $postType = (string) (data_get($this->meta, 'astro_consultancy_post_type') ?: $this->writing_purpose);
+
+        return filled($postType) ? $postType : null;
+    }
+
+    public function astroConsultancyCategoryLabel(): ?string
+    {
+        if (! $this->isAstroConsultancyPost()) {
+            return null;
+        }
+
+        return data_get($this->meta, 'astro_consultancy_category') ?: $this->category;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function astroConsultancyTargetAudiences(): array
+    {
+        if (! $this->isAstroConsultancyPost()) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $value): string => trim((string) $value),
+            (array) data_get($this->meta, 'astro_consultancy_target_audience', [])
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function astroConsultancyConsultationTopics(): array
+    {
+        if (! $this->isAstroConsultancyPost()) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $value): string => trim((string) $value),
+            (array) data_get($this->meta, 'astro_consultancy_consultation_topics', [])
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function astroConsultancyKnowledgeLibraryTopics(): array
+    {
+        if (! $this->isAstroConsultancyPost()) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $value): string => trim((string) $value),
+            (array) data_get($this->meta, 'astro_consultancy_knowledge_library_topics', [])
+        )));
+    }
+
+    public function astroEnablesConsultantLinking(): bool
+    {
+        return $this->isAstroConsultancyPost()
+            && (bool) data_get($this->meta, 'astro_consultancy_enable_consultant_linking', false);
+    }
+
+    public function astroEnablesLiveQa(): bool
+    {
+        return $this->isAstroConsultancyPost()
+            && (bool) data_get($this->meta, 'astro_consultancy_enable_live_qa', false);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function astroPrivateQueryOptionsForDisplay(): array
+    {
+        if (! $this->isAstroConsultancyPost()) {
+            return [];
+        }
+
+        return array_values(array_intersect(
+            (array) data_get($this->meta, 'astro_consultancy_private_query_options', []),
+            CommunityContentTaxonomy::astroConsultancyPrivateQueryOptions()
+        ));
+    }
+
+    public function astroHasPrivateQueryActions(): bool
+    {
+        return $this->astroPrivateQueryOptionsForDisplay() !== [];
+    }
+
+    public function astroHasEngagementActions(): bool
+    {
+        return $this->astroHasPrivateQueryActions()
+            || $this->astroEnablesLiveQa()
+            || $this->astroEnablesConsultantLinking()
+            || filled(data_get($this->meta, 'astro_consultancy_ask_community'));
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function astroConsultancyDocuments(): array
+    {
+        return array_values((array) data_get($this->meta, 'astro_consultancy_documents', []));
+    }
+
+    public function astroHasHoroscopeDetails(): bool
+    {
+        return filled(data_get($this->meta, 'astro_consultancy_zodiac_sign'))
+            || filled(data_get($this->meta, 'astro_consultancy_horoscope_period'));
+    }
+
+    public function astroHasVastuDetails(): bool
+    {
+        return $this->astroConsultancyVastuPropertyTypes() !== []
+            || $this->astroConsultancyVastuAreas() !== [];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function astroConsultancyVastuPropertyTypes(): array
+    {
+        return array_values(array_filter(array_map(
+            fn (mixed $value): string => trim((string) $value),
+            (array) data_get($this->meta, 'astro_consultancy_vastu_property_types', [])
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function astroConsultancyVastuAreas(): array
+    {
+        return array_values(array_filter(array_map(
+            fn (mixed $value): string => trim((string) $value),
+            (array) data_get($this->meta, 'astro_consultancy_vastu_areas', [])
+        )));
+    }
+
+    public function astroHasNumerologyDetails(): bool
+    {
+        return filled(data_get($this->meta, 'astro_consultancy_life_path_number'))
+            || filled(data_get($this->meta, 'astro_consultancy_destiny_number'))
+            || filled(data_get($this->meta, 'astro_consultancy_name_number'))
+            || filled(data_get($this->meta, 'astro_consultancy_lucky_number'))
+            || filled(data_get($this->meta, 'astro_consultancy_compatibility'));
+    }
+
+    public function astroHasGemstoneDetails(): bool
+    {
+        return filled(data_get($this->meta, 'astro_consultancy_gemstone'))
+            || filled(data_get($this->meta, 'astro_consultancy_gemstone_planet'))
+            || filled(data_get($this->meta, 'astro_consultancy_gemstone_benefits'))
+            || filled(data_get($this->meta, 'astro_consultancy_gemstone_precautions'));
+    }
+
+    public function astroHasFestivalDetails(): bool
+    {
+        return filled(data_get($this->meta, 'astro_consultancy_festival_name'))
+            || filled(data_get($this->meta, 'astro_consultancy_muhurat_type'))
+            || filled(data_get($this->meta, 'astro_consultancy_muhurat_date'))
+            || filled(data_get($this->meta, 'astro_consultancy_muhurat_time'))
+            || filled(data_get($this->meta, 'astro_consultancy_festival_significance'));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function astroConsultancyPollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'astro_consultancy_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::astroConsultancyDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
     }
 
     public function communityIssueVisibilitySetting(): string
@@ -1762,6 +2031,262 @@ class CommunityPost extends Model
         return filled(data_get($this->meta, 'agriculture_irrigation_method'))
             || filled(data_get($this->meta, 'agriculture_water_source'))
             || $this->agricultureWaterConservationPractices() !== [];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function environmentPollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'environment_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::environmentDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
+    }
+
+    /**
+     * @return array<string, list<array<string, mixed>>>
+     */
+    public function environmentGallery(): array
+    {
+        return (array) data_get($this->meta, 'environment_gallery', []);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function environmentDocuments(): array
+    {
+        return array_values((array) data_get($this->meta, 'environment_documents', []));
+    }
+
+    /**
+     * @return list<array{category: string, label: string, photo: array<string, mixed>}>
+     */
+    public function environmentGalleryItemsForDisplay(): array
+    {
+        if (! $this->isEnvironmentPost()) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach (CommunityContentTaxonomy::environmentGalleryCategories() as $categoryKey => $categoryLabel) {
+            foreach (array_values((array) data_get($this->environmentGallery(), $categoryKey, [])) as $photo) {
+                if (filled(data_get($photo, 'url'))) {
+                    $items[] = [
+                        'category' => $categoryKey,
+                        'label' => $categoryLabel,
+                        'photo' => $photo,
+                    ];
+                }
+            }
+        }
+
+        return $items;
+    }
+
+    public function environmentPostTypeLabel(): ?string
+    {
+        if (! $this->isEnvironmentPost()) {
+            return null;
+        }
+
+        $postType = (string) (data_get($this->meta, 'environment_post_type') ?: $this->writing_purpose);
+
+        return filled($postType) ? $postType : null;
+    }
+
+    public function environmentCategoryLabel(): ?string
+    {
+        if (! $this->isEnvironmentPost()) {
+            return null;
+        }
+
+        $category = (string) (data_get($this->meta, 'environment_category') ?: $this->category);
+
+        return filled($category) ? $category : null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function environmentParticipationRequests(): array
+    {
+        if (! $this->isEnvironmentPost()) {
+            return [];
+        }
+
+        return array_values(array_filter((array) data_get($this->meta, 'environment_participation_requests', [])));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function environmentSoilConservationMethods(): array
+    {
+        if (! $this->isEnvironmentPost()) {
+            return [];
+        }
+
+        return array_values(array_filter((array) data_get($this->meta, 'environment_soil_conservation_methods', [])));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function environmentWasteTypes(): array
+    {
+        if (! $this->isEnvironmentPost()) {
+            return [];
+        }
+
+        return array_values(array_filter((array) data_get($this->meta, 'environment_waste_types', [])));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function environmentBiodiversityTypes(): array
+    {
+        if (! $this->isEnvironmentPost()) {
+            return [];
+        }
+
+        return array_values(array_filter((array) data_get($this->meta, 'environment_biodiversity_types', [])));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function environmentClimateImpacts(): array
+    {
+        if (! $this->isEnvironmentPost()) {
+            return [];
+        }
+
+        return array_values(array_filter((array) data_get($this->meta, 'environment_climate_impacts', [])));
+    }
+
+    public function enablesEnvironmentImpactCalculator(): bool
+    {
+        return $this->isEnvironmentPost()
+            && (bool) data_get($this->meta, 'environment_enable_impact_calculator', false);
+    }
+
+    public function showsOnGreenMap(): bool
+    {
+        return $this->isEnvironmentPost()
+            && (bool) data_get($this->meta, 'environment_show_on_green_map', false);
+    }
+
+    public function enablesEnvironmentGreenLeader(): bool
+    {
+        return $this->isEnvironmentPost()
+            && (bool) data_get($this->meta, 'environment_enable_green_leader', false);
+    }
+
+    public function allowsEnvironmentJoinCampaign(): bool
+    {
+        return $this->isEnvironmentPost()
+            && (bool) data_get($this->meta, 'environment_allow_join_campaign', true);
+    }
+
+    public function allowsEnvironmentVolunteer(): bool
+    {
+        return $this->isEnvironmentPost()
+            && (bool) data_get($this->meta, 'environment_allow_volunteer', true);
+    }
+
+    public function allowsEnvironmentDonate(): bool
+    {
+        return $this->isEnvironmentPost()
+            && (bool) data_get($this->meta, 'environment_allow_donate', false);
+    }
+
+    public function allowsEnvironmentSupportInitiative(): bool
+    {
+        return $this->isEnvironmentPost()
+            && (bool) data_get($this->meta, 'environment_allow_support_initiative', true);
+    }
+
+    public function allowsEnvironmentFollowCampaign(): bool
+    {
+        return $this->isEnvironmentPost()
+            && (bool) data_get($this->meta, 'environment_allow_follow_campaign', true);
+    }
+
+    public function allowsEnvironmentVolunteerRegistration(): bool
+    {
+        return $this->isEnvironmentPost()
+            && (bool) data_get($this->meta, 'environment_allow_volunteer_registration', true);
+    }
+
+    public function environmentHasParticipationActions(): bool
+    {
+        if (! $this->isEnvironmentPost()) {
+            return false;
+        }
+
+        return $this->allowsEnvironmentJoinCampaign()
+            || $this->allowsEnvironmentVolunteerRegistration()
+            || $this->allowsEnvironmentSupportInitiative()
+            || $this->allowsEnvironmentFollowCampaign();
+    }
+
+    public function environmentHasWaterDetails(): bool
+    {
+        if (! $this->isEnvironmentPost()) {
+            return false;
+        }
+
+        return filled(data_get($this->meta, 'environment_water_source'))
+            || filled(data_get($this->meta, 'environment_conservation_method'))
+            || filled(data_get($this->meta, 'environment_water_saved'));
+    }
+
+    public function environmentHasImpactData(): bool
+    {
+        if (! $this->isEnvironmentPost() || ! $this->enablesEnvironmentImpactCalculator()) {
+            return false;
+        }
+
+        return filled(data_get($this->meta, 'environment_data_trees_planted'))
+            || filled(data_get($this->meta, 'environment_data_water_saved'))
+            || filled(data_get($this->meta, 'environment_data_waste_collected'))
+            || filled(data_get($this->meta, 'environment_data_people_participated'))
+            || filled(data_get($this->meta, 'environment_data_area_covered'))
+            || filled(data_get($this->meta, 'environment_data_carbon_reduction'))
+            || filled(data_get($this->meta, 'environment_data_species_recorded'));
+    }
+
+    public function environmentHasEventDetails(): bool
+    {
+        if (! $this->isEnvironmentPost()) {
+            return false;
+        }
+
+        return filled(data_get($this->meta, 'environment_event_campaign_name'))
+            || filled(data_get($this->meta, 'environment_event_date'))
+            || filled(data_get($this->meta, 'environment_event_venue'));
+    }
+
+    public function environmentHasSchemeDetails(): bool
+    {
+        if (! $this->isEnvironmentPost()) {
+            return false;
+        }
+
+        return filled(data_get($this->meta, 'environment_scheme_name'));
     }
 
     /**
@@ -2272,6 +2797,14 @@ class CommunityPost extends Model
 
         if ($this->isAgriculturePost()) {
             return \App\Support\CommunityContentTaxonomy::agricultureReactionLabels();
+        }
+
+        if ($this->isEnvironmentPost()) {
+            return \App\Support\CommunityContentTaxonomy::environmentReactionLabels();
+        }
+
+        if ($this->isAstroConsultancyPost()) {
+            return \App\Support\CommunityContentTaxonomy::astroConsultancyReactionLabels();
         }
 
         return ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'];

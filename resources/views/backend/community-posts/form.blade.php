@@ -377,6 +377,15 @@
             <div class="col-12 type-extra agriculture-flow" data-for="agriculture">
                 @include('backend.community-posts.partials.agriculture-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            <div class="col-12 type-extra environment-flow" data-for="environment">
+                @include('backend.community-posts.partials.environment-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
+            <div class="col-12 type-extra science-technology-flow" data-for="science-technology">
+                @include('backend.community-posts.partials.science-technology-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
+            <div class="col-12 type-extra astro-consultancy-flow" data-for="astro-consultancy">
+                @include('backend.community-posts.partials.astro-consultancy-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -907,6 +916,85 @@ The mountains keep.</pre>
                         </div>
                     </div>
                 </div>
+                <div id="environmentContentGuide" class="story-content-guide mb-3 environment-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full environmental post.</p>
+                            </div>
+                            <span class="badge bg-success text-white">Environment</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">This is the same body field on the form. Document environmental conditions, actions, and outcomes below.</p>
+                                    <p class="small mb-1 fw-semibold">Support:</p>
+                                    <ul class="story-content-support list-unstyled small text-muted mb-3">
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Text</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Images</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Videos</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Tables</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Documents</li>
+                                        <li><i class="fa-solid fa-check text-success me-1" aria-hidden="true"></i>Links</li>
+                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertEnvironmentStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::environmentContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="astroConsultancyContentGuide" class="story-content-guide mb-3 astro-consultancy-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Content</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your full astro consultancy post.</p>
+                            </div>
+                            <span class="badge bg-warning text-dark">Astro Consultancy</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">Document traditional background, concepts, interpretation, and suggested practices below.</p>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertAstroConsultancyStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::astroConsultancyContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="autobiographyContentGuide" class="story-content-guide mb-3 life-story-flow-section" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -1058,6 +1146,15 @@ The mountains keep.</pre>
             </div>
             <div class="col-12 type-extra agriculture-flow" data-for="agriculture">
                 @include('backend.community-posts.partials.agriculture-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra environment-flow" data-for="environment">
+                @include('backend.community-posts.partials.environment-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra science-technology-flow" data-for="science-technology">
+                @include('backend.community-posts.partials.science-technology-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra astro-consultancy-flow" data-for="astro-consultancy">
+                @include('backend.community-posts.partials.astro-consultancy-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
@@ -3050,6 +3147,327 @@ The mountains keep.</pre>
 
     document.getElementById('agricultureCategory')?.addEventListener('change', syncAgricultureCategory);
 
+    function syncEnvironmentCategory() {
+        const environmentCategory = document.getElementById('environmentCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'environment') {
+            return;
+        }
+
+        categorySelect.value = environmentCategory;
+        categorySelect.dataset.selected = environmentCategory;
+    }
+
+    document.getElementById('environmentCategory')?.addEventListener('change', syncEnvironmentCategory);
+
+    function syncScienceTechnologyCategory() {
+        const scienceTechnologyCategory = document.getElementById('scienceTechnologyCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'science-technology') {
+            return;
+        }
+
+        categorySelect.value = scienceTechnologyCategory;
+        categorySelect.dataset.selected = scienceTechnologyCategory;
+    }
+
+    document.getElementById('scienceTechnologyCategory')?.addEventListener('change', syncScienceTechnologyCategory);
+
+    const ST_POST_TYPE_PROJECT = 'Project Showcase';
+    const ST_POST_TYPE_EXPERIMENT = 'Experiment';
+    const ST_POST_TYPE_SOFTWARE = 'Software Development';
+    const ST_POST_TYPE_HARDWARE = 'Hardware Project';
+    const ST_RESEARCH_POST_TYPES = @json(\App\Support\CommunityContentTaxonomy::scienceTechnologyResearchPostTypes());
+    const ST_INNOVATION_POST_TYPES = @json(\App\Support\CommunityContentTaxonomy::scienceTechnologyInnovationPostTypes());
+
+    function refreshScienceTechnologyPollFields() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const fields = document.getElementById('stPollFields');
+        const enabled = document.getElementById('stAllowPoll')?.checked;
+        if (fields) {
+            fields.style.display = (contentType === 'science-technology' && enabled) ? '' : 'none';
+        }
+        const pollQuestion = document.getElementById('stPollQuestion');
+        if (pollQuestion) {
+            pollQuestion.required = contentType === 'science-technology' && Boolean(enabled);
+            pollQuestion.disabled = !(contentType === 'science-technology' && enabled);
+        }
+        const pollOptions = document.getElementById('stPollOptions');
+        if (pollOptions) {
+            pollOptions.disabled = !(contentType === 'science-technology' && enabled);
+        }
+    }
+
+    document.getElementById('stAllowPoll')?.addEventListener('change', refreshScienceTechnologyPollFields);
+
+    function refreshScienceTechnologyConditionalSections() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const sectionIds = [
+            'stProjectSection',
+            'stResearchSection',
+            'stExperimentSection',
+            'stInnovationSection',
+            'stSoftwareSection',
+            'stHardwareSection',
+        ];
+
+        if (contentType !== 'science-technology') {
+            sectionIds.forEach((id) => {
+                const section = document.getElementById(id);
+                if (section) {
+                    section.style.display = 'none';
+                }
+            });
+            refreshScienceTechnologyPollFields();
+            return;
+        }
+
+        const postType = document.getElementById('scienceTechnologyPostType')?.value || '';
+
+        const projectSection = document.getElementById('stProjectSection');
+        if (projectSection) {
+            projectSection.style.display = postType === ST_POST_TYPE_PROJECT ? '' : 'none';
+        }
+
+        const researchSection = document.getElementById('stResearchSection');
+        if (researchSection) {
+            researchSection.style.display = ST_RESEARCH_POST_TYPES.includes(postType) ? '' : 'none';
+        }
+
+        const experimentSection = document.getElementById('stExperimentSection');
+        if (experimentSection) {
+            experimentSection.style.display = postType === ST_POST_TYPE_EXPERIMENT ? '' : 'none';
+        }
+
+        const innovationSection = document.getElementById('stInnovationSection');
+        if (innovationSection) {
+            innovationSection.style.display = ST_INNOVATION_POST_TYPES.includes(postType) ? '' : 'none';
+        }
+
+        const softwareSection = document.getElementById('stSoftwareSection');
+        if (softwareSection) {
+            softwareSection.style.display = (postType === ST_POST_TYPE_SOFTWARE || postType === 'Tutorial') ? '' : 'none';
+        }
+
+        const hardwareSection = document.getElementById('stHardwareSection');
+        if (hardwareSection) {
+            hardwareSection.style.display = (postType === ST_POST_TYPE_HARDWARE || postType === 'Engineering Solution') ? '' : 'none';
+        }
+
+        refreshScienceTechnologyPollFields();
+    }
+
+    document.getElementById('scienceTechnologyPostType')?.addEventListener('change', refreshScienceTechnologyConditionalSections);
+    document.getElementById('scienceTechnologyCategory')?.addEventListener('change', refreshScienceTechnologyConditionalSections);
+    refreshScienceTechnologyConditionalSections();
+
+    function syncAstroConsultancyCategory() {
+        const astroConsultancyCategory = document.getElementById('astroConsultancyCategory')?.value || '';
+        const categorySelect = document.getElementById('categorySelect');
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'astro-consultancy') {
+            return;
+        }
+
+        categorySelect.value = astroConsultancyCategory;
+        categorySelect.dataset.selected = astroConsultancyCategory;
+    }
+
+    document.getElementById('astroConsultancyCategory')?.addEventListener('change', syncAstroConsultancyCategory);
+
+    const ASTRO_HOROSCOPE_POST_TYPES = @json(\App\Support\CommunityContentTaxonomy::astroConsultancyHoroscopePostTypes());
+    const ASTRO_HOROSCOPE_CATEGORIES = @json(\App\Support\CommunityContentTaxonomy::astroConsultancyHoroscopeCategories());
+    const ASTRO_VASTU_POST_TYPES = @json(\App\Support\CommunityContentTaxonomy::astroConsultancyVastuPostTypes());
+    const ASTRO_VASTU_CATEGORIES = @json(\App\Support\CommunityContentTaxonomy::astroConsultancyVastuCategories());
+    const ASTRO_NUMEROLOGY_POST_TYPES = @json(\App\Support\CommunityContentTaxonomy::astroConsultancyNumerologyPostTypes());
+    const ASTRO_NUMEROLOGY_CATEGORIES = @json(\App\Support\CommunityContentTaxonomy::astroConsultancyNumerologyCategories());
+    const ASTRO_FESTIVAL_POST_TYPES = @json(\App\Support\CommunityContentTaxonomy::astroConsultancyFestivalPostTypes());
+
+    function refreshAstroConsultancyPollFields() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const fields = document.getElementById('astroPollFields');
+        const enabled = document.getElementById('astroAllowPoll')?.checked;
+        if (fields) {
+            fields.style.display = (contentType === 'astro-consultancy' && enabled) ? '' : 'none';
+        }
+        const pollQuestion = document.getElementById('astroPollQuestion');
+        if (pollQuestion) {
+            pollQuestion.required = contentType === 'astro-consultancy' && Boolean(enabled);
+            pollQuestion.disabled = !(contentType === 'astro-consultancy' && enabled);
+        }
+        const pollOptions = document.getElementById('astroPollOptions');
+        if (pollOptions) {
+            pollOptions.disabled = !(contentType === 'astro-consultancy' && enabled);
+        }
+    }
+
+    document.getElementById('astroAllowPoll')?.addEventListener('change', refreshAstroConsultancyPollFields);
+
+    function refreshAstroConsultancyConditionalSections() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const sectionIds = [
+            'astroHoroscopeSection',
+            'astroVastuSection',
+            'astroNumerologySection',
+            'astroFestivalSection',
+        ];
+
+        if (contentType !== 'astro-consultancy') {
+            sectionIds.forEach((id) => {
+                const section = document.getElementById(id);
+                if (section) {
+                    section.style.display = 'none';
+                }
+            });
+            refreshAstroConsultancyPollFields();
+            return;
+        }
+
+        const postType = document.getElementById('astroConsultancyPostType')?.value || '';
+        const category = document.getElementById('astroConsultancyCategory')?.value || '';
+        const showHoroscope = ASTRO_HOROSCOPE_POST_TYPES.includes(postType) || ASTRO_HOROSCOPE_CATEGORIES.includes(category);
+        const showVastu = ASTRO_VASTU_POST_TYPES.includes(postType) || ASTRO_VASTU_CATEGORIES.includes(category);
+        const showNumerology = ASTRO_NUMEROLOGY_POST_TYPES.includes(postType) || ASTRO_NUMEROLOGY_CATEGORIES.includes(category);
+        const showFestival = ASTRO_FESTIVAL_POST_TYPES.includes(postType);
+
+        const horoscopeSection = document.getElementById('astroHoroscopeSection');
+        if (horoscopeSection) {
+            horoscopeSection.style.display = showHoroscope ? '' : 'none';
+        }
+
+        const vastuSection = document.getElementById('astroVastuSection');
+        if (vastuSection) {
+            vastuSection.style.display = showVastu ? '' : 'none';
+        }
+
+        const numerologySection = document.getElementById('astroNumerologySection');
+        if (numerologySection) {
+            numerologySection.style.display = showNumerology ? '' : 'none';
+        }
+
+        const festivalSection = document.getElementById('astroFestivalSection');
+        if (festivalSection) {
+            festivalSection.style.display = showFestival ? '' : 'none';
+        }
+
+        refreshAstroConsultancyPollFields();
+    }
+
+    document.getElementById('astroConsultancyPostType')?.addEventListener('change', refreshAstroConsultancyConditionalSections);
+    document.getElementById('astroConsultancyCategory')?.addEventListener('change', refreshAstroConsultancyConditionalSections);
+    refreshAstroConsultancyConditionalSections();
+
+    const ENVIRONMENT_POST_TYPE_ISSUE = 'Environmental Issue';
+    const ENVIRONMENT_POST_TYPE_INITIATIVE = 'Community Initiative';
+    const ENVIRONMENT_POST_TYPE_WATER_ACTIVITY = 'Water Conservation Activity';
+    const ENVIRONMENT_POST_TYPE_TREE_PLANTATION = 'Tree Plantation Drive';
+    const ENVIRONMENT_POST_TYPE_WASTE = 'Waste Management Initiative';
+    const ENVIRONMENT_POST_TYPE_GOVERNMENT_SCHEME = 'Government Scheme';
+    const ENVIRONMENT_POST_TYPE_BIODIVERSITY = 'Biodiversity Documentation';
+    const ENVIRONMENT_WATER_RELEVANT_CATEGORIES = ['Water Conservation', 'River Conservation', 'Wetlands'];
+    const ENVIRONMENT_EVENT_POST_TYPES = @json(\App\Support\CommunityContentTaxonomy::environmentEventPostTypes());
+
+    function refreshEnvironmentImpactCalculatorFields() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const fields = document.getElementById('environmentImpactCalculatorFields');
+        const enabled = document.getElementById('environmentEnableImpactCalculator')?.checked;
+        if (fields) {
+            fields.style.display = (contentType === 'environment' && enabled) ? '' : 'none';
+        }
+    }
+
+    document.getElementById('environmentEnableImpactCalculator')?.addEventListener('change', refreshEnvironmentImpactCalculatorFields);
+
+    function refreshEnvironmentConditionalSections() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const sectionIds = [
+            'environmentIssueSection',
+            'environmentInitiativeSection',
+            'environmentWaterConservationSection',
+            'environmentSoilConservationSection',
+            'environmentTreePlantationSection',
+            'environmentWasteManagementSection',
+            'environmentBiodiversitySection',
+            'environmentEventSection',
+            'environmentSchemeSection',
+        ];
+
+        if (contentType !== 'environment') {
+            sectionIds.forEach((sectionId) => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.style.display = 'none';
+                }
+            });
+            refreshEnvironmentImpactCalculatorFields();
+            return;
+        }
+
+        const postType = document.getElementById('environmentPostType')?.value || '';
+        const category = document.getElementById('environmentCategory')?.value || '';
+
+        const issueSection = document.getElementById('environmentIssueSection');
+        if (issueSection) {
+            issueSection.style.display = postType === ENVIRONMENT_POST_TYPE_ISSUE ? '' : 'none';
+        }
+
+        const initiativeSection = document.getElementById('environmentInitiativeSection');
+        if (initiativeSection) {
+            initiativeSection.style.display = postType === ENVIRONMENT_POST_TYPE_INITIATIVE ? '' : 'none';
+        }
+
+        const waterSection = document.getElementById('environmentWaterConservationSection');
+        if (waterSection) {
+            const showWater = postType === ENVIRONMENT_POST_TYPE_WATER_ACTIVITY
+                || ENVIRONMENT_WATER_RELEVANT_CATEGORIES.includes(category);
+            waterSection.style.display = showWater ? '' : 'none';
+        }
+
+        const soilSection = document.getElementById('environmentSoilConservationSection');
+        if (soilSection) {
+            soilSection.style.display = category === 'Soil Conservation' ? '' : 'none';
+        }
+
+        const treeSection = document.getElementById('environmentTreePlantationSection');
+        if (treeSection) {
+            const showTree = postType === ENVIRONMENT_POST_TYPE_TREE_PLANTATION || category === 'Tree Plantation';
+            treeSection.style.display = showTree ? '' : 'none';
+        }
+
+        const wasteSection = document.getElementById('environmentWasteManagementSection');
+        if (wasteSection) {
+            const showWaste = postType === ENVIRONMENT_POST_TYPE_WASTE
+                || ['Waste Management', 'Plastic-Free Campaign'].includes(category);
+            wasteSection.style.display = showWaste ? '' : 'none';
+        }
+
+        const biodiversitySection = document.getElementById('environmentBiodiversitySection');
+        if (biodiversitySection) {
+            const showBio = postType === ENVIRONMENT_POST_TYPE_BIODIVERSITY
+                || ['Biodiversity', 'Wildlife Conservation', 'Wetlands', 'Forests'].includes(category);
+            biodiversitySection.style.display = showBio ? '' : 'none';
+        }
+
+        const eventSection = document.getElementById('environmentEventSection');
+        if (eventSection) {
+            eventSection.style.display = ENVIRONMENT_EVENT_POST_TYPES.includes(postType) ? '' : 'none';
+        }
+
+        const schemeSection = document.getElementById('environmentSchemeSection');
+        if (schemeSection) {
+            schemeSection.style.display = postType === ENVIRONMENT_POST_TYPE_GOVERNMENT_SCHEME ? '' : 'none';
+        }
+
+        refreshEnvironmentImpactCalculatorFields();
+    }
+
+    document.getElementById('environmentPostType')?.addEventListener('change', refreshEnvironmentConditionalSections);
+    document.getElementById('environmentCategory')?.addEventListener('change', refreshEnvironmentConditionalSections);
+    refreshEnvironmentConditionalSections();
+    refreshEnvironmentImpactCalculatorFields();
+
     const AGRICULTURE_CROP_RELEVANT_CATEGORIES = @json(\App\Support\CommunityContentTaxonomy::agricultureCropRelevantCategories());
     const AGRICULTURE_CROP_ADVISORY_SHARE_TYPE = 'Crop Advisory';
     const AGRICULTURE_LIVESTOCK_CATEGORIES = ['Livestock', 'Dairy Farming', 'Poultry Farming', 'Fish Farming', 'Beekeeping'];
@@ -3498,6 +3916,66 @@ The mountains keep.</pre>
         }
     });
 
+    document.getElementById('insertEnvironmentStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Background</h2>',
+            '<p>Set the environmental context and why this topic matters.</p>',
+            '<h2>Current Situation</h2>',
+            '<p>Describe the present condition on the ground.</p>',
+            '<h2>Environmental Impact</h2>',
+            '<p>Explain effects on water, soil, air, wildlife, or communities.</p>',
+            '<h2>Actions Taken</h2>',
+            '<p>Document interventions, initiatives, or responses so far.</p>',
+            '<h2>Results</h2>',
+            '<p>Share measurable or observed outcomes.</p>',
+            '<h2>Future Recommendations</h2>',
+            '<p>Suggest next steps for the community or authorities.</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    document.getElementById('insertAstroConsultancyStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Introduction</h2>',
+            '<p>Introduce the topic and what readers will learn.</p>',
+            '<h2>Traditional Background</h2>',
+            '<p>Share cultural or scriptural context where relevant.</p>',
+            '<h2>Astrological Concept</h2>',
+            '<p>Explain the principle, planet, sign, or tradition involved.</p>',
+            '<h2>Interpretation</h2>',
+            '<p>Offer perspective as belief, tradition, or professional opinion.</p>',
+            '<h2>Suggested Practices</h2>',
+            '<p>Recommend rituals, remedies, or reflections readers may consider.</p>',
+            '<h2>Conclusion</h2>',
+            '<p>Summarize key takeaways and encourage thoughtful judgment.</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
     document.getElementById('insertMyAreaStructureBtn')?.addEventListener('click', function () {
         const structureHtml = [
             '<h2>Issue / Topic</h2>',
@@ -3615,6 +4093,7 @@ The mountains keep.</pre>
     document.getElementById('communityIssueReportedNo')?.addEventListener('change', refreshCommunityIssuesPriorReportFields);
     document.getElementById('communityIssueAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
     document.getElementById('agricultureAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
+    document.getElementById('environmentAllowPoll')?.addEventListener('change', refreshTypeParticipationFields);
     refreshCommunityIssuesPrivacyFields();
     refreshCommunityIssuesPriorReportFields();
 
@@ -3918,7 +4397,7 @@ The mountains keep.</pre>
     const COMMUNITY_LOCATION_TYPES_REQUIRING_PLACE = @json(\App\Models\CommunityPost::locationTypesRequiringPlace());
     const COMMUNITY_LOCATION_TYPE_GPS = @json(\App\Models\CommunityPost::LOCATION_TYPE_GPS);
     const COMMUNITY_BASE_LOCATION_TYPES = @json(\App\Models\CommunityPost::locationTypeOptions());
-    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture'];
+    const COMMUNITY_STRUCTURED_LOCATION_TYPES = ['news', 'reports', 'awareness', 'business', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'];
     const COMMUNITY_OPTIONAL_STRUCTURED_LOCATION_TYPES = ['womens-world', 'student-corner', 'youth-corner', 'senior-citizens-forum'];
     let communityGpsMap = null;
     let communityGpsMarker = null;
@@ -3983,6 +4462,7 @@ The mountains keep.</pre>
         const myAreaSlot = document.getElementById('communityMyAreaLocationSlot');
         const communityIssuesSlot = document.getElementById('communityCommunityIssuesLocationSlot');
         const agricultureSlot = document.getElementById('communityAgricultureLocationSlot');
+        const environmentSlot = document.getElementById('communityEnvironmentLocationSlot');
         const seniorCitizensForumSlot = document.getElementById('communitySeniorCitizensForumLocationSlot');
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
 
@@ -4001,6 +4481,7 @@ The mountains keep.</pre>
         const isMyArea = contentType === 'my-area';
         const isCommunityIssues = contentType === 'community-issues';
         const isAgriculture = contentType === 'agriculture';
+        const isEnvironment = contentType === 'environment';
         const isSeniorCitizensForum = contentType === 'senior-citizens-forum';
         const usesStructured = usesStructuredCommunityLocation(contentType);
         const requiresStructured = requiresStructuredCommunityLocation(contentType);
@@ -4029,6 +4510,8 @@ The mountains keep.</pre>
             targetSlot = communityIssuesSlot;
         } else if (isAgriculture) {
             targetSlot = agricultureSlot;
+        } else if (isEnvironment) {
+            targetSlot = environmentSlot;
         } else if (isSeniorCitizensForum) {
             targetSlot = seniorCitizensForumSlot;
         }
@@ -4056,7 +4539,7 @@ The mountains keep.</pre>
             }
 
             let baseText = label.textContent.replace(/\s*\*$/, '').trim();
-            if (fieldId === 'communityLocationCity' && (isSeniorCitizensForum || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture)) {
+            if (fieldId === 'communityLocationCity' && (isSeniorCitizensForum || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment)) {
                 baseText = 'City/Town/Village';
             }
             if (fieldId === 'communityLocationCity' && isAgriculture) {
@@ -4081,10 +4564,10 @@ The mountains keep.</pre>
         const localityLabel = document.getElementById('communityLocationLocalityLabel');
 
         if (localityField) {
-            localityField.required = requiresStructured && (isAwareness || isBusiness || isLocalVoices || isMyArea || isCommunityIssues);
+            localityField.required = requiresStructured && (isAwareness || isBusiness || isLocalVoices || isMyArea || isCommunityIssues || isEnvironment);
             localityField.disabled = !usesStructured || usesOptionalStructuredLocation || isAgriculture;
 
-            if (isAwareness || isBusiness || isLocalVoices || isMyArea || isCommunityIssues) {
+            if (isAwareness || isBusiness || isLocalVoices || isMyArea || isCommunityIssues || isEnvironment) {
                 localityField.classList.add('structured-location-required');
             } else {
                 localityField.classList.remove('structured-location-required');
@@ -4093,7 +4576,7 @@ The mountains keep.</pre>
         }
 
         if (localityLabel) {
-            if (isLocalVoices || isMyArea || isCommunityIssues) {
+            if (isLocalVoices || isMyArea || isCommunityIssues || isEnvironment) {
                 localityLabel.innerHTML = 'Locality / Area <span class="text-danger">*</span>';
             } else {
                 localityLabel.innerHTML = (isAwareness || isBusiness)
@@ -4116,6 +4599,9 @@ The mountains keep.</pre>
     function mountNewsParticipationFields(isNews, isAwareness, isBusiness, isWomensWorld, isStudentCorner, isYouthCorner, isLocalVoices, isMyArea) {
         const isCommunityIssues = document.getElementById('contentType')?.value === 'community-issues';
         const isAgriculture = document.getElementById('contentType')?.value === 'agriculture';
+        const isEnvironment = document.getElementById('contentType')?.value === 'environment';
+        const isScienceTechnology = document.getElementById('contentType')?.value === 'science-technology';
+        const isAstroConsultancy = document.getElementById('contentType')?.value === 'astro-consultancy';
         const publicParticipationWrap = document.getElementById('publicParticipationWrap');
         const newsParticipationWrap = document.getElementById('newsParticipationWrap');
         const allowSharingWrap = document.getElementById('allowSharingWrap');
@@ -4147,11 +4633,14 @@ The mountains keep.</pre>
         const agricultureParticipationWrap = document.getElementById('agricultureParticipationWrap');
         const agriculturePollWrap = document.getElementById('agriculturePollWrap');
         const agriculturePollFields = document.getElementById('agriculturePollFields');
+        const environmentParticipationWrap = document.getElementById('environmentParticipationWrap');
+        const environmentPollWrap = document.getElementById('environmentPollWrap');
+        const environmentPollFields = document.getElementById('environmentPollFields');
 
         if (publicParticipationWrap) {
-            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
+            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy) ? 'none' : '';
             publicParticipationWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture;
+                field.disabled = isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy;
             });
         }
 
@@ -4160,16 +4649,16 @@ The mountains keep.</pre>
         }
 
         if (allowSharingWrap) {
-            allowSharingWrap.style.display = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
+            allowSharingWrap.style.display = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy) ? 'none' : '';
             allowSharingWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture;
+                field.disabled = isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy;
             });
         }
 
         if (allowPollWrap) {
-            allowPollWrap.style.display = (isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
+            allowPollWrap.style.display = (isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy) ? 'none' : '';
             allowPollWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture;
+                field.disabled = isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy;
             });
         }
 
@@ -4243,6 +4732,14 @@ The mountains keep.</pre>
 
         if (agriculturePollWrap) {
             agriculturePollWrap.style.display = isAgriculture ? '' : 'none';
+        }
+
+        if (environmentParticipationWrap) {
+            environmentParticipationWrap.style.display = isEnvironment ? '' : 'none';
+        }
+
+        if (environmentPollWrap) {
+            environmentPollWrap.style.display = isEnvironment ? '' : 'none';
         }
 
         const awarenessAllowPoll = document.getElementById('awarenessAllowPoll');
@@ -4376,6 +4873,21 @@ The mountains keep.</pre>
             }
         }
 
+        const environmentAllowPoll = document.getElementById('environmentAllowPoll');
+        if (environmentPollFields) {
+            const environmentPollEnabled = isEnvironment && environmentAllowPoll?.checked;
+            environmentPollFields.style.display = environmentPollEnabled ? '' : 'none';
+            const environmentPollQuestion = document.getElementById('environmentPollQuestion');
+            if (environmentPollQuestion) {
+                environmentPollQuestion.required = Boolean(environmentPollEnabled);
+                environmentPollQuestion.disabled = !environmentPollEnabled;
+            }
+            const environmentPollOptions = document.getElementById('environmentPollOptions');
+            if (environmentPollOptions) {
+                environmentPollOptions.disabled = !environmentPollEnabled;
+            }
+        }
+
         const awarenessHasEvent = document.getElementById('awarenessHasEvent');
         const awarenessEventFields = document.getElementById('awarenessEventFields');
         if (awarenessEventFields) {
@@ -4386,6 +4898,9 @@ The mountains keep.</pre>
     function mountNewsMediaFields(isNews, isStories, isChildrensCorner, isAwareness, isBusiness, isWomensWorld, isSeniorCitizensForum, isStudentCorner, isYouthCorner, isLocalVoices, isMyArea) {
         const isCommunityIssues = document.getElementById('contentType')?.value === 'community-issues';
         const isAgriculture = document.getElementById('contentType')?.value === 'agriculture';
+        const isEnvironment = document.getElementById('contentType')?.value === 'environment';
+        const isScienceTechnology = document.getElementById('contentType')?.value === 'science-technology';
+        const isAstroConsultancy = document.getElementById('contentType')?.value === 'astro-consultancy';
         const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
         const featuredSlot = document.getElementById('communityNewsFeaturedImagesSlot');
         const storyFeaturedSlot = document.getElementById('communityStoryFeaturedImagesSlot');
@@ -4398,6 +4913,9 @@ The mountains keep.</pre>
         const myAreaFeaturedSlot = document.getElementById('communityMyAreaFeaturedImagesSlot');
         const communityIssuesFeaturedSlot = document.getElementById('communityCommunityIssuesFeaturedImagesSlot');
         const agricultureFeaturedSlot = document.getElementById('communityAgricultureFeaturedImagesSlot');
+        const environmentFeaturedSlot = document.getElementById('communityEnvironmentFeaturedImagesSlot');
+        const scienceTechnologyFeaturedSlot = document.getElementById('communityScienceTechnologyFeaturedImagesSlot');
+        const astroConsultancyFeaturedSlot = document.getElementById('communityAstroConsultancyFeaturedImagesSlot');
         const businessTagsSlot = document.getElementById('communityBusinessTagsSlot');
         const womensWorldTagsSlot = document.getElementById('communityWomensWorldTagsSlot');
         const studentCornerTagsSlot = document.getElementById('communityStudentCornerTagsSlot');
@@ -4406,6 +4924,9 @@ The mountains keep.</pre>
         const myAreaTagsSlot = document.getElementById('communityMyAreaTagsSlot');
         const communityIssuesTagsSlot = document.getElementById('communityCommunityIssuesTagsSlot');
         const agricultureTagsSlot = document.getElementById('communityAgricultureTagsSlot');
+        const environmentTagsSlot = document.getElementById('communityEnvironmentTagsSlot');
+        const scienceTechnologyTagsSlot = document.getElementById('communityScienceTechnologyTagsSlot');
+        const astroConsultancyTagsSlot = document.getElementById('communityAstroConsultancyTagsSlot');
         const tagsCol = document.getElementById('communityTagsWrap');
         const videoWrap = document.getElementById('communityVideoWrap');
         const videoSlot = document.getElementById('communityNewsVideoSlot');
@@ -4420,6 +4941,9 @@ The mountains keep.</pre>
         const myAreaVideoSlot = document.getElementById('communityMyAreaVideoSlot');
         const communityIssuesVideoSlot = document.getElementById('communityCommunityIssuesVideoSlot');
         const agricultureVideoSlot = document.getElementById('communityAgricultureVideoSlot');
+        const environmentVideoSlot = document.getElementById('communityEnvironmentVideoSlot');
+        const scienceTechnologyVideoSlot = document.getElementById('communityScienceTechnologyVideoSlot');
+        const astroConsultancyVideoSlot = document.getElementById('communityAstroConsultancyVideoSlot');
         const videoAnchor = document.getElementById('communityVideoHiddenSlot');
         const videoFieldLabel = document.getElementById('videoFieldLabel');
         const featuredLabel = document.getElementById('featuredImagesLabel');
@@ -4435,7 +4959,7 @@ The mountains keep.</pre>
                 videoWrap.style.display = 'none';
             }
         } else {
-            window.communityFeaturedImages.max = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 1 : 5;
+            window.communityFeaturedImages.max = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy) ? 1 : 5;
             if (videoWrap) {
                 videoWrap.style.display = '';
             }
@@ -4475,6 +4999,15 @@ The mountains keep.</pre>
                 } else if (isAgriculture && agricultureFeaturedSlot) {
                     agricultureFeaturedSlot.appendChild(featuredWrap);
                     featuredWrap.classList.remove('col-md-6');
+                } else if (isEnvironment && environmentFeaturedSlot) {
+                    environmentFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
+                } else if (isScienceTechnology && scienceTechnologyFeaturedSlot) {
+                    scienceTechnologyFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
+                } else if (isAstroConsultancy && astroConsultancyFeaturedSlot) {
+                    astroConsultancyFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
                 } else {
                     tagsCol.parentElement.insertBefore(featuredWrap, tagsCol);
                     featuredWrap.classList.add('col-md-6');
@@ -4512,6 +5045,18 @@ The mountains keep.</pre>
                     tagsCol.style.display = '';
                 } else if (isAgriculture && agricultureTagsSlot) {
                     agricultureTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isEnvironment && environmentTagsSlot) {
+                    environmentTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isScienceTechnology && scienceTechnologyTagsSlot) {
+                    scienceTechnologyTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isAstroConsultancy && astroConsultancyTagsSlot) {
+                    astroConsultancyTagsSlot.appendChild(tagsCol);
                     tagsCol.classList.remove('col-md-6');
                     tagsCol.style.display = '';
                 } else if (communityTagsDefaultParent) {
@@ -4560,10 +5105,19 @@ The mountains keep.</pre>
             } else if (isAgriculture && agricultureVideoSlot) {
                 agricultureVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
+            } else if (isEnvironment && environmentVideoSlot) {
+                environmentVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (isScienceTechnology && scienceTechnologyVideoSlot) {
+                scienceTechnologyVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
+            } else if (isAstroConsultancy && astroConsultancyVideoSlot) {
+                astroConsultancyVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
             } else if (isSeniorCitizensForum && seniorCitizensForumVideoSlot) {
                 seniorCitizensForumVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
-            } else if (! isAwareness && ! isBusiness && ! isWomensWorld && ! isStudentCorner && ! isYouthCorner && ! isLocalVoices && ! isMyArea && ! isCommunityIssues && ! isAgriculture && ! isSeniorCitizensForum) {
+            } else if (! isAwareness && ! isBusiness && ! isWomensWorld && ! isStudentCorner && ! isYouthCorner && ! isLocalVoices && ! isMyArea && ! isCommunityIssues && ! isAgriculture && ! isEnvironment && ! isScienceTechnology && ! isAstroConsultancy && ! isSeniorCitizensForum) {
                 videoAnchor.insertAdjacentElement('afterend', videoWrap);
                 videoWrap.classList.add('col-md-6');
             } else {
@@ -4590,6 +5144,8 @@ The mountains keep.</pre>
                 videoFieldLabel.innerHTML = 'Video evidence <span class="text-muted fw-normal">(optional)</span>';
             } else if (isAgriculture) {
                 videoFieldLabel.innerHTML = 'Farm video <span class="text-muted fw-normal">(highly recommended)</span>';
+            } else if (isEnvironment) {
+                videoFieldLabel.innerHTML = 'Environment video <span class="text-muted fw-normal">(recommended)</span>';
             } else if (isSeniorCitizensForum) {
                 videoFieldLabel.innerHTML = 'Video upload / link <span class="text-muted fw-normal">(optional)</span>';
             } else {
@@ -4612,6 +5168,8 @@ The mountains keep.</pre>
                 featuredLabel.innerHTML = 'Cover image <span class="text-muted fw-normal">(recommended)</span>';
             } else if (isLocalVoices || isMyArea || isCommunityIssues) {
                 featuredLabel.innerHTML = 'Featured image <span class="text-muted fw-normal">(recommended)</span>';
+            } else if (isEnvironment) {
+                featuredLabel.innerHTML = 'Featured image <span class="text-danger">*</span> <span class="text-muted fw-normal">(required for most posts)</span>';
             } else if (isStories) {
                 featuredLabel.textContent = 'Cover image (recommended)';
             } else if (isNews) {
@@ -4632,6 +5190,8 @@ The mountains keep.</pre>
                 featuredHelp.textContent = 'Used for homepage cards, category listings, and social sharing. JPG, PNG, or WebP, max 4 MB.';
             } else if (isYouthCorner) {
                 featuredHelp.textContent = 'Used for homepage cards, category listings, and social sharing. JPG, PNG, or WebP, max 4 MB.';
+            } else if (isEnvironment) {
+                featuredHelp.textContent = 'Required for most environment posts. Used in listings, Green Map, and social sharing. JPG, PNG, or WebP, max 4 MB.';
             } else if (isStories) {
                 featuredHelp.textContent = 'Used for story cards, social sharing, and homepage. Upload your cover image first. JPG, PNG, or WebP, max 4 MB each.';
             } else if (isNews) {
@@ -4870,7 +5430,7 @@ The mountains keep.</pre>
         const selectedType = typeSelect.value;
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture'].includes(selectedType);
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology', 'astro-consultancy'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -4899,6 +5459,9 @@ The mountains keep.</pre>
         const isMyArea = selectedType === 'my-area';
         const isCommunityIssues = selectedType === 'community-issues';
         const isAgriculture = selectedType === 'agriculture';
+        const isEnvironment = selectedType === 'environment';
+        const isScienceTechnology = selectedType === 'science-technology';
+        const isAstroConsultancy = selectedType === 'astro-consultancy';
 
         if (isChildrensCorner) {
             categoryWrap.style.display = 'none';
@@ -4955,6 +5518,21 @@ The mountains keep.</pre>
             categorySelect.required = false;
             categorySelect.disabled = true;
             syncAgricultureCategory();
+        } else if (isEnvironment) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncEnvironmentCategory();
+        } else if (isScienceTechnology) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncScienceTechnologyCategory();
+        } else if (isAstroConsultancy) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncAstroConsultancyCategory();
         } else {
             categoryWrap.style.display = '';
             categorySelect.disabled = false;
@@ -5021,11 +5599,11 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
+            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy) ? 'none' : '';
         });
 
         document.querySelectorAll('.general-extra input, .general-extra textarea, .general-extra select').forEach((field) => {
-            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture;
+            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -5098,6 +5676,14 @@ The mountains keep.</pre>
 
         document.querySelectorAll('.agriculture-required').forEach((field) => {
             field.required = isAgriculture;
+        });
+
+        document.querySelectorAll('.environment-required').forEach((field) => {
+            field.required = isEnvironment;
+        });
+
+        document.querySelectorAll('.astro-consultancy-required').forEach((field) => {
+            field.required = isAstroConsultancy;
         });
 
         document.querySelectorAll('.report-required').forEach((field) => {
@@ -5182,6 +5768,22 @@ The mountains keep.</pre>
             }
 
             field.disabled = !isAgriculture;
+        });
+
+        document.querySelectorAll('.environment-flow input, .environment-flow textarea, .environment-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isEnvironment;
+        });
+
+        document.querySelectorAll('.astro-consultancy-flow input, .astro-consultancy-flow textarea, .astro-consultancy-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isAstroConsultancy;
         });
 
         const childSchoolName = document.getElementById('childSchoolName');
@@ -5318,6 +5920,22 @@ The mountains keep.</pre>
             bodyHelp: 'Use the rich text editor for What is the Issue?, When Did It Start?, Who Is Affected?, What Is the Impact?, What Action Has Been Taken So Far?, and Suggested Solution.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
+        } : (isEnvironment ? {
+            excerptLabel: 'Summary',
+            excerptPlaceholder: 'Summarize the environmental topic, location, and key message.',
+            excerptHelp: 'A concise standfirst shown in Environment listings.',
+            bodyLabel: 'Content <span class="text-danger">*</span>',
+            bodyHelp: 'Use the rich text editor for Background, Current Situation, Environmental Impact, Actions Taken, Results, and Future Recommendations.',
+            locationLabel: 'Location <span class="text-danger">*</span>',
+            locationHelp: 'Enter country, state, district, city/town/village, and locality. Use the map pin for exact GPS coordinates.',
+        } : (isAstroConsultancy ? {
+            excerptLabel: 'Summary',
+            excerptPlaceholder: 'Summarize the guidance topic, tradition, and key message.',
+            excerptHelp: 'A concise standfirst shown in Astro Consultancy listings.',
+            bodyLabel: 'Content <span class="text-danger">*</span>',
+            bodyHelp: 'Use the rich text editor for Introduction, Traditional Background, Astrological Concept, Interpretation, Suggested Practices, and Conclusion.',
+            locationLabel: 'Location',
+            locationHelp: 'Optional — add a location if the guidance is region-specific.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -5326,7 +5944,7 @@ The mountains keep.</pre>
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        })))))))))))));
+        })))))))))))))));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -5400,12 +6018,26 @@ The mountains keep.</pre>
             agricultureContentGuide.style.display = isAgriculture ? '' : 'none';
         }
 
+        const environmentContentGuide = document.getElementById('environmentContentGuide');
+        if (environmentContentGuide) {
+            environmentContentGuide.style.display = isEnvironment ? '' : 'none';
+        }
+
+        const astroConsultancyContentGuide = document.getElementById('astroConsultancyContentGuide');
+        if (astroConsultancyContentGuide) {
+            astroConsultancyContentGuide.style.display = isAstroConsultancy ? '' : 'none';
+        }
+
         refreshStudentCornerProjectSection();
         refreshYouthCornerProjectSection();
         refreshLocalVoicesConditionalSections();
         refreshMyAreaConditionalSections();
         refreshAgricultureConditionalSections();
         refreshAgricultureSoilParameters();
+        refreshEnvironmentConditionalSections();
+        refreshEnvironmentImpactCalculatorFields();
+        refreshScienceTechnologyConditionalSections();
+        refreshAstroConsultancyConditionalSections();
 
         refreshPoetryEditorMode(selectedType);
         refreshPoetrySeriesFields();
@@ -5414,12 +6046,12 @@ The mountains keep.</pre>
         mountStructuredLocationFields(selectedType);
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
         if (commonLocationSlot) {
-            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
+            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy) ? 'none' : '';
             commonLocationSlot.querySelectorAll('input, select, textarea').forEach((field) => {
                 if (isChildrensCorner) {
                     field.disabled = true;
                     field.required = false;
-                } else if (!isNews && !isReport && !isAwareness && !isBusiness && !isWomensWorld && !isSeniorCitizensForum && !isStudentCorner && !isYouthCorner && !isLocalVoices && !isMyArea && !isCommunityIssues && !isAgriculture) {
+                } else if (!isNews && !isReport && !isAwareness && !isBusiness && !isWomensWorld && !isSeniorCitizensForum && !isStudentCorner && !isYouthCorner && !isLocalVoices && !isMyArea && !isCommunityIssues && !isAgriculture && !isEnvironment) {
                     field.disabled = false;
                 }
             });
@@ -5437,7 +6069,7 @@ The mountains keep.</pre>
         const allowPollWrap = document.getElementById('allowPollWrap');
         const allowPoll = document.getElementById('allowPoll');
         if (allowPollWrap) {
-            allowPollWrap.style.display = (isReport || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture) ? 'none' : '';
+            allowPollWrap.style.display = (isReport || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment) ? 'none' : '';
         }
         if (isReport && allowPoll) {
             allowPoll.checked = false;
@@ -8790,6 +9422,16 @@ The mountains keep.</pre>
                     notify('error', 'Please record audio or switch to another audio option.');
                     return;
                 }
+            }
+        }
+
+        if (contentType === 'astro-consultancy') {
+            syncAstroConsultancyCategory();
+
+            const declarationFields = document.querySelectorAll('.astro-consultancy-declaration-required');
+            if (Array.from(declarationFields).some((field) => !field.checked)) {
+                notify('error', 'Please confirm all Astro Consultancy declaration statements.');
+                return;
             }
         }
 

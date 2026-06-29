@@ -31,7 +31,7 @@ trait ValidatesServiceProviderServiceRequest
             'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
             'consultation_type' => ['required', Rule::in(['online', 'offline', 'both'])],
-            'business_type' => ['required', Rule::in(['Architect', 'Lawyer', 'Landscaper', 'Software Service', 'Business'])],
+            'business_type' => ['required', Rule::in(['Freelancer', 'Proprietorship Firm', 'Partnership Firm', 'Private Limited Company', 'Society', 'NGO'])],
             'service_area' => ['nullable', 'string', 'max:1000'],
             'postal_code' => ['nullable', 'string', 'max:20'],
             'city' => ['nullable', 'string', 'max:120'],

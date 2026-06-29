@@ -55,21 +55,15 @@ class CommunityPostFormFields
                 self::text('historical_period', 'Historical period / era', 120, false),
                 self::textarea('cultural_significance', 'Cultural significance', 2000, true),
             ]),
-            'astro-consultancy' => self::section('Consultation details', 'Astro Consultancy', 'Consultation listing fields used on astrology platforms.', [
-                self::text('consultation_fee', 'Consultation fee / pricing', 120, true, 'e.g. ₹500 / 30 min'),
-                self::select('expertise_area', 'Expertise area', ['Astrology', 'Numerology', 'Vastu', 'Palmistry', 'Horoscope', 'Spiritual Guidance'], true),
-                self::select('consultation_mode', 'Consultation mode', ['Online', 'In-person', 'Both'], true),
-                self::text('availability', 'Availability', 160, false, 'Days / time slots'),
-            ]),
+            'astro-consultancy' => self::section('Astro Consultancy details', 'Astro Consultancy', 'Use the dedicated Astro Consultancy flow fields on the form.', []),
             'religion-spirituality' => self::section('Spiritual details', 'Religion & Spirituality', 'Spiritual article metadata for tradition and practice.', [
                 self::text('spiritual_tradition', 'Tradition / faith context', 120, true),
                 self::select('practice_type', 'Practice type', ['Meditation', 'Temple Information', 'Festival', 'Scripture', 'Devotional', 'Guidance'], true),
                 self::textarea('spiritual_guidance', 'Guidance summary', 2000, false),
             ]),
             'agriculture' => self::section('Agriculture details', 'Agriculture', 'Use the dedicated Agriculture flow fields on the form.', []),
-            'environment' => self::section('Environment details', 'Environment', 'Environmental reporting and action content fields.', self::environmentFields()),
-            'technology' => self::section('Technology details', 'Technology', 'Tech article metadata for domain and innovation stage.', self::techScienceFields('tech_domain', 'tech_summary')),
-            'science' => self::section('Science details', 'Science', 'Science communication fields for field and findings.', self::techScienceFields('scientific_field', 'key_findings')),
+            'environment' => self::section('Environment details', 'Environment', 'Use the dedicated Environment flow fields on the form.', []),
+            'science-technology' => self::section('Science & Technology details', 'Science & Technology', 'Use the dedicated Science & Technology flow fields on the form.', []),
             'local-voices' => self::section('Local voice details', 'Local Voices', 'Use the dedicated Local Voices flow fields on the form.', []),
             'community-issues' => self::section('Community issue details', 'Community Issues', 'Use the dedicated Community Issues flow fields on the form.', []),
             'creative-corner' => self::section('Creative work details', 'Creative Corner', 'Portfolio-style metadata for creative submissions.', [
@@ -813,6 +807,277 @@ class CommunityPostFormFields
                 }
             }
             unset($payload['location_locality']);
+        }
+
+        if (CommunityPost::usesEnvironmentFlow($contentType)) {
+            $payload['environment_post_type'] = $request->input('environment_post_type');
+            $payload['environment_category'] = $request->input('environment_category');
+            $payload['environment_natural_feature_name'] = $request->input('environment_natural_feature_name');
+            $payload['environment_map_pin_type'] = $request->input('environment_map_pin_type');
+            $payload['environment_issue_type'] = $request->input('environment_issue_type');
+            $payload['environment_initiative_type'] = $request->input('environment_initiative_type');
+            $payload['environment_water_source'] = $request->input('environment_water_source');
+            $payload['environment_conservation_method'] = $request->input('environment_conservation_method');
+            $payload['environment_water_saved'] = $request->input('environment_water_saved');
+            $payload['environment_soil_conservation_methods'] = array_values(array_intersect(
+                (array) $request->input('environment_soil_conservation_methods', []),
+                CommunityContentTaxonomy::environmentSoilConservationMethods()
+            ));
+            $payload['environment_tree_count'] = $request->input('environment_tree_count');
+            $payload['environment_tree_species'] = $request->input('environment_tree_species');
+            $payload['environment_tree_plantation_date'] = $request->input('environment_tree_plantation_date');
+            $payload['environment_tree_organization'] = $request->input('environment_tree_organization');
+            $payload['environment_tree_survival_status'] = $request->input('environment_tree_survival_status');
+            $payload['environment_tree_maintenance_plan'] = $request->input('environment_tree_maintenance_plan');
+            $payload['environment_waste_types'] = array_values(array_intersect(
+                (array) $request->input('environment_waste_types', []),
+                CommunityContentTaxonomy::environmentWasteTypes()
+            ));
+            $payload['environment_biodiversity_types'] = array_values(array_intersect(
+                (array) $request->input('environment_biodiversity_types', []),
+                CommunityContentTaxonomy::environmentBiodiversityTypes()
+            ));
+            $payload['environment_climate_impacts'] = array_values(array_intersect(
+                (array) $request->input('environment_climate_impacts', []),
+                CommunityContentTaxonomy::environmentClimateImpacts()
+            ));
+            $payload['environment_video_type'] = $request->input('environment_video_type');
+            $payload['environment_enable_impact_calculator'] = $request->boolean('environment_enable_impact_calculator');
+            $payload['environment_data_trees_planted'] = $request->input('environment_data_trees_planted');
+            $payload['environment_data_area_covered'] = $request->input('environment_data_area_covered');
+            $payload['environment_data_water_saved'] = $request->input('environment_data_water_saved');
+            $payload['environment_data_waste_collected'] = $request->input('environment_data_waste_collected');
+            $payload['environment_data_people_participated'] = $request->input('environment_data_people_participated');
+            $payload['environment_data_carbon_reduction'] = $request->input('environment_data_carbon_reduction');
+            $payload['environment_data_species_recorded'] = $request->input('environment_data_species_recorded');
+            $payload['environment_participation_requests'] = array_values(array_intersect(
+                (array) $request->input('environment_participation_requests', []),
+                CommunityContentTaxonomy::environmentParticipationRequests()
+            ));
+            $payload['environment_event_campaign_name'] = $request->input('environment_event_campaign_name');
+            $payload['environment_event_organizer'] = $request->input('environment_event_organizer');
+            $payload['environment_event_venue'] = $request->input('environment_event_venue');
+            $payload['environment_event_date'] = $request->input('environment_event_date');
+            $payload['environment_event_time'] = $request->input('environment_event_time');
+            $payload['environment_event_registration_link'] = $request->input('environment_event_registration_link');
+            $payload['environment_scheme_name'] = $request->input('environment_scheme_name');
+            $payload['environment_scheme_department'] = $request->input('environment_scheme_department');
+            $payload['environment_scheme_eligibility'] = $request->input('environment_scheme_eligibility');
+            $payload['environment_scheme_benefits'] = $request->input('environment_scheme_benefits');
+            $payload['environment_scheme_official_link'] = $request->input('environment_scheme_official_link');
+            $payload['environment_ask_community'] = $request->input('environment_ask_community');
+            $payload['environment_poll_question'] = $request->input('environment_poll_question');
+            $payload['environment_poll_options'] = collect(preg_split('/\R/', (string) $request->input('environment_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('allow_poll')) {
+                unset($payload['environment_poll_question'], $payload['environment_poll_options']);
+            }
+            $payload['environment_show_on_green_map'] = $request->boolean('environment_show_on_green_map');
+            $payload['environment_enable_green_leader'] = $request->boolean('environment_enable_green_leader');
+            $payload['environment_allow_join_campaign'] = $request->boolean('environment_allow_join_campaign');
+            $payload['environment_allow_volunteer'] = $request->boolean('environment_allow_volunteer');
+            $payload['environment_allow_donate'] = $request->boolean('environment_allow_donate');
+            $payload['environment_allow_support_initiative'] = $request->boolean('environment_allow_support_initiative');
+            $payload['environment_allow_follow_campaign'] = $request->boolean('environment_allow_follow_campaign');
+            $payload['environment_allow_volunteer_registration'] = $request->boolean('environment_allow_volunteer_registration');
+
+            foreach (CommunityPost::structuredLocationMetaKeys() as $locationKey) {
+                if ($request->has($locationKey)) {
+                    $payload[$locationKey] = $request->input($locationKey);
+                }
+            }
+        }
+
+        if (CommunityPost::usesScienceTechnologyFlow($contentType)) {
+            $payload['science_technology_post_type'] = $request->input('science_technology_post_type');
+            $payload['science_technology_category'] = $request->input('science_technology_category');
+            $payload['science_technology_target_audience'] = array_values(array_intersect(
+                (array) $request->input('science_technology_target_audience', []),
+                CommunityContentTaxonomy::scienceTechnologyTargetAudiences()
+            ));
+            $payload['science_technology_level'] = $request->input('science_technology_level');
+            $payload['science_technology_scientific_fields'] = array_values(array_intersect(
+                (array) $request->input('science_technology_scientific_fields', []),
+                CommunityContentTaxonomy::scienceTechnologyScientificFields()
+            ));
+            $payload['science_technology_project_name'] = $request->input('science_technology_project_name');
+            $payload['science_technology_project_category'] = $request->input('science_technology_project_category');
+            $payload['science_technology_project_objective'] = $request->input('science_technology_project_objective');
+            $payload['science_technology_project_components'] = $request->input('science_technology_project_components');
+            $payload['science_technology_project_working_principle'] = $request->input('science_technology_project_working_principle');
+            $payload['science_technology_project_results'] = $request->input('science_technology_project_results');
+            $payload['science_technology_project_future_improvements'] = $request->input('science_technology_project_future_improvements');
+            $payload['science_technology_research_area'] = $request->input('science_technology_research_area');
+            $payload['science_technology_research_institution'] = $request->input('science_technology_research_institution');
+            $payload['science_technology_research_duration'] = $request->input('science_technology_research_duration');
+            $payload['science_technology_research_abstract'] = $request->input('science_technology_research_abstract');
+            $payload['science_technology_research_keywords'] = $request->input('science_technology_research_keywords');
+            $payload['science_technology_research_methodology'] = $request->input('science_technology_research_methodology');
+            $payload['science_technology_research_results'] = $request->input('science_technology_research_results');
+            $payload['science_technology_research_conclusion'] = $request->input('science_technology_research_conclusion');
+            $payload['science_technology_research_references'] = $request->input('science_technology_research_references');
+            $payload['science_technology_experiment_objective'] = $request->input('science_technology_experiment_objective');
+            $payload['science_technology_experiment_materials'] = $request->input('science_technology_experiment_materials');
+            $payload['science_technology_experiment_procedure'] = $request->input('science_technology_experiment_procedure');
+            $payload['science_technology_experiment_observations'] = $request->input('science_technology_experiment_observations');
+            $payload['science_technology_experiment_results'] = $request->input('science_technology_experiment_results');
+            $payload['science_technology_experiment_safety'] = $request->input('science_technology_experiment_safety');
+            $payload['science_technology_innovation_name'] = $request->input('science_technology_innovation_name');
+            $payload['science_technology_patent_filed'] = $request->input('science_technology_patent_filed');
+            $payload['science_technology_problem_solved'] = $request->input('science_technology_problem_solved');
+            $payload['science_technology_novel_features'] = $request->input('science_technology_novel_features');
+            $payload['science_technology_innovation_technology'] = $request->input('science_technology_innovation_technology');
+            $payload['science_technology_innovation_benefits'] = $request->input('science_technology_innovation_benefits');
+            $payload['science_technology_commercial_potential'] = $request->input('science_technology_commercial_potential');
+            $payload['science_technology_technologies_used'] = array_values(array_intersect(
+                (array) $request->input('science_technology_technologies_used', []),
+                CommunityContentTaxonomy::scienceTechnologyTechnologiesUsed()
+            ));
+            $payload['science_technology_programming_languages'] = array_values(array_intersect(
+                (array) $request->input('science_technology_programming_languages', []),
+                CommunityContentTaxonomy::scienceTechnologyProgrammingLanguages()
+            ));
+            $payload['science_technology_github_repo'] = $request->input('science_technology_github_repo');
+            $payload['science_technology_hardware_components'] = $request->input('science_technology_hardware_components');
+            $payload['science_technology_bom'] = $request->input('science_technology_bom');
+            $payload['science_technology_hardware_cost'] = $request->input('science_technology_hardware_cost');
+            $payload['science_technology_water_soil_topics'] = array_values(array_intersect(
+                (array) $request->input('science_technology_water_soil_topics', []),
+                CommunityContentTaxonomy::scienceTechnologyWaterSoilTopics()
+            ));
+            $payload['science_technology_renewable_energy'] = array_values(array_intersect(
+                (array) $request->input('science_technology_renewable_energy', []),
+                CommunityContentTaxonomy::scienceTechnologyRenewableEnergyTypes()
+            ));
+            $payload['science_technology_patent_number'] = $request->input('science_technology_patent_number');
+            $payload['science_technology_application_number'] = $request->input('science_technology_application_number');
+            $payload['science_technology_patent_status'] = $request->input('science_technology_patent_status');
+            $payload['science_technology_funding_types'] = array_values(array_intersect(
+                (array) $request->input('science_technology_funding_types', []),
+                CommunityContentTaxonomy::scienceTechnologyFundingTypes()
+            ));
+            $payload['science_technology_application_areas'] = array_values(array_intersect(
+                (array) $request->input('science_technology_application_areas', []),
+                CommunityContentTaxonomy::scienceTechnologyApplicationAreas()
+            ));
+            $payload['science_technology_reference_types'] = array_values(array_intersect(
+                (array) $request->input('science_technology_reference_types', []),
+                CommunityContentTaxonomy::scienceTechnologyReferenceTypes()
+            ));
+            $payload['science_technology_references'] = $request->input('science_technology_references');
+            $payload['science_technology_license'] = $request->input('science_technology_license');
+            $payload['science_technology_video_type'] = $request->input('science_technology_video_type');
+            $payload['science_technology_enable_innovation_showcase'] = $request->boolean('science_technology_enable_innovation_showcase');
+            $payload['science_technology_enable_expert_review'] = $request->boolean('science_technology_enable_expert_review');
+            $payload['science_technology_open_innovation'] = array_values(array_intersect(
+                (array) $request->input('science_technology_open_innovation', []),
+                CommunityContentTaxonomy::scienceTechnologyOpenInnovationOptions()
+            ));
+            $payload['science_technology_challenge_themes'] = array_values(array_intersect(
+                (array) $request->input('science_technology_challenge_themes', []),
+                CommunityContentTaxonomy::scienceTechnologyInnovationChallengeThemes()
+            ));
+            $payload['science_technology_collaboration_requests'] = array_values(array_intersect(
+                (array) $request->input('science_technology_collaboration_requests', []),
+                CommunityContentTaxonomy::scienceTechnologyCollaborationRequests()
+            ));
+            $payload['science_technology_ask_community'] = $request->input('science_technology_ask_community');
+            $payload['science_technology_allow_poll'] = $request->boolean('science_technology_allow_poll');
+            $payload['science_technology_poll_question'] = $request->input('science_technology_poll_question');
+            $payload['science_technology_poll_options'] = collect(preg_split('/\R/', (string) $request->input('science_technology_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('science_technology_allow_poll')) {
+                unset($payload['science_technology_poll_question'], $payload['science_technology_poll_options']);
+            }
+            $payload['science_technology_comment_settings'] = array_values(array_intersect(
+                (array) $request->input('science_technology_comment_settings', []),
+                CommunityContentTaxonomy::scienceTechnologyCommentSettings()
+            ));
+            $payload['science_technology_allow_support'] = $request->boolean('science_technology_allow_support');
+            $payload['science_technology_allow_follow'] = $request->boolean('science_technology_allow_follow');
+            $payload['science_technology_allow_collaborate'] = $request->boolean('science_technology_allow_collaborate');
+        }
+
+        if (CommunityPost::usesAstroConsultancyFlow($contentType)) {
+            $payload['astro_consultancy_post_type'] = $request->input('astro_consultancy_post_type');
+            $payload['astro_consultancy_category'] = $request->input('astro_consultancy_category');
+            $payload['astro_consultancy_target_audience'] = array_values(array_intersect(
+                (array) $request->input('astro_consultancy_target_audience', []),
+                CommunityContentTaxonomy::astroConsultancyTargetAudiences()
+            ));
+            $payload['astro_consultancy_consultation_topics'] = array_values(array_intersect(
+                (array) $request->input('astro_consultancy_consultation_topics', []),
+                CommunityContentTaxonomy::astroConsultancyConsultationTopics()
+            ));
+            $payload['astro_consultancy_content_language'] = $request->input('astro_consultancy_content_language');
+            $payload['astro_consultancy_zodiac_sign'] = $request->input('astro_consultancy_zodiac_sign');
+            $payload['astro_consultancy_horoscope_period'] = $request->input('astro_consultancy_horoscope_period');
+            $payload['astro_consultancy_vastu_property_types'] = array_values(array_intersect(
+                (array) $request->input('astro_consultancy_vastu_property_types', []),
+                CommunityContentTaxonomy::astroConsultancyVastuPropertyTypes()
+            ));
+            $payload['astro_consultancy_vastu_areas'] = array_values(array_intersect(
+                (array) $request->input('astro_consultancy_vastu_areas', []),
+                CommunityContentTaxonomy::astroConsultancyVastuAreas()
+            ));
+            $payload['astro_consultancy_life_path_number'] = $request->input('astro_consultancy_life_path_number');
+            $payload['astro_consultancy_destiny_number'] = $request->input('astro_consultancy_destiny_number');
+            $payload['astro_consultancy_name_number'] = $request->input('astro_consultancy_name_number');
+            $payload['astro_consultancy_lucky_number'] = $request->input('astro_consultancy_lucky_number');
+            $payload['astro_consultancy_compatibility'] = $request->input('astro_consultancy_compatibility');
+            $payload['astro_consultancy_gemstone'] = $request->input('astro_consultancy_gemstone');
+            $payload['astro_consultancy_gemstone_planet'] = $request->input('astro_consultancy_gemstone_planet');
+            $payload['astro_consultancy_gemstone_benefits'] = $request->input('astro_consultancy_gemstone_benefits');
+            $payload['astro_consultancy_gemstone_precautions'] = $request->input('astro_consultancy_gemstone_precautions');
+            $payload['astro_consultancy_festival_name'] = $request->input('astro_consultancy_festival_name');
+            $payload['astro_consultancy_muhurat_type'] = $request->input('astro_consultancy_muhurat_type');
+            $payload['astro_consultancy_muhurat_date'] = $request->input('astro_consultancy_muhurat_date');
+            $payload['astro_consultancy_muhurat_time'] = $request->input('astro_consultancy_muhurat_time');
+            $payload['astro_consultancy_festival_significance'] = $request->input('astro_consultancy_festival_significance');
+            $payload['astro_consultancy_document_types'] = array_values(array_intersect(
+                (array) $request->input('astro_consultancy_document_types', []),
+                CommunityContentTaxonomy::astroConsultancyDocumentTypes()
+            ));
+            $payload['astro_consultancy_video_type'] = $request->input('astro_consultancy_video_type');
+            $payload['astro_consultancy_consultant_profile_url'] = $request->input('astro_consultancy_consultant_profile_url');
+            $payload['astro_consultancy_related_service_actions'] = array_values(array_intersect(
+                (array) $request->input('astro_consultancy_related_service_actions', []),
+                CommunityContentTaxonomy::astroConsultancyRelatedServiceActions()
+            ));
+            $payload['astro_consultancy_enable_consultant_linking'] = $request->boolean('astro_consultancy_enable_consultant_linking');
+            $payload['astro_consultancy_knowledge_library_topics'] = array_values(array_intersect(
+                (array) $request->input('astro_consultancy_knowledge_library_topics', []),
+                CommunityContentTaxonomy::astroConsultancyKnowledgeLibraryTopics()
+            ));
+            $payload['astro_consultancy_enable_live_qa'] = $request->boolean('astro_consultancy_enable_live_qa');
+            $payload['astro_consultancy_private_query_options'] = array_values(array_intersect(
+                (array) $request->input('astro_consultancy_private_query_options', []),
+                CommunityContentTaxonomy::astroConsultancyPrivateQueryOptions()
+            ));
+            $payload['astro_consultancy_ask_community'] = $request->input('astro_consultancy_ask_community');
+            $payload['astro_consultancy_allow_poll'] = $request->boolean('astro_consultancy_allow_poll');
+            $payload['astro_consultancy_poll_question'] = $request->input('astro_consultancy_poll_question');
+            $payload['astro_consultancy_poll_options'] = collect(preg_split('/\R/', (string) $request->input('astro_consultancy_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('astro_consultancy_allow_poll')) {
+                unset($payload['astro_consultancy_poll_question'], $payload['astro_consultancy_poll_options']);
+            }
+            $payload['astro_consultancy_comment_settings'] = array_values(array_intersect(
+                (array) $request->input('astro_consultancy_comment_settings', []),
+                CommunityContentTaxonomy::astroConsultancyCommentSettings()
+            ));
+            foreach (CommunityContentTaxonomy::astroConsultancyDeclarationStatements() as $field => $label) {
+                $payload[$field] = $request->boolean($field);
+            }
         }
 
         if (CommunityPost::usesYouthCornerFlow($contentType)) {
@@ -1621,6 +1886,211 @@ class CommunityPostFormFields
     public static function agricultureStructuredMetaKeys(): array
     {
         return array_keys(self::agricultureDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function environmentDetailMetaOrder(): array
+    {
+        return [
+            'environment_post_type' => 'Post type',
+            'environment_category' => 'Main category',
+            'location_country' => 'Country',
+            'location_state' => 'State',
+            'location_district' => 'District',
+            'location_city' => 'City/Town/Village',
+            'location_locality' => 'Locality / Area',
+            'environment_natural_feature_name' => 'Forest / River / Lake name',
+            'environment_map_pin_type' => 'Map pin type',
+            'environment_issue_type' => 'Issue type',
+            'environment_initiative_type' => 'Initiative type',
+            'environment_water_source' => 'Water source',
+            'environment_conservation_method' => 'Conservation method',
+            'environment_water_saved' => 'Water saved',
+            'environment_soil_conservation_methods' => 'Soil conservation methods',
+            'environment_tree_count' => 'Trees planted',
+            'environment_tree_species' => 'Tree species',
+            'environment_tree_plantation_date' => 'Plantation date',
+            'environment_tree_organization' => 'Organization',
+            'environment_tree_survival_status' => 'Survival status',
+            'environment_tree_maintenance_plan' => 'Maintenance plan',
+            'environment_waste_types' => 'Waste types',
+            'environment_biodiversity_types' => 'Biodiversity types',
+            'environment_climate_impacts' => 'Climate impacts',
+            'environment_video_type' => 'Video type',
+            'environment_enable_impact_calculator' => 'Impact calculator',
+            'environment_data_trees_planted' => 'Impact · trees planted',
+            'environment_data_area_covered' => 'Impact · area covered',
+            'environment_data_water_saved' => 'Impact · water saved',
+            'environment_data_waste_collected' => 'Impact · waste collected',
+            'environment_data_people_participated' => 'Impact · people participated',
+            'environment_data_carbon_reduction' => 'Impact · carbon reduction',
+            'environment_data_species_recorded' => 'Impact · species recorded',
+            'environment_participation_requests' => 'Participation requests',
+            'environment_event_campaign_name' => 'Event / campaign name',
+            'environment_event_organizer' => 'Event organizer',
+            'environment_event_venue' => 'Event venue',
+            'environment_event_date' => 'Event date',
+            'environment_event_time' => 'Event time',
+            'environment_event_registration_link' => 'Event registration link',
+            'environment_scheme_name' => 'Scheme name',
+            'environment_scheme_department' => 'Scheme department',
+            'environment_scheme_eligibility' => 'Scheme eligibility',
+            'environment_scheme_benefits' => 'Scheme benefits',
+            'environment_scheme_official_link' => 'Scheme official link',
+            'environment_ask_community' => 'Ask the community',
+            'environment_poll_question' => 'Poll question',
+            'environment_poll_options' => 'Poll options',
+            'environment_show_on_green_map' => 'Show on Green Map',
+            'environment_enable_green_leader' => 'Green Leader Program',
+            'environment_allow_join_campaign' => 'Allow join campaign',
+            'environment_allow_volunteer' => 'Allow volunteer',
+            'environment_allow_donate' => 'Allow donate',
+            'environment_allow_support_initiative' => 'Allow support initiative',
+            'environment_allow_follow_campaign' => 'Allow follow campaign',
+            'environment_allow_volunteer_registration' => 'Allow volunteer registration',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function environmentStructuredMetaKeys(): array
+    {
+        return array_keys(self::environmentDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function scienceTechnologyDetailMetaOrder(): array
+    {
+        return [
+            'science_technology_post_type' => 'Post type',
+            'science_technology_category' => 'Main category',
+            'science_technology_target_audience' => 'Target audience',
+            'science_technology_level' => 'Technology level',
+            'science_technology_scientific_fields' => 'Scientific field',
+            'science_technology_project_name' => 'Project name',
+            'science_technology_project_category' => 'Project category',
+            'science_technology_project_objective' => 'Project objective',
+            'science_technology_project_components' => 'Components used',
+            'science_technology_project_working_principle' => 'Working principle',
+            'science_technology_project_results' => 'Project results',
+            'science_technology_project_future_improvements' => 'Future improvements',
+            'science_technology_research_area' => 'Research area',
+            'science_technology_research_institution' => 'Institution',
+            'science_technology_research_duration' => 'Research duration',
+            'science_technology_research_abstract' => 'Abstract',
+            'science_technology_research_keywords' => 'Keywords',
+            'science_technology_research_methodology' => 'Methodology',
+            'science_technology_research_results' => 'Research results',
+            'science_technology_research_conclusion' => 'Conclusion',
+            'science_technology_research_references' => 'Research references',
+            'science_technology_experiment_objective' => 'Experiment objective',
+            'science_technology_experiment_materials' => 'Materials required',
+            'science_technology_experiment_procedure' => 'Procedure',
+            'science_technology_experiment_observations' => 'Observations',
+            'science_technology_experiment_results' => 'Experiment results',
+            'science_technology_experiment_safety' => 'Safety precautions',
+            'science_technology_innovation_name' => 'Innovation name',
+            'science_technology_patent_filed' => 'Patent filed',
+            'science_technology_problem_solved' => 'Problem solved',
+            'science_technology_novel_features' => 'Novel features',
+            'science_technology_innovation_technology' => 'Innovation technology',
+            'science_technology_innovation_benefits' => 'Benefits',
+            'science_technology_commercial_potential' => 'Commercial potential',
+            'science_technology_technologies_used' => 'Technologies used',
+            'science_technology_programming_languages' => 'Programming languages',
+            'science_technology_github_repo' => 'GitHub repository',
+            'science_technology_hardware_components' => 'Hardware components',
+            'science_technology_bom' => 'Bill of materials',
+            'science_technology_hardware_cost' => 'Hardware cost',
+            'science_technology_water_soil_topics' => 'Water & soil technology',
+            'science_technology_renewable_energy' => 'Renewable energy',
+            'science_technology_patent_number' => 'Patent number',
+            'science_technology_application_number' => 'Application number',
+            'science_technology_patent_status' => 'Patent status',
+            'science_technology_funding_types' => 'Funding',
+            'science_technology_application_areas' => 'Application areas',
+            'science_technology_reference_types' => 'Reference types',
+            'science_technology_references' => 'References',
+            'science_technology_license' => 'License',
+            'science_technology_video_type' => 'Video type',
+            'science_technology_enable_innovation_showcase' => 'Innovation showcase',
+            'science_technology_enable_expert_review' => 'Expert review panel',
+            'science_technology_open_innovation' => 'Open innovation marketplace',
+            'science_technology_challenge_themes' => 'Innovation challenges',
+            'science_technology_collaboration_requests' => 'Collaboration requests',
+            'science_technology_ask_community' => 'Ask the community',
+            'science_technology_poll_question' => 'Poll question',
+            'science_technology_poll_options' => 'Poll options',
+            'science_technology_comment_settings' => 'Comments settings',
+            'science_technology_allow_support' => 'Allow support',
+            'science_technology_allow_follow' => 'Allow follow',
+            'science_technology_allow_collaborate' => 'Allow collaboration',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function scienceTechnologyStructuredMetaKeys(): array
+    {
+        return array_keys(self::scienceTechnologyDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function astroConsultancyDetailMetaOrder(): array
+    {
+        return [
+            'astro_consultancy_post_type' => 'Post type',
+            'astro_consultancy_category' => 'Consultancy category',
+            'astro_consultancy_target_audience' => 'Target audience',
+            'astro_consultancy_consultation_topics' => 'Consultation topic',
+            'astro_consultancy_content_language' => 'Language',
+            'astro_consultancy_zodiac_sign' => 'Zodiac sign',
+            'astro_consultancy_horoscope_period' => 'Horoscope period',
+            'astro_consultancy_vastu_property_types' => 'Vastu property type',
+            'astro_consultancy_vastu_areas' => 'Vastu area',
+            'astro_consultancy_life_path_number' => 'Life path number',
+            'astro_consultancy_destiny_number' => 'Destiny number',
+            'astro_consultancy_name_number' => 'Name number',
+            'astro_consultancy_lucky_number' => 'Lucky number',
+            'astro_consultancy_compatibility' => 'Compatibility',
+            'astro_consultancy_gemstone' => 'Gemstone',
+            'astro_consultancy_gemstone_planet' => 'Planet',
+            'astro_consultancy_gemstone_benefits' => 'Traditional benefits',
+            'astro_consultancy_gemstone_precautions' => 'Precautions',
+            'astro_consultancy_festival_name' => 'Festival name',
+            'astro_consultancy_muhurat_type' => 'Muhurat type',
+            'astro_consultancy_muhurat_date' => 'Date',
+            'astro_consultancy_muhurat_time' => 'Time',
+            'astro_consultancy_festival_significance' => 'Traditional significance',
+            'astro_consultancy_document_types' => 'Document types',
+            'astro_consultancy_video_type' => 'Video type',
+            'astro_consultancy_consultant_profile_url' => 'Consultant profile',
+            'astro_consultancy_related_service_actions' => 'Related services',
+            'astro_consultancy_enable_consultant_linking' => 'Consultant directory linking',
+            'astro_consultancy_knowledge_library_topics' => 'Knowledge library topics',
+            'astro_consultancy_enable_live_qa' => 'Live Q&A sessions',
+            'astro_consultancy_private_query_options' => 'Private query options',
+            'astro_consultancy_ask_community' => 'Ask the community',
+            'astro_consultancy_poll_question' => 'Poll question',
+            'astro_consultancy_poll_options' => 'Poll options',
+            'astro_consultancy_comment_settings' => 'Comments settings',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function astroConsultancyStructuredMetaKeys(): array
+    {
+        return array_keys(self::astroConsultancyDetailMetaOrder());
     }
 
     /**

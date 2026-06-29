@@ -216,6 +216,8 @@
 
     @include('community.partials.community-issues-styles')
     @include('community.partials.agriculture-styles')
+    @include('community.partials.environment-styles')
+    @include('community.partials.astro-consultancy-styles')
 
     .report-community-panel__header {
         display: flex;
@@ -477,6 +479,46 @@
                     <span class="badge bg-danger community-post-banner-tag">Expert help requested</span>
                 @endif
             @endif
+            @if($post->isEnvironmentPost())
+                @if(filled($post->environmentPostTypeLabel()))
+                    <span class="badge bg-info text-white community-post-banner-tag">{{ $post->environmentPostTypeLabel() }}</span>
+                @endif
+                @if(filled($post->environmentCategoryLabel()))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->environmentCategoryLabel() }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'environment_natural_feature_name')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'environment_natural_feature_name') }}</span>
+                @endif
+                @if($post->showsOnGreenMap())
+                    <span class="badge bg-success community-post-banner-tag">Green Map</span>
+                @endif
+                @if($post->enablesEnvironmentGreenLeader())
+                    <span class="badge bg-warning text-dark community-post-banner-tag">Green Leader</span>
+                @endif
+                @if(filled(data_get($post->meta, 'environment_issue_type')))
+                    <span class="badge bg-danger community-post-banner-tag">{{ data_get($post->meta, 'environment_issue_type') }}</span>
+                @endif
+            @endif
+            @if($post->isAstroConsultancyPost())
+                @if(filled($post->astroConsultancyPostTypeLabel()))
+                    <span class="badge bg-primary text-white community-post-banner-tag">{{ $post->astroConsultancyPostTypeLabel() }}</span>
+                @endif
+                @if(filled($post->astroConsultancyCategoryLabel()))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->astroConsultancyCategoryLabel() }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'astro_consultancy_zodiac_sign')))
+                    <span class="badge bg-warning text-dark community-post-banner-tag">{{ data_get($post->meta, 'astro_consultancy_zodiac_sign') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'astro_consultancy_horoscope_period')))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'astro_consultancy_horoscope_period') }}</span>
+                @endif
+                @if($post->astroEnablesLiveQa())
+                    <span class="badge bg-info text-white community-post-banner-tag">Live Q&amp;A</span>
+                @endif
+                @if($post->astroEnablesConsultantLinking())
+                    <span class="badge bg-success community-post-banner-tag">Verified consultant</span>
+                @endif
+            @endif
             @foreach($post->adminPromotionLabels() as $promotionLabel)
                 <span class="badge bg-warning text-dark community-post-banner-tag">{{ $promotionLabel }}</span>
             @endforeach
@@ -707,6 +749,26 @@
                 @include('community.partials.agriculture-community-actions', ['post' => $post])
             @endif
 
+            @if($post->isEnvironmentPost())
+                @include('community.partials.environment-show-sections', ['post' => $post])
+                @include('community.partials.environment-community-actions', [
+                    'post' => $post,
+                    'environmentEngagement' => $environmentEngagement ?? null,
+                ])
+            @endif
+
+            @if($post->isScienceTechnologyPost())
+                @include('community.partials.science-technology-show-sections', ['post' => $post])
+            @endif
+
+            @if($post->isAstroConsultancyPost())
+                @include('community.partials.astro-consultancy-show-sections', ['post' => $post])
+                @include('community.partials.astro-consultancy-community-actions', [
+                    'post' => $post,
+                    'astroConsultancyEngagement' => $astroConsultancyEngagement ?? null,
+                ])
+            @endif
+
             @if($post->isLocalVoicesPost())
                 @include('community.partials.local-voices-show-sections', ['post' => $post])
                 @include('community.partials.local-voices-community-actions', [
@@ -740,7 +802,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost())
+            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost() && ! $post->isEnvironmentPost() && ! $post->isScienceTechnologyPost() && ! $post->isAstroConsultancyPost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -1103,7 +1165,7 @@
                 @php
                     $visibleMeta = $additionalWomensWorldMeta;
                 @endphp
-            @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
+            @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
                 <div class="about-box mt-4">
                     <h4>Location information</h4>
                     <div class="row g-3">
@@ -1232,6 +1294,10 @@
                         ? \App\Support\CommunityContentTaxonomy::communityIssueReactionOptions()
                         : ($post->isAgriculturePost()
                         ? \App\Support\CommunityContentTaxonomy::agricultureReactionOptions()
+                        : ($post->isEnvironmentPost()
+                        ? \App\Support\CommunityContentTaxonomy::environmentReactionOptions()
+                        : ($post->isAstroConsultancyPost()
+                        ? \App\Support\CommunityContentTaxonomy::astroConsultancyReactionOptions()
                         : ($post->isBusinessPost()
                         ? [
                             'Informative' => 'fa-solid fa-circle-info',
@@ -1253,7 +1319,7 @@
                             'Excellent' => 'fa-solid fa-star',
                             'Informative' => 'fa-solid fa-circle-info',
                             'Dislike' => 'fa-solid fa-thumbs-down',
-                        ])))))))));
+                        ])))))))))));
                 @endphp
                 @auth
                     <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
@@ -1374,6 +1440,12 @@
 @endif
 @if($post->isSeniorCitizensForumPost())
 @include('community.partials.senior-citizens-forum-styles')
+@endif
+@if($post->isEnvironmentPost())
+@include('community.partials.environment-styles')
+@endif
+@if($post->isAstroConsultancyPost())
+@include('community.partials.astro-consultancy-styles')
 @endif
 <style>
     .community-post-body {
