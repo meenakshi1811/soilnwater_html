@@ -82,15 +82,10 @@
     </button>
   </form>
 
-  <div class="header-nav header-nav-desktop">
-    <a class="btn-offer" href="{{ route('community.index') }}">Community</a>
-    <a class="btn-offer" href="{{ route('community.my-area.index') }}">My Area</a>
-    <a class="btn-offer" href="{{ route('community.community-issues.index') }}">Issues</a>
+  <div class="header-actions header-actions-desktop">
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
-  </div>
 
-  <div class="header-account header-account-desktop">
     @auth
       @php
         $user = auth()->user();
@@ -120,6 +115,10 @@
           My Account
         </button>
         <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerUserMenu">
+          <li><a class="dropdown-item" href="{{ route('community.index') }}">Community</a></li>
+          <li><a class="dropdown-item" href="{{ route('community.my-area.index') }}">My Area</a></li>
+          <li><a class="dropdown-item" href="{{ route('community.community-issues.index') }}">Issues</a></li>
+          <li><hr class="dropdown-divider"></li>
           <li><a class="dropdown-item" href="{{ $dashboardUrl }}">Dashboard</a></li>
           <li>
             <form method="POST" action="{{ route('logout') }}">
@@ -130,7 +129,24 @@
         </ul>
       </div>
     @else
-      <a class="btn-login" href="{{ route('login') }}">Login</a>
+      <div class="dropdown user-menu-dropdown">
+        <button
+          class="btn-login dropdown-toggle user-menu-toggle"
+          type="button"
+          id="headerGuestMenu"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          My Account
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerGuestMenu">
+          <li><a class="dropdown-item" href="{{ route('community.index') }}">Community</a></li>
+          <li><a class="dropdown-item" href="{{ route('community.my-area.index') }}">My Area</a></li>
+          <li><a class="dropdown-item" href="{{ route('community.community-issues.index') }}">Issues</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="{{ route('login') }}">Login</a></li>
+        </ul>
+      </div>
     @endauth
   </div>
 
