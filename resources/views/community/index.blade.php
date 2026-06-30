@@ -22,6 +22,42 @@
         : (($activeType && isset($types[$activeType]))
             ? 'SoilnWater community, '.$types[$activeType]['label'].', local stories, community hub'
             : 'SoilnWater community, community hub, local stories, reports, news, poetry');
+    $communityFilterPillColors = [
+        'all' => '#546e7a',
+        'articles' => '#1976d2',
+        'reports' => '#5c6bc0',
+        'my-area' => '#00897b',
+        'my-voice' => '#8e24aa',
+        'news' => '#e53935',
+        'stories' => '#fb8c00',
+        'poetry' => '#ec407a',
+        'biography' => '#795548',
+        'autobiography' => '#f4511e',
+        'childrens-corner' => '#29b6f6',
+        'awareness' => '#ffb300',
+        'business' => '#3949ab',
+        'student-corner' => '#00acc1',
+        'career' => '#455a64',
+        'health-wellness' => '#43a047',
+        'womens-world' => '#d81b60',
+        'senior-citizens-forum' => '#7cb342',
+        'youth-corner' => '#c0ca33',
+        'jobs-employment' => '#1565c0',
+        'opinions-views' => '#673ab7',
+        'travel-diaries' => '#039be5',
+        'culture-heritage' => '#ff9800',
+        'astro-consultancy' => '#7e57c2',
+        'religion-spirituality' => '#ff7043',
+        'agriculture' => '#558b2f',
+        'environment' => '#009688',
+        'science-technology' => '#3d5afe',
+        'local-voices' => '#ff5722',
+        'community-issues' => '#c62828',
+        'creative-corner' => '#e91e63',
+        'competitions' => '#f9a825',
+        'discussions' => '#607d8b',
+    ];
+    $communityFilterPillFallbackColor = '#78909c';
 @endphp
 
 @section('meta_title', $hubSeoTitle)
@@ -192,40 +228,44 @@
     }
 
     .community-filter-pill {
+        --pill-color: #78909c;
         backdrop-filter: blur(6px);
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: color-mix(in srgb, var(--pill-color) 58%, transparent);
+        border: 1px solid color-mix(in srgb, var(--pill-color) 72%, #ffffff 28%);
         border-radius: 999px;
-        color: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--pill-color) 24%, transparent);
+        color: #fff;
         font-size: 0.83rem;
         font-weight: 600;
         padding: 0.46rem 0.95rem;
         text-decoration: none;
+        text-shadow: 0 1px 1px rgba(15, 47, 85, 0.18);
         transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
     .community-filter-pill:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.42);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        background: color-mix(in srgb, var(--pill-color) 74%, transparent);
+        border-color: color-mix(in srgb, var(--pill-color) 82%, #ffffff 18%);
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--pill-color) 34%, transparent);
         color: #fff;
         transform: translateY(-1px);
     }
 
     .community-filter-pill.is-active {
-        background: #fff;
-        border-color: #fff;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-        color: #0f2f55;
+        background: color-mix(in srgb, var(--pill-color) 18%, #ffffff);
+        border-color: color-mix(in srgb, var(--pill-color) 42%, #ffffff);
+        box-shadow: 0 6px 18px color-mix(in srgb, var(--pill-color) 28%, transparent);
+        color: color-mix(in srgb, var(--pill-color) 82%, #0f2f55);
         font-weight: 700;
+        text-shadow: none;
         transform: none;
     }
 
     .community-filter-pill.is-active:hover {
-        background: #f4faf5;
-        border-color: #f4faf5;
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
-        color: #1b5e20;
+        background: color-mix(in srgb, var(--pill-color) 24%, #ffffff);
+        border-color: color-mix(in srgb, var(--pill-color) 48%, #ffffff);
+        box-shadow: 0 8px 22px color-mix(in srgb, var(--pill-color) 32%, transparent);
+        color: color-mix(in srgb, var(--pill-color) 88%, #0f2f55);
         transform: none;
     }
 
@@ -774,12 +814,14 @@
             <div class="community-filter-scroll">
                 <a
                     href="{{ route($sectionRoute, $sectionRouteParams) }}"
-                    class="community-filter-pill {{ $activeType ? '' : 'is-active' }}"
+                    class="community-filter-pill community-filter-pill--all {{ $activeType ? '' : 'is-active' }}"
+                    style="--pill-color: {{ $communityFilterPillColors['all'] }};"
                 >All sections</a>
                 @foreach ($types as $key => $type)
                     <a
                         href="{{ route($sectionRoute, array_merge($sectionRouteParams, ['type' => $key])) }}"
-                        class="community-filter-pill {{ $activeType === $key ? 'is-active' : '' }}"
+                        class="community-filter-pill community-filter-pill--{{ $key }} {{ $activeType === $key ? 'is-active' : '' }}"
+                        style="--pill-color: {{ $communityFilterPillColors[$key] ?? $communityFilterPillFallbackColor }};"
                     >{{ $type['label'] }}</a>
                 @endforeach
             </div>
