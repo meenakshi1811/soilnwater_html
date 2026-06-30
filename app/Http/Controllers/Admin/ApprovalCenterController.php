@@ -7,6 +7,7 @@ use App\Models\CommunityPost;
 use App\Models\Consultant;
 use App\Models\ConsultantService;
 use App\Models\Offer;
+use App\Models\PremiumPaymentSubmission;
 use App\Models\ServiceProvider;
 use App\Models\ServiceProviderService;
 use App\Models\UserAd;
@@ -104,7 +105,8 @@ class ApprovalCenterController extends Controller
             ->merge($this->pendingVendorPublicPages())
             ->merge($this->pendingConsultantPublicPages())
             ->merge($this->pendingServiceProviderPublicPages())
-            ->merge($this->pendingCommunityPosts());
+            ->merge($this->pendingCommunityPosts())
+            ->merge($this->pendingPremiumPayments());
     }
 
     private function pendingAds(): Collection
@@ -248,6 +250,26 @@ class ApprovalCenterController extends Controller
             ));
     }
 
+    private function pendingPremiumPayments(): Collection
+    {
+        return PremiumPaymentSubmission::query()
+            ->with('user:id,name,full_name')
+            ->where('status', PremiumPaymentSubmission::STATUS_PENDING)
+            ->get()
+            ->map(fn (PremiumPaymentSubmission $submission): array => $this->makeItem(
+                'premium_payment',
+                'premium-payments',
+                'Premium Payment',
+                'fa-crown',
+                $submission->id,
+                $submission->profileTypeLabel().' payment proof',
+                $submission->user?->full_name ?: ($submission->user?->name ?? 'Unknown user'),
+                $submission->profileDisplayName(),
+                $submission->submitted_at ?: $submission->created_at,
+                route('admin.premium-payments.show', $submission)
+            ));
+    }
+
     private function pendingCommunityPosts(): Collection
     {
         return CommunityPost::query()
@@ -317,6 +339,7 @@ class ApprovalCenterController extends Controller
             'service-provider-services' => 'Service services',
             'public-pages' => 'Public pages',
             'community-posts' => 'Community posts',
+            'premium-payments' => 'Premium payments',
         ];
     }
 
@@ -350,6 +373,9 @@ class ApprovalCenterController extends Controller
             'community_post' => $approved
                 ? app(CommunityPostApprovalController::class)->approve($request, CommunityPost::findOrFail($id))
                 : app(CommunityPostApprovalController::class)->decline($this->withDefaultReviewNote($request), CommunityPost::findOrFail($id)),
+            'premium_payment' => $approved
+                ? app(PremiumPaymentSubmissionController::class)->approve($request, PremiumPaymentSubmission::findOrFail($id))
+                : app(PremiumPaymentSubmissionController::class)->reject($this->withDefaultReviewNote($request), PremiumPaymentSubmission::findOrFail($id)),
         };
     }
 
@@ -395,6 +421,7 @@ class ApprovalCenterController extends Controller
             'consultant_public_page',
             'service_provider_public_page',
             'community_post',
+            'premium_payment',
         ], true);
     }
 }

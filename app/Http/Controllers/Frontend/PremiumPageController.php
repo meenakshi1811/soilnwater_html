@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\PremiumPaymentSubmission;
 use Illuminate\View\View;
 
 class PremiumPageController extends Controller
@@ -19,7 +20,68 @@ class PremiumPageController extends Controller
             'type' => $type,
             'config' => $config,
             'allTypes' => $this->allTypes(),
+            'paymentState' => $this->resolvePaymentState($type),
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function resolvePaymentState(string $type): array
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return [
+                'mode' => 'login_required',
+            ];
+        }
+
+        $profile = match ($type) {
+            'vendor' => $user->isVendor() ? $user->vendor : null,
+            'consultant' => $user->isConsultant() ? $user->consultant : null,
+            'service' => $user->isServiceProvider() ? $user->serviceProvider : null,
+            default => null,
+        };
+
+        if (! $profile) {
+            return [
+                'mode' => 'wrong_account',
+            ];
+        }
+
+        if ($profile->is_premium) {
+            return [
+                'mode' => 'already_premium',
+            ];
+        }
+
+        $pending = PremiumPaymentSubmission::query()
+            ->where('user_id', $user->id)
+            ->where('profile_type', $type)
+            ->where('profile_id', $profile->id)
+            ->where('status', PremiumPaymentSubmission::STATUS_PENDING)
+            ->latest('id')
+            ->first();
+
+        if ($pending) {
+            return [
+                'mode' => 'pending',
+                'submitted_at' => $pending->submitted_at,
+            ];
+        }
+
+        $rejected = PremiumPaymentSubmission::query()
+            ->where('user_id', $user->id)
+            ->where('profile_type', $type)
+            ->where('profile_id', $profile->id)
+            ->where('status', PremiumPaymentSubmission::STATUS_REJECTED)
+            ->latest('id')
+            ->first();
+
+        return [
+            'mode' => 'can_submit',
+            'last_rejected_note' => $rejected?->admin_note,
+        ];
     }
 
     /**

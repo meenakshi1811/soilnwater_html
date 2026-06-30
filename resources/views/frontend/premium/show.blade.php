@@ -182,7 +182,7 @@
 </div>
 
 <div class="modal fade premium-qr-modal" id="premiumQrModal" tabindex="-1" aria-labelledby="premiumQrModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="premiumQrModalLabel">
@@ -192,11 +192,171 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <img src="{{ asset('assets/images/dummy-premium-qr.svg') }}" alt="Dummy premium payment QR code">
-        <p>Scan this QR code to complete your premium upgrade. This is a placeholder for now — real payment integration will be added soon.</p>
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <div class="premium-payment-steps">
+          <div class="premium-payment-step">
+            <span class="premium-payment-step-no">1</span>
+            <span>Scan the QR code and complete payment</span>
+          </div>
+          <div class="premium-payment-step">
+            <span class="premium-payment-step-no">2</span>
+            <span>Upload your payment screenshot below</span>
+          </div>
+          <div class="premium-payment-step">
+            <span class="premium-payment-step-no">3</span>
+            <span>Admin will verify and activate premium</span>
+          </div>
+        </div>
+
+        <div class="text-center mb-3">
+          <img src="{{ asset('assets/images/dummy-premium-qr.svg') }}" alt="Premium payment QR code" class="premium-qr-preview">
+        </div>
+
+        @if(($paymentState['mode'] ?? '') === 'login_required')
+          <div class="alert alert-info mb-0">
+            Please <a href="{{ route('login') }}">login</a> with your {{ strtolower($config['singular']) }} account to confirm payment.
+          </div>
+        @elseif(($paymentState['mode'] ?? '') === 'wrong_account')
+          <div class="alert alert-warning mb-0">
+            This premium page is for {{ strtolower($config['label']) }}. Please login with the matching business account to submit payment proof.
+          </div>
+        @elseif(($paymentState['mode'] ?? '') === 'already_premium')
+          <div class="alert alert-success mb-0">
+            <i class="fa-solid fa-crown me-1"></i> Your profile is already premium. Thank you!
+          </div>
+        @elseif(($paymentState['mode'] ?? '') === 'pending')
+          <div class="alert alert-warning mb-0" id="premiumPaymentStatus">
+            <i class="fa-solid fa-clock me-1"></i>
+            Your payment proof is under review.
+            @if(!empty($paymentState['submitted_at']))
+              Submitted {{ $paymentState['submitted_at']->diffForHumans() }}.
+            @endif
+          </div>
+        @else
+          @if(!empty($paymentState['last_rejected_note']))
+            <div class="alert alert-danger">
+              Previous submission was declined: {{ $paymentState['last_rejected_note'] }}
+            </div>
+          @endif
+
+          <form id="premiumPaymentForm" enctype="multipart/form-data" novalidate>
+            <div class="mb-3">
+              <label for="premiumPaymentScreenshot" class="form-label fw-semibold">Payment screenshot <span class="text-danger">*</span></label>
+              <input type="file" class="form-control" id="premiumPaymentScreenshot" name="screenshot" accept="image/*" required>
+              <div class="form-text">Upload a clear screenshot of your payment (JPG, PNG, WEBP — max 5 MB).</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="premiumTransactionReference" class="form-label fw-semibold">Transaction reference (optional)</label>
+              <input type="text" class="form-control" id="premiumTransactionReference" name="transaction_reference" maxlength="120" placeholder="UPI ref / transaction ID">
+            </div>
+
+            <div class="mb-3">
+              <label for="premiumUserNote" class="form-label fw-semibold">Note (optional)</label>
+              <textarea class="form-control" id="premiumUserNote" name="user_note" rows="3" maxlength="1000" placeholder="Add any payment details for admin verification."></textarea>
+            </div>
+
+            <div id="premiumPaymentPreview" class="premium-payment-upload-preview d-none mb-3">
+              <img src="" alt="Payment screenshot preview" id="premiumPaymentPreviewImage">
+            </div>
+
+            <div id="premiumPaymentAlert" class="alert d-none" role="alert"></div>
+
+            <button type="submit" class="btn btn-primary w-100 premium-payment-submit-btn" id="premiumPaymentSubmitBtn">
+              <i class="fa-solid fa-paper-plane me-1"></i> Submit Payment Proof
+            </button>
+          </form>
+        @endif
       </div>
     </div>
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+  const form = document.getElementById('premiumPaymentForm');
+  if (!form) {
+    return;
+  }
+
+  const screenshotInput = document.getElementById('premiumPaymentScreenshot');
+  const previewWrap = document.getElementById('premiumPaymentPreview');
+  const previewImage = document.getElementById('premiumPaymentPreviewImage');
+  const alertBox = document.getElementById('premiumPaymentAlert');
+  const submitBtn = document.getElementById('premiumPaymentSubmitBtn');
+  const submitUrl = @json(route('frontend.premium.payment.submit', $type));
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+  screenshotInput?.addEventListener('change', function () {
+    const file = screenshotInput.files?.[0];
+    if (!file) {
+      previewWrap?.classList.add('d-none');
+      return;
+    }
+
+    previewImage.src = URL.createObjectURL(file);
+    previewWrap?.classList.remove('d-none');
+  });
+
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    if (!screenshotInput?.files?.length) {
+      showAlert('Please upload a payment screenshot.', 'danger');
+      return;
+    }
+
+    const formData = new FormData(form);
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Submitting...';
+    hideAlert();
+
+    try {
+      const response = await fetch(submitUrl, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrf,
+          'Accept': 'application/json',
+        },
+        body: formData,
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message || 'Unable to submit payment proof.');
+      }
+
+      showAlert(payload.message, 'success');
+      form.replaceWith(createPendingMessage(payload.message));
+    } catch (error) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Submit Payment Proof';
+      showAlert(error.message || 'Something went wrong. Please try again.', 'danger');
+    }
+  });
+
+  function showAlert(message, type) {
+    if (!alertBox) {
+      return;
+    }
+    alertBox.textContent = message;
+    alertBox.className = 'alert alert-' + type;
+    alertBox.classList.remove('d-none');
+  }
+
+  function hideAlert() {
+    alertBox?.classList.add('d-none');
+  }
+
+  function createPendingMessage(message) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'alert alert-warning mb-0';
+    wrapper.id = 'premiumPaymentStatus';
+    wrapper.innerHTML = '<i class="fa-solid fa-clock me-1"></i> ' + message;
+    return wrapper;
+  }
+})();
+</script>
+@endpush

@@ -538,6 +538,62 @@
   font-size: 14px;
 }
 
+.premium-qr-preview {
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  border: 1px solid #dce6f3;
+  padding: 10px;
+  background: #fff;
+}
+
+.premium-payment-steps {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.premium-payment-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fbff;
+  border: 1px solid #e2ebf6;
+  font-size: 14px;
+  color: #334155;
+}
+
+.premium-payment-step-no {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a237e, #283593);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.premium-payment-upload-preview img {
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid #dce6f3;
+  background: #fff;
+}
+
+.premium-payment-submit-btn {
+  border-radius: 12px;
+  font-weight: 700;
+  padding: 12px 16px;
+}
+
 .premium-listing-cta {
   border-radius: 16px;
   padding: 18px 20px;

@@ -21,6 +21,7 @@ use App\Http\Controllers\Frontend\OfferReportController;
 use App\Http\Controllers\Frontend\ProfileReportController;
 use App\Http\Controllers\Frontend\FrontendSearchController;
 use App\Http\Controllers\Frontend\PremiumPageController;
+use App\Http\Controllers\Frontend\PremiumPaymentController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ModuleAccessController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\User\UserAdController;
 use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\ApprovalCenterController;
+use App\Http\Controllers\Admin\PremiumPaymentSubmissionController;
 use App\Http\Controllers\Admin\CommunityPostApprovalController;
 use App\Http\Controllers\Admin\CommunityPostReportController;
 use App\Http\Controllers\Admin\AdSizeController;
@@ -87,6 +89,10 @@ Route::get('/search', [FrontendSearchController::class, 'index'])->name('fronten
 Route::get('/get-premium/{type}', [PremiumPageController::class, 'show'])
     ->whereIn('type', ['vendor', 'consultant', 'service'])
     ->name('frontend.premium.show');
+Route::post('/get-premium/{type}/payment-confirmation', [PremiumPaymentController::class, 'store'])
+    ->whereIn('type', ['vendor', 'consultant', 'service'])
+    ->middleware(['auth', 'verified'])
+    ->name('frontend.premium.payment.submit');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-policy');
 Route::view('/community-posting-policy', 'frontend.community-posting-policy')->name('frontend.community-posting-policy');
@@ -334,6 +340,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/data', [ApprovalCenterController::class, 'data'])->name('data');
             Route::post('/{type}/{id}/approve', [ApprovalCenterController::class, 'approve'])->name('approve');
             Route::post('/{type}/{id}/decline', [ApprovalCenterController::class, 'decline'])->name('decline');
+        });
+
+        Route::prefix('premium-payments')->name('premium-payments.')->group(function () {
+            Route::get('/{submission}', [PremiumPaymentSubmissionController::class, 'show'])->name('show');
+            Route::post('/{submission}/approve', [PremiumPaymentSubmissionController::class, 'approve'])->name('approve');
+            Route::post('/{submission}/reject', [PremiumPaymentSubmissionController::class, 'reject'])->name('reject');
         });
 
         Route::prefix('community-posts')->name('community-posts.')->group(function () {
