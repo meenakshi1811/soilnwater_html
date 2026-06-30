@@ -20,6 +20,7 @@ use App\Http\Controllers\Frontend\AdReportController;
 use App\Http\Controllers\Frontend\OfferReportController;
 use App\Http\Controllers\Frontend\ProfileReportController;
 use App\Http\Controllers\Frontend\FrontendSearchController;
+use App\Http\Controllers\Frontend\PremiumPageController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ModuleAccessController;
@@ -83,6 +84,9 @@ Route::post('/ads-market/{ad}/report', [AdReportController::class, 'store'])->mi
 Route::post('/consultant/{consultant:slug}/report', [ProfileReportController::class, 'consultant'])->middleware(['auth', 'verified'])->name('consultant.report');
 Route::post('/service/{service_provider:slug}/report', [ProfileReportController::class, 'serviceProvider'])->middleware(['auth', 'verified'])->name('service_provider.report');
 Route::get('/search', [FrontendSearchController::class, 'index'])->name('frontend.search');
+Route::get('/get-premium/{type}', [PremiumPageController::class, 'show'])
+    ->whereIn('type', ['vendor', 'consultant', 'service'])
+    ->name('frontend.premium.show');
 Route::view('/about-us', 'frontend.about')->name('frontend.about-us');
 Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-policy');
 Route::view('/community-posting-policy', 'frontend.community-posting-policy')->name('frontend.community-posting-policy');

@@ -1,8 +1,13 @@
 @extends('frontend.layouts.app')
 
+@push('styles')
+  <link rel="stylesheet" href="{{ asset('assets/css/premium-page.css') }}?v={{ now()->timestamp }}">
+@endpush
+
 @section('content')
 <div class="main-wrap">
   <div class="main-col">
+    @include('frontend.premium.partials.listing-cta', ['type' => 'service'])
     <section class="sec">
       <div class="sec-head">
         <div class="sec-title"><span class="icon"><i class="fa-solid fa-user-tie"></i></span> All Services</div>

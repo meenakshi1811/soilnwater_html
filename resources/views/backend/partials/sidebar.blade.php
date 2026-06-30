@@ -24,6 +24,7 @@
     $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
     $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
+    $premiumMenuActive = request()->routeIs('frontend.premium.show');
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -445,6 +446,14 @@
                 </a>
             </li>
         @elseif($isVendor && $vendorApproved)
+            @if(! auth()->user()->vendor?->is_premium)
+                <li>
+                    <a class="{{ $premiumMenuActive && request()->route('type') === 'vendor' ? 'active' : '' }}" href="{{ route('frontend.premium.show', 'vendor') }}">
+                        <i class="fa-solid fa-crown"></i>
+                        <span>Get Premium</span>
+                    </a>
+                </li>
+            @endif
             <li>
                 <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
                     <i class="fa-solid fa-tags"></i>
@@ -520,6 +529,14 @@
             </li>
 
         @elseif($isConsultant && $consultantApproved)
+            @if(! auth()->user()->consultant?->is_premium)
+                <li>
+                    <a class="{{ $premiumMenuActive && request()->route('type') === 'consultant' ? 'active' : '' }}" href="{{ route('frontend.premium.show', 'consultant') }}">
+                        <i class="fa-solid fa-crown"></i>
+                        <span>Get Premium</span>
+                    </a>
+                </li>
+            @endif
             <li>
                 <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
                     <i class="fa-solid fa-tags"></i>
@@ -595,6 +612,14 @@
             </li>
 
         @elseif($isServiceProvider && $serviceProviderApproved)
+            @if(! auth()->user()->serviceProvider?->is_premium)
+                <li>
+                    <a class="{{ $premiumMenuActive && request()->route('type') === 'service' ? 'active' : '' }}" href="{{ route('frontend.premium.show', 'service') }}">
+                        <i class="fa-solid fa-crown"></i>
+                        <span>Get Premium</span>
+                    </a>
+                </li>
+            @endif
             <li>
                 <a class="{{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
                     <i class="fa-solid fa-tags"></i>

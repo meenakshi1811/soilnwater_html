@@ -133,6 +133,13 @@
         </button>
         <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerUserMenu">
           <li><a class="dropdown-item" href="{{ $dashboardUrl }}">Dashboard</a></li>
+          @if($user->isVendor() && ! $user->vendor?->is_premium)
+            <li><a class="dropdown-item" href="{{ route('frontend.premium.show', 'vendor') }}"><i class="fa-solid fa-crown text-warning me-1"></i> Get Premium</a></li>
+          @elseif($user->isConsultant() && ! $user->consultant?->is_premium)
+            <li><a class="dropdown-item" href="{{ route('frontend.premium.show', 'consultant') }}"><i class="fa-solid fa-crown text-warning me-1"></i> Get Premium</a></li>
+          @elseif($user->isServiceProvider() && ! $user->serviceProvider?->is_premium)
+            <li><a class="dropdown-item" href="{{ route('frontend.premium.show', 'service') }}"><i class="fa-solid fa-crown text-warning me-1"></i> Get Premium</a></li>
+          @endif
           <li>
             <form method="POST" action="{{ route('logout') }}">
               @csrf
@@ -161,6 +168,13 @@
 
     @auth
       <a class="btn-login" href="{{ $dashboardUrl }}">My Account</a>
+      @if($user->isVendor() && ! $user->vendor?->is_premium)
+        <a class="btn-offer" href="{{ route('frontend.premium.show', 'vendor') }}">Get Premium</a>
+      @elseif($user->isConsultant() && ! $user->consultant?->is_premium)
+        <a class="btn-offer" href="{{ route('frontend.premium.show', 'consultant') }}">Get Premium</a>
+      @elseif($user->isServiceProvider() && ! $user->serviceProvider?->is_premium)
+        <a class="btn-offer" href="{{ route('frontend.premium.show', 'service') }}">Get Premium</a>
+      @endif
       <form method="POST" action="{{ route('logout') }}" class="header-mobile-logout">
         @csrf
         <button type="submit" class="btn-login">Logout</button>
