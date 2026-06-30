@@ -129,24 +129,7 @@
         </ul>
       </div>
     @else
-      <div class="dropdown user-menu-dropdown">
-        <button
-          class="btn-login dropdown-toggle user-menu-toggle"
-          type="button"
-          id="headerGuestMenu"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          My Account
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerGuestMenu">
-          <li><a class="dropdown-item" href="{{ route('community.index') }}">Community</a></li>
-          <li><a class="dropdown-item" href="{{ route('community.my-area.index') }}">My Area</a></li>
-          <li><a class="dropdown-item" href="{{ route('community.community-issues.index') }}">Issues</a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="{{ route('login') }}">Login</a></li>
-        </ul>
-      </div>
+      <a class="btn-login" href="{{ route('login') }}">Login</a>
     @endauth
   </div>
 
