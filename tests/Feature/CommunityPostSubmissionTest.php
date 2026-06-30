@@ -88,12 +88,16 @@ class CommunityPostSubmissionTest extends TestCase
             ->assertSee('PURPOSE OF MY VOICE');
     }
 
-    public function test_frontend_layout_shows_content_responsibility_disclaimer(): void
+    public function test_frontend_layout_shows_content_responsibility_disclaimer_on_community_pages(): void
     {
-        $this->get(route('frontend.index'))
+        $this->get(route('community.index'))
             ->assertOk()
             ->assertSee('Content Responsibility Disclaimer')
             ->assertSee('SoilnWater provides a technology platform');
+
+        $this->get(route('frontend.index'))
+            ->assertOk()
+            ->assertDontSee('Content Responsibility Disclaimer');
     }
 
     /**

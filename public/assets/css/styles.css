@@ -212,7 +212,11 @@
 .header-menu-close:hover {
   background: #f4f7fb;
 }
-.user-menu-toggle::after {
+  .user-menu-toggle::after {
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .header-community-toggle::after {
     margin-left: 8px;
     vertical-align: middle;
   }

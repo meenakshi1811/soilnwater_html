@@ -74,7 +74,9 @@
 
   @yield('content')
 
-  @include('frontend.partials.content-disclaimer')
+  @if(request()->routeIs('community.*', 'frontend.community-posting-policy'))
+    @include('frontend.partials.content-disclaimer')
+  @endif
 
   @include('frontend.partials.footer')
 

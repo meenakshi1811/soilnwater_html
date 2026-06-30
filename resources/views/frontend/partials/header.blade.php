@@ -83,6 +83,23 @@
   </form>
 
   <div class="header-actions header-actions-desktop">
+    <div class="dropdown header-community-dropdown">
+      <button
+        class="btn-offer dropdown-toggle header-community-toggle"
+        type="button"
+        id="headerCommunityMenu"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        Community
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerCommunityMenu">
+        <li><a class="dropdown-item" href="{{ route('community.index') }}">Community</a></li>
+        <li><a class="dropdown-item" href="{{ route('community.my-area.index') }}">My Area</a></li>
+        <li><a class="dropdown-item" href="{{ route('community.community-issues.index') }}">Issues</a></li>
+      </ul>
+    </div>
+
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
@@ -115,10 +132,6 @@
           My Account
         </button>
         <ul class="dropdown-menu dropdown-menu-end user-menu" aria-labelledby="headerUserMenu">
-          <li><a class="dropdown-item" href="{{ route('community.index') }}">Community</a></li>
-          <li><a class="dropdown-item" href="{{ route('community.my-area.index') }}">My Area</a></li>
-          <li><a class="dropdown-item" href="{{ route('community.community-issues.index') }}">Issues</a></li>
-          <li><hr class="dropdown-divider"></li>
           <li><a class="dropdown-item" href="{{ $dashboardUrl }}">Dashboard</a></li>
           <li>
             <form method="POST" action="{{ route('logout') }}">
