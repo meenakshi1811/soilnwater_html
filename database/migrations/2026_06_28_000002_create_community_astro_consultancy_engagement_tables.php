@@ -11,8 +11,8 @@ return new class extends Migration
         if (! Schema::hasTable('community_astro_consultancy_private_queries')) {
             Schema::create('community_astro_consultancy_private_queries', function (Blueprint $table): void {
                 $table->id();
-                $table->foreignId('community_post_id')->constrained()->cascadeOnDelete();
-                $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+                $table->foreignId('community_post_id');
+                $table->foreignId('user_id')->nullable();
                 $table->string('query_type', 80);
                 $table->string('name', 160);
                 $table->string('email', 160);
@@ -20,6 +20,14 @@ return new class extends Migration
                 $table->text('message');
                 $table->timestamps();
                 $table->index(['community_post_id', 'created_at'], 'cac_queries_post_created_idx');
+                $table->foreign('community_post_id', 'cac_queries_post_fk')
+                    ->references('id')
+                    ->on('community_posts')
+                    ->cascadeOnDelete();
+                $table->foreign('user_id', 'cac_queries_user_fk')
+                    ->references('id')
+                    ->on('users')
+                    ->nullOnDelete();
             });
         }
     }
