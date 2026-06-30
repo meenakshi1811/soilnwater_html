@@ -28,17 +28,21 @@
     padding: 10px 28px;
     display: flex;
     align-items: center;
-    gap: 18px;
-    flex-wrap: nowrap;
+    gap: 12px 16px;
+    flex-wrap: wrap;
     box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
     position: sticky; top: 0; z-index: 100;
+    width: 100%;
+    max-width: 100%;
   }
   .logo {
     display: flex; align-items: center;
     white-space: nowrap;
+    flex: 0 0 auto;
   }
   .logo-icon {
     width: 120px; height: auto; flex-shrink: 0;
+    display: block;
   }
   /* Location pill */
   .loc-wrap {
@@ -64,10 +68,10 @@
   .loc-text-input::placeholder { color: #8b8b8b; }
   /* Search */
   .search-wrap {
-    flex: 1 1 460px;
+    flex: 1 1 320px;
     position: relative;
-    min-width: 280px;
-    max-width: 620px;
+    min-width: 220px;
+    max-width: 560px;
     display: flex;
     align-items: center;
     gap: 0;
@@ -94,12 +98,15 @@
   }
   .search-module-select {
     width: 118px;
+    flex: 0 0 118px;
     font-weight: 600;
     border-right: 1px solid #dde3ec;
     color: #344054;
   }
   .search-query-input {
-    width: 100%;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
   }
   .search-query-input::placeholder {
     color: #8a94a6;
@@ -140,12 +147,28 @@
     font-family: inherit;
   }
   .btn-login:hover { background: #f5f5f5; }
+  .header-nav,
   .header-actions {
-    flex-shrink: 0;
+    flex: 0 1 auto;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .header-account {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
     margin-left: auto;
+  }
+  .header-nav .btn-offer,
+  .header-nav .btn-post,
+  .header-actions .btn-offer,
+  .header-actions .btn-post {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
   }
 
   
@@ -1907,24 +1930,62 @@
   }
 }
 
-@media (max-width: 1280px) {
-  .header {
-    padding: 10px 18px;
-    gap: 12px;
+@media (min-width: 1361px) and (max-width: 1480px) {
+  .header-nav .btn-offer,
+  .header-nav .btn-post {
+    padding: 8px 14px;
+    font-size: 12.5px;
   }
   .search-wrap {
-    order: 0;
-    min-width: 240px;
+    max-width: 440px;
+  }
+  .loc-wrap {
+    min-width: 220px;
+  }
+  .loc-text-input {
+    width: 140px;
+  }
+}
+
+@media (max-width: 1360px) {
+  .header {
+    padding: 10px 18px;
+    gap: 10px 12px;
+  }
+  .search-wrap {
+    min-width: 200px;
     max-width: none;
   }
   .search-module-select {
-    width: 112px;
+    width: 108px;
+    flex-basis: 108px;
+  }
+  .header-nav.header-nav-desktop {
+    flex: 1 1 100%;
+    order: 10;
+    justify-content: flex-start;
+    gap: 8px;
+    padding-top: 8px;
+    margin-top: 2px;
+    border-top: 1px solid #eef2f6;
+  }
+  .header-account.header-account-desktop {
+    margin-left: auto;
   }
   .main-wrap {
     padding: 20px 16px;
   }
   .trusted-wrap {
     padding: 0 16px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .sponsored-grid {
+    gap: 14px;
+  }
+  .sp-card img {
+    height: 240px;
   }
 }
 
@@ -1938,9 +1999,18 @@
   .loc-wrap {
     display: none;
   }
-  .search-wrap { flex: 1 1 auto; min-width: 180px; order: 0; }
-  .header-actions {
-    margin-left: auto !important;
+  .search-wrap {
+    flex: 1 1 auto;
+    min-width: 180px;
+    order: 0;
+  }
+  .header-account.header-account-desktop {
+    margin-left: auto;
+  }
+  .header-nav.header-nav-desktop .btn-offer,
+  .header-nav.header-nav-desktop .btn-post {
+    padding: 8px 14px;
+    font-size: 12.5px;
   }
   .hero {
     padding: 18px 16px 8px;
@@ -2023,16 +2093,19 @@
 @media (max-width: 760px) {
   .header { padding: 10px 12px; }
   .logo-icon { width: 98px; }
-  .header-actions {
-    width: auto;
+  .header-nav.header-nav-desktop,
+  .header-account.header-account-desktop {
+    display: none;
+  }
+  .header-menu-toggle {
+    display: inline-flex;
     margin-left: auto;
-    gap: 6px;
   }
   .btn-offer,
   .btn-post,
   .btn-login {
-    padding: 8px 9px;
-    font-size: 11.5px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
   .search-wrap { order: 0; min-width: 150px; }
   .search-query-input {
@@ -2183,12 +2256,9 @@
   .header.header-mobile-open .header-mobile-menu {
     margin-top: 0;
   }
-  .header-menu-toggle {
-    display: inline-flex;
-    margin-left: auto;
-  }
   .loc-wrap,
-  .header-actions-desktop {
+  .header-nav-desktop,
+  .header-account-desktop {
     display: none;
   }
   .search-wrap {

@@ -11,6 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ asset('assets/css/styles.css') }}?v={{ now()->timestamp }}">
     <link rel="stylesheet" href="{{ asset('assets/css/admin.css') }}?v={{ now()->timestamp }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/password-toggle.css') }}?v={{ now()->timestamp }}">
     <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -43,6 +44,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="{{ asset('assets/js/main.js') }}?v={{ now()->timestamp }}" defer></script>
+    <script src="{{ asset('assets/js/password-toggle.js') }}?v={{ now()->timestamp }}" defer></script>
     @stack('scripts')
 </body>
 </html>

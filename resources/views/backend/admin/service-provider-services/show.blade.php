@@ -14,13 +14,16 @@
       <span class="badge bg-{{ $service->status === 'approved' ? 'success' : ($service->status === 'rejected' ? 'danger' : 'warning') }}">{{ ucfirst($service->status ?? 'pending') }}</span>
     </div>
 
-    @if($service->image_path)
-      <div class="mb-4">
-        <img src="{{ asset($service->image_path) }}" alt="{{ $service->name }}" class="img-fluid rounded shadow-sm" style="max-height: 360px; object-fit: cover; width: 100%;">
-      </div>
-    @endif
-
     <dl class="row">
+      @if($service->image_path)
+        <dt class="col-sm-3">Service Image</dt>
+        <dd class="col-sm-9">
+          <a href="{{ asset($service->image_path) }}" target="_blank" rel="noopener noreferrer" class="d-inline-block">
+            <img src="{{ asset($service->image_path) }}" alt="{{ $service->name }}" class="rounded border" style="max-width: 160px; max-height: 120px; width: auto; height: auto; object-fit: contain;">
+          </a>
+        </dd>
+      @endif
+
       <dt class="col-sm-3">Service Account</dt>
       <dd class="col-sm-9">{{ $service->service_provider?->display_name ?: $service->service_provider?->company_name ?: '-' }}</dd>
 
