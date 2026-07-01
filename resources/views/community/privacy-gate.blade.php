@@ -24,7 +24,7 @@
                         ? $post->studentCornerVisibilityLabel()
                         : ($isYouthCorner
                             ? $post->youthCornerVisibilityLabel()
-                            : $post->childrensCornerPrivacyLabel())))));
+                            : $post->childrensCornerPrivacyLabel()))));
     $requiresPrivateLink = ($isWomensWorld && $post->requiresWomensWorldPrivateLink())
         || ($isSeniorCitizensForum && $post->requiresSeniorCitizensForumPrivateLink())
         || ($isStudentCorner && $post->requiresStudentCornerPrivateLink())

@@ -3530,16 +3530,24 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * @return array<string, string>
+     */
+    public static function businessReactionOptions(): array
+    {
+        return [
+            'Informative' => 'fa-solid fa-circle-info',
+            'Excellent' => 'fa-solid fa-star',
+            'Inspiring' => 'fa-solid fa-lightbulb',
+            'Helpful' => 'fa-solid fa-hand-holding-heart',
+        ];
+    }
+
+    /**
      * @return list<string>
      */
     public static function businessReactionLabels(): array
     {
-        return [
-            'Informative',
-            'Excellent',
-            'Inspiring',
-            'Helpful',
-        ];
+        return array_keys(self::businessReactionOptions());
     }
 
     /**

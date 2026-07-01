@@ -1280,46 +1280,7 @@
                 @php
                     $reactionCounts = $post->reactions->groupBy('reaction')->map->count();
                     $userReactions = auth()->check() ? $post->reactions->where('user_id', auth()->id())->pluck('reaction')->all() : [];
-                    $reactionOptions = $post->usesChildFriendlyReactions()
-                        ? \App\Support\CommunityContentTaxonomy::childrensCornerReactionOptions()
-                        : ($post->isWomensWorldPost()
-                        ? \App\Support\CommunityContentTaxonomy::womensWorldReactionOptions()
-                        : ($post->isSeniorCitizensForumPost()
-                        ? \App\Support\CommunityContentTaxonomy::seniorCitizensForumReactionOptions()
-                        : ($post->isStudentCornerPost()
-                        ? \App\Support\CommunityContentTaxonomy::studentCornerReactionOptions()
-                        : ($post->isYouthCornerPost()
-                        ? \App\Support\CommunityContentTaxonomy::youthCornerReactionOptions()
-                        : ($post->isCommunityIssuesPost()
-                        ? \App\Support\CommunityContentTaxonomy::communityIssueReactionOptions()
-                        : ($post->isAgriculturePost()
-                        ? \App\Support\CommunityContentTaxonomy::agricultureReactionOptions()
-                        : ($post->isEnvironmentPost()
-                        ? \App\Support\CommunityContentTaxonomy::environmentReactionOptions()
-                        : ($post->isAstroConsultancyPost()
-                        ? \App\Support\CommunityContentTaxonomy::astroConsultancyReactionOptions()
-                        : ($post->isBusinessPost()
-                        ? [
-                            'Informative' => 'fa-solid fa-circle-info',
-                            'Excellent' => 'fa-solid fa-star',
-                            'Inspiring' => 'fa-solid fa-lightbulb',
-                            'Helpful' => 'fa-solid fa-hand-holding-heart',
-                        ]
-                        : ($post->content_type === 'reports' && filled(data_get($post->meta, 'report_type'))
-                        ? [
-                            'Support' => 'fa-solid fa-hand-holding-heart',
-                            'Vote' => 'fa-solid fa-square-poll-vertical',
-                            'Helpful' => 'fa-solid fa-circle-info',
-                            'Informative' => 'fa-solid fa-lightbulb',
-                            'Dislike' => 'fa-solid fa-thumbs-down',
-                        ]
-                        : [
-                            'Helpful' => 'fa-solid fa-hand-holding-heart',
-                            'Inspiring' => 'fa-solid fa-lightbulb',
-                            'Excellent' => 'fa-solid fa-star',
-                            'Informative' => 'fa-solid fa-circle-info',
-                            'Dislike' => 'fa-solid fa-thumbs-down',
-                        ])))))))))));
+                    $reactionOptions = $post->reactionOptionsForDisplay();
                 @endphp
                 @auth
                     <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">

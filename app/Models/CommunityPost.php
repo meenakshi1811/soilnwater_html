@@ -2810,6 +2810,78 @@ class CommunityPost extends Model
         return ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function reactionOptionsForDisplay(): array
+    {
+        if ($this->usesChildFriendlyReactions()) {
+            return \App\Support\CommunityContentTaxonomy::childrensCornerReactionOptions();
+        }
+
+        if ($this->isBusinessPost()) {
+            return \App\Support\CommunityContentTaxonomy::businessReactionOptions();
+        }
+
+        if ($this->isWomensWorldPost()) {
+            return \App\Support\CommunityContentTaxonomy::womensWorldReactionOptions();
+        }
+
+        if ($this->isSeniorCitizensForumPost()) {
+            return \App\Support\CommunityContentTaxonomy::seniorCitizensForumReactionOptions();
+        }
+
+        if ($this->isStudentCornerPost()) {
+            return \App\Support\CommunityContentTaxonomy::studentCornerReactionOptions();
+        }
+
+        if ($this->isYouthCornerPost()) {
+            return \App\Support\CommunityContentTaxonomy::youthCornerReactionOptions();
+        }
+
+        if ($this->isLocalVoicesPost()) {
+            return \App\Support\CommunityContentTaxonomy::localVoiceReactionOptions();
+        }
+
+        if ($this->isMyAreaPost()) {
+            return \App\Support\CommunityContentTaxonomy::myAreaReactionOptions();
+        }
+
+        if ($this->isCommunityIssuesPost()) {
+            return \App\Support\CommunityContentTaxonomy::communityIssueReactionOptions();
+        }
+
+        if ($this->isAgriculturePost()) {
+            return \App\Support\CommunityContentTaxonomy::agricultureReactionOptions();
+        }
+
+        if ($this->isEnvironmentPost()) {
+            return \App\Support\CommunityContentTaxonomy::environmentReactionOptions();
+        }
+
+        if ($this->isAstroConsultancyPost()) {
+            return \App\Support\CommunityContentTaxonomy::astroConsultancyReactionOptions();
+        }
+
+        if ($this->content_type === 'reports' && filled(data_get($this->meta, 'report_type'))) {
+            return [
+                'Support' => 'fa-solid fa-hand-holding-heart',
+                'Vote' => 'fa-solid fa-square-poll-vertical',
+                'Helpful' => 'fa-solid fa-circle-info',
+                'Informative' => 'fa-solid fa-lightbulb',
+                'Dislike' => 'fa-solid fa-thumbs-down',
+            ];
+        }
+
+        return [
+            'Helpful' => 'fa-solid fa-hand-holding-heart',
+            'Inspiring' => 'fa-solid fa-lightbulb',
+            'Excellent' => 'fa-solid fa-star',
+            'Informative' => 'fa-solid fa-circle-info',
+            'Dislike' => 'fa-solid fa-thumbs-down',
+        ];
+    }
+
     public function awarenessCategoryLabel(): ?string
     {
         if (! $this->isAwarenessPost()) {
