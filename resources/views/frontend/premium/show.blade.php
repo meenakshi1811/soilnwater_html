@@ -174,8 +174,8 @@
         <li><i class="fa-solid fa-phone"></i> +91 7055533011</li>
       </ul>
       <div class="premium-footer-qr">
-        <img src="{{ asset('assets/images/dummy-premium-qr.svg') }}" alt="Scan to visit SoilnWater">
-        <small>SCAN TO VISIT SOILNWATER</small>
+        <img src="{{ asset('assets/images/premium-payment-qr.png') }}" alt="Yes Bank UPI payment QR code for ANNUVEDANT ELECTRONICS OPC PRIVATE LIMITED">
+        <small>SCAN TO PAY VIA UPI</small>
       </div>
     </div>
   </section>
@@ -208,7 +208,7 @@
         </div>
 
         <div class="text-center mb-3">
-          <img src="{{ asset('assets/images/dummy-premium-qr.svg') }}" alt="Premium payment QR code" class="premium-qr-preview">
+          <img src="{{ asset('assets/images/premium-payment-qr.png') }}" alt="Yes Bank UPI payment QR code" class="premium-qr-preview">
         </div>
 
         @if(($paymentState['mode'] ?? '') === 'login_required')

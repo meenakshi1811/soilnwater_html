@@ -490,11 +490,13 @@
 }
 
 .premium-footer-qr img {
-  width: 92px;
-  height: 92px;
+  width: auto;
+  max-width: 120px;
+  height: auto;
+  max-height: 180px;
   border-radius: 10px;
   background: #fff;
-  padding: 6px;
+  padding: 4px;
 }
 
 .premium-footer-qr small {
@@ -539,11 +541,13 @@
 }
 
 .premium-qr-preview {
-  width: 200px;
-  height: 200px;
+  width: auto;
+  max-width: 220px;
+  height: auto;
+  max-height: 320px;
   border-radius: 12px;
   border: 1px solid #dce6f3;
-  padding: 10px;
+  padding: 0;
   background: #fff;
 }
 

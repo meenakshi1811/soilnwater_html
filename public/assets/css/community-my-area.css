@@ -1,0 +1,172 @@
+.my-area-hub {
+    background: #eef2f6;
+}
+
+.my-area-hero {
+    background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 42%, #40916c 100%);
+    color: #fff;
+    overflow: hidden;
+    padding: clamp(48px, 6vw, 72px) 24px;
+    position: relative;
+}
+
+.my-area-hero::before {
+    background: radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.14), transparent 45%);
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+.my-area-hero__inner {
+    margin: 0 auto;
+    max-width: min(1720px, calc(100vw - 48px));
+    position: relative;
+    z-index: 1;
+}
+
+.my-area-hero__kicker {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+    opacity: 0.85;
+    text-transform: uppercase;
+}
+
+.my-area-hero__title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+}
+
+.my-area-hero__text {
+    margin-bottom: 1.5rem;
+    max-width: 760px;
+    opacity: 0.92;
+}
+
+.my-area-hero__actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.my-area-hero__stat {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.45rem 0.9rem;
+}
+
+.my-area-feature-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.my-area-feature {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+    padding: 0.85rem 1rem;
+}
+
+.my-area-shell {
+    margin: 0 auto;
+    max-width: min(1720px, calc(100vw - 48px));
+    padding: 2rem 24px 4rem;
+}
+
+.my-area-breadcrumb a {
+    color: #1b4332;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.my-area-breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.my-area-toolbar {
+    background: #fff;
+    border: 1px solid #dce6f3;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(18, 57, 95, 0.05);
+    margin-bottom: 1.25rem;
+    padding: 1.25rem;
+}
+
+.my-area-toolbar__head {
+    margin-bottom: 1rem;
+}
+
+.my-area-toolbar__title {
+    color: #12395f;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+}
+
+.my-area-toolbar__hint {
+    color: #6c849c;
+    font-size: 0.88rem;
+    margin: 0;
+}
+
+.my-area-filter-scroll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.my-area-filter-pill {
+    background: #f4f8fc;
+    border: 1px solid #d7e6f5;
+    border-radius: 999px;
+    color: #24527a;
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 0.45rem 0.95rem;
+    transition: all 0.15s ease;
+}
+
+.my-area-filter-pill:hover,
+.my-area-filter-pill.is-active {
+    background: #1b4332;
+    border-color: #1b4332;
+    color: #fff;
+}
+
+.my-area-filters {
+    border-top: 1px solid #edf2f8;
+    padding-top: 1rem;
+}
+
+.my-area-filters__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.my-area-posts-section {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 767.98px) {
+    .my-area-shell {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .my-area-toolbar {
+        border-radius: 12px;
+    }
+}
