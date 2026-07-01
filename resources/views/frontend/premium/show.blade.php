@@ -182,90 +182,122 @@
 </div>
 
 <div class="modal fade premium-qr-modal" id="premiumQrModal" tabindex="-1" aria-labelledby="premiumQrModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable premium-qr-modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="premiumQrModalLabel">
-          <i class="fa-solid fa-crown me-2 text-warning"></i>
-          Get Premium – {{ $config['singular'] }}
-        </h5>
+        <div>
+          <h5 class="modal-title" id="premiumQrModalLabel">
+            <i class="fa-solid fa-crown me-2 text-warning"></i>
+            Get Premium – {{ $config['singular'] }}
+          </h5>
+          <p class="premium-modal-subtitle mb-0">Complete payment and upload proof for admin verification</p>
+        </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <div class="premium-payment-steps">
-          <div class="premium-payment-step">
-            <span class="premium-payment-step-no">1</span>
-            <span>Scan the QR code and complete payment</span>
-          </div>
-          <div class="premium-payment-step">
-            <span class="premium-payment-step-no">2</span>
-            <span>Upload your payment screenshot below</span>
-          </div>
-          <div class="premium-payment-step">
-            <span class="premium-payment-step-no">3</span>
-            <span>Admin will verify and activate premium</span>
-          </div>
-        </div>
+      <div class="modal-body p-0">
+        <div class="premium-modal-layout">
+          <aside class="premium-modal-pay-panel">
+            <div class="premium-qr-card">
+              <div class="premium-qr-card-head">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>Scan &amp; Pay via UPI</span>
+              </div>
+              <div class="premium-qr-image-wrap">
+                <img
+                  src="{{ asset('assets/images/premium-payment-qr.png') }}"
+                  alt="Yes Bank UPI payment QR code for ANNUVEDANT ELECTRONICS OPC PRIVATE LIMITED"
+                  class="premium-qr-image"
+                >
+              </div>
+              <div class="premium-qr-details">
+                <p class="premium-qr-payee">ANNUVEDANT ELECTRONICS OPC PRIVATE LIMITED</p>
+                <p class="premium-qr-upi">
+                  <span>UPI ID</span>
+                  <strong>yespay.bizsbiz240983@yesbankltd</strong>
+                </p>
+                <p class="premium-qr-hint">Scan with PhonePe, Google Pay, Paytm, or any UPI app</p>
+              </div>
+            </div>
+          </aside>
 
-        <div class="text-center mb-3">
-          <img src="{{ asset('assets/images/premium-payment-qr.png') }}" alt="Yes Bank UPI payment QR code" class="premium-qr-preview">
-        </div>
+          <div class="premium-modal-form-panel">
+            <div class="premium-payment-steps">
+              <div class="premium-payment-step">
+                <span class="premium-payment-step-no">1</span>
+                <span>Scan QR &amp; pay</span>
+              </div>
+              <div class="premium-payment-step">
+                <span class="premium-payment-step-no">2</span>
+                <span>Upload screenshot</span>
+              </div>
+              <div class="premium-payment-step">
+                <span class="premium-payment-step-no">3</span>
+                <span>Admin verifies</span>
+              </div>
+            </div>
 
-        @if(($paymentState['mode'] ?? '') === 'login_required')
-          <div class="alert alert-info mb-0">
-            Please <a href="{{ route('login') }}">login</a> with your {{ strtolower($config['singular']) }} account to confirm payment.
-          </div>
-        @elseif(($paymentState['mode'] ?? '') === 'wrong_account')
-          <div class="alert alert-warning mb-0">
-            This premium page is for {{ strtolower($config['label']) }}. Please login with the matching business account to submit payment proof.
-          </div>
-        @elseif(($paymentState['mode'] ?? '') === 'already_premium')
-          <div class="alert alert-success mb-0">
-            <i class="fa-solid fa-crown me-1"></i> Your profile is already premium. Thank you!
-          </div>
-        @elseif(($paymentState['mode'] ?? '') === 'pending')
-          <div class="alert alert-warning mb-0" id="premiumPaymentStatus">
-            <i class="fa-solid fa-clock me-1"></i>
-            Your payment proof is under review.
-            @if(!empty($paymentState['submitted_at']))
-              Submitted {{ $paymentState['submitted_at']->diffForHumans() }}.
+            @if(($paymentState['mode'] ?? '') === 'login_required')
+              <div class="alert alert-info mb-0">
+                Please <a href="{{ route('login') }}">login</a> with your {{ strtolower($config['singular']) }} account to confirm payment.
+              </div>
+            @elseif(($paymentState['mode'] ?? '') === 'wrong_account')
+              <div class="alert alert-warning mb-0">
+                This premium page is for {{ strtolower($config['label']) }}. Please login with the matching business account to submit payment proof.
+              </div>
+            @elseif(($paymentState['mode'] ?? '') === 'already_premium')
+              <div class="alert alert-success mb-0">
+                <i class="fa-solid fa-crown me-1"></i> Your profile is already premium. Thank you!
+              </div>
+            @elseif(($paymentState['mode'] ?? '') === 'pending')
+              <div class="alert alert-warning mb-0" id="premiumPaymentStatus">
+                <i class="fa-solid fa-clock me-1"></i>
+                Your payment proof is under review.
+                @if(!empty($paymentState['submitted_at']))
+                  Submitted {{ $paymentState['submitted_at']->diffForHumans() }}.
+                @endif
+              </div>
+            @else
+              @if(!empty($paymentState['last_rejected_note']))
+                <div class="alert alert-danger">
+                  Previous submission was declined: {{ $paymentState['last_rejected_note'] }}
+                </div>
+              @endif
+
+              <form id="premiumPaymentForm" enctype="multipart/form-data" novalidate>
+                <div class="mb-3">
+                  <label for="premiumPaymentScreenshot" class="form-label fw-semibold">Payment screenshot <span class="text-danger">*</span></label>
+                  <label class="premium-file-drop" for="premiumPaymentScreenshot">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span class="premium-file-drop-title">Click to upload payment screenshot</span>
+                    <span class="premium-file-drop-hint">JPG, PNG, WEBP — max 5 MB</span>
+                    <span class="premium-file-drop-name d-none" id="premiumFileName"></span>
+                  </label>
+                  <input type="file" class="visually-hidden" id="premiumPaymentScreenshot" name="screenshot" accept="image/*" required>
+                </div>
+
+                <div id="premiumPaymentPreview" class="premium-payment-upload-preview d-none mb-3">
+                  <img src="" alt="Payment screenshot preview" id="premiumPaymentPreviewImage">
+                </div>
+
+                <div class="mb-3">
+                  <label for="premiumTransactionReference" class="form-label fw-semibold">Transaction reference <span class="text-muted fw-normal">(optional)</span></label>
+                  <input type="text" class="form-control" id="premiumTransactionReference" name="transaction_reference" maxlength="120" placeholder="UPI ref / transaction ID">
+                </div>
+
+                <div class="mb-3">
+                  <label for="premiumUserNote" class="form-label fw-semibold">Note <span class="text-muted fw-normal">(optional)</span></label>
+                  <textarea class="form-control" id="premiumUserNote" name="user_note" rows="2" maxlength="1000" placeholder="Any extra payment details for admin"></textarea>
+                </div>
+
+                <div id="premiumPaymentAlert" class="alert d-none" role="alert"></div>
+
+                <button type="submit" class="btn btn-primary w-100 premium-payment-submit-btn" id="premiumPaymentSubmitBtn">
+                  <i class="fa-solid fa-paper-plane me-1"></i> Submit Payment Proof
+                </button>
+              </form>
             @endif
           </div>
-        @else
-          @if(!empty($paymentState['last_rejected_note']))
-            <div class="alert alert-danger">
-              Previous submission was declined: {{ $paymentState['last_rejected_note'] }}
-            </div>
-          @endif
-
-          <form id="premiumPaymentForm" enctype="multipart/form-data" novalidate>
-            <div class="mb-3">
-              <label for="premiumPaymentScreenshot" class="form-label fw-semibold">Payment screenshot <span class="text-danger">*</span></label>
-              <input type="file" class="form-control" id="premiumPaymentScreenshot" name="screenshot" accept="image/*" required>
-              <div class="form-text">Upload a clear screenshot of your payment (JPG, PNG, WEBP — max 5 MB).</div>
-            </div>
-
-            <div class="mb-3">
-              <label for="premiumTransactionReference" class="form-label fw-semibold">Transaction reference (optional)</label>
-              <input type="text" class="form-control" id="premiumTransactionReference" name="transaction_reference" maxlength="120" placeholder="UPI ref / transaction ID">
-            </div>
-
-            <div class="mb-3">
-              <label for="premiumUserNote" class="form-label fw-semibold">Note (optional)</label>
-              <textarea class="form-control" id="premiumUserNote" name="user_note" rows="3" maxlength="1000" placeholder="Add any payment details for admin verification."></textarea>
-            </div>
-
-            <div id="premiumPaymentPreview" class="premium-payment-upload-preview d-none mb-3">
-              <img src="" alt="Payment screenshot preview" id="premiumPaymentPreviewImage">
-            </div>
-
-            <div id="premiumPaymentAlert" class="alert d-none" role="alert"></div>
-
-            <button type="submit" class="btn btn-primary w-100 premium-payment-submit-btn" id="premiumPaymentSubmitBtn">
-              <i class="fa-solid fa-paper-plane me-1"></i> Submit Payment Proof
-            </button>
-          </form>
-        @endif
+        </div>
       </div>
     </div>
   </div>
@@ -283,6 +315,7 @@
   const screenshotInput = document.getElementById('premiumPaymentScreenshot');
   const previewWrap = document.getElementById('premiumPaymentPreview');
   const previewImage = document.getElementById('premiumPaymentPreviewImage');
+  const fileNameLabel = document.getElementById('premiumFileName');
   const alertBox = document.getElementById('premiumPaymentAlert');
   const submitBtn = document.getElementById('premiumPaymentSubmitBtn');
   const submitUrl = @json(route('frontend.premium.payment.submit', $type));
@@ -292,11 +325,16 @@
     const file = screenshotInput.files?.[0];
     if (!file) {
       previewWrap?.classList.add('d-none');
+      fileNameLabel?.classList.add('d-none');
       return;
     }
 
     previewImage.src = URL.createObjectURL(file);
     previewWrap?.classList.remove('d-none');
+    if (fileNameLabel) {
+      fileNameLabel.textContent = file.name;
+      fileNameLabel.classList.remove('d-none');
+    }
   });
 
   form.addEventListener('submit', async function (event) {
