@@ -11,8 +11,8 @@
             <p class="text-muted mb-0">Verify the payment screenshot and activate premium for this profile.</p>
         </div>
         <div>
-            <a href="{{ route('admin.approvals.index', ['module' => 'premium-payments']) }}" class="btn btn-outline-secondary">
-                <i class="fa-solid fa-arrow-left me-1"></i> Back to Approval Center
+            <a href="{{ route('admin.premium-payments.index') }}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Payments
             </a>
         </div>
     </div>

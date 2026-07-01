@@ -343,6 +343,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         Route::prefix('premium-payments')->name('premium-payments.')->group(function () {
+            Route::get('/', [PremiumPaymentSubmissionController::class, 'index'])->name('index');
+            Route::get('/data', [PremiumPaymentSubmissionController::class, 'data'])->name('data');
             Route::get('/{submission}', [PremiumPaymentSubmissionController::class, 'show'])->name('show');
             Route::post('/{submission}/approve', [PremiumPaymentSubmissionController::class, 'approve'])->name('approve');
             Route::post('/{submission}/reject', [PremiumPaymentSubmissionController::class, 'reject'])->name('reject');
