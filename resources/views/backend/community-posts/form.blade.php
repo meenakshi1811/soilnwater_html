@@ -389,6 +389,9 @@
             <div class="col-12 type-extra religion-spirituality-flow" data-for="religion-spirituality">
                 @include('backend.community-posts.partials.religion-spirituality-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            <div class="col-12 type-extra creative-corner-flow" data-for="creative-corner">
+                @include('backend.community-posts.partials.creative-corner-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -1033,6 +1036,41 @@ The mountains keep.</pre>
                         </div>
                     </div>
                 </div>
+                <div id="creativeCornerContentGuide" class="story-content-guide mb-3 creative-corner-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Creative work details</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your Creative Corner post.</p>
+                            </div>
+                            <span class="badge bg-warning text-dark">Creative Corner</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">Describe your creative work using the editor below.</p>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertCreativeCornerStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::creativeCornerContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="autobiographyContentGuide" class="story-content-guide mb-3 life-story-flow-section" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -1196,6 +1234,9 @@ The mountains keep.</pre>
             </div>
             <div class="col-12 type-extra religion-spirituality-flow" data-for="religion-spirituality">
                 @include('backend.community-posts.partials.religion-spirituality-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra creative-corner-flow" data-for="creative-corner">
+                @include('backend.community-posts.partials.creative-corner-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
@@ -3414,6 +3455,78 @@ The mountains keep.</pre>
 
     document.getElementById('religionSpiritualityCategory')?.addEventListener('change', syncReligionSpiritualityCategory);
 
+    function syncCreativeCornerCategory() {
+        const categorySelect = document.getElementById('categorySelect');
+        const creativeCornerCategory = document.getElementById('creativeCornerCategory')?.value || '';
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'creative-corner') {
+            return;
+        }
+
+        categorySelect.value = creativeCornerCategory;
+        categorySelect.dataset.selected = creativeCornerCategory;
+    }
+
+    document.getElementById('creativeCornerCategory')?.addEventListener('change', syncCreativeCornerCategory);
+
+    function refreshCreativeCornerPollFields() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const enabled = document.getElementById('ccAllowPoll')?.checked;
+        const fields = document.getElementById('ccPollFields');
+        const pollQuestion = document.getElementById('ccPollQuestion');
+        const pollOptions = document.getElementById('ccPollOptions');
+
+        if (fields) {
+            fields.style.display = (contentType === 'creative-corner' && enabled) ? '' : 'none';
+        }
+
+        if (pollQuestion) {
+            pollQuestion.required = contentType === 'creative-corner' && Boolean(enabled);
+            pollQuestion.disabled = !(contentType === 'creative-corner' && enabled);
+        }
+
+        if (pollOptions) {
+            pollOptions.disabled = !(contentType === 'creative-corner' && enabled);
+        }
+    }
+
+    document.getElementById('ccAllowPoll')?.addEventListener('change', refreshCreativeCornerPollFields);
+
+    function refreshCreativeCornerConditionalSections() {
+        const contentType = document.getElementById('contentType')?.value || '';
+
+        if (contentType !== 'creative-corner') {
+            return;
+        }
+
+        const competitionEnabled = document.getElementById('ccSubmitToCompetition')?.checked;
+        const saleEnabled = document.getElementById('ccAvailableForSale')?.checked;
+        const aiUsed = document.querySelector('input[name="creative_corner_ai_used"]:checked')?.value || 'No';
+
+        const competitionFields = document.getElementById('ccCompetitionFields');
+        if (competitionFields) {
+            competitionFields.style.display = competitionEnabled ? '' : 'none';
+        }
+
+        const saleFields = document.getElementById('ccSaleFields');
+        if (saleFields) {
+            saleFields.style.display = saleEnabled ? '' : 'none';
+        }
+
+        const aiFields = document.getElementById('ccAiFields');
+        if (aiFields) {
+            aiFields.style.display = aiUsed !== 'No' ? '' : 'none';
+        }
+
+        refreshCreativeCornerPollFields();
+    }
+
+    document.getElementById('ccSubmitToCompetition')?.addEventListener('change', refreshCreativeCornerConditionalSections);
+    document.getElementById('ccAvailableForSale')?.addEventListener('change', refreshCreativeCornerConditionalSections);
+    document.querySelectorAll('input[name="creative_corner_ai_used"]').forEach((field) => {
+        field.addEventListener('change', refreshCreativeCornerConditionalSections);
+    });
+
     const RS_FESTIVAL_POST_TYPES = @json(\App\Support\CommunityContentTaxonomy::religionSpiritualityFestivalPostTypes());
     const RS_PILGRIMAGE_POST_TYPES = @json(\App\Support\CommunityContentTaxonomy::religionSpiritualityPilgrimagePostTypes());
     const RS_PLACE_OF_WORSHIP_POST_TYPES = @json(\App\Support\CommunityContentTaxonomy::religionSpiritualityPlaceOfWorshipPostTypes());
@@ -4192,6 +4305,38 @@ The mountains keep.</pre>
         }
     });
 
+    document.getElementById('insertCreativeCornerStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Concept</h2>',
+            '<p>Describe the core idea behind your creative work.</p>',
+            '<h2>Inspiration</h2>',
+            '<p>What inspired you to create this?</p>',
+            '<h2>Materials Used</h2>',
+            '<p>List materials, tools, or resources used.</p>',
+            '<h2>Creative Process</h2>',
+            '<p>Walk through how you created this work.</p>',
+            '<h2>Challenges</h2>',
+            '<p>Share obstacles you faced and how you overcame them.</p>',
+            '<h2>Final Outcome</h2>',
+            '<p>Describe the finished result.</p>',
+            '<h2>Future Improvements</h2>',
+            '<p>What would you do differently next time?</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
     document.getElementById('insertMyAreaStructureBtn')?.addEventListener('click', function () {
         const structureHtml = [
             '<h2>Issue / Topic</h2>',
@@ -4819,6 +4964,7 @@ The mountains keep.</pre>
         const isScienceTechnology = document.getElementById('contentType')?.value === 'science-technology';
         const isAstroConsultancy = document.getElementById('contentType')?.value === 'astro-consultancy';
         const isReligionSpirituality = document.getElementById('contentType')?.value === 'religion-spirituality';
+        const isCreativeCorner = document.getElementById('contentType')?.value === 'creative-corner';
         const publicParticipationWrap = document.getElementById('publicParticipationWrap');
         const newsParticipationWrap = document.getElementById('newsParticipationWrap');
         const allowSharingWrap = document.getElementById('allowSharingWrap');
@@ -4855,9 +5001,9 @@ The mountains keep.</pre>
         const environmentPollFields = document.getElementById('environmentPollFields');
 
         if (publicParticipationWrap) {
-            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality) ? 'none' : '';
+            publicParticipationWrap.style.display = (isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner) ? 'none' : '';
             publicParticipationWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality;
+                field.disabled = isNews || isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner;
             });
         }
 
@@ -4866,16 +5012,16 @@ The mountains keep.</pre>
         }
 
         if (allowSharingWrap) {
-            allowSharingWrap.style.display = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality) ? 'none' : '';
+            allowSharingWrap.style.display = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner) ? 'none' : '';
             allowSharingWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality;
+                field.disabled = isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner;
             });
         }
 
         if (allowPollWrap) {
-            allowPollWrap.style.display = (isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality) ? 'none' : '';
+            allowPollWrap.style.display = (isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner) ? 'none' : '';
             allowPollWrap.querySelectorAll('input, select, textarea').forEach((field) => {
-                field.disabled = isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality;
+                field.disabled = isAwareness || isBusiness || isNews || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner;
             });
         }
 
@@ -5119,6 +5265,7 @@ The mountains keep.</pre>
         const isScienceTechnology = document.getElementById('contentType')?.value === 'science-technology';
         const isAstroConsultancy = document.getElementById('contentType')?.value === 'astro-consultancy';
         const isReligionSpirituality = document.getElementById('contentType')?.value === 'religion-spirituality';
+        const isCreativeCorner = document.getElementById('contentType')?.value === 'creative-corner';
         const featuredWrap = document.getElementById('communityFeaturedImagesWrap');
         const featuredSlot = document.getElementById('communityNewsFeaturedImagesSlot');
         const storyFeaturedSlot = document.getElementById('communityStoryFeaturedImagesSlot');
@@ -5135,6 +5282,7 @@ The mountains keep.</pre>
         const scienceTechnologyFeaturedSlot = document.getElementById('communityScienceTechnologyFeaturedImagesSlot');
         const astroConsultancyFeaturedSlot = document.getElementById('communityAstroConsultancyFeaturedImagesSlot');
         const religionSpiritualityFeaturedSlot = document.getElementById('communityReligionSpiritualityFeaturedImagesSlot');
+        const creativeCornerFeaturedSlot = document.getElementById('communityCreativeCornerFeaturedImagesSlot');
         const businessTagsSlot = document.getElementById('communityBusinessTagsSlot');
         const womensWorldTagsSlot = document.getElementById('communityWomensWorldTagsSlot');
         const studentCornerTagsSlot = document.getElementById('communityStudentCornerTagsSlot');
@@ -5147,6 +5295,7 @@ The mountains keep.</pre>
         const scienceTechnologyTagsSlot = document.getElementById('communityScienceTechnologyTagsSlot');
         const astroConsultancyTagsSlot = document.getElementById('communityAstroConsultancyTagsSlot');
         const religionSpiritualityTagsSlot = document.getElementById('communityReligionSpiritualityTagsSlot');
+        const creativeCornerTagsSlot = document.getElementById('communityCreativeCornerTagsSlot');
         const tagsCol = document.getElementById('communityTagsWrap');
         const videoWrap = document.getElementById('communityVideoWrap');
         const videoSlot = document.getElementById('communityNewsVideoSlot');
@@ -5165,6 +5314,7 @@ The mountains keep.</pre>
         const scienceTechnologyVideoSlot = document.getElementById('communityScienceTechnologyVideoSlot');
         const astroConsultancyVideoSlot = document.getElementById('communityAstroConsultancyVideoSlot');
         const religionSpiritualityVideoSlot = document.getElementById('communityReligionSpiritualityVideoSlot');
+        const creativeCornerVideoSlot = document.getElementById('communityCreativeCornerVideoSlot');
         const videoAnchor = document.getElementById('communityVideoHiddenSlot');
         const videoFieldLabel = document.getElementById('videoFieldLabel');
         const featuredLabel = document.getElementById('featuredImagesLabel');
@@ -5180,7 +5330,7 @@ The mountains keep.</pre>
                 videoWrap.style.display = 'none';
             }
         } else {
-            window.communityFeaturedImages.max = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality) ? 1 : 5;
+            window.communityFeaturedImages.max = (isAwareness || isBusiness || isWomensWorld || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner) ? 1 : 5;
             if (videoWrap) {
                 videoWrap.style.display = '';
             }
@@ -5231,6 +5381,9 @@ The mountains keep.</pre>
                     featuredWrap.classList.remove('col-md-6');
                 } else if (isReligionSpirituality && religionSpiritualityFeaturedSlot) {
                     religionSpiritualityFeaturedSlot.appendChild(featuredWrap);
+                    featuredWrap.classList.remove('col-md-6');
+                } else if (isCreativeCorner && creativeCornerFeaturedSlot) {
+                    creativeCornerFeaturedSlot.appendChild(featuredWrap);
                     featuredWrap.classList.remove('col-md-6');
                 } else {
                     tagsCol.parentElement.insertBefore(featuredWrap, tagsCol);
@@ -5285,6 +5438,10 @@ The mountains keep.</pre>
                     tagsCol.style.display = '';
                 } else if (isReligionSpirituality && religionSpiritualityTagsSlot) {
                     religionSpiritualityTagsSlot.appendChild(tagsCol);
+                    tagsCol.classList.remove('col-md-6');
+                    tagsCol.style.display = '';
+                } else if (isCreativeCorner && creativeCornerTagsSlot) {
+                    creativeCornerTagsSlot.appendChild(tagsCol);
                     tagsCol.classList.remove('col-md-6');
                     tagsCol.style.display = '';
                 } else if (communityTagsDefaultParent) {
@@ -5345,10 +5502,13 @@ The mountains keep.</pre>
             } else if (isReligionSpirituality && religionSpiritualityVideoSlot) {
                 religionSpiritualityVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
+            } else if (isCreativeCorner && creativeCornerVideoSlot) {
+                creativeCornerVideoSlot.appendChild(videoWrap);
+                videoWrap.classList.remove('col-md-6');
             } else if (isSeniorCitizensForum && seniorCitizensForumVideoSlot) {
                 seniorCitizensForumVideoSlot.appendChild(videoWrap);
                 videoWrap.classList.remove('col-md-6');
-            } else if (! isAwareness && ! isBusiness && ! isWomensWorld && ! isStudentCorner && ! isYouthCorner && ! isLocalVoices && ! isMyArea && ! isCommunityIssues && ! isAgriculture && ! isEnvironment && ! isScienceTechnology && ! isAstroConsultancy && ! isReligionSpirituality && ! isSeniorCitizensForum) {
+            } else if (! isAwareness && ! isBusiness && ! isWomensWorld && ! isStudentCorner && ! isYouthCorner && ! isLocalVoices && ! isMyArea && ! isCommunityIssues && ! isAgriculture && ! isEnvironment && ! isScienceTechnology && ! isAstroConsultancy && ! isReligionSpirituality && ! isCreativeCorner && ! isSeniorCitizensForum) {
                 videoAnchor.insertAdjacentElement('afterend', videoWrap);
                 videoWrap.classList.add('col-md-6');
             } else {
@@ -5661,7 +5821,7 @@ The mountains keep.</pre>
         const selectedType = typeSelect.value;
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology', 'astro-consultancy', 'religion-spirituality'].includes(selectedType);
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology', 'astro-consultancy', 'religion-spirituality', 'creative-corner'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -5694,6 +5854,7 @@ The mountains keep.</pre>
         const isScienceTechnology = selectedType === 'science-technology';
         const isAstroConsultancy = selectedType === 'astro-consultancy';
         const isReligionSpirituality = selectedType === 'religion-spirituality';
+        const isCreativeCorner = selectedType === 'creative-corner';
 
         if (isChildrensCorner) {
             categoryWrap.style.display = 'none';
@@ -5770,6 +5931,11 @@ The mountains keep.</pre>
             categorySelect.required = false;
             categorySelect.disabled = true;
             syncReligionSpiritualityCategory();
+        } else if (isCreativeCorner) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncCreativeCornerCategory();
         } else {
             categoryWrap.style.display = '';
             categorySelect.disabled = false;
@@ -5836,11 +6002,11 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality) ? 'none' : '';
+            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner) ? 'none' : '';
         });
 
         document.querySelectorAll('.general-extra input, .general-extra textarea, .general-extra select').forEach((field) => {
-            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality;
+            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -5925,6 +6091,10 @@ The mountains keep.</pre>
 
         document.querySelectorAll('.religion-spirituality-required').forEach((field) => {
             field.required = isReligionSpirituality;
+        });
+
+        document.querySelectorAll('.creative-corner-required').forEach((field) => {
+            field.required = isCreativeCorner;
         });
 
         document.querySelectorAll('.report-required').forEach((field) => {
@@ -6033,6 +6203,14 @@ The mountains keep.</pre>
             }
 
             field.disabled = !isReligionSpirituality;
+        });
+
+        document.querySelectorAll('.creative-corner-flow input, .creative-corner-flow textarea, .creative-corner-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isCreativeCorner;
         });
 
         const childSchoolName = document.getElementById('childSchoolName');
@@ -6290,6 +6468,11 @@ The mountains keep.</pre>
             religionSpiritualityContentGuide.style.display = isReligionSpirituality ? '' : 'none';
         }
 
+        const creativeCornerContentGuide = document.getElementById('creativeCornerContentGuide');
+        if (creativeCornerContentGuide) {
+            creativeCornerContentGuide.style.display = isCreativeCorner ? '' : 'none';
+        }
+
         refreshStudentCornerProjectSection();
         refreshYouthCornerProjectSection();
         refreshLocalVoicesConditionalSections();
@@ -6302,6 +6485,7 @@ The mountains keep.</pre>
         refreshAstroConsultancyConditionalSections();
         refreshReligionSpiritualityConditionalSections();
         refreshReligionSpiritualityUniqueFeatures();
+        refreshCreativeCornerConditionalSections();
 
         refreshPoetryEditorMode(selectedType);
         refreshPoetrySeriesFields();
@@ -6310,7 +6494,7 @@ The mountains keep.</pre>
         mountStructuredLocationFields(selectedType);
         const commonLocationSlot = document.getElementById('communityCommonLocationSlot');
         if (commonLocationSlot) {
-            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality) ? 'none' : '';
+            commonLocationSlot.style.display = (isNews || isReport || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner) ? 'none' : '';
             commonLocationSlot.querySelectorAll('input, select, textarea').forEach((field) => {
                 if (isChildrensCorner) {
                     field.disabled = true;
@@ -9705,6 +9889,16 @@ The mountains keep.</pre>
             const rsDeclarationFields = document.querySelectorAll('.religion-spirituality-declaration-required');
             if (Array.from(rsDeclarationFields).some((field) => !field.checked)) {
                 notify('error', 'Please confirm all Religion & Spirituality declaration statements.');
+                return;
+            }
+        }
+
+        if (contentType === 'creative-corner') {
+            syncCreativeCornerCategory();
+
+            const ccDeclarationFields = document.querySelectorAll('.creative-corner-declaration-required');
+            if (Array.from(ccDeclarationFields).some((field) => !field.checked)) {
+                notify('error', 'Please confirm all Creative Corner declaration statements.');
                 return;
             }
         }

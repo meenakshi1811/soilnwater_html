@@ -62,11 +62,7 @@ class CommunityPostFormFields
             'science-technology' => self::section('Science & Technology details', 'Science & Technology', 'Use the dedicated Science & Technology flow fields on the form.', []),
             'local-voices' => self::section('Local voice details', 'Local Voices', 'Use the dedicated Local Voices flow fields on the form.', []),
             'community-issues' => self::section('Community issue details', 'Community Issues', 'Use the dedicated Community Issues flow fields on the form.', []),
-            'creative-corner' => self::section('Creative work details', 'Creative Corner', 'Portfolio-style metadata for creative submissions.', [
-                self::select('creative_medium', 'Creative medium', ['Photography', 'Sketch', 'Painting', 'Craft', 'DIY Project', 'Digital Art'], true),
-                self::text('tools_used', 'Tools / materials used', 160, false),
-                self::textarea('creative_inspiration', 'Inspiration / artist statement', 2000, false),
-            ]),
+            'creative-corner' => self::section('Creative work details', 'Creative Corner', 'Use the dedicated Creative Corner flow fields on the form.', []),
             'competitions' => self::section('Competition details', 'Competitions', 'Contest listing fields for deadlines, prizes, and rules.', [
                 self::date('competition_deadline', 'Submission deadline', true),
                 self::text('prize_details', 'Prizes / rewards', 255, true, 'Certificates, badges, cash, etc.'),
@@ -1187,6 +1183,111 @@ class CommunityPostFormFields
             }
         }
 
+        if (CommunityPost::usesCreativeCornerFlow($contentType)) {
+            $payload['creative_corner_post_type'] = $request->input('creative_corner_post_type');
+            $payload['creative_corner_category'] = $request->input('creative_corner_category');
+            $payload['creative_corner_target_audience'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_target_audience', []),
+                CommunityContentTaxonomy::creativeCornerTargetAudiences()
+            ));
+            $payload['creative_corner_creation_type'] = $request->input('creative_corner_creation_type');
+            $payload['creative_corner_mediums'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_mediums', []),
+                CommunityContentTaxonomy::creativeCornerMediums()
+            ));
+            $payload['creative_corner_software_tools'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_software_tools', []),
+                CommunityContentTaxonomy::creativeCornerSoftwareTools()
+            ));
+            $payload['creative_corner_materials'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_materials', []),
+                CommunityContentTaxonomy::creativeCornerMaterials()
+            ));
+            $payload['creative_corner_creation_date'] = $request->input('creative_corner_creation_date');
+            $payload['creative_corner_time_taken'] = $request->input('creative_corner_time_taken');
+            $payload['creative_corner_difficulty_level'] = $request->input('creative_corner_difficulty_level');
+            $payload['creative_corner_themes'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_themes', []),
+                CommunityContentTaxonomy::creativeCornerThemes()
+            ));
+            $payload['creative_corner_location_country'] = $request->input('creative_corner_location_country');
+            $payload['creative_corner_location_state'] = $request->input('creative_corner_location_state');
+            $payload['creative_corner_location_district'] = $request->input('creative_corner_location_district');
+            $payload['creative_corner_location_city'] = $request->input('creative_corner_location_city');
+            $payload['creative_corner_material_cost'] = $request->input('creative_corner_material_cost');
+            $payload['creative_corner_equipment_cost'] = $request->input('creative_corner_equipment_cost');
+            $payload['creative_corner_total_cost'] = $request->input('creative_corner_total_cost');
+            $payload['creative_corner_submit_to_competition'] = $request->boolean('creative_corner_submit_to_competition');
+            $payload['creative_corner_competition_categories'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_competition_categories', []),
+                CommunityContentTaxonomy::creativeCornerCompetitionCategories()
+            ));
+            if (! $request->boolean('creative_corner_submit_to_competition')) {
+                unset($payload['creative_corner_competition_categories']);
+            }
+            $payload['creative_corner_available_for_sale'] = $request->boolean('creative_corner_available_for_sale');
+            $payload['creative_corner_sale_price'] = $request->input('creative_corner_sale_price');
+            $payload['creative_corner_custom_orders_accepted'] = $request->boolean('creative_corner_custom_orders_accepted');
+            $payload['creative_corner_limited_edition'] = $request->boolean('creative_corner_limited_edition');
+            $payload['creative_corner_shipping_available'] = $request->boolean('creative_corner_shipping_available');
+            if (! $request->boolean('creative_corner_available_for_sale')) {
+                unset(
+                    $payload['creative_corner_sale_price'],
+                    $payload['creative_corner_custom_orders_accepted'],
+                    $payload['creative_corner_limited_edition'],
+                    $payload['creative_corner_shipping_available']
+                );
+            }
+            $payload['creative_corner_commission_options'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_commission_options', []),
+                CommunityContentTaxonomy::creativeCornerCommissionOptions()
+            ));
+            $payload['creative_corner_copyright'] = $request->input('creative_corner_copyright');
+            $payload['creative_corner_social_portfolio'] = $request->input('creative_corner_social_portfolio');
+            $payload['creative_corner_social_instagram'] = $request->input('creative_corner_social_instagram');
+            $payload['creative_corner_social_youtube'] = $request->input('creative_corner_social_youtube');
+            $payload['creative_corner_social_website'] = $request->input('creative_corner_social_website');
+            $payload['creative_corner_social_vendor_profile'] = $request->input('creative_corner_social_vendor_profile');
+            $payload['creative_corner_video_type'] = $request->input('creative_corner_video_type');
+            $payload['creative_corner_audio_type'] = $request->input('creative_corner_audio_type');
+            $payload['creative_corner_document_types'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_document_types', []),
+                CommunityContentTaxonomy::creativeCornerDocumentTypes()
+            ));
+            $payload['creative_corner_ask_community'] = $request->input('creative_corner_ask_community');
+            $payload['creative_corner_allow_poll'] = $request->boolean('creative_corner_allow_poll');
+            $payload['creative_corner_poll_question'] = $request->input('creative_corner_poll_question');
+            $payload['creative_corner_poll_options'] = collect(preg_split('/\R/', (string) $request->input('creative_corner_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('creative_corner_allow_poll')) {
+                unset($payload['creative_corner_poll_question'], $payload['creative_corner_poll_options']);
+            }
+            $payload['creative_corner_comment_settings'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_comment_settings', []),
+                CommunityContentTaxonomy::creativeCornerCommentSettings()
+            ));
+            $payload['creative_corner_creative_licenses'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_creative_licenses', []),
+                CommunityContentTaxonomy::creativeCornerCreativeLicenses()
+            ));
+            $payload['creative_corner_collaboration_roles'] = array_values(array_intersect(
+                (array) $request->input('creative_corner_collaboration_roles', []),
+                CommunityContentTaxonomy::creativeCornerCollaborationRoles()
+            ));
+            $payload['creative_corner_ai_used'] = $request->input('creative_corner_ai_used');
+            $payload['creative_corner_ai_tool'] = $request->input('creative_corner_ai_tool');
+            $payload['creative_corner_ai_description'] = $request->input('creative_corner_ai_description');
+            if ($request->input('creative_corner_ai_used') === 'No') {
+                unset($payload['creative_corner_ai_tool'], $payload['creative_corner_ai_description']);
+            }
+            foreach (CommunityContentTaxonomy::creativeCornerDeclarationStatements() as $field => $label) {
+                $payload[$field] = $request->boolean($field);
+            }
+        }
+
         if (CommunityPost::usesYouthCornerFlow($contentType)) {
             $payload['youth_corner_category'] = $request->input('youth_corner_category');
             $payload['youth_corner_content_type'] = $request->input('youth_corner_content_type');
@@ -2276,6 +2377,65 @@ class CommunityPostFormFields
     public static function religionSpiritualityStructuredMetaKeys(): array
     {
         return array_keys(self::religionSpiritualityDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function creativeCornerDetailMetaOrder(): array
+    {
+        return [
+            'creative_corner_post_type' => 'Post type',
+            'creative_corner_category' => 'Creative category',
+            'creative_corner_target_audience' => 'Target audience',
+            'creative_corner_creation_type' => 'Creation type',
+            'creative_corner_mediums' => 'Medium used',
+            'creative_corner_software_tools' => 'Software / tools used',
+            'creative_corner_materials' => 'Materials used',
+            'creative_corner_creation_date' => 'Creation date',
+            'creative_corner_time_taken' => 'Time taken',
+            'creative_corner_difficulty_level' => 'Difficulty level',
+            'creative_corner_themes' => 'Theme',
+            'creative_corner_location_country' => 'Country',
+            'creative_corner_location_state' => 'State',
+            'creative_corner_location_district' => 'District',
+            'creative_corner_location_city' => 'City',
+            'creative_corner_material_cost' => 'Material cost',
+            'creative_corner_equipment_cost' => 'Equipment cost',
+            'creative_corner_total_cost' => 'Total cost',
+            'creative_corner_submit_to_competition' => 'Submit to competition',
+            'creative_corner_competition_categories' => 'Competition categories',
+            'creative_corner_available_for_sale' => 'Available for sale',
+            'creative_corner_sale_price' => 'Price',
+            'creative_corner_custom_orders_accepted' => 'Custom orders accepted',
+            'creative_corner_limited_edition' => 'Limited edition',
+            'creative_corner_shipping_available' => 'Shipping available',
+            'creative_corner_commission_options' => 'Commission work',
+            'creative_corner_copyright' => 'Copyright',
+            'creative_corner_social_portfolio' => 'Portfolio',
+            'creative_corner_social_instagram' => 'Instagram',
+            'creative_corner_social_youtube' => 'YouTube',
+            'creative_corner_social_website' => 'Website',
+            'creative_corner_social_vendor_profile' => 'SoilnWater vendor profile',
+            'creative_corner_video_type' => 'Video type',
+            'creative_corner_audio_type' => 'Audio type',
+            'creative_corner_document_types' => 'Document types',
+            'creative_corner_ask_community' => 'Ask the community',
+            'creative_corner_comment_settings' => 'Comment settings',
+            'creative_corner_creative_licenses' => 'Creative license',
+            'creative_corner_collaboration_roles' => 'Collaboration requests',
+            'creative_corner_ai_used' => 'AI used',
+            'creative_corner_ai_tool' => 'AI tool used',
+            'creative_corner_ai_description' => 'AI assistance description',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerStructuredMetaKeys(): array
+    {
+        return array_keys(self::creativeCornerDetailMetaOrder());
     }
 
     /**

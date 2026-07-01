@@ -201,8 +201,8 @@ class CommunityContentTaxonomy
             ],
             'creative-corner' => [
                 'label' => 'Creative Corner',
-                'description' => 'A very high engagement section.',
-                'categories' => ['Photography', 'Sketches', 'Paintings', 'Crafts', 'DIY Projects'],
+                'description' => 'Share artwork, photography, crafts, music, design, and creative projects with the SoilnWater community.',
+                'categories' => self::creativeCornerMainCategories(),
             ],
             'competitions' => [
                 'label' => 'Competitions',
@@ -5828,6 +5828,429 @@ class CommunityContentTaxonomy
     public static function religionSpiritualityCommunityServiceCategories(): array
     {
         return ['Community Service'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerPostTypes(): array
+    {
+        return [
+            'Artwork',
+            'Photography',
+            'Digital Art',
+            'Painting',
+            'Sketch',
+            'Handicraft',
+            'Sculpture',
+            'Craft Work',
+            'DIY Project',
+            'Music Composition',
+            'Song Performance',
+            'Dance Performance',
+            'Short Film',
+            'Animation',
+            'Graphic Design',
+            'Logo Design',
+            'Fashion Design',
+            'Architecture Design',
+            'Interior Design',
+            'Creative Writing',
+            'Innovation',
+            'Mixed Media',
+            'Creative Tutorial',
+            'Question & Discussion',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerMainCategories(): array
+    {
+        return [
+            'Visual Arts',
+            'Photography',
+            'Painting',
+            'Sketching',
+            'Digital Art',
+            'Graphic Design',
+            'Animation',
+            'Film Making',
+            'Music',
+            'Dance',
+            'Craft & DIY',
+            'Architecture',
+            'Interior Design',
+            'Fashion Design',
+            'Jewellery Design',
+            'Calligraphy',
+            'Woodwork',
+            'Pottery',
+            'Paper Craft',
+            'Creative Technology',
+            'Innovation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerTargetAudiences(): array
+    {
+        return [
+            'General Public',
+            'Students',
+            'Artists',
+            'Photographers',
+            'Designers',
+            'Businesses',
+            'Schools',
+            'Architects',
+            'Content Creators',
+            'Art Collectors',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function creativeCornerContentStructure(): array
+    {
+        return [
+            'Concept' => 'Describe the core idea behind your creative work.',
+            'Inspiration' => 'What inspired you to create this?',
+            'Materials Used' => 'List materials, tools, or resources used.',
+            'Creative Process' => 'Walk through how you created this work.',
+            'Challenges' => 'Share obstacles you faced and how you overcame them.',
+            'Final Outcome' => 'Describe the finished result.',
+            'Future Improvements' => 'What would you do differently next time?',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerCreationTypes(): array
+    {
+        return [
+            'Original Work',
+            'Inspired Work',
+            'Educational Project',
+            'Commissioned Work',
+            'Competition Entry',
+            'Collaborative Project',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerMediums(): array
+    {
+        return [
+            'Watercolor',
+            'Oil',
+            'Acrylic',
+            'Charcoal',
+            'Digital Tablet',
+            'Photography',
+            'Wood',
+            'Clay',
+            'Metal',
+            'Fabric',
+            'Recycled Material',
+            '3D Printing',
+            'Mixed Media',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerSoftwareTools(): array
+    {
+        return [
+            'Photoshop',
+            'Illustrator',
+            'Canva',
+            'Blender',
+            'AutoCAD',
+            'SketchUp',
+            'Premiere Pro',
+            'DaVinci Resolve',
+            'Lightroom',
+            'Procreate',
+            'Figma',
+            'Laravel',
+            'Arduino',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerMaterials(): array
+    {
+        return [
+            'Canvas',
+            'Paper',
+            'Wood',
+            'Metal',
+            'Plastic',
+            'Clay',
+            'Fabric',
+            'Bamboo',
+            'Glass',
+            'Stone',
+            'Natural Materials',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerGalleryExamples(): array
+    {
+        return [
+            'Work in Progress',
+            'Final Work',
+            'Different Angles',
+            'Behind the Scenes',
+            'Making Process',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerVideoExamples(): array
+    {
+        return [
+            'Creative Process',
+            'Time-lapse',
+            'Performance',
+            'Tutorial',
+            'Behind the Scenes',
+            'Workshop',
+            'Presentation',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerAudioExamples(): array
+    {
+        return [
+            'Songs',
+            'Instrumental Music',
+            'Voice Performance',
+            'Background Music',
+            'Sound Design',
+            'Recycled Materials',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerDocumentTypes(): array
+    {
+        return [
+            'PDF',
+            'PPT',
+            'DOC',
+            'Design Files',
+            'CAD Drawings',
+            'Project Report',
+            'Creative Portfolio',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerDifficultyLevels(): array
+    {
+        return [
+            'Beginner',
+            'Intermediate',
+            'Advanced',
+            'Professional',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerThemes(): array
+    {
+        return [
+            'Nature',
+            'Water',
+            'Environment',
+            'Culture',
+            'Wildlife',
+            'Technology',
+            'Architecture',
+            'Agriculture',
+            'Heritage',
+            'Travel',
+            'People',
+            'Spirituality',
+            'Innovation',
+            'Sustainability',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerCompetitionCategories(): array
+    {
+        return [
+            'Photography',
+            'Painting',
+            'Music',
+            'Dance',
+            'Film',
+            'Innovation',
+            'Craft',
+            'Digital Art',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerCommissionOptions(): array
+    {
+        return [
+            'Available for Custom Orders',
+            'Available for Freelance Projects',
+            'Available for Workshops',
+            'Available for Collaboration',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerCopyrightOptions(): array
+    {
+        return [
+            'Original Work',
+            'Creative Commons',
+            'Commercial License',
+            'Personal Use Only',
+            'All Rights Reserved',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerCreativeLicenses(): array
+    {
+        return [
+            'Free to Share',
+            'Commercial Use Allowed',
+            'No Derivatives',
+            'Educational Use Only',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerCollaborationRoles(): array
+    {
+        return [
+            'Photographer',
+            'Designer',
+            'Video Editor',
+            'Musician',
+            'Actor',
+            'Animator',
+            'Artist',
+            'Writer',
+            'Architect',
+            'Craft Expert',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerCommentSettings(): array
+    {
+        return [
+            'Comments',
+            'Suggestions',
+            'Appreciation',
+            'Collaboration Requests',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function creativeCornerReactionOptions(): array
+    {
+        return [
+            'Beautiful' => 'fa-solid fa-palette',
+            'Excellent' => 'fa-solid fa-star',
+            'Inspiring' => 'fa-solid fa-lightbulb',
+            'Creative' => 'fa-solid fa-wand-magic-sparkles',
+            'Loved It' => 'fa-solid fa-heart',
+            'Outstanding' => 'fa-solid fa-trophy',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerReactionLabels(): array
+    {
+        return array_keys(self::creativeCornerReactionOptions());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerTagExamples(): array
+    {
+        return ['Photography', 'Nature', 'Painting', 'Art', 'DIY', 'Innovation', 'Water', 'Creative'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerDefaultPollOptions(): array
+    {
+        return ['Version A', 'Version B', 'Version C'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function creativeCornerAiUsageOptions(): array
+    {
+        return ['No', 'Partially Assisted', 'Fully AI Generated'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function creativeCornerDeclarationStatements(): array
+    {
+        return [
+            'creative_corner_declaration_original' => 'This creative work is my original creation or I have the legal right to publish it.',
+            'creative_corner_declaration_no_infringement' => 'The uploaded images, videos, music, and documents do not infringe any copyright, trademark, or intellectual property rights.',
+            'creative_corner_declaration_ai_disclosed' => 'If AI-assisted tools were used, I have disclosed this where applicable.',
+            'creative_corner_declaration_guidelines' => 'I understand that SoilnWater may remove content that violates copyright, community guidelines, or applicable laws.',
+        ];
     }
 
     public static function slugFor(string $label): string

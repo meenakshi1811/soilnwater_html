@@ -1082,6 +1082,11 @@ class CommunityPost extends Model
                 && $this->religionSpiritualityPollOptionsForDisplay() !== [];
         }
 
+        if ($this->isCreativeCornerPost()) {
+            return filled(data_get($this->meta, 'creative_corner_poll_question'))
+                && $this->creativeCornerPollOptionsForDisplay() !== [];
+        }
+
         return filled($this->poll_subject);
     }
 
@@ -1137,6 +1142,10 @@ class CommunityPost extends Model
 
         if ($this->isReligionSpiritualityPost()) {
             return (string) data_get($this->meta, 'religion_spirituality_poll_question');
+        }
+
+        if ($this->isCreativeCornerPost()) {
+            return (string) data_get($this->meta, 'creative_corner_poll_question');
         }
 
         return 'Do you support '.$this->poll_subject.'?';
@@ -1359,6 +1368,10 @@ class CommunityPost extends Model
             return $this->religionSpiritualityPollOptionsForDisplay();
         }
 
+        if ($this->isCreativeCornerPost()) {
+            return $this->creativeCornerPollOptionsForDisplay();
+        }
+
         return self::POLL_OPTIONS;
     }
 
@@ -1550,6 +1563,11 @@ class CommunityPost extends Model
         return $contentType === 'religion-spirituality';
     }
 
+    public static function usesCreativeCornerFlow(?string $contentType): bool
+    {
+        return $contentType === 'creative-corner';
+    }
+
     public function isChildrensCornerPost(): bool
     {
         return self::usesChildrensCornerFlow($this->content_type);
@@ -1623,6 +1641,11 @@ class CommunityPost extends Model
     public function isReligionSpiritualityPost(): bool
     {
         return self::usesReligionSpiritualityFlow($this->content_type);
+    }
+
+    public function isCreativeCornerPost(): bool
+    {
+        return self::usesCreativeCornerFlow($this->content_type);
     }
 
     public function astroConsultancyPostTypeLabel(): ?string
@@ -1853,6 +1876,51 @@ class CommunityPost extends Model
         )));
     }
 
+    public function creativeCornerPostTypeLabel(): ?string
+    {
+        if (! $this->isCreativeCornerPost()) {
+            return null;
+        }
+
+        $postType = (string) data_get($this->meta, 'creative_corner_post_type');
+
+        return filled($postType) ? $postType : null;
+    }
+
+    public function creativeCornerCategoryLabel(): ?string
+    {
+        if (! $this->isCreativeCornerPost()) {
+            return null;
+        }
+
+        return data_get($this->meta, 'creative_corner_category') ?: $this->category;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function creativeCornerTargetAudiences(): array
+    {
+        if (! $this->isCreativeCornerPost()) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $value): string => trim((string) $value),
+            (array) data_get($this->meta, 'creative_corner_target_audience', [])
+        )));
+    }
+
+    public function creativeCornerHasCommerceFeatures(): bool
+    {
+        if (! $this->isCreativeCornerPost()) {
+            return false;
+        }
+
+        return (bool) data_get($this->meta, 'creative_corner_available_for_sale')
+            || count((array) data_get($this->meta, 'creative_corner_commission_options', [])) > 0;
+    }
+
     /**
      * @return list<string>
      */
@@ -1928,6 +1996,26 @@ class CommunityPost extends Model
 
         if ($options->isEmpty()) {
             $options = collect(CommunityContentTaxonomy::religionSpiritualityDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function creativeCornerPollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'creative_corner_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::creativeCornerDefaultPollOptions());
         }
 
         return $options
@@ -2951,6 +3039,10 @@ class CommunityPost extends Model
             return \App\Support\CommunityContentTaxonomy::religionSpiritualityReactionLabels();
         }
 
+        if ($this->isCreativeCornerPost()) {
+            return \App\Support\CommunityContentTaxonomy::creativeCornerReactionLabels();
+        }
+
         return ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'];
     }
 
@@ -3009,6 +3101,10 @@ class CommunityPost extends Model
 
         if ($this->isReligionSpiritualityPost()) {
             return \App\Support\CommunityContentTaxonomy::religionSpiritualityReactionOptions();
+        }
+
+        if ($this->isCreativeCornerPost()) {
+            return \App\Support\CommunityContentTaxonomy::creativeCornerReactionOptions();
         }
 
         if ($this->content_type === 'reports' && filled(data_get($this->meta, 'report_type'))) {

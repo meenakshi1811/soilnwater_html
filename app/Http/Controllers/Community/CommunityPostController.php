@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\CommunityCommunityIssuesEngagementNotificationService;
 use App\Services\CommunityAgricultureEngagementNotificationService;
 use App\Services\CommunityAstroConsultancyEngagementNotificationService;
+use App\Services\CommunityCreativeCornerEngagementNotificationService;
 use App\Services\CommunityReligionSpiritualityEngagementNotificationService;
 use App\Services\CommunityEnvironmentEngagementNotificationService;
 use App\Services\CommunityPostParticipationNotificationService;
@@ -109,6 +110,10 @@ class CommunityPostController extends Controller
     private const MAX_RELIGION_SPIRITUALITY_DOCUMENTS = 8;
 
     private const MAX_RELIGION_SPIRITUALITY_GALLERY = 10;
+
+    private const MAX_CREATIVE_CORNER_DOCUMENTS = 8;
+
+    private const MAX_CREATIVE_CORNER_GALLERY = 12;
 
     private const MAX_BUSINESS_GALLERY = 10;
 
@@ -432,6 +437,14 @@ class CommunityPostController extends Controller
             );
         }
 
+        if ($post->isCreativeCornerPost() && $active) {
+            CommunityCreativeCornerEngagementNotificationService::notifyAuthorOfReaction(
+                $post,
+                $request->user(),
+                $data['reaction']
+            );
+        }
+
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
@@ -599,6 +612,15 @@ class CommunityPostController extends Controller
 
         if ($post->isReligionSpiritualityPost()) {
             CommunityReligionSpiritualityEngagementNotificationService::notifyAuthorOfCommunityResponse(
+                $post,
+                $request->user(),
+                $data['body'],
+                filled($data['parent_id'] ?? null)
+            );
+        }
+
+        if ($post->isCreativeCornerPost()) {
+            CommunityCreativeCornerEngagementNotificationService::notifyAuthorOfCommunityResponse(
                 $post,
                 $request->user(),
                 $data['body'],
@@ -1076,6 +1098,20 @@ class CommunityPostController extends Controller
         } elseif (CommunityPost::usesReligionSpiritualityFlow($request->input('content_type')) && $request->boolean('remove_religion_spirituality_audio')) {
             unset($data['meta']['religion_spirituality_audio']);
         }
+        $creativeCornerGallery = $this->resolveCreativeCornerGallery($request);
+        if ($creativeCornerGallery !== null) {
+            $data['meta']['creative_corner_gallery'] = $creativeCornerGallery;
+        }
+        $creativeCornerDocuments = $this->resolveCreativeCornerDocuments($request);
+        if ($creativeCornerDocuments !== null) {
+            $data['meta']['creative_corner_documents'] = $creativeCornerDocuments;
+        }
+        $creativeCornerAudio = $this->resolveCreativeCornerAudio($request);
+        if ($creativeCornerAudio !== null) {
+            $data['meta']['creative_corner_audio'] = $creativeCornerAudio;
+        } elseif (CommunityPost::usesCreativeCornerFlow($request->input('content_type')) && $request->boolean('remove_creative_corner_audio')) {
+            unset($data['meta']['creative_corner_audio']);
+        }
         $scienceTechnologySourceCode = $this->resolveScienceTechnologySingleAttachment(
             $request,
             null,
@@ -1181,6 +1217,8 @@ class CommunityPostController extends Controller
             CommunityAstroConsultancyEngagementNotificationService::notifyOnPublishedPost($post->fresh());
         } elseif ($post->isReligionSpiritualityPost() && $post->isPubliclyVisible()) {
             CommunityReligionSpiritualityEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        } elseif ($post->isCreativeCornerPost() && $post->isPubliclyVisible()) {
+            CommunityCreativeCornerEngagementNotificationService::notifyOnPublishedPost($post->fresh());
         }
 
         $message = $post->isPendingApproval()
@@ -1641,6 +1679,34 @@ class CommunityPostController extends Controller
             unset($data['meta']['religion_spirituality_audio']);
         }
 
+        $creativeCornerGallery = $this->resolveCreativeCornerGallery($request, $post);
+        if ($creativeCornerGallery !== null) {
+            $data['meta']['creative_corner_gallery'] = $creativeCornerGallery;
+        } elseif (data_get($post->meta, 'creative_corner_gallery')) {
+            foreach ((array) data_get($post->meta, 'creative_corner_gallery', []) as $image) {
+                CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+            }
+            unset($data['meta']['creative_corner_gallery']);
+        }
+
+        $creativeCornerDocuments = $this->resolveCreativeCornerDocuments($request, $post);
+        if ($creativeCornerDocuments !== null) {
+            $data['meta']['creative_corner_documents'] = $creativeCornerDocuments;
+        } elseif (data_get($post->meta, 'creative_corner_documents')) {
+            foreach ((array) data_get($post->meta, 'creative_corner_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['creative_corner_documents']);
+        }
+
+        $creativeCornerAudio = $this->resolveCreativeCornerAudio($request, $post);
+        if ($creativeCornerAudio !== null) {
+            $data['meta']['creative_corner_audio'] = $creativeCornerAudio;
+        } elseif ($request->boolean('remove_creative_corner_audio') && data_get($post->meta, 'creative_corner_audio')) {
+            $this->deleteStoryAudioFile(data_get($post->meta, 'creative_corner_audio'));
+            unset($data['meta']['creative_corner_audio']);
+        }
+
         foreach ([
             ['science_technology_source_code', 'science_technology_source_code', 'science-technology-source-code', 'removed_science_technology_source_code'],
             ['science_technology_circuit_diagram', 'science_technology_circuit_diagram', 'science-technology-circuit-diagram', 'removed_science_technology_circuit_diagram'],
@@ -1877,6 +1943,23 @@ class CommunityPostController extends Controller
             CommunityReligionSpiritualityEngagementNotificationService::maybeNotifyAskCommunityOnUpdate($post->fresh(), $originalMeta);
         }
 
+        if (
+            $post->isCreativeCornerPost()
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityCreativeCornerEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        }
+
+        if (
+            $post->isCreativeCornerPost()
+            && $post->isPubliclyVisible()
+            && $originalAttributes['status'] === \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityCreativeCornerEngagementNotificationService::maybeNotifyAskCommunityOnUpdate($post->fresh(), $originalMeta);
+        }
+
         $message = $post->isPendingApproval()
             ? 'Community post submitted for admin approval.'
             : 'Community post updated successfully.';
@@ -1960,6 +2043,7 @@ class CommunityPostController extends Controller
         $isScienceTechnology = CommunityPost::usesScienceTechnologyFlow(is_string($contentType) ? $contentType : null);
         $isAstroConsultancy = CommunityPost::usesAstroConsultancyFlow(is_string($contentType) ? $contentType : null);
         $isReligionSpirituality = CommunityPost::usesReligionSpiritualityFlow(is_string($contentType) ? $contentType : null);
+        $isCreativeCorner = CommunityPost::usesCreativeCornerFlow(is_string($contentType) ? $contentType : null);
         $isStudentCornerProject = $isStudentCorner
             && $request->input('student_corner_content_type') === CommunityContentTaxonomy::studentCornerProjectContentType();
         $isYouthCornerProject = $isYouthCorner
@@ -2025,6 +2109,10 @@ class CommunityPostController extends Controller
 
         if ($isReligionSpirituality && $request->filled('religion_spirituality_category')) {
             $request->merge(['category' => $request->input('religion_spirituality_category')]);
+        }
+
+        if ($isCreativeCorner && $request->filled('creative_corner_category')) {
+            $request->merge(['category' => $request->input('creative_corner_category')]);
         }
 
         if ($isMyArea && $request->filled('my_area_activity_type')) {
@@ -3454,6 +3542,86 @@ class CommunityPostController extends Controller
             'religion_spirituality_declaration_no_hatred' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'accepted'],
             'religion_spirituality_declaration_educational' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'accepted'],
             'religion_spirituality_declaration_guidelines' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'accepted'],
+            'creative_corner_post_type' => [
+                Rule::excludeIf(fn () => ! $isCreativeCorner),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::creativeCornerPostTypes()),
+            ],
+            'creative_corner_category' => [
+                Rule::excludeIf(fn () => ! $isCreativeCorner),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::creativeCornerMainCategories()),
+            ],
+            'creative_corner_target_audience' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_target_audience.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerTargetAudiences())],
+            'creative_corner_creation_type' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::creativeCornerCreationTypes())],
+            'creative_corner_mediums' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_mediums.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerMediums())],
+            'creative_corner_software_tools' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_software_tools.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerSoftwareTools())],
+            'creative_corner_materials' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_materials.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerMaterials())],
+            'creative_corner_creation_date' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'date'],
+            'creative_corner_time_taken' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:120'],
+            'creative_corner_difficulty_level' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::creativeCornerDifficultyLevels())],
+            'creative_corner_themes' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_themes.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerThemes())],
+            'creative_corner_location_country' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:120'],
+            'creative_corner_location_state' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:120'],
+            'creative_corner_location_district' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:120'],
+            'creative_corner_location_city' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:120'],
+            'creative_corner_material_cost' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:60'],
+            'creative_corner_equipment_cost' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:60'],
+            'creative_corner_total_cost' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:60'],
+            'creative_corner_submit_to_competition' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'boolean'],
+            'creative_corner_competition_categories' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_competition_categories.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerCompetitionCategories())],
+            'creative_corner_available_for_sale' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'boolean'],
+            'creative_corner_sale_price' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:60'],
+            'creative_corner_custom_orders_accepted' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'boolean'],
+            'creative_corner_limited_edition' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'boolean'],
+            'creative_corner_shipping_available' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'boolean'],
+            'creative_corner_commission_options' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_commission_options.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerCommissionOptions())],
+            'creative_corner_copyright' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::creativeCornerCopyrightOptions())],
+            'creative_corner_social_portfolio' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:255'],
+            'creative_corner_social_instagram' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:255'],
+            'creative_corner_social_youtube' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:255'],
+            'creative_corner_social_website' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'url', 'max:255'],
+            'creative_corner_social_vendor_profile' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:255'],
+            'creative_corner_video_type' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::creativeCornerVideoExamples())],
+            'creative_corner_audio_type' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::creativeCornerAudioExamples())],
+            'creative_corner_audio_file' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'file', 'mimes:mp3,wav,ogg,webm,mpeg', 'max:'.self::MAX_STORY_AUDIO_KB],
+            'remove_creative_corner_audio' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'boolean'],
+            'creative_corner_document_types' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_document_types.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerDocumentTypes())],
+            'creative_corner_documents' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array', 'max:'.self::MAX_CREATIVE_CORNER_DOCUMENTS],
+            'creative_corner_documents.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'file', 'mimes:pdf,doc,docx,ppt,pptx', 'max:20480'],
+            'removed_creative_corner_documents' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'removed_creative_corner_documents.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', 'max:255'],
+            'creative_corner_gallery' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array', 'max:'.self::MAX_CREATIVE_CORNER_GALLERY],
+            'creative_corner_gallery.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'image', 'max:4096'],
+            'removed_creative_corner_gallery' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'removed_creative_corner_gallery.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', 'max:255'],
+            'creative_corner_ask_community' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:500'],
+            'creative_corner_allow_poll' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'boolean'],
+            'creative_corner_poll_question' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:255'],
+            'creative_corner_poll_options' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:2000'],
+            'creative_corner_comment_settings' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_comment_settings.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerCommentSettings())],
+            'creative_corner_creative_licenses' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_creative_licenses.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerCreativeLicenses())],
+            'creative_corner_collaboration_roles' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'array'],
+            'creative_corner_collaboration_roles.*' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'string', Rule::in(CommunityContentTaxonomy::creativeCornerCollaborationRoles())],
+            'creative_corner_ai_used' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::creativeCornerAiUsageOptions())],
+            'creative_corner_ai_tool' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:160'],
+            'creative_corner_ai_description' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'nullable', 'string', 'max:2000'],
+            'creative_corner_declaration_original' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'accepted'],
+            'creative_corner_declaration_no_infringement' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'accepted'],
+            'creative_corner_declaration_ai_disclosed' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'accepted'],
+            'creative_corner_declaration_guidelines' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'accepted'],
             'community_issue_severity' => [
                 Rule::excludeIf(fn () => ! $isCommunityIssues),
                 'required',
@@ -4406,6 +4574,10 @@ class CommunityPostController extends Controller
             $validated['category'] = (string) ($validated['religion_spirituality_category'] ?? $request->input('religion_spirituality_category'));
         }
 
+        if ($isCreativeCorner) {
+            $validated['category'] = (string) ($validated['creative_corner_category'] ?? $request->input('creative_corner_category'));
+        }
+
         if ($isBusiness) {
             $validated['category'] = (string) ($validated['business_category'] ?? $request->input('business_category'));
         }
@@ -4891,6 +5063,10 @@ class CommunityPostController extends Controller
 
         if ($type === 'religion-spirituality') {
             return $request->boolean('religion_spirituality_allow_poll');
+        }
+
+        if ($type === 'creative-corner') {
+            return $request->boolean('creative_corner_allow_poll');
         }
 
         return $request->boolean('allow_poll');
@@ -6344,6 +6520,113 @@ class CommunityPostController extends Controller
         }
 
         return data_get($post?->meta, 'religion_spirituality_audio');
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveCreativeCornerDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesCreativeCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'creative_corner_documents', []);
+        $removed = (array) $request->input('removed_creative_corner_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('creative_corner_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('creative_corner_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeCreativeCornerDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_CREATIVE_CORNER_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveCreativeCornerGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesCreativeCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'creative_corner_gallery', []);
+        $removed = (array) $request->input('removed_creative_corner_gallery', []);
+
+        if ($existing === [] && ! $request->hasFile('creative_corner_gallery')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $image): bool => in_array((string) data_get($image, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('creative_corner_gallery')) {
+            $uploaded = collect($request->file('creative_corner_gallery', []))
+                ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'creative-corner-gallery'))
+                ->values()
+                ->all();
+            $kept = array_values(array_merge($kept, $uploaded));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_CREATIVE_CORNER_GALLERY));
+    }
+
+    /**
+     * @return array{type: string, path: string, name: string, url: string}|null
+     */
+    private function resolveCreativeCornerAudio(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesCreativeCornerFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        if ($request->boolean('remove_creative_corner_audio')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'creative_corner_audio'));
+
+            return null;
+        }
+
+        if ($request->hasFile('creative_corner_audio_file')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'creative_corner_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('creative_corner_audio_file'), 'upload');
+        }
+
+        if ($request->boolean('keep_existing_creative_corner_audio') && data_get($post?->meta, 'creative_corner_audio')) {
+            return data_get($post->meta, 'creative_corner_audio');
+        }
+
+        return data_get($post?->meta, 'creative_corner_audio');
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeCreativeCornerDocuments(Request $request): array
+    {
+        return collect($request->file('creative_corner_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'creative-corner-documents'))
+            ->values()
+            ->all();
     }
 
     /**

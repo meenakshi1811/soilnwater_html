@@ -795,6 +795,10 @@
                 @include('community.partials.religion-spirituality-show-sections', ['post' => $post])
             @endif
 
+            @if($post->isCreativeCornerPost())
+                @include('community.partials.creative-corner-show-sections', ['post' => $post])
+            @endif
+
             @if($post->isLocalVoicesPost())
                 @include('community.partials.local-voices-show-sections', ['post' => $post])
                 @include('community.partials.local-voices-community-actions', [
@@ -828,7 +832,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost() && ! $post->isEnvironmentPost() && ! $post->isScienceTechnologyPost() && ! $post->isAstroConsultancyPost() && ! $post->isReligionSpiritualityPost())
+            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost() && ! $post->isEnvironmentPost() && ! $post->isScienceTechnologyPost() && ! $post->isAstroConsultancyPost() && ! $post->isReligionSpiritualityPost() && ! $post->isCreativeCornerPost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -1433,6 +1437,9 @@
 @endif
 @if($post->isReligionSpiritualityPost())
 @include('community.partials.religion-spirituality-styles')
+@endif
+@if($post->isCreativeCornerPost())
+@include('community.partials.creative-corner-styles')
 @endif
 <style>
     .community-post-body {

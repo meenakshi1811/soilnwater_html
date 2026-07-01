@@ -151,6 +151,12 @@
     @endpush
 @endif
 
+@if($post->isCreativeCornerPost())
+    @push('styles')
+        @include('community.partials.creative-corner-styles')
+    @endpush
+@endif
+
 @section('content')
 <div class="admin-panel ems-page">
     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -463,6 +469,15 @@
                             @include('community.partials.religion-spirituality-meta-details', [
                                 'post' => $post,
                                 'heading' => 'Religion & Spirituality metadata',
+                                'includeAdmin' => true,
+                            ])
+                        @endif
+
+                        @if($post->isCreativeCornerPost())
+                            @include('community.partials.creative-corner-show-sections', ['post' => $post])
+                            @include('community.partials.creative-corner-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Creative Corner metadata',
                                 'includeAdmin' => true,
                             ])
                         @endif

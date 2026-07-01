@@ -73,6 +73,11 @@
         @include('community.partials.religion-spirituality-styles')
     @endpush
 @endif
+@if($post->isCreativeCornerPost())
+    @push('styles')
+        @include('community.partials.creative-corner-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
@@ -254,6 +259,15 @@
                 @include('community.partials.religion-spirituality-meta-details', [
                     'post' => $post,
                     'heading' => 'Saved Religion & Spirituality metadata',
+                    'includeAdmin' => true,
+                ])
+            @endif
+
+            @if($post->isCreativeCornerPost())
+                @include('community.partials.creative-corner-show-sections', ['post' => $post])
+                @include('community.partials.creative-corner-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved Creative Corner metadata',
                     'includeAdmin' => true,
                 ])
             @endif
