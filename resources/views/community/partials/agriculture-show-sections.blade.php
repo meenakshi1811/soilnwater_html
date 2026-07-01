@@ -448,7 +448,7 @@
             @if($post->hasVideo())
                 <div class="mb-3">
                     <div class="business-meta-item__label mb-2">
-                        Video@if(filled($videoType)) · {{ $videoType }}@endif
+                        Video{{ filled($videoType) ? ' · '.$videoType : '' }}
                     </div>
                     @if($post->youtubeEmbedUrl())
                         <div class="ratio ratio-16x9 rounded overflow-hidden"><iframe src="{{ $post->youtubeEmbedUrl() }}" title="Agriculture video" allowfullscreen></iframe></div>
