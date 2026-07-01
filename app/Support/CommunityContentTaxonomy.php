@@ -206,9 +206,8 @@ class CommunityContentTaxonomy
             ],
             'competitions' => [
                 'label' => 'Competitions',
-                'description' => 'Monthly contests.',
-                'categories' => ['Essay Writing', 'Poetry Writing', 'Photography', 'Story Writing', 'Drawing'],
-                'rewards' => ['Certificates', 'Badges', 'Featured Author'],
+                'description' => 'Create and manage contests with registration, judging, prizes, and participant submissions.',
+                'categories' => self::competitionsMainCategories(),
             ],
             'discussions' => [
                 'label' => 'Discussions',
@@ -4186,6 +4185,10 @@ class CommunityContentTaxonomy
             return in_array($category, self::astroConsultancyMainCategories(), true);
         }
 
+        if ($type === 'competitions') {
+            return in_array($category, self::competitionsMainCategories(), true);
+        }
+
         return in_array($category, self::categoriesFor($type), true);
     }
 
@@ -6250,6 +6253,462 @@ class CommunityContentTaxonomy
             'creative_corner_declaration_no_infringement' => 'The uploaded images, videos, music, and documents do not infringe any copyright, trademark, or intellectual property rights.',
             'creative_corner_declaration_ai_disclosed' => 'If AI-assisted tools were used, I have disclosed this where applicable.',
             'creative_corner_declaration_guidelines' => 'I understand that SoilnWater may remove content that violates copyright, community guidelines, or applicable laws.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsCompetitionTypes(): array
+    {
+        return [
+            'Photography Competition',
+            'Story Writing Competition',
+            'Poetry Competition',
+            'Essay Competition',
+            'Drawing Competition',
+            'Painting Competition',
+            'Innovation Challenge',
+            'Science Project Competition',
+            'Agriculture Innovation Contest',
+            'Business Idea Competition',
+            'Startup Pitch Competition',
+            'Environment Challenge',
+            'Water Conservation Challenge',
+            'Soil Conservation Challenge',
+            'Tree Plantation Challenge',
+            'Quiz Competition',
+            'Coding Challenge',
+            'Robotics Competition',
+            'Dance Competition',
+            'Singing Competition',
+            'Cooking Competition',
+            'Handicraft Competition',
+            'Video Making Competition',
+            'Reel Competition',
+            'Short Film Competition',
+            'Logo Design Competition',
+            'Poster Design Competition',
+            'Meme Competition',
+            'Public Speaking Competition',
+            'Debate Competition',
+            'Community Service Challenge',
+            'Fitness Challenge',
+            'Open Competition',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsMainCategories(): array
+    {
+        return [
+            'Education',
+            'Environment',
+            'Agriculture',
+            'Technology',
+            'Innovation',
+            'Photography',
+            'Writing',
+            'Creative Arts',
+            'Business',
+            'Health',
+            'Sports',
+            'Community Service',
+            'Children',
+            'Students',
+            'Women',
+            'Youth',
+            'Senior Citizens',
+            'Open Category',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsEligibilityGroups(): array
+    {
+        return [
+            'Children',
+            'Students',
+            'Women',
+            'Youth',
+            'Senior Citizens',
+            'Farmers',
+            'Teachers',
+            'Professionals',
+            'Businesses',
+            'NGOs',
+            'Open to Everyone',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function competitionsContentStructure(): array
+    {
+        return [
+            'Objective' => 'What is the purpose of this competition?',
+            'Theme' => 'Central theme or focus area participants should follow.',
+            'Who Can Participate' => 'Eligibility, age groups, and any restrictions.',
+            'Submission Requirements' => 'Format, file types, word limits, and delivery instructions.',
+            'Judging Criteria' => 'How entries will be evaluated.',
+            'Prizes' => 'Awards, recognition, and benefits for winners.',
+            'Important Dates' => 'Registration, submission, and result timelines.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsThemes(): array
+    {
+        return [
+            'Save Water',
+            'Save Soil',
+            'Green Earth',
+            'Digital India',
+            'Healthy Living',
+            'Innovation',
+            'Clean City',
+            'Women Empowerment',
+            'Smart Agriculture',
+            'Technology for Rural India',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsSubmissionTypes(): array
+    {
+        return [
+            'Article',
+            'Story',
+            'Poetry',
+            'Photo',
+            'Image',
+            'Video',
+            'Audio',
+            'Presentation',
+            'PDF',
+            'Project',
+            'Prototype',
+            'Software',
+            'Research Paper',
+            'Drawing',
+            'Painting',
+            'ZIP File',
+            'External Link',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsLevels(): array
+    {
+        return [
+            'School',
+            'College',
+            'Village',
+            'District',
+            'State',
+            'National',
+            'International',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsJudgingCriteriaOptions(): array
+    {
+        return [
+            'Creativity',
+            'Originality',
+            'Innovation',
+            'Presentation',
+            'Practical Utility',
+            'Social Impact',
+            'Technical Quality',
+            'Environmental Impact',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsVotingSystems(): array
+    {
+        return [
+            'Judges Only',
+            'Public Voting',
+            'Judges + Public',
+            'Expert Panel',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsPublicVotingMethods(): array
+    {
+        return [
+            'Like',
+            'Vote',
+            'Rating',
+            'Share Score',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsCommentSettings(): array
+    {
+        return [
+            'Comments',
+            'Feedback',
+            'Suggestions',
+            'Questions',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsCopyrightOptions(): array
+    {
+        return [
+            'Participant Retains Copyright',
+            'Organizer May Display',
+            'Organizer May Promote',
+            'Commercial Rights Reserved',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsAiUsageOptions(): array
+    {
+        return [
+            'No',
+            'Partially',
+            'Fully AI Generated',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsSupportingDocumentTypes(): array
+    {
+        return [
+            'Identity Proof (Optional)',
+            'Student ID',
+            'College ID',
+            'Participation Certificate',
+            'Consent Form',
+            'Authorization Letter',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsEntryFields(): array
+    {
+        return [
+            'Title',
+            'Description',
+            'Files',
+            'Video',
+            'Images',
+            'Documents',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsTeamDetailOptions(): array
+    {
+        return [
+            'Team Leader',
+            'Institution',
+            'Organization',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function competitionsDeclarationStatements(): array
+    {
+        return [
+            'competitions_declaration_original' => 'This submission is my original work.',
+            'competitions_declaration_permission' => 'I own or have permission to use all uploaded content.',
+            'competitions_declaration_ai_disclosed' => 'AI assistance, if any, has been disclosed.',
+            'competitions_declaration_rules' => 'I agree to the competition rules and judging process.',
+            'competitions_declaration_display' => 'SoilnWater may display my submission as part of the competition.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsTagExamples(): array
+    {
+        return [
+            'Photography',
+            'Environment',
+            'Water',
+            'Competition',
+            'Innovation',
+        ];
+    }
+
+    /**
+     * Community sections that can originate competitions (one engine, many entry points).
+     *
+     * @return list<string>
+     */
+    public static function competitionsOriginSections(): array
+    {
+        return [
+            'Poetry',
+            'Photography',
+            'Science',
+            'Environment',
+            'Agriculture',
+            'Children',
+            'Women',
+            'Students',
+            'Creative Corner',
+            'Business',
+            'Technology',
+            'Community Service',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsAwardBadges(): array
+    {
+        return [
+            'Winner',
+            'Runner-Up',
+            'Finalist',
+            'Top 10',
+            'Top 100',
+            'Community Choice',
+            'Most Creative',
+            'Innovation Award',
+            'Green Champion',
+            'Water Warrior',
+            'Young Scientist',
+            'Best Photographer',
+            'Best Writer',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsLeaderboardTypes(): array
+    {
+        return [
+            'Schools',
+            'Colleges',
+            'Cities',
+            'Districts',
+            'States',
+            'Individual Participants',
+            'Organizations',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsVotingFraudProtections(): array
+    {
+        return [
+            'Verified accounts only',
+            'One vote per user',
+            'Email/OTP verification',
+            'CAPTCHA',
+            'Duplicate detection',
+            'IP/device monitoring',
+            'AI-based anomaly detection',
+            'Admin override for suspicious activity',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsEcommerceOptions(): array
+    {
+        return [
+            'Sold through SoilnWater Marketplace',
+            'Licensed',
+            'Auctioned',
+            'Printed on merchandise',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsDigitalCertificateTypes(): array
+    {
+        return [
+            'Participation Certificates',
+            'Winner Certificates',
+            'Jury Appreciation Certificates',
+            'Downloadable PDFs',
+            'Verifiable certificate IDs',
+            'Certificate QR codes',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsSponsorExamples(): array
+    {
+        return [
+            'Photography by Camera Store',
+            'Smart Farming by Agri Company',
+            'Startup Challenge by Bank',
+            'Coding Challenge by IT Company',
+            'Water Conservation by NGO',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function competitionsUniqueFeatureLabels(): array
+    {
+        return [
+            'multi_section' => 'Multi-Section Competition',
+            'auto_portfolio' => 'Auto Portfolio Generation',
+            'entry_qr_codes' => 'QR Code for Every Entry',
+            'achievement_badges' => 'Achievement & Badge System',
+            'leaderboards' => 'Leaderboard',
+            'institution_dashboard' => 'School & College Dashboard',
+            'sponsored_branding' => 'Sponsored Competition',
+            'ecommerce' => 'E-commerce Integration',
+            'voting_fraud_protection' => 'Community Voting with Fraud Protection',
+            'digital_certificates' => 'Certificates & Digital Awards',
         ];
     }
 

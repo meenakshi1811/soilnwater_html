@@ -44,5 +44,6 @@ class DatabaseSeeder extends Seeder
         $this->call(CommunityAstroConsultancyPostSeeder::class);
         $this->call(CommunityReligionSpiritualityPostSeeder::class);
         $this->call(CommunityCreativeCornerPostSeeder::class);
+        $this->call(CommunityCompetitionsPostSeeder::class);
     }
 }

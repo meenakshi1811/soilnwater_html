@@ -1568,6 +1568,11 @@ class CommunityPost extends Model
         return $contentType === 'creative-corner';
     }
 
+    public static function usesCompetitionsFlow(?string $contentType): bool
+    {
+        return $contentType === 'competitions';
+    }
+
     public function isChildrensCornerPost(): bool
     {
         return self::usesChildrensCornerFlow($this->content_type);
@@ -1646,6 +1651,61 @@ class CommunityPost extends Model
     public function isCreativeCornerPost(): bool
     {
         return self::usesCreativeCornerFlow($this->content_type);
+    }
+
+    public function isCompetitionsPost(): bool
+    {
+        return self::usesCompetitionsFlow($this->content_type);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function competitionsUniqueFeatureLabels(): array
+    {
+        if (! $this->isCompetitionsPost()) {
+            return [];
+        }
+
+        $features = [];
+
+        if (data_get($this->meta, 'competitions_enable_multi_section')) {
+            $features[] = 'Multi-Section Competition';
+        }
+        if (data_get($this->meta, 'competitions_enable_auto_portfolio')) {
+            $features[] = 'Auto Portfolio Generation';
+        }
+        if (data_get($this->meta, 'competitions_enable_entry_qr_codes')) {
+            $features[] = 'QR Code for Every Entry';
+        }
+        if (data_get($this->meta, 'competitions_enable_achievement_badges')) {
+            $features[] = 'Achievement & Badge System';
+        }
+        if (data_get($this->meta, 'competitions_enable_leaderboards')) {
+            $features[] = 'Leaderboard';
+        }
+        if (data_get($this->meta, 'competitions_enable_institution_dashboard')) {
+            $features[] = 'School & College Dashboard';
+        }
+        if (data_get($this->meta, 'competitions_enable_sponsored_branding')) {
+            $features[] = 'Sponsored Competition';
+        }
+        if (data_get($this->meta, 'competitions_enable_ecommerce')) {
+            $features[] = 'E-commerce Integration';
+        }
+        if (data_get($this->meta, 'competitions_enable_voting_fraud_protection')) {
+            $features[] = 'Community Voting with Fraud Protection';
+        }
+        if (data_get($this->meta, 'competitions_enable_digital_certificates')) {
+            $features[] = 'Certificates & Digital Awards';
+        }
+
+        return $features;
+    }
+
+    public function competitionsHasFlagshipFeatures(): bool
+    {
+        return $this->competitionsUniqueFeatureLabels() !== [];
     }
 
     public function astroConsultancyPostTypeLabel(): ?string

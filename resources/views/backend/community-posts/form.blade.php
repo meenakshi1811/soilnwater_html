@@ -392,6 +392,9 @@
             <div class="col-12 type-extra creative-corner-flow" data-for="creative-corner">
                 @include('backend.community-posts.partials.creative-corner-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            <div class="col-12 type-extra competitions-flow" data-for="competitions">
+                @include('backend.community-posts.partials.competitions-flow-fields', ['post' => $post, 'placement' => 'setup'])
+            </div>
             <div class="col-12" id="bodyContentSection">
                 <div id="storyContentGuide" class="story-content-guide mb-3" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
@@ -1071,6 +1074,41 @@ The mountains keep.</pre>
                         </div>
                     </div>
                 </div>
+                <div id="competitionsContentGuide" class="story-content-guide mb-3 competitions-flow-section" style="display:none;">
+                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
+                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
+                            <div>
+                                <h5 class="mb-1">Competition details</h5>
+                                <p class="text-muted mb-0 small">Use the rich text editor below for your competition listing.</p>
+                            </div>
+                            <span class="badge bg-warning text-dark">Competitions</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
+                                    <p class="text-muted small mb-2">Describe the competition using the editor below.</p>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertCompetitionsStructureBtn">
+                                        Insert suggested structure
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="story-content-panel h-100">
+                                    <h6 class="story-content-panel__title">Suggested structure</h6>
+                                    <ul class="story-content-structure list-unstyled small mb-0">
+                                        @foreach(\App\Support\CommunityContentTaxonomy::competitionsContentStructure() as $heading => $hint)
+                                            <li class="mb-2">
+                                                <strong>{{ $heading }}</strong>
+                                                <span class="text-muted d-block">{{ $hint }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="autobiographyContentGuide" class="story-content-guide mb-3 life-story-flow-section" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -1237,6 +1275,9 @@ The mountains keep.</pre>
             </div>
             <div class="col-12 type-extra creative-corner-flow" data-for="creative-corner">
                 @include('backend.community-posts.partials.creative-corner-flow-fields', ['post' => $post, 'placement' => 'rest'])
+            </div>
+            <div class="col-12 type-extra competitions-flow" data-for="competitions">
+                @include('backend.community-posts.partials.competitions-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
             <div class="col-12 type-extra story-flow" data-for="stories">
                 <div class="news-flow-card story-flow-card story-flow-card--audience border rounded-3 p-3 p-md-4 bg-white mb-3">
@@ -3469,6 +3510,145 @@ The mountains keep.</pre>
 
     document.getElementById('creativeCornerCategory')?.addEventListener('change', syncCreativeCornerCategory);
 
+    function syncCompetitionsCategory() {
+        const categorySelect = document.getElementById('categorySelect');
+        const competitionsCategory = document.getElementById('competitionsCategory')?.value || '';
+
+        if (!categorySelect || document.getElementById('contentType')?.value !== 'competitions') {
+            return;
+        }
+
+        categorySelect.value = competitionsCategory;
+        categorySelect.dataset.selected = competitionsCategory;
+    }
+
+    document.getElementById('competitionsCategory')?.addEventListener('change', syncCompetitionsCategory);
+
+    function refreshCompetitionsConditionalSections() {
+        const contentType = document.getElementById('contentType')?.value || '';
+
+        if (contentType !== 'competitions') {
+            return;
+        }
+
+        const teamEnabled = document.getElementById('competitionsTeamAllowed')?.checked;
+        const aiUsed = document.querySelector('input[name="competitions_ai_used"]:checked')?.value || 'No';
+        const votingSystem = document.getElementById('competitionsVotingSystem')?.value || '';
+        const publicVoting = ['Public Voting', 'Judges + Public'].includes(votingSystem);
+
+        const teamFields = document.getElementById('competitionsTeamFields');
+        if (teamFields) {
+            teamFields.style.display = teamEnabled ? '' : 'none';
+        }
+
+        const aiFields = document.getElementById('competitionsAiFields');
+        if (aiFields) {
+            aiFields.style.display = aiUsed !== 'No' ? '' : 'none';
+        }
+
+        const publicVotingFields = document.getElementById('competitionsPublicVotingFields');
+        if (publicVotingFields) {
+            publicVotingFields.style.display = publicVoting ? '' : 'none';
+        }
+    }
+
+    document.getElementById('competitionsTeamAllowed')?.addEventListener('change', refreshCompetitionsConditionalSections);
+    document.querySelectorAll('input[name="competitions_ai_used"]').forEach((field) => {
+        field.addEventListener('change', refreshCompetitionsConditionalSections);
+    });
+    document.getElementById('competitionsVotingSystem')?.addEventListener('change', refreshCompetitionsConditionalSections);
+
+    function refreshCompetitionsUniqueFeatures() {
+        const contentType = document.getElementById('contentType')?.value || '';
+        const pairs = [
+            ['competitionsEnableMultiSection', 'competitionsMultiSectionFields'],
+            ['competitionsEnableAchievementBadges', 'competitionsAchievementBadgesFields'],
+            ['competitionsEnableLeaderboards', 'competitionsLeaderboardsFields'],
+            ['competitionsEnableInstitutionDashboard', 'competitionsInstitutionDashboardFields'],
+            ['competitionsEnableSponsoredBranding', 'competitionsSponsoredBrandingFields'],
+            ['competitionsEnableEcommerce', 'competitionsEcommerceFields'],
+            ['competitionsEnableVotingFraudProtection', 'competitionsVotingFraudProtectionFields'],
+            ['competitionsEnableDigitalCertificates', 'competitionsDigitalCertificatesFields'],
+        ];
+
+        pairs.forEach(([toggleId, fieldsId]) => {
+            const fields = document.getElementById(fieldsId);
+            const enabled = document.getElementById(toggleId)?.checked;
+            if (fields) {
+                fields.style.display = (contentType === 'competitions' && enabled) ? '' : 'none';
+            }
+        });
+    }
+
+    [
+        'competitionsEnableMultiSection',
+        'competitionsEnableAchievementBadges',
+        'competitionsEnableLeaderboards',
+        'competitionsEnableInstitutionDashboard',
+        'competitionsEnableSponsoredBranding',
+        'competitionsEnableEcommerce',
+        'competitionsEnableVotingFraudProtection',
+        'competitionsEnableDigitalCertificates',
+    ].forEach((toggleId) => {
+        document.getElementById(toggleId)?.addEventListener('change', refreshCompetitionsUniqueFeatures);
+    });
+    refreshCompetitionsUniqueFeatures();
+
+    let competitionsJuryIndex = document.querySelectorAll('.competitions-jury-row').length;
+    document.getElementById('competitionsAddJuryRow')?.addEventListener('click', function () {
+        const list = document.getElementById('competitionsJuryList');
+        if (!list) {
+            return;
+        }
+
+        const index = competitionsJuryIndex++;
+        const row = document.createElement('div');
+        row.className = 'competitions-jury-row border rounded-3 p-3 bg-white';
+        row.dataset.index = String(index);
+        row.innerHTML = ''
+            + '<div class="row g-3">'
+            + '<div class="col-md-6"><label class="form-label">Judge name</label><input type="text" name="competitions_jury[' + index + '][name]" class="form-control competitions-flow-field" maxlength="160"></div>'
+            + '<div class="col-md-6"><label class="form-label">Designation</label><input type="text" name="competitions_jury[' + index + '][designation]" class="form-control competitions-flow-field" maxlength="160"></div>'
+            + '<div class="col-md-6"><label class="form-label">Organization</label><input type="text" name="competitions_jury[' + index + '][organization]" class="form-control competitions-flow-field" maxlength="160"></div>'
+            + '<div class="col-md-6"><label class="form-label">Photo</label><input type="file" name="competitions_jury_photos[' + index + ']" class="form-control competitions-flow-field" accept="image/*"></div>'
+            + '<div class="col-12"><label class="form-label">Profile</label><textarea name="competitions_jury[' + index + '][profile]" class="form-control competitions-flow-field" rows="2" maxlength="2000"></textarea></div>'
+            + '</div>'
+            + '<button type="button" class="btn btn-sm btn-outline-danger mt-2 competitions-remove-jury-row">Remove judge</button>';
+        list.appendChild(row);
+    });
+
+    let competitionsSponsorIndex = document.querySelectorAll('.competitions-sponsor-row').length;
+    document.getElementById('competitionsAddSponsorRow')?.addEventListener('click', function () {
+        const list = document.getElementById('competitionsSponsorList');
+        if (!list) {
+            return;
+        }
+
+        const index = competitionsSponsorIndex++;
+        const row = document.createElement('div');
+        row.className = 'competitions-sponsor-row border rounded-3 p-3 bg-light';
+        row.dataset.index = String(index);
+        row.innerHTML = ''
+            + '<div class="row g-3">'
+            + '<div class="col-md-6"><label class="form-label">Sponsor name</label><input type="text" name="competitions_sponsors[' + index + '][name]" class="form-control competitions-flow-field" maxlength="160"></div>'
+            + '<div class="col-md-6"><label class="form-label">Website</label><input type="url" name="competitions_sponsors[' + index + '][website]" class="form-control competitions-flow-field" maxlength="255" placeholder="https://"></div>'
+            + '<div class="col-md-6"><label class="form-label">Logo</label><input type="file" name="competitions_sponsor_logos[' + index + ']" class="form-control competitions-flow-field" accept="image/*"></div>'
+            + '<div class="col-md-6"><label class="form-label">Contribution</label><input type="text" name="competitions_sponsors[' + index + '][contribution]" class="form-control competitions-flow-field" maxlength="255"></div>'
+            + '</div>'
+            + '<button type="button" class="btn btn-sm btn-outline-danger mt-2 competitions-remove-sponsor-row">Remove sponsor</button>';
+        list.appendChild(row);
+    });
+
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('competitions-remove-jury-row')) {
+            event.target.closest('.competitions-jury-row')?.remove();
+        }
+
+        if (event.target.classList.contains('competitions-remove-sponsor-row')) {
+            event.target.closest('.competitions-sponsor-row')?.remove();
+        }
+    });
+
     function refreshCreativeCornerPollFields() {
         const contentType = document.getElementById('contentType')?.value || '';
         const enabled = document.getElementById('ccAllowPoll')?.checked;
@@ -4321,6 +4501,38 @@ The mountains keep.</pre>
             '<p>Describe the finished result.</p>',
             '<h2>Future Improvements</h2>',
             '<p>What would you do differently next time?</p>',
+        ].join('');
+
+        if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
+            const current = window.communityBodyEditor.getData?.() || '';
+            window.communityBodyEditor.setData(current.trim() ? current + structureHtml : structureHtml);
+            return;
+        }
+
+        const bodyEditor = document.getElementById('bodyEditor');
+        if (bodyEditor) {
+            bodyEditor.value = (bodyEditor.value || '').trim()
+                ? bodyEditor.value + '\n\n' + structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n')
+                : structureHtml.replace(/<[^>]+>/g, '\n').replace(/\n+/g, '\n');
+        }
+    });
+
+    document.getElementById('insertCompetitionsStructureBtn')?.addEventListener('click', function () {
+        const structureHtml = [
+            '<h2>Objective</h2>',
+            '<p>What is the purpose of this competition?</p>',
+            '<h2>Theme</h2>',
+            '<p>Central theme or focus area participants should follow.</p>',
+            '<h2>Who Can Participate</h2>',
+            '<p>Eligibility, age groups, and any restrictions.</p>',
+            '<h2>Submission Requirements</h2>',
+            '<p>Format, file types, word limits, and delivery instructions.</p>',
+            '<h2>Judging Criteria</h2>',
+            '<p>How entries will be evaluated.</p>',
+            '<h2>Prizes</h2>',
+            '<p>Awards, recognition, and benefits for winners.</p>',
+            '<h2>Important Dates</h2>',
+            '<p>Registration, submission, and result timelines.</p>',
         ].join('');
 
         if (window.communityBodyEditor && typeof window.communityBodyEditor.setData === 'function') {
@@ -5821,7 +6033,7 @@ The mountains keep.</pre>
         const selectedType = typeSelect.value;
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology', 'astro-consultancy', 'religion-spirituality', 'creative-corner'].includes(selectedType);
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology', 'astro-consultancy', 'religion-spirituality', 'creative-corner', 'competitions'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -5855,6 +6067,7 @@ The mountains keep.</pre>
         const isAstroConsultancy = selectedType === 'astro-consultancy';
         const isReligionSpirituality = selectedType === 'religion-spirituality';
         const isCreativeCorner = selectedType === 'creative-corner';
+        const isCompetitions = selectedType === 'competitions';
 
         if (isChildrensCorner) {
             categoryWrap.style.display = 'none';
@@ -5936,6 +6149,11 @@ The mountains keep.</pre>
             categorySelect.required = false;
             categorySelect.disabled = true;
             syncCreativeCornerCategory();
+        } else if (isCompetitions) {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
+            syncCompetitionsCategory();
         } else {
             categoryWrap.style.display = '';
             categorySelect.disabled = false;
@@ -6002,11 +6220,11 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
-            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner) ? 'none' : '';
+            field.style.display = (isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner || isCompetitions) ? 'none' : '';
         });
 
         document.querySelectorAll('.general-extra input, .general-extra textarea, .general-extra select').forEach((field) => {
-            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner;
+            field.disabled = isNews || isReport || hasTypeSection || isPoetry || isLifeStory || isChildrensCorner || isAwareness || isBusiness || isWomensWorld || isSeniorCitizensForum || isStudentCorner || isYouthCorner || isLocalVoices || isMyArea || isCommunityIssues || isAgriculture || isEnvironment || isScienceTechnology || isAstroConsultancy || isReligionSpirituality || isCreativeCorner || isCompetitions;
         });
 
         document.querySelectorAll('.news-required').forEach((field) => {
@@ -6095,6 +6313,10 @@ The mountains keep.</pre>
 
         document.querySelectorAll('.creative-corner-required').forEach((field) => {
             field.required = isCreativeCorner;
+        });
+
+        document.querySelectorAll('.competitions-required').forEach((field) => {
+            field.required = isCompetitions;
         });
 
         document.querySelectorAll('.report-required').forEach((field) => {
@@ -6211,6 +6433,14 @@ The mountains keep.</pre>
             }
 
             field.disabled = !isCreativeCorner;
+        });
+
+        document.querySelectorAll('.competitions-flow input, .competitions-flow textarea, .competitions-flow select').forEach((field) => {
+            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+                return;
+            }
+
+            field.disabled = !isCompetitions;
         });
 
         const childSchoolName = document.getElementById('childSchoolName');
@@ -6371,6 +6601,14 @@ The mountains keep.</pre>
             bodyHelp: 'Use the rich text editor for Introduction, Historical Background, Teachings, Practical Relevance, Conclusion, and References.',
             locationLabel: 'Location',
             locationHelp: 'Optional — use the location section below for pilgrimage or place of worship posts.',
+        } : (isCompetitions ? {
+            excerptLabel: 'Competition summary',
+            excerptPlaceholder: 'Summarize the competition, theme, and who should participate.',
+            excerptHelp: 'A concise standfirst shown in competition listings.',
+            bodyLabel: 'Competition details <span class="text-danger">*</span>',
+            bodyHelp: 'Use the rich text editor for Objective, Theme, Who Can Participate, Submission Requirements, Judging Criteria, Prizes, and Important Dates.',
+            locationLabel: 'Location <span class="text-danger">*</span>',
+            locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
         } : {
             excerptLabel: 'Short excerpt',
             excerptPlaceholder: '',
@@ -6379,7 +6617,7 @@ The mountains keep.</pre>
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        })))))))))))))));
+        }))))))))))))))));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
@@ -6473,6 +6711,11 @@ The mountains keep.</pre>
             creativeCornerContentGuide.style.display = isCreativeCorner ? '' : 'none';
         }
 
+        const competitionsContentGuide = document.getElementById('competitionsContentGuide');
+        if (competitionsContentGuide) {
+            competitionsContentGuide.style.display = isCompetitions ? '' : 'none';
+        }
+
         refreshStudentCornerProjectSection();
         refreshYouthCornerProjectSection();
         refreshLocalVoicesConditionalSections();
@@ -6486,6 +6729,8 @@ The mountains keep.</pre>
         refreshReligionSpiritualityConditionalSections();
         refreshReligionSpiritualityUniqueFeatures();
         refreshCreativeCornerConditionalSections();
+        refreshCompetitionsConditionalSections();
+        refreshCompetitionsUniqueFeatures();
 
         refreshPoetryEditorMode(selectedType);
         refreshPoetrySeriesFields();
@@ -9899,6 +10144,16 @@ The mountains keep.</pre>
             const ccDeclarationFields = document.querySelectorAll('.creative-corner-declaration-required');
             if (Array.from(ccDeclarationFields).some((field) => !field.checked)) {
                 notify('error', 'Please confirm all Creative Corner declaration statements.');
+                return;
+            }
+        }
+
+        if (contentType === 'competitions') {
+            syncCompetitionsCategory();
+
+            const compDeclarationFields = document.querySelectorAll('.competitions-declaration-required');
+            if (Array.from(compDeclarationFields).some((field) => !field.checked)) {
+                notify('error', 'Please confirm all competition declaration statements.');
                 return;
             }
         }

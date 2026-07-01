@@ -78,6 +78,11 @@
         @include('community.partials.creative-corner-styles')
     @endpush
 @endif
+@if($post->isCompetitionsPost())
+    @push('styles')
+        @include('community.partials.competitions-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
@@ -268,6 +273,15 @@
                 @include('community.partials.creative-corner-meta-details', [
                     'post' => $post,
                     'heading' => 'Saved Creative Corner metadata',
+                    'includeAdmin' => true,
+                ])
+            @endif
+
+            @if($post->isCompetitionsPost())
+                @include('community.partials.competitions-show-sections', ['post' => $post])
+                @include('community.partials.competitions-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved Competitions metadata',
                     'includeAdmin' => true,
                 ])
             @endif

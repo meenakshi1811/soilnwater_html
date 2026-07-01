@@ -63,12 +63,7 @@ class CommunityPostFormFields
             'local-voices' => self::section('Local voice details', 'Local Voices', 'Use the dedicated Local Voices flow fields on the form.', []),
             'community-issues' => self::section('Community issue details', 'Community Issues', 'Use the dedicated Community Issues flow fields on the form.', []),
             'creative-corner' => self::section('Creative work details', 'Creative Corner', 'Use the dedicated Creative Corner flow fields on the form.', []),
-            'competitions' => self::section('Competition details', 'Competitions', 'Contest listing fields for deadlines, prizes, and rules.', [
-                self::date('competition_deadline', 'Submission deadline', true),
-                self::text('prize_details', 'Prizes / rewards', 255, true, 'Certificates, badges, cash, etc.'),
-                self::textarea('eligibility', 'Eligibility criteria', 2000, true),
-                self::textarea('submission_rules', 'Submission rules', 2000, true),
-            ]),
+            'competitions' => self::section('Competition details', 'Competitions', 'Use the dedicated Competitions flow fields on the form.', []),
             'discussions' => self::section('Discussion details', 'Discussions', 'Thread starter fields used on community discussion boards.', [
                 self::text('discussion_topic', 'Discussion topic', 160, true),
                 self::textarea('discussion_prompt', 'Opening question / prompt', 2000, true),
@@ -1288,6 +1283,173 @@ class CommunityPostFormFields
             }
         }
 
+        if (CommunityPost::usesCompetitionsFlow($contentType)) {
+            $payload['competitions_competition_type'] = $request->input('competitions_competition_type');
+            $payload['competitions_category'] = $request->input('competitions_category');
+            $payload['competitions_organizer_name'] = $request->input('competitions_organizer_name');
+            $payload['competitions_organizer_organization'] = $request->input('competitions_organizer_organization');
+            $payload['competitions_organizer_contact_person'] = $request->input('competitions_organizer_contact_person');
+            $payload['competitions_organizer_email'] = $request->input('competitions_organizer_email');
+            $payload['competitions_organizer_phone'] = $request->input('competitions_organizer_phone');
+            $payload['competitions_organizer_website'] = $request->input('competitions_organizer_website');
+            $payload['competitions_eligibility'] = array_values(array_intersect(
+                (array) $request->input('competitions_eligibility', []),
+                CommunityContentTaxonomy::competitionsEligibilityGroups()
+            ));
+            $payload['competitions_themes'] = array_values(array_intersect(
+                (array) $request->input('competitions_themes', []),
+                CommunityContentTaxonomy::competitionsThemes()
+            ));
+            $payload['competitions_submission_types'] = array_values(array_intersect(
+                (array) $request->input('competitions_submission_types', []),
+                CommunityContentTaxonomy::competitionsSubmissionTypes()
+            ));
+            $payload['competitions_max_files'] = $request->input('competitions_max_files');
+            $payload['competitions_max_file_size'] = $request->input('competitions_max_file_size');
+            $payload['competitions_allowed_formats'] = $request->input('competitions_allowed_formats');
+            $payload['competitions_level'] = $request->input('competitions_level');
+            $payload['competitions_date_announcement'] = $request->input('competitions_date_announcement');
+            $payload['competitions_date_registration_opens'] = $request->input('competitions_date_registration_opens');
+            $payload['competitions_date_registration_closes'] = $request->input('competitions_date_registration_closes');
+            $payload['competitions_date_submission_deadline'] = $request->input('competitions_date_submission_deadline');
+            $payload['competitions_date_evaluation_period'] = $request->input('competitions_date_evaluation_period');
+            $payload['competitions_date_result'] = $request->input('competitions_date_result');
+            $payload['competitions_date_award_ceremony'] = $request->input('competitions_date_award_ceremony');
+            $payload['competitions_registration_required'] = $request->boolean('competitions_registration_required');
+            $payload['competitions_registration_fee'] = $request->input('competitions_registration_fee');
+            $payload['competitions_max_participants'] = $request->input('competitions_max_participants');
+            $payload['competitions_team_allowed'] = $request->boolean('competitions_team_allowed');
+            $payload['competitions_individual_only'] = $request->boolean('competitions_individual_only');
+            $payload['competitions_team_min_members'] = $request->input('competitions_team_min_members');
+            $payload['competitions_team_max_members'] = $request->input('competitions_team_max_members');
+            $payload['competitions_team_details'] = array_values(array_intersect(
+                (array) $request->input('competitions_team_details', []),
+                CommunityContentTaxonomy::competitionsTeamDetailOptions()
+            ));
+            $payload['competitions_entry_fields'] = array_values(array_intersect(
+                (array) $request->input('competitions_entry_fields', []),
+                CommunityContentTaxonomy::competitionsEntryFields()
+            ));
+            $payload['competitions_supporting_documents'] = array_values(array_intersect(
+                (array) $request->input('competitions_supporting_documents', []),
+                CommunityContentTaxonomy::competitionsSupportingDocumentTypes()
+            ));
+            $payload['competitions_judging_criteria'] = array_values(array_intersect(
+                (array) $request->input('competitions_judging_criteria', []),
+                CommunityContentTaxonomy::competitionsJudgingCriteriaOptions()
+            ));
+            $payload['competitions_judging_weightage'] = $request->input('competitions_judging_weightage');
+            $payload['competitions_prize_first'] = $request->input('competitions_prize_first');
+            $payload['competitions_prize_second'] = $request->input('competitions_prize_second');
+            $payload['competitions_prize_third'] = $request->input('competitions_prize_third');
+            $payload['competitions_prize_consolation'] = $request->input('competitions_prize_consolation');
+            $payload['competitions_prize_certificates'] = $request->boolean('competitions_prize_certificates');
+            $payload['competitions_prize_trophies'] = $request->boolean('competitions_prize_trophies');
+            $payload['competitions_prize_cash'] = $request->boolean('competitions_prize_cash');
+            $payload['competitions_prize_gift_voucher'] = $request->boolean('competitions_prize_gift_voucher');
+            $payload['competitions_prize_internship'] = $request->boolean('competitions_prize_internship');
+            $payload['competitions_prize_scholarship'] = $request->boolean('competitions_prize_scholarship');
+            $payload['competitions_prize_featured_homepage'] = $request->boolean('competitions_prize_featured_homepage');
+            $payload['competitions_certificate_participation'] = $request->boolean('competitions_certificate_participation');
+            $payload['competitions_certificate_winner'] = $request->boolean('competitions_certificate_winner');
+            $payload['competitions_certificate_merit'] = $request->boolean('competitions_certificate_merit');
+            $payload['competitions_certificate_digital'] = $request->boolean('competitions_certificate_digital');
+            $payload['competitions_voting_system'] = $request->input('competitions_voting_system');
+            $payload['competitions_public_voting_methods'] = array_values(array_intersect(
+                (array) $request->input('competitions_public_voting_methods', []),
+                CommunityContentTaxonomy::competitionsPublicVotingMethods()
+            ));
+            if (! in_array($request->input('competitions_voting_system'), ['Public Voting', 'Judges + Public'], true)) {
+                unset($payload['competitions_public_voting_methods']);
+            }
+            $payload['competitions_comment_settings'] = array_values(array_intersect(
+                (array) $request->input('competitions_comment_settings', []),
+                CommunityContentTaxonomy::competitionsCommentSettings()
+            ));
+            $payload['competitions_copyright_options'] = array_values(array_intersect(
+                (array) $request->input('competitions_copyright_options', []),
+                CommunityContentTaxonomy::competitionsCopyrightOptions()
+            ));
+            $payload['competitions_ai_used'] = $request->input('competitions_ai_used');
+            $payload['competitions_ai_tool'] = $request->input('competitions_ai_tool');
+            $payload['competitions_ai_extent'] = $request->input('competitions_ai_extent');
+            if ($request->input('competitions_ai_used') === 'No') {
+                unset($payload['competitions_ai_tool'], $payload['competitions_ai_extent']);
+            }
+            if (! $request->boolean('competitions_team_allowed')) {
+                unset(
+                    $payload['competitions_team_min_members'],
+                    $payload['competitions_team_max_members'],
+                    $payload['competitions_team_details']
+                );
+            }
+            $payload['competitions_enable_multi_section'] = $request->boolean('competitions_enable_multi_section');
+            $payload['competitions_origin_sections'] = array_values(array_intersect(
+                (array) $request->input('competitions_origin_sections', []),
+                CommunityContentTaxonomy::competitionsOriginSections()
+            ));
+            $payload['competitions_primary_origin_section'] = $request->input('competitions_primary_origin_section');
+            if (! $request->boolean('competitions_enable_multi_section')) {
+                unset($payload['competitions_origin_sections'], $payload['competitions_primary_origin_section']);
+            }
+            $payload['competitions_enable_auto_portfolio'] = $request->boolean('competitions_enable_auto_portfolio');
+            $payload['competitions_enable_entry_qr_codes'] = $request->boolean('competitions_enable_entry_qr_codes');
+            $payload['competitions_enable_achievement_badges'] = $request->boolean('competitions_enable_achievement_badges');
+            $payload['competitions_award_badges'] = array_values(array_intersect(
+                (array) $request->input('competitions_award_badges', []),
+                CommunityContentTaxonomy::competitionsAwardBadges()
+            ));
+            if (! $request->boolean('competitions_enable_achievement_badges')) {
+                unset($payload['competitions_award_badges']);
+            }
+            $payload['competitions_enable_leaderboards'] = $request->boolean('competitions_enable_leaderboards');
+            $payload['competitions_leaderboard_types'] = array_values(array_intersect(
+                (array) $request->input('competitions_leaderboard_types', []),
+                CommunityContentTaxonomy::competitionsLeaderboardTypes()
+            ));
+            if (! $request->boolean('competitions_enable_leaderboards')) {
+                unset($payload['competitions_leaderboard_types']);
+            }
+            $payload['competitions_enable_institution_dashboard'] = $request->boolean('competitions_enable_institution_dashboard');
+            $payload['competitions_institution_dashboard_notes'] = $request->input('competitions_institution_dashboard_notes');
+            if (! $request->boolean('competitions_enable_institution_dashboard')) {
+                unset($payload['competitions_institution_dashboard_notes']);
+            }
+            $payload['competitions_enable_sponsored_branding'] = $request->boolean('competitions_enable_sponsored_branding');
+            $payload['competitions_sponsored_branding_notes'] = $request->input('competitions_sponsored_branding_notes');
+            if (! $request->boolean('competitions_enable_sponsored_branding')) {
+                unset($payload['competitions_sponsored_branding_notes']);
+            }
+            $payload['competitions_enable_ecommerce'] = $request->boolean('competitions_enable_ecommerce');
+            $payload['competitions_ecommerce_options'] = array_values(array_intersect(
+                (array) $request->input('competitions_ecommerce_options', []),
+                CommunityContentTaxonomy::competitionsEcommerceOptions()
+            ));
+            if (! $request->boolean('competitions_enable_ecommerce')) {
+                unset($payload['competitions_ecommerce_options']);
+            }
+            $payload['competitions_enable_voting_fraud_protection'] = $request->boolean('competitions_enable_voting_fraud_protection');
+            $payload['competitions_voting_fraud_protections'] = array_values(array_intersect(
+                (array) $request->input('competitions_voting_fraud_protections', []),
+                CommunityContentTaxonomy::competitionsVotingFraudProtections()
+            ));
+            if (! $request->boolean('competitions_enable_voting_fraud_protection')) {
+                unset($payload['competitions_voting_fraud_protections']);
+            }
+            $payload['competitions_enable_digital_certificates'] = $request->boolean('competitions_enable_digital_certificates');
+            $payload['competitions_digital_certificate_types'] = array_values(array_intersect(
+                (array) $request->input('competitions_digital_certificate_types', []),
+                CommunityContentTaxonomy::competitionsDigitalCertificateTypes()
+            ));
+            $payload['competitions_enable_verifiable_certificate_ids'] = $request->boolean('competitions_enable_verifiable_certificate_ids');
+            if (! $request->boolean('competitions_enable_digital_certificates')) {
+                unset($payload['competitions_digital_certificate_types'], $payload['competitions_enable_verifiable_certificate_ids']);
+            }
+            foreach (CommunityContentTaxonomy::competitionsDeclarationStatements() as $field => $label) {
+                $payload[$field] = $request->boolean($field);
+            }
+        }
+
         if (CommunityPost::usesYouthCornerFlow($contentType)) {
             $payload['youth_corner_category'] = $request->input('youth_corner_category');
             $payload['youth_corner_content_type'] = $request->input('youth_corner_content_type');
@@ -2436,6 +2598,88 @@ class CommunityPostFormFields
     public static function creativeCornerStructuredMetaKeys(): array
     {
         return array_keys(self::creativeCornerDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function competitionsDetailMetaOrder(): array
+    {
+        return [
+            'competitions_competition_type' => 'Competition type',
+            'competitions_category' => 'Competition category',
+            'competitions_primary_origin_section' => 'Primary originating section',
+            'competitions_origin_sections' => 'Originating sections',
+            'competitions_organizer_name' => 'Organizer name',
+            'competitions_organizer_organization' => 'Organization',
+            'competitions_organizer_contact_person' => 'Contact person',
+            'competitions_organizer_email' => 'Email',
+            'competitions_organizer_phone' => 'Phone',
+            'competitions_organizer_website' => 'Website',
+            'competitions_eligibility' => 'Eligibility',
+            'competitions_themes' => 'Theme',
+            'competitions_submission_types' => 'Submission types',
+            'competitions_max_files' => 'Maximum files',
+            'competitions_max_file_size' => 'Maximum file size',
+            'competitions_allowed_formats' => 'Allowed formats',
+            'competitions_level' => 'Competition level',
+            'competitions_date_announcement' => 'Announcement date',
+            'competitions_date_registration_opens' => 'Registration opens',
+            'competitions_date_registration_closes' => 'Registration closes',
+            'competitions_date_submission_deadline' => 'Submission deadline',
+            'competitions_date_evaluation_period' => 'Evaluation period',
+            'competitions_date_result' => 'Result date',
+            'competitions_date_award_ceremony' => 'Award ceremony',
+            'competitions_registration_required' => 'Registration required',
+            'competitions_registration_fee' => 'Registration fee',
+            'competitions_max_participants' => 'Maximum participants',
+            'competitions_team_allowed' => 'Team allowed',
+            'competitions_individual_only' => 'Individual only',
+            'competitions_team_min_members' => 'Minimum team members',
+            'competitions_team_max_members' => 'Maximum team members',
+            'competitions_team_details' => 'Team details',
+            'competitions_entry_fields' => 'Entry fields',
+            'competitions_supporting_documents' => 'Supporting documents',
+            'competitions_judging_criteria' => 'Judging criteria',
+            'competitions_judging_weightage' => 'Judging weightage',
+            'competitions_prize_first' => 'First prize',
+            'competitions_prize_second' => 'Second prize',
+            'competitions_prize_third' => 'Third prize',
+            'competitions_prize_consolation' => 'Consolation prize',
+            'competitions_voting_system' => 'Voting system',
+            'competitions_public_voting_methods' => 'Public voting methods',
+            'competitions_comment_settings' => 'Comment settings',
+            'competitions_copyright_options' => 'Copyright options',
+            'competitions_ai_used' => 'AI used',
+            'competitions_ai_tool' => 'AI tool',
+            'competitions_ai_extent' => 'AI assistance extent',
+            'competitions_enable_multi_section' => 'Multi-section competition',
+            'competitions_enable_auto_portfolio' => 'Auto portfolio generation',
+            'competitions_enable_entry_qr_codes' => 'Entry QR codes',
+            'competitions_enable_achievement_badges' => 'Achievement badges',
+            'competitions_award_badges' => 'Award badge types',
+            'competitions_enable_leaderboards' => 'Leaderboards',
+            'competitions_leaderboard_types' => 'Leaderboard types',
+            'competitions_enable_institution_dashboard' => 'School & college dashboard',
+            'competitions_institution_dashboard_notes' => 'Institution dashboard notes',
+            'competitions_enable_sponsored_branding' => 'Sponsored competition',
+            'competitions_sponsored_branding_notes' => 'Sponsor branding notes',
+            'competitions_enable_ecommerce' => 'E-commerce integration',
+            'competitions_ecommerce_options' => 'E-commerce options',
+            'competitions_enable_voting_fraud_protection' => 'Voting fraud protection',
+            'competitions_voting_fraud_protections' => 'Fraud protection measures',
+            'competitions_enable_digital_certificates' => 'Digital certificates',
+            'competitions_digital_certificate_types' => 'Certificate types',
+            'competitions_enable_verifiable_certificate_ids' => 'Verifiable certificate IDs',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function competitionsStructuredMetaKeys(): array
+    {
+        return array_keys(self::competitionsDetailMetaOrder());
     }
 
     /**

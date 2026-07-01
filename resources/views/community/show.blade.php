@@ -799,6 +799,10 @@
                 @include('community.partials.creative-corner-show-sections', ['post' => $post])
             @endif
 
+            @if($post->isCompetitionsPost())
+                @include('community.partials.competitions-show-sections', ['post' => $post])
+            @endif
+
             @if($post->isLocalVoicesPost())
                 @include('community.partials.local-voices-show-sections', ['post' => $post])
                 @include('community.partials.local-voices-community-actions', [
@@ -1440,6 +1444,9 @@
 @endif
 @if($post->isCreativeCornerPost())
 @include('community.partials.creative-corner-styles')
+@endif
+@if($post->isCompetitionsPost())
+@include('community.partials.competitions-styles')
 @endif
 <style>
     .community-post-body {

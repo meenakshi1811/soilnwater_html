@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\CommunityCommunityIssuesEngagementNotificationService;
 use App\Services\CommunityAgricultureEngagementNotificationService;
 use App\Services\CommunityAstroConsultancyEngagementNotificationService;
+use App\Services\CommunityCompetitionsEngagementNotificationService;
 use App\Services\CommunityCreativeCornerEngagementNotificationService;
 use App\Services\CommunityReligionSpiritualityEngagementNotificationService;
 use App\Services\CommunityEnvironmentEngagementNotificationService;
@@ -114,6 +115,10 @@ class CommunityPostController extends Controller
     private const MAX_CREATIVE_CORNER_DOCUMENTS = 8;
 
     private const MAX_CREATIVE_CORNER_GALLERY = 12;
+
+    private const MAX_COMPETITIONS_JURY = 10;
+
+    private const MAX_COMPETITIONS_SPONSORS = 10;
 
     private const MAX_BUSINESS_GALLERY = 10;
 
@@ -1112,6 +1117,20 @@ class CommunityPostController extends Controller
         } elseif (CommunityPost::usesCreativeCornerFlow($request->input('content_type')) && $request->boolean('remove_creative_corner_audio')) {
             unset($data['meta']['creative_corner_audio']);
         }
+        $competitionsOrganizerLogo = $this->resolveCompetitionsOrganizerLogo($request);
+        if ($competitionsOrganizerLogo !== null) {
+            $data['meta']['competitions_organizer_logo'] = $competitionsOrganizerLogo;
+        } elseif (CommunityPost::usesCompetitionsFlow($request->input('content_type')) && $request->boolean('removed_competitions_organizer_logo')) {
+            unset($data['meta']['competitions_organizer_logo']);
+        }
+        $competitionsJury = $this->resolveCompetitionsJury($request);
+        if ($competitionsJury !== null) {
+            $data['meta']['competitions_jury'] = $competitionsJury;
+        }
+        $competitionsSponsors = $this->resolveCompetitionsSponsors($request);
+        if ($competitionsSponsors !== null) {
+            $data['meta']['competitions_sponsors'] = $competitionsSponsors;
+        }
         $scienceTechnologySourceCode = $this->resolveScienceTechnologySingleAttachment(
             $request,
             null,
@@ -1219,6 +1238,8 @@ class CommunityPostController extends Controller
             CommunityReligionSpiritualityEngagementNotificationService::notifyOnPublishedPost($post->fresh());
         } elseif ($post->isCreativeCornerPost() && $post->isPubliclyVisible()) {
             CommunityCreativeCornerEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        } elseif ($post->isCompetitionsPost() && $post->isPubliclyVisible()) {
+            CommunityCompetitionsEngagementNotificationService::notifyOnPublishedPost($post->fresh());
         }
 
         $message = $post->isPendingApproval()
@@ -1707,6 +1728,34 @@ class CommunityPostController extends Controller
             unset($data['meta']['creative_corner_audio']);
         }
 
+        $competitionsOrganizerLogo = $this->resolveCompetitionsOrganizerLogo($request, $post);
+        if ($competitionsOrganizerLogo !== null) {
+            $data['meta']['competitions_organizer_logo'] = $competitionsOrganizerLogo;
+        } elseif (CommunityPost::usesCompetitionsFlow($request->input('content_type')) && $request->boolean('removed_competitions_organizer_logo')) {
+            CommunityPostFileUploader::deleteIfExists(data_get($post->meta, 'competitions_organizer_logo.path'));
+            unset($data['meta']['competitions_organizer_logo']);
+        }
+
+        $competitionsJury = $this->resolveCompetitionsJury($request, $post);
+        if ($competitionsJury !== null) {
+            $data['meta']['competitions_jury'] = $competitionsJury;
+        } elseif (CommunityPost::usesCompetitionsFlow($request->input('content_type')) && data_get($post->meta, 'competitions_jury')) {
+            foreach ((array) data_get($post->meta, 'competitions_jury', []) as $member) {
+                CommunityPostFileUploader::deleteIfExists(data_get($member, 'photo.path'));
+            }
+            unset($data['meta']['competitions_jury']);
+        }
+
+        $competitionsSponsors = $this->resolveCompetitionsSponsors($request, $post);
+        if ($competitionsSponsors !== null) {
+            $data['meta']['competitions_sponsors'] = $competitionsSponsors;
+        } elseif (CommunityPost::usesCompetitionsFlow($request->input('content_type')) && data_get($post->meta, 'competitions_sponsors')) {
+            foreach ((array) data_get($post->meta, 'competitions_sponsors', []) as $sponsor) {
+                CommunityPostFileUploader::deleteIfExists(data_get($sponsor, 'logo.path'));
+            }
+            unset($data['meta']['competitions_sponsors']);
+        }
+
         foreach ([
             ['science_technology_source_code', 'science_technology_source_code', 'science-technology-source-code', 'removed_science_technology_source_code'],
             ['science_technology_circuit_diagram', 'science_technology_circuit_diagram', 'science-technology-circuit-diagram', 'removed_science_technology_circuit_diagram'],
@@ -1960,6 +2009,15 @@ class CommunityPostController extends Controller
             CommunityCreativeCornerEngagementNotificationService::maybeNotifyAskCommunityOnUpdate($post->fresh(), $originalMeta);
         }
 
+        if (
+            $post->isCompetitionsPost()
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityCompetitionsEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        }
+
         $message = $post->isPendingApproval()
             ? 'Community post submitted for admin approval.'
             : 'Community post updated successfully.';
@@ -2044,6 +2102,7 @@ class CommunityPostController extends Controller
         $isAstroConsultancy = CommunityPost::usesAstroConsultancyFlow(is_string($contentType) ? $contentType : null);
         $isReligionSpirituality = CommunityPost::usesReligionSpiritualityFlow(is_string($contentType) ? $contentType : null);
         $isCreativeCorner = CommunityPost::usesCreativeCornerFlow(is_string($contentType) ? $contentType : null);
+        $isCompetitions = CommunityPost::usesCompetitionsFlow(is_string($contentType) ? $contentType : null);
         $isStudentCornerProject = $isStudentCorner
             && $request->input('student_corner_content_type') === CommunityContentTaxonomy::studentCornerProjectContentType();
         $isYouthCornerProject = $isYouthCorner
@@ -2113,6 +2172,10 @@ class CommunityPostController extends Controller
 
         if ($isCreativeCorner && $request->filled('creative_corner_category')) {
             $request->merge(['category' => $request->input('creative_corner_category')]);
+        }
+
+        if ($isCompetitions && $request->filled('competitions_category')) {
+            $request->merge(['category' => $request->input('competitions_category')]);
         }
 
         if ($isMyArea && $request->filled('my_area_activity_type')) {
@@ -3622,6 +3685,132 @@ class CommunityPostController extends Controller
             'creative_corner_declaration_no_infringement' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'accepted'],
             'creative_corner_declaration_ai_disclosed' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'accepted'],
             'creative_corner_declaration_guidelines' => [Rule::excludeIf(fn () => ! $isCreativeCorner), 'accepted'],
+            'competitions_competition_type' => [
+                Rule::excludeIf(fn () => ! $isCompetitions),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::competitionsCompetitionTypes()),
+            ],
+            'competitions_category' => [
+                Rule::excludeIf(fn () => ! $isCompetitions),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::competitionsMainCategories()),
+            ],
+            'competitions_organizer_name' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:160'],
+            'competitions_organizer_organization' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:160'],
+            'competitions_organizer_contact_person' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:160'],
+            'competitions_organizer_email' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'email', 'max:160'],
+            'competitions_organizer_phone' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:40'],
+            'competitions_organizer_website' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'url', 'max:255'],
+            'competitions_organizer_logo' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'image', 'max:4096'],
+            'removed_competitions_organizer_logo' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_eligibility' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_eligibility.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsEligibilityGroups())],
+            'competitions_themes' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_themes.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsThemes())],
+            'competitions_submission_types' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_submission_types.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsSubmissionTypes())],
+            'competitions_max_files' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'integer', 'min:1', 'max:50'],
+            'competitions_max_file_size' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:40'],
+            'competitions_allowed_formats' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:255'],
+            'competitions_level' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::competitionsLevels())],
+            'competitions_date_announcement' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'date'],
+            'competitions_date_registration_opens' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'date'],
+            'competitions_date_registration_closes' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'date'],
+            'competitions_date_submission_deadline' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'date'],
+            'competitions_date_evaluation_period' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:120'],
+            'competitions_date_result' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'date'],
+            'competitions_date_award_ceremony' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'date'],
+            'competitions_registration_required' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_registration_fee' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:60'],
+            'competitions_max_participants' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'integer', 'min:1'],
+            'competitions_team_allowed' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_individual_only' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_team_min_members' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'integer', 'min:1'],
+            'competitions_team_max_members' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'integer', 'min:1'],
+            'competitions_team_details' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_team_details.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsTeamDetailOptions())],
+            'competitions_entry_fields' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_entry_fields.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsEntryFields())],
+            'competitions_supporting_documents' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_supporting_documents.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsSupportingDocumentTypes())],
+            'competitions_judging_criteria' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_judging_criteria.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsJudgingCriteriaOptions())],
+            'competitions_judging_weightage' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:2000'],
+            'competitions_jury' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array', 'max:'.self::MAX_COMPETITIONS_JURY],
+            'competitions_jury.*.name' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:160'],
+            'competitions_jury.*.designation' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:160'],
+            'competitions_jury.*.organization' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:160'],
+            'competitions_jury.*.profile' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:2000'],
+            'competitions_jury_photos' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_jury_photos.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'image', 'max:4096'],
+            'competitions_jury_remove_photo' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_jury_remove_photo.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'integer', 'min:0'],
+            'competitions_prize_first' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:255'],
+            'competitions_prize_second' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:255'],
+            'competitions_prize_third' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:255'],
+            'competitions_prize_consolation' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:255'],
+            'competitions_prize_certificates' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_prize_trophies' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_prize_cash' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_prize_gift_voucher' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_prize_internship' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_prize_scholarship' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_prize_featured_homepage' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_certificate_participation' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_certificate_winner' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_certificate_merit' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_certificate_digital' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_sponsors' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array', 'max:'.self::MAX_COMPETITIONS_SPONSORS],
+            'competitions_sponsors.*.name' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:160'],
+            'competitions_sponsors.*.website' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'url', 'max:255'],
+            'competitions_sponsors.*.contribution' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:255'],
+            'competitions_sponsor_logos' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_sponsor_logos.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'image', 'max:4096'],
+            'competitions_sponsor_remove_logo' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_sponsor_remove_logo.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'integer', 'min:0'],
+            'competitions_voting_system' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::competitionsVotingSystems())],
+            'competitions_public_voting_methods' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_public_voting_methods.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsPublicVotingMethods())],
+            'competitions_comment_settings' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_comment_settings.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsCommentSettings())],
+            'competitions_copyright_options' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_copyright_options.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsCopyrightOptions())],
+            'competitions_ai_used' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::competitionsAiUsageOptions())],
+            'competitions_ai_tool' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:160'],
+            'competitions_ai_extent' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:2000'],
+            'competitions_declaration_original' => [Rule::excludeIf(fn () => ! $isCompetitions), 'accepted'],
+            'competitions_declaration_permission' => [Rule::excludeIf(fn () => ! $isCompetitions), 'accepted'],
+            'competitions_declaration_ai_disclosed' => [Rule::excludeIf(fn () => ! $isCompetitions), 'accepted'],
+            'competitions_declaration_rules' => [Rule::excludeIf(fn () => ! $isCompetitions), 'accepted'],
+            'competitions_declaration_display' => [Rule::excludeIf(fn () => ! $isCompetitions), 'accepted'],
+            'competitions_enable_multi_section' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_origin_sections' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_origin_sections.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsOriginSections())],
+            'competitions_primary_origin_section' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::competitionsOriginSections())],
+            'competitions_enable_auto_portfolio' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_enable_entry_qr_codes' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_enable_achievement_badges' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_award_badges' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_award_badges.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsAwardBadges())],
+            'competitions_enable_leaderboards' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_leaderboard_types' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_leaderboard_types.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsLeaderboardTypes())],
+            'competitions_enable_institution_dashboard' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_institution_dashboard_notes' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:2000'],
+            'competitions_enable_sponsored_branding' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_sponsored_branding_notes' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'string', 'max:2000'],
+            'competitions_enable_ecommerce' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_ecommerce_options' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_ecommerce_options.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsEcommerceOptions())],
+            'competitions_enable_voting_fraud_protection' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_voting_fraud_protections' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_voting_fraud_protections.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsVotingFraudProtections())],
+            'competitions_enable_digital_certificates' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
+            'competitions_digital_certificate_types' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'array'],
+            'competitions_digital_certificate_types.*' => [Rule::excludeIf(fn () => ! $isCompetitions), 'string', Rule::in(CommunityContentTaxonomy::competitionsDigitalCertificateTypes())],
+            'competitions_enable_verifiable_certificate_ids' => [Rule::excludeIf(fn () => ! $isCompetitions), 'nullable', 'boolean'],
             'community_issue_severity' => [
                 Rule::excludeIf(fn () => ! $isCommunityIssues),
                 'required',
@@ -6616,6 +6805,164 @@ class CommunityPostController extends Controller
         }
 
         return data_get($post?->meta, 'creative_corner_audio');
+    }
+
+    /**
+     * @return array{path: string, url: string, name: string, type: string}|null
+     */
+    private function resolveCompetitionsOrganizerLogo(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesCompetitionsFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = data_get($post?->meta, 'competitions_organizer_logo');
+
+        if ($request->boolean('removed_competitions_organizer_logo') && is_array($existing)) {
+            CommunityPostFileUploader::deleteIfExists(data_get($existing, 'path'));
+
+            return null;
+        }
+
+        if ($request->hasFile('competitions_organizer_logo')) {
+            if (is_array($existing)) {
+                CommunityPostFileUploader::deleteIfExists(data_get($existing, 'path'));
+            }
+
+            return CommunityPostFileUploader::storeAttachment($request->file('competitions_organizer_logo'), 'competitions-organizer-logo');
+        }
+
+        return is_array($existing) ? $existing : null;
+    }
+
+    /**
+     * @return list<array{name: string, designation: string, organization: string, profile: string, photo?: array{path: string, url: string, name: string, type: string}}>|null
+     */
+    private function resolveCompetitionsJury(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesCompetitionsFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $submitted = collect((array) $request->input('competitions_jury', []))
+            ->values();
+        $existing = collect((array) data_get($post?->meta, 'competitions_jury', []))->values();
+        $removePhotos = array_map('intval', (array) $request->input('competitions_jury_remove_photo', []));
+
+        if ($submitted->isEmpty() && $existing->isEmpty()) {
+            return null;
+        }
+
+        $resolved = [];
+
+        foreach ($submitted as $index => $member) {
+            $name = trim((string) data_get($member, 'name'));
+            $designation = trim((string) data_get($member, 'designation'));
+            $organization = trim((string) data_get($member, 'organization'));
+            $profile = trim((string) data_get($member, 'profile'));
+
+            if ($name === '' && $designation === '' && $organization === '' && $profile === '') {
+                continue;
+            }
+
+            $entry = [
+                'name' => $name,
+                'designation' => $designation,
+                'organization' => $organization,
+                'profile' => $profile,
+            ];
+
+            $existingPhoto = data_get($existing->get($index), 'photo');
+            if (in_array((int) $index, $removePhotos, true) && is_array($existingPhoto)) {
+                CommunityPostFileUploader::deleteIfExists(data_get($existingPhoto, 'path'));
+                $existingPhoto = null;
+            }
+
+            if ($request->hasFile('competitions_jury_photos.'.$index)) {
+                if (is_array($existingPhoto)) {
+                    CommunityPostFileUploader::deleteIfExists(data_get($existingPhoto, 'path'));
+                }
+
+                $entry['photo'] = CommunityPostFileUploader::storeAttachment(
+                    $request->file('competitions_jury_photos.'.$index),
+                    'competitions-jury-photo'
+                );
+            } elseif (is_array($existingPhoto)) {
+                $entry['photo'] = $existingPhoto;
+            }
+
+            $resolved[] = $entry;
+        }
+
+        foreach ($existing->slice($submitted->count()) as $orphaned) {
+            CommunityPostFileUploader::deleteIfExists(data_get($orphaned, 'photo.path'));
+        }
+
+        return $resolved === [] ? null : array_values(array_slice($resolved, 0, self::MAX_COMPETITIONS_JURY));
+    }
+
+    /**
+     * @return list<array{name: string, website: string, contribution: string, logo?: array{path: string, url: string, name: string, type: string}}>|null
+     */
+    private function resolveCompetitionsSponsors(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesCompetitionsFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $submitted = collect((array) $request->input('competitions_sponsors', []))
+            ->values();
+        $existing = collect((array) data_get($post?->meta, 'competitions_sponsors', []))->values();
+        $removeLogos = array_map('intval', (array) $request->input('competitions_sponsor_remove_logo', []));
+
+        if ($submitted->isEmpty() && $existing->isEmpty()) {
+            return null;
+        }
+
+        $resolved = [];
+
+        foreach ($submitted as $index => $sponsor) {
+            $name = trim((string) data_get($sponsor, 'name'));
+            $website = trim((string) data_get($sponsor, 'website'));
+            $contribution = trim((string) data_get($sponsor, 'contribution'));
+
+            if ($name === '' && $website === '' && $contribution === '') {
+                continue;
+            }
+
+            $entry = [
+                'name' => $name,
+                'website' => $website,
+                'contribution' => $contribution,
+            ];
+
+            $existingLogo = data_get($existing->get($index), 'logo');
+            if (in_array((int) $index, $removeLogos, true) && is_array($existingLogo)) {
+                CommunityPostFileUploader::deleteIfExists(data_get($existingLogo, 'path'));
+                $existingLogo = null;
+            }
+
+            if ($request->hasFile('competitions_sponsor_logos.'.$index)) {
+                if (is_array($existingLogo)) {
+                    CommunityPostFileUploader::deleteIfExists(data_get($existingLogo, 'path'));
+                }
+
+                $entry['logo'] = CommunityPostFileUploader::storeAttachment(
+                    $request->file('competitions_sponsor_logos.'.$index),
+                    'competitions-sponsor-logo'
+                );
+            } elseif (is_array($existingLogo)) {
+                $entry['logo'] = $existingLogo;
+            }
+
+            $resolved[] = $entry;
+        }
+
+        foreach ($existing->slice($submitted->count()) as $orphaned) {
+            CommunityPostFileUploader::deleteIfExists(data_get($orphaned, 'logo.path'));
+        }
+
+        return $resolved === [] ? null : array_values(array_slice($resolved, 0, self::MAX_COMPETITIONS_SPONSORS));
     }
 
     /**
