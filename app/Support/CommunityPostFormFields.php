@@ -56,11 +56,7 @@ class CommunityPostFormFields
                 self::textarea('cultural_significance', 'Cultural significance', 2000, true),
             ]),
             'astro-consultancy' => self::section('Astro Consultancy details', 'Astro Consultancy', 'Use the dedicated Astro Consultancy flow fields on the form.', []),
-            'religion-spirituality' => self::section('Spiritual details', 'Religion & Spirituality', 'Spiritual article metadata for tradition and practice.', [
-                self::text('spiritual_tradition', 'Tradition / faith context', 120, true),
-                self::select('practice_type', 'Practice type', ['Meditation', 'Temple Information', 'Festival', 'Scripture', 'Devotional', 'Guidance'], true),
-                self::textarea('spiritual_guidance', 'Guidance summary', 2000, false),
-            ]),
+            'religion-spirituality' => self::section('Religion & Spirituality details', 'Religion & Spirituality', 'Use the dedicated Religion & Spirituality flow fields on the form.', []),
             'agriculture' => self::section('Agriculture details', 'Agriculture', 'Use the dedicated Agriculture flow fields on the form.', []),
             'environment' => self::section('Environment details', 'Environment', 'Use the dedicated Environment flow fields on the form.', []),
             'science-technology' => self::section('Science & Technology details', 'Science & Technology', 'Use the dedicated Science & Technology flow fields on the form.', []),
@@ -1080,6 +1076,117 @@ class CommunityPostFormFields
             }
         }
 
+        if (CommunityPost::usesReligionSpiritualityFlow($contentType)) {
+            $payload['religion_spirituality_post_type'] = $request->input('religion_spirituality_post_type');
+            $payload['religion_spirituality_category'] = $request->input('religion_spirituality_category');
+            $payload['religion_spirituality_tradition'] = $request->input('religion_spirituality_tradition');
+            $payload['religion_spirituality_target_audience'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_target_audience', []),
+                CommunityContentTaxonomy::religionSpiritualityTargetAudiences()
+            ));
+            $payload['religion_spirituality_scripture_name'] = $request->input('religion_spirituality_scripture_name');
+            $payload['religion_spirituality_scripture_chapter'] = $request->input('religion_spirituality_scripture_chapter');
+            $payload['religion_spirituality_scripture_verse'] = $request->input('religion_spirituality_scripture_verse');
+            $payload['religion_spirituality_scripture_reference'] = $request->input('religion_spirituality_scripture_reference');
+            $payload['religion_spirituality_moral_messages'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_moral_messages', []),
+                CommunityContentTaxonomy::religionSpiritualityMoralValues()
+            ));
+            $payload['religion_spirituality_festival_name'] = $request->input('religion_spirituality_festival_name');
+            $payload['religion_spirituality_festival_date'] = $request->input('religion_spirituality_festival_date');
+            $payload['religion_spirituality_festival_historical_significance'] = $request->input('religion_spirituality_festival_historical_significance');
+            $payload['religion_spirituality_festival_traditional_practices'] = $request->input('religion_spirituality_festival_traditional_practices');
+            $payload['religion_spirituality_festival_celebration_methods'] = $request->input('religion_spirituality_festival_celebration_methods');
+            $payload['religion_spirituality_festival_regional_variations'] = $request->input('religion_spirituality_festival_regional_variations');
+            $payload['religion_spirituality_pilgrimage_name'] = $request->input('religion_spirituality_pilgrimage_name');
+            $payload['religion_spirituality_pilgrimage_location'] = $request->input('religion_spirituality_pilgrimage_location');
+            $payload['religion_spirituality_pilgrimage_best_time'] = $request->input('religion_spirituality_pilgrimage_best_time');
+            $payload['religion_spirituality_pilgrimage_history'] = $request->input('religion_spirituality_pilgrimage_history');
+            $payload['religion_spirituality_pilgrimage_facilities'] = $request->input('religion_spirituality_pilgrimage_facilities');
+            $payload['religion_spirituality_pilgrimage_travel_tips'] = $request->input('religion_spirituality_pilgrimage_travel_tips');
+            $payload['religion_spirituality_pilgrimage_accommodation'] = $request->input('religion_spirituality_pilgrimage_accommodation');
+            $payload['religion_spirituality_place_of_worship_type'] = $request->input('religion_spirituality_place_of_worship_type');
+            $payload['religion_spirituality_location_country'] = $request->input('religion_spirituality_location_country');
+            $payload['religion_spirituality_location_state'] = $request->input('religion_spirituality_location_state');
+            $payload['religion_spirituality_location_district'] = $request->input('religion_spirituality_location_district');
+            $payload['religion_spirituality_location_city'] = $request->input('religion_spirituality_location_city');
+            $payload['religion_spirituality_location_gps'] = $request->input('religion_spirituality_location_gps');
+            $payload['religion_spirituality_meditation_topics'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_meditation_topics', []),
+                CommunityContentTaxonomy::religionSpiritualityMeditationTopics()
+            ));
+            $payload['religion_spirituality_community_service_activities'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_community_service_activities', []),
+                CommunityContentTaxonomy::religionSpiritualityCommunityServiceActivities()
+            ));
+            $payload['religion_spirituality_video_type'] = $request->input('religion_spirituality_video_type');
+            $payload['religion_spirituality_audio_type'] = $request->input('religion_spirituality_audio_type');
+            $payload['religion_spirituality_document_types'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_document_types', []),
+                CommunityContentTaxonomy::religionSpiritualityDocumentTypes()
+            ));
+            $payload['religion_spirituality_related_service_actions'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_related_service_actions', []),
+                CommunityContentTaxonomy::religionSpiritualityRelatedServiceActions()
+            ));
+            $payload['religion_spirituality_enable_digital_pilgrimage_guide'] = $request->boolean('religion_spirituality_enable_digital_pilgrimage_guide');
+            $payload['religion_spirituality_digital_pilgrimage_site_types'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_digital_pilgrimage_site_types', []),
+                CommunityContentTaxonomy::religionSpiritualityDigitalPilgrimageSiteTypes()
+            ));
+            $payload['religion_spirituality_digital_pilgrimage_site_name'] = $request->input('religion_spirituality_digital_pilgrimage_site_name');
+            $payload['religion_spirituality_digital_pilgrimage_verified_info'] = $request->input('religion_spirituality_digital_pilgrimage_verified_info');
+            $payload['religion_spirituality_digital_pilgrimage_nearby_facilities'] = $request->input('religion_spirituality_digital_pilgrimage_nearby_facilities');
+            $payload['religion_spirituality_digital_pilgrimage_accommodation'] = $request->input('religion_spirituality_digital_pilgrimage_accommodation');
+            $payload['religion_spirituality_digital_pilgrimage_local_businesses'] = $request->input('religion_spirituality_digital_pilgrimage_local_businesses');
+            $payload['religion_spirituality_digital_pilgrimage_map_url'] = $request->input('religion_spirituality_digital_pilgrimage_map_url');
+            $payload['religion_spirituality_enable_festival_calendar'] = $request->boolean('religion_spirituality_enable_festival_calendar');
+            $payload['religion_spirituality_festival_calendar_event_types'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_festival_calendar_event_types', []),
+                CommunityContentTaxonomy::religionSpiritualityFestivalCalendarEventTypes()
+            ));
+            $payload['religion_spirituality_festival_calendar_event_name'] = $request->input('religion_spirituality_festival_calendar_event_name');
+            $payload['religion_spirituality_festival_calendar_event_date'] = $request->input('religion_spirituality_festival_calendar_event_date');
+            $payload['religion_spirituality_festival_calendar_description'] = $request->input('religion_spirituality_festival_calendar_description');
+            $payload['religion_spirituality_festival_calendar_linked_article_url'] = $request->input('religion_spirituality_festival_calendar_linked_article_url');
+            $payload['religion_spirituality_enable_community_service_directory'] = $request->boolean('religion_spirituality_enable_community_service_directory');
+            $payload['religion_spirituality_service_directory_opportunities'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_service_directory_opportunities', []),
+                CommunityContentTaxonomy::religionSpiritualityServiceDirectoryOpportunities()
+            ));
+            $payload['religion_spirituality_service_directory_organization'] = $request->input('religion_spirituality_service_directory_organization');
+            $payload['religion_spirituality_service_directory_when_where'] = $request->input('religion_spirituality_service_directory_when_where');
+            $payload['religion_spirituality_service_directory_volunteer_notes'] = $request->input('religion_spirituality_service_directory_volunteer_notes');
+            $payload['religion_spirituality_enable_wisdom_library'] = $request->boolean('religion_spirituality_enable_wisdom_library');
+            $payload['religion_spirituality_wisdom_themes'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_wisdom_themes', []),
+                CommunityContentTaxonomy::religionSpiritualityWisdomLibraryThemes()
+            ));
+            $payload['religion_spirituality_wisdom_traditions'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_wisdom_traditions', []),
+                CommunityContentTaxonomy::religionSpiritualityTraditions()
+            ));
+            $payload['religion_spirituality_wisdom_collection_summary'] = $request->input('religion_spirituality_wisdom_collection_summary');
+            $payload['religion_spirituality_ask_community'] = $request->input('religion_spirituality_ask_community');
+            $payload['religion_spirituality_allow_poll'] = $request->boolean('religion_spirituality_allow_poll');
+            $payload['religion_spirituality_poll_question'] = $request->input('religion_spirituality_poll_question');
+            $payload['religion_spirituality_poll_options'] = collect(preg_split('/\R/', (string) $request->input('religion_spirituality_poll_options', '')))
+                ->map(fn (mixed $line): string => trim((string) $line))
+                ->filter()
+                ->values()
+                ->all();
+            if (! $request->boolean('religion_spirituality_allow_poll')) {
+                unset($payload['religion_spirituality_poll_question'], $payload['religion_spirituality_poll_options']);
+            }
+            $payload['religion_spirituality_comment_settings'] = array_values(array_intersect(
+                (array) $request->input('religion_spirituality_comment_settings', []),
+                CommunityContentTaxonomy::religionSpiritualityCommentSettings()
+            ));
+            foreach (CommunityContentTaxonomy::religionSpiritualityDeclarationStatements() as $field => $label) {
+                $payload[$field] = $request->boolean($field);
+            }
+        }
+
         if (CommunityPost::usesYouthCornerFlow($contentType)) {
             $payload['youth_corner_category'] = $request->input('youth_corner_category');
             $payload['youth_corner_content_type'] = $request->input('youth_corner_content_type');
@@ -2091,6 +2198,84 @@ class CommunityPostFormFields
     public static function astroConsultancyStructuredMetaKeys(): array
     {
         return array_keys(self::astroConsultancyDetailMetaOrder());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function religionSpiritualityDetailMetaOrder(): array
+    {
+        return [
+            'religion_spirituality_post_type' => 'Post type',
+            'religion_spirituality_category' => 'Main category',
+            'religion_spirituality_tradition' => 'Religious tradition',
+            'religion_spirituality_target_audience' => 'Target audience',
+            'religion_spirituality_scripture_name' => 'Scripture name',
+            'religion_spirituality_scripture_chapter' => 'Scripture chapter',
+            'religion_spirituality_scripture_verse' => 'Scripture verse',
+            'religion_spirituality_scripture_reference' => 'Scripture reference',
+            'religion_spirituality_moral_messages' => 'Moral message',
+            'religion_spirituality_festival_name' => 'Festival name',
+            'religion_spirituality_festival_date' => 'Festival date',
+            'religion_spirituality_festival_historical_significance' => 'Historical significance',
+            'religion_spirituality_festival_traditional_practices' => 'Traditional practices',
+            'religion_spirituality_festival_celebration_methods' => 'Celebration methods',
+            'religion_spirituality_festival_regional_variations' => 'Regional variations',
+            'religion_spirituality_pilgrimage_name' => 'Pilgrimage name',
+            'religion_spirituality_pilgrimage_location' => 'Pilgrimage location',
+            'religion_spirituality_pilgrimage_best_time' => 'Best time to visit',
+            'religion_spirituality_pilgrimage_history' => 'Pilgrimage history',
+            'religion_spirituality_pilgrimage_facilities' => 'Pilgrimage facilities',
+            'religion_spirituality_pilgrimage_travel_tips' => 'Travel tips',
+            'religion_spirituality_pilgrimage_accommodation' => 'Accommodation',
+            'religion_spirituality_place_of_worship_type' => 'Place of worship',
+            'religion_spirituality_location_country' => 'Country',
+            'religion_spirituality_location_state' => 'State',
+            'religion_spirituality_location_district' => 'District',
+            'religion_spirituality_location_city' => 'City',
+            'religion_spirituality_location_gps' => 'GPS / map link',
+            'religion_spirituality_meditation_topics' => 'Meditation & wellness topics',
+            'religion_spirituality_community_service_activities' => 'Community service activities',
+            'religion_spirituality_video_type' => 'Video type',
+            'religion_spirituality_audio_type' => 'Audio type',
+            'religion_spirituality_document_types' => 'Document types',
+            'religion_spirituality_enable_digital_pilgrimage_guide' => 'Digital Pilgrimage Guide',
+            'religion_spirituality_digital_pilgrimage_site_name' => 'Pilgrimage site name',
+            'religion_spirituality_digital_pilgrimage_site_types' => 'Pilgrimage site types',
+            'religion_spirituality_digital_pilgrimage_verified_info' => 'Verified information',
+            'religion_spirituality_digital_pilgrimage_nearby_facilities' => 'Nearby facilities',
+            'religion_spirituality_digital_pilgrimage_accommodation' => 'Pilgrimage accommodation',
+            'religion_spirituality_digital_pilgrimage_local_businesses' => 'Local SoilnWater businesses',
+            'religion_spirituality_digital_pilgrimage_map_url' => 'Map URL',
+            'religion_spirituality_enable_festival_calendar' => 'Festival Calendar',
+            'religion_spirituality_festival_calendar_event_types' => 'Calendar event types',
+            'religion_spirituality_festival_calendar_event_name' => 'Calendar event name',
+            'religion_spirituality_festival_calendar_event_date' => 'Calendar event date',
+            'religion_spirituality_festival_calendar_description' => 'Calendar description',
+            'religion_spirituality_festival_calendar_linked_article_url' => 'Linked article URL',
+            'religion_spirituality_enable_community_service_directory' => 'Community Service Directory',
+            'religion_spirituality_service_directory_opportunities' => 'Volunteer opportunities',
+            'religion_spirituality_service_directory_organization' => 'Organization',
+            'religion_spirituality_service_directory_when_where' => 'When & where',
+            'religion_spirituality_service_directory_volunteer_notes' => 'Volunteer notes',
+            'religion_spirituality_enable_wisdom_library' => 'Wisdom Library',
+            'religion_spirituality_wisdom_themes' => 'Universal themes',
+            'religion_spirituality_wisdom_traditions' => 'Traditions covered',
+            'religion_spirituality_wisdom_collection_summary' => 'Collection summary',
+            'religion_spirituality_related_service_actions' => 'Related community service',
+            'religion_spirituality_ask_community' => 'Ask the community',
+            'religion_spirituality_poll_question' => 'Poll question',
+            'religion_spirituality_poll_options' => 'Poll options',
+            'religion_spirituality_comment_settings' => 'Comments settings',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityStructuredMetaKeys(): array
+    {
+        return array_keys(self::religionSpiritualityDetailMetaOrder());
     }
 
     /**

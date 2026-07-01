@@ -18,6 +18,7 @@ use App\Services\CommunityYouthCornerEngagementNotificationService;
 use App\Services\CommunityWomensWorldEngagementNotificationService;
 use App\Services\CommunityAgricultureEngagementNotificationService;
 use App\Services\CommunityAstroConsultancyEngagementNotificationService;
+use App\Services\CommunityReligionSpiritualityEngagementNotificationService;
 use App\Services\CommunityEnvironmentEngagementNotificationService;
 use App\Services\PortalNotificationService;
 use App\Support\CommunityContentTaxonomy;
@@ -177,6 +178,9 @@ class CommunityPostApprovalController extends Controller
             }
             if ($post->isAstroConsultancyPost()) {
                 CommunityAstroConsultancyEngagementNotificationService::notifyOnPublishedPost($post);
+            }
+            if ($post->isReligionSpiritualityPost()) {
+                CommunityReligionSpiritualityEngagementNotificationService::notifyOnPublishedPost($post);
             }
             CommunityReportEngagementNotificationService::notifyFollowersOfReportUpdate(
                 $post,

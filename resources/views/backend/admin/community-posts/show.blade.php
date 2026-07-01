@@ -145,6 +145,12 @@
     @endpush
 @endif
 
+@if($post->isReligionSpiritualityPost())
+    @push('styles')
+        @include('community.partials.religion-spirituality-styles')
+    @endpush
+@endif
+
 @section('content')
 <div class="admin-panel ems-page">
     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
@@ -448,6 +454,15 @@
                             @include('community.partials.astro-consultancy-meta-details', [
                                 'post' => $post,
                                 'heading' => 'Astro Consultancy metadata',
+                                'includeAdmin' => true,
+                            ])
+                        @endif
+
+                        @if($post->isReligionSpiritualityPost())
+                            @include('community.partials.religion-spirituality-show-sections', ['post' => $post])
+                            @include('community.partials.religion-spirituality-meta-details', [
+                                'post' => $post,
+                                'heading' => 'Religion & Spirituality metadata',
                                 'includeAdmin' => true,
                             ])
                         @endif

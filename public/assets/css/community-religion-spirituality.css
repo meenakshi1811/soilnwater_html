@@ -1,0 +1,189 @@
+.rs-show-overview {
+    background: linear-gradient(135deg, #0f4c5c 0%, #1a6b5c 42%, #b45309 100%);
+    border-radius: 18px;
+    color: #fff;
+    padding: 1.35rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 14px 32px rgba(15, 76, 92, 0.22);
+}
+
+.rs-show-overview__kicker {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.92;
+    margin-bottom: 0.35rem;
+}
+
+.rs-show-overview__objective {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 0.85rem;
+    opacity: 0.95;
+}
+
+.rs-show-overview__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.rs-show-chip {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.rs-show-chip--flagship {
+    background: rgba(255, 255, 255, 0.24);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.rs-flagship-strip {
+    background: linear-gradient(90deg, #ecfdf5 0%, #fffbeb 55%, #fef3c7 100%);
+    border: 1px solid rgba(26, 107, 92, 0.18);
+    border-radius: 14px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 1.5rem;
+}
+
+.rs-flagship-strip__title {
+    color: #0f4c5c;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.rs-flagship-banner {
+    background: #fff;
+    border: 1px solid rgba(15, 76, 92, 0.14);
+    border-radius: 14px;
+    padding: 1.1rem 1.2rem;
+    margin-bottom: 1.25rem;
+}
+
+.rs-flagship-banner--pilgrimage {
+    border-color: rgba(15, 76, 92, 0.28);
+    background: linear-gradient(90deg, #ecfeff 0%, #f0fdf4 55%, #ecfeff 100%);
+}
+
+.rs-flagship-banner--festival {
+    border-color: rgba(180, 83, 9, 0.28);
+    background: linear-gradient(90deg, #fffbeb 0%, #fef3c7 55%, #fffbeb 100%);
+}
+
+.rs-flagship-banner--service {
+    border-color: rgba(22, 163, 74, 0.22);
+    background: linear-gradient(90deg, #f0fdf4 0%, #ecfdf5 55%, #f0fdf4 100%);
+}
+
+.rs-flagship-banner--wisdom {
+    border-color: rgba(79, 70, 229, 0.22);
+    background: linear-gradient(90deg, #eef2ff 0%, #faf5ff 55%, #eef2ff 100%);
+}
+
+.rs-flagship-banner--scripture {
+    border-color: rgba(120, 53, 15, 0.22);
+    background: linear-gradient(90deg, #fff7ed 0%, #fef3c7 55%, #fff7ed 100%);
+}
+
+.rs-flagship-banner__heading {
+    align-items: center;
+    color: #0f4c5c;
+    display: flex;
+    font-size: 1rem;
+    font-weight: 700;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
+}
+
+.rs-section-panel {
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    border: 1px solid rgba(15, 76, 92, 0.12);
+    border-radius: 16px;
+    margin-bottom: 1.25rem;
+    padding: 1.15rem 1.25rem;
+}
+
+.rs-section-panel__label {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.rs-capability-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.rs-capability-pill {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #a7f3d0;
+    border-radius: 999px;
+    color: #0f4c5c;
+    display: inline-flex;
+    font-size: 0.8rem;
+    font-weight: 600;
+    gap: 0.35rem;
+    padding: 0.4rem 0.8rem;
+}
+
+.rs-capability-pill.is-disabled {
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    opacity: 0.75;
+}
+
+.rs-ask-community {
+    background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+    border: 1px solid rgba(180, 83, 9, 0.2);
+    border-left: 4px solid #b45309;
+    border-radius: 14px;
+    margin-bottom: 1.25rem;
+    padding: 1.1rem 1.2rem;
+}
+
+.rs-ask-community__quote {
+    color: #334155;
+    font-size: 1.02rem;
+    font-style: italic;
+    line-height: 1.65;
+    margin-bottom: 0;
+}
+
+.rs-guidelines {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    color: #475569;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+    padding: 0.9rem 1rem;
+}
+
+.rs-gallery-grid img {
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    width: 100%;
+}
+
+.rs-unique-feature-badge {
+    background: #0f4c5c;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.3rem 0.65rem;
+    text-transform: uppercase;
+}

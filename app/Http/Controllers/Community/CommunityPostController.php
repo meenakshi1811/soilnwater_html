@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\CommunityCommunityIssuesEngagementNotificationService;
 use App\Services\CommunityAgricultureEngagementNotificationService;
 use App\Services\CommunityAstroConsultancyEngagementNotificationService;
+use App\Services\CommunityReligionSpiritualityEngagementNotificationService;
 use App\Services\CommunityEnvironmentEngagementNotificationService;
 use App\Services\CommunityPostParticipationNotificationService;
 use App\Services\CommunityReportEngagementNotificationService;
@@ -104,6 +105,10 @@ class CommunityPostController extends Controller
     private const MAX_SCIENCE_TECHNOLOGY_DOCUMENTS = 8;
 
     private const MAX_ASTRO_CONSULTANCY_DOCUMENTS = 8;
+
+    private const MAX_RELIGION_SPIRITUALITY_DOCUMENTS = 8;
+
+    private const MAX_RELIGION_SPIRITUALITY_GALLERY = 10;
 
     private const MAX_BUSINESS_GALLERY = 10;
 
@@ -419,6 +424,14 @@ class CommunityPostController extends Controller
             );
         }
 
+        if ($post->isReligionSpiritualityPost() && $active) {
+            CommunityReligionSpiritualityEngagementNotificationService::notifyAuthorOfReaction(
+                $post,
+                $request->user(),
+                $data['reaction']
+            );
+        }
+
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
@@ -577,6 +590,15 @@ class CommunityPostController extends Controller
 
         if ($post->isAstroConsultancyPost()) {
             CommunityAstroConsultancyEngagementNotificationService::notifyAuthorOfCommunityResponse(
+                $post,
+                $request->user(),
+                $data['body'],
+                filled($data['parent_id'] ?? null)
+            );
+        }
+
+        if ($post->isReligionSpiritualityPost()) {
+            CommunityReligionSpiritualityEngagementNotificationService::notifyAuthorOfCommunityResponse(
                 $post,
                 $request->user(),
                 $data['body'],
@@ -1040,6 +1062,20 @@ class CommunityPostController extends Controller
         if ($astroConsultancyDocuments !== null) {
             $data['meta']['astro_consultancy_documents'] = $astroConsultancyDocuments;
         }
+        $religionSpiritualityGallery = $this->resolveReligionSpiritualityGallery($request);
+        if ($religionSpiritualityGallery !== null) {
+            $data['meta']['religion_spirituality_gallery'] = $religionSpiritualityGallery;
+        }
+        $religionSpiritualityDocuments = $this->resolveReligionSpiritualityDocuments($request);
+        if ($religionSpiritualityDocuments !== null) {
+            $data['meta']['religion_spirituality_documents'] = $religionSpiritualityDocuments;
+        }
+        $religionSpiritualityAudio = $this->resolveReligionSpiritualityAudio($request);
+        if ($religionSpiritualityAudio !== null) {
+            $data['meta']['religion_spirituality_audio'] = $religionSpiritualityAudio;
+        } elseif (CommunityPost::usesReligionSpiritualityFlow($request->input('content_type')) && $request->boolean('remove_religion_spirituality_audio')) {
+            unset($data['meta']['religion_spirituality_audio']);
+        }
         $scienceTechnologySourceCode = $this->resolveScienceTechnologySingleAttachment(
             $request,
             null,
@@ -1143,6 +1179,8 @@ class CommunityPostController extends Controller
             CommunityEnvironmentEngagementNotificationService::notifyOnPublishedPost($post->fresh());
         } elseif ($post->isAstroConsultancyPost() && $post->isPubliclyVisible()) {
             CommunityAstroConsultancyEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        } elseif ($post->isReligionSpiritualityPost() && $post->isPubliclyVisible()) {
+            CommunityReligionSpiritualityEngagementNotificationService::notifyOnPublishedPost($post->fresh());
         }
 
         $message = $post->isPendingApproval()
@@ -1575,6 +1613,34 @@ class CommunityPostController extends Controller
             unset($data['meta']['astro_consultancy_documents']);
         }
 
+        $religionSpiritualityGallery = $this->resolveReligionSpiritualityGallery($request, $post);
+        if ($religionSpiritualityGallery !== null) {
+            $data['meta']['religion_spirituality_gallery'] = $religionSpiritualityGallery;
+        } elseif (data_get($post->meta, 'religion_spirituality_gallery')) {
+            foreach ((array) data_get($post->meta, 'religion_spirituality_gallery', []) as $image) {
+                CommunityPostFileUploader::deleteIfExists(data_get($image, 'path'));
+            }
+            unset($data['meta']['religion_spirituality_gallery']);
+        }
+
+        $religionSpiritualityDocuments = $this->resolveReligionSpiritualityDocuments($request, $post);
+        if ($religionSpiritualityDocuments !== null) {
+            $data['meta']['religion_spirituality_documents'] = $religionSpiritualityDocuments;
+        } elseif (data_get($post->meta, 'religion_spirituality_documents')) {
+            foreach ((array) data_get($post->meta, 'religion_spirituality_documents', []) as $document) {
+                CommunityPostFileUploader::deleteIfExists(data_get($document, 'path'));
+            }
+            unset($data['meta']['religion_spirituality_documents']);
+        }
+
+        $religionSpiritualityAudio = $this->resolveReligionSpiritualityAudio($request, $post);
+        if ($religionSpiritualityAudio !== null) {
+            $data['meta']['religion_spirituality_audio'] = $religionSpiritualityAudio;
+        } elseif ($request->boolean('remove_religion_spirituality_audio') && data_get($post->meta, 'religion_spirituality_audio')) {
+            $this->deleteStoryAudioFile(data_get($post->meta, 'religion_spirituality_audio'));
+            unset($data['meta']['religion_spirituality_audio']);
+        }
+
         foreach ([
             ['science_technology_source_code', 'science_technology_source_code', 'science-technology-source-code', 'removed_science_technology_source_code'],
             ['science_technology_circuit_diagram', 'science_technology_circuit_diagram', 'science-technology-circuit-diagram', 'removed_science_technology_circuit_diagram'],
@@ -1794,6 +1860,23 @@ class CommunityPostController extends Controller
             CommunityAstroConsultancyEngagementNotificationService::maybeNotifyAskCommunityOnUpdate($post->fresh(), $originalMeta);
         }
 
+        if (
+            $post->isReligionSpiritualityPost()
+            && $post->isPubliclyVisible()
+            && ! $wasPending
+            && $originalAttributes['status'] !== \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityReligionSpiritualityEngagementNotificationService::notifyOnPublishedPost($post->fresh());
+        }
+
+        if (
+            $post->isReligionSpiritualityPost()
+            && $post->isPubliclyVisible()
+            && $originalAttributes['status'] === \App\Models\CommunityPost::STATUS_PUBLISHED
+        ) {
+            CommunityReligionSpiritualityEngagementNotificationService::maybeNotifyAskCommunityOnUpdate($post->fresh(), $originalMeta);
+        }
+
         $message = $post->isPendingApproval()
             ? 'Community post submitted for admin approval.'
             : 'Community post updated successfully.';
@@ -1876,6 +1959,7 @@ class CommunityPostController extends Controller
         $isEnvironment = CommunityPost::usesEnvironmentFlow(is_string($contentType) ? $contentType : null);
         $isScienceTechnology = CommunityPost::usesScienceTechnologyFlow(is_string($contentType) ? $contentType : null);
         $isAstroConsultancy = CommunityPost::usesAstroConsultancyFlow(is_string($contentType) ? $contentType : null);
+        $isReligionSpirituality = CommunityPost::usesReligionSpiritualityFlow(is_string($contentType) ? $contentType : null);
         $isStudentCornerProject = $isStudentCorner
             && $request->input('student_corner_content_type') === CommunityContentTaxonomy::studentCornerProjectContentType();
         $isYouthCornerProject = $isYouthCorner
@@ -1937,6 +2021,10 @@ class CommunityPostController extends Controller
 
         if ($isAstroConsultancy && $request->filled('astro_consultancy_category')) {
             $request->merge(['category' => $request->input('astro_consultancy_category')]);
+        }
+
+        if ($isReligionSpirituality && $request->filled('religion_spirituality_category')) {
+            $request->merge(['category' => $request->input('religion_spirituality_category')]);
         }
 
         if ($isMyArea && $request->filled('my_area_activity_type')) {
@@ -3267,6 +3355,105 @@ class CommunityPostController extends Controller
             'astro_consultancy_declaration_no_false_claims' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'accepted'],
             'astro_consultancy_declaration_no_fear' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'accepted'],
             'astro_consultancy_declaration_guidelines' => [Rule::excludeIf(fn () => ! $isAstroConsultancy), 'accepted'],
+            'religion_spirituality_post_type' => [
+                Rule::excludeIf(fn () => ! $isReligionSpirituality),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::religionSpiritualityPostTypes()),
+            ],
+            'religion_spirituality_category' => [
+                Rule::excludeIf(fn () => ! $isReligionSpirituality),
+                'required',
+                'string',
+                Rule::in(CommunityContentTaxonomy::religionSpiritualityMainCategories()),
+            ],
+            'religion_spirituality_tradition' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityTraditions())],
+            'religion_spirituality_target_audience' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_target_audience.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityTargetAudiences())],
+            'religion_spirituality_scripture_name' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:160'],
+            'religion_spirituality_scripture_chapter' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:40'],
+            'religion_spirituality_scripture_verse' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:40'],
+            'religion_spirituality_scripture_reference' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:255'],
+            'religion_spirituality_moral_messages' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_moral_messages.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityMoralValues())],
+            'religion_spirituality_festival_name' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:160'],
+            'religion_spirituality_festival_date' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:120'],
+            'religion_spirituality_festival_historical_significance' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:3000'],
+            'religion_spirituality_festival_traditional_practices' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_festival_celebration_methods' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_festival_regional_variations' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_pilgrimage_name' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:160'],
+            'religion_spirituality_pilgrimage_location' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:160'],
+            'religion_spirituality_pilgrimage_best_time' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:120'],
+            'religion_spirituality_pilgrimage_history' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:3000'],
+            'religion_spirituality_pilgrimage_facilities' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_pilgrimage_travel_tips' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_pilgrimage_accommodation' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_place_of_worship_type' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityPlaceOfWorshipTypes())],
+            'religion_spirituality_location_country' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:120'],
+            'religion_spirituality_location_state' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:120'],
+            'religion_spirituality_location_district' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:120'],
+            'religion_spirituality_location_city' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:120'],
+            'religion_spirituality_location_gps' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:255'],
+            'religion_spirituality_meditation_topics' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_meditation_topics.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityMeditationTopics())],
+            'religion_spirituality_community_service_activities' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_community_service_activities.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityCommunityServiceActivities())],
+            'religion_spirituality_video_type' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityVideoExamples())],
+            'religion_spirituality_audio_type' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityAudioExamples())],
+            'religion_spirituality_audio_file' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'file', 'mimes:mp3,wav,ogg,webm,mpeg', 'max:'.self::MAX_STORY_AUDIO_KB],
+            'remove_religion_spirituality_audio' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'boolean'],
+            'religion_spirituality_document_types' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_document_types.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityDocumentTypes())],
+            'religion_spirituality_documents' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array', 'max:'.self::MAX_RELIGION_SPIRITUALITY_DOCUMENTS],
+            'religion_spirituality_documents.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'file', 'mimes:pdf,doc,docx,ppt,pptx', 'max:20480'],
+            'removed_religion_spirituality_documents' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'removed_religion_spirituality_documents.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', 'max:255'],
+            'religion_spirituality_gallery' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array', 'max:'.self::MAX_RELIGION_SPIRITUALITY_GALLERY],
+            'religion_spirituality_gallery.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'image', 'max:4096'],
+            'removed_religion_spirituality_gallery' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'removed_religion_spirituality_gallery.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', 'max:255'],
+            'religion_spirituality_related_service_actions' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_related_service_actions.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityRelatedServiceActions())],
+            'religion_spirituality_enable_digital_pilgrimage_guide' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'boolean'],
+            'religion_spirituality_digital_pilgrimage_site_types' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_digital_pilgrimage_site_types.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityDigitalPilgrimageSiteTypes())],
+            'religion_spirituality_digital_pilgrimage_site_name' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:160'],
+            'religion_spirituality_digital_pilgrimage_verified_info' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:3000'],
+            'religion_spirituality_digital_pilgrimage_nearby_facilities' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_digital_pilgrimage_accommodation' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_digital_pilgrimage_local_businesses' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_digital_pilgrimage_map_url' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:255'],
+            'religion_spirituality_enable_festival_calendar' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'boolean'],
+            'religion_spirituality_festival_calendar_event_types' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_festival_calendar_event_types.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityFestivalCalendarEventTypes())],
+            'religion_spirituality_festival_calendar_event_name' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:160'],
+            'religion_spirituality_festival_calendar_event_date' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'date'],
+            'religion_spirituality_festival_calendar_description' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_festival_calendar_linked_article_url' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'url', 'max:255'],
+            'religion_spirituality_enable_community_service_directory' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'boolean'],
+            'religion_spirituality_service_directory_opportunities' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_service_directory_opportunities.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityServiceDirectoryOpportunities())],
+            'religion_spirituality_service_directory_organization' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:160'],
+            'religion_spirituality_service_directory_when_where' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:255'],
+            'religion_spirituality_service_directory_volunteer_notes' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_enable_wisdom_library' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'boolean'],
+            'religion_spirituality_wisdom_themes' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_wisdom_themes.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityWisdomLibraryThemes())],
+            'religion_spirituality_wisdom_traditions' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_wisdom_traditions.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityTraditions())],
+            'religion_spirituality_wisdom_collection_summary' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:3000'],
+            'religion_spirituality_ask_community' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:500'],
+            'religion_spirituality_allow_poll' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'boolean'],
+            'religion_spirituality_poll_question' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:255'],
+            'religion_spirituality_poll_options' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'string', 'max:2000'],
+            'religion_spirituality_comment_settings' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'nullable', 'array'],
+            'religion_spirituality_comment_settings.*' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'string', Rule::in(CommunityContentTaxonomy::religionSpiritualityCommentSettings())],
+            'religion_spirituality_declaration_respectful' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'accepted'],
+            'religion_spirituality_declaration_accurate' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'accepted'],
+            'religion_spirituality_declaration_no_hatred' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'accepted'],
+            'religion_spirituality_declaration_educational' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'accepted'],
+            'religion_spirituality_declaration_guidelines' => [Rule::excludeIf(fn () => ! $isReligionSpirituality), 'accepted'],
             'community_issue_severity' => [
                 Rule::excludeIf(fn () => ! $isCommunityIssues),
                 'required',
@@ -4215,6 +4402,10 @@ class CommunityPostController extends Controller
             $validated['category'] = (string) ($validated['astro_consultancy_category'] ?? $request->input('astro_consultancy_category'));
         }
 
+        if ($isReligionSpirituality) {
+            $validated['category'] = (string) ($validated['religion_spirituality_category'] ?? $request->input('religion_spirituality_category'));
+        }
+
         if ($isBusiness) {
             $validated['category'] = (string) ($validated['business_category'] ?? $request->input('business_category'));
         }
@@ -4330,7 +4521,8 @@ class CommunityPostController extends Controller
         $isEnvironment = CommunityPost::usesEnvironmentFlow(is_string($contentType) ? $contentType : null);
         $isScienceTechnology = CommunityPost::usesScienceTechnologyFlow(is_string($contentType) ? $contentType : null);
         $isAstroConsultancy = CommunityPost::usesAstroConsultancyFlow(is_string($contentType) ? $contentType : null);
-        $maxImages = ($isAwareness || $isEnvironment || $isScienceTechnology || $isAstroConsultancy) ? 1 : self::MAX_FEATURED_IMAGES;
+        $isReligionSpirituality = CommunityPost::usesReligionSpiritualityFlow(is_string($contentType) ? $contentType : null);
+        $maxImages = ($isAwareness || $isEnvironment || $isScienceTechnology || $isAstroConsultancy || $isReligionSpirituality) ? 1 : self::MAX_FEATURED_IMAGES;
         $existing = $post ? $post->featuredImages() : [];
         $removed = (array) $request->input('removed_featured_images', []);
         $remaining = count(array_values(array_filter(
@@ -4695,6 +4887,10 @@ class CommunityPostController extends Controller
 
         if ($type === 'astro-consultancy') {
             return $request->boolean('astro_consultancy_allow_poll');
+        }
+
+        if ($type === 'religion-spirituality') {
+            return $request->boolean('religion_spirituality_allow_poll');
         }
 
         return $request->boolean('allow_poll');
@@ -6041,6 +6237,113 @@ class CommunityPostController extends Controller
         }
 
         return array_values(array_slice($kept, 0, self::MAX_ASTRO_CONSULTANCY_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>
+     */
+    private function storeReligionSpiritualityDocuments(Request $request): array
+    {
+        return collect($request->file('religion_spirituality_documents', []))
+            ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'religion-spirituality-documents'))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveReligionSpiritualityDocuments(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesReligionSpiritualityFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'religion_spirituality_documents', []);
+        $removed = (array) $request->input('removed_religion_spirituality_documents', []);
+
+        if ($existing === [] && ! $request->hasFile('religion_spirituality_documents')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $document): bool => in_array((string) data_get($document, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('religion_spirituality_documents')) {
+            $kept = array_values(array_merge($kept, $this->storeReligionSpiritualityDocuments($request)));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_RELIGION_SPIRITUALITY_DOCUMENTS));
+    }
+
+    /**
+     * @return list<array{path: string, url: string, name: string, type: string}>|null
+     */
+    private function resolveReligionSpiritualityGallery(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesReligionSpiritualityFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        $existing = (array) data_get($post?->meta, 'religion_spirituality_gallery', []);
+        $removed = (array) $request->input('removed_religion_spirituality_gallery', []);
+
+        if ($existing === [] && ! $request->hasFile('religion_spirituality_gallery')) {
+            return null;
+        }
+
+        $kept = collect($existing)
+            ->reject(fn (array $image): bool => in_array((string) data_get($image, 'path'), $removed, true))
+            ->values()
+            ->all();
+
+        foreach ($removed as $path) {
+            CommunityPostFileUploader::deleteIfExists($path);
+        }
+
+        if ($request->hasFile('religion_spirituality_gallery')) {
+            $uploaded = collect($request->file('religion_spirituality_gallery', []))
+                ->map(fn ($file) => CommunityPostFileUploader::storeAttachment($file, 'religion-spirituality-gallery'))
+                ->values()
+                ->all();
+            $kept = array_values(array_merge($kept, $uploaded));
+        }
+
+        return array_values(array_slice($kept, 0, self::MAX_RELIGION_SPIRITUALITY_GALLERY));
+    }
+
+    /**
+     * @return array{type: string, path: string, name: string, url: string}|null
+     */
+    private function resolveReligionSpiritualityAudio(Request $request, ?CommunityPost $post = null): ?array
+    {
+        if (! CommunityPost::usesReligionSpiritualityFlow($request->input('content_type'))) {
+            return null;
+        }
+
+        if ($request->boolean('remove_religion_spirituality_audio')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'religion_spirituality_audio'));
+
+            return null;
+        }
+
+        if ($request->hasFile('religion_spirituality_audio_file')) {
+            $this->deleteStoryAudioFile(data_get($post?->meta, 'religion_spirituality_audio'));
+
+            return CommunityPostFileUploader::storeAudio($request->file('religion_spirituality_audio_file'), 'upload');
+        }
+
+        if ($request->boolean('keep_existing_religion_spirituality_audio') && data_get($post?->meta, 'religion_spirituality_audio')) {
+            return data_get($post->meta, 'religion_spirituality_audio');
+        }
+
+        return data_get($post?->meta, 'religion_spirituality_audio');
     }
 
     /**

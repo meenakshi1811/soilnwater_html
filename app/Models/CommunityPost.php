@@ -1077,6 +1077,11 @@ class CommunityPost extends Model
                 && $this->astroConsultancyPollOptionsForDisplay() !== [];
         }
 
+        if ($this->isReligionSpiritualityPost()) {
+            return filled(data_get($this->meta, 'religion_spirituality_poll_question'))
+                && $this->religionSpiritualityPollOptionsForDisplay() !== [];
+        }
+
         return filled($this->poll_subject);
     }
 
@@ -1128,6 +1133,10 @@ class CommunityPost extends Model
 
         if ($this->isAstroConsultancyPost()) {
             return (string) data_get($this->meta, 'astro_consultancy_poll_question');
+        }
+
+        if ($this->isReligionSpiritualityPost()) {
+            return (string) data_get($this->meta, 'religion_spirituality_poll_question');
         }
 
         return 'Do you support '.$this->poll_subject.'?';
@@ -1346,6 +1355,10 @@ class CommunityPost extends Model
             return $this->astroConsultancyPollOptionsForDisplay();
         }
 
+        if ($this->isReligionSpiritualityPost()) {
+            return $this->religionSpiritualityPollOptionsForDisplay();
+        }
+
         return self::POLL_OPTIONS;
     }
 
@@ -1532,6 +1545,11 @@ class CommunityPost extends Model
         return $contentType === 'astro-consultancy';
     }
 
+    public static function usesReligionSpiritualityFlow(?string $contentType): bool
+    {
+        return $contentType === 'religion-spirituality';
+    }
+
     public function isChildrensCornerPost(): bool
     {
         return self::usesChildrensCornerFlow($this->content_type);
@@ -1600,6 +1618,11 @@ class CommunityPost extends Model
     public function isAstroConsultancyPost(): bool
     {
         return self::usesAstroConsultancyFlow($this->content_type);
+    }
+
+    public function isReligionSpiritualityPost(): bool
+    {
+        return self::usesReligionSpiritualityFlow($this->content_type);
     }
 
     public function astroConsultancyPostTypeLabel(): ?string
@@ -1788,6 +1811,123 @@ class CommunityPost extends Model
 
         if ($options->isEmpty()) {
             $options = collect(CommunityContentTaxonomy::astroConsultancyDefaultPollOptions());
+        }
+
+        return $options
+            ->mapWithKeys(fn (string $option): array => [\Illuminate\Support\Str::slug($option) => $option])
+            ->all();
+    }
+
+    public function religionSpiritualityPostTypeLabel(): ?string
+    {
+        if (! $this->isReligionSpiritualityPost()) {
+            return null;
+        }
+
+        $postType = (string) data_get($this->meta, 'religion_spirituality_post_type');
+
+        return filled($postType) ? $postType : null;
+    }
+
+    public function religionSpiritualityCategoryLabel(): ?string
+    {
+        if (! $this->isReligionSpiritualityPost()) {
+            return null;
+        }
+
+        return data_get($this->meta, 'religion_spirituality_category') ?: $this->category;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function religionSpiritualityTargetAudiences(): array
+    {
+        if (! $this->isReligionSpiritualityPost()) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $value): string => trim((string) $value),
+            (array) data_get($this->meta, 'religion_spirituality_target_audience', [])
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function religionSpiritualityMeditationTopics(): array
+    {
+        if (! $this->isReligionSpiritualityPost()) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $value): string => trim((string) $value),
+            (array) data_get($this->meta, 'religion_spirituality_meditation_topics', [])
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function religionSpiritualityCommunityServiceActivities(): array
+    {
+        if (! $this->isReligionSpiritualityPost()) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            fn (mixed $value): string => trim((string) $value),
+            (array) data_get($this->meta, 'religion_spirituality_community_service_activities', [])
+        )));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function religionSpiritualityUniqueFeatureLabels(): array
+    {
+        if (! $this->isReligionSpiritualityPost()) {
+            return [];
+        }
+
+        $features = [];
+
+        if (data_get($this->meta, 'religion_spirituality_enable_digital_pilgrimage_guide')) {
+            $features[] = 'Digital Pilgrimage Guide';
+        }
+        if (data_get($this->meta, 'religion_spirituality_enable_festival_calendar')) {
+            $features[] = 'Festival Calendar';
+        }
+        if (data_get($this->meta, 'religion_spirituality_enable_community_service_directory')) {
+            $features[] = 'Community Service Directory';
+        }
+        if (data_get($this->meta, 'religion_spirituality_enable_wisdom_library')) {
+            $features[] = 'Wisdom Library';
+        }
+
+        return $features;
+    }
+
+    public function religionSpiritualityHasFlagshipFeatures(): bool
+    {
+        return $this->religionSpiritualityUniqueFeatureLabels() !== [];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function religionSpiritualityPollOptionsForDisplay(): array
+    {
+        $options = collect((array) data_get($this->meta, 'religion_spirituality_poll_options', []))
+            ->map(fn (mixed $option): string => trim((string) $option))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($options->isEmpty()) {
+            $options = collect(CommunityContentTaxonomy::religionSpiritualityDefaultPollOptions());
         }
 
         return $options
@@ -2807,6 +2947,10 @@ class CommunityPost extends Model
             return \App\Support\CommunityContentTaxonomy::astroConsultancyReactionLabels();
         }
 
+        if ($this->isReligionSpiritualityPost()) {
+            return \App\Support\CommunityContentTaxonomy::religionSpiritualityReactionLabels();
+        }
+
         return ['Helpful', 'Inspiring', 'Excellent', 'Informative', 'Support', 'Vote', 'Dislike'];
     }
 
@@ -2861,6 +3005,10 @@ class CommunityPost extends Model
 
         if ($this->isAstroConsultancyPost()) {
             return \App\Support\CommunityContentTaxonomy::astroConsultancyReactionOptions();
+        }
+
+        if ($this->isReligionSpiritualityPost()) {
+            return \App\Support\CommunityContentTaxonomy::religionSpiritualityReactionOptions();
         }
 
         if ($this->content_type === 'reports' && filled(data_get($this->meta, 'report_type'))) {

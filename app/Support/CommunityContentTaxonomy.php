@@ -170,8 +170,8 @@ class CommunityContentTaxonomy
             ],
             'religion-spirituality' => [
                 'label' => 'Religion & Spirituality',
-                'description' => 'Spiritual and religious posts.',
-                'categories' => ['Spiritual Articles', 'Meditation', 'Temple Information', 'Festivals', 'Scriptures'],
+                'description' => 'To inspire peace, understanding, compassion, and respect for all faiths while preserving cultural and spiritual heritage.',
+                'categories' => self::religionSpiritualityMainCategories(),
             ],
             'agriculture' => [
                 'label' => 'Agriculture',
@@ -5335,6 +5335,499 @@ class CommunityContentTaxonomy
             .'Astrological, numerological, Vastu, tarot, or other spiritual guidance should not be considered a substitute for '
             .'professional medical, legal, financial, or psychological advice. Users are encouraged to exercise their own judgment '
             .'before making important life decisions.';
+    }
+
+    public static function religionSpiritualityObjective(): string
+    {
+        return 'To inspire peace, understanding, compassion, and respect for all faiths while preserving cultural and spiritual heritage.';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityPostTypes(): array
+    {
+        return [
+            'Religious Article',
+            'Spiritual Article',
+            'Sacred Scripture Explanation',
+            'Festival Information',
+            'Temple / Mosque / Church / Gurudwara / Monastery Information',
+            'Pilgrimage Guide',
+            'Meditation Practice',
+            'Prayer & Devotional Content',
+            'Inspirational Story',
+            'Moral Story',
+            'Life Lessons',
+            'Question & Discussion',
+            'Historical Article',
+            'Community Service Activity',
+            'Book Review',
+            'Cultural Tradition',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityMainCategories(): array
+    {
+        return [
+            'Spirituality',
+            'Religious Teachings',
+            'Sacred Scriptures',
+            'Meditation & Mindfulness',
+            'Yoga Philosophy',
+            'Moral Values',
+            'Pilgrimage',
+            'Festivals',
+            'Religious History',
+            'Places of Worship',
+            'Community Service',
+            'Inspirational Stories',
+            'Interfaith Understanding',
+            'Philosophy',
+            'Devotional Music',
+            'Traditional Practices',
+            'Religious Architecture',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityTraditions(): array
+    {
+        return [
+            'Hinduism',
+            'Islam',
+            'Christianity',
+            'Sikhism',
+            'Buddhism',
+            'Jainism',
+            'Judaism',
+            'Baháʼí',
+            'Zoroastrianism',
+            'Indigenous Traditions',
+            'Interfaith',
+            'Other',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityTargetAudiences(): array
+    {
+        return [
+            'General Public',
+            'Students',
+            'Youth',
+            'Senior Citizens',
+            'Researchers',
+            'Pilgrims',
+            'Families',
+            'Teachers',
+            'Spiritual Seekers',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function religionSpiritualityContentStructure(): array
+    {
+        return [
+            'Introduction' => 'Introduce the topic and its spiritual or cultural significance.',
+            'Historical Background' => 'Share relevant history, origins, or context.',
+            'Teachings' => 'Explain core teachings, practices, or beliefs respectfully.',
+            'Practical Relevance' => 'Describe how readers can apply or appreciate this today.',
+            'Conclusion' => 'Summarize key takeaways with a message of unity and respect.',
+            'References' => 'Cite scriptures, scholars, or reliable sources where applicable.',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityMoralValues(): array
+    {
+        return [
+            'Kindness',
+            'Truthfulness',
+            'Compassion',
+            'Service',
+            'Forgiveness',
+            'Respect',
+            'Unity',
+            'Honesty',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityPlaceOfWorshipTypes(): array
+    {
+        return [
+            'Temple',
+            'Mosque',
+            'Church',
+            'Gurudwara',
+            'Monastery',
+            'Jain Temple',
+            'Ashram',
+            'Meditation Centre',
+            'Other',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityMeditationTopics(): array
+    {
+        return [
+            'Meditation',
+            'Breathing Exercises',
+            'Mindfulness',
+            'Prayer',
+            'Yoga',
+            'Silence',
+            'Stress Relief',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityCommunityServiceActivities(): array
+    {
+        return [
+            'Food Distribution',
+            'Blood Donation',
+            'Tree Plantation',
+            'Free Education',
+            'Health Camp',
+            'Cleanliness Drive',
+            'Water Conservation',
+            'Disaster Relief',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityRelatedServiceActions(): array
+    {
+        return [
+            'Blood Donation',
+            'Tree Plantation',
+            'Water Conservation',
+            'Food Distribution',
+            'Education Camps',
+            'Volunteer Programs',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityDigitalPilgrimageSiteTypes(): array
+    {
+        return [
+            'Temple',
+            'Mosque',
+            'Church',
+            'Gurudwara',
+            'Monastery',
+            'Ashram',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityFestivalCalendarEventTypes(): array
+    {
+        return [
+            'Religious Festival',
+            'Public Holiday',
+            'Community Celebration',
+            'Spiritual Event',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityServiceDirectoryOpportunities(): array
+    {
+        return [
+            'Blood Donation Camp',
+            'Food Distribution',
+            'Tree Plantation',
+            'Water Conservation Drive',
+            'Disaster Relief',
+            'Education Program',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityWisdomLibraryThemes(): array
+    {
+        return [
+            'Compassion',
+            'Honesty',
+            'Forgiveness',
+            'Service',
+            'Respect',
+            'Environmental Responsibility',
+            'Family Values',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function religionSpiritualityUniqueFeatureLabels(): array
+    {
+        return [
+            'digital_pilgrimage_guide' => 'Digital Pilgrimage Guide',
+            'festival_calendar' => 'Festival Calendar',
+            'community_service_directory' => 'Community Service Directory',
+            'wisdom_library' => 'Wisdom Library',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityImageExamples(): array
+    {
+        return [
+            'Festivals',
+            'Architecture',
+            'Community Service',
+            'Pilgrimage',
+            'Cultural Events',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityVideoExamples(): array
+    {
+        return [
+            'Religious Lecture',
+            'Meditation Session',
+            'Festival Celebration',
+            'Historical Documentary',
+            'Cultural Program',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityAudioExamples(): array
+    {
+        return [
+            'Bhajans',
+            'Kirtan',
+            'Qawwali',
+            'Chants',
+            'Meditation Music',
+            'Inspirational Talks',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityDocumentTypes(): array
+    {
+        return [
+            'PDF',
+            'Books',
+            'Research Papers',
+            'Historical Documents',
+            'Presentations',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityCommentSettings(): array
+    {
+        return [
+            'Questions',
+            'Experiences',
+            'Respectful Discussion',
+            'Suggestions',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function religionSpiritualityReactionOptions(): array
+    {
+        return [
+            'Inspiring' => 'fa-solid fa-star',
+            'Peaceful' => 'fa-solid fa-dove',
+            'Informative' => 'fa-solid fa-circle-info',
+            'Spiritual' => 'fa-solid fa-hands-praying',
+            'Promotes Harmony' => 'fa-solid fa-handshake',
+            'Meaningful' => 'fa-solid fa-heart',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityReactionLabels(): array
+    {
+        return array_keys(self::religionSpiritualityReactionOptions());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityTagExamples(): array
+    {
+        return ['Meditation', 'Peace', 'Festival', 'Temple', 'Service', 'Compassion'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityDefaultPollOptions(): array
+    {
+        return ['Meditation', 'Festivals', 'Sacred Texts', 'Pilgrimages', 'Moral Values'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function religionSpiritualityDeclarationStatements(): array
+    {
+        return [
+            'religion_spirituality_declaration_respectful' => 'The content is shared respectfully and in good faith.',
+            'religion_spirituality_declaration_accurate' => 'Any quotations or references are accurate to the best of my knowledge.',
+            'religion_spirituality_declaration_no_hatred' => 'The content does not promote hatred, discrimination, violence, or disrespect toward any religion, belief, or community.',
+            'religion_spirituality_declaration_educational' => 'The information is intended for educational, cultural, or spiritual purposes.',
+            'religion_spirituality_declaration_guidelines' => 'The content follows SoilnWater Community Guidelines.',
+        ];
+    }
+
+    public static function religionSpiritualityGuidelinesText(): string
+    {
+        return 'Religion & Spirituality is intended to promote knowledge, cultural understanding, moral values, and respectful dialogue. '
+            .'The following content is prohibited: hate speech or discriminatory remarks; personal attacks on individuals or communities; '
+            .'calls for violence; forced conversion or coercive content; politically inflammatory religious content; deliberately misleading '
+            .'or fabricated religious claims; content that insults or mocks any faith, scripture, or place of worship. '
+            .'Posts violating these rules may be removed and user accounts may be suspended.';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityFestivalPostTypes(): array
+    {
+        return ['Festival Information'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityPilgrimagePostTypes(): array
+    {
+        return ['Pilgrimage Guide'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityPlaceOfWorshipPostTypes(): array
+    {
+        return ['Temple / Mosque / Church / Gurudwara / Monastery Information'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityMeditationPostTypes(): array
+    {
+        return ['Meditation Practice', 'Prayer & Devotional Content'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityCommunityServicePostTypes(): array
+    {
+        return ['Community Service Activity'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityScripturePostTypes(): array
+    {
+        return ['Sacred Scripture Explanation'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityScriptureCategories(): array
+    {
+        return ['Sacred Scriptures', 'Religious Teachings'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityFestivalCategories(): array
+    {
+        return ['Festivals'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityPilgrimageCategories(): array
+    {
+        return ['Pilgrimage'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityPlaceOfWorshipCategories(): array
+    {
+        return ['Places of Worship', 'Religious Architecture'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityMeditationCategories(): array
+    {
+        return ['Meditation & Mindfulness', 'Yoga Philosophy', 'Devotional Music'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function religionSpiritualityCommunityServiceCategories(): array
+    {
+        return ['Community Service'];
     }
 
     public static function slugFor(string $label): string

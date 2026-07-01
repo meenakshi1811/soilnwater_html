@@ -68,6 +68,11 @@
         @include('community.partials.astro-consultancy-styles')
     @endpush
 @endif
+@if($post->isReligionSpiritualityPost())
+    @push('styles')
+        @include('community.partials.religion-spirituality-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
@@ -240,6 +245,15 @@
                 @include('community.partials.astro-consultancy-meta-details', [
                     'post' => $post,
                     'heading' => 'Saved Astro Consultancy metadata',
+                    'includeAdmin' => true,
+                ])
+            @endif
+
+            @if($post->isReligionSpiritualityPost())
+                @include('community.partials.religion-spirituality-show-sections', ['post' => $post])
+                @include('community.partials.religion-spirituality-meta-details', [
+                    'post' => $post,
+                    'heading' => 'Saved Religion & Spirituality metadata',
                     'includeAdmin' => true,
                 ])
             @endif

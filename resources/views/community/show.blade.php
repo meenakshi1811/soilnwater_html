@@ -518,6 +518,29 @@
                     <span class="badge bg-success community-post-banner-tag">Verified consultant</span>
                 @endif
             @endif
+            @if($post->isReligionSpiritualityPost())
+                @if(filled(data_get($post->meta, 'religion_spirituality_post_type')))
+                    <span class="badge bg-primary text-white community-post-banner-tag">{{ data_get($post->meta, 'religion_spirituality_post_type') }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'religion_spirituality_category', $post->category)))
+                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'religion_spirituality_category', $post->category) }}</span>
+                @endif
+                @if(filled(data_get($post->meta, 'religion_spirituality_tradition')))
+                    <span class="badge bg-secondary-subtle text-secondary community-post-banner-tag">{{ data_get($post->meta, 'religion_spirituality_tradition') }}</span>
+                @endif
+                @if(data_get($post->meta, 'religion_spirituality_enable_digital_pilgrimage_guide'))
+                    <span class="badge bg-info text-white community-post-banner-tag">Pilgrimage Guide</span>
+                @endif
+                @if(data_get($post->meta, 'religion_spirituality_enable_festival_calendar'))
+                    <span class="badge bg-warning text-dark community-post-banner-tag">Festival Calendar</span>
+                @endif
+                @if(data_get($post->meta, 'religion_spirituality_enable_community_service_directory'))
+                    <span class="badge bg-success community-post-banner-tag">Service Directory</span>
+                @endif
+                @if(data_get($post->meta, 'religion_spirituality_enable_wisdom_library'))
+                    <span class="badge bg-primary text-white community-post-banner-tag">Wisdom Library</span>
+                @endif
+            @endif
             @foreach($post->adminPromotionLabels() as $promotionLabel)
                 <span class="badge bg-warning text-dark community-post-banner-tag">{{ $promotionLabel }}</span>
             @endforeach
@@ -768,6 +791,10 @@
                 ])
             @endif
 
+            @if($post->isReligionSpiritualityPost())
+                @include('community.partials.religion-spirituality-show-sections', ['post' => $post])
+            @endif
+
             @if($post->isLocalVoicesPost())
                 @include('community.partials.local-voices-show-sections', ['post' => $post])
                 @include('community.partials.local-voices-community-actions', [
@@ -801,7 +828,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost() && ! $post->isEnvironmentPost() && ! $post->isScienceTechnologyPost() && ! $post->isAstroConsultancyPost())
+            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost() && ! $post->isEnvironmentPost() && ! $post->isScienceTechnologyPost() && ! $post->isAstroConsultancyPost() && ! $post->isReligionSpiritualityPost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -1403,6 +1430,9 @@
 @endif
 @if($post->isAstroConsultancyPost())
 @include('community.partials.astro-consultancy-styles')
+@endif
+@if($post->isReligionSpiritualityPost())
+@include('community.partials.religion-spirituality-styles')
 @endif
 <style>
     .community-post-body {
