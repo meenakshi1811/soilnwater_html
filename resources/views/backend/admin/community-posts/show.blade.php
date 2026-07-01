@@ -139,6 +139,12 @@
 @endif
 @endpush
 
+@if($post->isAstroConsultancyPost())
+    @push('styles')
+        @include('community.partials.astro-consultancy-styles')
+    @endpush
+@endif
+
 @section('content')
 <div class="admin-panel ems-page">
     <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">

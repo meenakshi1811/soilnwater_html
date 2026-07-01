@@ -63,6 +63,11 @@
         @include('community.partials.environment-styles')
     @endpush
 @endif
+@if($post->isAstroConsultancyPost())
+    @push('styles')
+        @include('community.partials.astro-consultancy-styles')
+    @endpush
+@endif
 <div class="admin-panel ems-page">
     <div class="ems-hero mb-4">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">

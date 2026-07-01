@@ -1,0 +1,203 @@
+.astro-show-overview {
+    background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 45%, #d97706 100%);
+    border-radius: 18px;
+    color: #fff;
+    padding: 1.35rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 14px 32px rgba(109, 40, 217, 0.22);
+}
+
+.astro-show-overview__kicker {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.92;
+    margin-bottom: 0.35rem;
+}
+
+.astro-show-overview__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.astro-show-overview__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.astro-show-chip {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.astro-show-chip--flagship {
+    background: rgba(255, 255, 255, 0.24);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.astro-flagship-banner {
+    background: linear-gradient(90deg, #faf5ff 0%, #fff7ed 55%, #fef3c7 100%);
+    border: 1px solid rgba(109, 40, 217, 0.18);
+    border-radius: 14px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 1.5rem;
+}
+
+.astro-flagship-banner--horoscope {
+    border-color: rgba(217, 119, 6, 0.28);
+    background: linear-gradient(90deg, #fffbeb 0%, #fef3c7 55%, #fffbeb 100%);
+}
+
+.astro-flagship-banner--vastu {
+    border-color: rgba(14, 116, 144, 0.28);
+    background: linear-gradient(90deg, #ecfeff 0%, #f5f3ff 55%, #ecfeff 100%);
+}
+
+.astro-flagship-banner--numerology {
+    border-color: rgba(79, 70, 229, 0.22);
+    background: linear-gradient(90deg, #eef2ff 0%, #faf5ff 55%, #eef2ff 100%);
+}
+
+.astro-flagship-banner--gemstone {
+    border-color: rgba(5, 150, 105, 0.22);
+    background: linear-gradient(90deg, #ecfdf5 0%, #fffbeb 55%, #ecfdf5 100%);
+}
+
+.astro-flagship-banner--festival {
+    border-color: rgba(22, 163, 74, 0.22);
+    background: linear-gradient(90deg, #f0fdf4 0%, #fff7ed 55%, #f0fdf4 100%);
+}
+
+.astro-capability-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.astro-capability-pill {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #ddd6fe;
+    border-radius: 999px;
+    color: #5b21b6;
+    display: inline-flex;
+    font-size: 0.8rem;
+    font-weight: 600;
+    gap: 0.35rem;
+    padding: 0.4rem 0.8rem;
+}
+
+.astro-capability-pill.is-disabled {
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    opacity: 0.75;
+}
+
+.astro-engagement-panel {
+    background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%);
+    border: 1px solid rgba(109, 40, 217, 0.14);
+    border-radius: 18px;
+    padding: 1.35rem 1.5rem;
+}
+
+.astro-engagement-panel__header {
+    display: flex;
+    gap: 1.25rem;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+.astro-engagement-panel__kicker {
+    color: #6d28d9;
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+}
+
+.astro-engagement-panel__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.astro-engagement-panel__stat {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.astro-engagement-panel__stat strong {
+    color: #5b21b6;
+    display: block;
+    font-size: 1.15rem;
+    line-height: 1.2;
+}
+
+.astro-engagement-card {
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid rgba(109, 40, 217, 0.12);
+    border-radius: 14px;
+    display: flex;
+    gap: 0.85rem;
+    padding: 1rem;
+}
+
+.astro-engagement-card--wide {
+    grid-column: 1 / -1;
+}
+
+.astro-engagement-panel__grid {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.astro-engagement-card__icon {
+    align-items: center;
+    border-radius: 12px;
+    color: #fff;
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    height: 2.5rem;
+    justify-content: center;
+    width: 2.5rem;
+}
+
+.astro-engagement-card__icon--consult {
+    background: linear-gradient(135deg, #6d28d9, #7c3aed);
+}
+
+.astro-engagement-card__icon--live {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+}
+
+.astro-engagement-card__icon--library {
+    background: linear-gradient(135deg, #0e7490, #0891b2);
+}
+
+.astro-community-panel {
+    background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%);
+    border-color: rgba(109, 40, 217, 0.14);
+}
+
+.astro-community-panel .report-community-panel__kicker {
+    color: #6d28d9;
+}
+
+.astro-disclaimer-panel {
+    background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+    border: 1px solid rgba(217, 119, 6, 0.22);
+    border-radius: 14px;
+}

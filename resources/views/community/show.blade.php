@@ -217,7 +217,6 @@
     @include('community.partials.community-issues-styles')
     @include('community.partials.agriculture-styles')
     @include('community.partials.environment-styles')
-    @include('community.partials.astro-consultancy-styles')
 
     .report-community-panel__header {
         display: flex;
@@ -1401,9 +1400,6 @@
 @endif
 @if($post->isSeniorCitizensForumPost())
 @include('community.partials.senior-citizens-forum-styles')
-@endif
-@if($post->isEnvironmentPost())
-@include('community.partials.environment-styles')
 @endif
 @if($post->isAstroConsultancyPost())
 @include('community.partials.astro-consultancy-styles')
