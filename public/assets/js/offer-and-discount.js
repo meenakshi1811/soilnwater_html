@@ -170,7 +170,7 @@
                 $('#priceGrandTotal').text('₹' + grandTotal.toFixed(2));
                 $('#priceDefaultDaysNote').toggleClass('d-none', hasValidUntil);
                 $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + ($btn.data('payment-label') || 'Proceed to Payment'));
-                $paymentDisabledNote.removeClass('d-none');
+                $paymentDisabledNote.addClass('d-none');
                 return;
             }
 
@@ -1089,12 +1089,6 @@
                     error.insertAfter(element);
                 },
                 submitHandler: function (form) {
-                    if (!isEditMode && Number(self.currentAppliedOfferPrice || 0) > 0) {
-                        setButtonLoading(false, false);
-                        FormHelper.showToast('warning', 'Currently payment method is not enabled by admin.');
-                        return false;
-                    }
-
                     setButtonLoading(true, true);
 
                     if (self.currentBannerMode === 'customize') {
@@ -1118,6 +1112,16 @@
                             'Accept': 'application/json'
                         },
                         success: function (response) {
+                            if (response && response.requires_payment && window.ListingPayment) {
+                                window.ListingPayment.open({
+                                    listingType: response.listing_type || 'offer',
+                                    listingId: response.listing_id,
+                                    amount: response.amount,
+                                    redirectUrl: response.redirect_url || '/dashboard/offers'
+                                });
+                                return;
+                            }
+
                             FormHelper.showToast('success', response.message || (isEditMode ? 'Offer updated successfully.' : 'Offer posted successfully.'));
 
                             if (isEditMode) {

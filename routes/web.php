@@ -24,6 +24,7 @@ use App\Http\Controllers\Frontend\PremiumPageController;
 use App\Http\Controllers\Frontend\PremiumPaymentController;
 use App\Http\Controllers\Frontend\TermsAndConditionPageController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ListingPaymentController;
 use App\Http\Controllers\ModuleAccessController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserDashboardController;
@@ -33,6 +34,7 @@ use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\ApprovalCenterController;
 use App\Http\Controllers\Admin\PremiumPaymentSubmissionController;
+use App\Http\Controllers\Admin\ListingPaymentSubmissionController;
 use App\Http\Controllers\Admin\CommunityPostApprovalController;
 use App\Http\Controllers\Admin\CommunityPostReportController;
 use App\Http\Controllers\Admin\AdSizeController;
@@ -165,6 +167,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+
+    Route::post('/dashboard/listing-payment', [ListingPaymentController::class, 'store'])
+        ->middleware('marketplace.approved')
+        ->name('listing.payment.submit');
 
     Route::prefix('dashboard/offers')->name('offers.')->group(function () {
         Route::get('/', [PostOfferController::class, 'offersIndex'])->name('index');
@@ -348,6 +354,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{submission}', [PremiumPaymentSubmissionController::class, 'show'])->name('show');
             Route::post('/{submission}/approve', [PremiumPaymentSubmissionController::class, 'approve'])->name('approve');
             Route::post('/{submission}/reject', [PremiumPaymentSubmissionController::class, 'reject'])->name('reject');
+        });
+
+        Route::prefix('listing-payments')->name('listing-payments.')->group(function () {
+            Route::get('/', [ListingPaymentSubmissionController::class, 'index'])->name('index');
+            Route::get('/data', [ListingPaymentSubmissionController::class, 'data'])->name('data');
+            Route::get('/{submission}', [ListingPaymentSubmissionController::class, 'show'])->name('show');
+            Route::post('/{submission}/approve', [ListingPaymentSubmissionController::class, 'approve'])->name('approve');
+            Route::post('/{submission}/reject', [ListingPaymentSubmissionController::class, 'reject'])->name('reject');
         });
 
         Route::prefix('community-posts')->name('community-posts.')->group(function () {

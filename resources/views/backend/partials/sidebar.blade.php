@@ -22,6 +22,7 @@
     $serviceProvidersMenuActive = request()->routeIs('admin.service_providers.*') || request()->routeIs('admin.service-provider-services.*');
     $approvalCenterActive = request()->routeIs('admin.approvals.*');
     $paymentsMenuActive = request()->routeIs('admin.premium-payments.*');
+    $listingPaymentsMenuActive = request()->routeIs('admin.listing-payments.*');
     $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
     $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
@@ -137,7 +138,13 @@
             <li>
                 <a class="{{ $paymentsMenuActive ? 'active' : '' }}" href="{{ route('admin.premium-payments.index') }}">
                     <i class="fa-solid fa-credit-card"></i>
-                    <span>Payments</span>
+                    <span>Premium Payments</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $listingPaymentsMenuActive ? 'active' : '' }}" href="{{ route('admin.listing-payments.index') }}">
+                    <i class="fa-solid fa-receipt"></i>
+                    <span>Ad &amp; Offer Payments</span>
                 </a>
             </li>
             <hr>

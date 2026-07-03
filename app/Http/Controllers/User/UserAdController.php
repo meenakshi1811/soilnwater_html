@@ -930,6 +930,25 @@ class UserAdController extends Controller
             ]);
         });
 
+        $requiresPayment = $pricing['grand_total'] !== null
+            && (float) $pricing['grand_total'] > 0
+            && ! (bool) ($user?->isStaff());
+
+        if ($requiresPayment) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'requires_payment' => true,
+                    'listing_type' => 'ad',
+                    'listing_id' => $ad->id,
+                    'amount' => (float) $pricing['grand_total'],
+                    'message' => 'Your ad has been saved. Please complete the payment to submit it for verification.',
+                    'redirect_url' => route('ads.index'),
+                ]);
+            }
+
+            return redirect()->route('ads.index')->with('success', 'Your ad has been saved. Complete the payment to submit it for verification.');
+        }
+
         PortalNotificationService::notifyAdminsOfApprovalRequest('Ad', $ad->title, route('admin.ads.submissions.show', $ad));
 
         if ($request->ajax() || $request->expectsJson()) {

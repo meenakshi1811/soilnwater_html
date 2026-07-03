@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\ListingPaymentReviewService;
 use App\Services\PortalNotificationService;
 use App\Models\Category;
 use App\Models\Offer;
@@ -125,13 +126,20 @@ class PostOfferController extends Controller
             (int) ($validated['subcategory_id'] ?? 0)
         );
 
-        if ($appliedOfferPrice > 0 && ! $this->isStaff($request->user())) {
-            return response()->json([
-                'message' => 'This offer category is paid. Please proceed to payment to continue.',
-            ], 422);
-        }
-
         $offer = Offer::create($validated);
+
+        $requiresPayment = $appliedOfferPrice > 0 && ! $this->isStaff($request->user());
+
+        if ($requiresPayment) {
+            return response()->json([
+                'requires_payment' => true,
+                'listing_type' => 'offer',
+                'listing_id' => $offer->id,
+                'amount' => ListingPaymentReviewService::offerAmount($offer),
+                'message' => 'Your offer has been saved. Please complete the payment to submit it for verification.',
+                'redirect_url' => route('offers.index'),
+            ]);
+        }
 
         if ($this->isStaff($request->user())) {
             $offer->update([

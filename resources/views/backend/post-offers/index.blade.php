@@ -448,6 +448,8 @@
         </form>
     </div>
 </div>
+
+@include('backend.partials.listing-payment-modal')
 @endsection
 
 @push('styles')

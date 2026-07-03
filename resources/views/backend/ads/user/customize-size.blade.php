@@ -482,6 +482,8 @@
 
     </div>
 </div>
+
+@include('backend.partials.listing-payment-modal')
 @endsection
 
 
@@ -1350,6 +1352,17 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                     });
                     setSubmitLoadingState(false);
                     return toast('danger', payload.message || 'Please fix the highlighted errors and try again.');
+                }
+
+                if (payload.requires_payment && window.ListingPayment) {
+                    setSubmitLoadingState(false);
+                    window.ListingPayment.open({
+                        listingType: payload.listing_type || 'ad',
+                        listingId: payload.listing_id,
+                        amount: payload.amount,
+                        redirectUrl: payload.redirect_url || "{{ route('ads.index') }}"
+                    });
+                    return;
                 }
 
                 toast('success', payload.message || 'Saved successfully');
