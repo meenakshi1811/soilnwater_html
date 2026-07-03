@@ -1196,8 +1196,13 @@ class UserAdController extends Controller
             return false;
         }
 
+        // Paid sizes are openable by regular users whenever pricing is configured
+        // (category price, module price, or a flat amount). Payment is collected after
+        // submission via the payment modal + admin approval flow, not before opening.
         if ((bool) ($size['is_paid'] ?? false) === true && ! (bool) ($user?->isAdmin())) {
-            return ! empty($size['category_prices'] ?? []);
+            return ! empty($size['category_prices'] ?? [])
+                || ! empty($size['module_prices'] ?? [])
+                || (float) ($size['amount'] ?? 0) > 0;
         }
 
         return true;
