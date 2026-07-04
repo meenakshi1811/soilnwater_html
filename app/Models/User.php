@@ -40,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'date_of_birth',
         'profile_image',
         'is_active',
+        'is_blocked',
         'created_by',
         'password',
     ];
@@ -66,8 +67,14 @@ class User extends Authenticatable implements MustVerifyEmail
             'phone_verified_at' => 'datetime',
             'date_of_birth' => 'date',
             'is_active' => 'boolean',
+            'is_blocked' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+    public function isBlocked(): bool
+    {
+        return (bool) $this->is_blocked;
     }
 
 

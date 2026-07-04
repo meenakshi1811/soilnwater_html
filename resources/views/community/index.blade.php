@@ -22,42 +22,8 @@
         : (($activeType && isset($types[$activeType]))
             ? 'SoilnWater community, '.$types[$activeType]['label'].', local stories, community hub'
             : 'SoilnWater community, community hub, local stories, reports, news, poetry');
-    $communityFilterPillColors = [
-        'all' => '#546e7a',
-        'articles' => '#1976d2',
-        'reports' => '#5c6bc0',
-        'my-area' => '#00897b',
-        'my-voice' => '#8e24aa',
-        'news' => '#e53935',
-        'stories' => '#fb8c00',
-        'poetry' => '#ec407a',
-        'biography' => '#795548',
-        'autobiography' => '#f4511e',
-        'childrens-corner' => '#29b6f6',
-        'awareness' => '#ffb300',
-        'business' => '#3949ab',
-        'student-corner' => '#00acc1',
-        'career' => '#455a64',
-        'health-wellness' => '#43a047',
-        'womens-world' => '#d81b60',
-        'senior-citizens-forum' => '#7cb342',
-        'youth-corner' => '#c0ca33',
-        'jobs-employment' => '#1565c0',
-        'opinions-views' => '#673ab7',
-        'travel-diaries' => '#039be5',
-        'culture-heritage' => '#ff9800',
-        'astro-consultancy' => '#7e57c2',
-        'religion-spirituality' => '#ff7043',
-        'agriculture' => '#558b2f',
-        'environment' => '#009688',
-        'science-technology' => '#3d5afe',
-        'local-voices' => '#ff5722',
-        'community-issues' => '#c62828',
-        'creative-corner' => '#e91e63',
-        'competitions' => '#f9a825',
-        'discussions' => '#607d8b',
-    ];
-    $communityFilterPillFallbackColor = '#78909c';
+    $communityFilterPillColors = \App\Support\CommunityContentTaxonomy::pillColors();
+    $communityFilterPillFallbackColor = \App\Support\CommunityContentTaxonomy::pillColorFallback();
 @endphp
 
 @section('meta_title', $hubSeoTitle)
@@ -235,9 +201,16 @@
         border-radius: 999px;
         box-shadow: 0 2px 8px color-mix(in srgb, var(--pill-color) 24%, transparent);
         color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 148px;
+        min-height: 40px;
+        white-space: nowrap;
+        text-align: center;
         font-size: 0.83rem;
         font-weight: 600;
-        padding: 0.46rem 0.95rem;
+        padding: 0.46rem 1.05rem;
         text-decoration: none;
         text-shadow: 0 1px 1px rgba(15, 47, 85, 0.18);
         transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
@@ -270,9 +243,10 @@
     }
 
     .community-type-panel {
+        --type-color: #1f66b4;
         background: linear-gradient(180deg, #f5f9fd 0%, #ffffff 100%);
-        border: 1px solid #c8d9ea;
-        border-left: 4px solid #1f66b4;
+        border: 1px solid color-mix(in srgb, var(--type-color) 35%, #c8d9ea);
+        border-left: 4px solid var(--type-color);
         border-radius: 14px;
         margin-bottom: 1.25rem;
         padding: 1rem 1.1rem;
@@ -350,18 +324,21 @@
     }
 
     .community-post-card {
+        --type-color: #dce6f3;
         background: #fff;
-        border: 1px solid #dce6f3;
+        border: 1.5px solid color-mix(in srgb, var(--type-color) 55%, #dce6f3);
+        border-top: 3px solid var(--type-color);
         border-radius: 16px;
         box-shadow: 0 8px 24px rgba(18, 57, 95, 0.05);
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
     .community-post-card:hover {
-        box-shadow: 0 16px 34px rgba(18, 57, 95, 0.12);
+        border-color: var(--type-color);
+        box-shadow: 0 16px 34px color-mix(in srgb, var(--type-color) 22%, rgba(18, 57, 95, 0.12));
         transform: translateY(-3px);
     }
 
@@ -830,8 +807,9 @@
         @if ($activeType && isset($types[$activeType]))
             @php
                 $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
+                $activeTypeColor = $communityFilterPillColors[$activeType] ?? $communityFilterPillFallbackColor;
             @endphp
-            <div class="community-type-panel">
+            <div class="community-type-panel" style="--type-color: {{ $activeTypeColor }};">
                 <div class="community-type-panel__title">{{ $types[$activeType]['label'] }}</div>
                 <p class="community-type-panel__text">{{ $types[$activeType]['description'] }}</p>
                 <div class="community-type-panel__categories">

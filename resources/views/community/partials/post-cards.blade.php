@@ -41,9 +41,10 @@
             data_get($post->meta, 'location_city'),
             data_get($post->meta, 'location_district'),
         ]))) : null;
+        $typeColor = \App\Support\CommunityContentTaxonomy::pillColorFor($post->content_type);
     @endphp
     <div class="col">
-        <article class="community-post-card h-100 {{ $post->is_highlighted ? 'community-post-card--highlighted' : '' }}">
+        <article class="community-post-card h-100 {{ $post->is_highlighted ? 'community-post-card--highlighted' : '' }}" style="--type-color: {{ $typeColor }};">
             <a href="{{ route('community.show', $post) }}" class="community-post-card__media-link" aria-label="Read {{ $post->title }}">
                 @if ($post->featuredImageUrl())
                     <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="community-post-card__image" loading="lazy">

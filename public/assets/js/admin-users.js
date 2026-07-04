@@ -23,10 +23,11 @@
                     { data: 'location', name: 'city', orderable: false },
                     { data: 'date_of_birth', name: 'date_of_birth' },
                     { data: 'status_badge', name: 'status_badge', orderable: false, searchable: true },
+                    { data: 'status_toggle', name: 'status_toggle', orderable: false, searchable: false, className: 'text-center' },
                     { data: 'created_at', name: 'created_at' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ],
-                order: [[7, 'desc']]
+                order: [[8, 'desc']]
             });
         },
 
@@ -121,7 +122,7 @@
                 + '<p class="mb-3 opacity-75">' + this.escapeHtml(user.email) + '</p>'
                 + '<div class="d-flex flex-wrap gap-2">'
                 + '<span class="detail-chip"><i class="fa-solid fa-user-tag"></i>' + this.escapeHtml(user.role_label) + '</span>'
-                + '<span class="detail-chip"><i class="fa-solid fa-circle-check"></i>' + (user.is_active ? 'Active' : 'Inactive') + '</span>'
+                + '<span class="detail-chip"><i class="fa-solid ' + (user.is_blocked ? 'fa-ban' : 'fa-circle-check') + '"></i>' + (user.is_blocked ? 'Blocked' : (user.is_active ? 'Active' : 'Inactive')) + '</span>'
                 + '<span class="detail-chip"><i class="fa-solid fa-calendar-plus"></i>Joined ' + this.escapeHtml(user.created_at) + '</span>'
                 + '</div>'
                 + '</div>'
@@ -301,7 +302,7 @@
                     ['Date of birth', user.date_of_birth],
                     ['City', user.city],
                     ['Pincode', user.pincode],
-                    ['Status', user.is_active ? 'Active' : 'Inactive'],
+                    ['Status', user.is_blocked ? 'Blocked' : (user.is_active ? 'Active' : 'Inactive')],
                     ['Created at', user.created_at],
                     ['Updated at', user.updated_at]
                 ]) + '<div class="detail-field mt-3"><div class="detail-field-label">Address</div><div class="detail-field-value">' + this.escapeHtml(user.address) + '</div></div>')
@@ -354,6 +355,62 @@
                     self.modal.show();
                 }).fail(function () {
                     FormHelper.showToast('danger', 'Unable to load user details.');
+                });
+            });
+
+            $(document).on('change', '.js-toggle-block', function () {
+                var $toggle = $(this);
+                var id = $toggle.data('id');
+                var willBlock = $toggle.is(':checked');
+
+                $toggle.prop('disabled', true);
+
+                $.ajax({
+                    url: '/admin/users/' + id + '/toggle-block',
+                    method: 'PATCH',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json'
+                    }
+                }).done(function (response) {
+                    FormHelper.showToast(response.is_blocked ? 'warning' : 'success', response.message || 'Updated.');
+                    if (self.table) {
+                        self.table.ajax.reload(null, false);
+                    }
+                }).fail(function (xhr) {
+                    $toggle.prop('checked', !willBlock).prop('disabled', false);
+                    var message = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'Unable to update block status.';
+                    FormHelper.showToast('danger', message);
+                });
+            });
+
+            $(document).on('change', '.js-toggle-status', function () {
+                var $toggle = $(this);
+                var id = $toggle.data('id');
+                var willActivate = $toggle.is(':checked');
+
+                $toggle.prop('disabled', true);
+
+                $.ajax({
+                    url: '/admin/users/' + id + '/toggle-status',
+                    method: 'PATCH',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json'
+                    }
+                }).done(function (response) {
+                    FormHelper.showToast(response.is_active ? 'success' : 'warning', response.message || 'Updated.');
+                    if (self.table) {
+                        self.table.ajax.reload(null, false);
+                    }
+                }).fail(function (xhr) {
+                    $toggle.prop('checked', !willActivate).prop('disabled', false);
+                    var message = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'Unable to update status.';
+                    FormHelper.showToast('danger', message);
                 });
             });
 

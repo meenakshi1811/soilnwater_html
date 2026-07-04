@@ -144,7 +144,10 @@
                     <label class="form-label fw-semibold">Select Module(s)</label>
                     @php $selectedModulesForCheckboxes = old('selected_modules', $ad->selected_modules ?? []); @endphp
                     <div id="moduleCheckboxGroup" class="row g-2" data-module-prices='@json($size["module_prices"] ?? [])'>
+                        {{-- Temporarily hidden modules (commented out per request): ecommerce, properties, builders, enquiry, user_enquiry, offers --}}
+                        @php $hiddenModuleKeys = ['ecommerce', 'properties', 'builders', 'enquiry', 'user_enquiry', 'offers']; @endphp
                         @foreach(($moduleOptions ?? []) as $moduleKey => $moduleName)
+                            @continue(in_array($moduleKey, $hiddenModuleKeys, true))
                             @php $modulePrice = $size['module_prices'][$moduleKey] ?? null; @endphp
                             <div class="col-sm-6">
                                 <div class="form-check border rounded px-3 py-2 h-100">

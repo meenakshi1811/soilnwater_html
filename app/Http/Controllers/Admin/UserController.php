@@ -40,6 +40,7 @@ class UserController extends Controller
                 'email_verified_at',
                 'phone_verified_at',
                 'is_active',
+                'is_blocked',
                 'created_at',
             ]);
 
@@ -101,12 +102,28 @@ class UserController extends Controller
                 return $user->date_of_birth ? $user->date_of_birth->format('Y-m-d') : '—';
             })
             ->addColumn('status_badge', function (User $user): string {
+                if ($user->is_blocked) {
+                    return '<span class="badge text-bg-danger"><i class="fa-solid fa-ban me-1"></i>Blocked</span>';
+                }
+
                 return $user->is_active
                     ? '<span class="badge text-bg-success">Active</span>'
                     : '<span class="badge text-bg-secondary">Inactive</span>';
             })
+            ->addColumn('status_toggle', function (User $user): string {
+                if ($user->isAdmin()) {
+                    return '<span class="text-muted small">—</span>';
+                }
+
+                $checked = $user->is_active ? 'checked' : '';
+                $title = $user->is_active ? 'Deactivate user' : 'Activate user';
+
+                return '<div class="form-check form-switch m-0 d-flex justify-content-center align-items-center" title="'.$title.'">'
+                    . '<input class="form-check-input js-toggle-status" type="checkbox" role="switch" data-id="'.$user->id.'" '.$checked.'>'
+                    . '</div>';
+            })
             ->addColumn('actions', function (User $user): string {
-                return '<div class="d-flex gap-2 justify-content-end">'
+                return '<div class="d-flex gap-2 justify-content-end align-items-center">'
                     . '<button type="button" class="btn btn-sm btn-outline-secondary js-view-user" data-id="'.$user->id.'" title="View details"><i class="fa-solid fa-eye"></i></button>'
                     . '<button type="button" class="btn btn-sm btn-outline-primary js-edit-user" data-id="'.$user->id.'" title="Edit user"><i class="fa-solid fa-pen"></i></button>'
                     . '<button type="button" class="btn btn-sm btn-outline-danger js-delete-user" data-id="'.$user->id.'" title="Delete user"><i class="fa-solid fa-trash"></i></button>'
@@ -117,13 +134,18 @@ class UserController extends Controller
                 if ($k === '' || $k === '^') {
                     return;
                 }
+                if (str_contains($k, 'block')) {
+                    $query->where('is_blocked', true);
+
+                    return;
+                }
                 if (str_contains($k, 'inactive')) {
-                    $query->where('is_active', false);
+                    $query->where('is_active', false)->where('is_blocked', false);
 
                     return;
                 }
                 if (str_contains($k, 'active')) {
-                    $query->where('is_active', true);
+                    $query->where('is_active', true)->where('is_blocked', false);
                 }
             })
             ->filterColumn('role_badge', function ($query, $keyword): void {
@@ -132,7 +154,7 @@ class UserController extends Controller
                     $query->where('role', 'like', '%'.$k.'%');
                 }
             })
-            ->rawColumns(['name_display', 'role_badge', 'email_display', 'phone_display', 'status_badge', 'actions'])
+            ->rawColumns(['name_display', 'role_badge', 'email_display', 'phone_display', 'status_badge', 'status_toggle', 'actions'])
             ->make(true);
     }
 
@@ -176,6 +198,56 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User updated successfully.',
+        ]);
+    }
+
+    public function toggleBlock(Request $request, User $user): JsonResponse
+    {
+        if ($user->isAdmin()) {
+            return response()->json([
+                'message' => 'Admin accounts cannot be blocked.',
+            ], 422);
+        }
+
+        if ($request->user() && $request->user()->id === $user->id) {
+            return response()->json([
+                'message' => 'You cannot block your own account.',
+            ], 422);
+        }
+
+        $user->is_blocked = ! $user->is_blocked;
+        $user->save();
+
+        return response()->json([
+            'message' => $user->is_blocked
+                ? 'User has been blocked and can no longer sign in.'
+                : 'User has been unblocked and can sign in again.',
+            'is_blocked' => $user->is_blocked,
+        ]);
+    }
+
+    public function toggleStatus(Request $request, User $user): JsonResponse
+    {
+        if ($user->isAdmin()) {
+            return response()->json([
+                'message' => 'Admin accounts cannot be deactivated.',
+            ], 422);
+        }
+
+        if ($request->user() && $request->user()->id === $user->id) {
+            return response()->json([
+                'message' => 'You cannot deactivate your own account.',
+            ], 422);
+        }
+
+        $user->is_active = ! $user->is_active;
+        $user->save();
+
+        return response()->json([
+            'message' => $user->is_active
+                ? 'User has been activated.'
+                : 'User has been deactivated.',
+            'is_active' => $user->is_active,
         ]);
     }
 
@@ -239,6 +311,7 @@ class UserController extends Controller
             'email_verified_at' => optional($user->email_verified_at)->format('Y-m-d H:i'),
             'phone_verified_at' => optional($user->phone_verified_at)->format('Y-m-d H:i'),
             'is_active' => (bool) $user->is_active,
+            'is_blocked' => (bool) $user->is_blocked,
             'created_at' => optional($user->created_at)->format('Y-m-d H:i'),
             'updated_at' => optional($user->updated_at)->format('Y-m-d H:i'),
         ];

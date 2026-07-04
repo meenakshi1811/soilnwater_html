@@ -3760,6 +3760,60 @@ class CommunityContentTaxonomy
         return collect(self::types())->mapWithKeys(fn (array $type, string $key) => [$key => $type['label']])->all();
     }
 
+    /**
+     * Accent color per content type (used for filter pills and post-card borders).
+     *
+     * @return array<string, string>
+     */
+    public static function pillColors(): array
+    {
+        return [
+            'all' => '#546e7a',
+            'articles' => '#1976d2',
+            'reports' => '#5c6bc0',
+            'my-area' => '#00897b',
+            'my-voice' => '#8e24aa',
+            'news' => '#e53935',
+            'stories' => '#fb8c00',
+            'poetry' => '#ec407a',
+            'biography' => '#795548',
+            'autobiography' => '#f4511e',
+            'childrens-corner' => '#29b6f6',
+            'awareness' => '#ffb300',
+            'business' => '#3949ab',
+            'student-corner' => '#00acc1',
+            'career' => '#455a64',
+            'health-wellness' => '#43a047',
+            'womens-world' => '#d81b60',
+            'senior-citizens-forum' => '#7cb342',
+            'youth-corner' => '#c0ca33',
+            'jobs-employment' => '#1565c0',
+            'opinions-views' => '#673ab7',
+            'travel-diaries' => '#039be5',
+            'culture-heritage' => '#ff9800',
+            'astro-consultancy' => '#7e57c2',
+            'religion-spirituality' => '#ff7043',
+            'agriculture' => '#558b2f',
+            'environment' => '#009688',
+            'science-technology' => '#3d5afe',
+            'local-voices' => '#ff5722',
+            'community-issues' => '#c62828',
+            'creative-corner' => '#e91e63',
+            'competitions' => '#f9a825',
+            'discussions' => '#607d8b',
+        ];
+    }
+
+    public static function pillColorFallback(): string
+    {
+        return '#78909c';
+    }
+
+    public static function pillColorFor(?string $type): string
+    {
+        return self::pillColors()[$type] ?? self::pillColorFallback();
+    }
+
     public static function categoriesFor(string $type): array
     {
         return self::types()[$type]['categories'] ?? [];

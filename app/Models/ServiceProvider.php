@@ -183,6 +183,11 @@ class ServiceProvider extends Model
         return $this->status === 'pending';
     }
 
+    public function isRejected(): bool
+    {
+        return $this->status === 'rejected';
+    }
+
     public function publicDisplayName(): string
     {
         return $this->display_name ?: $this->company_name;

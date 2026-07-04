@@ -94,6 +94,11 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user): RedirectResponse|JsonResponse|null
     {
+        $blockedResponse = $this->ensureAccountNotBlocked($request, $user, true);
+        if ($blockedResponse) {
+            return $blockedResponse;
+        }
+
         if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
             Auth::logout();
 
@@ -164,6 +169,12 @@ class LoginController extends Controller
                 'login_contact' => 'No account found with this email address or phone number.',
             ]);
         }
+
+        $blockedResponse = $this->ensureAccountNotBlocked($request, $user);
+        if ($blockedResponse) {
+            return $blockedResponse;
+        }
+
         if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
             return $this->contactVerificationRequiredResponse(
                 $request,
@@ -308,6 +319,14 @@ class LoginController extends Controller
             return redirect()->route('login')->withErrors([
                 'email' => $message,
             ]);
+        }
+
+        $blockedResponse = $this->ensureAccountNotBlocked($request, $user);
+        if ($blockedResponse) {
+            Cache::forget($this->otpCacheKey($userId));
+            $request->session()->forget('otp_login_user_id');
+
+            return $blockedResponse;
         }
 
         $approvalResponse = $this->ensureApprovedMarketplaceAccount($request, $user);
@@ -494,6 +513,11 @@ class LoginController extends Controller
             $createdUser = true;
         } elseif ($intent === 'register') {
             $this->applyGoogleRegistrationDetails($user, $roleFromRegisterFlow, $registrationFromRegisterFlow);
+        }
+
+        $blockedResponse = $this->ensureAccountNotBlocked($request, $user);
+        if ($blockedResponse) {
+            return $blockedResponse;
         }
 
         if ($user->isGeneralUser() && ! $user->phone_verified_at) {
@@ -702,6 +726,25 @@ class LoginController extends Controller
             ->with('status', $message);
     }
 
+    private function ensureAccountNotBlocked(Request $request, User $user, bool $logout = false): RedirectResponse|JsonResponse|null
+    {
+        if (! $user->isBlocked()) {
+            return null;
+        }
+
+        if ($logout) {
+            Auth::logout();
+        }
+
+        $message = 'Your account has been blocked by the admin. Please contact support for assistance.';
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message], 403);
+        }
+
+        return redirect()->route('login')->withErrors(['email' => $message]);
+    }
+
     private function ensureApprovedMarketplaceAccount(Request $request, User $user, bool $logout = false): RedirectResponse|JsonResponse|null
     {
         if (! $this->isMarketplaceUser($user)) {
@@ -712,11 +755,17 @@ class LoginController extends Controller
 
         $message = null;
         if ($user->isVendor() && ! $user->vendor?->isApproved()) {
-            $message = 'Your vendor account is pending admin approval. You will be able to log in once approved.';
+            $message = $user->vendor?->isRejected()
+                ? 'Your vendor account has been rejected by the admin. Please contact support for more information.'
+                : 'Your vendor account is pending admin approval. You will be able to log in once approved.';
         } elseif ($user->isConsultant() && ! $user->consultant?->isApproved()) {
-            $message = 'Your consultant account is pending admin approval. You will be able to log in once approved.';
+            $message = $user->consultant?->isRejected()
+                ? 'Your consultant account has been rejected by the admin. Please contact support for more information.'
+                : 'Your consultant account is pending admin approval. You will be able to log in once approved.';
         } elseif ($user->isServiceProvider() && ! $user->serviceProvider?->isApproved()) {
-            $message = 'Your service account is pending admin approval. You will be able to log in once approved.';
+            $message = $user->serviceProvider?->isRejected()
+                ? 'Your service account has been rejected by the admin. Please contact support for more information.'
+                : 'Your service account is pending admin approval. You will be able to log in once approved.';
         }
 
         if (! $message) {

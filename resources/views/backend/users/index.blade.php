@@ -173,6 +173,7 @@
                     <th>Location</th>
                     <th>Date of Birth</th>
                     <th>Status</th>
+                    <th class="text-center">Toggle</th>
                     <th>Created</th>
                     <th class="text-end">Actions</th>
                 </tr>
