@@ -4,9 +4,6 @@
 
 @section('content')
 @php
-    $modules = \App\Support\ModulePermissions::modules();
-@endphp
-@php
     $formatAmount = fn ($amount) => '₹'.number_format((float) $amount, 2);
 @endphp
 @php
@@ -23,6 +20,13 @@
             ],
         ]);
     }
+
+    // Temporarily show only Vendors, Services, and Consultants in module pricing.
+    // $allowedModulePricingKeys = array_keys($modules); // all modules
+    $allowedModulePricingKeys = ['vendors', 'services', 'consultants'];
+    $modulePrices = $modulePrices->filter(
+        fn ($price) => in_array((string) $price->module_key, $allowedModulePricingKeys, true)
+    )->values();
 @endphp
 
 <div class="admin-panel ems-page">

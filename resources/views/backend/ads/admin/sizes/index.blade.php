@@ -81,7 +81,16 @@
                                 <small class="text-secondary">Assign prices for one or multiple modules.</small>
                             </div>
                             <div class="row g-3" id="modulePricingFieldsWrap">
+                                @php
+                                    // Temporarily show only Vendors, Services, and Consultants in module pricing.
+                                    // $allowedModulePricingKeys = array_keys($modules); // all modules
+                                    $allowedModulePricingKeys = ['vendors', 'services', 'consultants'];
+                                @endphp
                                 @foreach($modules as $moduleKey => $moduleLabel)
+                                    @if(! in_array($moduleKey, $allowedModulePricingKeys, true))
+                                        {{-- Commented for now: {{ $moduleLabel }} ({{ $moduleKey }}) --}}
+                                        @continue
+                                    @endif
                                     <div class="col-md-6">
                                         <label class="form-label text-uppercase small mb-1">{{ $moduleLabel }}</label>
                                         <div class="input-group">
