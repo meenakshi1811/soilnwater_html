@@ -931,6 +931,14 @@
 
 /* ── Shared premium badge & homepage/profile UI ── */
 
+.homepage-module-premium {
+  margin-top: 16px;
+}
+
+.homepage-module-premium .premium-listing-cta {
+  margin-bottom: 0;
+}
+
 .premium-badge {
   display: inline-flex;
   align-items: center;

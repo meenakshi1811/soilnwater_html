@@ -205,30 +205,6 @@
           <span>SERVICES</span>
         </div>
       </a>
-      <a href="{{ route('frontend.premium.show', 'vendor') }}" class="cat-item-premium-link">
-        <div class="cat-item cat-item-premium">
-          <div class="cat-icon cat-icon-premium">
-            <i class="fa-solid fa-crown cat-icon-i cat-premium-vendor"></i>
-          </div>
-          <span>PREMIUM VENDOR</span>
-        </div>
-      </a>
-      <a href="{{ route('frontend.premium.show', 'consultant') }}" class="cat-item-premium-link">
-        <div class="cat-item cat-item-premium">
-          <div class="cat-icon cat-icon-premium">
-            <i class="fa-solid fa-crown cat-icon-i cat-premium-consultant"></i>
-          </div>
-          <span>PREMIUM CONSULTANT</span>
-        </div>
-      </a>
-      <a href="{{ route('frontend.premium.show', 'service') }}" class="cat-item-premium-link">
-        <div class="cat-item cat-item-premium">
-          <div class="cat-icon cat-icon-premium">
-            <i class="fa-solid fa-crown cat-icon-i cat-premium-service"></i>
-          </div>
-          <span>PREMIUM SERVICE</span>
-        </div>
-      </a>
       {{--
       <a href="">
         <div class="cat-item">
@@ -1183,6 +1159,9 @@
                 <?php endif; ?>
               </aside>
             </div>
+            @if($showPremiumOptions)
+              @include('frontend.premium.partials.module-cta', ['type' => 'vendor'])
+            @endif
           </div>
           <?php endif; ?>
 
@@ -1552,6 +1531,9 @@
             </div>
           <?php endif; ?>
         </div>
+        @if($showPremiumOptions)
+          @include('frontend.premium.partials.module-cta', ['type' => 'service'])
+        @endif
       </div>
 
       <!-- <div class="sec vendor-enquiry-section">
@@ -1642,6 +1624,9 @@
           <?php endif; ?>
         </div>
 
+        @if($showPremiumOptions)
+          @include('frontend.premium.partials.module-cta', ['type' => 'consultant'])
+        @endif
       </div>
     <?php endif; ?>
 
@@ -1660,10 +1645,6 @@
         </div>
       </div>
     @endif -->
-
-    @if($showPremiumOptions)
-      @include('frontend.premium.partials.homepage-options')
-    @endif
 
     @if(data_get($sectionToggles, 'vendor_enquiry', true))
       <div class="sec vendor-enquiry-section">
