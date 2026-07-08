@@ -69,22 +69,32 @@
 
 .community-post-card__badge {
     backdrop-filter: blur(6px);
-    background: rgba(255, 255, 255, 0.92);
+    background: color-mix(in srgb, var(--type-color) 14%, rgba(255, 255, 255, 0.92));
+    border: 1px solid color-mix(in srgb, var(--type-color) 45%, #ffffff);
     border-radius: 999px;
-    color: #24527a;
+    color: color-mix(in srgb, var(--type-color) 72%, #12395f);
     font-size: 0.72rem;
     font-weight: 700;
     padding: 0.28rem 0.65rem;
 }
 
 .community-post-card__badge--section {
-    background: rgba(46, 125, 50, 0.92);
+    background: color-mix(in srgb, var(--type-color) 92%, #000000);
+    border-color: transparent;
     color: #fff;
 }
 
 .community-post-card__badge--promotion {
-    background: rgba(31, 102, 180, 0.92);
+    background: color-mix(in srgb, var(--type-color) 78%, #1f66b4);
+    border-color: transparent;
     color: #fff;
+}
+
+.community-post-card__badge--trust-score,
+.community-post-card__badge--report-status {
+    background: color-mix(in srgb, var(--type-color) 18%, rgba(255, 255, 255, 0.94));
+    border-color: color-mix(in srgb, var(--type-color) 55%, #ffffff);
+    color: color-mix(in srgb, var(--type-color) 68%, #0f2f55);
 }
 
 .community-post-card--highlighted {
@@ -93,7 +103,7 @@
 
 .community-post-card__video-badge {
     align-items: center;
-    background: rgba(15, 47, 85, 0.78);
+    background: color-mix(in srgb, var(--type-color) 82%, rgba(15, 47, 85, 0.9));
     border-radius: 999px;
     color: #fff;
     display: inline-flex;
@@ -108,9 +118,41 @@
 }
 
 .community-post-card__audio-badge {
-    background: rgba(13, 110, 122, 0.88);
+    background: color-mix(in srgb, var(--type-color) 85%, rgba(13, 110, 122, 0.9));
     bottom: 0.75rem;
     top: auto;
+}
+
+.community-post-card__tag {
+    align-items: center;
+    background: color-mix(in srgb, var(--type-color) 12%, #ffffff);
+    border: 1px solid color-mix(in srgb, var(--type-color) 48%, #dce6f3);
+    border-radius: 999px;
+    color: color-mix(in srgb, var(--type-color) 70%, #12395f);
+    display: inline-flex;
+    font-size: 0.72rem;
+    font-weight: 600;
+    gap: 0.3rem;
+    padding: 0.22rem 0.6rem;
+}
+
+.community-post-card__tag--solid {
+    background: color-mix(in srgb, var(--type-color) 90%, #000000);
+    border-color: transparent;
+    color: #fff;
+}
+
+.community-post-card__tag--emphasis {
+    background: color-mix(in srgb, var(--type-color) 22%, #ffffff);
+    border-color: color-mix(in srgb, var(--type-color) 65%, #dce6f3);
+    color: color-mix(in srgb, var(--type-color) 78%, #0f2f55);
+    font-weight: 700;
+}
+
+.community-post-card__tag--rating {
+    background: color-mix(in srgb, var(--type-color) 16%, #fff8e7);
+    border-color: color-mix(in srgb, var(--type-color) 40%, #f3d9a4);
+    color: color-mix(in srgb, var(--type-color) 45%, #92400e);
 }
 
 .poetry-card-badge {
@@ -271,32 +313,37 @@
 
 .community-score-badge--trending,
 .community-post-card__badge--score.community-score-badge--trending {
-    background: #fff4e5 !important;
-    color: #b45309 !important;
+    background: color-mix(in srgb, var(--type-color) 18%, #fff4e5) !important;
+    border-color: color-mix(in srgb, var(--type-color) 35%, #f3d9a4) !important;
+    color: color-mix(in srgb, var(--type-color) 35%, #b45309) !important;
 }
 
 .community-score-badge--editors-choice,
 .community-post-card__badge--score.community-score-badge--editors-choice {
-    background: #eef2ff !important;
-    color: #4338ca !important;
+    background: color-mix(in srgb, var(--type-color) 18%, #eef2ff) !important;
+    border-color: color-mix(in srgb, var(--type-color) 35%, #c7d2fe) !important;
+    color: color-mix(in srgb, var(--type-color) 35%, #4338ca) !important;
 }
 
 .community-score-badge--most-read,
 .community-post-card__badge--score.community-score-badge--most-read {
-    background: #ecfeff !important;
-    color: #0e7490 !important;
+    background: color-mix(in srgb, var(--type-color) 18%, #ecfeff) !important;
+    border-color: color-mix(in srgb, var(--type-color) 35%, #a5f3fc) !important;
+    color: color-mix(in srgb, var(--type-color) 35%, #0e7490) !important;
 }
 
 .community-score-badge--featured,
 .community-post-card__badge--score.community-score-badge--featured {
-    background: #ecfdf3 !important;
-    color: #047857 !important;
+    background: color-mix(in srgb, var(--type-color) 18%, #ecfdf3) !important;
+    border-color: color-mix(in srgb, var(--type-color) 35%, #a7f3d0) !important;
+    color: color-mix(in srgb, var(--type-color) 35%, #047857) !important;
 }
 
 .community-score-badge--community-pick,
 .community-post-card__badge--score.community-score-badge--community-pick {
-    background: #fdf2f8 !important;
-    color: #be185d !important;
+    background: color-mix(in srgb, var(--type-color) 18%, #fdf2f8) !important;
+    border-color: color-mix(in srgb, var(--type-color) 35%, #fbcfe8) !important;
+    color: color-mix(in srgb, var(--type-color) 35%, #be185d) !important;
 }
 
 .community-empty-state {

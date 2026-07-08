@@ -92,13 +92,13 @@
                 @if($isPoetry && ($poetryType || $poetryThemes !== [] || $poetryRating))
                     <div class="d-flex flex-wrap gap-1 mb-2">
                         @if($poetryType)
-                            <span class="poetry-card-badge bg-light text-dark border">{{ $poetryType }}</span>
+                            <span class="community-post-card__tag">{{ $poetryType }}</span>
                         @endif
                         @foreach($poetryThemes as $theme)
-                            <span class="poetry-card-badge bg-light text-dark border">{{ $theme }}</span>
+                            <span class="community-post-card__tag">{{ $theme }}</span>
                         @endforeach
                         @if($poetryRating)
-                            <span class="poetry-card-badge poetry-card-badge--rating">
+                            <span class="community-post-card__tag community-post-card__tag--rating">
                                 <i class="fa-solid fa-star" aria-hidden="true"></i>
                                 {{ number_format($poetryRating, 1) }}
                             </span>
@@ -108,26 +108,26 @@
                 @if($isBusiness && ($businessContentType || $businessStage || $businessThemes !== []))
                     <div class="d-flex flex-wrap gap-1 mb-2">
                         @if($businessContentType)
-                            <span class="badge bg-warning-subtle text-dark border">{{ $businessContentType }}</span>
+                            <span class="community-post-card__tag community-post-card__tag--emphasis">{{ $businessContentType }}</span>
                         @endif
                         @if($businessStage)
-                            <span class="badge bg-light text-dark border">{{ $businessStage }}</span>
+                            <span class="community-post-card__tag">{{ $businessStage }}</span>
                         @endif
                         @foreach($businessThemes as $theme)
-                            <span class="badge bg-light text-dark border">{{ $theme }}</span>
+                            <span class="community-post-card__tag">{{ $theme }}</span>
                         @endforeach
                     </div>
                 @endif
                 @if($isMyArea && ($myAreaActivity || $myAreaStatus || $myAreaImpact))
                     <div class="d-flex flex-wrap gap-1 mb-2">
                         @if($myAreaActivity)
-                            <span class="badge bg-success text-white">{{ $myAreaActivity }}</span>
+                            <span class="community-post-card__tag community-post-card__tag--solid">{{ $myAreaActivity }}</span>
                         @endif
                         @if($myAreaStatus)
-                            <span class="badge bg-primary">{{ $myAreaStatus }}</span>
+                            <span class="community-post-card__tag">{{ $myAreaStatus }}</span>
                         @endif
                         @if($myAreaImpact)
-                            <span class="badge bg-danger">{{ $myAreaImpact }} impact</span>
+                            <span class="community-post-card__tag community-post-card__tag--emphasis">{{ $myAreaImpact }} impact</span>
                         @endif
                     </div>
                 @endif
