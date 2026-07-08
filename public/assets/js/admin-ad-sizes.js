@@ -40,6 +40,7 @@
             $('#applyAllCategoriesPriceInput').val('');
             $('#adSizeIsPaid').prop('checked', false);
             $('#paidSizeFieldsSection').addClass('d-none');
+            $('#adSizeAdminOnlyOption, #adSizeIsPaidOption, #categoryPriceModeAllOption').removeClass('is-active');
         },
 
         bindUi: function () {
@@ -65,15 +66,24 @@
                 $('input[name^="category_prices["]').val(value);
             };
 
+            var syncOptionActiveState = function ($input, $option) {
+                $option.toggleClass('is-active', $input.is(':checked'));
+            };
+
             var syncPaidSizeFieldsVisibility = function () {
                 var isPaid = $('#adSizeIsPaid').is(':checked');
                 $('#paidSizeFieldsSection').toggleClass('d-none', !isPaid);
+                syncOptionActiveState($('#adSizeIsPaid'), $('#adSizeIsPaidOption'));
             };
+
+            syncOptionActiveState($('#adSizeAdminOnly'), $('#adSizeAdminOnlyOption'));
+            syncOptionActiveState($('#categoryPriceModeAll'), $('#categoryPriceModeAllOption'));
 
             $('#categoryPriceModeAll').on('change', function () {
                 var isAllMode = this.checked;
                 $('#applyAllCategoriesPriceWrap').toggleClass('d-none', !isAllMode);
                 $('#categoryPricingFieldsSection').toggleClass('d-none', isAllMode);
+                syncOptionActiveState($('#categoryPriceModeAll'), $('#categoryPriceModeAllOption'));
                 if (isAllMode) {
                     syncAllCategoriesPrice();
                 }
@@ -81,6 +91,10 @@
 
             $('#applyAllCategoriesPriceInput').on('input', function () {
                 syncAllCategoriesPrice();
+            });
+
+            $('#adSizeAdminOnly').on('change', function () {
+                syncOptionActiveState($('#adSizeAdminOnly'), $('#adSizeAdminOnlyOption'));
             });
 
             $('#adSizeIsPaid').on('change', function () {
@@ -109,6 +123,7 @@
                     $('#adSizeHeight').val(size.height || '');
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
                     $('#adSizeIsPaid').prop('checked', !!size.is_paid);
+                    syncOptionActiveState($('#adSizeAdminOnly'), $('#adSizeAdminOnlyOption'));
                     syncPaidSizeFieldsVisibility();
                     var modulePrices = response.module_prices || {};
                     $('input[name^="module_prices["]').each(function () {
