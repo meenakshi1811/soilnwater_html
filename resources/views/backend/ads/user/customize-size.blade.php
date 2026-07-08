@@ -92,13 +92,42 @@
         background: #fff7ed;
         border: 1px solid #f7c793;
     }
+    .ad-size-pricing-card--free {
+        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        border-color: #a7f3d0;
+    }
+    .ad-size-pricing-card--free .ad-size-pricing-card__label {
+        color: #047857;
+    }
+    .ad-size-pricing-card--free .ad-size-pricing-card__amount {
+        color: #065f46;
+    }
+    .ad-size-pricing-card--free .ad-size-pricing-card__note {
+        color: #6b7280;
+    }
+    .ads-free-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .4rem .85rem;
+        border-radius: 999px;
+        font-size: .8rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+        color: #047857;
+        background: #d1fae5;
+        border: 1px solid #6ee7b7;
+    }
 </style>
 @endpush
 
 @section('content')
 @php
-    $sizeMaxPricePerDay = \App\Support\AdSizes::maxPricePerDay($size);
-    $showSizePricing = (bool) ($size['is_paid'] ?? false) && $sizeMaxPricePerDay !== null;
+    $sizeIsPaid = (bool) ($size['is_paid'] ?? false);
+    $sizeBasePricePerDay = \App\Support\AdSizes::basePricePerDay($size);
+    $showSizePricing = $sizeIsPaid && $sizeBasePricePerDay !== null;
+    $showFreePricing = ! $sizeIsPaid;
 @endphp
 <div class="admin-panel ems-page" id="adsSizeCustomizerPage">
     <div class="ems-hero mb-4">
@@ -109,14 +138,27 @@
                 <p class="mb-0 text-secondary">Selected size: <strong>{{ $size['name'] }}</strong> ({{ $size['w'] }}×{{ $size['h'] }} px)</p>
             </div>
             @if($showSizePricing)
-                <div class="ad-size-pricing-card" style="min-width:min(100%, 280px); max-width:340px;" id="adSizePricingHero" data-max-price="{{ $sizeMaxPricePerDay }}">
-                    <div class="ad-size-pricing-card__label" id="pricingHeroLabel">Maximum placement price</div>
+                <div class="ad-size-pricing-card" style="min-width:min(100%, 280px); max-width:340px;" id="adSizePricingHero" data-base-price="{{ $sizeBasePricePerDay }}">
+                    <div class="ad-size-pricing-card__label" id="pricingHeroLabel">Base placement price</div>
                     <div class="ad-size-pricing-card__amount">
                         <span class="ad-size-pricing-card__currency">₹</span>
-                        <span class="ad-size-pricing-card__value" id="pricingHeroValue">{{ number_format($sizeMaxPricePerDay, 2) }}</span>
+                        <span class="ad-size-pricing-card__value" id="pricingHeroValue">{{ number_format($sizeBasePricePerDay, 2) }}</span>
                         <span class="ad-size-pricing-card__period">/ day</span>
                     </div>
                     <p class="ad-size-pricing-card__note mb-0" id="pricingHeroNote">Final price may go up or down based on the modules you select.</p>
+                </div>
+            @elseif($showFreePricing)
+                <div class="ad-size-pricing-card ad-size-pricing-card--free" style="min-width:min(100%, 280px); max-width:340px;" id="adSizePricingHero">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <div class="ad-size-pricing-card__label mb-0">Placement price</div>
+                        <span class="ads-free-badge"><i class="fa-solid fa-gift" aria-hidden="true"></i> Free</span>
+                    </div>
+                    <div class="ad-size-pricing-card__amount">
+                        <span class="ad-size-pricing-card__currency">₹</span>
+                        <span class="ad-size-pricing-card__value">0.00</span>
+                        <span class="ad-size-pricing-card__period">/ day</span>
+                    </div>
+                    <p class="ad-size-pricing-card__note mb-0">This ad size is complimentary — no payment is required.</p>
                 </div>
             @endif
         </div>
@@ -418,13 +460,13 @@
             </div>
 
             @if($showSizePricing)
-                <div id="pricingDetailsCard" class="ad-size-pricing-card mt-4" data-max-price="{{ $sizeMaxPricePerDay }}">
+                <div id="pricingDetailsCard" class="ad-size-pricing-card mt-4" data-base-price="{{ $sizeBasePricePerDay }}">
                     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
                         <div>
-                            <div class="ad-size-pricing-card__label" id="pricingAmountLabel">Estimated placement price</div>
+                            <div class="ad-size-pricing-card__label" id="pricingAmountLabel">Base placement price</div>
                             <div class="ad-size-pricing-card__amount">
                                 <span class="ad-size-pricing-card__currency">₹</span>
-                                <span class="ad-size-pricing-card__value" id="pricingBasePrice">{{ number_format($sizeMaxPricePerDay, 2) }}</span>
+                                <span class="ad-size-pricing-card__value" id="pricingBasePrice">{{ number_format($sizeBasePricePerDay, 2) }}</span>
                                 <span class="ad-size-pricing-card__period">/ day</span>
                             </div>
                             <p class="ad-size-pricing-card__note mb-0" id="pricingModuleNote">Final price may go up or down based on the modules and category you select.</p>
@@ -453,6 +495,25 @@
                             <strong id="pricingGrandTotal">₹0.00</strong>
                         </div>
                         <p id="pricingHint" class="ad-size-pricing-card__note mb-0 mt-2">Valid until is not selected, so the estimate uses a 1-day placement price.</p>
+                    </div>
+                </div>
+            @elseif($showFreePricing)
+                <div id="pricingDetailsCard" class="ad-size-pricing-card ad-size-pricing-card--free mt-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="ad-size-pricing-card__label">Placement price</div>
+                            <div class="ad-size-pricing-card__amount">
+                                <span class="ad-size-pricing-card__currency">₹</span>
+                                <span class="ad-size-pricing-card__value">0.00</span>
+                                <span class="ad-size-pricing-card__period">/ day</span>
+                            </div>
+                            <p class="ad-size-pricing-card__note mb-0">No charges apply for this size. You can save and publish without making a payment.</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="ads-free-badge">
+                                <i class="fa-solid fa-gift" aria-hidden="true"></i> Free placement
+                            </span>
+                        </div>
                     </div>
                 </div>
             @endif
@@ -1451,7 +1512,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         const pricingHint = document.getElementById('pricingHint');
         const pricingDetailsCard = document.getElementById('pricingDetailsCard');
         const pricingEstimateSection = document.getElementById('pricingEstimateSection');
-        const configuredMaxPrice = Number(pricingDetailsCard?.dataset.maxPrice || document.getElementById('adSizePricingHero')?.dataset.maxPrice || 0);
+        const configuredBasePrice = Number(pricingDetailsCard?.dataset.basePrice || document.getElementById('adSizePricingHero')?.dataset.basePrice || 0);
         const isSquareSizeType = @json($sizeType === 'square');
 
         const allCategoryOptions = categorySelect
@@ -1619,7 +1680,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 return combined;
             }
 
-            return Number.isFinite(configuredMaxPrice) && configuredMaxPrice > 0 ? configuredMaxPrice : 0;
+            return Number.isFinite(configuredBasePrice) && configuredBasePrice > 0 ? configuredBasePrice : 0;
         }
 
         function formatInr(amount) {
@@ -1632,7 +1693,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             const placementPrice = currentPlacementPricePerDay();
             const hasCategorySelection = selectedCategoryPricePerDay() > 0;
             const hasModuleSelection = selectedModulePricePerDay() > 0;
-            const usingConfiguredMax = !hasCategorySelection && !hasModuleSelection && placementPrice > 0;
+            const usingConfiguredBase = !hasCategorySelection && !hasModuleSelection && placementPrice > 0;
             const formattedPlacementPrice = formatInr(placementPrice);
 
             pricingBasePrice.textContent = formattedPlacementPrice;
@@ -1641,10 +1702,10 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             }
 
             if (pricingAmountLabel) {
-                pricingAmountLabel.textContent = usingConfiguredMax ? 'Maximum placement price' : 'Estimated placement price';
+                pricingAmountLabel.textContent = usingConfiguredBase ? 'Base placement price' : 'Estimated placement price';
             }
             if (pricingHeroLabel) {
-                pricingHeroLabel.textContent = usingConfiguredMax ? 'Maximum placement price' : 'Estimated placement price';
+                pricingHeroLabel.textContent = usingConfiguredBase ? 'Base placement price' : 'Estimated placement price';
             }
 
             const moduleNote = 'Final price may go up or down based on the modules and category you select.';

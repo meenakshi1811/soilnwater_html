@@ -49,13 +49,22 @@
                         </div>
                         <div class="mt-3">
                             <div class="text-secondary small">Aspect ratio {{ $size['ratio'] }}</div>
-                            @php $sizeMaxPrice = \App\Support\AdSizes::maxPricePerDay($size); @endphp
-                            @if($sizeMaxPrice !== null)
+                            @php
+                                $sizeIsPaid = (bool) ($size['is_paid'] ?? false);
+                                $sizeBasePrice = \App\Support\AdSizes::basePricePerDay($size);
+                            @endphp
+                            @if(! $sizeIsPaid)
+                                <div class="ads-size-card-price ads-size-card-price--free">
+                                    <i class="fa-solid fa-gift" aria-hidden="true"></i>
+                                    Free
+                                </div>
+                                <div class="text-secondary small mt-1">No placement charges for this size</div>
+                            @elseif($sizeBasePrice !== null)
                                 <div class="ads-size-card-price">
                                     <i class="fa-solid fa-tag" aria-hidden="true"></i>
-                                    Up to ₹{{ number_format($sizeMaxPrice, 2) }}/day
+                                    ₹{{ number_format($sizeBasePrice, 2) }}/day
                                 </div>
-                                <div class="text-secondary small mt-1">Price may vary by module selection</div>
+                                <div class="text-secondary small mt-1">Base price · may vary by selection</div>
                             @endif
                         </div>
                     </a>
@@ -121,6 +130,11 @@
     color: #b45309;
     background: #fff7ed;
     border: 1px solid #f7c793;
+}
+.ads-size-card-price--free {
+    color: #047857;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
 }
 </style>
 @endpush

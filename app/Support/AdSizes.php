@@ -75,6 +75,20 @@ final class AdSizes
     }
 
     /**
+     * Starting base price per day for a size (lowest category / module / flat amount).
+     */
+    public static function basePricePerDay(array $size): ?float
+    {
+        if (! (bool) ($size['is_paid'] ?? false)) {
+            return null;
+        }
+
+        $amount = (float) ($size['amount'] ?? 0);
+
+        return $amount > 0 ? round($amount, 2) : null;
+    }
+
+    /**
      * Highest possible base price per day for a size (max category + all modules).
      */
     public static function maxPricePerDay(array $size): ?float
