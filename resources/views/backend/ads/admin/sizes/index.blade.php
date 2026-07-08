@@ -69,83 +69,79 @@
                             <input type="number" min="1" max="5000" name="height" id="adSizeHeight" class="form-control" required>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" name="is_paid" id="adSizeIsPaid" value="1">
-                                <label class="form-check-label" for="adSizeIsPaid">Module Price</label>
-                            </div>
-                        </div>
-                        <div class="col-12 d-none" id="modulePricingFieldsSection">
-                            <hr class="my-1">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-                                <label class="form-label mb-0">Module Pricing</label>
-                                <small class="text-secondary">Assign prices for one or multiple modules.</small>
-                            </div>
-                            <div class="row g-3" id="modulePricingFieldsWrap">
-                                @php
-                                    // Temporarily show only Vendors, Services, and Consultants in module pricing.
-                                    // $allowedModulePricingKeys = array_keys($modules); // all modules
-                                    $allowedModulePricingKeys = ['vendors', 'services', 'consultants'];
-                                @endphp
-                                @foreach($modules as $moduleKey => $moduleLabel)
-                                    @if(! in_array($moduleKey, $allowedModulePricingKeys, true))
-                                        {{-- Commented for now: {{ $moduleLabel }} ({{ $moduleKey }}) --}}
-                                        @continue
-                                    @endif
-                                    <div class="col-md-6">
-                                        <label class="form-label text-uppercase small mb-1">{{ $moduleLabel }}</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">₹</span>
-                                            <input type="number" min="0" step="0.01" class="form-control" name="module_prices[{{ $moduleKey }}]" placeholder="0.00">
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        <div class="col-md-4 d-flex align-items-end">
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" name="admin_only" id="adSizeAdminOnly" value="1">
                                 <label class="form-check-label" for="adSizeAdminOnly">Admin only</label>
                             </div>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
-                            <div class="form-check mb-2">
+                            <div class="form-check form-switch mb-2">
                                 <input class="form-check-input" type="checkbox" name="is_paid" id="adSizeIsPaid" value="1">
                                 <label class="form-check-label" for="adSizeIsPaid">Paid size</label>
                             </div>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label mb-1">Category pricing mode</label>
-                            <div class="d-flex flex-wrap gap-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="categoryPriceModeAll">
-                                    <label class="form-check-label" for="categoryPriceModeAll">Apply one price for all categories</label>
+                        <div class="col-12 d-none" id="paidSizeFieldsSection">
+                            <div class="col-12" id="modulePricingFieldsSection">
+                                <hr class="my-1">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                    <label class="form-label mb-0">Module Pricing</label>
+                                    <small class="text-secondary">Assign prices for one or multiple modules.</small>
+                                </div>
+                                <div class="row g-3" id="modulePricingFieldsWrap">
+                                    @php
+                                        // Temporarily show only Vendors, Services, and Consultants in module pricing.
+                                        // $allowedModulePricingKeys = array_keys($modules); // all modules
+                                        $allowedModulePricingKeys = ['vendors', 'services', 'consultants'];
+                                    @endphp
+                                    @foreach($modules as $moduleKey => $moduleLabel)
+                                        @if(! in_array($moduleKey, $allowedModulePricingKeys, true))
+                                            {{-- Commented for now: {{ $moduleLabel }} ({{ $moduleKey }}) --}}
+                                            @continue
+                                        @endif
+                                        <div class="col-md-6">
+                                            <label class="form-label text-uppercase small mb-1">{{ $moduleLabel }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₹</span>
+                                                <input type="number" min="0" step="0.01" class="form-control" name="module_prices[{{ $moduleKey }}]" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-4 d-none" id="applyAllCategoriesPriceWrap">
-                            <label class="form-label">Price for all categories</label>
-                            <div class="input-group">
-                                <span class="input-group-text">₹</span>
-                                <input type="number" min="0" step="0.01" id="applyAllCategoriesPriceInput" class="form-control" placeholder="0.00">
-                            </div>
-                            <small class="text-secondary">When enabled, this value is copied to every category price.</small>
-                        </div>
-                        <div class="col-12" id="categoryPricingFieldsSection">
-                            <hr class="my-1">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-                                <label class="form-label mb-0">Category Pricing</label>
-                                <small class="text-secondary">Leave a category blank when this size is not priced for it.</small>
-                            </div>
-                            <div class="row g-3" id="categoryPricingFieldsWrap">
-                                @foreach($categories as $categoryId => $categoryName)
-                                    <div class="col-md-6">
-                                        <label class="form-label text-uppercase small mb-1">{{ $categoryName }}</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">₹</span>
-                                            <input type="number" min="0" step="0.01" class="form-control js-category-price-input" name="category_prices[{{ $categoryId }}]" placeholder="0.00">
-                                        </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label mb-1">Category pricing mode</label>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="categoryPriceModeAll">
+                                        <label class="form-check-label" for="categoryPriceModeAll">Apply one price for all categories</label>
                                     </div>
-                                @endforeach
+                                </div>
+                            </div>
+                            <div class="col-md-4 mt-3 d-none" id="applyAllCategoriesPriceWrap">
+                                <label class="form-label">Price for all categories</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" min="0" step="0.01" id="applyAllCategoriesPriceInput" class="form-control" placeholder="0.00">
+                                </div>
+                                <small class="text-secondary">When enabled, this value is copied to every category price.</small>
+                            </div>
+                            <div class="col-12 mt-3" id="categoryPricingFieldsSection">
+                                <hr class="my-1">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                    <label class="form-label mb-0">Category Pricing</label>
+                                    <small class="text-secondary">Leave a category blank when this size is not priced for it.</small>
+                                </div>
+                                <div class="row g-3" id="categoryPricingFieldsWrap">
+                                    @foreach($categories as $categoryId => $categoryName)
+                                        <div class="col-md-6">
+                                            <label class="form-label text-uppercase small mb-1">{{ $categoryName }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₹</span>
+                                                <input type="number" min="0" step="0.01" class="form-control js-category-price-input" name="category_prices[{{ $categoryId }}]" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>

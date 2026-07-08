@@ -39,7 +39,7 @@
             $('#categoryPricingFieldsSection').removeClass('d-none');
             $('#applyAllCategoriesPriceInput').val('');
             $('#adSizeIsPaid').prop('checked', false);
-            $('#modulePricingFieldsSection').addClass('d-none');
+            $('#paidSizeFieldsSection').addClass('d-none');
         },
 
         bindUi: function () {
@@ -65,9 +65,9 @@
                 $('input[name^="category_prices["]').val(value);
             };
 
-            var syncModulePricingVisibility = function () {
-                var isModulePriceEnabled = $('#adSizeIsPaid').is(':checked');
-                $('#modulePricingFieldsSection').toggleClass('d-none', !isModulePriceEnabled);
+            var syncPaidSizeFieldsVisibility = function () {
+                var isPaid = $('#adSizeIsPaid').is(':checked');
+                $('#paidSizeFieldsSection').toggleClass('d-none', !isPaid);
             };
 
             $('#categoryPriceModeAll').on('change', function () {
@@ -84,7 +84,7 @@
             });
 
             $('#adSizeIsPaid').on('change', function () {
-                syncModulePricingVisibility();
+                syncPaidSizeFieldsVisibility();
             });
 
             $(document).on('click', '.js-edit-ad-size', function () {
@@ -109,12 +109,18 @@
                     $('#adSizeHeight').val(size.height || '');
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
                     $('#adSizeIsPaid').prop('checked', !!size.is_paid);
-                    syncModulePricingVisibility();
+                    syncPaidSizeFieldsVisibility();
                     var modulePrices = response.module_prices || {};
                     $('input[name^="module_prices["]').each(function () {
                         var name = $(this).attr('name');
                         var key = name.substring(14, name.length - 1);
                         $(this).val(modulePrices[key] || '');
+                    });
+                    var categoryPrices = response.category_prices || {};
+                    $('input[name^="category_prices["]').each(function () {
+                        var name = $(this).attr('name');
+                        var key = name.substring(16, name.length - 1);
+                        $(this).val(categoryPrices[key] || '');
                     });
                     $('#adSizeForm').attr('action', '/admin/ads/sizes/' + id).attr('method', 'POST');
                     self.modal.show();
