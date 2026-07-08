@@ -117,6 +117,7 @@ class HomepageSettingController extends Controller
             'popular_services' => 'Popular Services',
             'consultants_enquiry' => 'Consultants & Enquiry',
             'vendor_enquiry' => 'Vendor Enquiry',
+            'premium_options' => 'Premium Vendor / Consultant / Service Options',
         ];
     }
 }

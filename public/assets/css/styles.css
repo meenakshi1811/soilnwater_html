@@ -334,6 +334,47 @@
   .cat-properties { color: #1976d2; }
   .cat-hotel { color: #7b1fa2; }
   .cat-enquiry { color: #1565c0; }
+  .cat-premium-vendor { color: #b8860b; }
+  .cat-premium-consultant { color: #1565c0; }
+  .cat-premium-service { color: #e65100; }
+
+  .cat-item-premium-link {
+    text-decoration: none;
+  }
+
+  .cat-item-premium .cat-icon-premium {
+    border-color: #f3d58b;
+    background: linear-gradient(145deg, #fff9e8 0%, #fff3cc 100%);
+    box-shadow: 0 6px 14px rgba(183, 134, 11, 0.16);
+  }
+
+  .cat-item-premium:hover .cat-icon-premium {
+    border-color: #d4a017;
+    background: linear-gradient(145deg, #fff4d6 0%, #ffe8a3 100%);
+    box-shadow: 0 8px 18px rgba(183, 134, 11, 0.24);
+  }
+
+  .cat-item-premium span {
+    color: #7a5b00;
+  }
+
+  .vendor-card-name,
+  .con-name {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .is-premium-card {
+    border-color: #f0d78c !important;
+    box-shadow: 0 10px 24px rgba(183, 134, 11, 0.12) !important;
+  }
+
+  .con-card.is-premium-card {
+    outline: 2px solid rgba(212, 160, 23, 0.35);
+    outline-offset: -2px;
+  }
 
   /* ── SECTION WRAPPER ── */
   .main-wrap { display: flex; gap: 20px; padding: 24px 28px; width: 100%; max-width: none; margin: 0; }

@@ -7,6 +7,9 @@
                 @else
                     <span class="vendor-store-brand__text">{{ $vendor->publicDisplayName() }}</span>
                 @endif
+                @if($vendor->is_premium)
+                    @include('frontend.premium.partials.badge', ['size' => 'sm'])
+                @endif
             </a>
 
             <button class="vendor-store-mobile-toggle d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#vendorStoreNav" aria-controls="vendorStoreNav" aria-expanded="false" aria-label="Toggle navigation">

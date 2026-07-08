@@ -4,6 +4,7 @@
 @php
   $sectionToggles = data_get($homepageSetting ?? null, 'section_toggles', []);
   $showTopVendors = !empty($sectionToggles['top_vendors']) && $sectionToggles['top_vendors'];
+  $showPremiumOptions = data_get($sectionToggles, 'premium_options', true);
   $showPopularPropertiesNearGreenwood = !empty($sectionToggles['popular_properties_near_greenwood']) && $sectionToggles['popular_properties_near_greenwood'];
   $topVendorsHeaderAdsList = collect($topVendorsHeaderAds ?? []);
   $topVendorsList = collect($topVendors ?? []);
@@ -202,6 +203,30 @@
             <i class="fa-solid fa-screwdriver-wrench cat-icon-i cat-service"></i>
           </div>
           <span>SERVICES</span>
+        </div>
+      </a>
+      <a href="{{ route('frontend.premium.show', 'vendor') }}" class="cat-item-premium-link">
+        <div class="cat-item cat-item-premium">
+          <div class="cat-icon cat-icon-premium">
+            <i class="fa-solid fa-crown cat-icon-i cat-premium-vendor"></i>
+          </div>
+          <span>PREMIUM VENDOR</span>
+        </div>
+      </a>
+      <a href="{{ route('frontend.premium.show', 'consultant') }}" class="cat-item-premium-link">
+        <div class="cat-item cat-item-premium">
+          <div class="cat-icon cat-icon-premium">
+            <i class="fa-solid fa-crown cat-icon-i cat-premium-consultant"></i>
+          </div>
+          <span>PREMIUM CONSULTANT</span>
+        </div>
+      </a>
+      <a href="{{ route('frontend.premium.show', 'service') }}" class="cat-item-premium-link">
+        <div class="cat-item cat-item-premium">
+          <div class="cat-icon cat-icon-premium">
+            <i class="fa-solid fa-crown cat-icon-i cat-premium-service"></i>
+          </div>
+          <span>PREMIUM SERVICE</span>
         </div>
       </a>
       {{--
@@ -1109,7 +1134,7 @@
                 <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3">
                   <?php foreach ($topVendorsList as $vendor): ?>
                     <div class="col">
-                      <div class="vendor-card card h-100">
+                      <div class="vendor-card card h-100{{ $vendor->is_premium ? ' is-premium-card' : '' }}">
                         <?php
                           $firstProduct = $vendor->products->first();
                           $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
@@ -1117,12 +1142,16 @@
                           $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
                           $logoImage = $vendor->logo ? asset($vendor->logo) : null;
                           $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
-                          $vendorDisplayName = $vendor->publicDisplayName() . ($vendor->is_premium ? ' ⭐' : '');
                           $primaryBranch = $vendor->branches->first();
                         ?>
                         <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
                         <div class="vendor-card-body card-body d-flex flex-column">
-                          <p>{{ $vendorDisplayName }}</p>
+                          <p class="vendor-card-name">
+                            {{ $vendor->publicDisplayName() }}
+                            @if($vendor->is_premium)
+                              @include('frontend.premium.partials.badge', ['size' => 'xs'])
+                            @endif
+                          </p>
                           <div class="vendor-card-sub">{{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products</div>
                           <a href="{{ route('store.show', $vendor->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
                         </div>
@@ -1488,10 +1517,15 @@
                         ? ' • '.number_format($serviceProvider->nearest_distance_km, 1).' km'
                         : '';
                     ?>
-                    <a class="con-card text-decoration-none" href="<?= e(route('service_provider.show', $serviceProvider->slug)) ?>" aria-label="View <?= e($serviceProvider->publicDisplayName()) ?> service page">
+                    <a class="con-card text-decoration-none{{ $serviceProvider->is_premium ? ' is-premium-card' : '' }}" href="<?= e(route('service_provider.show', $serviceProvider->slug)) ?>" aria-label="View <?= e($serviceProvider->publicDisplayName()) ?> service page">
                       <img src="<?= e($serviceProviderCardImage) ?>" alt="<?= e($serviceProvider->publicDisplayName()) ?>" onerror="this.onerror=null;this.src='<?= e($profilePlaceholder) ?>';">
                       <div class="con-card-body">
-                        <p class="con-name"><?= e($serviceProvider->publicDisplayName()) ?><?php if ($serviceProvider->is_premium): ?> ⭐<?php endif; ?></p>
+                        <p class="con-name">
+                          <?= e($serviceProvider->publicDisplayName()) ?>
+                          @if($serviceProvider->is_premium)
+                            @include('frontend.premium.partials.badge', ['size' => 'xs'])
+                          @endif
+                        </p>
                         <span class="con-role"><?= e($serviceProviderCity) ?> • <?= e($serviceProvider->services_count) ?> Services<?= e($serviceProviderDistance) ?></span>
                         <?php if (filled($professionalExperience)): ?>
                           <span class="con-professional-detail"><strong>Experience:</strong> <?= e(\Illuminate\Support\Str::limit($professionalExperience, 72)) ?></span>
@@ -1572,10 +1606,15 @@
                         ? ' • '.number_format($consultant->nearest_distance_km, 1).' km'
                         : '';
                     ?>
-                    <a class="con-card text-decoration-none" href="<?= e(route('consultant.show', $consultant->slug)) ?>" aria-label="View <?= e($consultant->publicDisplayName()) ?> consultant page">
+                    <a class="con-card text-decoration-none{{ $consultant->is_premium ? ' is-premium-card' : '' }}" href="<?= e(route('consultant.show', $consultant->slug)) ?>" aria-label="View <?= e($consultant->publicDisplayName()) ?> consultant page">
                       <img src="<?= e($consultantCardImage) ?>" alt="<?= e($consultant->publicDisplayName()) ?>" onerror="this.onerror=function(){this.onerror=null;this.src='<?= e($profilePlaceholder) ?>';};this.src='<?= e($consultantCardFallback) ?>';">
                       <div class="con-card-body">
-                        <p class="con-name"><?= e($consultant->publicDisplayName()) ?><?php if ($consultant->is_premium): ?> ⭐<?php endif; ?></p>
+                        <p class="con-name">
+                          <?= e($consultant->publicDisplayName()) ?>
+                          @if($consultant->is_premium)
+                            @include('frontend.premium.partials.badge', ['size' => 'xs'])
+                          @endif
+                        </p>
                         <span class="con-role"><?= e($consultantCity) ?> • <?= e($consultant->services_count) ?> Services<?= e($consultantDistance) ?></span>
                         <?php if (filled($professionalExperience)): ?>
                           <span class="con-professional-detail"><strong>Experience:</strong> <?= e(\Illuminate\Support\Str::limit($professionalExperience, 72)) ?></span>
@@ -1621,6 +1660,10 @@
         </div>
       </div>
     @endif -->
+
+    @if($showPremiumOptions)
+      @include('frontend.premium.partials.homepage-options')
+    @endif
 
     @if(data_get($sectionToggles, 'vendor_enquiry', true))
       <div class="sec vendor-enquiry-section">
@@ -1677,6 +1720,7 @@
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/premium-page.css') }}?v={{ now()->timestamp }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
   .offer-details-modal .modal-content {
