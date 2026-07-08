@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\PremiumPaymentSubmission;
+use App\Models\PremiumPrice;
 use App\Services\PremiumPaymentReviewService;
 use App\Support\PremiumPaymentFileUploader;
 use Illuminate\Http\JsonResponse;
@@ -63,6 +64,7 @@ class PremiumPaymentController extends Controller
             'user_id' => $user->id,
             'profile_type' => $type,
             'profile_id' => $profile->id,
+            'expected_amount' => number_format(PremiumPrice::amountFor($type), 2, '.', ''),
             'screenshot_path' => $screenshotPath,
             'transaction_reference' => $validated['transaction_reference'] ?? null,
             'user_note' => $validated['user_note'] ?? null,

@@ -22,6 +22,7 @@
     $serviceProvidersMenuActive = request()->routeIs('admin.service_providers.*') || request()->routeIs('admin.service-provider-services.*');
     $approvalCenterActive = request()->routeIs('admin.approvals.*');
     $paymentsMenuActive = request()->routeIs('admin.premium-payments.*');
+    $premiumPricesMenuActive = request()->routeIs('admin.premium-prices.*');
     $listingPaymentsMenuActive = request()->routeIs('admin.listing-payments.*');
     $vendorPagesMenuActive = request()->routeIs('vendor.public-page.*') || request()->routeIs('vendor.branches.*') || request()->routeIs('vendor.products.*') || request()->routeIs('vendor.inquiries.*');
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
@@ -139,6 +140,12 @@
                 <a class="{{ $paymentsMenuActive ? 'active' : '' }}" href="{{ route('admin.premium-payments.index') }}">
                     <i class="fa-solid fa-credit-card"></i>
                     <span>Premium Payments</span>
+                </a>
+            </li>
+            <li>
+                <a class="{{ $premiumPricesMenuActive ? 'active' : '' }}" href="{{ route('admin.premium-prices.index') }}">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>Premium Prices</span>
                 </a>
             </li>
             <li>

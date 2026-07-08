@@ -36,6 +36,13 @@
                     <dt class="col-sm-4">Profile type</dt>
                     <dd class="col-sm-8">{{ $submission->profileTypeLabel() }}</dd>
 
+                    <dt class="col-sm-4">Expected amount</dt>
+                    <dd class="col-sm-8 fw-semibold">
+                        {{ $submission->expected_amount !== null
+                            ? \App\Models\PremiumPrice::formatAmount($submission->expected_amount)
+                            : \App\Models\PremiumPrice::formatAmount(\App\Models\PremiumPrice::amountFor($submission->profile_type)) }}
+                    </dd>
+
                     <dt class="col-sm-4">Profile name</dt>
                     <dd class="col-sm-8">{{ $submission->profileDisplayName() }}</dd>
 

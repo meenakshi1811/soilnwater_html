@@ -118,6 +118,10 @@
         <div class="tier-head">
           <h3>PREMIUM</h3>
           <p>Membership benefits that drive growth</p>
+          <div class="premium-tier-price">
+            <span class="premium-tier-price-amount">{{ $config['formatted_amount'] }}</span>
+            <span class="premium-tier-price-period">membership</span>
+          </div>
         </div>
         <ul>
           @foreach($config['premium_features'] as $feature)
@@ -158,7 +162,7 @@
         <a href="{{ route('login') }}" class="premium-btn premium-btn-free">FREE TO START</a>
         <button type="button" class="premium-btn premium-btn-premium" data-bs-toggle="modal" data-bs-target="#premiumQrModal">
           <i class="fa-solid fa-crown"></i>
-          CHOOSE PREMIUM. CHOOSE GROWTH.
+          GET PREMIUM · {{ $config['formatted_amount'] }}
         </button>
       </div>
     </div>
@@ -190,7 +194,7 @@
             <i class="fa-solid fa-crown me-2 text-warning"></i>
             Get Premium – {{ $config['singular'] }}
           </h5>
-          <p class="premium-modal-subtitle mb-0">Complete payment and upload proof for admin verification</p>
+          <p class="premium-modal-subtitle mb-0">Pay {{ $config['formatted_amount'] }}, then upload proof for admin verification</p>
         </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -201,6 +205,11 @@
               <div class="premium-qr-card-head">
                 <i class="fa-solid fa-qrcode"></i>
                 <span>Scan &amp; Pay via UPI</span>
+              </div>
+              <div class="premium-amount-banner">
+                <span class="premium-amount-banner-label">Amount to pay</span>
+                <strong class="premium-amount-banner-value">{{ $config['formatted_amount'] }}</strong>
+                <span class="premium-amount-banner-note">{{ $config['singular'] }} premium membership</span>
               </div>
               <div class="premium-qr-image-wrap">
                 <img
@@ -215,7 +224,7 @@
                   <span>UPI ID</span>
                   <strong>yespay.bizsbiz240983@yesbankltd</strong>
                 </p>
-                <p class="premium-qr-hint">Scan with PhonePe, Google Pay, Paytm, or any UPI app</p>
+                <p class="premium-qr-hint">Pay exactly {{ $config['formatted_amount'] }} using PhonePe, Google Pay, Paytm, or any UPI app</p>
               </div>
             </div>
           </aside>

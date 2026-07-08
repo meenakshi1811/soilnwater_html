@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\AdTemplateController;
 use App\Http\Controllers\Admin\AdSubmissionController;
 use App\Http\Controllers\Admin\ApprovalCenterController;
 use App\Http\Controllers\Admin\PremiumPaymentSubmissionController;
+use App\Http\Controllers\Admin\PremiumPriceController;
 use App\Http\Controllers\Admin\ListingPaymentSubmissionController;
 use App\Http\Controllers\Admin\CommunityPostApprovalController;
 use App\Http\Controllers\Admin\CommunityPostReportController;
@@ -354,6 +355,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{submission}', [PremiumPaymentSubmissionController::class, 'show'])->name('show');
             Route::post('/{submission}/approve', [PremiumPaymentSubmissionController::class, 'approve'])->name('approve');
             Route::post('/{submission}/reject', [PremiumPaymentSubmissionController::class, 'reject'])->name('reject');
+        });
+
+        Route::prefix('premium-prices')->name('premium-prices.')->group(function () {
+            Route::get('/', [PremiumPriceController::class, 'index'])->name('index');
+            Route::put('/{premiumPrice}', [PremiumPriceController::class, 'update'])->name('update');
         });
 
         Route::prefix('listing-payments')->name('listing-payments.')->group(function () {

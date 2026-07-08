@@ -14,6 +14,9 @@
             <h2 class="admin-title mb-1">Payments</h2>
             <p class="mb-0 text-secondary">Review premium payment proofs submitted by vendors, consultants, and service providers.</p>
         </div>
+        <a href="{{ route('admin.premium-prices.index') }}" class="btn btn-outline-primary">
+            <i class="fa-solid fa-tags me-1"></i> Manage Premium Prices
+        </a>
     </div>
 
     <div class="chart-card">
@@ -23,6 +26,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Profile Type</th>
+                    <th>Amount</th>
                     <th>Profile Name</th>
                     <th>User</th>
                     <th>Email</th>

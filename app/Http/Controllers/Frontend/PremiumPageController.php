@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\PremiumPaymentSubmission;
+use App\Models\PremiumPrice;
 use Illuminate\View\View;
 
 class PremiumPageController extends Controller
@@ -21,6 +22,8 @@ class PremiumPageController extends Controller
             'config' => $config,
             'allTypes' => $this->allTypes(),
             'paymentState' => $this->resolvePaymentState($type),
+            'premiumAmount' => PremiumPrice::amountFor($type),
+            'premiumAmountFormatted' => PremiumPrice::formatAmount(PremiumPrice::amountFor($type)),
         ]);
     }
 
@@ -89,6 +92,9 @@ class PremiumPageController extends Controller
      */
     private function allTypes(): array
     {
+        $amounts = PremiumPrice::ensureDefaults()
+            ->keyBy('profile_type');
+
         return [
             'vendor' => $this->typeConfig(
                 label: 'Vendors',
@@ -98,6 +104,7 @@ class PremiumPageController extends Controller
                 tagline: 'Showcase Your Products',
                 listingLabel: 'Vendor Listing Page',
                 profileLabel: 'vendor profile',
+                amount: (float) ($amounts['vendor']->amount ?? PremiumPrice::amountFor('vendor')),
             ),
             'consultant' => $this->typeConfig(
                 label: 'Consultants',
@@ -107,6 +114,7 @@ class PremiumPageController extends Controller
                 tagline: 'Build Trust & Get More Clients',
                 listingLabel: 'Consultant Listing Page',
                 profileLabel: 'consultant profile',
+                amount: (float) ($amounts['consultant']->amount ?? PremiumPrice::amountFor('consultant')),
             ),
             'service' => $this->typeConfig(
                 label: 'Service Providers',
@@ -116,6 +124,7 @@ class PremiumPageController extends Controller
                 tagline: 'Promote Your Services for More Leads',
                 listingLabel: 'Service Listing Page',
                 profileLabel: 'service profile',
+                amount: (float) ($amounts['service']->amount ?? PremiumPrice::amountFor('service')),
             ),
         ];
     }
@@ -139,6 +148,7 @@ class PremiumPageController extends Controller
         string $tagline,
         string $listingLabel,
         string $profileLabel,
+        float $amount,
     ): array {
         return [
             'label' => $label,
@@ -148,6 +158,8 @@ class PremiumPageController extends Controller
             'tagline' => $tagline,
             'listing_label' => $listingLabel,
             'profile_label' => $profileLabel,
+            'amount' => $amount,
+            'formatted_amount' => PremiumPrice::formatAmount($amount),
             'meta_title' => "Get Premium – {$singular} | SoilnWater",
             'meta_description' => "Upgrade your {$profileLabel} to premium on SoilnWater for more visibility, enquiries, and business growth.",
             'free_features' => [

@@ -10,6 +10,7 @@
         columns: [
             { data: 'id', name: 'id' },
             { data: 'profile_type_label', name: 'profile_type', orderable: false, searchable: false },
+            { data: 'expected_amount_display', name: 'expected_amount', orderable: false, searchable: false },
             { data: 'profile_name', name: 'profile_id', orderable: false },
             { data: 'user_name', name: 'user.name', orderable: false },
             { data: 'user_email', name: 'user.email', orderable: false },
@@ -19,6 +20,6 @@
             { data: 'reviewed_display', name: 'reviewed_at', orderable: false, searchable: false },
             { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-end' }
         ],
-        order: [[7, 'desc']]
+        order: [[8, 'desc']]
     });
 })(window.jQuery);

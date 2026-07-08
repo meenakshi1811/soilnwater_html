@@ -17,6 +17,7 @@ class PremiumPaymentSubmission extends Model
         'user_id',
         'profile_type',
         'profile_id',
+        'expected_amount',
         'screenshot_path',
         'transaction_reference',
         'user_note',
@@ -30,6 +31,7 @@ class PremiumPaymentSubmission extends Model
     protected function casts(): array
     {
         return [
+            'expected_amount' => 'decimal:2',
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',
         ];

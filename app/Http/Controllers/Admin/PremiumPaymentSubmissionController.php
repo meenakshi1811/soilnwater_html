@@ -28,6 +28,7 @@ class PremiumPaymentSubmissionController extends Controller
                 'user_id',
                 'profile_type',
                 'profile_id',
+                'expected_amount',
                 'transaction_reference',
                 'status',
                 'submitted_at',
@@ -49,6 +50,11 @@ class PremiumPaymentSubmissionController extends Controller
                     .'<i class="fa-solid '.$icon.' me-1"></i>'
                     .e($submission->profileTypeLabel())
                     .'</span>';
+            })
+            ->addColumn('expected_amount_display', function (PremiumPaymentSubmission $submission): string {
+                $amount = $submission->expected_amount ?? \App\Models\PremiumPrice::amountFor($submission->profile_type);
+
+                return '<span class="fw-semibold">'.e(\App\Models\PremiumPrice::formatAmount($amount)).'</span>';
             })
             ->addColumn('profile_name', fn (PremiumPaymentSubmission $submission): string => e($submission->profileDisplayName()))
             ->addColumn('user_name', fn (PremiumPaymentSubmission $submission): string => e($submission->user?->full_name ?: ($submission->user?->name ?? '—')))
@@ -98,7 +104,7 @@ class PremiumPaymentSubmissionController extends Controller
                     $query->where('status', PremiumPaymentSubmission::STATUS_PENDING);
                 }
             })
-            ->rawColumns(['profile_type_label', 'status_badge', 'reviewed_display', 'actions'])
+            ->rawColumns(['profile_type_label', 'expected_amount_display', 'status_badge', 'reviewed_display', 'actions'])
             ->make(true);
     }
 
