@@ -1,0 +1,171 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Events\Discussion\ReactionUpdated;
+use App\Events\Discussion\ReplyCreated;
+use App\Events\Discussion\TopicCreated;
+use App\Events\Discussion\TopicPinned;
+use App\Models\DiscussionReply;
+use App\Models\DiscussionTopic;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Tests\TestCase;
+
+class DiscussionModuleTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_guest_cannot_access_discussions(): void
+    {
+        $this->get(route('discussions.index'))->assertRedirect(route('login'));
+    }
+
+    public function test_verified_user_can_view_discussion_index(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($user)
+            ->get(route('discussions.index'))
+            ->assertOk()
+            ->assertSee('Discussions');
+    }
+
+    public function test_verified_user_can_create_topic(): void
+    {
+        Event::fake([TopicCreated::class]);
+
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $response = $this->actingAs($user)->postJson(route('discussions.store'), [
+            'title' => 'Soil health tips',
+            'body' => 'What practices work best in clay soil?',
+        ]);
+
+        $response->assertOk()->assertJsonFragment(['message' => 'Topic created.']);
+
+        $topic = DiscussionTopic::query()->firstOrFail();
+        $this->assertSame($user->id, $topic->user_id);
+        $this->assertSame('Soil health tips', $topic->title);
+
+        Event::assertDispatched(TopicCreated::class);
+    }
+
+    public function test_verified_user_can_reply_to_topic(): void
+    {
+        Event::fake([ReplyCreated::class]);
+
+        $author = User::factory()->create(['email_verified_at' => now()]);
+        $replier = User::factory()->create(['email_verified_at' => now()]);
+        $topic = DiscussionTopic::factory()->create(['user_id' => $author->id]);
+
+        $response = $this->actingAs($replier)->postJson(route('discussions.replies.store', $topic), [
+            'body' => 'Try cover cropping between seasons.',
+        ]);
+
+        $response->assertOk()->assertJsonFragment(['message' => 'Reply posted.']);
+
+        $reply = DiscussionReply::query()->firstOrFail();
+        $this->assertSame($topic->id, $reply->discussion_topic_id);
+        $this->assertSame($replier->id, $reply->user_id);
+        $this->assertSame(1, $topic->fresh()->replies_count);
+
+        Event::assertDispatched(ReplyCreated::class);
+    }
+
+    public function test_non_admin_cannot_pin_topic(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+            'role' => 'user',
+        ]);
+        $topic = DiscussionTopic::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('discussions.pin', $topic))
+            ->assertForbidden();
+    }
+
+    public function test_admin_can_pin_and_unpin_topic(): void
+    {
+        Event::fake([TopicPinned::class]);
+
+        $admin = User::factory()->create([
+            'email_verified_at' => now(),
+            'role' => 'admin',
+        ]);
+        $topic = DiscussionTopic::factory()->create();
+
+        $this->actingAs($admin)
+            ->postJson(route('discussions.pin', $topic))
+            ->assertOk()
+            ->assertJsonFragment(['is_pinned' => true]);
+
+        $this->assertTrue($topic->fresh()->is_pinned);
+        $this->assertSame($admin->id, $topic->fresh()->pinned_by);
+
+        Event::assertDispatched(TopicPinned::class);
+
+        $this->actingAs($admin)
+            ->postJson(route('discussions.pin', $topic->fresh()))
+            ->assertOk()
+            ->assertJsonFragment(['is_pinned' => false]);
+
+        $this->assertFalse($topic->fresh()->is_pinned);
+    }
+
+    public function test_user_can_toggle_reaction_on_topic(): void
+    {
+        Event::fake([ReactionUpdated::class]);
+
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $topic = DiscussionTopic::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('discussions.react', $topic), ['reaction' => 'Like'])
+            ->assertOk()
+            ->assertJsonFragment(['active' => true, 'reaction' => 'Like']);
+
+        $this->assertDatabaseHas('discussion_reactions', [
+            'reactable_type' => DiscussionTopic::class,
+            'reactable_id' => $topic->id,
+            'user_id' => $user->id,
+            'reaction' => 'Like',
+        ]);
+
+        Event::assertDispatched(ReactionUpdated::class);
+
+        $this->actingAs($user)
+            ->postJson(route('discussions.react', $topic), ['reaction' => 'Like'])
+            ->assertOk()
+            ->assertJsonFragment(['active' => false]);
+
+        $this->assertDatabaseMissing('discussion_reactions', [
+            'reactable_type' => DiscussionTopic::class,
+            'reactable_id' => $topic->id,
+            'user_id' => $user->id,
+            'reaction' => 'Like',
+        ]);
+    }
+
+    public function test_user_can_toggle_reaction_on_reply(): void
+    {
+        Event::fake([ReactionUpdated::class]);
+
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $topic = DiscussionTopic::factory()->create();
+        $reply = DiscussionReply::query()->create([
+            'discussion_topic_id' => $topic->id,
+            'user_id' => $user->id,
+            'body' => 'Great point.',
+        ]);
+
+        $this->actingAs($user)
+            ->postJson(route('discussions.replies.react', $reply), ['reaction' => 'Agree'])
+            ->assertOk()
+            ->assertJsonFragment(['active' => true, 'reaction' => 'Agree']);
+
+        Event::assertDispatched(ReactionUpdated::class);
+    }
+}

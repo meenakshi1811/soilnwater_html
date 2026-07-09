@@ -1,78 +1,89 @@
 <?php
 
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
+use App\Http\Controllers\Admin\AdSizeController;
+use App\Http\Controllers\Admin\AdSubmissionController;
+use App\Http\Controllers\Admin\AdTemplateController;
+use App\Http\Controllers\Admin\ApprovalCenterController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CommunityPostApprovalController;
+use App\Http\Controllers\Admin\CommunityPostReportController;
+use App\Http\Controllers\Admin\ConsultantController;
+use App\Http\Controllers\Admin\ConsultantServiceApprovalController;
+use App\Http\Controllers\Admin\ContactSupportController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\HomepageSettingController;
-use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ListingPaymentSubmissionController;
+use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
+use App\Http\Controllers\Admin\PostOfferController;
+use App\Http\Controllers\Admin\PremiumPaymentSubmissionController;
+use App\Http\Controllers\Admin\PremiumPriceController;
+use App\Http\Controllers\Admin\ProfileReportController as AdminProfileReportController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ServiceProviderController;
+use App\Http\Controllers\Admin\ServiceProviderServiceApprovalController;
 use App\Http\Controllers\Admin\TermsAndConditionController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VendorController;
+use App\Http\Controllers\Admin\VendorProductApprovalController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Community\CommunityAstroConsultancyEngagementController;
 use App\Http\Controllers\Community\CommunityAuthorQuestionController;
+use App\Http\Controllers\Community\CommunityAwarenessEngagementController;
+use App\Http\Controllers\Community\CommunityBusinessEngagementController;
+use App\Http\Controllers\Community\CommunityCommunityIssuesController;
 use App\Http\Controllers\Community\CommunityEngagementController;
+use App\Http\Controllers\Community\CommunityEnvironmentEngagementController;
+use App\Http\Controllers\Community\CommunityLocalVoiceEngagementController;
+use App\Http\Controllers\Community\CommunityMyAreaController;
 use App\Http\Controllers\Community\CommunityPostController;
 use App\Http\Controllers\Community\CommunityPostParticipationController;
 use App\Http\Controllers\Community\CommunityReportEngagementController;
-use App\Http\Controllers\Frontend\OfferPageController;
-use App\Http\Controllers\Frontend\AdsMarketController;
-use App\Http\Controllers\Frontend\AdReportController;
-use App\Http\Controllers\Frontend\OfferReportController;
-use App\Http\Controllers\Frontend\ProfileReportController;
-use App\Http\Controllers\Frontend\FrontendSearchController;
-use App\Http\Controllers\Frontend\PremiumPageController;
-use App\Http\Controllers\Frontend\PremiumPaymentController;
-use App\Http\Controllers\Frontend\TermsAndConditionPageController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ListingPaymentController;
-use App\Http\Controllers\ModuleAccessController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\UserDashboardController;
-use App\Http\Controllers\Admin\PostOfferController;
-use App\Http\Controllers\User\UserAdController;
-use App\Http\Controllers\Admin\AdTemplateController;
-use App\Http\Controllers\Admin\AdSubmissionController;
-use App\Http\Controllers\Admin\ApprovalCenterController;
-use App\Http\Controllers\Admin\PremiumPaymentSubmissionController;
-use App\Http\Controllers\Admin\PremiumPriceController;
-use App\Http\Controllers\Admin\ListingPaymentSubmissionController;
-use App\Http\Controllers\Admin\CommunityPostApprovalController;
-use App\Http\Controllers\Admin\CommunityPostReportController;
-use App\Http\Controllers\Admin\AdSizeController;
-use App\Http\Controllers\Admin\AdReportController as AdminAdReportController;
-use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
-use App\Http\Controllers\Admin\ProfileReportController as AdminProfileReportController;
-use App\Http\Controllers\Admin\ContactSupportController;
-use App\Http\Controllers\Admin\VendorController;
-use App\Http\Controllers\Admin\ConsultantController;
-use App\Http\Controllers\Admin\ConsultantServiceApprovalController;
-use App\Http\Controllers\Frontend\ConsultantStoreController;
 use App\Http\Controllers\Consultant\ConsultantBranchController;
 use App\Http\Controllers\Consultant\ConsultantDashboardController;
 use App\Http\Controllers\Consultant\ConsultantInquiryController;
 use App\Http\Controllers\Consultant\ConsultantPendingController;
-use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantProfileController;
+use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantServiceController;
-use App\Http\Controllers\Admin\ServiceProviderController;
-use App\Http\Controllers\Admin\ServiceProviderServiceApprovalController;
+use App\Http\Controllers\Discussion\DiscussionReactionController;
+use App\Http\Controllers\Discussion\DiscussionReplyController;
+use App\Http\Controllers\Discussion\DiscussionTopicController;
+use App\Http\Controllers\Frontend\AdReportController;
+use App\Http\Controllers\Frontend\AdsMarketController;
+use App\Http\Controllers\Frontend\ConsultantStoreController;
+use App\Http\Controllers\Frontend\FrontendSearchController;
+use App\Http\Controllers\Frontend\OfferPageController;
+use App\Http\Controllers\Frontend\OfferReportController;
+use App\Http\Controllers\Frontend\PremiumPageController;
+use App\Http\Controllers\Frontend\PremiumPaymentController;
+use App\Http\Controllers\Frontend\ProfileReportController;
 use App\Http\Controllers\Frontend\ServiceProviderStoreController;
+use App\Http\Controllers\Frontend\TermsAndConditionPageController;
+use App\Http\Controllers\Frontend\VendorStoreController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ListingPaymentController;
+use App\Http\Controllers\ModuleAccessController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ServiceProvider\ServiceProviderBranchController;
 use App\Http\Controllers\ServiceProvider\ServiceProviderDashboardController;
 use App\Http\Controllers\ServiceProvider\ServiceProviderInquiryController;
 use App\Http\Controllers\ServiceProvider\ServiceProviderPendingController;
-use App\Http\Controllers\ServiceProvider\ServiceProviderPublicPageController;
 use App\Http\Controllers\ServiceProvider\ServiceProviderProfileController;
+use App\Http\Controllers\ServiceProvider\ServiceProviderPublicPageController;
 use App\Http\Controllers\ServiceProvider\ServiceProviderServiceController;
-use App\Http\Controllers\Admin\VendorProductApprovalController;
-use App\Http\Controllers\Frontend\VendorStoreController;
+use App\Http\Controllers\User\UserAdController;
+use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\Vendor\VendorBranchController;
 use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorInquiryController;
 use App\Http\Controllers\Vendor\VendorPendingController;
-use App\Http\Controllers\Vendor\VendorPublicPageController;
-use App\Http\Controllers\Vendor\VendorProfileController;
 use App\Http\Controllers\Vendor\VendorProductController;
+use App\Http\Controllers\Vendor\VendorProfileController;
+use App\Http\Controllers\Vendor\VendorPublicPageController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -101,18 +112,18 @@ Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-p
 Route::view('/community-posting-policy', 'frontend.community-posting-policy')->name('frontend.community-posting-policy');
 
 Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
-Route::get('/community/my-area', [\App\Http\Controllers\Community\CommunityMyAreaController::class, 'index'])->name('community.my-area.index');
-Route::get('/community/community-issues', [\App\Http\Controllers\Community\CommunityCommunityIssuesController::class, 'index'])->name('community.community-issues.index');
-Route::get('/community/community-issues/heat-map', [\App\Http\Controllers\Community\CommunityCommunityIssuesController::class, 'heatMapData'])->name('community.community-issues.heat-map');
+Route::get('/community/my-area', [CommunityMyAreaController::class, 'index'])->name('community.my-area.index');
+Route::get('/community/community-issues', [CommunityCommunityIssuesController::class, 'index'])->name('community.community-issues.index');
+Route::get('/community/community-issues/heat-map', [CommunityCommunityIssuesController::class, 'heatMapData'])->name('community.community-issues.heat-map');
 Route::get('/auther/{uniqueName}', [CommunityPostController::class, 'author'])->name('community.authors.show');
 Route::get('/community/{post:slug}', [CommunityPostController::class, 'show'])->name('community.show');
 Route::post('/community/{post:slug}/share', [CommunityEngagementController::class, 'trackShare'])->name('community.share.track');
-Route::post('/community/{post:slug}/awareness-engagement/volunteer', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'volunteer'])->name('community.awareness-engagement.volunteer');
-Route::post('/community/{post:slug}/environment-engagement/volunteer', [\App\Http\Controllers\Community\CommunityEnvironmentEngagementController::class, 'volunteer'])->name('community.environment-engagement.volunteer');
-Route::post('/community/{post:slug}/business-engagement/query', [\App\Http\Controllers\Community\CommunityBusinessEngagementController::class, 'submitQuery'])->name('community.business-engagement.query');
-Route::post('/community/{post:slug}/astro-consultancy-engagement/private-query', [\App\Http\Controllers\Community\CommunityAstroConsultancyEngagementController::class, 'submitPrivateQuery'])->name('community.astro-consultancy-engagement.private-query');
+Route::post('/community/{post:slug}/awareness-engagement/volunteer', [CommunityAwarenessEngagementController::class, 'volunteer'])->name('community.awareness-engagement.volunteer');
+Route::post('/community/{post:slug}/environment-engagement/volunteer', [CommunityEnvironmentEngagementController::class, 'volunteer'])->name('community.environment-engagement.volunteer');
+Route::post('/community/{post:slug}/business-engagement/query', [CommunityBusinessEngagementController::class, 'submitQuery'])->name('community.business-engagement.query');
+Route::post('/community/{post:slug}/astro-consultancy-engagement/private-query', [CommunityAstroConsultancyEngagementController::class, 'submitPrivateQuery'])->name('community.astro-consultancy-engagement.private-query');
 
-Route::post('/frontend/location', function (\Illuminate\Http\Request $request) {
+Route::post('/frontend/location', function (Request $request) {
     $data = $request->validate([
         'lat' => ['required', 'numeric', 'between:-90,90'],
         'lng' => ['required', 'numeric', 'between:-180,180'],
@@ -166,6 +177,15 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::prefix('discussions')->name('discussions.')->group(function () {
+        Route::get('/', [DiscussionTopicController::class, 'index'])->name('index');
+        Route::post('/', [DiscussionTopicController::class, 'store'])->name('store');
+        Route::get('/{topic}', [DiscussionTopicController::class, 'show'])->name('show');
+        Route::post('/{topic}/replies', [DiscussionReplyController::class, 'store'])->name('replies.store');
+        Route::post('/{topic}/pin', [DiscussionTopicController::class, 'pin'])->name('pin');
+        Route::post('/{topic}/react', [DiscussionReactionController::class, 'reactToTopic'])->name('react');
+        Route::post('/replies/{reply}/react', [DiscussionReactionController::class, 'reactToReply'])->name('replies.react');
+    });
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
@@ -233,7 +253,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/profile', [ConsultantProfileController::class, 'update'])->middleware('consultant')->name('profile.update');
     });
 
-
     Route::get('/service/pending', [ServiceProviderPendingController::class, 'show'])->name('service_provider.pending');
 
     Route::prefix('service')->name('service_provider.')->middleware(['service_provider.account'])->group(function () {
@@ -264,7 +283,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('post-ad');
     });
 
-
     Route::post('/community/{post:slug}/react', [CommunityPostController::class, 'react'])->name('community.react');
     Route::post('/community/{post:slug}/rate', [CommunityPostController::class, 'rateStory'])->name('community.story.rate');
     Route::post('/community/{post:slug}/poll', [CommunityPostController::class, 'votePoll'])->name('community.poll.vote');
@@ -277,12 +295,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/community/{post:slug}/report-engagement/support', [CommunityReportEngagementController::class, 'toggleSupport'])->name('community.report-engagement.support');
     Route::post('/community/{post:slug}/report-engagement/agree', [CommunityReportEngagementController::class, 'toggleAgree'])->name('community.report-engagement.agree');
     Route::post('/community/{post:slug}/report-engagement/follow', [CommunityReportEngagementController::class, 'toggleFollow'])->name('community.report-engagement.follow');
-    Route::post('/community/{post:slug}/local-voice-engagement/support', [\App\Http\Controllers\Community\CommunityLocalVoiceEngagementController::class, 'toggleSupport'])->name('community.local-voice-engagement.support');
-    Route::post('/community/{post:slug}/local-voice-engagement/follow', [\App\Http\Controllers\Community\CommunityLocalVoiceEngagementController::class, 'toggleFollow'])->name('community.local-voice-engagement.follow');
-    Route::post('/community/{post:slug}/awareness-engagement/support', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'toggleSupport'])->name('community.awareness-engagement.support');
-    Route::post('/community/{post:slug}/awareness-engagement/pledge', [\App\Http\Controllers\Community\CommunityAwarenessEngagementController::class, 'pledge'])->name('community.awareness-engagement.pledge');
-    Route::post('/community/{post:slug}/environment-engagement/support', [\App\Http\Controllers\Community\CommunityEnvironmentEngagementController::class, 'toggleSupport'])->name('community.environment-engagement.support');
-    Route::post('/community/{post:slug}/environment-engagement/follow', [\App\Http\Controllers\Community\CommunityEnvironmentEngagementController::class, 'toggleFollow'])->name('community.environment-engagement.follow');
+    Route::post('/community/{post:slug}/local-voice-engagement/support', [CommunityLocalVoiceEngagementController::class, 'toggleSupport'])->name('community.local-voice-engagement.support');
+    Route::post('/community/{post:slug}/local-voice-engagement/follow', [CommunityLocalVoiceEngagementController::class, 'toggleFollow'])->name('community.local-voice-engagement.follow');
+    Route::post('/community/{post:slug}/awareness-engagement/support', [CommunityAwarenessEngagementController::class, 'toggleSupport'])->name('community.awareness-engagement.support');
+    Route::post('/community/{post:slug}/awareness-engagement/pledge', [CommunityAwarenessEngagementController::class, 'pledge'])->name('community.awareness-engagement.pledge');
+    Route::post('/community/{post:slug}/environment-engagement/support', [CommunityEnvironmentEngagementController::class, 'toggleSupport'])->name('community.environment-engagement.support');
+    Route::post('/community/{post:slug}/environment-engagement/follow', [CommunityEnvironmentEngagementController::class, 'toggleFollow'])->name('community.environment-engagement.follow');
     Route::post('/community/{post:slug}/report', [CommunityEngagementController::class, 'report'])->name('community.report');
     Route::post('/community/subscriptions/category', [CommunityEngagementController::class, 'toggleCategorySubscription'])->name('community.subscriptions.category.toggle');
     Route::post('/community/subscriptions/topic', [CommunityEngagementController::class, 'toggleTopicFollow'])->name('community.subscriptions.topic.toggle');
@@ -545,7 +563,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/{consultant}/toggle-premium', [ConsultantController::class, 'togglePremium'])->name('toggle-premium');
             Route::delete('/{consultant}', [ConsultantController::class, 'destroy'])->name('destroy');
         });
-
 
         Route::prefix('service-approvals')->name('service-provider-services.')->group(function () {
             Route::get('/', [ServiceProviderServiceApprovalController::class, 'index'])->name('index');
