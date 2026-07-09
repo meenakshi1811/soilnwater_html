@@ -10,7 +10,7 @@
     $consultantApproved = $isConsultant && auth()->user()->consultant?->isApproved();
     $serviceProviderApproved = $isServiceProvider && auth()->user()->serviceProvider?->isApproved();
     $canAccessOffers = $isAdmin || $isGeneralUser || auth()->user()->canModule('vendors', 'read');
-    $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*');
+    $offersMenuActive = request()->routeIs('offers.*') || request()->routeIs('admin.offers.*') || request()->routeIs('admin.offer-prices.*');
     $adsMenuActive = request()->routeIs('ads.*') || request()->routeIs('admin.ads.*');
     $communityPostsActive = request()->routeIs('community.posts.*');
     $communitySavedActive = request()->routeIs('community.saved.*');
@@ -175,6 +175,12 @@
                             <a class="{{ request()->routeIs('admin.offers.reports.*') ? 'active' : '' }}" href="{{ route('admin.offers.reports.index') }}">
                                 <i class="fa-regular fa-flag"></i>
                                 <span>Report Offers</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="{{ request()->routeIs('admin.offer-prices.*') ? 'active' : '' }}" href="{{ route('admin.offer-prices.index') }}">
+                                <i class="fa-solid fa-indian-rupee-sign"></i>
+                                <span>Offer Prices</span>
                             </a>
                         </li>
                     </ul>

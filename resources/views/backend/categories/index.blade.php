@@ -31,7 +31,6 @@
                     <th>Category</th>
                     <th>Sub Category</th>
                     <th>Modules</th>
-                    <th>Offer Price</th>
                     <th>Sub Categories</th>
                     <th>Created</th>
                     <th class="text-end">Actions</th>
@@ -79,14 +78,6 @@
                                 @endforeach
                             </div>
                             <small class="text-secondary d-block mt-1" id="modulesHelpText">Select one or more modules for this category.</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Offer price</label>
-                            <div class="input-group">
-                                <span class="input-group-text">₹</span>
-                                <input type="number" name="offer_price" id="categoryOfferPrice" class="form-control" value="0" min="0" step="0.01">
-                            </div>
-                            <small class="text-secondary d-block mt-1" id="offerPriceHelpText">Pricing is only used for Offer module categories. Set 0.00 to keep it Free.</small>
                         </div>
                     </div>
                 </div>

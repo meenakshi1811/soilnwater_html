@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\HomepageSettingController;
 use App\Http\Controllers\Admin\ListingPaymentSubmissionController;
 use App\Http\Controllers\Admin\OfferReportController as AdminOfferReportController;
+use App\Http\Controllers\Admin\OfferPriceController;
 use App\Http\Controllers\Admin\PostOfferController;
 use App\Http\Controllers\Admin\PremiumPaymentSubmissionController;
 use App\Http\Controllers\Admin\PremiumPriceController;
@@ -421,6 +422,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/data', [AdminOfferReportController::class, 'data'])->name('data');
                 Route::delete('/offer/{offer}', [AdminOfferReportController::class, 'deleteOffer'])->name('delete-offer');
             });
+        });
+
+        Route::prefix('offer-prices')->name('offer-prices.')->group(function () {
+            Route::get('/', [OfferPriceController::class, 'index'])->name('index');
+            Route::post('/apply-all', [OfferPriceController::class, 'applyToAll'])->name('apply-all');
+            Route::put('/{category}', [OfferPriceController::class, 'update'])->name('update');
         });
 
         Route::prefix('ads')->name('ads.')->group(function () {

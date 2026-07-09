@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\ListingPaymentReviewService;
+use App\Services\OfferPriceService;
 use App\Services\PortalNotificationService;
 use App\Models\Category;
 use App\Models\Offer;
@@ -121,7 +122,7 @@ class PostOfferController extends Controller
             }
         }
 
-        $appliedOfferPrice = $this->resolveAppliedOfferPrice(
+        $appliedOfferPrice = OfferPriceService::resolveAppliedPrice(
             (int) ($validated['category_id'] ?? 0),
             (int) ($validated['subcategory_id'] ?? 0)
         );
@@ -481,19 +482,6 @@ class PostOfferController extends Controller
     private function isStaff($user): bool
     {
         return $user->isAdmin() || $user->isEmployee();
-    }
-
-    private function resolveAppliedOfferPrice(int $categoryId, int $subcategoryId): float
-    {
-        $categoryPrice = (float) (Category::query()->where('id', $categoryId)->value('offer_price') ?? 0);
-
-        if ($subcategoryId <= 0) {
-            return $categoryPrice;
-        }
-
-        $subcategoryPrice = (float) (Category::query()->where('id', $subcategoryId)->where('parent_id', $categoryId)->value('offer_price') ?? 0);
-
-        return $subcategoryPrice > 0 ? $subcategoryPrice : $categoryPrice;
     }
 
     private function storeGeneratedBanner(string $base64Png): string

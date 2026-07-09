@@ -3,11 +3,11 @@
 namespace App\Services;
 
 use App\Mail\ListingPaymentSubmittedMail;
-use App\Models\Category;
 use App\Models\ListingPaymentSubmission;
 use App\Models\Offer;
 use App\Models\User;
 use App\Models\UserAd;
+use App\Services\OfferPriceService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use InvalidArgumentException;
@@ -114,19 +114,10 @@ class ListingPaymentReviewService
      */
     public static function offerAmount(Offer $offer): float
     {
-        $categoryPrice = (float) (Category::query()->where('id', $offer->category_id)->value('offer_price') ?? 0);
-
-        $appliedPrice = $categoryPrice;
-        if ($offer->subcategory_id) {
-            $subcategoryPrice = (float) (Category::query()
-                ->where('id', $offer->subcategory_id)
-                ->where('parent_id', $offer->category_id)
-                ->value('offer_price') ?? 0);
-
-            if ($subcategoryPrice > 0) {
-                $appliedPrice = $subcategoryPrice;
-            }
-        }
+        $appliedPrice = OfferPriceService::resolveAppliedPrice(
+            (int) $offer->category_id,
+            (int) ($offer->subcategory_id ?? 0)
+        );
 
         if ($appliedPrice <= 0) {
             return 0.0;
