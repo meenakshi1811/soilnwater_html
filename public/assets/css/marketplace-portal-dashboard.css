@@ -1,113 +1,448 @@
 .marketplace-portal-dashboard {
-    --portal-hero-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+    --portal-hero-shadow: 0 14px 30px rgba(37, 99, 235, 0.16);
     --portal-accent: #2563eb;
     --portal-accent-soft: rgba(37, 99, 235, 0.12);
+    --portal-surface: #ffffff;
+    --portal-border: #e2e8f0;
+    --portal-text: #0f172a;
+    --portal-muted: #64748b;
 }
 
 .marketplace-portal-dashboard.is-premium {
-    --portal-hero-shadow: 0 16px 34px rgba(176, 132, 18, 0.28);
-    --portal-accent: #c9a227;
-    --portal-accent-soft: rgba(201, 162, 39, 0.14);
-}
-
-.marketplace-portal-dashboard.is-premium.portal-vendor,
-.marketplace-portal-dashboard.is-premium.portal-consultant,
-.marketplace-portal-dashboard.is-premium.portal-service {
-    border: 1px solid rgba(201, 162, 39, 0.28);
-    border-radius: 22px;
-    padding: 1rem;
-    background:
-        radial-gradient(circle at top right, rgba(246, 230, 168, 0.22), transparent 34%),
-        #fff;
+    --portal-hero-shadow: 0 18px 36px rgba(92, 67, 0, 0.18);
+    --portal-accent: #b8860b;
+    --portal-accent-soft: rgba(184, 134, 11, 0.14);
+    --portal-border: rgba(201, 162, 39, 0.22);
 }
 
 .marketplace-portal-hero {
-    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 45%, #06b6d4 100%);
-    border-radius: 18px;
-    padding: 1.5rem;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 52%, #0ea5e9 100%);
+    border-radius: 20px;
+    padding: 1.5rem 1.65rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     box-shadow: var(--portal-hero-shadow);
+    overflow: hidden;
+    position: relative;
+}
+
+.marketplace-portal-hero::after {
+    content: '';
+    position: absolute;
+    inset: auto -10% -55% auto;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
 }
 
 .marketplace-portal-dashboard.is-premium .marketplace-portal-hero {
-    background: linear-gradient(135deg, #3f2a00 0%, #9a7618 38%, #d4af37 72%, #f6e6a8 100%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: linear-gradient(135deg, #1f1605 0%, #5c4300 38%, #9a7618 72%, #d4af37 100%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.marketplace-portal-hero__copy {
+    position: relative;
+    z-index: 1;
 }
 
 .marketplace-portal-kicker {
-    color: #e9d5ff;
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
 }
 
 .marketplace-portal-dashboard.is-premium .marketplace-portal-kicker {
-    color: #fff4cc;
+    color: #f8e8b8;
+}
+
+.marketplace-portal-hero .admin-title {
+    color: #fff;
 }
 
 .marketplace-portal-hero-btn {
+    position: relative;
+    z-index: 1;
     border-radius: 999px;
-    font-weight: 600;
+    font-weight: 700;
     white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
 }
 
 .marketplace-portal-premium-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    margin-top: 0.65rem;
-    padding: 0.38rem 0.8rem;
+    margin-top: 0.75rem;
+    padding: 0.42rem 0.85rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.24);
     color: #fff;
     font-size: 0.78rem;
     font-weight: 700;
 }
 
-.marketplace-portal-dashboard .stat-card,
-.marketplace-portal-dashboard .action-card,
-.marketplace-portal-dashboard .analytics-panel {
+.portal-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+.portal-stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.05rem;
     border-radius: 16px;
-    padding: 1.1rem;
-    border: 0;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    background: var(--portal-surface);
+    border: 1px solid var(--portal-border);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.marketplace-portal-dashboard .stat-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.portal-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
+    color: inherit;
 }
 
-.marketplace-portal-dashboard .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+.portal-stat-card.stat-purple { border-left: 4px solid #9333ea; }
+.portal-stat-card.stat-blue { border-left: 4px solid #2563eb; }
+.portal-stat-card.stat-cyan { border-left: 4px solid #06b6d4; }
+.portal-stat-card.stat-orange { border-left: 4px solid #f97316; }
+
+.portal-stat-card__label {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--portal-muted);
+    margin-bottom: 0.25rem;
 }
 
-.marketplace-portal-dashboard .stat-detail {
+.portal-stat-card__value {
+    display: block;
+    font-size: 1.65rem;
+    line-height: 1;
+    color: var(--portal-text);
+    margin-bottom: 0.3rem;
+}
+
+.portal-stat-card__detail {
+    display: block;
+    font-size: 0.76rem;
+    line-height: 1.4;
+    color: var(--portal-muted);
+}
+
+.portal-stat-card__chevron {
+    color: #cbd5e1;
+    font-size: 0.85rem;
+}
+
+.analytics-panel,
+.analytics-chart-card,
+.analytics-recent-card,
+.marketplace-portal-dashboard .action-card {
+    background: var(--portal-surface);
+    border: 1px solid var(--portal-border);
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.analytics-panel {
+    padding: 1.25rem;
+}
+
+.marketplace-portal-dashboard.is-premium .analytics-panel {
+    box-shadow: 0 14px 30px rgba(184, 134, 11, 0.1);
+}
+
+.analytics-panel__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.1rem;
+}
+
+.analytics-panel__title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f2f57;
+    margin-bottom: 0.2rem;
+}
+
+.analytics-panel__title i {
+    color: var(--portal-accent);
+}
+
+.analytics-panel__subtitle {
+    margin: 0;
+    color: var(--portal-muted);
+    font-size: 0.9rem;
+}
+
+.analytics-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.analytics-metric-card {
+    border: 1px solid var(--portal-border);
+    border-radius: 14px;
+    padding: 0.95rem;
+    background: #f8fafc;
+}
+
+.marketplace-portal-dashboard.is-premium .analytics-metric-card {
+    background: linear-gradient(180deg, #fffdf8 0%, #fffaf0 100%);
+}
+
+.analytics-metric-card__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--portal-accent-soft);
+    color: var(--portal-accent);
+    margin-bottom: 0.55rem;
+}
+
+.analytics-metric-card strong {
+    display: block;
+    font-size: 1.35rem;
+    line-height: 1;
+    color: var(--portal-text);
+    margin-bottom: 0.2rem;
+}
+
+.analytics-metric-card span {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 0.2rem;
+}
+
+.analytics-metric-card small {
     display: block;
     font-size: 0.72rem;
+    color: var(--portal-muted);
     line-height: 1.35;
 }
 
-.marketplace-portal-dashboard .stat-purple { background: linear-gradient(135deg, #9333ea, #7e22ce); }
-.marketplace-portal-dashboard .stat-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
-.marketplace-portal-dashboard .stat-cyan { background: linear-gradient(135deg, #06b6d4, #0e7490); }
-.marketplace-portal-dashboard .stat-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
-.marketplace-portal-dashboard .stat-gold { background: linear-gradient(135deg, #d4af37, #9a7618); }
+.analytics-visual-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 1rem;
+}
+
+.analytics-chart-card,
+.analytics-recent-card {
+    padding: 1rem;
+}
+
+.analytics-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+}
+
+.analytics-card-head h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--portal-text);
+}
+
+.analytics-card-head span {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--portal-muted);
+}
+
+.analytics-chart-wrap,
+.analytics-donut-wrap {
+    position: relative;
+    height: 220px;
+}
+
+.analytics-rings-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.analytics-ring-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.8rem;
+    padding: 1rem;
+    border: 1px solid var(--portal-border);
+    border-radius: 16px;
+    background: #f8fafc;
+}
+
+.marketplace-portal-dashboard.is-premium .analytics-ring-card {
+    background: linear-gradient(180deg, #fffdf8 0%, #fffaf0 100%);
+}
+
+.portal-progress-ring {
+    position: relative;
+    width: 128px;
+    height: 128px;
+}
+
+.portal-progress-ring svg {
+    width: 128px;
+    height: 128px;
+    transform: rotate(-90deg);
+}
+
+.portal-progress-ring__track {
+    fill: none;
+    stroke: #e2e8f0;
+    stroke-width: 10;
+}
+
+.portal-progress-ring__bar {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.8s ease;
+}
+
+.portal-progress-ring__center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.portal-progress-ring__center strong {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--portal-text);
+}
+
+.analytics-ring-card__label {
+    display: block;
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: var(--portal-text);
+    margin-bottom: 0.2rem;
+}
+
+.analytics-ring-card__meta small {
+    display: block;
+    font-size: 0.74rem;
+    line-height: 1.4;
+    color: var(--portal-muted);
+}
+
+.analytics-recent-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.analytics-recent-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.analytics-recent-item:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.analytics-recent-item__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--portal-accent-soft);
+    color: var(--portal-accent);
+}
+
+.analytics-recent-item strong {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--portal-text);
+    margin-bottom: 0.12rem;
+}
+
+.analytics-recent-item span {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--portal-muted);
+}
+
+.analytics-recent-item time {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+.analytics-empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--portal-muted);
+}
+
+.analytics-empty-state i {
+    font-size: 2rem;
+    color: #cbd5e1;
+    margin-bottom: 0.75rem;
+}
+
+.analytics-empty-state p {
+    margin: 0 auto;
+    max-width: 28rem;
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.portal-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
 
 .marketplace-portal-dashboard .action-card {
-    background: #fff;
+    padding: 1.1rem;
     color: #1f2937;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .marketplace-portal-dashboard .action-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.15);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
 }
 
 .marketplace-portal-dashboard .icon-wrap {
@@ -136,194 +471,6 @@
     background: #fffaf0;
     color: #7a5b00;
     border-color: #ecd58b;
-}
-
-.analytics-panel {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-}
-
-.marketplace-portal-dashboard.is-premium .analytics-panel {
-    border-color: rgba(201, 162, 39, 0.35);
-    box-shadow: 0 12px 28px rgba(201, 162, 39, 0.12);
-}
-
-.analytics-panel__head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.analytics-panel__title {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: #0f2f57;
-    margin-bottom: 0.2rem;
-}
-
-.analytics-panel__subtitle {
-    margin: 0;
-    color: #64748b;
-    font-size: 0.88rem;
-}
-
-.analytics-metric-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.85rem;
-    margin-bottom: 1.2rem;
-}
-
-.analytics-metric-card {
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 0.95rem;
-    background: #f8fafc;
-    min-height: 100%;
-}
-
-.marketplace-portal-dashboard.is-premium .analytics-metric-card {
-    background: linear-gradient(180deg, #fffdf7 0%, #fffaf0 100%);
-    border-color: rgba(201, 162, 39, 0.28);
-}
-
-.analytics-metric-card__icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--portal-accent-soft);
-    color: var(--portal-accent);
-    margin-bottom: 0.55rem;
-}
-
-.analytics-metric-card strong {
-    display: block;
-    font-size: 1.35rem;
-    line-height: 1;
-    color: #0f172a;
-    margin-bottom: 0.2rem;
-}
-
-.analytics-metric-card span {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #334155;
-    margin-bottom: 0.2rem;
-}
-
-.analytics-metric-card small {
-    display: block;
-    font-size: 0.72rem;
-    color: #64748b;
-    line-height: 1.35;
-}
-
-.analytics-trend {
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    background: #fff;
-}
-
-.marketplace-portal-dashboard.is-premium .analytics-trend {
-    border-color: rgba(201, 162, 39, 0.24);
-}
-
-.analytics-trend__label {
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #64748b;
-    margin-bottom: 0.8rem;
-}
-
-.analytics-trend-bars {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 0.65rem;
-    align-items: end;
-    min-height: 140px;
-}
-
-.analytics-trend-bar {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.45rem;
-    min-width: 0;
-}
-
-.analytics-trend-bar__fill {
-    width: 100%;
-    max-width: 42px;
-    border-radius: 10px 10px 4px 4px;
-    background: linear-gradient(180deg, var(--portal-accent), color-mix(in srgb, var(--portal-accent) 70%, #0f172a));
-    min-height: 8px;
-    transition: height 0.2s ease;
-}
-
-.analytics-trend-bar__value {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #334155;
-}
-
-.analytics-trend-bar__month {
-    font-size: 0.72rem;
-    color: #64748b;
-}
-
-.analytics-recent-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.analytics-recent-item {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.85rem;
-    padding: 0.8rem 0;
-    border-bottom: 1px solid #eef2f7;
-}
-
-.analytics-recent-item:last-child {
-    border-bottom: 0;
-    padding-bottom: 0;
-}
-
-.analytics-recent-item strong {
-    display: block;
-    font-size: 0.9rem;
-    color: #0f172a;
-    margin-bottom: 0.15rem;
-}
-
-.analytics-recent-item span {
-    display: block;
-    font-size: 0.78rem;
-    color: #64748b;
-}
-
-.analytics-recent-item time {
-    font-size: 0.75rem;
-    color: #94a3b8;
-    white-space: nowrap;
-}
-
-.analytics-empty {
-    margin: 0;
-    color: #64748b;
-    font-size: 0.88rem;
 }
 
 body.marketplace-portal-premium .admin-sidebar {
@@ -362,9 +509,18 @@ body.marketplace-portal-premium .admin-header {
     padding: 0.45rem 0.65rem;
 }
 
-@media (max-width: 991.98px) {
-    .analytics-metric-grid {
+@media (max-width: 1199.98px) {
+    .portal-stat-grid,
+    .analytics-metric-grid,
+    .portal-actions-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .analytics-visual-grid,
+    .analytics-rings-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -374,8 +530,10 @@ body.marketplace-portal-premium .admin-header {
         align-items: flex-start;
     }
 
+    .portal-stat-grid,
     .analytics-metric-grid,
-    .analytics-trend-bars {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .analytics-rings-grid,
+    .portal-actions-grid {
+        grid-template-columns: 1fr;
     }
 }

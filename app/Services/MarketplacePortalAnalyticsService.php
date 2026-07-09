@@ -18,6 +18,12 @@ class MarketplacePortalAnalyticsService
     public static function forVendor(Vendor $vendor): array
     {
         $query = VendorProductInquiry::query()->where('vendor_id', $vendor->id);
+        $totalEnquiries = (clone $query)->count();
+        $productEnquiries = (clone $query)->whereNotNull('vendor_product_id')->count();
+        $generalEnquiries = (clone $query)->whereNull('vendor_product_id')->count();
+        $monthEnquiries = self::periodCount($query, 'this month');
+        $totalProducts = (int) ($vendor->products_count ?? 0);
+        $approvedProducts = (int) ($vendor->approved_products_count ?? 0);
 
         return self::buildPayload(
             inquiryQuery: $query,
@@ -25,28 +31,37 @@ class MarketplacePortalAnalyticsService
             metrics: [
                 [
                     'label' => 'Total Enquiries',
-                    'value' => (clone $query)->count(),
+                    'value' => $totalEnquiries,
                     'icon' => 'fa-envelope-open-text',
-                    'hint' => self::periodCount($query, 'this month').' this month',
+                    'hint' => $monthEnquiries.' this month',
                 ],
                 [
                     'label' => 'Product Enquiries',
-                    'value' => (clone $query)->whereNotNull('vendor_product_id')->count(),
+                    'value' => $productEnquiries,
                     'icon' => 'fa-box',
                     'hint' => 'Linked to a product listing',
                 ],
                 [
                     'label' => 'General Enquiries',
-                    'value' => (clone $query)->whereNull('vendor_product_id')->count(),
+                    'value' => $generalEnquiries,
                     'icon' => 'fa-store',
                     'hint' => 'Store-wide requests',
                 ],
                 [
                     'label' => 'Approved Products',
-                    'value' => (int) ($vendor->approved_products_count ?? 0),
+                    'value' => $approvedProducts,
                     'icon' => 'fa-circle-check',
                     'hint' => 'Live in your catalog',
                 ],
+            ],
+            rings: [
+                self::ring('Product Enquiries', $productEnquiries, max($totalEnquiries, 1), '#2563eb', $productEnquiries.' product-led enquiries'),
+                self::ring('Catalog Approved', $approvedProducts, max($totalProducts, 1), '#16a34a', $approvedProducts.' of '.$totalProducts.' products'),
+                self::ring('This Month', $monthEnquiries, max($totalEnquiries, 1), '#d4af37', $monthEnquiries.' enquiries this month'),
+            ],
+            breakdown: [
+                ['label' => 'Product', 'value' => $productEnquiries, 'color' => '#2563eb'],
+                ['label' => 'General', 'value' => $generalEnquiries, 'color' => '#06b6d4'],
             ],
             recentMapper: function (VendorProductInquiry $inquiry): array {
                 return [
@@ -65,6 +80,12 @@ class MarketplacePortalAnalyticsService
     public static function forConsultant(Consultant $consultant): array
     {
         $query = ConsultantServiceInquiry::query()->where('consultant_id', $consultant->id);
+        $totalEnquiries = (clone $query)->count();
+        $serviceEnquiries = (clone $query)->whereNotNull('consultant_service_id')->count();
+        $directEnquiries = max(0, $totalEnquiries - $serviceEnquiries);
+        $monthEnquiries = self::periodCount($query, 'this month');
+        $totalServices = (int) ($consultant->services_count ?? 0);
+        $approvedServices = (int) ($consultant->approved_services_count ?? 0);
 
         return self::buildPayload(
             inquiryQuery: $query,
@@ -72,19 +93,19 @@ class MarketplacePortalAnalyticsService
             metrics: [
                 [
                     'label' => 'Total Enquiries',
-                    'value' => (clone $query)->count(),
+                    'value' => $totalEnquiries,
                     'icon' => 'fa-envelope-open-text',
-                    'hint' => self::periodCount($query, 'this month').' this month',
+                    'hint' => $monthEnquiries.' this month',
                 ],
                 [
                     'label' => 'Service Enquiries',
-                    'value' => (clone $query)->whereNotNull('consultant_service_id')->count(),
+                    'value' => $serviceEnquiries,
                     'icon' => 'fa-briefcase',
                     'hint' => 'Linked to a consultation service',
                 ],
                 [
                     'label' => 'Approved Services',
-                    'value' => (int) ($consultant->approved_services_count ?? 0),
+                    'value' => $approvedServices,
                     'icon' => 'fa-circle-check',
                     'hint' => 'Visible on your profile',
                 ],
@@ -94,6 +115,15 @@ class MarketplacePortalAnalyticsService
                     'icon' => 'fa-code-branch',
                     'hint' => 'Active consultant locations',
                 ],
+            ],
+            rings: [
+                self::ring('Service Enquiries', $serviceEnquiries, max($totalEnquiries, 1), '#2563eb', $serviceEnquiries.' service-linked enquiries'),
+                self::ring('Services Approved', $approvedServices, max($totalServices, 1), '#16a34a', $approvedServices.' of '.$totalServices.' services'),
+                self::ring('This Month', $monthEnquiries, max($totalEnquiries, 1), '#d4af37', $monthEnquiries.' enquiries this month'),
+            ],
+            breakdown: [
+                ['label' => 'Service-linked', 'value' => $serviceEnquiries, 'color' => '#2563eb'],
+                ['label' => 'Direct', 'value' => $directEnquiries, 'color' => '#7c3aed'],
             ],
             recentMapper: function (ConsultantServiceInquiry $inquiry): array {
                 return [
@@ -112,6 +142,12 @@ class MarketplacePortalAnalyticsService
     public static function forServiceProvider(ServiceProvider $serviceProvider): array
     {
         $query = ServiceProviderServiceInquiry::query()->where('service_provider_id', $serviceProvider->id);
+        $totalEnquiries = (clone $query)->count();
+        $serviceEnquiries = (clone $query)->whereNotNull('service_provider_service_id')->count();
+        $directEnquiries = max(0, $totalEnquiries - $serviceEnquiries);
+        $monthEnquiries = self::periodCount($query, 'this month');
+        $totalServices = (int) ($serviceProvider->services_count ?? 0);
+        $approvedServices = (int) ($serviceProvider->approved_services_count ?? 0);
 
         return self::buildPayload(
             inquiryQuery: $query,
@@ -119,19 +155,19 @@ class MarketplacePortalAnalyticsService
             metrics: [
                 [
                     'label' => 'Total Enquiries',
-                    'value' => (clone $query)->count(),
+                    'value' => $totalEnquiries,
                     'icon' => 'fa-envelope-open-text',
-                    'hint' => self::periodCount($query, 'this month').' this month',
+                    'hint' => $monthEnquiries.' this month',
                 ],
                 [
                     'label' => 'Service Enquiries',
-                    'value' => (clone $query)->whereNotNull('service_provider_service_id')->count(),
+                    'value' => $serviceEnquiries,
                     'icon' => 'fa-screwdriver-wrench',
                     'hint' => 'Linked to a listed service',
                 ],
                 [
                     'label' => 'Approved Services',
-                    'value' => (int) ($serviceProvider->approved_services_count ?? 0),
+                    'value' => $approvedServices,
                     'icon' => 'fa-circle-check',
                     'hint' => 'Visible on your profile',
                 ],
@@ -141,6 +177,15 @@ class MarketplacePortalAnalyticsService
                     'icon' => 'fa-code-branch',
                     'hint' => 'Active service locations',
                 ],
+            ],
+            rings: [
+                self::ring('Service Enquiries', $serviceEnquiries, max($totalEnquiries, 1), '#f97316', $serviceEnquiries.' service-linked enquiries'),
+                self::ring('Services Approved', $approvedServices, max($totalServices, 1), '#16a34a', $approvedServices.' of '.$totalServices.' services'),
+                self::ring('This Month', $monthEnquiries, max($totalEnquiries, 1), '#d4af37', $monthEnquiries.' enquiries this month'),
+            ],
+            breakdown: [
+                ['label' => 'Service-linked', 'value' => $serviceEnquiries, 'color' => '#f97316'],
+                ['label' => 'Direct', 'value' => $directEnquiries, 'color' => '#2563eb'],
             ],
             recentMapper: function (ServiceProviderServiceInquiry $inquiry): array {
                 return [
@@ -155,6 +200,8 @@ class MarketplacePortalAnalyticsService
 
     /**
      * @param  array<int, array<string, mixed>>  $metrics
+     * @param  array<int, array<string, mixed>>  $rings
+     * @param  array<int, array<string, mixed>>  $breakdown
      * @param  callable(mixed): array{title: string, meta: string, date: string}  $recentMapper
      * @return array<string, mixed>
      */
@@ -163,6 +210,8 @@ class MarketplacePortalAnalyticsService
         string $inquiriesUrl,
         array $metrics,
         callable $recentMapper,
+        array $rings,
+        array $breakdown,
         array $recentWith = [],
     ): array {
         $recent = (clone $inquiryQuery)
@@ -178,7 +227,26 @@ class MarketplacePortalAnalyticsService
             'metrics' => $metrics,
             'recent' => $recent,
             'trend' => self::monthlyTrend($inquiryQuery, 6),
+            'rings' => $rings,
+            'breakdown' => $breakdown,
             'inquiries_url' => $inquiriesUrl,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function ring(string $label, int $value, int $total, string $color, ?string $hint = null): array
+    {
+        $percent = $total > 0 ? (int) round(($value / $total) * 100) : 0;
+
+        return [
+            'label' => $label,
+            'value' => $value,
+            'total' => $total,
+            'percent' => $percent,
+            'color' => $color,
+            'hint' => $hint ?? ($value.' of '.max($total, $value)),
         ];
     }
 
