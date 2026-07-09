@@ -134,7 +134,7 @@
             var $heroLabel = $('#pricingHeroLabel');
             var $heroNote = $('#pricingHeroNote');
             var $freeBadge = $('#offerPricingFreeBadge');
-            var $estimate = $('#offerPricingEstimate');
+            var $breakdown = $('#offerPricingBreakdown');
             var $btn = $('#offerSubmitBtn');
             var $paymentDisabledNote = $('#offerPaymentDisabledNote');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
@@ -162,11 +162,10 @@
             if (applied > 0) {
                 $hero.removeClass('ad-size-pricing-card--free');
                 $freeBadge.addClass('d-none');
-                $heroLabel.text(hasCategory ? 'Base placement price' : 'Estimated placement price');
-                $heroNote.text(hasCategory
-                    ? 'Final total includes GST and depends on the valid-until date you choose.'
-                    : 'Final price may go up or down based on the category and subcategory you select.');
-                $estimate.removeClass('d-none');
+                $heroLabel.text('Base placement price');
+                $heroNote.text('Final price may go up or down based on the category and subcategory you select.');
+                $breakdown.removeClass('d-none');
+                $('#priceBasePerDay').text('₹' + applied.toFixed(2));
                 $('#priceTotalDays').text(totalDays);
                 $('#priceSubtotal').text('₹' + subtotal.toFixed(2));
                 $('#priceGst').text('₹' + gst.toFixed(2));
@@ -183,7 +182,7 @@
             $heroNote.text(hasCategory
                 ? 'This category is complimentary — no payment is required.'
                 : 'Final price may go up or down based on the category and subcategory you select.');
-            $estimate.addClass('d-none');
+            $breakdown.addClass('d-none');
             $('#priceDefaultDaysNote').addClass('d-none');
             $paymentDisabledNote.addClass('d-none');
             $btn.find('.btn-text').html('<i class="fa-solid fa-paper-plane me-2"></i>' + defaultLabel);

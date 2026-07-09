@@ -38,26 +38,6 @@
                     <span class="ad-size-pricing-card__period">/ day</span>
                 </div>
                 <p class="ad-size-pricing-card__note mb-0" id="pricingHeroNote">Final price may go up or down based on the category and subcategory you select.</p>
-
-                <div id="offerPricingEstimate" class="ad-size-pricing-card__estimate {{ $initialAppliedPrice > 0 ? '' : 'd-none' }}">
-                    <div class="ad-size-pricing-card__estimate-row">
-                        <span>Total days</span>
-                        <strong id="priceTotalDays">1</strong>
-                    </div>
-                    <div class="ad-size-pricing-card__estimate-row">
-                        <span>Subtotal</span>
-                        <strong id="priceSubtotal">₹{{ number_format($initialAppliedPrice, 2) }}</strong>
-                    </div>
-                    <div class="ad-size-pricing-card__estimate-row">
-                        <span>GST (5%)</span>
-                        <strong id="priceGst">₹{{ number_format($initialAppliedPrice * 0.05, 2) }}</strong>
-                    </div>
-                    <div class="ad-size-pricing-card__estimate-total">
-                        <span>Grand total</span>
-                        <strong id="priceGrandTotal">₹{{ number_format($initialAppliedPrice * 1.05, 2) }}</strong>
-                    </div>
-                    <p id="priceDefaultDaysNote" class="ad-size-pricing-card__note mb-0 mt-2 {{ $offer?->valid_until ? 'd-none' : '' }}">Valid until is not selected, so the estimate uses a 1-day placement price.</p>
-                </div>
             </div>
         </div>
     </div>
@@ -464,6 +444,16 @@
                 </div>
             </div>
 
+            <div id="offerPricingBreakdown" class="offer-pricing-breakdown {{ $initialAppliedPrice > 0 ? '' : 'd-none' }} mt-4" aria-live="polite">
+                <h5 class="mb-3">Pricing Details</h5>
+                <div class="offer-pricing-breakdown__row"><span>Base price / day</span><strong id="priceBasePerDay">₹{{ number_format($initialAppliedPrice, 2) }}</strong></div>
+                <div class="offer-pricing-breakdown__row"><span>Total days</span><strong id="priceTotalDays">1</strong></div>
+                <div class="offer-pricing-breakdown__row"><span>Subtotal (Base × Days)</span><strong id="priceSubtotal">₹{{ number_format($initialAppliedPrice, 2) }}</strong></div>
+                <div class="offer-pricing-breakdown__row"><span>GST (5%)</span><strong id="priceGst">₹{{ number_format($initialAppliedPrice * 0.05, 2) }}</strong></div>
+                <div class="offer-pricing-breakdown__row offer-pricing-breakdown__row--grand"><span>Grand Total</span><strong id="priceGrandTotal">₹{{ number_format($initialAppliedPrice * 1.05, 2) }}</strong></div>
+                <div id="priceDefaultDaysNote" class="offer-pricing-breakdown__note small text-secondary mt-2 {{ $offer?->valid_until ? 'd-none' : '' }}">Valid until is not selected, so GST is calculated on the standard 1-day base price.</div>
+            </div>
+
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ $isEditMode ? route('offers.index') : route('post-offer') }}" class="btn btn-light px-4">Cancel</a>
                 <button type="submit" id="offerSubmitBtn" class="btn btn-primary ems-btn-primary px-5" data-default-label="{{ $isEditMode ? 'Update Offer' : 'Post Offer' }}" data-payment-label="Proceed to Payment">
@@ -529,26 +519,25 @@
         margin: .65rem 0 0;
         line-height: 1.45;
     }
-    .ad-size-pricing-card__estimate {
-        margin-top: .85rem;
-        padding-top: .85rem;
-        border-top: 1px dashed #f0c674;
+    .offer-pricing-breakdown {
+        border: 1px solid #f7c793;
+        background: #fffaf2;
+        border-radius: .6rem;
+        padding: .85rem 1rem;
     }
-    .ad-size-pricing-card__estimate-row {
+    .offer-pricing-breakdown__row {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        font-size: .9rem;
-        color: #57534e;
-        margin-bottom: .35rem;
+        gap: 1rem;
+        padding: .2rem 0;
+        font-size: .92rem;
     }
-    .ad-size-pricing-card__estimate-total {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .offer-pricing-breakdown__row--grand {
+        margin-top: .25rem;
+        padding-top: .45rem;
+        border-top: 1px dashed #f0c995;
+        font-size: 1rem;
         font-weight: 700;
-        color: #1c1917;
-        font-size: 1.05rem;
     }
     .ad-size-pricing-card--free {
         background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
