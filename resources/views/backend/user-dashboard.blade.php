@@ -11,9 +11,26 @@
         </div>
         <div class="d-flex flex-wrap gap-2">
             <a href="{{ route('user.profile.edit') }}" class="btn btn-primary">Update Profile</a>
-            <form method="POST" action="{{ route('user.convert-to-vendor') }}" class="js-convert-vendor-form">
+            <form method="POST" action="{{ route('user.convert-to-vendor') }}" class="js-convert-account-form"
+                data-title="Convert to vendor?"
+                data-text="Convert your user profile to a vendor account and send it to admin for approval?"
+                data-success="Your vendor conversion request has been sent for approval.">
                 @csrf
                 <button type="submit" class="btn btn-outline-primary">Become a Vendor</button>
+            </form>
+            <form method="POST" action="{{ route('user.convert-to-consultant') }}" class="js-convert-account-form"
+                data-title="Convert to consultant?"
+                data-text="Convert your user profile to a consultant account and send it to admin for approval?"
+                data-success="Your consultant conversion request has been sent for approval.">
+                @csrf
+                <button type="submit" class="btn btn-outline-primary">Become a Consultant</button>
+            </form>
+            <form method="POST" action="{{ route('user.convert-to-service-provider') }}" class="js-convert-account-form"
+                data-title="Convert to service provider?"
+                data-text="Convert your user profile to a service provider account and send it to admin for approval?"
+                data-success="Your service provider conversion request has been sent for approval.">
+                @csrf
+                <button type="submit" class="btn btn-outline-primary">Become a Service Provider</button>
             </form>
         </div>
     </div>
@@ -66,7 +83,7 @@
             timeOut: 3500
         };
 
-        $('.js-convert-vendor-form').on('submit', function (event) {
+        $('.js-convert-account-form').on('submit', function (event) {
             event.preventDefault();
 
             var form = this;
@@ -74,8 +91,8 @@
             var $submitButton = $form.find('button[type="submit"]');
 
             Swal.fire({
-                title: 'Convert to vendor?',
-                text: 'Convert your user profile to a vendor account and send it to admin for approval?',
+                title: $form.data('title'),
+                text: $form.data('text'),
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Yes, convert',
@@ -97,7 +114,7 @@
                         Accept: 'application/json'
                     }
                 }).done(function (response) {
-                    toastr.success(response.message || 'Your vendor conversion request has been sent for approval.');
+                    toastr.success(response.message || $form.data('success'));
 
                     if (response.redirect) {
                         setTimeout(function () {

@@ -28,7 +28,7 @@ class ServiceProviderRegistrationService
         $profileImage = $registrationData['profile_image'] ?? null;
         $profileImagePath = $profileImage instanceof UploadedFile
             ? ServiceProviderFileUploader::storeImage($profileImage, 'logos')
-            : null;
+            : ($registrationData['profile_image_path'] ?? null);
 
         $service_provider = ServiceProvider::create([
             'user_id' => $user->id,

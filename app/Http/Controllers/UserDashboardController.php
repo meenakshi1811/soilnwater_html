@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ConsultantRegistrationService;
+use App\Services\ServiceProviderRegistrationService;
 use App\Services\VendorRegistrationService;
 use App\Support\UserFileUploader;
 use Illuminate\Http\JsonResponse;
@@ -75,6 +77,84 @@ class UserDashboardController extends Controller
         }
 
         return redirect()->route('vendor.pending')->with('status', $message);
+    }
+
+    public function convertToConsultant(Request $request): RedirectResponse|JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isGeneralUser()) {
+            $message = 'Only user accounts can be converted to consultant accounts.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return redirect()->route('home')->with('status', $message);
+        }
+
+        DB::transaction(function () use ($user): void {
+            $user->forceFill(['role' => 'consultant'])->save();
+
+            $consultant = ConsultantRegistrationService::createProfileForUser($user->fresh(), [
+                'profile_image_path' => $user->profile_image,
+            ]);
+            $consultant->forceFill([
+                'status' => 'pending',
+                'approved_at' => null,
+                'approved_by' => null,
+            ])->save();
+        });
+
+        $message = 'Your profile has been converted to a consultant account and sent to admin for approval.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'redirect' => route('consultant.pending'),
+            ]);
+        }
+
+        return redirect()->route('consultant.pending')->with('status', $message);
+    }
+
+    public function convertToServiceProvider(Request $request): RedirectResponse|JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isGeneralUser()) {
+            $message = 'Only user accounts can be converted to service provider accounts.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return redirect()->route('home')->with('status', $message);
+        }
+
+        DB::transaction(function () use ($user): void {
+            $user->forceFill(['role' => 'service_provider'])->save();
+
+            $serviceProvider = ServiceProviderRegistrationService::createProfileForUser($user->fresh(), [
+                'profile_image_path' => $user->profile_image,
+            ]);
+            $serviceProvider->forceFill([
+                'status' => 'pending',
+                'approved_at' => null,
+                'approved_by' => null,
+            ])->save();
+        });
+
+        $message = 'Your profile has been converted to a service provider account and sent to admin for approval.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'redirect' => route('service_provider.pending'),
+            ]);
+        }
+
+        return redirect()->route('service_provider.pending')->with('status', $message);
     }
 
     public function updateProfile(Request $request): RedirectResponse|JsonResponse

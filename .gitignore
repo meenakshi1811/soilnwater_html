@@ -22,7 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-.htaccess
-index.php
-live/
-staging/
+
+# Deployment environments (keep Laravel public entrypoints tracked)
+/live/
+/staging/

@@ -278,6 +278,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/profile', [UserDashboardController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [UserDashboardController::class, 'updateProfile'])->name('profile.update');
         Route::post('/convert-to-vendor', [UserDashboardController::class, 'convertToVendor'])->name('convert-to-vendor');
+        Route::post('/convert-to-consultant', [UserDashboardController::class, 'convertToConsultant'])->name('convert-to-consultant');
+        Route::post('/convert-to-service-provider', [UserDashboardController::class, 'convertToServiceProvider'])->name('convert-to-service-provider');
         Route::get('/post-ad', function () {
             return redirect()->to(route('frontend.index').'#post-ad');
         })->name('post-ad');

@@ -29,10 +29,15 @@
             $service_providerCardImage = $service_provider->logo ? asset($service_provider->logo) : ($serviceProviderProfileImage ?? $profilePlaceholder);
           @endphp
           <div class="col">
-            <div class="vendor-card card h-100">
+            <div class="vendor-card card h-100{{ $service_provider->is_premium ? ' is-premium-card' : '' }}">
               <img src="{{ $service_providerCardImage }}" alt="{{ $service_provider->publicDisplayName() }}" onerror="this.onerror=null;this.src='{{ $profilePlaceholder }}';">
               <div class="vendor-card-body card-body d-flex flex-column">
-                <p>{{ $service_provider->publicDisplayName() }} @if($service_provider->is_premium)⭐@endif</p>
+                <p class="vendor-card-name">
+                  {{ $service_provider->publicDisplayName() }}
+                  @if($service_provider->is_premium)
+                    @include('frontend.premium.partials.badge', ['size' => 'xs'])
+                  @endif
+                </p>
                 <div class="vendor-card-sub">
                   {{ $primaryBranch?->city ?: ($service_provider->city ?: 'Local Area') }} • {{ $service_provider->services_count }} Services
                   @if($hasLocation && $service_provider->nearest_distance_km !== null)

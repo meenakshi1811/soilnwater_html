@@ -32,10 +32,15 @@
             $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
           @endphp
           <div class="col">
-            <div class="vendor-card card h-100">
+            <div class="vendor-card card h-100{{ $vendor->is_premium ? ' is-premium-card' : '' }}">
               <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
               <div class="vendor-card-body card-body d-flex flex-column">
-                <p>{{ $vendor->publicDisplayName() }} @if($vendor->is_premium)⭐@endif</p>
+                <p class="vendor-card-name">
+                  {{ $vendor->publicDisplayName() }}
+                  @if($vendor->is_premium)
+                    @include('frontend.premium.partials.badge', ['size' => 'xs'])
+                  @endif
+                </p>
                 <div class="vendor-card-sub">
                   {{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products
                   @if($hasLocation && $vendor->nearest_distance_km !== null)

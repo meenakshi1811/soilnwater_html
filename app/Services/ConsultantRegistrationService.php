@@ -28,7 +28,7 @@ class ConsultantRegistrationService
         $profileImage = $registrationData['profile_image'] ?? null;
         $profileImagePath = $profileImage instanceof UploadedFile
             ? ConsultantFileUploader::storeImage($profileImage, 'logos')
-            : null;
+            : ($registrationData['profile_image_path'] ?? null);
 
         $consultant = Consultant::create([
             'user_id' => $user->id,

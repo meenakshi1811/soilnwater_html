@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="{{ asset('assets/css/styles.css') }}?v={{ now()->timestamp }}">
     <link rel="stylesheet" href="{{ asset('assets/css/admin.css') }}?v={{ now()->timestamp }}">
     <link rel="stylesheet" href="{{ asset('assets/css/password-toggle.css') }}?v={{ now()->timestamp }}">
+    @if (session('premium_upgrade_prompt'))
+        <link rel="stylesheet" href="{{ asset('assets/css/premium-upgrade-modal.css') }}?v={{ now()->timestamp }}">
+    @endif
     <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -42,7 +45,25 @@
 
     @include('backend.partials.footer')
 
+    @include('backend.partials.premium-upgrade-modal')
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    @if (session('premium_upgrade_prompt'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var modalElement = document.getElementById('premiumUpgradeModal');
+
+                if (!modalElement || typeof bootstrap === 'undefined') {
+                    return;
+                }
+
+                bootstrap.Modal.getOrCreateInstance(modalElement, {
+                    backdrop: 'static',
+                    keyboard: true
+                }).show();
+            });
+        </script>
+    @endif
     <script src="{{ asset('assets/js/main.js') }}?v={{ now()->timestamp }}" defer></script>
     <script src="{{ asset('assets/js/password-toggle.js') }}?v={{ now()->timestamp }}" defer></script>
     @stack('scripts')

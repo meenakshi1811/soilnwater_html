@@ -30,10 +30,15 @@
             $consultantCardFallback = $consultant->logo && $consultantProfileImage ? $consultantProfileImage : $profilePlaceholder;
           @endphp
           <div class="col">
-            <div class="vendor-card card h-100">
+            <div class="vendor-card card h-100{{ $consultant->is_premium ? ' is-premium-card' : '' }}">
               <img src="{{ $consultantCardImage }}" alt="{{ $consultant->publicDisplayName() }}" onerror="this.onerror=function(){this.onerror=null;this.src='{{ $profilePlaceholder }}';};this.src='{{ $consultantCardFallback }}';">
               <div class="vendor-card-body card-body d-flex flex-column">
-                <p>{{ $consultant->publicDisplayName() }} @if($consultant->is_premium)⭐@endif</p>
+                <p class="vendor-card-name">
+                  {{ $consultant->publicDisplayName() }}
+                  @if($consultant->is_premium)
+                    @include('frontend.premium.partials.badge', ['size' => 'xs'])
+                  @endif
+                </p>
                 <div class="vendor-card-sub">
                   {{ $primaryBranch?->city ?: ($consultant->city ?: 'Local Area') }} • {{ $consultant->services_count }} Services
                   @if($hasLocation && $consultant->nearest_distance_km !== null)
