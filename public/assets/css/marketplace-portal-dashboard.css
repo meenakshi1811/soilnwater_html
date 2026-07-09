@@ -204,6 +204,7 @@
     border-radius: 14px;
     padding: 0.95rem;
     background: #f8fafc;
+    text-align: center;
 }
 
 .marketplace-portal-dashboard.is-premium .analytics-metric-card {
@@ -214,12 +215,12 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     background: var(--portal-accent-soft);
     color: var(--portal-accent);
-    margin-bottom: 0.55rem;
+    margin: 0 auto 0.55rem;
 }
 
 .analytics-metric-card strong {

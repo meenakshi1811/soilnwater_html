@@ -28,9 +28,6 @@
     $consultantPagesMenuActive = request()->routeIs('consultant.public-page.*') || request()->routeIs('consultant.branches.*') || request()->routeIs('consultant.services.*') || request()->routeIs('consultant.inquiries.*');
     $serviceProviderPagesMenuActive = request()->routeIs('service_provider.public-page.*') || request()->routeIs('service_provider.branches.*') || request()->routeIs('service_provider.services.*') || request()->routeIs('service_provider.inquiries.*');
     $premiumMenuActive = request()->routeIs('frontend.premium.show');
-    $isMarketplacePremium = ($isVendor && auth()->user()->vendor?->is_premium)
-        || ($isConsultant && auth()->user()->consultant?->is_premium)
-        || ($isServiceProvider && auth()->user()->serviceProvider?->is_premium);
 
     if ($isGeneralUser) {
         $dashboardUrl = route('user.dashboard');
@@ -87,14 +84,6 @@
             <img src="{{ asset('assets/images/logo_soilnwater.webp') }}" alt="SoilnWater logo">
         </a>
     </div>
-
-    @if ($isMarketplacePremium)
-        <div class="px-3 pb-2">
-            <span class="marketplace-header-premium-badge w-100 justify-content-center">
-                <i class="fa-solid fa-crown"></i> Premium Member
-            </span>
-        </div>
-    @endif
 
     <ul class="admin-sidebar-menu list-unstyled mb-0">
         <li>
