@@ -618,6 +618,27 @@ class UserAdController extends Controller
             'is_sponsored' => $request->user()->isStaff() ? (bool) ($validated['is_sponsored'] ?? false) : false,
         ]);
 
+        $size = AdSizes::all(true)[$ad->size_type] ?? null;
+        if ($size) {
+            $totalBasePricePerDay = AdSizes::placementPricePerDay(
+                $size,
+                $validated['selected_modules'] ?? [],
+                $validated['category_ids'] ?? []
+            );
+            $pricing = $this->buildPricingDetails(
+                $totalBasePricePerDay > 0 ? $totalBasePricePerDay : null,
+                $validated['valid_until']
+            );
+            $ad->fill([
+                'base_price_per_day' => $pricing['base_price_per_day'],
+                'total_days' => $pricing['total_days'],
+                'subtotal' => $pricing['subtotal'],
+                'gst_rate' => $pricing['gst_rate'],
+                'gst_amount' => $pricing['gst_amount'],
+                'grand_total' => $pricing['grand_total'],
+            ]);
+        }
+
         $ad->save();
 
         PortalNotificationService::notifyAdminsOfApprovalRequest('Updated ad', $ad->title, route('admin.ads.submissions.show', $ad));
@@ -870,18 +891,19 @@ class UserAdController extends Controller
         $user = $request->user();
 
         $size = AdSizes::all()[$sizeType] ?? null;
-        $primaryCategoryId = (int) ($validated['category_ids'][0] ?? 0);
-        $primarySubcategoryId = (int) ($validated['subcategory_ids'][0] ?? 0);
-        $categoryPrice = $size['category_prices'][$primaryCategoryId] ?? ((($size['module_prices'] ?? []) !== []) ? min($size['module_prices']) : null);
         $selectedModules = collect($validated['selected_modules'] ?? [])->unique()->values()->all();
-        $modulePricePerDay = collect($selectedModules)->sum(fn (string $moduleKey) => (float) ($size['module_prices'][$moduleKey] ?? 0));
-        $categoryPricePerDay = (float) ($categoryPrice ?? 0);
-        $totalBasePricePerDay = $categoryPricePerDay + $modulePricePerDay;
-        if ((bool) ($size['is_paid'] ?? false) && $categoryPrice === null && ! (bool) ($user?->isAdmin())) {
+        $totalBasePricePerDay = $size
+            ? AdSizes::placementPricePerDay($size, $selectedModules, $validated['category_ids'])
+            : 0.0;
+
+        if ((bool) ($size['is_paid'] ?? false) && $totalBasePricePerDay <= 0 && ! (bool) ($user?->isStaff())) {
             return back()->withErrors([
-                'category_id' => 'No price is configured for this category and ad size.',
+                'category_id' => 'No price is configured for this ad size, modules, or categories.',
             ])->withInput();
         }
+
+        $primaryCategoryId = (int) ($validated['category_ids'][0] ?? 0);
+        $primarySubcategoryId = (int) ($validated['subcategory_ids'][0] ?? 0);
 
         $targetWidth = (int) ($size['w'] ?? 0);
         $targetHeight = (int) ($size['h'] ?? 0);

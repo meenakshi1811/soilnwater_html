@@ -80,6 +80,32 @@ final class AdSizes
     }
 
     /**
+     * Per-day placement price: base + sum(selected modules) + highest paid category price.
+     */
+    public static function placementPricePerDay(array $size, array $selectedModules = [], array $selectedCategoryIds = []): float
+    {
+        if (! ($size['is_paid'] ?? false)) {
+            return 0.0;
+        }
+
+        $base = self::basePricePerDay($size) ?? 0.0;
+
+        $moduleTotal = collect($selectedModules)
+            ->map(fn ($key) => (string) $key)
+            ->unique()
+            ->sum(fn (string $moduleKey) => (float) ($size['module_prices'][$moduleKey] ?? 0));
+
+        $categoryTotal = collect($selectedCategoryIds)
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->map(fn (int $categoryId) => (float) ($size['category_prices'][$categoryId] ?? 0))
+            ->filter(fn (float $amount) => $amount > 0)
+            ->max() ?? 0.0;
+
+        return round($base + $moduleTotal + (float) $categoryTotal, 2);
+    }
+
+    /**
      * Starting base price per day for a size (lowest category / module / flat amount).
      */
     public static function basePricePerDay(array $size): ?float

@@ -145,7 +145,7 @@
                         <span class="ad-size-pricing-card__value" id="pricingHeroValue">{{ number_format($sizeBasePricePerDay, 2) }}</span>
                         <span class="ad-size-pricing-card__period">/ day</span>
                     </div>
-                    <p class="ad-size-pricing-card__note mb-0" id="pricingHeroNote">Final price may go up or down based on the modules you select.</p>
+                    <p class="ad-size-pricing-card__note mb-0" id="pricingHeroNote">Base price plus any paid modules and categories you select.</p>
                 </div>
             @elseif($showFreePricing)
                 <div class="ad-size-pricing-card ad-size-pricing-card--free" style="min-width:min(100%, 280px); max-width:340px;" id="adSizePricingHero">
@@ -209,7 +209,7 @@
                             </div>
                         @endforeach
                     </div>
-                    <div id="adModulePriceNote" class="form-text text-muted">Modules are optional. Price may increase or decrease when you select modules. Leave all unchecked to show all categories.</div>
+                    <div id="adModulePriceNote" class="form-text text-muted">Modules are optional. Selecting paid modules adds their price to the base price.</div>
                 </div>
                 <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
@@ -469,7 +469,7 @@
                                 <span class="ad-size-pricing-card__value" id="pricingBasePrice">{{ number_format($sizeBasePricePerDay, 2) }}</span>
                                 <span class="ad-size-pricing-card__period">/ day</span>
                             </div>
-                            <p class="ad-size-pricing-card__note mb-0" id="pricingModuleNote">Final price may go up or down based on the modules and category you select.</p>
+                            <p class="ad-size-pricing-card__note mb-0" id="pricingModuleNote">Base price plus any paid modules and categories you select.</p>
                         </div>
                         <div class="text-end">
                             <span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2">
@@ -1672,15 +1672,11 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
         }
 
         function currentPlacementPricePerDay() {
+            const basePrice = Number.isFinite(configuredBasePrice) && configuredBasePrice > 0 ? configuredBasePrice : 0;
             const categoryPrice = selectedCategoryPricePerDay();
             const modulePrice = selectedModulePricePerDay();
-            const combined = categoryPrice + modulePrice;
 
-            if (combined > 0) {
-                return combined;
-            }
-
-            return Number.isFinite(configuredBasePrice) && configuredBasePrice > 0 ? configuredBasePrice : 0;
+            return basePrice + categoryPrice + modulePrice;
         }
 
         function formatInr(amount) {
@@ -1708,7 +1704,7 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
                 pricingHeroLabel.textContent = usingConfiguredBase ? 'Base placement price' : 'Estimated placement price';
             }
 
-            const moduleNote = 'Final price may go up or down based on the modules and category you select.';
+            const moduleNote = 'Base price plus any paid modules and categories you select.';
             if (pricingModuleNote) {
                 pricingModuleNote.textContent = moduleNote;
             }
@@ -1717,8 +1713,8 @@ document.querySelectorAll('input[name="design_mode"]').forEach((radio) => {
             }
             if (adModulePriceNote) {
                 adModulePriceNote.textContent = hasModuleSelection
-                    ? 'Selected modules are applied. Price may increase or decrease when you change modules.'
-                    : 'Modules are optional. Price may increase or decrease when you select modules. Leave all unchecked to show all categories.';
+                    ? 'Selected module prices are added to the base price.'
+                    : 'Modules are optional. Selecting paid modules adds their price to the base price.';
             }
 
             const { days, usedFallback } = calculateValidDays();
