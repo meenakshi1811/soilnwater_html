@@ -29,6 +29,35 @@ class OfferPriceService
     }
 
     /**
+     * @return Collection<int, int>
+     */
+    public static function offerPricingCategoryIds(): Collection
+    {
+        $rootIds = Category::query()
+            ->whereNull('parent_id')
+            ->whereJsonContains('modules', 'offers')
+            ->pluck('id');
+
+        if ($rootIds->isEmpty()) {
+            return collect();
+        }
+
+        $ids = collect($rootIds);
+        $parentIds = $rootIds;
+
+        while ($parentIds->isNotEmpty()) {
+            $children = Category::query()
+                ->whereIn('parent_id', $parentIds)
+                ->pluck('id');
+
+            $ids = $ids->merge($children);
+            $parentIds = $children;
+        }
+
+        return $ids->unique()->values();
+    }
+
+    /**
      * @return Collection<int, Category>
      */
     public static function offerCategoryTree(): Collection
@@ -36,9 +65,26 @@ class OfferPriceService
         return Category::query()
             ->whereNull('parent_id')
             ->whereJsonContains('modules', 'offers')
-            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id', 'offer_price', 'modules'])])
+            ->with(['childrenRecursive' => fn ($query) => $query
+                ->orderBy('name')
+                ->select(['id', 'name', 'parent_id', 'offer_price', 'modules'])])
             ->orderBy('name')
-            ->get(['id', 'name', 'parent_id', 'offer_price', 'modules']);
+            ->get(['id', 'name', 'parent_id', 'offer_price', 'modules'])
+            ->each(function (Category $category): void {
+                $category->setRelation('children', $category->childrenRecursive);
+            });
+    }
+
+    public static function countDescendants(Category $category): int
+    {
+        $count = 0;
+
+        foreach ($category->children as $child) {
+            $count++;
+            $count += self::countDescendants($child);
+        }
+
+        return $count;
     }
 
     public static function isOfferPricingCategory(Category $category): bool
@@ -57,21 +103,14 @@ class OfferPriceService
     public static function applyToAll(float $amount): int
     {
         $normalized = max(0, round($amount, 2));
-        $parentIds = Category::query()
-            ->whereNull('parent_id')
-            ->whereJsonContains('modules', 'offers')
-            ->pluck('id');
+        $categoryIds = self::offerPricingCategoryIds();
 
-        if ($parentIds->isEmpty()) {
+        if ($categoryIds->isEmpty()) {
             return 0;
         }
 
         return Category::query()
-            ->where(function ($query) use ($parentIds): void {
-                $query->where(function ($parentQuery): void {
-                    $parentQuery->whereNull('parent_id')->whereJsonContains('modules', 'offers');
-                })->orWhereIn('parent_id', $parentIds);
-            })
+            ->whereIn('id', $categoryIds)
             ->update(['offer_price' => $normalized]);
     }
 }

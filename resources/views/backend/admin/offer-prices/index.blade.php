@@ -312,23 +312,16 @@
                         <div>
                             <h3 class="offer-price-group-title">{{ $category->name }}</h3>
                             <p class="offer-price-group-meta">
-                                {{ $category->children->count() }} sub {{ Str::plural('category', $category->children->count()) }}
-                                · Parent category pricing
+                                {{ \App\Services\OfferPriceService::countDescendants($category) }} nested {{ Str::plural('category', \App\Services\OfferPriceService::countDescendants($category)) }}
+                                · Includes subcategories
                             </p>
                         </div>
                     </div>
 
-                    @include('backend.admin.offer-prices.partials.row', [
-                        'category' => $category,
-                        'isSubcategory' => false,
+                    @include('backend.admin.offer-prices.partials.category-rows', [
+                        'categories' => collect([$category]),
+                        'depth' => 0,
                     ])
-
-                    @foreach($category->children as $subcategory)
-                        @include('backend.admin.offer-prices.partials.row', [
-                            'category' => $subcategory,
-                            'isSubcategory' => true,
-                        ])
-                    @endforeach
                 </section>
             @endforeach
         </div>
@@ -338,6 +331,7 @@
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/admin-offer-prices.js') }}?v={{ now()->timestamp }}"></script>
 @endpush

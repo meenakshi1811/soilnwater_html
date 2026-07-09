@@ -1,9 +1,16 @@
 @php
     $price = number_format((float) ($category->offer_price ?? 0), 2, '.', '');
     $isFree = (float) $price <= 0;
+    $depth = (int) ($depth ?? 0);
+    $isSubcategory = $depth > 0;
+    $typeLabel = match (true) {
+        $depth === 0 => 'Category',
+        $depth === 1 => 'Subcategory',
+        default => 'Child category',
+    };
 @endphp
 
-<div class="offer-price-row {{ $isSubcategory ? 'is-subcategory' : '' }}" data-category-id="{{ $category->id }}">
+<div class="offer-price-row {{ $isSubcategory ? 'is-subcategory' : '' }}" data-category-id="{{ $category->id }}" style="{{ $isSubcategory ? 'padding-left: ' . (1.2 + ($depth * 1)) . 'rem;' : '' }}">
     <div class="offer-price-row-label">
         @if($isSubcategory)
             <i class="fa-solid fa-turn-up fa-rotate-90 text-muted"></i>
@@ -13,7 +20,7 @@
         <div>
             <div class="offer-price-row-name">{{ $category->name }}</div>
             <span class="offer-price-row-type {{ $isSubcategory ? 'is-sub' : '' }}">
-                {{ $isSubcategory ? 'Subcategory' : 'Category' }}
+                {{ $typeLabel }}
             </span>
         </div>
     </div>

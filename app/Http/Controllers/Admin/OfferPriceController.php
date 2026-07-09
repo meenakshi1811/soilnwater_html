@@ -17,7 +17,7 @@ class OfferPriceController extends Controller
 
         return view('backend.admin.offer-prices.index', [
             'categories' => $categories,
-            'pricedCount' => $categories->sum(fn (Category $category) => 1 + $category->children->count()),
+            'pricedCount' => $categories->sum(fn (Category $category) => 1 + OfferPriceService::countDescendants($category)),
         ]);
     }
 
