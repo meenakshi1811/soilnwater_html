@@ -153,6 +153,7 @@ class AdSizeController extends Controller
             'module_prices.*' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'admin_only' => ['nullable', 'boolean'],
             'is_paid' => ['nullable', 'boolean'],
+            'amount' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'category_prices' => ['nullable', 'array'],
             'category_prices.*' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
         ]);
@@ -162,17 +163,19 @@ class AdSizeController extends Controller
         $validated['module_prices'] = $this->normalizeModulePrices($validated['module_prices'] ?? []);
         $validated['category_prices'] = $this->normalizeCategoryPrices($validated['category_prices'] ?? []);
 
-        if ($validated['is_paid'] && $validated['category_prices'] === [] && $validated['module_prices'] === []) {
+        if ($validated['is_paid'] && $validated['category_prices'] === [] && $validated['module_prices'] === [] && ! $request->filled('amount')) {
             abort(response()->json([
-                'message' => 'Add at least one category price or module price when paid is enabled.',
-                'errors' => ['category_prices' => ['Add at least one category price or module price when paid is enabled.']],
+                'message' => 'Enter a base price or add at least one category/module price when paid is enabled.',
+                'errors' => ['amount' => ['Enter a base price or add at least one category/module price when paid is enabled.']],
             ], 422));
         }
 
         $validated['amount'] = $validated['is_paid']
-            ? ($validated['category_prices'] !== []
-                ? min(array_values($validated['category_prices']))
-                : min(array_values($validated['module_prices'])))
+            ? ($request->filled('amount')
+                ? $this->formatAmount($request->input('amount'))
+                : ($validated['category_prices'] !== []
+                    ? $this->formatAmount(min(array_values($validated['category_prices'])))
+                    : $this->formatAmount(min(array_values($validated['module_prices'])))))
             : null;
 
         if (! $size) {

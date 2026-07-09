@@ -49,6 +49,21 @@
         border-color: rgba(13, 110, 253, 0.35);
         background: rgba(13, 110, 253, 0.06);
     }
+
+    #adSizeModal .ad-size-base-price-card {
+        border: 1px solid #f5d08a;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+        padding: 1rem 1.1rem;
+    }
+
+    #adSizeModal .ad-size-base-price-card .form-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #b45309;
+    }
 </style>
 @endpush
 
@@ -133,6 +148,14 @@
                             </div>
                         </div>
                         <div class="col-12 d-none" id="paidSizeFieldsSection">
+                            <div class="ad-size-base-price-card mb-3">
+                                <label class="form-label mb-1" for="adSizeBasePrice">Base price</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" min="0" step="0.01" name="amount" id="adSizeBasePrice" class="form-control" placeholder="0.00">
+                                </div>
+                                <small class="text-secondary d-block mt-2">Per-day base placement price shown to users before category and module adjustments.</small>
+                            </div>
                             <div class="row g-3">
                                 <div class="col-12" id="modulePricingFieldsSection">
                                     <hr class="my-1">

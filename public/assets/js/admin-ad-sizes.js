@@ -39,6 +39,7 @@
             $('#categoryPricingFieldsSection').removeClass('d-none');
             $('#applyAllCategoriesPriceInput').val('');
             $('#adSizeIsPaid').prop('checked', false);
+            $('#adSizeBasePrice').val('');
             $('#paidSizeFieldsSection').addClass('d-none');
             $('#adSizeAdminOnlyOption, #adSizeIsPaidOption, #categoryPriceModeAllOption').removeClass('is-active');
         },
@@ -73,6 +74,7 @@
             var syncPaidSizeFieldsVisibility = function () {
                 var isPaid = $('#adSizeIsPaid').is(':checked');
                 $('#paidSizeFieldsSection').toggleClass('d-none', !isPaid);
+                $('#adSizeBasePrice').prop('required', isPaid);
                 syncOptionActiveState($('#adSizeIsPaid'), $('#adSizeIsPaidOption'));
             };
 
@@ -123,6 +125,7 @@
                     $('#adSizeHeight').val(size.height || '');
                     $('#adSizeAdminOnly').prop('checked', !!size.admin_only);
                     $('#adSizeIsPaid').prop('checked', !!size.is_paid);
+                    $('#adSizeBasePrice').val(size.amount ?? '');
                     syncOptionActiveState($('#adSizeAdminOnly'), $('#adSizeAdminOnlyOption'));
                     syncPaidSizeFieldsVisibility();
                     var modulePrices = response.module_prices || {};
@@ -311,7 +314,20 @@
                         name: { required: true, maxlength: 120 },
                         size_key: { required: true, maxlength: 60, sizeKeyFormat: true },
                         width: { required: true, min: 1, max: 5000 },
-                        height: { required: true, min: 1, max: 5000 }
+                        height: { required: true, min: 1, max: 5000 },
+                        amount: {
+                            required: function () {
+                                return $('#adSizeIsPaid').is(':checked');
+                            },
+                            number: true,
+                            min: 0
+                        }
+                    },
+                    messages: {
+                        amount: {
+                            required: 'Please enter the base price for paid sizes.',
+                            min: 'Base price must be zero or greater.'
+                        }
                     }
                 });
             }

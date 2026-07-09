@@ -31,6 +31,11 @@ final class AdSizes
 
             $modulePrices = $adSize->modulePrices->mapWithKeys(fn ($price) => [(string) $price->module_key => (float) $price->amount])->all();
 
+            $storedAmount = $adSize->amount !== null ? (float) $adSize->amount : null;
+            $fallbackAmount = $categoryPrices !== []
+                ? min($categoryPrices)
+                : ($modulePrices !== [] ? min($modulePrices) : 0.0);
+
             $sizes[$adSize->size_key] = [
                 'name' => $adSize->name,
                 'ratio' => $adSize->width.' / '.$adSize->height,
@@ -39,7 +44,7 @@ final class AdSizes
                 'admin_only' => (bool) $adSize->admin_only,
                 'is_paid' => (bool) $adSize->is_paid,
                 'module_prices' => $modulePrices,
-                'amount' => $categoryPrices !== [] ? min($categoryPrices) : (float) (($modulePrices !== [] ? min($modulePrices) : ($adSize->amount ?? 0))),
+                'amount' => $storedAmount !== null && $storedAmount > 0 ? $storedAmount : (float) $fallbackAmount,
                 'category_prices' => $categoryPrices,
                 'is_active' => (bool) $adSize->is_active,
             ];

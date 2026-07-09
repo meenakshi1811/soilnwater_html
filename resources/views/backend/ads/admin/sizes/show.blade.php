@@ -108,8 +108,15 @@
                                 </td>
                             </tr>
                             <tr>
-                                <th class="bg-light">Base Amount</th>
-                                <td>{{ $size->amount !== null ? $formatAmount($size->amount) : '-' }}</td>
+                                <th class="bg-light">Base Price</th>
+                                <td>
+                                    @if($size->is_paid && $size->amount !== null)
+                                        <span class="fw-semibold">{{ $formatAmount($size->amount) }}</span>
+                                        <span class="text-secondary">/ day</span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
                             </tr>
                             <tr>
                                 <th class="bg-light">Created</th>
