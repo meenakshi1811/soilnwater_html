@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
+use App\Services\MarketplacePortalAnalyticsService;
 use Illuminate\View\View;
 
 class ServiceProviderDashboardController extends Controller
@@ -14,11 +15,26 @@ class ServiceProviderDashboardController extends Controller
             'branches',
             'bannerSlides',
             'pageSections',
+            'services',
+            'services as approved_services_count' => fn ($query) => $query->where('status', 'approved'),
+            'services as pending_services_count' => fn ($query) => $query->where('status', 'pending'),
         ]);
 
         return view('backend.service_provider.dashboard', [
             'service_provider' => $service_provider,
+            'analytics' => MarketplacePortalAnalyticsService::forServiceProvider($service_provider),
             'stats' => [
+                [
+                    'label' => 'Services',
+                    'value' => $service_provider->services_count,
+                    'detail' => sprintf(
+                        '%s approved · %s pending',
+                        number_format($service_provider->approved_services_count),
+                        number_format($service_provider->pending_services_count)
+                    ),
+                    'url' => route('service_provider.services.index'),
+                    'class' => 'stat-purple',
+                ],
                 [
                     'label' => 'Branches',
                     'value' => $service_provider->branches_count,

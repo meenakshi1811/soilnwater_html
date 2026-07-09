@@ -15,6 +15,15 @@
     @if (session('premium_upgrade_prompt'))
         <link rel="stylesheet" href="{{ asset('assets/css/premium-upgrade-modal.css') }}?v={{ now()->timestamp }}">
     @endif
+    @auth
+        @if (
+            (auth()->user()->isVendor() && auth()->user()->vendor?->is_premium)
+            || (auth()->user()->isConsultant() && auth()->user()->consultant?->is_premium)
+            || (auth()->user()->isServiceProvider() && auth()->user()->serviceProvider?->is_premium)
+        )
+            <link rel="stylesheet" href="{{ asset('assets/css/marketplace-portal-dashboard.css') }}?v={{ now()->timestamp }}">
+        @endif
+    @endauth
     <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -32,7 +41,15 @@
     </script>
     @stack('styles')
 </head>
-<body class="admin-body">
+@php
+    $authUser = auth()->user();
+    $isMarketplacePremium = $authUser && (
+        ($authUser->isVendor() && $authUser->vendor?->is_premium)
+        || ($authUser->isConsultant() && $authUser->consultant?->is_premium)
+        || ($authUser->isServiceProvider() && $authUser->serviceProvider?->is_premium)
+    );
+@endphp
+<body class="admin-body{{ $isMarketplacePremium ? ' marketplace-portal-premium' : '' }}">
     @include('backend.partials.header')
 
     <div class="admin-shell">

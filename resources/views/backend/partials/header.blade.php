@@ -19,6 +19,9 @@
     $panelTitle = $isGeneralUser
         ? 'User Dashboard'
         : ($isVendor ? 'Vendor Dashboard' : ($isConsultant ? 'Consultant Dashboard' : ($isServiceProvider ? 'Service Dashboard' : 'Admin Control Panel')));
+    $isMarketplacePremium = ($isVendor && $user->vendor?->is_premium)
+        || ($isConsultant && $user->consultant?->is_premium)
+        || ($isServiceProvider && $user->serviceProvider?->is_premium);
     $notifications = $user->notifications()->latest()->limit(8)->get();
     $unreadNotificationCount = $user->unreadNotifications()->count();
 @endphp
@@ -29,7 +32,14 @@
                 <img src="{{ asset($user->profile_image) }}" alt="{{ $user->name }}" width="44" height="44" class="rounded-circle object-fit-cover">
             @endif
             <div>
-            <h1 class="admin-header-title mb-0">{{ $panelTitle }}</h1>
+            <h1 class="admin-header-title mb-0">
+                {{ $panelTitle }}
+                @if ($isMarketplacePremium)
+                    <span class="marketplace-header-premium-badge">
+                        <i class="fa-solid fa-crown"></i> Premium
+                    </span>
+                @endif
+            </h1>
             <p class="mb-0">Welcome, {{ $user->name }}</p>
             </div>
         </div>

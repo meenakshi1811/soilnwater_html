@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
+use App\Services\MarketplacePortalAnalyticsService;
 use Illuminate\Support\Number;
 use Illuminate\View\View;
 
@@ -23,6 +24,7 @@ class VendorDashboardController extends Controller
 
         return view('backend.vendor.dashboard', [
             'vendor' => $vendor,
+            'analytics' => MarketplacePortalAnalyticsService::forVendor($vendor),
             'stats' => [
                 [
                     'label' => 'Products',
