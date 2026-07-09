@@ -4,34 +4,36 @@
 
 @section('content')
 <div class="admin-panel dashboard-modern user-dashboard-panel">
-    <div class="dashboard-hero mb-4">
-        <div>
+    <div class="dashboard-hero mb-4 user-dashboard-hero">
+        <div class="user-dashboard-hero__intro">
             <h2 class="admin-title mb-1">User Dashboard</h2>
             <p class="mb-0">Your listings and activity at a glance.</p>
         </div>
-        <div class="d-flex flex-wrap gap-2">
-            <a href="{{ route('user.profile.edit') }}" class="btn btn-primary">Update Profile</a>
-            <form method="POST" action="{{ route('user.convert-to-vendor') }}" class="js-convert-account-form"
-                data-title="Convert to vendor?"
-                data-text="Convert your user profile to a vendor account and send it to admin for approval?"
-                data-success="Your vendor conversion request has been sent for approval.">
-                @csrf
-                <button type="submit" class="btn btn-outline-primary">Become a Vendor</button>
-            </form>
-            <form method="POST" action="{{ route('user.convert-to-consultant') }}" class="js-convert-account-form"
-                data-title="Convert to consultant?"
-                data-text="Convert your user profile to a consultant account and send it to admin for approval?"
-                data-success="Your consultant conversion request has been sent for approval.">
-                @csrf
-                <button type="submit" class="btn btn-outline-primary">Become a Consultant</button>
-            </form>
-            <form method="POST" action="{{ route('user.convert-to-service-provider') }}" class="js-convert-account-form"
-                data-title="Convert to service provider?"
-                data-text="Convert your user profile to a service provider account and send it to admin for approval?"
-                data-success="Your service provider conversion request has been sent for approval.">
-                @csrf
-                <button type="submit" class="btn btn-outline-primary">Become a Service Provider</button>
-            </form>
+        <div class="user-dashboard-hero__actions">
+            <a href="{{ route('user.profile.edit') }}" class="btn btn-primary user-dashboard-hero__profile-btn">Update Profile</a>
+            <div class="user-dashboard-hero__convert-actions">
+                <form method="POST" action="{{ route('user.convert-to-vendor') }}" class="js-convert-account-form"
+                    data-title="Convert to vendor?"
+                    data-text="Convert your user profile to a vendor account and send it to admin for approval?"
+                    data-success="Your vendor conversion request has been sent for approval.">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-primary">Become a Vendor</button>
+                </form>
+                <form method="POST" action="{{ route('user.convert-to-consultant') }}" class="js-convert-account-form"
+                    data-title="Convert to consultant?"
+                    data-text="Convert your user profile to a consultant account and send it to admin for approval?"
+                    data-success="Your consultant conversion request has been sent for approval.">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-primary">Become a Consultant</button>
+                </form>
+                <form method="POST" action="{{ route('user.convert-to-service-provider') }}" class="js-convert-account-form"
+                    data-title="Convert to service?"
+                    data-text="Convert your user profile to a service account and send it to admin for approval?"
+                    data-success="Your service conversion request has been sent for approval.">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-primary">Become a Service</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -68,6 +70,67 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<style>
+    .user-dashboard-hero {
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .user-dashboard-hero__intro {
+        flex: 1 1 240px;
+        min-width: 0;
+    }
+
+    .user-dashboard-hero__actions {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+        flex: 0 1 520px;
+        width: min(100%, 520px);
+    }
+
+    .user-dashboard-hero__profile-btn {
+        align-self: flex-end;
+        min-width: 160px;
+    }
+
+    .user-dashboard-hero__convert-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    .user-dashboard-hero__convert-actions form {
+        margin: 0;
+        display: flex;
+        min-width: 0;
+    }
+
+    .user-dashboard-hero__convert-actions .btn {
+        width: 100%;
+        white-space: nowrap;
+        font-size: 0.84rem;
+        padding: 0.5rem 0.7rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .user-dashboard-hero__actions {
+            width: 100%;
+            flex-basis: 100%;
+        }
+
+        .user-dashboard-hero__profile-btn {
+            align-self: stretch;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .user-dashboard-hero__convert-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 @endpush
 
 @push('scripts')
