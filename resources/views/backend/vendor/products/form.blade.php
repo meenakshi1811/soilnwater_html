@@ -23,7 +23,8 @@
   @php($existingVideoPath = old('remove_video') ? null : ($product->video_file ?? null))
 
   <form id="vendor-product-form"
-    data-ajax-create="{{ $product->exists ? '0' : '1' }}"
+    data-ajax-submit="1"
+    data-is-edit="{{ $product->exists ? '1' : '0' }}"
     data-existing-images='@json($existingImagePaths->map(fn ($path) => ["path" => $path, "url" => asset($path)])->values())'
     data-existing-video="{{ $existingVideoPath ? asset($existingVideoPath) : '' }}"
     data-existing-video-path="{{ $existingVideoPath ?? '' }}"
@@ -54,7 +55,7 @@
             <small>Up to 4 MB per image</small>
           </div>
         </label>
-        @error('images.*')<div id="images-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        @error('images.*')<div id="images-error" class="invalid-feedback d-block">{{ $message }}</div>@else<div id="images-error" class="invalid-feedback d-none"></div>@enderror
         <div id="existingImagesInputs">
           @foreach($existingImagePaths as $imagePath)
             <input type="hidden" name="existing_images[]" value="{{ $imagePath }}">
@@ -74,7 +75,7 @@
             <small>Max 20 MB · MP4 or WEBM</small>
           </div>
         </label>
-        @error('video_file')<div id="video_file-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        @error('video_file')<div id="video_file-error" class="invalid-feedback d-block">{{ $message }}</div>@else<div id="video_file-error" class="invalid-feedback d-none"></div>@enderror
         <input type="hidden" name="remove_video" id="removeVideoFlag" value="{{ old('remove_video') ? '1' : '0' }}">
         <div id="videoPreviewWrap" class="vendor-video-preview-card d-none">
           <video id="videoPreviewPlayer" controls playsinline preload="metadata"></video>
@@ -654,10 +655,12 @@ window.initVendorProductLocationAutocomplete = function () {
 
 $(function () {
   const $form = $('#vendor-product-form');
-  if (!$form.length || String($form.data('ajax-create')) !== '1') {
+  if (!$form.length || String($form.data('ajax-submit')) !== '1') {
     return;
   }
 
+  const isEdit = String($form.data('is-edit')) === '1';
+  const fieldContainerSelector = '.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8, .vendor-media-block';
   const hiddenValidationFields = ['latitude', 'longitude'];
   const $submitBtn = $('#productSubmitBtn');
   let originalBtnHtml = $submitBtn.html();
@@ -675,9 +678,37 @@ $(function () {
     $submitBtn.prop('disabled', false).removeClass('is-loading').html(originalBtnHtml);
   }
 
+  function showFileFieldError(field, message) {
+    const fieldMap = {
+      images: {
+        input: '#productImagesInput',
+        error: '#images-error'
+      },
+      video_file: {
+        input: '#productVideoInput',
+        error: '#video_file-error'
+      }
+    };
+    const target = fieldMap[field];
+    if (!target) return;
+    $(target.input).addClass('is-invalid').removeClass('is-valid');
+    $(target.error).text(message).removeClass('d-none');
+  }
+
+  function clearFileFieldErrors() {
+    ['images', 'video_file'].forEach(function (field) {
+      const input = field === 'images' ? '#productImagesInput' : '#productVideoInput';
+      const error = field === 'images' ? '#images-error' : '#video_file-error';
+      $(input).removeClass('is-invalid');
+      $(error).text('').addClass('d-none');
+    });
+  }
+
   function applyServerErrors(errors) {
     const validator = $form.data('validator');
     const mapped = {};
+
+    clearFileFieldErrors();
 
     Object.entries(errors || {}).forEach(([field, messages]) => {
       const normalizedField = field.replace(/\.[0-9]+(?=\.|$)/g, '').replace(/\*$/, '');
@@ -688,11 +719,26 @@ $(function () {
         return;
       }
 
+      if (normalizedField === 'images' || field.indexOf('images.') === 0) {
+        showFileFieldError('images', message);
+        return;
+      }
+
+      if (normalizedField === 'video_file') {
+        showFileFieldError('video_file', message);
+        return;
+      }
+
       mapped[normalizedField] = message;
     });
 
     if (validator && Object.keys(mapped).length) {
       validator.showErrors(mapped);
+    }
+
+    const $firstInvalid = $form.find('.is-invalid').filter(':visible').first();
+    if ($firstInvalid.length) {
+      $('html, body').animate({ scrollTop: Math.max($firstInvalid.offset().top - 120, 0) }, 250);
     }
   }
 
@@ -709,7 +755,7 @@ $(function () {
       location: { required: true, locationPicked: true, maxlength: 255 },
       youtube_link: { url: true },
       discount_percent: { number: true, min: 0, max: 100 },
-      accept_terms: { required: {{ $isAdmin ? 'false' : 'true' }} },
+      accept_terms: { required: {{ ($isAdmin || $product->exists) ? 'false' : 'true' }} },
       @if($isAdmin)
       vendor_id: { required: true },
       @endif
@@ -733,20 +779,20 @@ $(function () {
     highlight: function (element) {
       const $element = $(element);
       $element.addClass('is-invalid').removeClass('is-valid');
-      $element.closest('.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8')
+      $element.closest(fieldContainerSelector)
         .find('.invalid-feedback')
         .removeClass('d-none');
     },
     unhighlight: function (element) {
       const $element = $(element);
       $element.removeClass('is-invalid').addClass('is-valid');
-      $element.closest('.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8')
+      $element.closest(fieldContainerSelector)
         .find('.invalid-feedback')
         .text('')
         .addClass('d-none');
     },
     errorPlacement: function (error, element) {
-      const $container = $(element).closest('.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8');
+      const $container = $(element).closest(fieldContainerSelector);
       const $existing = $container.find('.invalid-feedback').not(error).first();
       if ($existing.length) {
         $existing.text(error.text()).removeClass('d-none');
@@ -757,9 +803,14 @@ $(function () {
     },
     invalidHandler: function () {
       setSubmitLoading(false);
+      const $firstInvalid = $form.find('.is-invalid').filter(':visible').first();
+      if ($firstInvalid.length) {
+        $('html, body').animate({ scrollTop: Math.max($firstInvalid.offset().top - 120, 0) }, 250);
+      }
     },
     submitHandler: function (form) {
       setSubmitLoading(true);
+      clearFileFieldErrors();
 
       $.ajax({
         url: form.action,
@@ -772,7 +823,7 @@ $(function () {
           'Accept': 'application/json'
         },
         success: function (payload) {
-          notify('success', payload.message || 'Product submitted successfully.');
+          notify('success', payload.message || (isEdit ? 'Product updated successfully.' : 'Product submitted successfully.'));
           setTimeout(function () {
             window.location.href = payload.redirect || '{{ $isAdmin ? route('admin.vendor-products.all.index') : route('vendor.products.index') }}';
           }, 800);
@@ -784,7 +835,7 @@ $(function () {
             notify('error', 'Please fix the highlighted fields and try again.');
             return;
           }
-          notify('error', payload.message || 'Unable to save product.');
+          notify('error', payload.message || (isEdit ? 'Unable to update product.' : 'Unable to save product.'));
         },
         complete: function () {
           setSubmitLoading(false);

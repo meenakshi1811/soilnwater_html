@@ -76,6 +76,14 @@ class VendorProductController extends Controller
 
         PortalNotificationService::notifyAdminsOfApprovalRequest('Updated vendor product', $product->name, route('admin.vendor-products.show', $product));
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Product updated successfully and sent for admin approval.',
+                'redirect' => route('vendor.products.index'),
+            ]);
+        }
+
         return redirect()->route('vendor.products.index')->with('success', 'Product updated successfully.');
     }
 
