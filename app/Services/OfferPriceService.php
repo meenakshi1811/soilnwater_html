@@ -31,30 +31,12 @@ class OfferPriceService
     /**
      * @return Collection<int, int>
      */
-    public static function offerPricingCategoryIds(): Collection
+    public static function offerRootCategoryIds(): Collection
     {
-        $rootIds = Category::query()
+        return Category::query()
             ->whereNull('parent_id')
             ->whereJsonContains('modules', 'offers')
             ->pluck('id');
-
-        if ($rootIds->isEmpty()) {
-            return collect();
-        }
-
-        $ids = collect($rootIds);
-        $parentIds = $rootIds;
-
-        while ($parentIds->isNotEmpty()) {
-            $children = Category::query()
-                ->whereIn('parent_id', $parentIds)
-                ->pluck('id');
-
-            $ids = $ids->merge($children);
-            $parentIds = $children;
-        }
-
-        return $ids->unique()->values();
     }
 
     /**
@@ -103,7 +85,7 @@ class OfferPriceService
     public static function applyToAll(float $amount): int
     {
         $normalized = max(0, round($amount, 2));
-        $categoryIds = self::offerPricingCategoryIds();
+        $categoryIds = self::offerRootCategoryIds();
 
         if ($categoryIds->isEmpty()) {
             return 0;

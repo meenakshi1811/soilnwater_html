@@ -10,7 +10,7 @@
     };
 @endphp
 
-<div class="offer-price-row {{ $isSubcategory ? 'is-subcategory' : '' }}" data-category-id="{{ $category->id }}" style="{{ $isSubcategory ? 'padding-left: ' . (1.2 + ($depth * 1)) . 'rem;' : '' }}">
+<div class="offer-price-row {{ $isSubcategory ? 'is-subcategory' : '' }}" data-category-id="{{ $category->id }}" data-depth="{{ $depth }}" style="{{ $isSubcategory ? 'padding-left: ' . (1.2 + ($depth * 1)) . 'rem;' : '' }}">
     <div class="offer-price-row-label">
         @if($isSubcategory)
             <i class="fa-solid fa-turn-up fa-rotate-90 text-muted"></i>

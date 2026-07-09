@@ -59,7 +59,7 @@ class OfferPriceController extends Controller
         }
 
         return response()->json([
-            'message' => 'Offer price applied to all '.$updated.' offer categories and subcategories.',
+            'message' => 'Offer price applied to all '.$updated.' offer categories.',
             'offer_price' => $amount,
             'formatted_price' => OfferPriceService::formatAmount($amount),
             'updated_count' => $updated,

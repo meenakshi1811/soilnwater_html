@@ -3,11 +3,8 @@
         return;
     }
 
-    function showAlert(type, message) {
-        var $alert = $('#offerPriceAlert');
-        $alert.removeClass('d-none alert-success alert-danger alert-warning')
-            .addClass('alert-' + type)
-            .text(message);
+    function notify(type, message) {
+        FormHelper.showToast(type, message);
     }
 
     function updateDisplayPrice($row, formattedPrice, isFree) {
@@ -16,11 +13,11 @@
         $display.text(isFree ? 'Free' : formattedPrice);
     }
 
-    function refreshAllRows(amount, formattedPrice) {
+    function refreshParentRows(amount, formattedPrice) {
         var normalizedAmount = Number(amount).toFixed(2);
         var isFree = Number(amount) <= 0;
 
-        $('.offer-price-row').each(function () {
+        $('.offer-price-row[data-depth="0"]').each(function () {
             var $row = $(this);
             $row.find('input[name="offer_price"]').val(normalizedAmount);
             updateDisplayPrice($row, formattedPrice, isFree);
@@ -33,7 +30,7 @@
         if (window.Swal && typeof window.Swal.fire === 'function') {
             return window.Swal.fire({
                 title: 'Apply price to all categories?',
-                html: 'Set <strong>' + priceLabel + ' per day</strong> for every offer category and subcategory.',
+                html: 'Set <strong>' + priceLabel + ' per day</strong> for every offer parent category only. Subcategory prices will stay unchanged.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Yes, apply to all',
@@ -45,7 +42,7 @@
             });
         }
 
-        return Promise.resolve(window.confirm('Apply ' + priceLabel + ' per day to all offer categories and subcategories?'));
+        return Promise.resolve(window.confirm('Apply ' + priceLabel + ' per day to all offer parent categories?'));
     }
 
     function submitApplyAll($form, $btn, amount) {
@@ -65,9 +62,8 @@
             }
         }).done(function (response) {
             var formattedPrice = response.formatted_price || ('₹' + Number(amount).toFixed(2));
-            refreshAllRows(response.offer_price || amount, formattedPrice);
-            showAlert('success', response.message || 'Offer prices updated successfully.');
-            FormHelper.showToast('success', response.message || 'Offer prices updated successfully.');
+            refreshParentRows(response.offer_price || amount, formattedPrice);
+            notify('success', response.message || 'Offer prices updated successfully.');
         }).fail(function (xhr) {
             if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                 FormHelper.renderFieldErrors($form, xhr.responseJSON.errors);
@@ -76,8 +72,7 @@
             var message = (xhr.responseJSON && xhr.responseJSON.message)
                 ? xhr.responseJSON.message
                 : 'Unable to apply offer prices.';
-            showAlert('danger', message);
-            FormHelper.showToast('danger', message);
+            notify('danger', message);
         }).always(function () {
             FormHelper.setButtonLoading($btn, false, 'Applying...', 'Apply to All');
         });
@@ -110,8 +105,7 @@
             var category = response.category || {};
             var isFree = !!category.is_free;
             updateDisplayPrice($row, category.formatted_price || ('₹' + amount), isFree);
-            showAlert('success', response.message || 'Offer price updated successfully.');
-            FormHelper.showToast('success', response.message || 'Offer price updated successfully.');
+            notify('success', response.message || 'Offer price updated successfully.');
         }).fail(function (xhr) {
             if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                 FormHelper.renderFieldErrors($form, xhr.responseJSON.errors);
@@ -120,8 +114,7 @@
             var message = (xhr.responseJSON && xhr.responseJSON.message)
                 ? xhr.responseJSON.message
                 : 'Unable to update offer price.';
-            showAlert('danger', message);
-            FormHelper.showToast('danger', message);
+            notify('danger', message);
         }).always(function () {
             FormHelper.setButtonLoading($btn, false, 'Saving...', 'Save');
         });

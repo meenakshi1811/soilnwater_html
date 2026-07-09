@@ -252,8 +252,6 @@
         </div>
     </div>
 
-    <div id="offerPriceAlert" class="alert d-none" role="alert"></div>
-
     <div class="offer-price-stats">
         <span class="offer-price-stat">
             <i class="fa-solid fa-layer-group text-primary"></i>
@@ -273,7 +271,7 @@
                 </span>
                 <div>
                     <h3 class="offer-price-apply-title">Apply price to all offer categories</h3>
-                    <p class="offer-price-apply-desc">Set the same per-day price for every offer-enabled category and subcategory at once. Use 0.00 to make all offers free.</p>
+                    <p class="offer-price-apply-desc">Set the same per-day price for every offer-enabled parent category at once. Subcategory prices are not changed. Use 0.00 to make all parent categories free.</p>
                 </div>
             </div>
         </div>
