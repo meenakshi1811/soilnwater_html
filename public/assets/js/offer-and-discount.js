@@ -135,6 +135,8 @@
             var $heroNote = $('#pricingHeroNote');
             var $freeBadge = $('#offerPricingFreeBadge');
             var $breakdown = $('#offerPricingBreakdown');
+            var $breakdownRows = $('#offerPricingBreakdownRows');
+            var $emptyNote = $('#offerPricingEmptyNote');
             var $btn = $('#offerSubmitBtn');
             var $paymentDisabledNote = $('#offerPaymentDisabledNote');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
@@ -164,7 +166,8 @@
                 $freeBadge.addClass('d-none');
                 $heroLabel.text('Base placement price');
                 $heroNote.text('Final price may go up or down based on the category and subcategory you select.');
-                $breakdown.removeClass('d-none');
+                $emptyNote.addClass('d-none');
+                $breakdownRows.removeClass('d-none');
                 $('#priceBasePerDay').text('₹' + applied.toFixed(2));
                 $('#priceTotalDays').text(totalDays);
                 $('#priceSubtotal').text('₹' + subtotal.toFixed(2));
@@ -182,7 +185,15 @@
             $heroNote.text(hasCategory
                 ? 'This category is complimentary — no payment is required.'
                 : 'Final price may go up or down based on the category and subcategory you select.');
-            $breakdown.addClass('d-none');
+            $emptyNote.toggleClass('d-none', hasCategory);
+            $breakdownRows.toggleClass('d-none', !hasCategory);
+            if (hasCategory) {
+                $('#priceBasePerDay').text('₹0.00');
+                $('#priceTotalDays').text(totalDays);
+                $('#priceSubtotal').text('₹0.00');
+                $('#priceGst').text('₹0.00');
+                $('#priceGrandTotal').text('₹0.00');
+            }
             $('#priceDefaultDaysNote').addClass('d-none');
             $paymentDisabledNote.addClass('d-none');
             $btn.find('.btn-text').html('<i class="fa-solid fa-paper-plane me-2"></i>' + defaultLabel);

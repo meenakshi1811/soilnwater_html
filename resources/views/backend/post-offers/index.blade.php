@@ -444,14 +444,17 @@
                 </div>
             </div>
 
-            <div id="offerPricingBreakdown" class="offer-pricing-breakdown {{ $initialAppliedPrice > 0 ? '' : 'd-none' }} mt-4" aria-live="polite">
+            <div id="offerPricingBreakdown" class="offer-pricing-breakdown mt-4" aria-live="polite">
                 <h5 class="mb-3">Pricing Details</h5>
-                <div class="offer-pricing-breakdown__row"><span>Base price / day</span><strong id="priceBasePerDay">₹{{ number_format($initialAppliedPrice, 2) }}</strong></div>
-                <div class="offer-pricing-breakdown__row"><span>Total days</span><strong id="priceTotalDays">1</strong></div>
-                <div class="offer-pricing-breakdown__row"><span>Subtotal (Base × Days)</span><strong id="priceSubtotal">₹{{ number_format($initialAppliedPrice, 2) }}</strong></div>
-                <div class="offer-pricing-breakdown__row"><span>GST (5%)</span><strong id="priceGst">₹{{ number_format($initialAppliedPrice * 0.05, 2) }}</strong></div>
-                <div class="offer-pricing-breakdown__row offer-pricing-breakdown__row--grand"><span>Grand Total</span><strong id="priceGrandTotal">₹{{ number_format($initialAppliedPrice * 1.05, 2) }}</strong></div>
-                <div id="priceDefaultDaysNote" class="offer-pricing-breakdown__note small text-secondary mt-2 {{ $offer?->valid_until ? 'd-none' : '' }}">Valid until is not selected, so GST is calculated on the standard 1-day base price.</div>
+                <p id="offerPricingEmptyNote" class="small text-secondary mb-3 {{ $initialAppliedPrice > 0 ? 'd-none' : '' }}">Select a category to calculate placement pricing.</p>
+                <div id="offerPricingBreakdownRows">
+                    <div class="offer-pricing-breakdown__row"><span>Base price / day</span><strong id="priceBasePerDay">₹{{ number_format($initialAppliedPrice, 2) }}</strong></div>
+                    <div class="offer-pricing-breakdown__row"><span>Total days</span><strong id="priceTotalDays">1</strong></div>
+                    <div class="offer-pricing-breakdown__row"><span>Subtotal (Base × Days)</span><strong id="priceSubtotal">₹{{ number_format($initialAppliedPrice, 2) }}</strong></div>
+                    <div class="offer-pricing-breakdown__row"><span>GST (5%)</span><strong id="priceGst">₹{{ number_format($initialAppliedPrice * 0.05, 2) }}</strong></div>
+                    <div class="offer-pricing-breakdown__row offer-pricing-breakdown__row--grand"><span>Grand Total</span><strong id="priceGrandTotal">₹{{ number_format($initialAppliedPrice * 1.05, 2) }}</strong></div>
+                    <div id="priceDefaultDaysNote" class="offer-pricing-breakdown__note small text-secondary mt-2 {{ ($initialAppliedPrice > 0 && ! $offer?->valid_until) ? '' : 'd-none' }}">Valid until is not selected, so GST is calculated on the standard 1-day base price.</div>
+                </div>
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
