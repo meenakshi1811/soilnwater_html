@@ -123,17 +123,20 @@
         },
 
         syncOfferPricingState: function () {
-            var isStaff = String($('#offerForm').data('is-staff-user')) === '1';
             var $categoryOption = $('#categorySelect option:selected');
             var $subcategoryOption = $('#subcategorySelect option:selected');
             var categoryPrice = Number($categoryOption.data('offer-price') || 0);
             var subcategoryPrice = Number($subcategoryOption.data('offer-price') || 0);
             var applied = subcategoryPrice > 0 ? subcategoryPrice : categoryPrice;
-            var $categoryChip = $('#categoryPricingChip');
-            var $chip = $('#offerPricingChip');
+            var hasCategory = !!$categoryOption.val();
+            var $hero = $('#offerPricingHero');
+            var $heroValue = $('#pricingHeroValue');
+            var $heroLabel = $('#pricingHeroLabel');
+            var $heroNote = $('#pricingHeroNote');
+            var $freeBadge = $('#offerPricingFreeBadge');
+            var $estimate = $('#offerPricingEstimate');
             var $btn = $('#offerSubmitBtn');
             var $paymentDisabledNote = $('#offerPaymentDisabledNote');
-            var $breakdown = $('#offerPricingBreakdown');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
 
             var validUntilValue = $('#validUntil').val();
@@ -154,16 +157,16 @@
 
             this.currentAppliedOfferPrice = applied;
 
-            if (categoryPrice > 0 && $categoryOption.val()) {
-                $categoryChip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + categoryPrice.toFixed(2));
-            } else {
-                $categoryChip.addClass('d-none').empty();
-            }
+            $heroValue.text(applied.toFixed(2));
 
             if (applied > 0) {
-                $chip.removeClass('d-none').html('<i class="fa-solid fa-crown" aria-hidden="true"></i> Premium • ₹' + applied.toFixed(2));
-                $breakdown.removeClass('d-none');
-                $('#priceBasePerDay').text('₹' + applied.toFixed(2));
+                $hero.removeClass('ad-size-pricing-card--free');
+                $freeBadge.addClass('d-none');
+                $heroLabel.text(hasCategory ? 'Base placement price' : 'Estimated placement price');
+                $heroNote.text(hasCategory
+                    ? 'Final total includes GST and depends on the valid-until date you choose.'
+                    : 'Final price may go up or down based on the category and subcategory you select.');
+                $estimate.removeClass('d-none');
                 $('#priceTotalDays').text(totalDays);
                 $('#priceSubtotal').text('₹' + subtotal.toFixed(2));
                 $('#priceGst').text('₹' + gst.toFixed(2));
@@ -174,8 +177,13 @@
                 return;
             }
 
-            $chip.addClass('d-none').empty();
-            $breakdown.addClass('d-none');
+            $hero.addClass('ad-size-pricing-card--free');
+            $freeBadge.toggleClass('d-none', !hasCategory);
+            $heroLabel.text('Placement price');
+            $heroNote.text(hasCategory
+                ? 'This category is complimentary — no payment is required.'
+                : 'Final price may go up or down based on the category and subcategory you select.');
+            $estimate.addClass('d-none');
             $('#priceDefaultDaysNote').addClass('d-none');
             $paymentDisabledNote.addClass('d-none');
             $btn.find('.btn-text').html('<i class="fa-solid fa-paper-plane me-2"></i>' + defaultLabel);
