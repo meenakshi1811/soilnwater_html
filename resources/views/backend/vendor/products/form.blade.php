@@ -19,7 +19,15 @@
     </div>
   @endif
 
-  <form id="vendor-product-form" data-ajax-create="{{ $product->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $product->exists ? ($isAdmin ? route('vendor.products.update', $product) : route('vendor.products.update',$product)) : ($isAdmin ? route('admin.vendor-products.store') : route('vendor.products.store')) }}" class="row g-3">@csrf @if($product->exists) @method('PUT') @endif
+  @php($existingImagePaths = collect(old('existing_images', $product->exists ? ($product->images ?? []) : []))->filter()->values())
+  @php($existingVideoPath = old('remove_video') ? null : ($product->video_file ?? null))
+
+  <form id="vendor-product-form"
+    data-ajax-create="{{ $product->exists ? '0' : '1' }}"
+    data-existing-images='@json($existingImagePaths->map(fn ($path) => ["path" => $path, "url" => asset($path)])->values())'
+    data-existing-video="{{ $existingVideoPath ? asset($existingVideoPath) : '' }}"
+    data-existing-video-path="{{ $existingVideoPath ?? '' }}"
+    method="POST" enctype="multipart/form-data" action="{{ $product->exists ? ($isAdmin ? route('vendor.products.update', $product) : route('vendor.products.update',$product)) : ($isAdmin ? route('admin.vendor-products.store') : route('vendor.products.store')) }}" class="row g-3">@csrf @if($product->exists) @method('PUT') @endif
     <div class="col-lg-8"><div class="chart-card p-4"><h5 class="mb-3">Basic Information</h5><div class="row g-3">
       @if($isAdmin)
       <div class="col-12"><label class="form-label">Vendor *</label><select class="form-select @error('vendor_id') is-invalid @enderror" name="vendor_id" required><option value="">Select vendor</option>@foreach($vendors as $vendor)<option value="{{ $vendor->id }}" @selected(old('vendor_id') == $vendor->id)>{{ $vendor->display_name ?: $vendor->company_name }}</option>@endforeach</select>@error('vendor_id')<div id="vendor_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
@@ -47,6 +55,11 @@
           </div>
         </label>
         @error('images.*')<div id="images-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        <div id="existingImagesInputs">
+          @foreach($existingImagePaths as $imagePath)
+            <input type="hidden" name="existing_images[]" value="{{ $imagePath }}">
+          @endforeach
+        </div>
         <div id="imagePreviewGrid" class="vendor-media-preview-grid"></div>
       </div>
 
@@ -62,6 +75,7 @@
           </div>
         </label>
         @error('video_file')<div id="video_file-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        <input type="hidden" name="remove_video" id="removeVideoFlag" value="{{ old('remove_video') ? '1' : '0' }}">
         <div id="videoPreviewWrap" class="vendor-video-preview-card d-none">
           <video id="videoPreviewPlayer" controls playsinline preload="metadata"></video>
           <div class="vendor-video-preview-card__meta">
@@ -200,6 +214,22 @@
   object-fit: cover;
   display: block;
 }
+.vendor-media-preview-card.is-existing {
+  border-color: #bfdbfe;
+}
+.vendor-media-preview-card__badge {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.45rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.92);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
 .vendor-media-preview-card__name {
   display: block;
   padding: 0.45rem 0.55rem;
@@ -315,9 +345,11 @@ function notify(type, msg) {
 }
 
 (function initVendorProductMedia() {
+  const form = document.getElementById('vendor-product-form');
   const imageInput = document.getElementById('productImagesInput');
   const imageGrid = document.getElementById('imagePreviewGrid');
   const imageDropzone = document.getElementById('imageDropzone');
+  const existingImagesContainer = document.getElementById('existingImagesInputs');
   const videoInput = document.getElementById('productVideoInput');
   const videoDropzone = document.getElementById('videoDropzone');
   const videoWrap = document.getElementById('videoPreviewWrap');
@@ -325,10 +357,27 @@ function notify(type, msg) {
   const videoName = document.getElementById('videoPreviewName');
   const videoSize = document.getElementById('videoPreviewSize');
   const removeVideoBtn = document.getElementById('removeVideoPreview');
+  const removeVideoFlag = document.getElementById('removeVideoFlag');
   if (!imageInput || !imageGrid) return;
 
   const imageFiles = [];
   let videoObjectUrl = '';
+  let existingImages = [];
+  let existingVideo = { url: '', path: '' };
+  let existingVideoRemoved = removeVideoFlag?.value === '1';
+
+  try {
+    existingImages = JSON.parse(form?.dataset.existingImages || '[]');
+  } catch (error) {
+    existingImages = [];
+  }
+
+  if (form?.dataset.existingVideo) {
+    existingVideo = {
+      url: form.dataset.existingVideo,
+      path: form.dataset.existingVideoPath || ''
+    };
+  }
 
   function formatBytes(bytes) {
     if (!bytes) return '0 B';
@@ -338,10 +387,26 @@ function notify(type, msg) {
     return `${value.toFixed(power === 0 ? 0 : 1)} ${units[power]}`;
   }
 
+  function basename(path) {
+    return String(path || '').split('/').pop() || 'media';
+  }
+
   function syncImageInput() {
     const dt = new DataTransfer();
     imageFiles.forEach((file) => dt.items.add(file));
     imageInput.files = dt.files;
+  }
+
+  function renderExistingImageInputs() {
+    if (!existingImagesContainer) return;
+    existingImagesContainer.innerHTML = '';
+    existingImages.forEach((item) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'existing_images[]';
+      input.value = item.path;
+      existingImagesContainer.appendChild(input);
+    });
   }
 
   function renderImages() {
@@ -351,6 +416,31 @@ function notify(type, msg) {
       }
     });
     imageGrid.innerHTML = '';
+
+    existingImages.forEach((item) => {
+      const card = document.createElement('div');
+      card.className = 'vendor-media-preview-card is-existing';
+      const badge = document.createElement('span');
+      badge.className = 'vendor-media-preview-card__badge';
+      badge.textContent = 'Saved';
+      const img = document.createElement('img');
+      img.alt = basename(item.path);
+      img.src = item.url;
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'vendor-media-preview-remove';
+      removeBtn.setAttribute('data-existing-path', item.path);
+      removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      const name = document.createElement('span');
+      name.className = 'vendor-media-preview-card__name';
+      name.textContent = basename(item.path);
+      card.appendChild(badge);
+      card.appendChild(img);
+      card.appendChild(removeBtn);
+      card.appendChild(name);
+      imageGrid.appendChild(card);
+    });
+
     imageFiles.forEach((file, index) => {
       const card = document.createElement('div');
       card.className = 'vendor-media-preview-card';
@@ -370,11 +460,13 @@ function notify(type, msg) {
       card.appendChild(name);
       imageGrid.appendChild(card);
     });
+
+    const totalImages = existingImages.length + imageFiles.length;
     if (imageDropzone) {
-      imageDropzone.classList.toggle('has-files', imageFiles.length > 0);
+      imageDropzone.classList.toggle('has-files', totalImages > 0);
       const title = imageDropzone.querySelector('.vendor-media-dropzone__inner strong');
       if (title) {
-        title.textContent = imageFiles.length ? 'Add more images' : 'Upload product images';
+        title.textContent = totalImages ? 'Add more images' : 'Upload product images';
       }
     }
   }
@@ -401,19 +493,34 @@ function notify(type, msg) {
       URL.revokeObjectURL(videoObjectUrl);
       videoObjectUrl = '';
     }
+
     const file = videoInput?.files?.[0];
-    if (!file) {
-      videoWrap?.classList.add('d-none');
-      videoDropzone?.classList.remove('d-none');
-      if (videoPlayer) videoPlayer.removeAttribute('src');
+    if (file) {
+      videoObjectUrl = URL.createObjectURL(file);
+      if (videoPlayer) videoPlayer.src = videoObjectUrl;
+      if (videoName) videoName.textContent = file.name;
+      if (videoSize) videoSize.textContent = formatBytes(file.size);
+      videoWrap?.classList.remove('d-none');
+      videoDropzone?.classList.add('d-none');
+      existingVideoRemoved = false;
+      if (removeVideoFlag) removeVideoFlag.value = '0';
       return;
     }
-    videoObjectUrl = URL.createObjectURL(file);
-    if (videoPlayer) videoPlayer.src = videoObjectUrl;
-    if (videoName) videoName.textContent = file.name;
-    if (videoSize) videoSize.textContent = formatBytes(file.size);
-    videoWrap?.classList.remove('d-none');
-    videoDropzone?.classList.add('d-none');
+
+    if (existingVideo.url && !existingVideoRemoved) {
+      if (videoPlayer) videoPlayer.src = existingVideo.url;
+      if (videoName) videoName.textContent = basename(existingVideo.path);
+      if (videoSize) videoSize.textContent = 'Saved upload';
+      videoWrap?.classList.remove('d-none');
+      videoDropzone?.classList.add('d-none');
+      return;
+    }
+
+    videoWrap?.classList.add('d-none');
+    videoDropzone?.classList.remove('d-none');
+    if (videoPlayer) videoPlayer.removeAttribute('src');
+    if (videoName) videoName.textContent = '';
+    if (videoSize) videoSize.textContent = '';
   }
 
   function bindDropzone(zone, onFiles) {
@@ -442,6 +549,15 @@ function notify(type, msg) {
   imageGrid.addEventListener('click', function (event) {
     const button = event.target.closest('.vendor-media-preview-remove');
     if (!button) return;
+
+    const existingPath = button.getAttribute('data-existing-path');
+    if (existingPath) {
+      existingImages = existingImages.filter((item) => item.path !== existingPath);
+      renderExistingImageInputs();
+      renderImages();
+      return;
+    }
+
     const index = Number(button.getAttribute('data-index'));
     if (Number.isNaN(index)) return;
     imageFiles.splice(index, 1);
@@ -461,8 +577,17 @@ function notify(type, msg) {
   });
 
   removeVideoBtn?.addEventListener('click', function () {
-    if (videoInput) videoInput.value = '';
-    renderVideo();
+    if (videoInput?.files?.[0]) {
+      videoInput.value = '';
+      renderVideo();
+      return;
+    }
+
+    if (existingVideo.url && !existingVideoRemoved) {
+      existingVideoRemoved = true;
+      if (removeVideoFlag) removeVideoFlag.value = '1';
+      renderVideo();
+    }
   });
 
   bindDropzone(imageDropzone, addImages);
@@ -482,6 +607,10 @@ function notify(type, msg) {
     if (videoInput) videoInput.files = dt.files;
     renderVideo();
   });
+
+  renderExistingImageInputs();
+  renderImages();
+  renderVideo();
 })();
 
 window.initVendorProductLocationAutocomplete = function () {

@@ -72,7 +72,7 @@ class VendorProductController extends Controller
     public function update(Request $request, VendorProduct $product)
     {
         abort_unless($product->vendor_id === auth()->user()->vendor?->id, 403);
-        $product->update($this->validated($request, false));
+        $product->update($this->validated($request, false, $product));
 
         PortalNotificationService::notifyAdminsOfApprovalRequest('Updated vendor product', $product->name, route('admin.vendor-products.show', $product));
 
@@ -92,12 +92,12 @@ class VendorProductController extends Controller
         return response()->json(['subcategories' => $subcategories]);
     }
 
-    private function validated(Request $request, bool $requireTerms = true): array
+    private function validated(Request $request, bool $requireTerms = true, ?VendorProduct $product = null): array
     {
         if ($requireTerms) {
             $request->validate(['accept_terms' => ['accepted']]);
         }
 
-        return $this->validatedVendorProduct($request);
+        return $this->validatedVendorProduct($request, $product);
     }
 }

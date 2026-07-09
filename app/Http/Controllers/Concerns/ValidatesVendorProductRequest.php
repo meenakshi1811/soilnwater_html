@@ -19,7 +19,7 @@ trait ValidatesVendorProductRequest
             ->orderBy('name')->get(['id', 'name']);
     }
 
-    protected function validatedVendorProduct(Request $request): array
+    protected function validatedVendorProduct(Request $request, ?VendorProduct $product = null): array
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -44,6 +44,9 @@ trait ValidatesVendorProductRequest
             'spec_feature.*' => ['nullable', 'string', 'max:100'],
             'spec_value.*' => ['nullable', 'string', 'max:255'],
             'images.*' => ['nullable', 'image', 'max:4096'],
+            'existing_images' => ['nullable', 'array'],
+            'existing_images.*' => ['nullable', 'string', 'max:500'],
+            'remove_video' => ['nullable', 'boolean'],
             'video_file' => ['nullable', 'mimetypes:video/mp4,video/webm', 'max:20480'],
             'youtube_link' => ['nullable', 'url'],
             'is_online_sale' => ['nullable', 'boolean'],
@@ -59,7 +62,20 @@ trait ValidatesVendorProductRequest
             ->map(fn ($min, $idx) => ['buy_min' => (int) $min, 'price' => (float) $request->input('bulk_price.'.$idx)])
             ->filter(fn ($row) => $row['buy_min'] > 0 && $row['price'] > 0)
             ->values()->all();
-        $validated['images'] = [];
+
+        $keptImages = collect();
+        if ($product) {
+            $allowedImages = collect($product->images ?? [])->filter()->values();
+            $requestedImages = collect($request->input('existing_images', []))
+                ->filter(fn ($path) => is_string($path) && $path !== '')
+                ->values();
+            $keptImages = $requestedImages
+                ->filter(fn ($path) => $allowedImages->contains($path))
+                ->values();
+
+            $allowedImages->diff($keptImages)->each(fn ($path) => $this->deleteVendorProductMediaFile($path));
+        }
+
         if ($request->hasFile('images')) {
             $imageDirectory = public_path('uploads/vendor-products/images');
             if (! File::exists($imageDirectory)) {
@@ -68,10 +84,16 @@ trait ValidatesVendorProductRequest
             foreach ($request->file('images') as $file) {
                 $filename = time().'_'.Str::random(8).'.'.$file->getClientOriginalExtension();
                 $file->move($imageDirectory, $filename);
-                $validated['images'][] = 'uploads/vendor-products/images/'.$filename;
+                $keptImages->push('uploads/vendor-products/images/'.$filename);
             }
         }
+
+        $validated['images'] = $keptImages->values()->all();
+
         if ($request->hasFile('video_file')) {
+            if ($product?->video_file) {
+                $this->deleteVendorProductMediaFile($product->video_file);
+            }
             $videoDirectory = public_path('uploads/vendor-products/videos');
             if (! File::exists($videoDirectory)) {
                 File::makeDirectory($videoDirectory, 0755, true);
@@ -80,13 +102,35 @@ trait ValidatesVendorProductRequest
             $videoFilename = time().'_'.Str::random(8).'.'.$videoFile->getClientOriginalExtension();
             $videoFile->move($videoDirectory, $videoFilename);
             $validated['video_file'] = 'uploads/vendor-products/videos/'.$videoFilename;
+        } elseif ($product && $request->boolean('remove_video') && $product->video_file) {
+            $this->deleteVendorProductMediaFile($product->video_file);
+            $validated['video_file'] = null;
         }
+
         $validated['is_online_sale'] = (bool) $request->boolean('is_online_sale');
-        unset($validated['accept_terms']);
+        unset($validated['accept_terms'], $validated['existing_images'], $validated['remove_video']);
+
         $validated['status'] = 'pending';
         $validated['approved_at'] = null;
         $validated['approved_by'] = null;
 
         return $validated;
+    }
+
+    protected function deleteVendorProductMediaFile(?string $path): void
+    {
+        if (! is_string($path) || $path === '') {
+            return;
+        }
+
+        $normalized = str_replace('\\', '/', $path);
+        if (! str_starts_with($normalized, 'uploads/vendor-products/')) {
+            return;
+        }
+
+        $fullPath = public_path($normalized);
+        if (File::exists($fullPath)) {
+            File::delete($fullPath);
+        }
     }
 }
