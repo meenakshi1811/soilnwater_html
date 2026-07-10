@@ -24,6 +24,8 @@
         'activeNav' => $activeNav ?? '',
     ])
 
+    @include('frontend.premium.partials.profile-status', ['profile' => $vendor, 'type' => 'vendor'])
+
     @yield('store_content')
 
     @include('frontend.store.partials.store-footer', ['vendor' => $vendor])
