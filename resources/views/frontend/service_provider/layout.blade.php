@@ -25,6 +25,8 @@
         'activeNav' => $activeNav ?? '',
     ])
 
+    @include('frontend.premium.partials.profile-status', ['profile' => $service_provider, 'type' => 'service'])
+
     @yield('service_provider_content')
 
     @auth

@@ -25,6 +25,8 @@
         'activeNav' => $activeNav ?? '',
     ])
 
+    @include('frontend.premium.partials.profile-status', ['profile' => $consultant, 'type' => 'consultant'])
+
     @yield('consultant_content')
 
     @auth
