@@ -85,6 +85,14 @@ class ConsultantServiceController extends Controller
 
         PortalNotificationService::notifyAdminsOfApprovalRequest('Updated consultant service', $service->name, route('admin.consultant-services.show', $service));
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Consultation service updated successfully and sent for admin approval.',
+                'redirect' => route('consultant.services.index'),
+            ]);
+        }
+
         return redirect()->route('consultant.services.index')->with('success', 'Consultation service updated successfully.');
     }
 

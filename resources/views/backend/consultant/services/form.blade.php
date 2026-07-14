@@ -18,11 +18,22 @@
   }
   $consultationType = old('consultation_type', $service->consultation_type ?: ($service->is_online ? 'online' : 'offline'));
   $businessTypes = ['Architect', 'Lawyer', 'Landscaper', 'Software Consultant', 'Business'];
+  $existingImagePath = old('remove_image') ? null : ($service->image_path ?: null);
 @endphp
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Portal' : 'Consultant Portal' }}</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Consultation Service' : ($isAdmin ? 'Create Service for Consultant' : 'Add Consultation Service') }}</h2></div><a href="{{ $isAdmin ? route('admin.consultant-services.all.index') : route('consultant.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
   @if ($visibleErrors->isNotEmpty())<div class="alert alert-danger"><ul class="mb-0">@foreach ($visibleErrors as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-  <form id="consultant-service-form" data-ajax-create="{{ $service->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $service->exists ? route('consultant.services.update', $service) : ($isAdmin ? route('admin.consultant-services.store') : route('consultant.services.store')) }}" class="row g-3">@csrf @if($service->exists) @method('PUT') @endif
+  <form id="consultant-service-form"
+    data-ajax-submit="1"
+    data-is-edit="{{ $service->exists ? '1' : '0' }}"
+    data-existing-image="{{ $existingImagePath ? asset($existingImagePath) : '' }}"
+    data-existing-image-path="{{ $existingImagePath ?? '' }}"
+    method="POST"
+    enctype="multipart/form-data"
+    action="{{ $service->exists ? route('consultant.services.update', $service) : ($isAdmin ? route('admin.consultant-services.store') : route('consultant.services.store')) }}"
+    class="row g-3">
+    @csrf
+    @if($service->exists) @method('PUT') @endif
     <div class="col-lg-8"><div class="chart-card p-4"><h5 class="mb-3">Service Information</h5><div class="row g-3">
       @if($isAdmin)
       <div class="col-12"><label class="form-label">Consultant *</label><select class="form-select @error('consultant_id') is-invalid @enderror" name="consultant_id" required><option value="">Select consultant</option>@foreach($consultants as $consultant)<option value="{{ $consultant->id }}" @selected(old('consultant_id') == $consultant->id)>{{ $consultant->display_name ?: $consultant->company_name }}</option>@endforeach</select>@error('consultant_id')<div id="consultant_id-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
@@ -38,8 +49,22 @@
       <div class="col-12"><label class="form-label">Geographical Service Area</label><textarea class="form-control @error('service_area') is-invalid @enderror" rows="3" name="service_area" placeholder="Example: Dehradun, Mussoorie, Haridwar">{{ old('service_area', $service->service_area) }}</textarea>@error('service_area')<div id="service_area-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Enter offline service cities or areas separated by commas.</small></div>
     </div></div></div>
     <div class="col-lg-4"><div class="chart-card p-4"><h5 class="mb-3">Media & Location</h5>
-      <label class="form-label">Consultant Image / Service Image</label><input class="form-control @error('image') is-invalid @enderror" type="file" name="image" accept="image/*">@error('image')<div id="image-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Upload one image only. Max 4 MB.</small>
-      @if($service->image_path)<div class="d-flex flex-wrap gap-2 mt-2"><img src="{{ asset($service->image_path) }}" alt="{{ $service->name }}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;"></div>@endif
+      <div class="vendor-media-block">
+        <label class="form-label">Consultant Image / Service Image</label>
+        <label class="vendor-media-dropzone" for="serviceImageInput" id="imageDropzone">
+          <input class="vendor-media-input @error('image') is-invalid @enderror" type="file" id="serviceImageInput" name="image" accept="image/*">
+          <div class="vendor-media-dropzone__inner">
+            <span class="vendor-media-dropzone__icon"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+            <strong>Upload service image</strong>
+            <span>Click to browse or drop a file here</span>
+            <small>One image only · Max 4 MB</small>
+          </div>
+        </label>
+        @error('image')<div id="image-error" class="invalid-feedback d-block">{{ $message }}</div>@else<div id="image-error" class="invalid-feedback d-none"></div>@enderror
+        <input type="hidden" name="remove_image" id="removeImageFlag" value="{{ old('remove_image') ? '1' : '0' }}">
+        <div id="imagePreviewGrid" class="vendor-media-preview-grid"></div>
+      </div>
+
       <label class="form-label mt-3">Consultant Location *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ old('location', $service->location) }}" placeholder="Search location in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Select a Google Places suggestion to save latitude and longitude.</small>
       <input id="latitude" type="hidden" name="latitude" value="{{ old('latitude', $service->latitude) }}">
       <input id="longitude" type="hidden" name="longitude" value="{{ old('longitude', $service->longitude) }}">
@@ -51,23 +76,148 @@
 @endsection
 @push('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<style>
+.vendor-media-block { margin-bottom: 0.25rem; }
+.vendor-media-dropzone {
+  display: block;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  padding: 1.1rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  margin-bottom: 0.75rem;
+}
+.vendor-media-dropzone:hover,
+.vendor-media-dropzone.is-dragover {
+  border-color: #2563eb;
+  background: #f8fbff;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.08);
+}
+.vendor-media-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.vendor-media-dropzone__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.25rem;
+  color: #475569;
+}
+.vendor-media-dropzone__inner strong {
+  color: #0f172a;
+  font-size: 0.92rem;
+}
+.vendor-media-dropzone__inner span { font-size: 0.82rem; }
+.vendor-media-dropzone__inner small { color: #94a3b8; }
+.vendor-media-dropzone__icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  font-size: 1.1rem;
+  margin-bottom: 0.35rem;
+}
+.vendor-media-dropzone.has-files { padding: 0.75rem; }
+.vendor-media-dropzone.has-files .vendor-media-dropzone__inner strong { font-size: 0.84rem; }
+.vendor-media-preview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+.vendor-media-preview-card {
+  position: relative;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+.vendor-media-preview-card img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+.vendor-media-preview-card.is-existing { border-color: #bfdbfe; }
+.vendor-media-preview-card__badge {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.45rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.92);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.vendor-media-preview-card__name {
+  display: block;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.72rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vendor-media-preview-remove {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.vendor-media-preview-remove:hover { background: #dc2626; }
+#consultantServiceSubmitBtn.is-loading {
+  pointer-events: none;
+  opacity: 0.85;
+}
+</style>
 @endpush
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
-(function initToastr() {
-  if (!window.jQuery) return;
-  const configureToastr = function () {
-    if (!window.toastr) return;
-    window.toastr.options = { closeButton: true, progressBar: true, positionClass: 'toast-top-right', timeOut: 4000, extendedTimeOut: 2000 };
-  };
-  if (window.toastr) { configureToastr(); return; }
-  const toastrScript = document.createElement('script');
-  toastrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js';
-  toastrScript.onload = configureToastr;
-  document.head.appendChild(toastrScript);
-})();
+toastr.options = {
+  closeButton: true,
+  progressBar: true,
+  positionClass: 'toast-top-right',
+  timeOut: 4000,
+  extendedTimeOut: 2000
+};
+
+function notify(type, msg) {
+  const toastType = type === 'error' ? 'error' : 'success';
+  if (window.toastr && typeof window.toastr[toastType] === 'function') {
+    window.toastr[toastType](msg);
+    return;
+  }
+  alert(msg);
+}
 
 const categories = @json($categories->mapWithKeys(fn($cat) => [$cat->id => $cat->children->map(fn($child) => ['id' => $child->id, 'name' => $child->name])->values()])->toArray());
 function fillSubcategories() {
@@ -76,10 +226,18 @@ function fillSubcategories() {
   const current = subcategory.dataset.current;
   subcategory.innerHTML = '<option value="">Select subcategory</option>';
   (categories[category.value] || []).forEach(function (item) {
-    const option = document.createElement('option'); option.value = item.id; option.textContent = item.name; option.selected = String(item.id) === String(current); subcategory.appendChild(option);
+    const option = document.createElement('option');
+    option.value = item.id;
+    option.textContent = item.name;
+    option.selected = String(item.id) === String(current);
+    subcategory.appendChild(option);
   });
 }
-document.getElementById('category_id')?.addEventListener('change', function () { document.getElementById('subcategory_id').dataset.current = ''; fillSubcategories(); if (window.jQuery) jQuery('#category_id').valid(); });
+document.getElementById('category_id')?.addEventListener('change', function () {
+  document.getElementById('subcategory_id').dataset.current = '';
+  fillSubcategories();
+  if (window.jQuery) jQuery('#category_id').valid();
+});
 fillSubcategories();
 
 const chargeDurationOptions = @json($chargeDurationLabels);
@@ -87,11 +245,174 @@ const chargesWrap = document.getElementById('charges-wrap');
 document.getElementById('add-charge-tier')?.addEventListener('click', function () {
   const row = document.createElement('div');
   row.className = 'col-12 charge-row';
-  const options = Object.entries(chargeDurationOptions).map(function ([value, label]) { return '<option value="' + value + '">' + label + '</option>'; }).join('');
+  const options = Object.entries(chargeDurationOptions).map(function ([value, label]) {
+    return '<option value="' + value + '">' + label + '</option>';
+  }).join('');
   row.innerHTML = '<div class="row g-2 align-items-end"><div class="col-md-5"><label class="form-label">Duration</label><select class="form-select charge-duration-select" name="charge_duration[]"><option value="">Select duration</option>' + options + '</select></div><div class="col-md-5"><label class="form-label">Price ₹</label><input type="number" step="0.01" min="0" class="form-control charge-price-input" name="charge_price[]" placeholder="Price"></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm remove-charge-tier">Remove</button></div></div>';
   chargesWrap?.appendChild(row);
 });
-chargesWrap?.addEventListener('click', function (event) { if (event.target.classList.contains('remove-charge-tier')) event.target.closest('.charge-row')?.remove(); });
+chargesWrap?.addEventListener('click', function (event) {
+  if (event.target.classList.contains('remove-charge-tier')) {
+    event.target.closest('.charge-row')?.remove();
+  }
+});
+
+(function initConsultantServiceMedia() {
+  const form = document.getElementById('consultant-service-form');
+  const imageInput = document.getElementById('serviceImageInput');
+  const imageGrid = document.getElementById('imagePreviewGrid');
+  const imageDropzone = document.getElementById('imageDropzone');
+  const removeImageFlag = document.getElementById('removeImageFlag');
+  if (!form || !imageInput || !imageGrid) return;
+
+  let selectedFile = null;
+  let objectUrl = '';
+  let existingImage = { url: '', path: '' };
+  let existingRemoved = removeImageFlag?.value === '1';
+
+  if (form.dataset.existingImage) {
+    existingImage = {
+      url: form.dataset.existingImage,
+      path: form.dataset.existingImagePath || ''
+    };
+  }
+
+  function basename(path) {
+    return String(path || '').split('/').pop() || 'image';
+  }
+
+  function syncInput() {
+    const dt = new DataTransfer();
+    if (selectedFile) dt.items.add(selectedFile);
+    imageInput.files = dt.files;
+  }
+
+  function renderImage() {
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+      objectUrl = '';
+    }
+    imageGrid.innerHTML = '';
+
+    if (selectedFile) {
+      objectUrl = URL.createObjectURL(selectedFile);
+      const card = document.createElement('div');
+      card.className = 'vendor-media-preview-card';
+      const img = document.createElement('img');
+      img.alt = selectedFile.name;
+      img.src = objectUrl;
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'vendor-media-preview-remove';
+      removeBtn.setAttribute('data-remove', 'new');
+      removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      const name = document.createElement('span');
+      name.className = 'vendor-media-preview-card__name';
+      name.textContent = selectedFile.name;
+      card.appendChild(img);
+      card.appendChild(removeBtn);
+      card.appendChild(name);
+      imageGrid.appendChild(card);
+      imageDropzone?.classList.add('has-files');
+      const title = imageDropzone?.querySelector('.vendor-media-dropzone__inner strong');
+      if (title) title.textContent = 'Replace service image';
+      return;
+    }
+
+    if (existingImage.url && !existingRemoved) {
+      const card = document.createElement('div');
+      card.className = 'vendor-media-preview-card is-existing';
+      const badge = document.createElement('span');
+      badge.className = 'vendor-media-preview-card__badge';
+      badge.textContent = 'Saved';
+      const img = document.createElement('img');
+      img.alt = basename(existingImage.path);
+      img.src = existingImage.url;
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'vendor-media-preview-remove';
+      removeBtn.setAttribute('data-remove', 'existing');
+      removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      const name = document.createElement('span');
+      name.className = 'vendor-media-preview-card__name';
+      name.textContent = basename(existingImage.path);
+      card.appendChild(badge);
+      card.appendChild(img);
+      card.appendChild(removeBtn);
+      card.appendChild(name);
+      imageGrid.appendChild(card);
+      imageDropzone?.classList.add('has-files');
+      const title = imageDropzone?.querySelector('.vendor-media-dropzone__inner strong');
+      if (title) title.textContent = 'Replace service image';
+      return;
+    }
+
+    imageDropzone?.classList.remove('has-files');
+    const title = imageDropzone?.querySelector('.vendor-media-dropzone__inner strong');
+    if (title) title.textContent = 'Upload service image';
+  }
+
+  function setImage(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      notify('error', 'Please choose a valid image file.');
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      notify('error', 'Image must be 4 MB or smaller.');
+      return;
+    }
+    selectedFile = file;
+    existingRemoved = false;
+    if (removeImageFlag) removeImageFlag.value = '0';
+    syncInput();
+    renderImage();
+    $('#image-error').text('').addClass('d-none');
+    $(imageInput).removeClass('is-invalid');
+  }
+
+  function clearImage(removeExisting) {
+    selectedFile = null;
+    syncInput();
+    if (removeExisting && existingImage.url) {
+      existingRemoved = true;
+      if (removeImageFlag) removeImageFlag.value = '1';
+    }
+    renderImage();
+  }
+
+  function bindDropzone(zone) {
+    if (!zone) return;
+    ['dragenter', 'dragover'].forEach(function (eventName) {
+      zone.addEventListener(eventName, function (event) {
+        event.preventDefault();
+        zone.classList.add('is-dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(function (eventName) {
+      zone.addEventListener(eventName, function (event) {
+        event.preventDefault();
+        zone.classList.remove('is-dragover');
+        if (eventName === 'drop' && event.dataTransfer?.files?.length) {
+          setImage(event.dataTransfer.files[0]);
+        }
+      });
+    });
+  }
+
+  imageInput.addEventListener('change', function () {
+    if (this.files?.[0]) setImage(this.files[0]);
+  });
+
+  imageGrid.addEventListener('click', function (event) {
+    const button = event.target.closest('.vendor-media-preview-remove');
+    if (!button) return;
+    clearImage(button.getAttribute('data-remove') === 'existing');
+  });
+
+  bindDropzone(imageDropzone);
+  renderImage();
+})();
 
 window.initConsultantServiceLocationAutocomplete = function () {
   const locationInput = document.getElementById('location');
@@ -128,16 +449,12 @@ window.initConsultantServiceLocationAutocomplete = function () {
   });
 };
 
-function notify(type, msg) {
-  const toastType = type === 'error' ? 'error' : 'success';
-  if (window.toastr && typeof window.toastr[toastType] === 'function') { window.toastr[toastType](msg); return; }
-  alert(msg);
-}
-
 $(function () {
   const $form = $('#consultant-service-form');
-  if (!$form.length || String($form.data('ajax-create')) !== '1') return;
+  if (!$form.length || String($form.data('ajax-submit')) !== '1') return;
 
+  const isEdit = String($form.data('is-edit')) === '1';
+  const fieldContainerSelector = '.col-12, .col-md-6, .form-check, .col-lg-4, .col-lg-8, .vendor-media-block';
   const hiddenValidationFields = ['latitude', 'longitude'];
   const $submitBtn = $('#consultantServiceSubmitBtn');
   let originalBtnHtml = $submitBtn.html();
@@ -153,8 +470,22 @@ $(function () {
   }, 'Please add at least one consultation duration and price.');
 
   function setSubmitLoading(isLoading) {
-    if (isLoading) { originalBtnHtml = $submitBtn.html(); $submitBtn.prop('disabled', true).html('Saving...'); return; }
-    $submitBtn.prop('disabled', false).html(originalBtnHtml);
+    if (isLoading) {
+      originalBtnHtml = $submitBtn.html();
+      $submitBtn.prop('disabled', true).addClass('is-loading').html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Saving...');
+      return;
+    }
+    $submitBtn.prop('disabled', false).removeClass('is-loading').html(originalBtnHtml);
+  }
+
+  function showImageError(message) {
+    $('#serviceImageInput').addClass('is-invalid').removeClass('is-valid');
+    $('#image-error').text(message).removeClass('d-none');
+  }
+
+  function clearImageError() {
+    $('#serviceImageInput').removeClass('is-invalid');
+    $('#image-error').text('').addClass('d-none');
   }
 
   function chargeRows() {
@@ -180,7 +511,9 @@ $(function () {
   function validateChargeRows(showErrors) {
     const rows = chargeRows();
     const hasCompleteRow = rows.some(function (item) { return item.duration !== '' && item.price !== ''; });
-    const hasIncompleteRow = rows.some(function (item) { return (item.duration !== '' && item.price === '') || (item.duration === '' && item.price !== ''); });
+    const hasIncompleteRow = rows.some(function (item) {
+      return (item.duration !== '' && item.price === '') || (item.duration === '' && item.price !== '');
+    });
     if (!hasCompleteRow) {
       if (showErrors) showChargeError('Please add at least one consultation duration and price.');
       return false;
@@ -200,14 +533,32 @@ $(function () {
   function applyServerErrors(errors) {
     const validator = $form.data('validator');
     const mapped = {};
+    clearImageError();
+
     Object.entries(errors || {}).forEach(function ([field, messages]) {
       const normalizedField = field.replace(/\.[0-9]+(?=\.|$)/g, '').replace(/\*$/, '');
       const message = Array.isArray(messages) ? messages[0] : String(messages || 'Invalid value');
-      if (hiddenValidationFields.includes(normalizedField)) { mapped.location = 'Please select a location from the suggestions list.'; return; }
-      if (normalizedField.startsWith('charge_duration') || normalizedField.startsWith('charge_price')) { showChargeError(message); return; }
+      if (hiddenValidationFields.includes(normalizedField)) {
+        mapped.location = 'Please select a location from the suggestions list.';
+        return;
+      }
+      if (normalizedField.startsWith('charge_duration') || normalizedField.startsWith('charge_price')) {
+        showChargeError(message);
+        return;
+      }
+      if (normalizedField === 'image') {
+        showImageError(message);
+        return;
+      }
       mapped[normalizedField] = message;
     });
+
     if (validator && Object.keys(mapped).length) validator.showErrors(mapped);
+
+    const $firstInvalid = $form.find('.is-invalid').filter(':visible').first();
+    if ($firstInvalid.length) {
+      $('html, body').animate({ scrollTop: Math.max($firstInvalid.offset().top - 120, 0) }, 250);
+    }
   }
 
   $form.validate({
@@ -236,7 +587,9 @@ $(function () {
     },
     errorElement: 'div',
     errorClass: 'invalid-feedback d-block',
-    highlight: function (element) { $(element).addClass('is-invalid').removeClass('is-valid'); },
+    highlight: function (element) {
+      $(element).addClass('is-invalid').removeClass('is-valid');
+    },
     unhighlight: function (element) {
       const $element = $(element);
       $element.removeClass('is-invalid');
@@ -244,28 +597,60 @@ $(function () {
       $element.addClass('is-valid');
     },
     errorPlacement: function (error, element) {
-      const $container = $(element).closest('.col-12, .col-md-6, .form-check, .col-lg-4, .col-lg-8');
+      const $container = $(element).closest(fieldContainerSelector);
       const $existing = $container.find('.invalid-feedback').not(error).first();
-      if ($existing.length) { $existing.text(error.text()).removeClass('d-none'); error.remove(); return; }
+      if ($existing.length) {
+        $existing.text(error.text()).removeClass('d-none');
+        error.remove();
+        return;
+      }
       error.insertAfter(element);
     },
-    invalidHandler: function () { setSubmitLoading(false); },
+    invalidHandler: function () {
+      setSubmitLoading(false);
+      const $firstInvalid = $form.find('.is-invalid').filter(':visible').first();
+      if ($firstInvalid.length) {
+        $('html, body').animate({ scrollTop: Math.max($firstInvalid.offset().top - 120, 0) }, 250);
+      }
+    },
     submitHandler: function (form) {
-      if (!validateChargeRows(true)) { setSubmitLoading(false); return false; }
+      if (!validateChargeRows(true)) {
+        setSubmitLoading(false);
+        return false;
+      }
+
       setSubmitLoading(true);
-      fetch(form.action, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }, body: new FormData(form) })
-        .then(async function (res) {
-          const payload = await res.json();
-          if (!res.ok) {
-            applyServerErrors(payload.errors || {});
-            notify('error', res.status === 422 ? 'Please fix the highlighted fields and try again.' : (payload.message || 'Unable to save consultation service.'));
+      clearImageError();
+
+      $.ajax({
+        url: form.action,
+        method: 'POST',
+        data: new FormData(form),
+        processData: false,
+        contentType: false,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        success: function (payload) {
+          notify('success', payload.message || (isEdit ? 'Consultation service updated successfully.' : 'Consultation service submitted successfully.'));
+          setTimeout(function () {
+            window.location.href = payload.redirect || '{{ $isAdmin ? route('admin.consultant-services.all.index') : route('consultant.services.index') }}';
+          }, 800);
+        },
+        error: function (xhr) {
+          const payload = xhr.responseJSON || {};
+          applyServerErrors(payload.errors || {});
+          if (xhr.status === 422) {
+            notify('error', 'Please fix the highlighted fields and try again.');
             return;
           }
-          notify('success', payload.message || 'Consultation service submitted successfully.');
-          setTimeout(function () { window.location.href = payload.redirect || '{{ $isAdmin ? route('admin.consultant-services.all.index') : route('consultant.services.index') }}'; }, 800);
-        })
-        .catch(function () { notify('error', 'Network error while saving consultation service.'); })
-        .finally(function () { setSubmitLoading(false); });
+          notify('error', payload.message || (isEdit ? 'Unable to update consultation service.' : 'Unable to save consultation service.'));
+        },
+        complete: function () {
+          setSubmitLoading(false);
+        }
+      });
     }
   });
 });

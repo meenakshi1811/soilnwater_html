@@ -42,6 +42,7 @@ trait ValidatesConsultantServiceRequest
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'is_online' => ['nullable', 'boolean'],
             'image' => ['nullable', 'image', 'max:4096'],
+            'remove_image' => ['nullable', 'boolean'],
             'accept_terms' => ['nullable', 'accepted'],
         ]);
 
@@ -95,13 +96,15 @@ trait ValidatesConsultantServiceRequest
             $filename = time().'_'.Str::random(8).'.'.$file->getClientOriginalExtension();
             $file->move($directory, $filename);
             $validated['image_path'] = 'uploads/consultant-services/images/'.$filename;
+        } elseif ($request->boolean('remove_image') && $service?->exists) {
+            $validated['image_path'] = null;
         } elseif ($service?->exists) {
             unset($validated['image_path']);
         } else {
             $validated['image_path'] = null;
         }
 
-        unset($validated['image'], $validated['accept_terms']);
+        unset($validated['image'], $validated['accept_terms'], $validated['remove_image']);
         $validated['status'] = 'pending';
         $validated['approved_at'] = null;
         $validated['approved_by'] = null;
