@@ -353,6 +353,7 @@
                     </ul>
                 </details>
             </li>
+            {{-- Temporarily hidden community module
             <li class="admin-sidebar-group">
                 <details {{ $communityMenuActive ? 'open' : '' }}>
                     <summary class="{{ $communityMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
@@ -408,6 +409,7 @@
                     </ul>
                 </details>
             </li>
+            --}}
         @endif
 
          @foreach($emsModules as $slug => $label)
@@ -442,6 +444,7 @@
                     <span>My Ads</span>
                 </a>
             </li>
+            {{-- Temporarily hidden community module
             <li>
                 <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
                     <i class="fa-solid fa-pen-nib"></i>
@@ -466,6 +469,7 @@
                     <span>Reader Questions</span>
                 </a>
             </li>
+            --}}
             <li>
                 <a class="{{ request()->routeIs('user.profile.*') ? 'active' : '' }}" href="{{ route('user.profile.edit') }}">
                     <i class="fa-solid fa-user-gear"></i>
@@ -493,6 +497,7 @@
                     <span>My Ads</span>
                 </a>
             </li>
+            {{-- Temporarily hidden community module
             <li>
                 <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
                     <i class="fa-solid fa-pen-nib"></i>
@@ -517,6 +522,7 @@
                     <span>Reader Questions</span>
                 </a>
             </li>
+            --}}
             <li class="admin-sidebar-group">
                 <details {{ $vendorPagesMenuActive ? 'open' : '' }}>
                     <summary class="{{ $vendorPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
@@ -576,6 +582,7 @@
                     <span>My Ads</span>
                 </a>
             </li>
+            {{-- Temporarily hidden community module
             <li>
                 <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
                     <i class="fa-solid fa-pen-nib"></i>
@@ -600,6 +607,7 @@
                     <span>Reader Questions</span>
                 </a>
             </li>
+            --}}
             <li class="admin-sidebar-group">
                 <details {{ $consultantPagesMenuActive ? 'open' : '' }}>
                     <summary class="{{ $consultantPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
@@ -659,6 +667,7 @@
                     <span>My Ads</span>
                 </a>
             </li>
+            {{-- Temporarily hidden community module
             <li>
                 <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
                     <i class="fa-solid fa-pen-nib"></i>
@@ -683,6 +692,7 @@
                     <span>Reader Questions</span>
                 </a>
             </li>
+            --}}
             <li class="admin-sidebar-group">
                 <details {{ $serviceProviderPagesMenuActive ? 'open' : '' }}>
                     <summary class="{{ $serviceProviderPagesMenuActive ? 'active' : '' }} d-flex align-items-center justify-content-between">
@@ -730,6 +740,7 @@
                 </li>
             @endif
 
+            {{-- Temporarily hidden community module
             <li>
                 <a class="{{ $communityPostsActive ? 'active' : '' }}" href="{{ route('community.posts.index') }}">
                     <i class="fa-solid fa-pen-nib"></i>
@@ -754,6 +765,7 @@
                     <span>Reader Questions</span>
                 </a>
             </li>
+            --}}
             <li>
                 <a class="{{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
                     <i class="fa-solid fa-house"></i>

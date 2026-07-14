@@ -80,7 +80,9 @@
 
   @include('frontend.partials.footer')
 
+  {{-- Temporarily hidden chat icon
   @include('discussions.partials.fab')
+  --}}
 
   <link rel="stylesheet" href="{{ asset('assets/css/discussion.css') }}?v={{ now()->timestamp }}">
 
