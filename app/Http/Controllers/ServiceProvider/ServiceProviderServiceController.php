@@ -30,6 +30,7 @@ class ServiceProviderServiceController extends Controller
         return view('backend.service_provider.services.form', [
             'service' => new ServiceProviderService(),
             'categories' => $this->serviceProviderCategories(),
+            'isAdmin' => false,
         ]);
     }
 
@@ -70,6 +71,7 @@ class ServiceProviderServiceController extends Controller
         return view('backend.service_provider.services.form', [
             'service' => $service,
             'categories' => $this->serviceProviderCategories(),
+            'isAdmin' => false,
         ]);
     }
 

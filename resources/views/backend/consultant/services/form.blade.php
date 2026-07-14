@@ -1,20 +1,26 @@
 @extends('backend.layouts.app')
 @section('title', $service->exists ? 'Edit Consultation Service' : 'Create Consultation Service')
 @section('content')
-@php($isAdmin = $isAdmin ?? false)
+@php
+  $isAdmin = $isAdmin ?? false;
+  $categories = $categories ?? collect();
+  $consultants = $consultants ?? collect();
+  $visibleErrors = collect(($errors ?? new \Illuminate\Support\ViewErrorBag)->getMessages())->except(['latitude', 'longitude'])->flatten();
+  $chargeDurationLabels = ['minute' => 'Minutes', 'hour' => 'Hours', 'day' => 'Days', 'month' => 'Months', 'contractual' => 'Contractual'];
+  $storedCharges = collect($service->consultation_charges ?: [])->map(function ($charge, $key) {
+      return is_array($charge) ? ['duration' => $charge['duration'] ?? '', 'price' => $charge['price'] ?? ''] : ['duration' => $key, 'price' => $charge];
+  })->filter(fn ($row) => ($row['duration'] ?? '') !== '' || ($row['price'] ?? '') !== '')->values()->all();
+  $oldCharges = old('charge_duration')
+      ? collect(old('charge_duration'))->map(fn ($duration, $idx) => ['duration' => $duration, 'price' => old('charge_price')[$idx] ?? ''])->values()->all()
+      : $storedCharges;
+  if (empty($oldCharges)) {
+      $oldCharges = [['duration' => 'hour', 'price' => $service->price ?? '']];
+  }
+  $consultationType = old('consultation_type', $service->consultation_type ?: ($service->is_online ? 'online' : 'offline'));
+  $businessTypes = ['Architect', 'Lawyer', 'Landscaper', 'Software Consultant', 'Business'];
+@endphp
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Portal' : 'Consultant Portal' }}</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Consultation Service' : ($isAdmin ? 'Create Service for Consultant' : 'Add Consultation Service') }}</h2></div><a href="{{ $isAdmin ? route('admin.consultant-services.all.index') : route('consultant.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
-  @php
-    $visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten();
-    $chargeDurationLabels = ['minute' => 'Minutes', 'hour' => 'Hours', 'day' => 'Days', 'month' => 'Months', 'contractual' => 'Contractual'];
-    $storedCharges = collect($service->consultation_charges ?: [])->map(function ($charge, $key) {
-        return is_array($charge) ? ['duration' => $charge['duration'] ?? '', 'price' => $charge['price'] ?? ''] : ['duration' => $key, 'price' => $charge];
-    })->filter(fn($row) => ($row['duration'] ?? '') !== '' || ($row['price'] ?? '') !== '')->values()->all();
-    $oldCharges = old('charge_duration') ? collect(old('charge_duration'))->map(fn($duration, $idx) => ['duration' => $duration, 'price' => old('charge_price')[$idx] ?? ''])->values()->all() : $storedCharges;
-    if (empty($oldCharges)) { $oldCharges = [['duration' => 'hour', 'price' => $service->price ?? '']]; }
-    $consultationType = old('consultation_type', $service->consultation_type ?: ($service->is_online ? 'online' : 'offline'));
-    $businessTypes = ['Architect', 'Lawyer', 'Landscaper', 'Software Consultant', 'Business'];
-  @endphp
   @if ($visibleErrors->isNotEmpty())<div class="alert alert-danger"><ul class="mb-0">@foreach ($visibleErrors as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
   <form id="consultant-service-form" data-ajax-create="{{ $service->exists ? '0' : '1' }}" method="POST" enctype="multipart/form-data" action="{{ $service->exists ? route('consultant.services.update', $service) : ($isAdmin ? route('admin.consultant-services.store') : route('consultant.services.store')) }}" class="row g-3">@csrf @if($service->exists) @method('PUT') @endif
     <div class="col-lg-8"><div class="chart-card p-4"><h5 class="mb-3">Service Information</h5><div class="row g-3">
