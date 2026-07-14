@@ -85,6 +85,14 @@ class ServiceProviderServiceController extends Controller
 
         PortalNotificationService::notifyAdminsOfApprovalRequest('Updated service provider service', $service->name, route('admin.service-provider-services.show', $service));
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Service updated successfully and sent for admin approval.',
+                'redirect' => route('service_provider.services.index'),
+            ]);
+        }
+
         return redirect()->route('service_provider.services.index')->with('success', 'Service updated successfully.');
     }
 
