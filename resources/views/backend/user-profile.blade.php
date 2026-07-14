@@ -81,27 +81,32 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
     .user-profile-become-actions {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        display: flex;
+        flex-wrap: wrap;
         gap: 0.5rem;
     }
 
     .user-profile-become-actions form {
         margin: 0;
         display: flex;
-        min-width: 0;
+        flex: 0 0 auto;
     }
 
     .user-profile-become-actions .btn {
-        width: 100%;
+        width: auto;
         white-space: nowrap;
         font-size: 0.84rem;
-        padding: 0.5rem 0.7rem;
+        padding: 0.5rem 0.85rem;
     }
 
     @media (max-width: 575.98px) {
         .user-profile-become-actions {
-            grid-template-columns: 1fr;
+            flex-direction: column;
+        }
+
+        .user-profile-become-actions form,
+        .user-profile-become-actions .btn {
+            width: 100%;
         }
     }
 </style>

@@ -84,10 +84,10 @@
     .user-dashboard-hero__actions {
         display: flex;
         flex-direction: column;
-        align-items: stretch;
+        align-items: flex-end;
         gap: 0.65rem;
-        flex: 0 1 520px;
-        width: min(100%, 520px);
+        flex: 0 1 auto;
+        max-width: 100%;
     }
 
     .user-dashboard-hero__profile-btn {
@@ -96,38 +96,56 @@
     }
 
     .user-dashboard-hero__convert-actions {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
         gap: 0.5rem;
     }
 
     .user-dashboard-hero__convert-actions form {
         margin: 0;
         display: flex;
-        min-width: 0;
+        flex: 0 0 auto;
     }
 
     .user-dashboard-hero__convert-actions .btn {
-        width: 100%;
+        width: auto;
         white-space: nowrap;
         font-size: 0.84rem;
-        padding: 0.5rem 0.7rem;
+        padding: 0.5rem 0.85rem;
     }
 
     @media (max-width: 991.98px) {
         .user-dashboard-hero__actions {
             width: 100%;
             flex-basis: 100%;
+            align-items: stretch;
         }
 
         .user-dashboard-hero__profile-btn {
             align-self: stretch;
         }
+
+        .user-dashboard-hero__convert-actions {
+            justify-content: stretch;
+        }
+
+        .user-dashboard-hero__convert-actions form {
+            flex: 1 1 auto;
+        }
+
+        .user-dashboard-hero__convert-actions .btn {
+            width: 100%;
+        }
     }
 
     @media (max-width: 575.98px) {
         .user-dashboard-hero__convert-actions {
-            grid-template-columns: 1fr;
+            flex-direction: column;
+        }
+
+        .user-dashboard-hero__convert-actions form {
+            width: 100%;
         }
     }
 </style>
