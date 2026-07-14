@@ -11,15 +11,34 @@
     @endif
 
     <div class="card admin-table-card mb-4">
-        <div class="card-body d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
-            <div>
-                <h5 class="mb-1">Want to sell on SoilNWater?</h5>
-                <p class="mb-0 text-secondary">Convert your profile to a vendor account. Your vendor profile will be sent to the admin team for approval before the vendor portal is unlocked.</p>
+        <div class="card-body">
+            <div class="mb-3">
+                <h5 class="mb-1">Grow your presence on SoilNWater</h5>
+                <p class="mb-0 text-secondary">Become a vendor, consultant, or service provider. Your request will be sent to the admin team for approval before the portal is unlocked.</p>
             </div>
-            <form method="POST" action="{{ route('user.convert-to-vendor') }}" class="js-convert-vendor-form">
-                @csrf
-                <button type="submit" class="btn btn-outline-primary">Convert to Vendor</button>
-            </form>
+            <div class="user-profile-become-actions">
+                <form method="POST" action="{{ route('user.convert-to-vendor') }}" class="js-become-account-form"
+                    data-title="Become a vendor?"
+                    data-text="Become a vendor with your user profile and send it to admin for approval?"
+                    data-success="Your vendor request has been sent for approval.">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-primary">Become a Vendor</button>
+                </form>
+                <form method="POST" action="{{ route('user.convert-to-consultant') }}" class="js-become-account-form"
+                    data-title="Become a consultant?"
+                    data-text="Become a consultant with your user profile and send it to admin for approval?"
+                    data-success="Your consultant request has been sent for approval.">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-primary">Become a Consultant</button>
+                </form>
+                <form method="POST" action="{{ route('user.convert-to-service-provider') }}" class="js-become-account-form"
+                    data-title="Become a service provider?"
+                    data-text="Become a service provider with your user profile and send it to admin for approval?"
+                    data-success="Your service provider request has been sent for approval.">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-primary">Become a Service Provider</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -60,6 +79,32 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<style>
+    .user-profile-become-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    .user-profile-become-actions form {
+        margin: 0;
+        display: flex;
+        min-width: 0;
+    }
+
+    .user-profile-become-actions .btn {
+        width: 100%;
+        white-space: nowrap;
+        font-size: 0.84rem;
+        padding: 0.5rem 0.7rem;
+    }
+
+    @media (max-width: 575.98px) {
+        .user-profile-become-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 @endpush
 
 @push('scripts')
@@ -77,7 +122,7 @@
             timeOut: 3500
         };
 
-        $('.js-convert-vendor-form').on('submit', function (event) {
+        $('.js-become-account-form').on('submit', function (event) {
             event.preventDefault();
 
             var form = this;
@@ -85,11 +130,11 @@
             var $submitButton = $form.find('button[type="submit"]');
 
             Swal.fire({
-                title: 'Convert to vendor?',
-                text: 'Convert your user profile to a vendor account and send it to admin for approval?',
+                title: $form.data('title'),
+                text: $form.data('text'),
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, convert',
+                confirmButtonText: 'Yes, become',
                 cancelButtonText: 'Cancel',
                 confirmButtonColor: '#0d6efd',
                 cancelButtonColor: '#6c757d'
@@ -108,7 +153,7 @@
                         Accept: 'application/json'
                     }
                 }).done(function (response) {
-                    toastr.success(response.message || 'Your vendor conversion request has been sent for approval.');
+                    toastr.success(response.message || $form.data('success'));
 
                     if (response.redirect) {
                         setTimeout(function () {
@@ -118,7 +163,7 @@
                 }).fail(function (xhr) {
                     var message = xhr.responseJSON && xhr.responseJSON.message
                         ? xhr.responseJSON.message
-                        : 'Unable to convert your profile right now. Please try again.';
+                        : 'Unable to submit your request right now. Please try again.';
 
                     toastr.error(message);
                     $submitButton.prop('disabled', false);

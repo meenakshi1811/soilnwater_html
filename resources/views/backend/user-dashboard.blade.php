@@ -13,25 +13,25 @@
             <a href="{{ route('user.profile.edit') }}" class="btn btn-primary user-dashboard-hero__profile-btn">Update Profile</a>
             <div class="user-dashboard-hero__convert-actions">
                 <form method="POST" action="{{ route('user.convert-to-vendor') }}" class="js-convert-account-form"
-                    data-title="Convert to vendor?"
-                    data-text="Convert your user profile to a vendor account and send it to admin for approval?"
-                    data-success="Your vendor conversion request has been sent for approval.">
+                    data-title="Become a vendor?"
+                    data-text="Become a vendor with your user profile and send it to admin for approval?"
+                    data-success="Your vendor request has been sent for approval.">
                     @csrf
                     <button type="submit" class="btn btn-outline-primary">Become a Vendor</button>
                 </form>
                 <form method="POST" action="{{ route('user.convert-to-consultant') }}" class="js-convert-account-form"
-                    data-title="Convert to consultant?"
-                    data-text="Convert your user profile to a consultant account and send it to admin for approval?"
-                    data-success="Your consultant conversion request has been sent for approval.">
+                    data-title="Become a consultant?"
+                    data-text="Become a consultant with your user profile and send it to admin for approval?"
+                    data-success="Your consultant request has been sent for approval.">
                     @csrf
                     <button type="submit" class="btn btn-outline-primary">Become a Consultant</button>
                 </form>
                 <form method="POST" action="{{ route('user.convert-to-service-provider') }}" class="js-convert-account-form"
-                    data-title="Convert to service?"
-                    data-text="Convert your user profile to a service account and send it to admin for approval?"
-                    data-success="Your service conversion request has been sent for approval.">
+                    data-title="Become a service provider?"
+                    data-text="Become a service provider with your user profile and send it to admin for approval?"
+                    data-success="Your service provider request has been sent for approval.">
                     @csrf
-                    <button type="submit" class="btn btn-outline-primary">Become a Service</button>
+                    <button type="submit" class="btn btn-outline-primary">Become a Service Provider</button>
                 </form>
             </div>
         </div>
@@ -158,7 +158,7 @@
                 text: $form.data('text'),
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, convert',
+                confirmButtonText: 'Yes, become',
                 cancelButtonText: 'Cancel',
                 confirmButtonColor: '#0d6efd',
                 cancelButtonColor: '#6c757d'
@@ -187,7 +187,7 @@
                 }).fail(function (xhr) {
                     var message = xhr.responseJSON && xhr.responseJSON.message
                         ? xhr.responseJSON.message
-                        : 'Unable to convert your profile right now. Please try again.';
+                        : 'Unable to submit your request right now. Please try again.';
 
                     toastr.error(message);
                     $submitButton.prop('disabled', false);

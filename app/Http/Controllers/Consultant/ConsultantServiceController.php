@@ -30,6 +30,7 @@ class ConsultantServiceController extends Controller
         return view('backend.consultant.services.form', [
             'service' => new ConsultantService(),
             'categories' => $this->consultantCategories(),
+            'isAdmin' => false,
         ]);
     }
 
@@ -70,6 +71,7 @@ class ConsultantServiceController extends Controller
         return view('backend.consultant.services.form', [
             'service' => $service,
             'categories' => $this->consultantCategories(),
+            'isAdmin' => false,
         ]);
     }
 

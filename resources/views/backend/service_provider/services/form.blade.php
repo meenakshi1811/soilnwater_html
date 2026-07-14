@@ -1,10 +1,10 @@
 @extends('backend.layouts.app')
 @section('title', $service->exists ? 'Edit Service' : 'Create Service')
 @section('content')
+@php($isAdmin = $isAdmin ?? false)
 <div class="admin-panel ems-page">
-  <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">{{ ($isAdmin ?? false) ? 'Admin Portal' : 'Service Portal' }}</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Service' : (($isAdmin ?? false) ? 'Create Service for Service Provider' : 'Add Service') }}</h2></div><a href="{{ ($isAdmin ?? false) ? route('admin.service-provider-services.all.index') : route('service_provider.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
+  <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Portal' : 'Service Portal' }}</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Service' : ($isAdmin ? 'Create Service for Service Provider' : 'Add Service') }}</h2></div><a href="{{ $isAdmin ? route('admin.service-provider-services.all.index') : route('service_provider.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
   @php
-    $isAdmin = $isAdmin ?? false;
     $visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten();
     $chargeDurationLabels = ['minute' => 'Minutes', 'hour' => 'Hours', 'day' => 'Days', 'month' => 'Months', 'contractual' => 'Contractual'];
     $storedCharges = collect($service->consultation_charges ?: [])->map(function ($charge, $key) {
