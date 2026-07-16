@@ -318,8 +318,13 @@ class ServiceProviderController extends Controller
         ]);
     }
 
-    public function reject(ServiceProvider $service_provider): JsonResponse
+    public function reject(Request $request, ServiceProvider $service_provider): JsonResponse
     {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:5', 'max:1000'],
+        ]);
+
+        $reason = trim($validated['reason']);
         $owner = $service_provider->user;
         $wasNeverApproved = $service_provider->approved_at === null;
 
@@ -329,14 +334,15 @@ class ServiceProviderController extends Controller
             'approved_by' => null,
         ]);
 
-        $emailSent = $this->sendServiceProviderStatusMail($service_provider, 'rejected');
+        $emailSent = $this->sendServiceProviderStatusMail($service_provider, 'rejected', $reason);
         $reverted = AccountConversionReversalService::revertServiceProviderOnRejection($service_provider, $wasNeverApproved);
         PortalNotificationService::notifyOwnerOfReview(
             $owner,
             'Service account',
             $service_provider->company_name,
             'rejected',
-            $reverted ? route('user.dashboard') : route('login')
+            $reverted ? route('user.dashboard') : route('login'),
+            $reason
         );
 
         return response()->json([
@@ -379,7 +385,7 @@ class ServiceProviderController extends Controller
         ]);
     }
 
-    private function sendServiceProviderStatusMail(ServiceProvider $service_provider, string $action): bool
+    private function sendServiceProviderStatusMail(ServiceProvider $service_provider, string $action, ?string $reason = null): bool
     {
         $recipient = $this->service_providerNotificationRecipient($service_provider);
 
@@ -387,7 +393,7 @@ class ServiceProviderController extends Controller
             return false;
         }
 
-        Mail::to($recipient)->send(ServiceProviderStatusMail::forServiceProvider($service_provider, $action));
+        Mail::to($recipient)->send(ServiceProviderStatusMail::forServiceProvider($service_provider, $action, $reason));
         return true;
     }
 

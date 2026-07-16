@@ -322,8 +322,13 @@ class VendorController extends Controller
         ]);
     }
 
-    public function reject(Vendor $vendor): JsonResponse
+    public function reject(Request $request, Vendor $vendor): JsonResponse
     {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:5', 'max:1000'],
+        ]);
+
+        $reason = trim($validated['reason']);
         $owner = $vendor->user;
         $wasNeverApproved = $vendor->approved_at === null;
 
@@ -333,14 +338,15 @@ class VendorController extends Controller
             'approved_by' => null,
         ]);
 
-        $emailSent = $this->sendVendorStatusMail($vendor, 'rejected');
+        $emailSent = $this->sendVendorStatusMail($vendor, 'rejected', $reason);
         $reverted = AccountConversionReversalService::revertVendorOnRejection($vendor, $wasNeverApproved);
         PortalNotificationService::notifyOwnerOfReview(
             $owner,
             'Vendor account',
             $vendor->company_name,
             'rejected',
-            $reverted ? route('user.dashboard') : route('login')
+            $reverted ? route('user.dashboard') : route('login'),
+            $reason
         );
 
         return response()->json([
@@ -383,7 +389,7 @@ class VendorController extends Controller
         ]);
     }
 
-    private function sendVendorStatusMail(Vendor $vendor, string $action): bool
+    private function sendVendorStatusMail(Vendor $vendor, string $action, ?string $reason = null): bool
     {
         $recipient = $this->vendorNotificationRecipient($vendor);
 
@@ -391,7 +397,7 @@ class VendorController extends Controller
             return false;
         }
 
-        Mail::to($recipient)->send(VendorStatusMail::forVendor($vendor, $action));
+        Mail::to($recipient)->send(VendorStatusMail::forVendor($vendor, $action, $reason));
         // Mail::to("nanta1811@gmail.com")->send(VendorStatusMail::forVendor($vendor, $action));
         // die();
         return true;

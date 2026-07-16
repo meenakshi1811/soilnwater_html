@@ -79,13 +79,8 @@
             });
 
             $(document).on('click', '.js-reject-consultant', function () {
-                if (!confirm('Reject this consultant?')) return;
                 var id = $(this).data('id');
-                $.post('/admin/consultants/' + id + '/reject', { _token: $('meta[name="csrf-token"]').attr('content') })
-                    .done(function (r) {
-                        FormHelper.showToast('success', r.message);
-                        self.table.ajax.reload(null, false);
-                    });
+                self.confirmReject(id);
             });
 
             $(document).on('click', '.js-delete-consultant', function () {
@@ -130,6 +125,63 @@
             if (!hasGst) {
                 $('#consultantGst').val('');
             }
+        },
+
+        confirmReject: function (id) {
+            var self = this;
+            var submitReject = function (reason) {
+                $.post('/admin/consultants/' + id + '/reject', {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    reason: reason
+                })
+                    .done(function (r) {
+                        FormHelper.showToast('success', r.message);
+                        self.table.ajax.reload(null, false);
+                    })
+                    .fail(function (xhr) {
+                        var message = xhr.responseJSON?.message
+                            || xhr.responseJSON?.errors?.reason?.[0]
+                            || 'Unable to reject consultant.';
+                        FormHelper.showToast('danger', message);
+                    });
+            };
+
+            if (window.Swal && typeof window.Swal.fire === 'function') {
+                window.Swal.fire({
+                    title: 'Reject this consultant?',
+                    input: 'textarea',
+                    inputLabel: 'Rejection reason',
+                    inputPlaceholder: 'Explain why this application is being rejected...',
+                    inputAttributes: { 'aria-label': 'Rejection reason' },
+                    showCancelButton: true,
+                    confirmButtonText: 'Reject',
+                    confirmButtonColor: '#dc3545',
+                    inputValidator: function (value) {
+                        if (!value || !String(value).trim()) {
+                            return 'Please enter a rejection reason.';
+                        }
+                        if (String(value).trim().length < 5) {
+                            return 'Reason must be at least 5 characters.';
+                        }
+                    }
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        submitReject(String(result.value || '').trim());
+                    }
+                });
+                return;
+            }
+
+            var reason = prompt('Enter the rejection reason:');
+            if (reason === null) {
+                return;
+            }
+            reason = String(reason).trim();
+            if (reason.length < 5) {
+                FormHelper.showToast('danger', 'Reason must be at least 5 characters.');
+                return;
+            }
+            submitReject(reason);
         },
 
         initForm: function () {

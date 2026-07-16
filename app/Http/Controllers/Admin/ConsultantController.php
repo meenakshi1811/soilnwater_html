@@ -313,8 +313,13 @@ class ConsultantController extends Controller
         ]);
     }
 
-    public function reject(Consultant $consultant): JsonResponse
+    public function reject(Request $request, Consultant $consultant): JsonResponse
     {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:5', 'max:1000'],
+        ]);
+
+        $reason = trim($validated['reason']);
         $owner = $consultant->user;
         $wasNeverApproved = $consultant->approved_at === null;
 
@@ -324,14 +329,15 @@ class ConsultantController extends Controller
             'approved_by' => null,
         ]);
 
-        $emailSent = $this->sendConsultantStatusMail($consultant, 'rejected');
+        $emailSent = $this->sendConsultantStatusMail($consultant, 'rejected', $reason);
         $reverted = AccountConversionReversalService::revertConsultantOnRejection($consultant, $wasNeverApproved);
         PortalNotificationService::notifyOwnerOfReview(
             $owner,
             'Consultant account',
             $consultant->company_name,
             'rejected',
-            $reverted ? route('user.dashboard') : route('login')
+            $reverted ? route('user.dashboard') : route('login'),
+            $reason
         );
 
         return response()->json([
@@ -374,7 +380,7 @@ class ConsultantController extends Controller
         ]);
     }
 
-    private function sendConsultantStatusMail(Consultant $consultant, string $action): bool
+    private function sendConsultantStatusMail(Consultant $consultant, string $action, ?string $reason = null): bool
     {
         $recipient = $this->consultantNotificationRecipient($consultant);
 
@@ -382,7 +388,7 @@ class ConsultantController extends Controller
             return false;
         }
 
-        Mail::to($recipient)->send(ConsultantStatusMail::forConsultant($consultant, $action));
+        Mail::to($recipient)->send(ConsultantStatusMail::forConsultant($consultant, $action, $reason));
         return true;
     }
 

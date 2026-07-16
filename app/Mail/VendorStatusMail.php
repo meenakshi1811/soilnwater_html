@@ -13,7 +13,7 @@ class VendorStatusMail extends Mailable
     use SerializesModels;
 
     /**
-     * @param  array{company_name: string, contact_person: ?string, email: ?string, status: string, store_url: ?string}  $vendorDetails
+     * @param  array{company_name: string, contact_person: ?string, email: ?string, status: string, store_url: ?string, reason: ?string}  $vendorDetails
      */
     public function __construct(
         public array $vendorDetails,
@@ -22,7 +22,7 @@ class VendorStatusMail extends Mailable
     ) {
     }
 
-    public static function forVendor(Vendor $vendor, string $action): self
+    public static function forVendor(Vendor $vendor, string $action, ?string $reason = null): self
     {
         $vendor->loadMissing('user');
 
@@ -42,6 +42,7 @@ class VendorStatusMail extends Mailable
                 'email' => $vendor->email ?: $vendor->user?->email,
                 'status' => $status,
                 'store_url' => $action === 'approved' ? $vendor->storeUrl() : null,
+                'reason' => filled($reason) ? trim($reason) : null,
             ],
             action: $action,
             subjectLine: match ($action) {

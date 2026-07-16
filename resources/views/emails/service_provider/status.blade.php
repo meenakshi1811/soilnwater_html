@@ -45,6 +45,17 @@
         </tr>
     </table>
 
+    @if ($isRejected && ! empty($service_providerDetails['reason']))
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 16px;">
+            <tr>
+                <td style="padding: 16px; background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;">
+                    <p style="margin: 0 0 6px; font-size: 13px; color: #92400e;"><strong>Rejection reason</strong></p>
+                    <p style="margin: 0; font-size: 14px; color: #78350f; line-height: 1.7; white-space: pre-wrap;">{{ $service_providerDetails['reason'] }}</p>
+                </td>
+            </tr>
+        </table>
+    @endif
+
     @if ($isPending)
         <p style="margin: 0 0 12px; color: #374151; font-size: 14px; line-height: 1.7;">
             Please wait for admin approval before trying to access the service portal.

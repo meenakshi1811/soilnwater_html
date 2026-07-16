@@ -13,7 +13,7 @@ class ConsultantStatusMail extends Mailable
     use SerializesModels;
 
     /**
-     * @param  array{company_name: string, contact_person: ?string, email: ?string, status: string, consultant_url: ?string}  $consultantDetails
+     * @param  array{company_name: string, contact_person: ?string, email: ?string, status: string, consultant_url: ?string, reason: ?string}  $consultantDetails
      */
     public function __construct(
         public array $consultantDetails,
@@ -22,7 +22,7 @@ class ConsultantStatusMail extends Mailable
     ) {
     }
 
-    public static function forConsultant(Consultant $consultant, string $action): self
+    public static function forConsultant(Consultant $consultant, string $action, ?string $reason = null): self
     {
         $consultant->loadMissing('user');
 
@@ -42,6 +42,7 @@ class ConsultantStatusMail extends Mailable
                 'email' => $consultant->email ?: $consultant->user?->email,
                 'status' => $status,
                 'consultant_url' => $action === 'approved' ? $consultant->consultantUrl() : null,
+                'reason' => filled($reason) ? trim($reason) : null,
             ],
             action: $action,
             subjectLine: match ($action) {

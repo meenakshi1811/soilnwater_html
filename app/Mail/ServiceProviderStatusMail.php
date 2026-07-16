@@ -13,7 +13,7 @@ class ServiceProviderStatusMail extends Mailable
     use SerializesModels;
 
     /**
-     * @param  array{company_name: string, contact_person: ?string, email: ?string, status: string, service_provider_url: ?string}  $service_providerDetails
+     * @param  array{company_name: string, contact_person: ?string, email: ?string, status: string, service_provider_url: ?string, reason: ?string}  $service_providerDetails
      */
     public function __construct(
         public array $service_providerDetails,
@@ -22,7 +22,7 @@ class ServiceProviderStatusMail extends Mailable
     ) {
     }
 
-    public static function forServiceProvider(ServiceProvider $service_provider, string $action): self
+    public static function forServiceProvider(ServiceProvider $service_provider, string $action, ?string $reason = null): self
     {
         $service_provider->loadMissing('user');
 
@@ -42,6 +42,7 @@ class ServiceProviderStatusMail extends Mailable
                 'email' => $service_provider->email ?: $service_provider->user?->email,
                 'status' => $status,
                 'service_provider_url' => $action === 'approved' ? $service_provider->serviceProviderUrl() : null,
+                'reason' => filled($reason) ? trim($reason) : null,
             ],
             action: $action,
             subjectLine: match ($action) {

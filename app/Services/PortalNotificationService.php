@@ -34,14 +34,19 @@ class PortalNotificationService
         );
     }
 
-    public static function notifyOwnerOfReview(?User $user, string $itemType, string $itemName, string $status, ?string $url = null): void
+    public static function notifyOwnerOfReview(?User $user, string $itemType, string $itemName, string $status, ?string $url = null, ?string $reason = null): void
     {
         $normalizedStatus = $status === 'rejected' ? 'declined' : $status;
+        $message = $itemName.' has been '.$normalizedStatus.'.';
+
+        if (filled($reason)) {
+            $message .= ' Reason: '.$reason;
+        }
 
         self::notifyUser(
             $user,
             $itemType.' '.$normalizedStatus,
-            $itemName.' has been '.$normalizedStatus.'.',
+            $message,
             $url,
             'reviewed'
         );
