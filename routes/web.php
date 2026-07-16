@@ -187,8 +187,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{topic}/react', [DiscussionReactionController::class, 'reactToTopic'])->name('react');
         Route::post('/replies/{reply}/react', [DiscussionReactionController::class, 'reactToReply'])->name('replies.react');
     });
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 
     Route::post('/dashboard/listing-payment', [ListingPaymentController::class, 'store'])
         ->middleware('marketplace.approved')

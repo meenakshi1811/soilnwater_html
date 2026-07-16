@@ -89,6 +89,9 @@
                             <div class="admin-notification-empty">No notifications yet.</div>
                         @endforelse
                     </div>
+                    <div class="admin-notification-menu-footer">
+                        <a href="{{ route('notifications.index') }}" class="admin-notification-view-all">View all notifications</a>
+                    </div>
                 </div>
             </div>
             <a class="btn btn-sm admin-link {{ $profileActive ? 'active' : '' }}" href="{{ $profileUrl }}">Profile</a>
