@@ -39,11 +39,15 @@ class NotificationController extends Controller
         return back()->with('status', 'All notifications marked as read.');
     }
 
-    public function destroy(Request $request, DatabaseNotification $notification): RedirectResponse
+    public function destroy(Request $request, DatabaseNotification $notification): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $this->authorizeNotification($request, $notification);
 
         $notification->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Notification deleted.']);
+        }
 
         return back()->with('status', 'Notification deleted.');
     }

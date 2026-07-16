@@ -1075,7 +1075,9 @@
 
 .notifications-row {
     display: flex;
-    align-items: stretch;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
     border-bottom: 1px solid #eef2f7;
     transition: background-color 0.15s ease;
 }
@@ -1085,7 +1087,7 @@
 }
 
 .notifications-row.is-unread {
-    background: linear-gradient(90deg, rgba(239, 246, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+    background: #f8fbff;
 }
 
 .notifications-row:hover {
@@ -1104,9 +1106,9 @@
 .notifications-row-btn {
     display: flex;
     align-items: flex-start;
-    gap: 14px;
+    gap: 12px;
     width: 100%;
-    padding: 18px 8px 18px 18px;
+    padding: 0;
     border: 0;
     background: transparent;
     text-align: left;
@@ -1123,8 +1125,8 @@
 }
 
 .notifications-row.is-unread .notifications-row-status {
-    background: #2563eb;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    background: #60a5fa;
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.16);
 }
 
 .notifications-row-body {
@@ -1132,37 +1134,20 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .notifications-row-title {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
     color: #0f172a;
-    font-size: 1rem;
+    font-size: 0.98rem;
     font-weight: 700;
     line-height: 1.35;
 }
 
-.notifications-unread-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: #dbeafe;
-    color: #1d4ed8;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-}
-
 .notifications-row-message {
-    color: #475569;
-    font-size: 0.92rem;
-    line-height: 1.55;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-word;
 }
@@ -1172,55 +1157,54 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 6px;
+    margin-top: 2px;
     color: #94a3b8;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
 }
 
 .notifications-row-dot {
     opacity: 0.7;
 }
 
-.notifications-row-open {
+.notifications-row-actions {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
-    margin-top: 2px;
-    border-radius: 999px;
-    color: #64748b;
-    background: #f1f5f9;
+    gap: 8px;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
-.notifications-row:hover .notifications-row-open {
+.notifications-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #64748b;
+    line-height: 1;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.notifications-open-btn:hover,
+.notifications-open-btn:focus {
     color: #0f766e;
     background: #ccfbf1;
 }
 
-.notifications-row-delete {
-    display: flex;
-    align-items: center;
-    padding: 0 14px 0 4px;
-}
-
-.notifications-delete-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    border: 0;
-    border-radius: 10px;
-    background: transparent;
-    color: #94a3b8;
-    transition: background-color 0.15s ease, color 0.15s ease;
-}
-
 .notifications-delete-btn:hover,
 .notifications-delete-btn:focus {
-    background: #fef2f2;
     color: #dc2626;
+    background: #fee2e2;
+}
+
+.notifications-action-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .notifications-empty {
@@ -1248,16 +1232,17 @@
 }
 
 @media (max-width: 575.98px) {
-    .notifications-row-btn {
-        padding: 16px 6px 16px 14px;
-        gap: 10px;
+    .notifications-row {
+        padding: 14px 12px;
+        gap: 8px;
     }
 
-    .notifications-row-delete {
-        padding-right: 10px;
+    .notifications-row-actions {
+        gap: 6px;
     }
 
-    .notifications-row-open {
-        display: none;
+    .notifications-action-btn {
+        width: 34px;
+        height: 34px;
     }
 }
