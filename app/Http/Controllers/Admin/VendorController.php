@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\AccountConversionReversalService;
 use App\Services\PortalNotificationService;
 use App\Mail\VendorPublicPageApprovedMail;
 use App\Mail\VendorStatusMail;
@@ -195,6 +196,7 @@ class VendorController extends Controller
         unset($validated['has_gst']);
 
         $originalStatus = $vendor->status;
+        $wasNeverApproved = $vendor->approved_at === null;
 
         if ($validated['status'] === 'approved' && $vendor->status !== 'approved') {
             $validated['approved_at'] = now();
@@ -209,8 +211,14 @@ class VendorController extends Controller
         $vendor->update($validated);
 
         if ($vendor->status !== $originalStatus && in_array($vendor->status, ['approved', 'rejected'], true)) {
+            $owner = $vendor->user;
             $this->sendVendorStatusMail($vendor, $vendor->status);
-            PortalNotificationService::notifyOwnerOfReview($vendor->user, 'Vendor account', $vendor->company_name, $vendor->status, route('vendor.dashboard'));
+            $reverted = $vendor->status === 'rejected'
+                && AccountConversionReversalService::revertVendorOnRejection($vendor, $wasNeverApproved);
+            $portalRoute = $vendor->status === 'approved'
+                ? route('vendor.dashboard')
+                : ($reverted ? route('user.dashboard') : route('login'));
+            PortalNotificationService::notifyOwnerOfReview($owner, 'Vendor account', $vendor->company_name, $vendor->status, $portalRoute);
         }
 
         return response()->json(['message' => 'Vendor updated successfully.']);
@@ -316,6 +324,9 @@ class VendorController extends Controller
 
     public function reject(Vendor $vendor): JsonResponse
     {
+        $owner = $vendor->user;
+        $wasNeverApproved = $vendor->approved_at === null;
+
         $vendor->update([
             'status' => 'rejected',
             'approved_at' => null,
@@ -323,10 +334,19 @@ class VendorController extends Controller
         ]);
 
         $emailSent = $this->sendVendorStatusMail($vendor, 'rejected');
-        PortalNotificationService::notifyOwnerOfReview($vendor->user, 'Vendor account', $vendor->company_name, 'rejected', route('login'));
+        $reverted = AccountConversionReversalService::revertVendorOnRejection($vendor, $wasNeverApproved);
+        PortalNotificationService::notifyOwnerOfReview(
+            $owner,
+            'Vendor account',
+            $vendor->company_name,
+            'rejected',
+            $reverted ? route('user.dashboard') : route('login')
+        );
 
         return response()->json([
-            'message' => 'Vendor application rejected.'.($emailSent ? ' Email notification sent.' : ''),
+            'message' => ($reverted
+                ? 'Vendor application rejected and the account was restored as a user.'
+                : 'Vendor application rejected.').($emailSent ? ' Email notification sent.' : ''),
         ]);
     }
 

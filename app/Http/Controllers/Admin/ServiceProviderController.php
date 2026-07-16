@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\AccountConversionReversalService;
 use App\Services\PortalNotificationService;
 use App\Mail\ServiceProviderPublicPageApprovedMail;
 use App\Mail\ServiceProviderStatusMail;
@@ -201,6 +202,7 @@ class ServiceProviderController extends Controller
         unset($validated['has_gst']);
 
         $originalStatus = $service_provider->status;
+        $wasNeverApproved = $service_provider->approved_at === null;
 
         if ($validated['status'] === 'approved' && $service_provider->status !== 'approved') {
             $validated['approved_at'] = now();
@@ -215,8 +217,14 @@ class ServiceProviderController extends Controller
         $service_provider->update($validated);
 
         if ($service_provider->status !== $originalStatus && in_array($service_provider->status, ['approved', 'rejected'], true)) {
+            $owner = $service_provider->user;
             $this->sendServiceProviderStatusMail($service_provider, $service_provider->status);
-            PortalNotificationService::notifyOwnerOfReview($service_provider->user, 'Service account', $service_provider->company_name, $service_provider->status, route('service_provider.dashboard'));
+            $reverted = $service_provider->status === 'rejected'
+                && AccountConversionReversalService::revertServiceProviderOnRejection($service_provider, $wasNeverApproved);
+            $portalRoute = $service_provider->status === 'approved'
+                ? route('service_provider.dashboard')
+                : ($reverted ? route('user.dashboard') : route('login'));
+            PortalNotificationService::notifyOwnerOfReview($owner, 'Service account', $service_provider->company_name, $service_provider->status, $portalRoute);
         }
 
         return response()->json(['message' => 'Service updated successfully.']);
@@ -312,6 +320,9 @@ class ServiceProviderController extends Controller
 
     public function reject(ServiceProvider $service_provider): JsonResponse
     {
+        $owner = $service_provider->user;
+        $wasNeverApproved = $service_provider->approved_at === null;
+
         $service_provider->update([
             'status' => 'rejected',
             'approved_at' => null,
@@ -319,10 +330,19 @@ class ServiceProviderController extends Controller
         ]);
 
         $emailSent = $this->sendServiceProviderStatusMail($service_provider, 'rejected');
-        PortalNotificationService::notifyOwnerOfReview($service_provider->user, 'Service account', $service_provider->company_name, 'rejected', route('login'));
+        $reverted = AccountConversionReversalService::revertServiceProviderOnRejection($service_provider, $wasNeverApproved);
+        PortalNotificationService::notifyOwnerOfReview(
+            $owner,
+            'Service account',
+            $service_provider->company_name,
+            'rejected',
+            $reverted ? route('user.dashboard') : route('login')
+        );
 
         return response()->json([
-            'message' => 'Service application rejected.'.($emailSent ? ' Email notification sent.' : ''),
+            'message' => ($reverted
+                ? 'Service application rejected and the account was restored as a user.'
+                : 'Service application rejected.').($emailSent ? ' Email notification sent.' : ''),
         ]);
     }
 

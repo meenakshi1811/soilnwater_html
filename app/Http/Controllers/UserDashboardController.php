@@ -59,6 +59,7 @@ class UserDashboardController extends Controller
 
             $vendor = VendorRegistrationService::createProfileForUser($user->fresh(), [
                 'profile_image_path' => $user->profile_image,
+                'converted_from_user' => true,
             ]);
             $vendor->forceFill([
                 'status' => 'pending',
@@ -98,6 +99,7 @@ class UserDashboardController extends Controller
 
             $consultant = ConsultantRegistrationService::createProfileForUser($user->fresh(), [
                 'profile_image_path' => $user->profile_image,
+                'converted_from_user' => true,
             ]);
             $consultant->forceFill([
                 'status' => 'pending',
@@ -137,6 +139,7 @@ class UserDashboardController extends Controller
 
             $serviceProvider = ServiceProviderRegistrationService::createProfileForUser($user->fresh(), [
                 'profile_image_path' => $user->profile_image,
+                'converted_from_user' => true,
             ]);
             $serviceProvider->forceFill([
                 'status' => 'pending',

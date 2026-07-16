@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\AccountConversionReversalService;
 use App\Services\PortalNotificationService;
 use App\Mail\ConsultantPublicPageApprovedMail;
 use App\Mail\ConsultantStatusMail;
@@ -194,6 +195,7 @@ class ConsultantController extends Controller
         unset($validated['has_gst']);
 
         $originalStatus = $consultant->status;
+        $wasNeverApproved = $consultant->approved_at === null;
 
         if ($validated['status'] === 'approved' && $consultant->status !== 'approved') {
             $validated['approved_at'] = now();
@@ -208,8 +210,14 @@ class ConsultantController extends Controller
         $consultant->update($validated);
 
         if ($consultant->status !== $originalStatus && in_array($consultant->status, ['approved', 'rejected'], true)) {
+            $owner = $consultant->user;
             $this->sendConsultantStatusMail($consultant, $consultant->status);
-            PortalNotificationService::notifyOwnerOfReview($consultant->user, 'Consultant account', $consultant->company_name, $consultant->status, route('consultant.dashboard'));
+            $reverted = $consultant->status === 'rejected'
+                && AccountConversionReversalService::revertConsultantOnRejection($consultant, $wasNeverApproved);
+            $portalRoute = $consultant->status === 'approved'
+                ? route('consultant.dashboard')
+                : ($reverted ? route('user.dashboard') : route('login'));
+            PortalNotificationService::notifyOwnerOfReview($owner, 'Consultant account', $consultant->company_name, $consultant->status, $portalRoute);
         }
 
         return response()->json(['message' => 'Consultant updated successfully.']);
@@ -307,6 +315,9 @@ class ConsultantController extends Controller
 
     public function reject(Consultant $consultant): JsonResponse
     {
+        $owner = $consultant->user;
+        $wasNeverApproved = $consultant->approved_at === null;
+
         $consultant->update([
             'status' => 'rejected',
             'approved_at' => null,
@@ -314,10 +325,19 @@ class ConsultantController extends Controller
         ]);
 
         $emailSent = $this->sendConsultantStatusMail($consultant, 'rejected');
-        PortalNotificationService::notifyOwnerOfReview($consultant->user, 'Consultant account', $consultant->company_name, 'rejected', route('login'));
+        $reverted = AccountConversionReversalService::revertConsultantOnRejection($consultant, $wasNeverApproved);
+        PortalNotificationService::notifyOwnerOfReview(
+            $owner,
+            'Consultant account',
+            $consultant->company_name,
+            'rejected',
+            $reverted ? route('user.dashboard') : route('login')
+        );
 
         return response()->json([
-            'message' => 'Consultant application rejected.'.($emailSent ? ' Email notification sent.' : ''),
+            'message' => ($reverted
+                ? 'Consultant application rejected and the account was restored as a user.'
+                : 'Consultant application rejected.').($emailSent ? ' Email notification sent.' : ''),
         ]);
     }
 

@@ -47,6 +47,7 @@ class VendorRegistrationService
             'gst_number' => $gstNumber,
             'government_certificate_number' => $governmentCertificateNumber,
             'status' => 'pending',
+            'converted_from_user' => (bool) ($registrationData['converted_from_user'] ?? false),
         ]);
 
         VendorBranch::create([
