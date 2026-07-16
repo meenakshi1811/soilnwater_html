@@ -102,6 +102,7 @@
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script>
@@ -144,19 +145,7 @@
         }
     }
 
-    $(document).on('click', '.js-delete-notification', function () {
-        var $button = $(this);
-        var url = $button.data('url');
-        var $row = $button.closest('.notifications-row');
-
-        if (!url || $button.prop('disabled')) {
-            return;
-        }
-
-        if (!window.confirm('Delete this notification permanently?')) {
-            return;
-        }
-
+    function deleteNotification($button, url, $row) {
         $button.prop('disabled', true);
 
         $.ajax({
@@ -195,6 +184,37 @@
                 $button.prop('disabled', false);
                 FormHelper.showToast('danger', xhr.responseJSON?.message || 'Unable to delete notification.');
             });
+    }
+
+    $(document).on('click', '.js-delete-notification', function () {
+        var $button = $(this);
+        var url = $button.data('url');
+        var $row = $button.closest('.notifications-row');
+
+        if (!url || $button.prop('disabled')) {
+            return;
+        }
+
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+            window.Swal.fire({
+                title: 'Delete notification?',
+                text: 'This notification will be permanently removed.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#dc3545'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    deleteNotification($button, url, $row);
+                }
+            });
+            return;
+        }
+
+        if (window.confirm('Delete this notification permanently?')) {
+            deleteNotification($button, url, $row);
+        }
     });
 })(window.jQuery);
 </script>
