@@ -518,9 +518,19 @@
                 </div>
             @endif
 
+            @if($showSizePricing && auth()->user()?->isStaff())
+                <div class="listing-admin-bypass-note mt-3" role="status">
+                    <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+                    <div>
+                        <strong>Admin payment bypass</strong>
+                        <p class="mb-0">You are logged in as admin, so you can bypass the payment and post this ad directly. Pricing is shown for reference only.</p>
+                    </div>
+                </div>
+            @endif
+
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ route('ads.create.size') }}" class="btn btn-light px-4">Back</a>
-                <button type="submit" id="adSubmitButton" class="btn btn-primary px-5">Save Ad</button>
+                <button type="submit" id="adSubmitButton" class="btn btn-primary px-5">{{ !empty($isEdit) ? 'Update Ad' : 'Save Ad' }}</button>
             </div>
         </form>
 

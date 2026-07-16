@@ -140,6 +140,7 @@
             var $btn = $('#offerSubmitBtn');
             var $paymentDisabledNote = $('#offerPaymentDisabledNote');
             var defaultLabel = $btn.data('default-label') || 'Post Offer';
+            var isStaffUser = String($btn.data('is-staff') || $('#offerForm').data('is-staff-user') || '0') === '1';
 
             var validUntilValue = $('#validUntil').val();
             var hasValidUntil = !!validUntilValue;
@@ -174,7 +175,13 @@
                 $('#priceGst').text('₹' + gst.toFixed(2));
                 $('#priceGrandTotal').text('₹' + grandTotal.toFixed(2));
                 $('#priceDefaultDaysNote').toggleClass('d-none', hasValidUntil);
-                $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + ($btn.data('payment-label') || 'Proceed to Payment'));
+                $('#offerAdminBypassNote').toggleClass('d-none', !isStaffUser);
+                if (isStaffUser) {
+                    var staffIcon = String($('#offerForm').data('is-edit') || '0') === '1' ? 'fa-floppy-disk' : 'fa-paper-plane';
+                    $btn.find('.btn-text').html('<i class="fa-solid ' + staffIcon + ' me-2"></i>' + defaultLabel);
+                } else {
+                    $btn.find('.btn-text').html('<i class="fa-solid fa-credit-card me-2"></i>' + ($btn.data('payment-label') || 'Proceed to Payment'));
+                }
                 $paymentDisabledNote.addClass('d-none');
                 return;
             }
@@ -195,6 +202,7 @@
                 $('#priceGrandTotal').text('₹0.00');
             }
             $('#priceDefaultDaysNote').addClass('d-none');
+            $('#offerAdminBypassNote').addClass('d-none');
             $paymentDisabledNote.addClass('d-none');
             $btn.find('.btn-text').html('<i class="fa-solid fa-paper-plane me-2"></i>' + defaultLabel);
         },

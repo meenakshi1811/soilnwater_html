@@ -457,9 +457,19 @@
                 </div>
             </div>
 
+            @if(!empty($isStaffUser))
+                <div id="offerAdminBypassNote" class="listing-admin-bypass-note mt-3 {{ $initialAppliedPrice > 0 ? '' : 'd-none' }}" role="status">
+                    <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+                    <div>
+                        <strong>Admin payment bypass</strong>
+                        <p class="mb-0">You are logged in as admin, so you can bypass the payment and post this offer directly. Pricing is shown for reference only.</p>
+                    </div>
+                </div>
+            @endif
+
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <a href="{{ $isEditMode ? route('offers.index') : route('post-offer') }}" class="btn btn-light px-4">Cancel</a>
-                <button type="submit" id="offerSubmitBtn" class="btn btn-primary ems-btn-primary px-5" data-default-label="{{ $isEditMode ? 'Update Offer' : 'Post Offer' }}" data-payment-label="Proceed to Payment">
+                <button type="submit" id="offerSubmitBtn" class="btn btn-primary ems-btn-primary px-5" data-default-label="{{ $isEditMode ? 'Update Offer' : 'Post Offer' }}" data-payment-label="Proceed to Payment" data-is-staff="{{ !empty($isStaffUser) ? '1' : '0' }}">
                     <span class="btn-text">
                         <i class="fa-solid {{ $isEditMode ? 'fa-floppy-disk' : 'fa-paper-plane' }} me-2"></i>{{ $isEditMode ? 'Update Offer' : 'Post Offer' }}
                     </span>
