@@ -146,6 +146,15 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
         const placed = [];
 
+        // Upper bound for the vertical search. Grows with the amount of content so
+        // that cards below the fold still get a real slot after "load more" re-packs
+        // the whole grid. Without this, cards past a fixed limit fail placement and
+        // collapse to the grid origin, overlapping the cards at the top.
+        const maxSearchTop = cards.reduce((sum, card) => {
+            const d = getDims(card);
+            return sum + d.h + GAP;
+        }, 0);
+
         function isFree(left, top, width, height) {
             if (left < 0 || left + width > containerWidth) {
                 return false;
@@ -162,7 +171,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         function findPlace(width, height) {
-            for (let top = 0; top <= 5000; top += SEARCH_STEP) {
+            for (let top = 0; top <= maxSearchTop; top += SEARCH_STEP) {
                 for (let left = 0; left <= containerWidth - width; left += SEARCH_STEP) {
                     if (isFree(left, top, width, height)) {
                         return { left, top };
