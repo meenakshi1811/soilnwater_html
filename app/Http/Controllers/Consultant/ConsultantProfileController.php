@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Consultant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Consultant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -72,9 +73,9 @@ class ConsultantProfileController extends Controller
 
         if ($consultant) {
             $consultant->forceFill([
-                'company_name' => $consultant->company_name ?: $validated['name'],
+                'company_name' => $validated['name'],
                 'contact_person' => $validated['name'],
-                'display_name' => $consultant->display_name ?: $validated['name'],
+                'display_name' => $validated['name'],
                 'phone' => $validated['phone_number'],
                 'whatsapp' => $validated['whatsapp_number'],
                 'email' => $user->email,
@@ -85,6 +86,8 @@ class ConsultantProfileController extends Controller
                 'gst_number' => $gstNumber,
                 'government_certificate_number' => $validated['government_certificate_number'] ?? null,
             ])->save();
+
+            $this->syncDisplayNameInPageSnapshots($consultant, $validated['name']);
         }
 
         if ($phoneChanged) {
@@ -100,6 +103,26 @@ class ConsultantProfileController extends Controller
         return redirect()
             ->route('consultant.profile.edit')
             ->with('status', 'Profile updated successfully.');
+    }
+
+    private function syncDisplayNameInPageSnapshots(Consultant $consultant, string $displayName): void
+    {
+        $updates = [];
+
+        foreach (['published_page_data', 'pending_page_data'] as $snapshotKey) {
+            $snapshot = $consultant->{$snapshotKey};
+
+            if (! is_array($snapshot) || ! isset($snapshot['profile']) || ! is_array($snapshot['profile'])) {
+                continue;
+            }
+
+            $snapshot['profile']['display_name'] = $displayName;
+            $updates[$snapshotKey] = $snapshot;
+        }
+
+        if ($updates !== []) {
+            $consultant->forceFill($updates)->save();
+        }
     }
 
     private function logoutForPhoneVerification(Request $request): RedirectResponse|JsonResponse
