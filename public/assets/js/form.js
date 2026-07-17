@@ -504,6 +504,12 @@
             var $certificate = $('#government_certificate_number');
             var $profileImageWrap = $('#profileImageWrap');
             var $profileImage = $('#profile_image');
+
+            // Only run on the registration form — otherwise this clears shared fields like PAN on profile pages.
+            if (! $role.length || ! $('#registerForm').length) {
+                return;
+            }
+
             var isBusinessRole = function () {
                 var role = $role.val();
                 return role === 'vendor' || role === 'consultant' || role === 'service_provider';
