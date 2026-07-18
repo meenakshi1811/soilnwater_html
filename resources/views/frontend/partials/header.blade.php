@@ -83,7 +83,6 @@
   </form>
 
   <div class="header-actions header-actions-desktop">
-    {{-- Temporarily hidden
     <div class="dropdown header-community-dropdown">
       <button
         class="btn-offer dropdown-toggle header-community-toggle"
@@ -100,7 +99,6 @@
         <li><a class="dropdown-item" href="{{ route('community.community-issues.index') }}">Issues</a></li>
       </ul>
     </div>
-    --}}
 
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
@@ -162,11 +160,9 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    {{-- Temporarily hidden
     <a class="btn-offer" href="{{ route('community.index') }}">Community</a>
     <a class="btn-offer" href="{{ route('community.my-area.index') }}">My Area</a>
     <a class="btn-offer" href="{{ route('community.community-issues.index') }}">Issues</a>
-    --}}
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
