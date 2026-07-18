@@ -2414,6 +2414,7 @@ The mountains keep.</pre>
 @push('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
+    .type-extra { display: none; }
     .tag-input-wrap:focus-within { border-color: #86b7fe !important; box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .15); }
     .community-tag-pill { align-items: center; background: #e8f5ee; border: 1px solid #badbcc; border-radius: 999px; color: #0f5132; display: inline-flex; font-size: .875rem; font-weight: 600; gap: .35rem; padding: .25rem .55rem; }
     .community-tag-remove { background: transparent; border: 0; color: inherit; line-height: 1; padding: 0; }
@@ -6617,7 +6618,7 @@ The mountains keep.</pre>
             bodyHelp: 'Add text and images together. Select an image to resize or align it.',
             locationLabel: 'Location <span class="text-danger">*</span>',
             locationHelp: 'Select a Google Places suggestion so latitude and longitude are saved.',
-        }))))))))))))))));
+        })))))))))))))));
 
         document.getElementById('excerptLabel').textContent = fieldCopy.excerptLabel;
         document.getElementById('excerptField').placeholder = fieldCopy.excerptPlaceholder;
