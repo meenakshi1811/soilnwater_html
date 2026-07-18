@@ -8,7 +8,7 @@
         <div>
             <p class="ems-kicker mb-1">Community publishing</p>
             <h2 class="admin-title mb-1">{{ $mode === 'edit' ? 'Edit Community Post' : 'Create Community Post' }}</h2>
-            <p class="mb-0 text-secondary">Select a post type and category, then add the content details.</p>
+            <p class="mb-0 text-secondary">Pick a post type first, then add the category and content details.</p>
         </div>
     </div>
 
@@ -51,16 +51,89 @@
                 </datalist>
                 <small class="text-muted d-block mt-1">Pick one of the suggestions or enter your own reason.</small>
             </div>
-            <div class="col-md-6">
-                <label class="form-label">Post type <span class="text-danger">*</span></label>
-                <select name="content_type" id="contentType" class="form-select" required>
-                    <option value="">Select type</option>
-                    @foreach($types as $key => $type)
-                        <option value="{{ $key }}" @selected(old('content_type', $post->content_type) === $key)>{{ $type['label'] }}</option>
-                    @endforeach
-                </select>
-                <small id="typeHelp" class="text-muted d-block mt-1"></small>
+            @php
+                $selectedContentType = old('content_type', $post->content_type);
+                $postTypeIcons = [
+                    'articles' => 'fa-file-lines',
+                    'reports' => 'fa-clipboard-list',
+                    'my-area' => 'fa-map-location-dot',
+                    'news' => 'fa-newspaper',
+                    'stories' => 'fa-book-open',
+                    'poetry' => 'fa-feather-pointed',
+                    'biography' => 'fa-user-pen',
+                    'autobiography' => 'fa-pen-fancy',
+                    'childrens-corner' => 'fa-child-reaching',
+                    'awareness' => 'fa-bullhorn',
+                    'business' => 'fa-briefcase',
+                    'student-corner' => 'fa-graduation-cap',
+                    'career' => 'fa-chart-line',
+                    'health-wellness' => 'fa-heart-pulse',
+                    'womens-world' => 'fa-venus',
+                    'senior-citizens-forum' => 'fa-person-cane',
+                    'youth-corner' => 'fa-user-group',
+                    'jobs-employment' => 'fa-briefcase',
+                    'opinions-views' => 'fa-comments',
+                    'travel-diaries' => 'fa-plane',
+                    'culture-heritage' => 'fa-landmark',
+                    'astro-consultancy' => 'fa-star',
+                    'religion-spirituality' => 'fa-hands-praying',
+                    'agriculture' => 'fa-seedling',
+                    'environment' => 'fa-leaf',
+                    'science-technology' => 'fa-flask',
+                    'local-voices' => 'fa-microphone',
+                    'community-issues' => 'fa-triangle-exclamation',
+                    'creative-corner' => 'fa-palette',
+                    'competitions' => 'fa-trophy',
+                    'discussions' => 'fa-comments',
+                ];
+            @endphp
+            <div class="col-12">
+                <div class="community-post-type-picker">
+                    <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-3">
+                        <div>
+                            <label class="form-label mb-1">Post type <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-0">Choose the section this post belongs to. The rest of the form appears after you pick one.</p>
+                        </div>
+                        <div class="community-post-type-search">
+                            <label class="visually-hidden" for="contentTypeSearch">Search post types</label>
+                            <input type="search" id="contentTypeSearch" class="form-control form-control-sm" placeholder="Search types…" autocomplete="off">
+                        </div>
+                    </div>
+                    <select name="content_type" id="contentType" class="visually-hidden" required tabindex="-1" aria-hidden="true">
+                        <option value="">Select type</option>
+                        @foreach($types as $key => $type)
+                            <option value="{{ $key }}" @selected($selectedContentType === $key)>{{ $type['label'] }}</option>
+                        @endforeach
+                    </select>
+                    <div class="community-post-type-grid" id="contentTypeGrid" role="listbox" aria-label="Post types">
+                        @foreach($types as $key => $type)
+                            <button
+                                type="button"
+                                class="community-post-type-card{{ $selectedContentType === $key ? ' is-selected' : '' }}"
+                                data-type="{{ $key }}"
+                                data-label="{{ strtolower($type['label']) }}"
+                                role="option"
+                                aria-selected="{{ $selectedContentType === $key ? 'true' : 'false' }}"
+                            >
+                                <span class="community-post-type-card__icon" aria-hidden="true">
+                                    <i class="fa-solid {{ $postTypeIcons[$key] ?? 'fa-file' }}"></i>
+                                </span>
+                                <span class="community-post-type-card__body">
+                                    <span class="community-post-type-card__label">{{ $type['label'] }}</span>
+                                    <span class="community-post-type-card__desc">{{ $type['description'] }}</span>
+                                </span>
+                            </button>
+                        @endforeach
+                    </div>
+                    <small id="typeHelp" class="text-muted d-block mt-2"></small>
+                    <p id="contentTypeEmptyHint" class="community-post-type-empty mb-0 mt-3{{ filled($selectedContentType) ? ' d-none' : '' }}">
+                        Select a post type above to continue with category, title, and content fields.
+                    </p>
+                </div>
             </div>
+
+            <div class="col-12" id="communityPostDetails" @if(! filled($selectedContentType)) hidden @endif>
+            <div class="row g-3">
             <div class="col-md-6" id="categoryFieldWrap">
                 <label class="form-label" id="categoryLabel">Category <span class="text-danger">*</span></label>
                 <select name="category" id="categorySelect" class="form-select" data-selected="{{ old('category', $post->category) }}" required>
@@ -2402,10 +2475,13 @@ The mountains keep.</pre>
                 @enderror
             </div>
         </div>
+            </div>
 
         <div class="d-flex justify-content-end gap-2 mt-4">
             <a href="{{ route('community.posts.index') }}" class="btn btn-outline-secondary">Cancel</a>
             <button type="submit" class="btn btn-primary ems-btn-primary">{{ $mode === 'edit' ? 'Update Post' : 'Create Post' }}</button>
+        </div>
+            </div>
         </div>
     </form>
 </div>
@@ -2415,6 +2491,91 @@ The mountains keep.</pre>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
     .type-extra { display: none; }
+    .community-post-type-picker {
+        background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+        border: 1px solid #dbe3ea;
+        border-radius: 1rem;
+        padding: 1.15rem 1.2rem 1.25rem;
+    }
+    .community-post-type-search {
+        min-width: min(100%, 220px);
+    }
+    .community-post-type-grid {
+        display: grid;
+        gap: .75rem;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+    .community-post-type-card {
+        align-items: flex-start;
+        background: #fff;
+        border: 1px solid #d9e2ec;
+        border-radius: .9rem;
+        color: inherit;
+        display: flex;
+        gap: .8rem;
+        padding: .9rem .95rem;
+        text-align: left;
+        transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+        width: 100%;
+    }
+    .community-post-type-card:hover,
+    .community-post-type-card:focus-visible {
+        border-color: #90caf9;
+        box-shadow: 0 8px 20px rgba(25, 118, 210, 0.12);
+        outline: none;
+        transform: translateY(-1px);
+    }
+    .community-post-type-card.is-selected {
+        border-color: #1976d2;
+        box-shadow: 0 0 0 1px #1976d2, 0 10px 22px rgba(25, 118, 210, 0.16);
+        background: linear-gradient(180deg, #f3f9ff 0%, #ffffff 100%);
+    }
+    .community-post-type-card__icon {
+        align-items: center;
+        background: #e8f1fb;
+        border-radius: .75rem;
+        color: #1565c0;
+        display: inline-flex;
+        flex: 0 0 auto;
+        font-size: 1.05rem;
+        height: 2.4rem;
+        justify-content: center;
+        width: 2.4rem;
+    }
+    .community-post-type-card.is-selected .community-post-type-card__icon {
+        background: #1976d2;
+        color: #fff;
+    }
+    .community-post-type-card__body {
+        display: flex;
+        flex-direction: column;
+        gap: .2rem;
+        min-width: 0;
+    }
+    .community-post-type-card__label {
+        font-size: .95rem;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+    .community-post-type-card__desc {
+        color: #64748b;
+        display: -webkit-box;
+        font-size: .78rem;
+        line-height: 1.35;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+    .community-post-type-empty {
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: .75rem;
+        color: #64748b;
+        padding: .85rem 1rem;
+    }
+    #communityPostDetails[hidden] {
+        display: none !important;
+    }
     .tag-input-wrap:focus-within { border-color: #86b7fe !important; box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .15); }
     .community-tag-pill { align-items: center; background: #e8f5ee; border: 1px solid #badbcc; border-radius: 999px; color: #0f5132; display: inline-flex; font-size: .875rem; font-weight: 600; gap: .35rem; padding: .25rem .55rem; }
     .community-tag-remove { background: transparent; border: 0; color: inherit; line-height: 1; padding: 0; }
@@ -3113,6 +3274,65 @@ The mountains keep.</pre>
             .filter(Boolean)
             .includes(selectedType);
     }
+
+    function syncContentTypePicker(selectedType) {
+        document.querySelectorAll('.community-post-type-card').forEach((card) => {
+            const isSelected = card.dataset.type === selectedType;
+            card.classList.toggle('is-selected', isSelected);
+            card.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        });
+
+        const details = document.getElementById('communityPostDetails');
+        const emptyHint = document.getElementById('contentTypeEmptyHint');
+        const hasType = Boolean(selectedType);
+
+        if (details) {
+            details.hidden = !hasType;
+        }
+        if (emptyHint) {
+            emptyHint.classList.toggle('d-none', hasType);
+        }
+    }
+
+    function setContentType(value, { silent = false } = {}) {
+        const typeSelect = document.getElementById('contentType');
+        if (!typeSelect) {
+            return;
+        }
+
+        const nextValue = value || '';
+        if (typeSelect.value === nextValue && silent) {
+            syncContentTypePicker(nextValue);
+            return;
+        }
+
+        typeSelect.value = nextValue;
+        syncContentTypePicker(nextValue);
+
+        if (!silent) {
+            typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
+    document.getElementById('contentTypeGrid')?.addEventListener('click', function (event) {
+        const card = event.target.closest('.community-post-type-card');
+        if (!card) {
+            return;
+        }
+
+        setContentType(card.dataset.type || '');
+    });
+
+    document.getElementById('contentTypeSearch')?.addEventListener('input', function () {
+        const query = this.value.trim().toLowerCase();
+
+        document.querySelectorAll('.community-post-type-card').forEach((card) => {
+            const label = card.dataset.label || '';
+            const type = (card.dataset.type || '').replace(/-/g, ' ');
+            const matches = !query || label.includes(query) || type.includes(query);
+            card.classList.toggle('d-none', !matches);
+        });
+    });
 
     function getChildrensCornerContentMode(shareType) {
         const modes = window.communityChildrensCornerShareModes || {};
@@ -6032,9 +6252,35 @@ The mountains keep.</pre>
         const selected = categorySelect.dataset.selected;
         const type = window.communityTypes[typeSelect.value];
         const selectedType = typeSelect.value;
+        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology', 'astro-consultancy', 'religion-spirituality', 'creative-corner', 'competitions'].includes(selectedType);
+
+        syncContentTypePicker(selectedType);
+
+        if (!selectedType) {
+            document.querySelectorAll('#communityPostDetails input, #communityPostDetails select, #communityPostDetails textarea').forEach((field) => {
+                field.required = false;
+            });
+        } else {
+            const titleInput = document.querySelector('#communityPostDetails input[name="title"]');
+            if (titleInput) {
+                titleInput.required = true;
+            }
+            const statusSelect = document.getElementById('communityPostStatus');
+            if (statusSelect) {
+                statusSelect.required = true;
+            }
+            const acceptContent = document.getElementById('acceptContentResponsibility');
+            if (acceptContent) {
+                acceptContent.required = true;
+            }
+            const acceptIndemnity = document.getElementById('acceptOriginalWorkIndemnity');
+            if (acceptIndemnity) {
+                acceptIndemnity.required = true;
+            }
+        }
+
         const isReport = selectedType === 'reports';
         const isNews = selectedType === 'news';
-        const hasTypeSection = Boolean(window.communityTypes[selectedType]) && !['news', 'reports', 'stories', 'poetry', 'biography', 'autobiography', 'childrens-corner', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment', 'science-technology', 'astro-consultancy', 'religion-spirituality', 'creative-corner', 'competitions'].includes(selectedType);
 
         categorySelect.innerHTML = '<option value="">Select category</option>';
         help.textContent = type ? type.description : '';
@@ -6044,9 +6290,9 @@ The mountains keep.</pre>
         const subCategoryWrap = document.getElementById('subCategoryFieldWrap');
         const subCategoryHelp = document.getElementById('subCategoryHelp');
 
-        categorySelect.required = true;
-        categorySelect.disabled = false;
-        categoryWrap.style.display = '';
+        categorySelect.required = Boolean(selectedType);
+        categorySelect.disabled = !selectedType;
+        categoryWrap.style.display = selectedType ? '' : 'none';
 
         const isStories = selectedType === 'stories';
         const isPoetry = selectedType === 'poetry';
@@ -6155,9 +6401,14 @@ The mountains keep.</pre>
             categorySelect.required = false;
             categorySelect.disabled = true;
             syncCompetitionsCategory();
-        } else {
+        } else if (selectedType) {
             categoryWrap.style.display = '';
             categorySelect.disabled = false;
+            categorySelect.required = true;
+        } else {
+            categoryWrap.style.display = 'none';
+            categorySelect.required = false;
+            categorySelect.disabled = true;
         }
 
         if (categoryLabel) {
