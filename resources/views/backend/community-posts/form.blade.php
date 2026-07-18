@@ -2576,6 +2576,23 @@ The mountains keep.</pre>
     #communityPostDetails[hidden] {
         display: none !important;
     }
+    #communityPostDetails {
+        scroll-margin-top: 1.25rem;
+    }
+    #communityPostDetails.is-revealed {
+        animation: communityPostDetailsReveal 0.7s ease;
+    }
+    @keyframes communityPostDetailsReveal {
+        0% {
+            box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.35);
+        }
+        40% {
+            box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.18);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(25, 118, 210, 0);
+        }
+    }
     .tag-input-wrap:focus-within { border-color: #86b7fe !important; box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .15); }
     .community-tag-pill { align-items: center; background: #e8f5ee; border: 1px solid #badbcc; border-radius: 999px; color: #0f5132; display: inline-flex; font-size: .875rem; font-weight: 600; gap: .35rem; padding: .25rem .55rem; }
     .community-tag-remove { background: transparent; border: 0; color: inherit; line-height: 1; padding: 0; }
@@ -3294,6 +3311,32 @@ The mountains keep.</pre>
         }
     }
 
+    function scrollToCommunityPostDetails() {
+        const details = document.getElementById('communityPostDetails');
+        if (!details || details.hidden) {
+            return;
+        }
+
+        window.requestAnimationFrame(function () {
+            details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            details.classList.remove('is-revealed');
+            // Retrigger the highlight animation on each selection.
+            void details.offsetWidth;
+            details.classList.add('is-revealed');
+
+            const firstField = details.querySelector('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])');
+            if (firstField && typeof firstField.focus === 'function') {
+                window.setTimeout(function () {
+                    try {
+                        firstField.focus({ preventScroll: true });
+                    } catch (error) {
+                        firstField.focus();
+                    }
+                }, 350);
+            }
+        });
+    }
+
     function setContentType(value, { silent = false } = {}) {
         const typeSelect = document.getElementById('contentType');
         if (!typeSelect) {
@@ -3301,6 +3344,7 @@ The mountains keep.</pre>
         }
 
         const nextValue = value || '';
+
         if (typeSelect.value === nextValue && silent) {
             syncContentTypePicker(nextValue);
             return;
@@ -3311,6 +3355,9 @@ The mountains keep.</pre>
 
         if (!silent) {
             typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            if (nextValue) {
+                scrollToCommunityPostDetails();
+            }
         }
     }
 
