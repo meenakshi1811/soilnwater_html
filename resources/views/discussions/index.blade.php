@@ -2,16 +2,12 @@
 
 @section('meta_title', 'Discussions – SoilnWater')
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/discussion.css') }}?v={{ now()->timestamp }}">
-@endpush
-
 @section('content')
 <div class="discussion-page">
     <section class="discussion-banner">
         <div class="container">
             <h1><i class="fa-solid fa-comments me-2"></i>Discussions</h1>
-            <p class="mb-0">Start a topic, join the conversation, and connect with the community in real time.</p>
+            <p class="mb-0">Use the chat button to join conversations without leaving the page — or browse topics below.</p>
         </div>
     </section>
 
@@ -25,8 +21,8 @@
                 <h2 class="h4 mb-1">Topics</h2>
                 <p class="text-muted mb-0 small">Pinned topics appear first.</p>
             </div>
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newTopicModal">
-                <i class="fa-solid fa-plus me-1"></i> New topic
+            <button type="button" class="btn btn-success" id="discussionPageOpenWidget">
+                <i class="fa-solid fa-comments me-1"></i> Open chat
             </button>
         </div>
 
@@ -46,12 +42,27 @@
         </div>
     </div>
 </div>
-
-@include('discussions.partials.new-topic-modal')
-@include('community.partials.toastr-assets')
-@include('discussions.partials.realtime-config')
 @endsection
 
 @push('scripts')
-<script src="{{ asset('assets/js/discussion.js') }}?v={{ now()->timestamp }}" defer></script>
+<script>
+    document.getElementById('discussionPageOpenWidget')?.addEventListener('click', () => {
+        window.soilnwaterDiscussionWidget?.open?.();
+    });
+
+    document.getElementById('discussionTopicList')?.addEventListener('click', (event) => {
+        const link = event.target.closest('.discussion-topic-link, .btn-outline-success');
+        if (!link) {
+            return;
+        }
+
+        const card = link.closest('[data-topic-id]');
+        if (!card || !window.soilnwaterDiscussionWidget?.openTopic) {
+            return;
+        }
+
+        event.preventDefault();
+        window.soilnwaterDiscussionWidget.openTopic(card.dataset.topicId);
+    });
+</script>
 @endpush

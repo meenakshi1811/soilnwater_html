@@ -26,9 +26,15 @@
         },
     });
 
-    const ui = window.soilnwaterDiscussionUi || {};
     const currentUserId = config.currentUserId;
-    const topicId = config.topicId;
+
+    function ui() {
+        return window.soilnwaterDiscussionUi || {};
+    }
+
+    function activeTopicId() {
+        return window.soilnwaterDiscussion?.topicId || null;
+    }
 
     function shouldIgnoreOwnReply(reply) {
         return reply?.author?.id === currentUserId;
@@ -40,12 +46,12 @@
                 return;
             }
 
-            ui.prependTopic?.(payload.topic);
+            ui().prependTopic?.(payload.topic);
         })
         .listen('.topic.pinned', (payload) => {
-            ui.reorderTopicPin?.(payload.topic_id, payload.is_pinned);
-            if (topicId && payload.topic_id === topicId) {
-                ui.updateTopicPinButton?.(payload.is_pinned);
+            ui().reorderTopicPin?.(payload.topic_id, payload.is_pinned);
+            if (activeTopicId() && Number(payload.topic_id) === Number(activeTopicId())) {
+                ui().updateTopicPinButton?.(payload.is_pinned);
             }
         })
         .listen('.reply.created', (payload) => {
@@ -53,38 +59,17 @@
                 return;
             }
 
-            if (topicId && payload.reply.discussion_topic_id === topicId) {
-                ui.appendReply?.(payload.reply);
+            if (activeTopicId() && Number(payload.reply.discussion_topic_id) === Number(activeTopicId())) {
+                ui().appendReply?.(payload.reply);
             }
         })
         .listen('.reaction.updated', (payload) => {
-            const container = ui.findReactionContainer?.(payload.reactable_type, payload.reactable_id);
+            const helpers = ui();
+            const container = helpers.findReactionContainer?.(payload.reactable_type, payload.reactable_id);
             if (!container) {
                 return;
             }
 
-            ui.updateReactionButtons?.(container, payload.reaction, payload.active, payload.counts || {});
+            helpers.updateReactionButtons?.(container, payload.reaction, payload.active, payload.counts || {});
         });
-
-    if (topicId) {
-        window.Echo.private(`discussion.topic.${topicId}`)
-            .listen('.reply.created', (payload) => {
-                if (!payload.reply || shouldIgnoreOwnReply(payload.reply)) {
-                    return;
-                }
-
-                ui.appendReply?.(payload.reply);
-            })
-            .listen('.topic.pinned', (payload) => {
-                ui.updateTopicPinButton?.(payload.is_pinned);
-            })
-            .listen('.reaction.updated', (payload) => {
-                const container = ui.findReactionContainer?.(payload.reactable_type, payload.reactable_id);
-                if (!container) {
-                    return;
-                }
-
-                ui.updateReactionButtons?.(container, payload.reaction, payload.active, payload.counts || {});
-            });
-    }
 })();

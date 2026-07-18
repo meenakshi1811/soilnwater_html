@@ -13,7 +13,7 @@ use Illuminate\View\View;
 
 class DiscussionTopicController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
         $topics = DiscussionTopic::query()
             ->with('user')
@@ -23,13 +23,28 @@ class DiscussionTopicController extends Controller
             ->latest()
             ->paginate(20);
 
+        $canPin = $request->user()->isAdmin();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'topics' => $topics->getCollection()->map->toBroadcastArray()->values(),
+                'can_pin' => $canPin,
+                'meta' => [
+                    'current_page' => $topics->currentPage(),
+                    'last_page' => $topics->lastPage(),
+                    'per_page' => $topics->perPage(),
+                    'total' => $topics->total(),
+                ],
+            ]);
+        }
+
         return view('discussions.index', [
             'topics' => $topics,
-            'canPin' => $request->user()->isAdmin(),
+            'canPin' => $canPin,
         ]);
     }
 
-    public function show(DiscussionTopic $topic): View
+    public function show(Request $request, DiscussionTopic $topic): View|JsonResponse
     {
         $topic->load([
             'user',
@@ -38,10 +53,28 @@ class DiscussionTopicController extends Controller
             'reactions',
         ]);
 
+        $canPin = auth()->user()?->isAdmin() ?? false;
+        $userReactions = $this->userReactionsForTopic($topic);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'topic' => array_merge($topic->toBroadcastArray(), [
+                    'reaction_counts' => $topic->reactionCounts(),
+                    'user_reactions' => $userReactions['topic'],
+                    'replies' => $topic->replies->map(function ($reply) use ($userReactions) {
+                        return array_merge($reply->toBroadcastArray(), [
+                            'user_reactions' => $userReactions['replies'][$reply->id] ?? [],
+                        ]);
+                    })->values(),
+                ]),
+                'can_pin' => $canPin,
+            ]);
+        }
+
         return view('discussions.show', [
             'topic' => $topic,
-            'canPin' => auth()->user()?->isAdmin() ?? false,
-            'userReactions' => $this->userReactionsForTopic($topic),
+            'canPin' => $canPin,
+            'userReactions' => $userReactions,
         ]);
     }
 

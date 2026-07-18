@@ -71,6 +71,7 @@
             button.dataset.active = isActive ? '1' : '0';
             button.classList.toggle('btn-success', isActive);
             button.classList.toggle('btn-outline-secondary', !isActive);
+            button.classList.toggle('is-active', isActive);
             button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 
             const countEl = button.querySelector('.discussion-reaction-count');
@@ -297,15 +298,20 @@
 
                 notify('success', data.message);
 
-                if (data.topic?.url) {
-                    window.location.href = data.topic.url;
-                    return;
-                }
-
                 form.reset();
                 const modalEl = document.getElementById('newTopicModal');
                 if (modalEl && window.bootstrap?.Modal) {
                     window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                }
+
+                if (data.topic && window.soilnwaterDiscussionWidget?.openTopic) {
+                    window.soilnwaterDiscussionUi?.prependTopic?.(data.topic);
+                    window.soilnwaterDiscussionWidget.openTopic(data.topic.id);
+                    return;
+                }
+
+                if (data.topic?.url) {
+                    window.location.href = data.topic.url;
                 }
             } catch (error) {
                 notify('error', error.message);

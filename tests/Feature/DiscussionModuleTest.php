@@ -168,4 +168,44 @@ class DiscussionModuleTest extends TestCase
 
         Event::assertDispatched(ReactionUpdated::class);
     }
+
+    public function test_verified_user_can_fetch_topics_as_json_for_widget(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $topic = DiscussionTopic::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'Widget topic',
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('discussions.index'))
+            ->assertOk()
+            ->assertJsonPath('topics.0.id', $topic->id)
+            ->assertJsonPath('topics.0.title', 'Widget topic')
+            ->assertJsonStructure(['topics', 'can_pin', 'meta']);
+    }
+
+    public function test_verified_user_can_fetch_topic_thread_as_json_for_widget(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $topic = DiscussionTopic::factory()->create([
+            'user_id' => $user->id,
+            'title' => 'Thread topic',
+            'body' => 'Opening post',
+        ]);
+
+        DiscussionReply::query()->create([
+            'discussion_topic_id' => $topic->id,
+            'user_id' => $user->id,
+            'body' => 'First reply',
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('discussions.show', $topic))
+            ->assertOk()
+            ->assertJsonPath('topic.id', $topic->id)
+            ->assertJsonPath('topic.title', 'Thread topic')
+            ->assertJsonPath('topic.replies.0.body', 'First reply')
+            ->assertJsonStructure(['topic' => ['replies', 'user_reactions'], 'can_pin']);
+    }
 }

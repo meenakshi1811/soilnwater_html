@@ -2,10 +2,6 @@
 
 @section('meta_title', $topic->title . ' – Discussions')
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/discussion.css') }}?v={{ now()->timestamp }}">
-@endpush
-
 @section('content')
 <div class="discussion-page" data-discussion-topic-id="{{ $topic->id }}">
     <section class="discussion-banner discussion-banner--compact">
@@ -17,6 +13,7 @@
                 @endif
                 <span id="discussionTopicTitle">{{ $topic->title }}</span>
             </h1>
+            <p class="mb-0 mt-2"><button type="button" class="btn btn-sm btn-light" id="discussionPageOpenTopicWidget"><i class="fa-solid fa-comments me-1"></i> Open in chat</button></p>
         </div>
     </section>
 
@@ -80,11 +77,17 @@
         </section>
     </div>
 </div>
-
-@include('community.partials.toastr-assets')
-@include('discussions.partials.realtime-config')
 @endsection
 
 @push('scripts')
-<script src="{{ asset('assets/js/discussion.js') }}?v={{ now()->timestamp }}" defer></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        window.soilnwaterDiscussion = window.soilnwaterDiscussion || {};
+        window.soilnwaterDiscussion.topicId = @json($topic->id);
+
+        document.getElementById('discussionPageOpenTopicWidget')?.addEventListener('click', () => {
+            window.soilnwaterDiscussionWidget?.openTopic?.(@json($topic->id));
+        });
+    });
+</script>
 @endpush
