@@ -126,9 +126,6 @@
                                 role="option"
                                 aria-selected="{{ $selectedContentType === $key ? 'true' : 'false' }}"
                             >
-                                <span class="community-post-type-card__icon" aria-hidden="true">
-                                    <i class="fa-solid {{ $postTypeIcons[$key] ?? 'fa-file' }}"></i>
-                                </span>
                                 <span class="community-post-type-card__label">{{ $type['label'] }}</span>
                                 <span class="visually-hidden">{{ $type['description'] }}</span>
                             </button>
@@ -2519,10 +2516,10 @@ The mountains keep.</pre>
 <style>
     .type-extra { display: none; }
     .community-post-type-picker {
-        background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
-        border: 1px solid #dbe3ea;
-        border-radius: 1rem;
-        padding: 1.15rem 1.2rem 1.25rem;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        padding: 0;
     }
     .community-post-type-search {
         min-width: min(100%, 220px);
@@ -2535,62 +2532,42 @@ The mountains keep.</pre>
     .community-post-type-card {
         --pill-color: #78909c;
         align-items: center;
-        background: color-mix(in srgb, var(--pill-color) 58%, transparent);
-        border: 1px solid color-mix(in srgb, var(--pill-color) 72%, #ffffff 28%);
+        background: var(--pill-color);
+        border: 1px solid color-mix(in srgb, var(--pill-color) 78%, #ffffff 22%);
         border-radius: 999px;
-        box-shadow: 0 2px 8px color-mix(in srgb, var(--pill-color) 24%, transparent);
+        box-shadow: 0 2px 10px color-mix(in srgb, var(--pill-color) 32%, transparent);
         color: #fff;
         display: inline-flex;
-        gap: 0.45rem;
+        gap: 0.35rem;
         justify-content: center;
         min-height: 40px;
-        padding: 0.46rem 1rem 0.46rem 0.7rem;
+        padding: 0.48rem 1.1rem;
         text-align: center;
         text-shadow: 0 1px 1px rgba(15, 47, 85, 0.18);
-        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        transition: filter 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, outline-color 0.2s ease;
         width: auto;
     }
     .community-post-type-card:hover,
     .community-post-type-card:focus-visible {
-        background: color-mix(in srgb, var(--pill-color) 74%, transparent);
-        border-color: color-mix(in srgb, var(--pill-color) 82%, #ffffff 18%);
-        box-shadow: 0 4px 14px color-mix(in srgb, var(--pill-color) 34%, transparent);
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--pill-color) 42%, transparent);
         color: #fff;
+        filter: brightness(1.06);
         outline: none;
         transform: translateY(-1px);
     }
     .community-post-type-card.is-selected {
-        background: color-mix(in srgb, var(--pill-color) 18%, #ffffff);
-        border-color: color-mix(in srgb, var(--pill-color) 42%, #ffffff);
-        box-shadow: 0 6px 18px color-mix(in srgb, var(--pill-color) 28%, transparent);
-        color: color-mix(in srgb, var(--pill-color) 82%, #0f2f55);
-        font-weight: 700;
-        text-shadow: none;
+        box-shadow: 0 6px 18px color-mix(in srgb, var(--pill-color) 40%, transparent);
+        color: #fff;
+        filter: brightness(1.04);
+        outline: 2px solid color-mix(in srgb, var(--pill-color) 55%, #0f2f55 45%);
+        outline-offset: 2px;
         transform: none;
     }
     .community-post-type-card.is-selected:hover,
     .community-post-type-card.is-selected:focus-visible {
-        background: color-mix(in srgb, var(--pill-color) 24%, #ffffff);
-        border-color: color-mix(in srgb, var(--pill-color) 48%, #ffffff);
-        box-shadow: 0 8px 22px color-mix(in srgb, var(--pill-color) 32%, transparent);
-        color: color-mix(in srgb, var(--pill-color) 88%, #0f2f55);
+        color: #fff;
+        filter: brightness(1.08);
         transform: none;
-    }
-    .community-post-type-card__icon {
-        align-items: center;
-        background: rgba(255, 255, 255, 0.22);
-        border-radius: 999px;
-        color: inherit;
-        display: inline-flex;
-        flex: 0 0 auto;
-        font-size: 0.82rem;
-        height: 1.55rem;
-        justify-content: center;
-        width: 1.55rem;
-    }
-    .community-post-type-card.is-selected .community-post-type-card__icon {
-        background: color-mix(in srgb, var(--pill-color) 16%, #ffffff);
-        color: color-mix(in srgb, var(--pill-color) 88%, #0f2f55);
     }
     .community-post-type-card__label {
         font-size: 0.83rem;
@@ -8031,8 +8008,14 @@ The mountains keep.</pre>
 
     function createCommunityEditorFileButtonPlugin(pluginName, buttonName, label, accept, onFile) {
         const CK = window.CKEDITOR || {};
+        const PluginBase = CK.Plugin;
+        const ButtonView = CK.ButtonView;
 
-        return class extends CK.Plugin {
+        if (typeof PluginBase !== 'function' || typeof ButtonView !== 'function') {
+            return null;
+        }
+
+        return class extends PluginBase {
             static get pluginName() {
                 return pluginName;
             }
@@ -8041,7 +8024,7 @@ The mountains keep.</pre>
                 const editor = this.editor;
 
                 editor.ui.componentFactory.add(buttonName, (locale) => {
-                    const button = new CK.ButtonView(locale);
+                    const button = new ButtonView(locale);
                     button.set({
                         label,
                         withText: true,
@@ -8080,8 +8063,14 @@ The mountains keep.</pre>
 
     function createCommunityEditorPromptButtonPlugin(pluginName, buttonName, label, onExecute) {
         const CK = window.CKEDITOR || {};
+        const PluginBase = CK.Plugin;
+        const ButtonView = CK.ButtonView;
 
-        return class extends CK.Plugin {
+        if (typeof PluginBase !== 'function' || typeof ButtonView !== 'function') {
+            return null;
+        }
+
+        return class extends PluginBase {
             static get pluginName() {
                 return pluginName;
             }
@@ -8090,7 +8079,7 @@ The mountains keep.</pre>
                 const editor = this.editor;
 
                 editor.ui.componentFactory.add(buttonName, (locale) => {
-                    const button = new CK.ButtonView(locale);
+                    const button = new ButtonView(locale);
                     button.set({
                         label,
                         withText: true,
@@ -8246,13 +8235,15 @@ The mountains keep.</pre>
             UploadVideoPlugin,
             InsertChartPlugin,
             InsertPollPlugin,
-        ];
+        ].filter(Boolean);
     }
 
     function getCommunityBodyEditorConfig() {
-        return {
-            plugins: getCommunityBodyEditorPlugins(),
-            extraPlugins: getCommunityBodyEditorExtraPlugins(),
+        const builtInPlugins = getCommunityBodyEditorPlugins();
+        const extraPlugins = getCommunityBodyEditorExtraPlugins();
+        const useExplicitPlugins = builtInPlugins.length >= 8;
+
+        const config = {
             toolbar: {
                 items: [
                     'heading', '|',
@@ -8316,6 +8307,41 @@ The mountains keep.</pre>
                 contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
             },
         };
+
+        if (useExplicitPlugins) {
+            config.plugins = builtInPlugins.concat(extraPlugins);
+        } else {
+            // Super-build fallback when individual plugin exports are unavailable.
+            config.removePlugins = [
+                'AIAssistant',
+                'CKBox',
+                'CKFinder',
+                'EasyImage',
+                'RealTimeCollaborativeComments',
+                'RealTimeCollaborativeTrackChanges',
+                'RealTimeCollaborativeRevisionHistory',
+                'PresenceList',
+                'Comments',
+                'TrackChanges',
+                'TrackChangesData',
+                'RevisionHistory',
+                'Pagination',
+                'WProofreader',
+                'MathType',
+                'SlashCommand',
+                'Template',
+                'DocumentOutline',
+                'FormatPainter',
+                'TableOfContents',
+                'PasteFromOfficeEnhanced',
+                'CaseChange',
+            ];
+            if (extraPlugins.length) {
+                config.extraPlugins = extraPlugins;
+            }
+        }
+
+        return config;
     }
 
     function contentTypeUsesBodyEditor(contentType) {
@@ -8370,6 +8396,7 @@ The mountains keep.</pre>
     function initCommunityBodyEditor() {
         const bodyEditor = document.querySelector('#bodyEditor');
         const bodyEditorMount = document.getElementById('bodyEditorMount');
+        const details = document.getElementById('communityPostDetails');
 
         if (!bodyEditor || !bodyEditorMount) {
             console.error('Community body editor mount was not found.');
@@ -8377,6 +8404,11 @@ The mountains keep.</pre>
         }
 
         if (!contentTypeUsesBodyEditor(document.getElementById('contentType')?.value || '')) {
+            return Promise.resolve(null);
+        }
+
+        // Avoid creating the editor while the details panel is still hidden.
+        if (details && details.hidden) {
             return Promise.resolve(null);
         }
 
@@ -8391,13 +8423,15 @@ The mountains keep.</pre>
             return communityBodyEditorInitPromise;
         }
 
-        if (typeof ClassicEditor === 'undefined' && typeof CKEDITOR === 'undefined') {
-            console.error('CKEditor failed to load.');
+        const EditorClass = (window.CKEDITOR && window.CKEDITOR.ClassicEditor)
+            || window.ClassicEditor
+            || null;
+
+        if (!EditorClass || typeof EditorClass.create !== 'function') {
+            console.error('CKEditor failed to load.', { CKEDITOR: typeof window.CKEDITOR, ClassicEditor: typeof window.ClassicEditor });
             notify('error', 'Rich text editor failed to load. Please refresh the page or check your internet connection.');
             return Promise.resolve(null);
         }
-
-        const EditorClass = (window.CKEDITOR && window.CKEDITOR.ClassicEditor) || window.ClassicEditor;
 
         communityBodyEditorInitPromise = EditorClass.create(bodyEditor, getCommunityBodyEditorConfig())
             .then((editor) => {
@@ -8426,8 +8460,8 @@ The mountains keep.</pre>
             })
             .catch((error) => {
                 communityBodyEditorInitPromise = null;
-                console.error(error);
-                notify('error', 'Unable to load the body editor.');
+                console.error('Unable to load the body editor.', error);
+                notify('error', 'Unable to load the body editor. Please refresh and try again.');
                 return null;
             });
 
