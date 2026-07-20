@@ -75,16 +75,23 @@
 
 @once
 <script>
-window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, fillerPool) {
+window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, fillerPool, options) {
     gridId = gridId || 'ads';
     fillerPool = Array.isArray(fillerPool) ? fillerPool : [];
+    options = options || {};
 
     window.__adsMasonryInstances = window.__adsMasonryInstances || [];
     const existingIndex = window.__adsMasonryInstances.findIndex((entry) => entry.gridId === gridId);
-    const instance = { gridId, fillerPool };
+    let instance;
+
     if (existingIndex >= 0) {
-        window.__adsMasonryInstances[existingIndex] = instance;
+        instance = window.__adsMasonryInstances[existingIndex];
+        instance.fillerPool = fillerPool;
+        if (options.resetFillers) {
+            instance.fillerPositions = null;
+        }
     } else {
+        instance = { gridId, fillerPool, fillerPositions: null };
         window.__adsMasonryInstances.push(instance);
     }
 
@@ -135,6 +142,28 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return card;
     }
 
+    function mountFiller(grid, left, top, width, height, placed) {
+        const filler = createFiller(width, height);
+
+        filler.style.position = 'absolute';
+        filler.style.width = width + 'px';
+        filler.style.height = height + 'px';
+        filler.style.left = left + 'px';
+        filler.style.top = top + 'px';
+
+        grid.appendChild(filler);
+
+        placed.push({
+            el: filler,
+            left: left,
+            right: left + width,
+            top: top,
+            bottom: top + height
+        });
+
+        return { left, top, w: width, h: height };
+    }
+
     function packGrid(grid) {
         const cards = Array.from(grid.querySelectorAll('.ad-card:not([data-filler])'));
         if (!cards.length) return;
@@ -145,6 +174,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         if (!containerWidth) return;
 
         const placed = [];
+        fillerIndex = 0;
 
         // Upper bound for the vertical search. Grows with the amount of content so
         // that cards below the fold still get a real slot after "load more" re-packs
@@ -180,6 +210,28 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             }
 
             return null;
+        }
+
+        const pinnedFillers = Array.isArray(instance.fillerPositions) ? instance.fillerPositions : [];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Keep sponsored slots fixed once discovered
+        |--------------------------------------------------------------------------
+        */
+        if (pinnedFillers.length) {
+            pinnedFillers.forEach((slot) => {
+                const slotW = Number(slot.w);
+                const slotH = Number(slot.h);
+                const slotLeft = Number(slot.left);
+                const slotTop = Number(slot.top);
+
+                if (!slotW || !slotH || slotLeft + slotW > containerWidth) {
+                    return;
+                }
+
+                mountFiller(grid, slotLeft, slotTop, slotW, slotH, placed);
+            });
         }
 
         /*
@@ -251,8 +303,9 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             : 0;
 
         const bottomLimit = currentHeight - 40;
+        const discoveredFillers = [];
 
-        if (bottomLimit > 0) {
+        if (!pinnedFillers.length && bottomLimit > 0) {
             for (let top = 0; top <= bottomLimit; top += 10) {
                 for (let left = 0; left <= containerWidth; left += 10) {
 
@@ -268,28 +321,18 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                         }
 
                         if (isFree(left, top, size.w, size.h)) {
-                            const filler = createFiller(size.w, size.h);
-
-                            filler.style.position = 'absolute';
-                            filler.style.width = size.w + 'px';
-                            filler.style.height = size.h + 'px';
-                            filler.style.left = left + 'px';
-                            filler.style.top = top + 'px';
-
-                            grid.appendChild(filler);
-
-                            placed.push({
-                                el: filler,
-                                left: left,
-                                right: left + size.w,
-                                top: top,
-                                bottom: top + size.h
-                            });
+                            discoveredFillers.push(
+                                mountFiller(grid, left, top, size.w, size.h, placed)
+                            );
 
                             break;
                         }
                     }
                 }
+            }
+
+            if (discoveredFillers.length) {
+                instance.fillerPositions = discoveredFillers;
             }
         }
 
@@ -355,6 +398,7 @@ if (!window.__adsMasonryResizeBound) {
         clearTimeout(window.__adsMasonryResizeTimer);
         window.__adsMasonryResizeTimer = setTimeout(function () {
             (window.__adsMasonryInstances || []).forEach(function (entry) {
+                entry.fillerPositions = null;
                 if (typeof window.renderAdsMarketCards === 'function') {
                     window.renderAdsMarketCards(entry.gridId, entry.fillerPool);
                 }

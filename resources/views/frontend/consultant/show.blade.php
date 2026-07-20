@@ -117,11 +117,6 @@
     @endif
 @endforeach
 
-@include('frontend.consultant.partials.supporting-ads', [
-    'ads' => $distributedAds->slice($consultant->pageSections->count() * $adsPerContentSection),
-    'placementId' => 'consultantRemainingAds',
-])
-
 @if(! $recentAdsShown)
     @include('frontend.consultant.partials.recent-ads-slider', ['ads' => $consultantRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByConsultantAdId])
 @endif
