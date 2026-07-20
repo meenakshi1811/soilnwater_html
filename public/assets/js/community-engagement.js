@@ -30,6 +30,8 @@
     function updateSaveButton(button, saved) {
         button.classList.toggle('is-saved', saved);
 
+        const iconOnly = button.classList.contains('community-banner-action--icon')
+            || button.dataset.iconOnly === '1';
         const icon = button.querySelector('i[class*="fa-bookmark"]');
         if (icon) {
             icon.className = (saved ? 'fa-solid' : 'fa-regular') + ' fa-bookmark'
@@ -39,9 +41,22 @@
 
         const labelSaved = button.dataset.labelSaved;
         const labelUnsaved = button.dataset.labelUnsaved;
+        const label = saved ? (labelSaved || 'Saved') : (labelUnsaved || 'Save');
+
+        if (iconOnly) {
+            if (icon) {
+                button.replaceChildren(icon);
+            } else {
+                button.innerHTML = saved
+                    ? '<i class="fa-solid fa-bookmark" aria-hidden="true"></i>'
+                    : '<i class="fa-regular fa-bookmark" aria-hidden="true"></i>';
+            }
+            button.setAttribute('aria-label', label);
+            button.title = label;
+            return;
+        }
 
         if (labelSaved !== undefined || labelUnsaved !== undefined) {
-            const label = saved ? (labelSaved || 'Saved') : (labelUnsaved || 'Save');
             if (icon) {
                 button.replaceChildren(icon, document.createTextNode(label.startsWith(' ') ? label : ' ' + label));
             } else {
@@ -70,7 +85,19 @@
 
         const subscribedLabel = button.dataset.labelSubscribed || 'Subscribed';
         const unsubscribedLabel = button.dataset.labelUnsubscribed || 'Subscribe';
-        button.textContent = subscribed ? subscribedLabel : unsubscribedLabel;
+        const label = subscribed ? subscribedLabel : unsubscribedLabel;
+
+        if (button.classList.contains('community-banner-action--icon') || button.dataset.iconOnly === '1') {
+            const icon = button.querySelector('i') || document.createElement('i');
+            icon.className = 'fa-solid fa-bell';
+            icon.setAttribute('aria-hidden', 'true');
+            button.replaceChildren(icon);
+            button.setAttribute('aria-label', label);
+            button.title = label;
+            return;
+        }
+
+        button.textContent = label;
     }
 
     function updateFollowAuthorButton(button, following) {
@@ -80,7 +107,19 @@
 
         const followingLabel = button.dataset.labelFollowing || 'Unfollow';
         const unfollowedLabel = button.dataset.labelUnfollowed || 'Follow Author';
-        button.textContent = following ? followingLabel : unfollowedLabel;
+        const label = following ? followingLabel : unfollowedLabel;
+
+        if (button.classList.contains('community-engagement-icon-btn') || button.dataset.iconOnly === '1') {
+            const icon = button.querySelector('i') || document.createElement('i');
+            icon.className = following ? 'fa-solid fa-user-check' : 'fa-solid fa-user-plus';
+            icon.setAttribute('aria-hidden', 'true');
+            button.replaceChildren(icon);
+            button.setAttribute('aria-label', label);
+            button.title = label;
+            return;
+        }
+
+        button.textContent = label;
     }
 
     function extractErrorMessage(data, fallback) {

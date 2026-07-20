@@ -133,7 +133,11 @@
 
     .about-page--articles .community-article-hero__actions {
         animation: articleRise 0.75s ease 0.2s both;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
         justify-content: flex-start !important;
+        width: 100%;
     }
 
     .about-page--articles .community-post-banner-tags {

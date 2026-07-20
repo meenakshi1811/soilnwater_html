@@ -669,41 +669,44 @@
         </p>
         <div @class(['d-flex flex-wrap gap-2 mt-2', 'justify-content-center' => ! $isArticlePost, 'community-article-hero__actions' => $isArticlePost])>
             @if($post->allowsSharing())
-                @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true])
+                @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true, 'iconOnly' => true])
             @endif
             @auth
                 @if($post->isPubliclyVisible())
                     <button type="button"
-                        class="community-banner-action js-community-save-post {{ $isSaved ? 'is-saved' : '' }}"
+                        class="community-banner-action community-banner-action--icon js-community-save-post {{ $isSaved ? 'is-saved' : '' }}"
                         data-url="{{ route('community.save.toggle', $post) }}"
                         data-label-saved="Saved"
-                        data-label-unsaved="Save">
+                        data-label-unsaved="Save"
+                        title="{{ $isSaved ? 'Saved' : 'Save' }}"
+                        aria-label="{{ $isSaved ? 'Saved' : 'Save' }}">
                         <i class="fa-{{ $isSaved ? 'solid' : 'regular' }} fa-bookmark" aria-hidden="true"></i>
-                        {{ $isSaved ? 'Saved' : 'Save' }}
                     </button>
                     @if(auth()->id() !== $post->user_id)
                         <button type="button"
-                            class="community-banner-action js-community-subscribe-category {{ $isCategorySubscribed ? 'is-subscribed' : '' }}"
+                            class="community-banner-action community-banner-action--icon js-community-subscribe-category {{ $isCategorySubscribed ? 'is-subscribed' : '' }}"
                             data-url="{{ route('community.subscriptions.category.toggle') }}"
                             data-content-type="{{ $subscriptionContentType }}"
                             data-category="{{ $subscriptionCategory }}"
                             data-label-subscribed="Subscribed to category"
-                            data-label-unsubscribed="Subscribe to category">
-                            {{ $isCategorySubscribed ? 'Subscribed to category' : 'Subscribe to category' }}
+                            data-label-unsubscribed="Subscribe to category"
+                            title="{{ $isCategorySubscribed ? 'Subscribed to category' : 'Subscribe to category' }}"
+                            aria-label="{{ $isCategorySubscribed ? 'Subscribed to category' : 'Subscribe to category' }}">
+                            <i class="fa-solid fa-bell" aria-hidden="true"></i>
                         </button>
                         <button type="button"
-                            class="community-banner-action"
+                            class="community-banner-action community-banner-action--icon"
                             data-bs-toggle="modal"
-                            data-bs-target="#communityPostReportModal">
+                            data-bs-target="#communityPostReportModal"
+                            title="Report content"
+                            aria-label="Report content">
                             <i class="fa-solid fa-flag" aria-hidden="true"></i>
-                            Report content
                         </button>
                     @endif
                 @endif
                 @if(auth()->id() === $post->user_id || auth()->user()->isAdmin())
-                    <a href="{{ route('community.posts.edit', $post) }}" class="community-banner-action">
+                    <a href="{{ route('community.posts.edit', $post) }}" class="community-banner-action community-banner-action--icon" title="Edit post" aria-label="Edit post">
                         <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                        Edit Post
                     </a>
                 @endif
             @endauth
@@ -1336,43 +1339,58 @@
                 @include('community.partials.poll', ['post' => $post])
             @endif
 
-            <div class="about-box mt-4">
-                <h4>Community engagement</h4>
-                <ul class="about-list mb-3">
-                    <li><strong>Views:</strong> {{ number_format($post->views_count) }}</li>
-                    <li><strong>Shares:</strong> {{ number_format($post->shares_count) }}</li>
+        <div class="about-box mt-4 community-engagement-panel">
+                <h4 class="community-engagement-panel__title">Community engagement</h4>
+                <div class="community-engagement-stats" role="list">
+                    <div class="community-engagement-stat" role="listitem" title="Views">
+                        <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                        <span class="community-engagement-stat__value">{{ number_format($post->views_count) }}</span>
+                        <span class="visually-hidden">Views</span>
+                    </div>
+                    <div class="community-engagement-stat" role="listitem" title="Shares">
+                        <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
+                        <span class="community-engagement-stat__value">{{ number_format($post->shares_count) }}</span>
+                        <span class="visually-hidden">Shares</span>
+                    </div>
                     @if($post->article_score > 0)
-                        <li><strong>Article score:</strong> {{ number_format((float) $post->article_score, 1) }}/100</li>
+                        <div class="community-engagement-stat" role="listitem" title="Article score">
+                            <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+                            <span class="community-engagement-stat__value">{{ number_format((float) $post->article_score, 1) }}</span>
+                            <span class="visually-hidden">Article score out of 100</span>
+                        </div>
                     @endif
-                </ul>
+                </div>
                 @php
                     $reactionCounts = $post->reactions->groupBy('reaction')->map->count();
                     $userReactions = auth()->check() ? $post->reactions->where('user_id', auth()->id())->pluck('reaction')->all() : [];
                     $reactionOptions = $post->reactionOptionsForDisplay();
                 @endphp
                 @auth
-                    <div class="d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
+                    <div class="community-engagement-actions d-flex flex-wrap gap-2 mb-3" id="communityReactionButtons">
                         @foreach($reactionOptions as $reaction => $icon)
                             <form method="POST" action="{{ route('community.react', $post) }}" class="js-community-reaction-form">
                                 @csrf
                                 <input type="hidden" name="reaction" value="{{ $reaction }}">
-                                <button type="submit" class="btn {{ in_array($reaction, $userReactions, true) ? 'btn-success' : 'btn-outline-success' }} btn-sm" data-reaction-button="{{ $reaction }}">
-                                    <i class="{{ $icon }} me-1" aria-hidden="true"></i><span class="reaction-label">{{ $reaction }}</span> <span class="reaction-count">{{ $reactionCounts[$reaction] ?? 0 }}</span>
+                                <button type="submit" class="btn {{ in_array($reaction, $userReactions, true) ? 'btn-success' : 'btn-outline-success' }} btn-sm community-engagement-icon-btn" data-reaction-button="{{ $reaction }}" title="{{ $reaction }}" aria-label="{{ $reaction }} ({{ $reactionCounts[$reaction] ?? 0 }})">
+                                    <i class="{{ $icon }}" aria-hidden="true"></i>
+                                    <span class="reaction-count">{{ $reactionCounts[$reaction] ?? 0 }}</span>
                                 </button>
                             </form>
                         @endforeach
                         @if($post->showsAuthorProfileLink() && auth()->id() !== $post->user_id)
                             <button type="button"
-                                class="btn btn-sm js-community-follow-author {{ $isFollowingAuthor ? 'btn-success is-following' : 'btn-outline-success' }}"
+                                class="btn btn-sm community-engagement-icon-btn js-community-follow-author {{ $isFollowingAuthor ? 'btn-success is-following' : 'btn-outline-success' }}"
                                 data-url="{{ route('community.authors.follow', $post->user) }}"
                                 data-label-following="Unfollow"
-                                data-label-unfollowed="Follow Author">
-                                {{ $isFollowingAuthor ? 'Unfollow' : 'Follow Author' }}
+                                data-label-unfollowed="Follow Author"
+                                title="{{ $isFollowingAuthor ? 'Unfollow author' : 'Follow author' }}"
+                                aria-label="{{ $isFollowingAuthor ? 'Unfollow author' : 'Follow author' }}">
+                                <i class="fa-solid {{ $isFollowingAuthor ? 'fa-user-check' : 'fa-user-plus' }}" aria-hidden="true"></i>
                             </button>
                         @endif
                     </div>
                 @else
-                    <p><a href="{{ route('login') }}">Login</a> to react or follow this author.</p>
+                    <p class="small text-muted mb-3"><a href="{{ route('login') }}">Login</a> to react or follow this author.</p>
                 @endauth
                 <ul class="about-list mb-0">
                     <li>

@@ -42,6 +42,83 @@
             transform: translateY(-1px);
         }
 
+        .community-banner-action--icon {
+            height: 2.5rem;
+            justify-content: center;
+            min-width: 2.5rem;
+            padding: 0.5rem;
+            width: 2.5rem;
+        }
+
+        .community-banner-action--icon i {
+            margin: 0;
+        }
+
+        .community-engagement-panel {
+            width: 100%;
+        }
+
+        .community-engagement-panel__title {
+            margin-bottom: 1rem;
+        }
+
+        .community-engagement-stats {
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            margin-bottom: 1.15rem;
+            width: 100%;
+        }
+
+        .community-engagement-stat {
+            align-items: center;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+            border: 1px solid rgba(15, 47, 85, 0.1);
+            border-radius: 1rem;
+            color: #0f2744;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            justify-content: center;
+            min-height: 5.25rem;
+            padding: 0.9rem 0.75rem;
+            text-align: center;
+        }
+
+        .community-engagement-stat i {
+            color: #1b6ca8;
+            font-size: 1.25rem;
+        }
+
+        .community-engagement-stat__value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .community-engagement-actions {
+            width: 100%;
+        }
+
+        .community-engagement-icon-btn {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.35rem;
+            justify-content: center;
+            min-width: 2.75rem;
+        }
+
+        .community-engagement-icon-btn .reaction-label {
+            display: none;
+        }
+
+        @media (max-width: 575.98px) {
+            .community-engagement-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .community-post-card__share-btn:hover,
         .community-post-card__share-btn:focus {
             background: #dcecff;
@@ -281,15 +358,19 @@
 @if(!empty($showTrigger) && filled($shareUrl))
     <button
         type="button"
-        class="community-banner-action js-community-share-trigger"
+        class="community-banner-action{{ !empty($iconOnly) ? ' community-banner-action--icon' : '' }} js-community-share-trigger"
         data-bs-toggle="modal"
         data-bs-target="#communityShareModal"
         data-share-url="{{ $shareUrl }}"
         data-share-title="{{ $shareLabel }}"
         data-share-track-url="{{ isset($post) ? route('community.share.track', $post) : '' }}"
+        title="Share"
+        aria-label="Share"
     >
-        <i class="fa-solid fa-qrcode" aria-hidden="true"></i>
-        Scan &amp; Share
+        <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
+        @unless(!empty($iconOnly))
+            Scan &amp; Share
+        @endunless
     </button>
 @endif
 

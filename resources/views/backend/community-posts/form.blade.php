@@ -2458,9 +2458,9 @@ The mountains keep.</pre>
             </div>
         </div>
 
-        <div class="border rounded-3 p-3 bg-light mt-4">
-            <h5 class="mb-3">Content responsibility &amp; posting policy</h5>
-            <p class="text-muted small mb-3">
+        <div class="border rounded-3 p-3 bg-light mt-4 community-consent-section">
+            <h5 class="mb-2 community-consent-section__title">Content responsibility &amp; posting policy</h5>
+            <p class="community-consent-section__intro mb-3">
                 You must accept both statements before submitting. Your account ID, IP address, submission time, and acceptance timestamps are stored for every post.
                 <a href="{{ route('frontend.community-posting-policy') }}" target="_blank" rel="noopener">Read the Community Posting Policy</a>.
             </p>
@@ -2474,7 +2474,7 @@ The mountains keep.</pre>
                     value="1"
                     @checked(old('accept_content_responsibility'))
                     required>
-                <label class="form-check-label" for="acceptContentResponsibility">
+                <label class="form-check-label community-consent-section__label" for="acceptContentResponsibility">
                     You are solely responsible for the content you publish. Do not post false information, copyrighted material, personal attacks, or unlawful content. SoilnWater reserves the right to remove any content that violates platform policies.
                 </label>
                 @error('accept_content_responsibility')
@@ -2491,7 +2491,7 @@ The mountains keep.</pre>
                     value="1"
                     @checked(old('accept_original_work_indemnity'))
                     required>
-                <label class="form-check-label" for="acceptOriginalWorkIndemnity">
+                <label class="form-check-label community-consent-section__label" for="acceptOriginalWorkIndemnity">
                     I confirm that this content is my original work or that I have the necessary rights and permissions to publish it. I understand and agree that I am solely responsible for the content I submit, including its accuracy, legality, and compliance with applicable laws. I agree to indemnify and hold harmless SoilnWater, its owners, employees, and affiliates from any claims, damages, liabilities, costs, or legal proceedings arising from my submitted content.
                 </label>
                 @error('accept_original_work_indemnity')
@@ -2515,6 +2515,20 @@ The mountains keep.</pre>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <style>
     .type-extra { display: none; }
+    .community-consent-section__title {
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+    .community-consent-section__intro,
+    .community-consent-section__label {
+        color: #64748b;
+        font-size: 0.78rem;
+        font-style: italic;
+        line-height: 1.55;
+    }
+    .community-consent-section__intro a {
+        font-style: italic;
+    }
     .community-post-type-picker {
         background: transparent;
         border: 0;
