@@ -3278,6 +3278,7 @@ The mountains keep.</pre>
     window.communityBookPages = @json($communityBookPagesForJs);
     window.communityBodyEditor = null;
     window.communityActiveBookPage = 0;
+    let communityBodyEditorInitPromise = null;
     const COMMUNITY_EDITOR_LANGUAGES = {
         en: { label: 'English', lang: 'en', dir: 'ltr' },
         hi: { label: 'Hindi', lang: 'hi', dir: 'ltr' },
@@ -3294,6 +3295,22 @@ The mountains keep.</pre>
 
     function isLifeStoryContentType(type) {
         return (window.communityLifeStoryTypes || []).includes(type);
+    }
+
+    function isCommunitySharedFormField(field) {
+        if (!field) {
+            return false;
+        }
+
+        return field.id === 'bodyEditor'
+            || field.id === 'tagInput'
+            || field.id === 'tagsHidden'
+            || field.id === 'editorLanguageSelect'
+            || Boolean(field.closest('#bodyEditorMount'))
+            || Boolean(field.closest('#communityTagsWrap'))
+            || Boolean(field.closest('#communityStructuredLocationWrapper'))
+            || Boolean(field.closest('#communityFeaturedImagesWrap'))
+            || Boolean(field.closest('#communityVideoWrap'));
     }
 
     function contentTypeMatchesDataset(selectedType, datasetFor) {
@@ -5093,7 +5110,7 @@ The mountains keep.</pre>
         }
 
         document.querySelectorAll('.childrens-corner-flow input, .childrens-corner-flow textarea, .childrens-corner-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -5101,6 +5118,10 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.childrens-corner-flow-section input, .childrens-corner-flow-section textarea, .childrens-corner-flow-section select').forEach((field) => {
+            if (isCommunitySharedFormField(field)) {
+                return;
+            }
+
             field.disabled = !isChildrensCorner;
         });
 
@@ -6684,7 +6705,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.awareness-flow input, .awareness-flow textarea, .awareness-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6692,7 +6713,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.business-flow input, .business-flow textarea, .business-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6700,7 +6721,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.womens-world-flow input, .womens-world-flow textarea, .womens-world-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6708,7 +6729,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.senior-citizens-forum-flow input, .senior-citizens-forum-flow textarea, .senior-citizens-forum-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6716,7 +6737,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.student-corner-flow input, .student-corner-flow textarea, .student-corner-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6724,7 +6745,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.youth-corner-flow input, .youth-corner-flow textarea, .youth-corner-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6732,7 +6753,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.local-voices-flow input, .local-voices-flow textarea, .local-voices-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6740,7 +6761,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.my-area-flow input, .my-area-flow textarea, .my-area-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6748,7 +6769,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.community-issues-flow input, .community-issues-flow textarea, .community-issues-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6756,7 +6777,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.agriculture-flow input, .agriculture-flow textarea, .agriculture-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6764,15 +6785,23 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.environment-flow input, .environment-flow textarea, .environment-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
             field.disabled = !isEnvironment;
         });
 
+        document.querySelectorAll('.science-technology-flow input, .science-technology-flow textarea, .science-technology-flow select').forEach((field) => {
+            if (isCommunitySharedFormField(field)) {
+                return;
+            }
+
+            field.disabled = !isScienceTechnology;
+        });
+
         document.querySelectorAll('.astro-consultancy-flow input, .astro-consultancy-flow textarea, .astro-consultancy-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6780,7 +6809,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.religion-spirituality-flow input, .religion-spirituality-flow textarea, .religion-spirituality-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6788,7 +6817,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.creative-corner-flow input, .creative-corner-flow textarea, .creative-corner-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6796,7 +6825,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.competitions-flow input, .competitions-flow textarea, .competitions-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount') || field.closest('#communityStructuredLocationWrapper') || field.closest('#communityFeaturedImagesWrap') || field.closest('#communityVideoWrap')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6812,7 +6841,7 @@ The mountains keep.</pre>
         refreshLifeTimelineRequiredState(isLifeStory);
 
         document.querySelectorAll('.autobiography-flow input, .autobiography-flow textarea, .autobiography-flow select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6820,7 +6849,7 @@ The mountains keep.</pre>
         });
 
         document.querySelectorAll('.life-story-flow-section input, .life-story-flow-section textarea, .life-story-flow-section select').forEach((field) => {
-            if (field.id === 'bodyEditor' || field.closest('#bodyEditorMount')) {
+            if (isCommunitySharedFormField(field)) {
                 return;
             }
 
@@ -6834,6 +6863,18 @@ The mountains keep.</pre>
         }
         if (bodyEditorField) {
             bodyEditorField.disabled = false;
+        }
+
+        // Tags are relocated into type-flow slots; keep the input enabled after those
+        // flows toggle disabled on nested inputs.
+        const tagInputEl = document.getElementById('tagInput');
+        if (tagInputEl) {
+            const tagCount = (document.getElementById('tagsHidden')?.value || '')
+                .split(',')
+                .map((tag) => tag.trim())
+                .filter(Boolean)
+                .length;
+            tagInputEl.disabled = tagCount >= 10;
         }
 
         document.querySelectorAll('.type-field-required').forEach((field) => {
@@ -7904,7 +7945,12 @@ The mountains keep.</pre>
     }
 
     function communityUploadAdapterPlugin(editor) {
-        editor.plugins.get('FileRepository').createUploadAdapter = (loader) => new CommunityUploadAdapter(loader);
+        const fileRepository = editor.plugins.get('FileRepository');
+        if (!fileRepository) {
+            return;
+        }
+
+        fileRepository.createUploadAdapter = (loader) => new CommunityUploadAdapter(loader);
     }
 
     function communityImageTextFlowPlugin(editor) {
@@ -7956,7 +8002,8 @@ The mountains keep.</pre>
             }
 
             locking = true;
-            editor.model.change({ isUndoable: false }, (writer) => {
+
+            const applySelection = (writer) => {
                 let targetParagraph = imageNode.nextSibling;
 
                 if (!targetParagraph || !targetParagraph.is('element', 'paragraph')) {
@@ -7965,7 +8012,14 @@ The mountains keep.</pre>
                 }
 
                 writer.setSelection(targetParagraph, 'in');
-            });
+            };
+
+            if (typeof editor.model.enqueueChange === 'function') {
+                editor.model.enqueueChange({ isUndoable: false }, applySelection);
+            } else {
+                editor.model.change(applySelection);
+            }
+
             locking = false;
         });
     }
@@ -8241,7 +8295,10 @@ The mountains keep.</pre>
     function getCommunityBodyEditorConfig() {
         const builtInPlugins = getCommunityBodyEditorPlugins();
         const extraPlugins = getCommunityBodyEditorExtraPlugins();
-        const useExplicitPlugins = builtInPlugins.length >= 8;
+        // Super-build does not reliably export individual plugin classes. Only use an
+        // explicit plugin list when Essentials is present; otherwise keep the full build.
+        const CK = window.CKEDITOR || {};
+        const useExplicitPlugins = Boolean(CK.Essentials) && builtInPlugins.includes(CK.Essentials) && builtInPlugins.length >= 8;
 
         const config = {
             toolbar: {
@@ -8391,8 +8448,6 @@ The mountains keep.</pre>
         });
     }
 
-    let communityBodyEditorInitPromise = null;
-
     function initCommunityBodyEditor() {
         const bodyEditor = document.querySelector('#bodyEditor');
         const bodyEditorMount = document.getElementById('bodyEditorMount');
@@ -8433,37 +8488,67 @@ The mountains keep.</pre>
             return Promise.resolve(null);
         }
 
-        communityBodyEditorInitPromise = EditorClass.create(bodyEditor, getCommunityBodyEditorConfig())
-            .then((editor) => {
-                window.communityBodyEditor = editor;
-                const contentType = document.getElementById('contentType').value;
-                let initialLanguage = document.getElementById('editorLanguageHidden')?.value || 'en';
+        // CKEditor misbehaves (toolbar only, no typing) if created before the panel is painted.
+        communityBodyEditorInitPromise = new Promise(function (resolve) {
+            window.requestAnimationFrame(function () {
+                window.requestAnimationFrame(function () {
+                    if (details) {
+                        void details.offsetWidth;
+                    }
 
-                if (isBookContentType(contentType)) {
-                    initialLanguage = window.communityBookPages[window.communityActiveBookPage]?.language || 'en';
-                }
-
-                applyEditorLanguage(initialLanguage, { skipSave: true });
-                editor.model.document.on('change:data', function () {
-                    if (window.communitySwitchingBookPage) {
+                    if (details && details.hidden) {
+                        communityBodyEditorInitPromise = null;
+                        resolve(null);
                         return;
                     }
 
-                    if (isBookContentType(document.getElementById('contentType').value)) {
-                        saveActiveBookPageContent();
-                    }
-                });
-                refreshBookLayoutMode(document.getElementById('contentType').value);
-                refreshPoetryEditorMode(document.getElementById('contentType').value);
+                    EditorClass.create(bodyEditor, getCommunityBodyEditorConfig())
+                        .then((editor) => {
+                            window.communityBodyEditor = editor;
+                            const contentType = document.getElementById('contentType').value;
+                            let initialLanguage = document.getElementById('editorLanguageHidden')?.value || 'en';
 
-                return editor;
-            })
-            .catch((error) => {
-                communityBodyEditorInitPromise = null;
-                console.error('Unable to load the body editor.', error);
-                notify('error', 'Unable to load the body editor. Please refresh and try again.');
-                return null;
+                            if (isBookContentType(contentType)) {
+                                initialLanguage = window.communityBookPages[window.communityActiveBookPage]?.language || 'en';
+                            }
+
+                            applyEditorLanguage(initialLanguage, { skipSave: true });
+                            editor.model.document.on('change:data', function () {
+                                if (window.communitySwitchingBookPage) {
+                                    return;
+                                }
+
+                                if (isBookContentType(document.getElementById('contentType').value)) {
+                                    saveActiveBookPageContent();
+                                }
+                            });
+                            refreshBookLayoutMode(document.getElementById('contentType').value);
+                            refreshPoetryEditorMode(document.getElementById('contentType').value);
+
+                            try {
+                                const root = editor.editing.view.getDomRoot();
+                                if (root) {
+                                    root.setAttribute('contenteditable', 'true');
+                                    root.tabIndex = 0;
+                                }
+                                if (editor.disableReadOnlyMode) {
+                                    editor.disableReadOnlyMode('community-init');
+                                }
+                            } catch (error) {
+                                console.warn('Unable to unlock body editor editable root.', error);
+                            }
+
+                            resolve(editor);
+                        })
+                        .catch((error) => {
+                            communityBodyEditorInitPromise = null;
+                            console.error('Unable to load the body editor.', error);
+                            notify('error', 'Unable to load the body editor. Please refresh and try again.');
+                            resolve(null);
+                        });
+                });
             });
+        });
 
         return communityBodyEditorInitPromise;
     }
@@ -8481,7 +8566,7 @@ The mountains keep.</pre>
     const tagsHidden = document.getElementById('tagsHidden');
     const tagsCount = document.getElementById('communityTagsCount');
     const MAX_COMMUNITY_TAGS = 10;
-    let tags = (tagsHidden.value || '').split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, MAX_COMMUNITY_TAGS);
+    let tags = (tagsHidden?.value || '').split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, MAX_COMMUNITY_TAGS);
 
     function notify(type, message) {
         const toastType = type === 'error' ? 'error' : 'success';
@@ -8493,7 +8578,9 @@ The mountains keep.</pre>
     }
 
     function syncTags() {
-        tagsHidden.value = tags.join(', ');
+        if (tagsHidden) {
+            tagsHidden.value = tags.join(', ');
+        }
 
         if (tagsCount) {
             tagsCount.textContent = tags.length + ' / ' + MAX_COMMUNITY_TAGS;
@@ -8504,6 +8591,10 @@ The mountains keep.</pre>
             tagInput.placeholder = tags.length >= MAX_COMMUNITY_TAGS
                 ? 'Maximum of 10 tags reached'
                 : 'Type a tag and press Enter or comma';
+        }
+
+        if (!tagList) {
+            return;
         }
 
         tagList.innerHTML = '';
@@ -8520,6 +8611,10 @@ The mountains keep.</pre>
     }
 
     function addTagsFromInput() {
+        if (!tagInput) {
+            return;
+        }
+
         if (tags.length >= MAX_COMMUNITY_TAGS) {
             notify('error', 'You can add up to ' + MAX_COMMUNITY_TAGS + ' tags only.');
             tagInput.value = '';
@@ -8548,13 +8643,20 @@ The mountains keep.</pre>
         syncTags();
     }
 
-    tagInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ',') {
-            event.preventDefault();
-            addTagsFromInput();
-        }
-    });
-    tagInput.addEventListener('blur', addTagsFromInput);
+    if (tagInput) {
+        tagInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ',') {
+                event.preventDefault();
+                addTagsFromInput();
+            }
+        });
+        tagInput.addEventListener('blur', addTagsFromInput);
+        document.querySelector('.tag-input-wrap')?.addEventListener('click', function () {
+            if (!tagInput.disabled) {
+                tagInput.focus();
+            }
+        });
+    }
     syncTags();
 
     const featuredImagesInput = document.getElementById('featuredImagesInput');
