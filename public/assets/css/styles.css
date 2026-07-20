@@ -3133,6 +3133,7 @@
 
 .masonry-grid .ad-card {
     position: absolute;
+    z-index: 1;
 }
 
 .ads-full-width .ad-card {
@@ -3173,15 +3174,26 @@
     display: block;
 }
 
-/* Full-width banners */
+/* Full-width banners — reserve height from the ad's own ratio so the next row is not covered */
+.ads-full-width .ad-card .ad-image {
+    aspect-ratio: var(--ad-w, 1191) / var(--ad-h, 229);
+    height: auto !important;
+    min-height: 0;
+}
+
 .ads-full-width .ad-banner .ad-image {
-    aspect-ratio: 1191 / 229;
+    aspect-ratio: var(--ad-w, 1191) / var(--ad-h, 229);
     height: auto !important;
 }
 
 .ads-full-width .ad-hero .ad-image {
-    aspect-ratio: 1191 / 458;
+    aspect-ratio: var(--ad-w, 1191) / var(--ad-h, 458);
     height: auto !important;
+}
+
+.masonry-grid .ad-image {
+    min-height: 0;
+    flex: 1 1 auto;
 }
 
 /* Sponsored/static ads */

@@ -33,24 +33,6 @@
         @endphp
 
         <div class="row g-3">
-            <div class="col-12">
-                <label class="form-label" for="writingPurpose">Why are you writing this article? <span class="text-danger">*</span></label>
-                <input type="text"
-                    name="writing_purpose"
-                    id="writingPurpose"
-                    class="form-control"
-                    list="writingPurposeOptions"
-                    value="{{ old('writing_purpose', $post->writing_purpose) }}"
-                    maxlength="120"
-                    placeholder="Select a reason or type your own"
-                    required>
-                <datalist id="writingPurposeOptions">
-                    @foreach(\App\Models\CommunityPost::WRITING_PURPOSE_OPTIONS as $purposeOption)
-                        <option value="{{ $purposeOption }}"></option>
-                    @endforeach
-                </datalist>
-                <small class="text-muted d-block mt-1">Pick one of the suggestions or enter your own reason.</small>
-            </div>
             @php
                 $selectedContentType = old('content_type', $post->content_type);
                 $postTypeIcons = [
@@ -86,6 +68,33 @@
                     'competitions' => 'fa-trophy',
                     'discussions' => 'fa-comments',
                 ];
+                $writingPurposeNounByType = [
+                    'articles' => 'article',
+                    'reports' => 'report',
+                    'stories' => 'story',
+                    'news' => 'news item',
+                    'poetry' => 'poem',
+                    'biography' => 'biography',
+                    'autobiography' => 'autobiography',
+                    'discussions' => 'discussion',
+                    'competitions' => 'competition',
+                ];
+                if (isset($writingPurposeNounByType[$selectedContentType])) {
+                    $writingPurposeNoun = $writingPurposeNounByType[$selectedContentType];
+                } elseif (filled($selectedContentType)) {
+                    $writingPurposeNoun = strtolower((string) data_get($types, $selectedContentType.'.label', 'post'));
+                    if (
+                        str_ends_with($writingPurposeNoun, 's')
+                        && ! str_ends_with($writingPurposeNoun, 'ss')
+                        && ! in_array($writingPurposeNoun, ['news', 'business'], true)
+                    ) {
+                        $writingPurposeNoun = substr($writingPurposeNoun, 0, -1);
+                    }
+                } else {
+                    $writingPurposeNoun = 'post';
+                }
+                $postTypePillColors = \App\Support\CommunityContentTaxonomy::pillColors();
+                $postTypePillFallback = \App\Support\CommunityContentTaxonomy::pillColorFallback();
             @endphp
             <div class="col-12">
                 <div class="community-post-type-picker">
@@ -109,19 +118,19 @@
                         @foreach($types as $key => $type)
                             <button
                                 type="button"
-                                class="community-post-type-card{{ $selectedContentType === $key ? ' is-selected' : '' }}"
+                                class="community-post-type-card community-post-type-card--{{ $key }}{{ $selectedContentType === $key ? ' is-selected' : '' }}"
+                                style="--pill-color: {{ $postTypePillColors[$key] ?? $postTypePillFallback }};"
                                 data-type="{{ $key }}"
                                 data-label="{{ strtolower($type['label']) }}"
+                                title="{{ $type['description'] }}"
                                 role="option"
                                 aria-selected="{{ $selectedContentType === $key ? 'true' : 'false' }}"
                             >
                                 <span class="community-post-type-card__icon" aria-hidden="true">
                                     <i class="fa-solid {{ $postTypeIcons[$key] ?? 'fa-file' }}"></i>
                                 </span>
-                                <span class="community-post-type-card__body">
-                                    <span class="community-post-type-card__label">{{ $type['label'] }}</span>
-                                    <span class="community-post-type-card__desc">{{ $type['description'] }}</span>
-                                </span>
+                                <span class="community-post-type-card__label">{{ $type['label'] }}</span>
+                                <span class="visually-hidden">{{ $type['description'] }}</span>
                             </button>
                         @endforeach
                     </div>
@@ -134,6 +143,24 @@
 
             <div class="col-12" id="communityPostDetails" @if(! filled($selectedContentType)) hidden @endif>
             <div class="row g-3">
+            <div class="col-12" id="writingPurposeFieldWrap">
+                <label class="form-label" for="writingPurpose" id="writingPurposeLabel">Why are you writing this {{ $writingPurposeNoun }}? <span class="text-danger">*</span></label>
+                <input type="text"
+                    name="writing_purpose"
+                    id="writingPurpose"
+                    class="form-control"
+                    list="writingPurposeOptions"
+                    value="{{ old('writing_purpose', $post->writing_purpose) }}"
+                    maxlength="120"
+                    placeholder="Select a reason or type your own"
+                    required>
+                <datalist id="writingPurposeOptions">
+                    @foreach(\App\Models\CommunityPost::WRITING_PURPOSE_OPTIONS as $purposeOption)
+                        <option value="{{ $purposeOption }}"></option>
+                    @endforeach
+                </datalist>
+                <small class="text-muted d-block mt-1">Pick one of the suggestions or enter your own reason.</small>
+            </div>
             <div class="col-md-6" id="categoryFieldWrap">
                 <label class="form-label" id="categoryLabel">Category <span class="text-danger">*</span></label>
                 <select name="category" id="categorySelect" class="form-select" data-selected="{{ old('category', $post->category) }}" required>
@@ -2501,70 +2528,78 @@ The mountains keep.</pre>
         min-width: min(100%, 220px);
     }
     .community-post-type-grid {
-        display: grid;
-        gap: .75rem;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
     }
     .community-post-type-card {
-        align-items: flex-start;
-        background: #fff;
-        border: 1px solid #d9e2ec;
-        border-radius: .9rem;
-        color: inherit;
-        display: flex;
-        gap: .8rem;
-        padding: .9rem .95rem;
-        text-align: left;
-        transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
-        width: 100%;
+        --pill-color: #78909c;
+        align-items: center;
+        background: color-mix(in srgb, var(--pill-color) 58%, transparent);
+        border: 1px solid color-mix(in srgb, var(--pill-color) 72%, #ffffff 28%);
+        border-radius: 999px;
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--pill-color) 24%, transparent);
+        color: #fff;
+        display: inline-flex;
+        gap: 0.45rem;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0.46rem 1rem 0.46rem 0.7rem;
+        text-align: center;
+        text-shadow: 0 1px 1px rgba(15, 47, 85, 0.18);
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        width: auto;
     }
     .community-post-type-card:hover,
     .community-post-type-card:focus-visible {
-        border-color: #90caf9;
-        box-shadow: 0 8px 20px rgba(25, 118, 210, 0.12);
+        background: color-mix(in srgb, var(--pill-color) 74%, transparent);
+        border-color: color-mix(in srgb, var(--pill-color) 82%, #ffffff 18%);
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--pill-color) 34%, transparent);
+        color: #fff;
         outline: none;
         transform: translateY(-1px);
     }
     .community-post-type-card.is-selected {
-        border-color: #1976d2;
-        box-shadow: 0 0 0 1px #1976d2, 0 10px 22px rgba(25, 118, 210, 0.16);
-        background: linear-gradient(180deg, #f3f9ff 0%, #ffffff 100%);
+        background: color-mix(in srgb, var(--pill-color) 18%, #ffffff);
+        border-color: color-mix(in srgb, var(--pill-color) 42%, #ffffff);
+        box-shadow: 0 6px 18px color-mix(in srgb, var(--pill-color) 28%, transparent);
+        color: color-mix(in srgb, var(--pill-color) 82%, #0f2f55);
+        font-weight: 700;
+        text-shadow: none;
+        transform: none;
+    }
+    .community-post-type-card.is-selected:hover,
+    .community-post-type-card.is-selected:focus-visible {
+        background: color-mix(in srgb, var(--pill-color) 24%, #ffffff);
+        border-color: color-mix(in srgb, var(--pill-color) 48%, #ffffff);
+        box-shadow: 0 8px 22px color-mix(in srgb, var(--pill-color) 32%, transparent);
+        color: color-mix(in srgb, var(--pill-color) 88%, #0f2f55);
+        transform: none;
     }
     .community-post-type-card__icon {
         align-items: center;
-        background: #e8f1fb;
-        border-radius: .75rem;
-        color: #1565c0;
+        background: rgba(255, 255, 255, 0.22);
+        border-radius: 999px;
+        color: inherit;
         display: inline-flex;
         flex: 0 0 auto;
-        font-size: 1.05rem;
-        height: 2.4rem;
+        font-size: 0.82rem;
+        height: 1.55rem;
         justify-content: center;
-        width: 2.4rem;
+        width: 1.55rem;
     }
     .community-post-type-card.is-selected .community-post-type-card__icon {
-        background: #1976d2;
-        color: #fff;
-    }
-    .community-post-type-card__body {
-        display: flex;
-        flex-direction: column;
-        gap: .2rem;
-        min-width: 0;
+        background: color-mix(in srgb, var(--pill-color) 16%, #ffffff);
+        color: color-mix(in srgb, var(--pill-color) 88%, #0f2f55);
     }
     .community-post-type-card__label {
-        font-size: .95rem;
-        font-weight: 700;
-        line-height: 1.25;
+        font-size: 0.83rem;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
     }
-    .community-post-type-card__desc {
-        color: #64748b;
-        display: -webkit-box;
-        font-size: .78rem;
-        line-height: 1.35;
-        overflow: hidden;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
+    .community-post-type-card.is-selected .community-post-type-card__label {
+        font-weight: 700;
     }
     .community-post-type-empty {
         background: #f8fafc;
@@ -3292,6 +3327,53 @@ The mountains keep.</pre>
             .includes(selectedType);
     }
 
+    function writingPurposeNounForType(selectedType) {
+        const known = {
+            articles: 'article',
+            reports: 'report',
+            stories: 'story',
+            news: 'news item',
+            poetry: 'poem',
+            biography: 'biography',
+            autobiography: 'autobiography',
+            discussions: 'discussion',
+            competitions: 'competition',
+        };
+
+        if (known[selectedType]) {
+            return known[selectedType];
+        }
+
+        const card = document.querySelector('.community-post-type-card[data-type="' + selectedType + '"]');
+        const option = document.querySelector('#contentType option[value="' + selectedType + '"]');
+        let noun = (
+            card?.querySelector('.community-post-type-card__label')?.textContent
+            || option?.textContent
+            || 'post'
+        ).trim().toLowerCase();
+
+        if (
+            noun.endsWith('s')
+            && !noun.endsWith('ss')
+            && noun !== 'news'
+            && noun !== 'business'
+        ) {
+            noun = noun.slice(0, -1);
+        }
+
+        return noun || 'post';
+    }
+
+    function syncWritingPurposeLabel(selectedType) {
+        const labelEl = document.getElementById('writingPurposeLabel');
+        if (!labelEl) {
+            return;
+        }
+
+        const noun = selectedType ? writingPurposeNounForType(selectedType) : 'post';
+        labelEl.innerHTML = 'Why are you writing this ' + noun + '? <span class="text-danger">*</span>';
+    }
+
     function syncContentTypePicker(selectedType) {
         document.querySelectorAll('.community-post-type-card').forEach((card) => {
             const isSelected = card.dataset.type === selectedType;
@@ -3309,6 +3391,8 @@ The mountains keep.</pre>
         if (emptyHint) {
             emptyHint.classList.toggle('d-none', hasType);
         }
+
+        syncWritingPurposeLabel(selectedType);
     }
 
     function scrollToCommunityPostDetails() {
