@@ -3246,6 +3246,10 @@
         height: auto !important;
         aspect-ratio: var(--ad-w) / var(--ad-h);
     }
+
+    .masonry-grid .ad-card.filler {
+        display: none !important;
+    }
 }
 
 /* Refund policy page */
