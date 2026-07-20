@@ -8374,6 +8374,7 @@ The mountains keep.</pre>
                 'CKBox',
                 'CKFinder',
                 'EasyImage',
+                'MultiLevelList',
                 'RealTimeCollaborativeComments',
                 'RealTimeCollaborativeTrackChanges',
                 'RealTimeCollaborativeRevisionHistory',
