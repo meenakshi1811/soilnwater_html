@@ -324,8 +324,10 @@
         && auth()->id() !== $post->user_id
         && in_array($post->user_id, $engagement['followed_author_ids'] ?? [], true);
     $followedTopics = collect($engagement['followed_topics'] ?? [])->map(fn ($topic) => \App\Models\CommunityTopicFollow::normalizeTopic((string) $topic))->all();
+    $isArticlePost = $post->content_type === 'articles';
+    $articleCoverUrl = $isArticlePost ? $post->featuredImageUrl() : null;
 @endphp
-<div class="about-page">
+<div class="about-page{{ $isArticlePost ? ' about-page--articles' : '' }}">
     @if(!empty($preview) || $post->isPendingApproval())
         <div class="alert alert-warning text-center rounded-0 mb-0 border-0">
             @if(!empty($preview))
@@ -350,13 +352,27 @@
             This post is saved as a draft and is not visible on the public community hub yet.
         </div>
     @endif
-    <section class="about-banner">
+    <section
+        class="about-banner{{ $isArticlePost ? ' community-article-hero' : '' }}{{ $articleCoverUrl ? ' has-cover' : '' }}"
+        @if($articleCoverUrl) style="--article-cover: url('{{ $articleCoverUrl }}')" @endif
+    >
+        @if($isArticlePost)
+            <div class="community-article-hero__inner">
+        @endif
         <div class="community-post-back-wrap">
             <a href="{{ $post->isMyAreaPost() ? route('community.my-area.index') : route('community.index') }}" class="community-post-back">
                 <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
                 {{ $post->isMyAreaPost() ? 'Back to My Area' : 'Back to Community' }}
             </a>
         </div>
+        @if($isArticlePost)
+            <div class="community-article-hero__kicker">
+                SoilnWater Community <span>·</span> {{ $post->typeLabel() }}
+                @if(filled(data_get($post->meta, 'article_type')))
+                    <span>·</span> {{ data_get($post->meta, 'article_type') }}
+                @endif
+            </div>
+        @else
         <div class="community-post-banner-tags">
             <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->typeLabel() }}</span>
             @foreach($post->articleScoreBadges() as $badge)
@@ -629,20 +645,29 @@
             @endif
             <span class="badge bg-light text-dark community-post-banner-tag">{{ filled(data_get($post->meta, 'report_type')) ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</span>
         </div>
+        @endif
         <h1>{{ $post->title }}</h1>
+        @if($isArticlePost && filled($post->excerpt))
+            <p class="community-article-hero__deck">{{ $post->excerpt }}</p>
+        @endif
         @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_subtitle')))
             <p class="lead mb-2">{{ data_get($post->meta, 'news_subtitle') }}</p>
         @endif
-        <p>
+        <p @class(['community-article-hero__byline' => $isArticlePost])>
             By
             @if($post->showsAuthorProfileLink())
-                <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="text-white text-decoration-underline">{{ $post->authorDisplayName() }}</a>
+                <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" @class(['text-white text-decoration-underline' => ! $isArticlePost])>{{ $post->authorDisplayName() }}</a>
             @else
                 {{ $post->authorDisplayName() }}
             @endif
-            · {{ $post->published_at?->format('M d, Y') ?? 'Draft' }}
+            @if($isArticlePost)
+                <span class="community-article-hero__byline-sep" aria-hidden="true">·</span>
+            @else
+                ·
+            @endif
+            {{ $post->published_at?->format('M d, Y') ?? 'Draft' }}
         </p>
-        <div class="d-flex flex-wrap gap-2 justify-content-center mt-2">
+        <div @class(['d-flex flex-wrap gap-2 mt-2', 'justify-content-center' => ! $isArticlePost, 'community-article-hero__actions' => $isArticlePost])>
             @if($post->allowsSharing())
                 @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true])
             @endif
@@ -683,10 +708,14 @@
                 @endif
             @endauth
         </div>
+        @if($isArticlePost)
+            </div>
+        @endif
     </section>
 
     <div class="about-inner">
         <section class="sec">
+            @if(! $isArticlePost)
             @php
                 $featuredImageUrls = $post->featuredImageUrls();
             @endphp
@@ -702,6 +731,11 @@
 
             @if($post->excerpt)
                 <p class="lead">{{ $post->excerpt }}</p>
+            @endif
+            @endif
+
+            @if($isArticlePost)
+                @include('community.partials.articles-show-sections', ['post' => $post])
             @endif
 
             @if($post->content_type === 'poetry')
@@ -836,7 +870,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo() && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost() && ! $post->isEnvironmentPost() && ! $post->isScienceTechnologyPost() && ! $post->isAstroConsultancyPost() && ! $post->isReligionSpiritualityPost() && ! $post->isCreativeCornerPost())
+            @if($post->hasVideo() && ! $isArticlePost && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost() && ! $post->isEnvironmentPost() && ! $post->isScienceTechnologyPost() && ! $post->isAstroConsultancyPost() && ! $post->isReligionSpiritualityPost() && ! $post->isCreativeCornerPost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -864,7 +898,7 @@
 
             @if($post->usesBookLayout() && $post->bookPages() !== [])
                 @include('community.partials.book-reader', ['post' => $post])
-            @else
+            @elseif(! $isArticlePost)
                 @php
                     $editorLanguage = data_get($post->meta, 'editor_language', 'en');
                     $bodyClasses = 'community-post-body';
@@ -1418,6 +1452,9 @@
 
 @push('styles')
 @include('community.partials.story-styles')
+@if($post->content_type === 'articles')
+@include('community.partials.articles-styles')
+@endif
 @if($post->content_type === 'poetry')
 @include('community.partials.poetry-styles')
 @endif
