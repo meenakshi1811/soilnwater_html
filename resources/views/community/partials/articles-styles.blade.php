@@ -189,21 +189,33 @@
         overflow: hidden;
     }
 
-    .about-page--articles .community-article-meta {
+    .about-page--articles .community-article-shell__top {
+        align-items: center;
         background: linear-gradient(180deg, #f6f9fc 0%, #ffffff 100%);
         border-bottom: 1px solid var(--article-line);
         display: flex;
         flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+        justify-content: space-between;
+        padding: 0.85rem 1.15rem;
+    }
+
+    .about-page--articles .community-article-meta {
+        background: transparent;
+        border-bottom: 0;
+        display: flex;
+        flex: 1 1 auto;
+        flex-wrap: wrap;
         gap: 0.55rem;
-        padding: 1rem 1.25rem;
+        padding: 0;
     }
 
     @@media (min-width: 992px) {
         .about-page--articles .community-article-meta {
-            display: grid;
-            gap: 0.75rem;
-            grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-            padding: 1.15rem 1.5rem;
+            display: flex;
+            gap: 0.55rem;
+            grid-template-columns: none;
+            padding: 0;
         }
     }
 
@@ -220,12 +232,67 @@
 
     @@media (min-width: 992px) {
         .about-page--articles .community-article-meta__item {
-            align-items: center;
-            border-radius: 0.9rem;
+            align-items: flex-start;
+            border-radius: 999px;
             justify-content: center;
-            padding: 0.75rem 1rem;
-            text-align: center;
+            padding: 0.55rem 0.95rem;
+            text-align: left;
         }
+    }
+
+    .about-page--articles .community-article-font-size {
+        align-items: center;
+        background: #fff;
+        border: 1px solid var(--article-line);
+        border-radius: 999px;
+        display: inline-flex;
+        flex-shrink: 0;
+        gap: 0.15rem;
+        margin-left: auto;
+        padding: 0.28rem 0.35rem 0.28rem 0.7rem;
+    }
+
+    .about-page--articles .community-article-font-size__label {
+        color: var(--article-muted);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        margin-right: 0.2rem;
+        text-transform: uppercase;
+    }
+
+    .about-page--articles .community-article-font-size__btn {
+        align-items: center;
+        background: transparent;
+        border: 0;
+        border-radius: 999px;
+        color: var(--article-ink);
+        cursor: pointer;
+        display: inline-flex;
+        font-family: "Source Sans 3", "Segoe UI", sans-serif;
+        font-size: 0.88rem;
+        font-weight: 700;
+        height: 2rem;
+        justify-content: center;
+        line-height: 1;
+        min-width: 2rem;
+        padding: 0 0.5rem;
+        transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .about-page--articles .community-article-font-size__btn:hover:not(:disabled) {
+        background: var(--article-accent-soft);
+        color: var(--article-accent);
+    }
+
+    .about-page--articles .community-article-font-size__btn.is-active {
+        background: var(--article-accent);
+        color: #fff;
+    }
+
+    .about-page--articles .community-article-font-size__btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
     }
 
     .about-page--articles .community-article-meta__label {
@@ -266,59 +333,6 @@
         max-width: none;
         padding: clamp(1.6rem, 4vw, 2.85rem) clamp(1.5rem, 3vw, 2.5rem) clamp(2.1rem, 5vw, 3.1rem);
         width: 100%;
-    }
-
-    .about-page--articles .community-article-font-size {
-        align-items: center;
-        backdrop-filter: blur(8px);
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        border-radius: 999px;
-        display: inline-flex;
-        gap: 0.15rem;
-        padding: 0.28rem 0.35rem 0.28rem 0.7rem;
-    }
-
-    .about-page--articles .community-article-font-size__label {
-        color: rgba(255, 255, 255, 0.78);
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        margin-right: 0.2rem;
-        text-transform: uppercase;
-    }
-
-    .about-page--articles .community-article-font-size__btn {
-        align-items: center;
-        background: transparent;
-        border: 0;
-        border-radius: 999px;
-        color: #fff;
-        cursor: pointer;
-        display: inline-flex;
-        font-family: Fraunces, Georgia, serif;
-        font-size: 0.95rem;
-        font-weight: 700;
-        height: 2rem;
-        justify-content: center;
-        line-height: 1;
-        min-width: 2rem;
-        padding: 0 0.5rem;
-        transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
-    }
-
-    .about-page--articles .community-article-font-size__btn:hover:not(:disabled) {
-        background: rgba(255, 255, 255, 0.18);
-    }
-
-    .about-page--articles .community-article-font-size__btn.is-active {
-        background: #fff;
-        color: #12486a;
-    }
-
-    .about-page--articles .community-article-font-size__btn:disabled {
-        cursor: not-allowed;
-        opacity: 0.4;
     }
 
     /* Scale the whole article page body so every line/section grows together */
@@ -576,12 +590,12 @@
             max-width: none;
         }
 
-        .about-page--articles .community-article-meta {
-            padding: 0.85rem 0.95rem;
-        }
-
         .about-page--articles .community-article-meta__item {
             flex: 1 1 calc(50% - 0.55rem);
+        }
+
+        .about-page--articles .community-article-shell__top {
+            padding: 0.75rem 0.95rem;
         }
 
         .about-page--articles .community-article-font-size__label {

@@ -30,16 +30,25 @@
     @endphp
 
     <div class="community-article-shell mb-4">
-        @if($metaItems !== [])
-            <div class="community-article-meta" aria-label="Article details">
-                @foreach($metaItems as $item)
-                    <div class="community-article-meta__item">
-                        <span class="community-article-meta__label">{{ $item['label'] }}</span>
-                        <span class="community-article-meta__value">{{ $item['value'] }}</span>
-                    </div>
-                @endforeach
+        <div class="community-article-shell__top">
+            @if($metaItems !== [])
+                <div class="community-article-meta" aria-label="Article details">
+                    @foreach($metaItems as $item)
+                        <div class="community-article-meta__item">
+                            <span class="community-article-meta__label">{{ $item['label'] }}</span>
+                            <span class="community-article-meta__value">{{ $item['value'] }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="community-article-font-size" data-article-font-controls role="group" aria-label="Page text size">
+                <span class="community-article-font-size__label">Text size</span>
+                <button type="button" class="community-article-font-size__btn" data-article-font-action="decrease" aria-label="Decrease text size" title="Decrease text size">A−</button>
+                <button type="button" class="community-article-font-size__btn is-active" data-article-font-action="reset" aria-label="Default text size" title="Default text size" aria-pressed="true">A</button>
+                <button type="button" class="community-article-font-size__btn" data-article-font-action="increase" aria-label="Increase text size" title="Increase text size">A+</button>
             </div>
-        @endif
+        </div>
 
         @php
             $galleryUrls = $post->featuredImageUrls();

@@ -812,14 +812,6 @@
             {{ $post->published_at?->format('M d, Y') ?? 'Draft' }}
         </p>
         <div @class(['d-flex flex-wrap gap-2 mt-2', 'justify-content-center' => ! $isArticlePost, 'community-article-hero__actions' => $isArticlePost])>
-            @if($isArticlePost)
-                <div class="community-article-font-size" data-article-font-controls role="group" aria-label="Page text size">
-                    <span class="community-article-font-size__label">Text size</span>
-                    <button type="button" class="community-article-font-size__btn" data-article-font-action="decrease" aria-label="Decrease text size" title="Decrease text size">A−</button>
-                    <button type="button" class="community-article-font-size__btn is-active" data-article-font-action="reset" aria-label="Default text size" title="Default text size" aria-pressed="true">A</button>
-                    <button type="button" class="community-article-font-size__btn" data-article-font-action="increase" aria-label="Increase text size" title="Increase text size">A+</button>
-                </div>
-            @endif
             @if($post->allowsSharing())
                 @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true, 'iconOnly' => true])
             @endif
