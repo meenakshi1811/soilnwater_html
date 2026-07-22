@@ -327,22 +327,6 @@
         zoom: var(--article-page-zoom);
     }
 
-    .about-page--articles[data-article-font-size="sm"] .community-article-scale {
-        --article-page-zoom: 0.9;
-    }
-
-    .about-page--articles[data-article-font-size="md"] .community-article-scale {
-        --article-page-zoom: 1;
-    }
-
-    .about-page--articles[data-article-font-size="lg"] .community-article-scale {
-        --article-page-zoom: 1.15;
-    }
-
-    .about-page--articles[data-article-font-size="xl"] .community-article-scale {
-        --article-page-zoom: 1.3;
-    }
-
     .about-page--articles .community-article-reading__lead {
         border-left: 3px solid var(--article-accent);
         color: #334155;
@@ -358,17 +342,6 @@
         color: #1e293b;
         font-size: 1.1rem;
         line-height: 1.88;
-    }
-
-    .about-page--articles .community-post-body--article:not([dir="rtl"]) > p:first-of-type::first-letter {
-        color: var(--article-ink);
-        float: left;
-        font-family: Fraunces, Georgia, serif;
-        font-size: 3.35rem;
-        font-weight: 700;
-        line-height: 0.85;
-        margin: 0.12em 0.12em 0 0;
-        padding-right: 0.05em;
     }
 
     .about-page--articles .community-post-body--article > p {
@@ -609,10 +582,6 @@
 
         .about-page--articles .community-article-meta__item {
             flex: 1 1 calc(50% - 0.55rem);
-        }
-
-        .about-page--articles .community-post-body--article:not([dir="rtl"]) > p:first-of-type::first-letter {
-            font-size: 2.75rem;
         }
 
         .about-page--articles .community-article-font-size__label {

@@ -470,7 +470,7 @@
 @endphp
 <div
     class="about-page{{ $isArticlePost ? ' about-page--articles' : '' }}"
-    @if($isArticlePost) data-article-font-root data-article-font-size="md" @endif
+    @if($isArticlePost) data-article-font-root data-article-font-step="2" @endif
 >
     @if(!empty($preview) || $post->isPendingApproval())
         <div class="alert alert-warning text-center rounded-0 mb-0 border-0">
@@ -1796,66 +1796,69 @@
 
         const fontRoot = document.querySelector('[data-article-font-root]');
         if (fontRoot) {
-            const sizes = ['sm', 'md', 'lg', 'xl'];
-            const storageKey = 'soilnwater.articleFontSize';
+            // Each click of A+ / A- moves one step; A resets to default (1x).
+            const zoomSteps = [0.85, 0.92, 1, 1.12, 1.25, 1.4, 1.55, 1.7, 1.85, 2];
+            const defaultStep = 2; // 1x
+            const storageKey = 'soilnwater.articleFontStep';
+            const scaleTarget = fontRoot.querySelector('.community-article-scale');
             const controls = fontRoot.querySelector('[data-article-font-controls]');
             const decreaseBtn = controls?.querySelector('[data-article-font-action="decrease"]');
             const resetBtn = controls?.querySelector('[data-article-font-action="reset"]');
             const increaseBtn = controls?.querySelector('[data-article-font-action="increase"]');
 
-            function applySize(size) {
-                if (!sizes.includes(size)) {
-                    size = 'md';
+            function applyStep(step) {
+                const index = Math.max(0, Math.min(zoomSteps.length - 1, Number(step)));
+                const zoom = zoomSteps[index];
+
+                fontRoot.setAttribute('data-article-font-step', String(index));
+
+                if (scaleTarget) {
+                    scaleTarget.style.setProperty('--article-page-zoom', String(zoom));
                 }
 
-                fontRoot.setAttribute('data-article-font-size', size);
-
                 if (resetBtn) {
-                    const isDefault = size === 'md';
+                    const isDefault = index === defaultStep;
                     resetBtn.classList.toggle('is-active', isDefault);
                     resetBtn.setAttribute('aria-pressed', isDefault ? 'true' : 'false');
                 }
 
                 if (decreaseBtn) {
-                    decreaseBtn.disabled = size === sizes[0];
+                    decreaseBtn.disabled = index === 0;
                 }
 
                 if (increaseBtn) {
-                    increaseBtn.disabled = size === sizes[sizes.length - 1];
+                    increaseBtn.disabled = index === zoomSteps.length - 1;
                 }
 
                 try {
-                    window.localStorage.setItem(storageKey, size);
+                    window.localStorage.setItem(storageKey, String(index));
                 } catch (error) {}
             }
 
-            function currentSize() {
-                return fontRoot.getAttribute('data-article-font-size') || 'md';
-            }
-
-            function stepSize(direction) {
-                const index = sizes.indexOf(currentSize());
-                applySize(sizes[Math.max(0, Math.min(sizes.length - 1, index + direction))]);
+            function currentStep() {
+                const value = Number(fontRoot.getAttribute('data-article-font-step'));
+                return Number.isFinite(value) ? value : defaultStep;
             }
 
             decreaseBtn?.addEventListener('click', function () {
-                stepSize(-1);
+                applyStep(currentStep() - 1);
             });
 
             increaseBtn?.addEventListener('click', function () {
-                stepSize(1);
+                applyStep(currentStep() + 1);
             });
 
             resetBtn?.addEventListener('click', function () {
-                applySize('md');
+                applyStep(defaultStep);
             });
 
-            let saved = 'md';
+            let saved = defaultStep;
             try {
-                saved = window.localStorage.getItem(storageKey) || 'md';
+                const stored = Number(window.localStorage.getItem(storageKey));
+                saved = Number.isFinite(stored) ? stored : defaultStep;
             } catch (error) {}
 
-            applySize(saved);
+            applyStep(saved);
         }
 
         function isInsideProtectedContent(node) {
