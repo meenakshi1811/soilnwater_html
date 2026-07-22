@@ -468,7 +468,10 @@
     $isArticlePost = $post->content_type === 'articles';
     $articleCoverUrl = $isArticlePost ? $post->featuredImageUrl() : null;
 @endphp
-<div class="about-page{{ $isArticlePost ? ' about-page--articles' : '' }}">
+<div
+    class="about-page{{ $isArticlePost ? ' about-page--articles' : '' }}"
+    @if($isArticlePost) data-article-font-root data-article-font-size="md" @endif
+>
     @if(!empty($preview) || $post->isPendingApproval())
         <div class="alert alert-warning text-center rounded-0 mb-0 border-0">
             @if(!empty($preview))
@@ -857,7 +860,22 @@
         @endif
     </section>
 
-    <div class="about-inner">
+    @if($isArticlePost)
+        <div class="community-article-font-bar" data-article-font-controls>
+            <div class="community-article-font-bar__inner">
+                <div class="community-article-font-size" role="group" aria-label="Page text size">
+                    <span class="community-article-font-size__label">Text size</span>
+                    <button type="button" class="community-article-font-size__btn" data-article-font-size="sm" aria-pressed="false" title="Small">S</button>
+                    <button type="button" class="community-article-font-size__btn is-active" data-article-font-size="md" aria-pressed="true" title="Default">M</button>
+                    <button type="button" class="community-article-font-size__btn" data-article-font-size="lg" aria-pressed="false" title="Large">L</button>
+                    <button type="button" class="community-article-font-size__btn" data-article-font-size="xl" aria-pressed="false" title="Extra large">XL</button>
+                    <span class="community-article-font-size__current" data-article-font-label>Default</span>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <div class="about-inner{{ $isArticlePost ? ' community-article-scale' : '' }}">
         <section class="sec">
             @if(! $isArticlePost)
             @php
@@ -1782,6 +1800,54 @@
 <script>
     (function () {
         const protectedSelector = '[data-community-body-protected]';
+
+        const fontRoot = document.querySelector('[data-article-font-root]');
+        if (fontRoot) {
+            const sizes = {
+                sm: 'Small',
+                md: 'Default',
+                lg: 'Large',
+                xl: 'Extra large',
+            };
+            const storageKey = 'soilnwater.articleFontSize';
+            const buttons = fontRoot.querySelectorAll('[data-article-font-controls] [data-article-font-size]');
+            const label = fontRoot.querySelector('[data-article-font-label]');
+
+            function applySize(size) {
+                if (!sizes[size]) {
+                    size = 'md';
+                }
+
+                fontRoot.setAttribute('data-article-font-size', size);
+
+                buttons.forEach(function (button) {
+                    const active = button.getAttribute('data-article-font-size') === size;
+                    button.classList.toggle('is-active', active);
+                    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+                });
+
+                if (label) {
+                    label.textContent = sizes[size];
+                }
+
+                try {
+                    window.localStorage.setItem(storageKey, size);
+                } catch (error) {}
+            }
+
+            buttons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    applySize(button.getAttribute('data-article-font-size'));
+                });
+            });
+
+            let saved = 'md';
+            try {
+                saved = window.localStorage.getItem(storageKey) || 'md';
+            } catch (error) {}
+
+            applySize(saved);
+        }
 
         function isInsideProtectedContent(node) {
             if (!node) {
