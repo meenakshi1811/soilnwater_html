@@ -31,8 +31,8 @@
 
     <div class="community-article-shell mb-4">
         @if($metaItems !== [])
-            <div class="community-article-meta">
-                @foreach(array_slice($metaItems, 0, 4) as $item)
+            <div class="community-article-meta" aria-label="Article details">
+                @foreach($metaItems as $item)
                     <div class="community-article-meta__item">
                         <span class="community-article-meta__label">{{ $item['label'] }}</span>
                         <span class="community-article-meta__value">{{ $item['value'] }}</span>

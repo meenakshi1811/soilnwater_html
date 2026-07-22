@@ -1,6 +1,7 @@
 @php
     $adSizes = \App\Support\AdSizes::all();
     $sponsoredFillers = collect($sponsoredFillers ?? [])->values()->all();
+    $sponsoredBlankSizes = collect($sponsoredBlankSizes ?? \App\Support\AdSizes::sponsoredFillerSizesFromDatabase())->values()->all();
     $selectedCategoryNamesByAdId = $selectedCategoryNamesByAdId ?? [];
     $gridId = $gridId ?? 'ads';
     $autoRender = $autoRender ?? ($gridId === 'ads');
@@ -85,26 +86,113 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     window.__adsMasonryInstances = window.__adsMasonryInstances || [];
     let instance = window.__adsMasonryInstances.find(function (entry) { return entry.gridId === gridId; });
     if (!instance) {
-        instance = { gridId: gridId, fillerPool: fillerPool, gridState: new WeakMap() };
+        instance = { gridId: gridId, fillerPool: fillerPool, blankSizes: [], gridState: new WeakMap() };
         window.__adsMasonryInstances.push(instance);
     } else {
         instance.fillerPool = fillerPool;
         if (!instance.gridState) instance.gridState = new WeakMap();
     }
 
+    if (Array.isArray(options.blankSizes)) {
+        instance.blankSizes = options.blankSizes;
+    } else if (!Array.isArray(instance.blankSizes)) {
+        instance.blankSizes = [];
+    }
+
     const GAP = 8;
     const TITLE_H = 50;
     const FILLER_POOL = fillerPool;
-    const STATIC_SIZES = [
-        { w: 458, h: 458 },
-        { w: 458, h: 300 },
-        { w: 458, h: 229 },
-        { w: 360, h: 360 },
-        { w: 320, h: 300 },
-        { w: 229, h: 229 }
-    ];
+    const BLANK_SIZES = instance.blankSizes.slice().sort(function (a, b) {
+        return (Number(b.w) * Number(b.h)) - (Number(a.w) * Number(a.h));
+    });
 
-    let fillerIndex = 0;
+    if (!instance.usedFillerKeys) {
+        instance.usedFillerKeys = new Set();
+    }
+
+    function resetUsedFillers() {
+        instance.usedFillerKeys = new Set();
+    }
+
+    function preserveUsedFillerKeysFromGrid(grid) {
+        const layout = grid.closest('[id$="Layout"]') || grid;
+        layout.querySelectorAll('[data-filler][data-sponsored-ad-id]').forEach(function (el) {
+            instance.usedFillerKeys.add('id:' + el.dataset.sponsoredAdId);
+        });
+    }
+
+    function readPlacedCard(card) {
+        const dims = getDims(card);
+        const cardW = parseInt(card.style.width, 10) || dims.w;
+        const cardH = parseInt(card.style.height, 10) || dims.h;
+        const left = parseInt(card.style.left, 10) || 0;
+        const top = parseInt(card.style.top, 10) || 0;
+
+        return {
+            el: card,
+            left: left,
+            right: left + cardW,
+            top: top,
+            bottom: top + cardH,
+            w: cardW,
+            h: cardH
+        };
+    }
+
+    function readFillerSlot(filler) {
+        return {
+            left: parseInt(filler.style.left, 10) || 0,
+            top: parseInt(filler.style.top, 10) || 0,
+            w: parseInt(filler.style.width, 10) || 0,
+            h: parseInt(filler.style.height, 10) || 0
+        };
+    }
+
+    function fillerItemKey(item) {
+        if (item && item.id) {
+            return 'id:' + item.id;
+        }
+        if (item && item.url) {
+            return 'url:' + item.url;
+        }
+        return 'image:' + (item && item.image ? item.image : '');
+    }
+
+    function getMainGridAdKeys(grid) {
+        const keys = new Set();
+        if (!grid) {
+            return keys;
+        }
+
+        const layout = grid.closest('[id$="Layout"]') || grid;
+        layout.querySelectorAll('.ad-card:not([data-filler])').forEach(function (card) {
+            if (card.dataset.adId) {
+                keys.add('id:' + card.dataset.adId);
+            }
+            if (card.dataset.adUrl) {
+                keys.add('url:' + card.dataset.adUrl);
+            }
+        });
+
+        return keys;
+    }
+
+    function isFillerItemAvailable(item, grid) {
+        const key = fillerItemKey(item);
+        if (instance.usedFillerKeys.has(key)) {
+            return false;
+        }
+
+        const mainGridKeys = getMainGridAdKeys(grid);
+        if (item.id && mainGridKeys.has('id:' + item.id)) {
+            return false;
+        }
+        if (item.url && mainGridKeys.has('url:' + item.url)) {
+            return false;
+        }
+
+        return true;
+    }
 
     function getGridState(grid) {
         let state = instance.gridState.get(grid);
@@ -135,19 +223,18 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return parseInt(card.dataset.adW || '0', 10) >= 900;
     }
 
-    function createFiller(width, height) {
-        const matchingItems = FILLER_POOL.filter(function (item) {
-            return Number(item.w) === Number(width) && Number(item.h) === Number(height);
-        });
-        const pool = matchingItems.length ? matchingItems : FILLER_POOL;
-        const item = pool[fillerIndex % pool.length] || { label: 'Sponsored', image: null, url: null };
-        fillerIndex++;
-
+    function buildFillerCard(width, height, item) {
         const card = document.createElement('article');
         card.className = 'ad-card filler';
         card.dataset.filler = '1';
+        card.dataset.adW = String(width);
+        card.dataset.adH = String(height);
         card.style.width = width + 'px';
         card.style.height = height + 'px';
+
+        if (item.sizeKey) {
+            card.dataset.sizeKey = item.sizeKey;
+        }
 
         const imageHtml = item.image
             ? '<img src="' + item.image + '" alt="' + item.label + '" loading="lazy" onerror="this.style.display=\'none\'; this.parentElement.innerHTML=\'<div class=&quot;filler-placeholder&quot;></div>\';">'
@@ -162,22 +249,164 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             : imageHtml;
 
         card.innerHTML =
-            '<span class="filler-label">' + item.label + '</span>' +
+            '<span class="filler-label">' + (item.label || 'Sponsored') + '</span>' +
             adTitleHtml +
             '<div class="ad-image">' + imageBlock + '</div>';
 
         return card;
     }
 
-    function mountFiller(grid, left, top, width, height) {
-        const filler = createFiller(width, height);
-        filler.style.position = 'absolute';
-        filler.style.width = width + 'px';
-        filler.style.height = height + 'px';
-        filler.style.left = left + 'px';
-        filler.style.top = top + 'px';
-        grid.appendChild(filler);
+    function mountFillerCard(grid, left, top, width, height, card) {
+        card.style.position = 'absolute';
+        card.style.width = width + 'px';
+        card.style.height = height + 'px';
+        card.style.left = left + 'px';
+        card.style.top = top + 'px';
+        grid.appendChild(card);
         return { left: left, top: top, w: width, h: height };
+    }
+
+    function findBlankSizeMeta(width, height) {
+        return BLANK_SIZES.find(function (size) {
+            return Number(size.w) === Number(width) && Number(size.h) === Number(height);
+        }) || null;
+    }
+
+    function mountFillerWithItem(grid, left, top, width, height, item) {
+        instance.usedFillerKeys.add(fillerItemKey(item));
+        const card = buildFillerCard(width, height, {
+            label: item.label || 'Sponsored',
+            image: item.image,
+            url: item.url,
+            title: item.title,
+            sizeKey: item.size_key || item.sizeKey || null,
+        });
+        if (item.id) {
+            card.dataset.sponsoredAdId = String(item.id);
+        }
+        return mountFillerCard(grid, left, top, width, height, card);
+    }
+
+    function mountBlankFiller(grid, left, top, width, height, sizeMeta) {
+        sizeMeta = sizeMeta || findBlankSizeMeta(width, height);
+        if (!sizeMeta) {
+            return null;
+        }
+
+        const exactW = Number(sizeMeta.w);
+        const exactH = Number(sizeMeta.h);
+
+        return mountFillerCard(
+            grid,
+            left,
+            top,
+            exactW,
+            exactH,
+            buildFillerCard(exactW, exactH, {
+                label: 'Sponsored',
+                image: null,
+                url: null,
+                title: null,
+                sizeKey: sizeMeta.size_key || null,
+            })
+        );
+    }
+
+    function gapKey(left, top, width, height) {
+        return left + ':' + top + ':' + width + ':' + height;
+    }
+
+    function getAvailableSponsoredItems(grid) {
+        return FILLER_POOL.filter(function (item) {
+            return item.image && isFillerItemAvailable(item, grid);
+        });
+    }
+
+    function collectGapCandidates(placedAds, packWidth, contentHeight, obstacles, usedGapKeys, sizeList) {
+        const candidates = [];
+        const bottomLimit = Math.max(0, contentHeight - 40);
+
+        if (bottomLimit <= 0 || packWidth < 200 || !placedAds.length) {
+            return candidates;
+        }
+
+        const xs = [0];
+        const ys = [0];
+        obstacles.forEach(function (item) {
+            xs.push(item.left);
+            xs.push(item.right + GAP);
+            ys.push(item.top);
+            ys.push(item.bottom + GAP);
+        });
+
+        const uniqX = uniqueSorted(xs);
+        const uniqY = uniqueSorted(ys);
+
+        for (let yi = 0; yi < uniqY.length; yi++) {
+            const top = uniqY[yi];
+            if (top >= bottomLimit) continue;
+
+            for (let xi = 0; xi < uniqX.length; xi++) {
+                const left = uniqX[xi];
+
+                let bestSize = null;
+
+                for (let si = 0; si < sizeList.length; si++) {
+                    const size = sizeList[si];
+                    if (left + size.w > packWidth) continue;
+                    if (top + size.h > bottomLimit) continue;
+                    if (!isFree(obstacles, left, top, size.w, size.h, packWidth)) continue;
+                    if (!hasRealAdAfter({ top: top, h: size.h }, placedAds)) continue;
+
+                    const key = gapKey(left, top, size.w, size.h);
+                    if (usedGapKeys[key]) continue;
+
+                    if (!bestSize || (size.w * size.h) > (bestSize.w * bestSize.h)) {
+                        bestSize = size;
+                    }
+                }
+
+                if (bestSize) {
+                    candidates.push({
+                        left: left,
+                        top: top,
+                        w: bestSize.w,
+                        h: bestSize.h,
+                        key: gapKey(left, top, bestSize.w, bestSize.h)
+                    });
+                }
+            }
+        }
+
+        candidates.sort(function (a, b) {
+            return a.top - b.top || a.left - b.left;
+        });
+
+        return candidates;
+    }
+
+    function createFiller(width, height, grid) {
+        const matchingItems = FILLER_POOL.filter(function (item) {
+            return Number(item.w) === Number(width)
+                && Number(item.h) === Number(height)
+                && item.image
+                && isFillerItemAvailable(item, grid);
+        });
+
+        const item = matchingItems.length
+            ? matchingItems[0]
+            : { label: 'Sponsored', image: null, url: null, title: null };
+
+        if (matchingItems.length) {
+            instance.usedFillerKeys.add(fillerItemKey(item));
+        }
+
+        return buildFillerCard(width, height, item);
+    }
+
+    function mountFiller(grid, left, top, width, height) {
+        const filler = createFiller(width, height, grid);
+        return mountFillerCard(grid, left, top, width, height, filler);
     }
 
     function toRect(slot) {
@@ -273,6 +502,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             top: pos.top,
             bottom: pos.top + cardH
         });
+        card.dataset.adsPacked = '1';
     }
 
     function hasRealAdAfter(slot, placedAds) {
@@ -285,65 +515,127 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return false;
     }
 
-    function fillSponsoredGaps(grid, placedAds, packWidth, contentHeight, pinnedFillers) {
-        // Keep only sponsored slots that still have a real ad after them.
-        const fillers = (pinnedFillers || []).filter(function (slot) {
-            return hasRealAdAfter(slot, placedAds);
+    function addSponsoredGaps(grid, placedAds, packWidth, contentHeight, obstacles, usedGapKeys) {
+        const fillers = [];
+        const bottomLimit = Math.max(0, contentHeight - 40);
+
+        if (bottomLimit <= 0 || packWidth < 200 || !placedAds.length) {
+            return fillers;
+        }
+
+        const availableAds = getAvailableSponsoredItems(grid);
+
+        availableAds.forEach(function (item) {
+            const adSize = { w: Number(item.w), h: Number(item.h) };
+            const gapCandidates = collectGapCandidates(
+                placedAds,
+                packWidth,
+                contentHeight,
+                obstacles,
+                usedGapKeys,
+                [adSize]
+            );
+
+            if (!gapCandidates.length) {
+                return;
+            }
+
+            const gap = gapCandidates[0];
+            const slot = mountFillerWithItem(grid, gap.left, gap.top, gap.w, gap.h, item);
+            fillers.push(slot);
+            obstacles.push(toRect(slot));
+            usedGapKeys[gap.key] = true;
         });
 
+        while (BLANK_SIZES.length) {
+            const gapCandidates = collectGapCandidates(
+                placedAds,
+                packWidth,
+                contentHeight,
+                obstacles,
+                usedGapKeys,
+                BLANK_SIZES
+            );
+
+            if (!gapCandidates.length) {
+                break;
+            }
+
+            let placedBlank = false;
+            for (let i = 0; i < gapCandidates.length; i++) {
+                const gap = gapCandidates[i];
+                if (usedGapKeys[gap.key]) {
+                    continue;
+                }
+                if (!isFree(obstacles, gap.left, gap.top, gap.w, gap.h, packWidth)) {
+                    continue;
+                }
+
+                const sizeMeta = findBlankSizeMeta(gap.w, gap.h);
+                if (!sizeMeta) {
+                    continue;
+                }
+
+                const slot = mountBlankFiller(grid, gap.left, gap.top, gap.w, gap.h, sizeMeta);
+                if (!slot) {
+                    continue;
+                }
+
+                fillers.push(slot);
+                obstacles.push(toRect(slot));
+                usedGapKeys[gap.key] = true;
+                placedBlank = true;
+                break;
+            }
+
+            if (!placedBlank) {
+                break;
+            }
+        }
+
+        return fillers;
+    }
+
+    function fillSponsoredGaps(grid, placedAds, packWidth, contentHeight, pinnedFillers) {
         const obstacles = placedAds
             .map(function (item) {
                 return { left: item.left, right: item.right, top: item.top, bottom: item.bottom };
-            })
-            .concat(fillers.map(toRect));
+            });
 
-        // Never place sponsored cards into the trailing/end area.
-        const bottomLimit = Math.max(0, contentHeight - 40);
-        if (bottomLimit <= 0 || packWidth < 200 || !placedAds.length) return fillers;
-
-        const xs = [0];
-        const ys = [0];
-        obstacles.forEach(function (item) {
-            xs.push(item.left);
-            xs.push(item.right + GAP);
-            ys.push(item.top);
-            ys.push(item.bottom + GAP);
+        const usedGapKeys = {};
+        const pinnedSlots = (pinnedFillers || []).filter(function (slot) {
+            return hasRealAdAfter(slot, placedAds);
         });
 
-        const uniqX = uniqueSorted(xs);
-        const uniqY = uniqueSorted(ys);
-        const pinnedKeys = {};
-        fillers.forEach(function (slot) {
-            pinnedKeys[slot.left + ':' + slot.top + ':' + slot.w + ':' + slot.h] = true;
+        pinnedSlots.forEach(function (slot) {
+            obstacles.push(toRect(slot));
+            usedGapKeys[gapKey(slot.left, slot.top, slot.w, slot.h)] = true;
         });
 
-        for (let yi = 0; yi < uniqY.length; yi++) {
-            const top = uniqY[yi];
-            if (top >= bottomLimit) continue;
+        const fillers = addSponsoredGaps(grid, placedAds, packWidth, contentHeight, obstacles, usedGapKeys);
 
-            for (let xi = 0; xi < uniqX.length; xi++) {
-                const left = uniqX[xi];
+        pinnedSlots.forEach(function (slot) {
+            const alreadyFilled = fillers.some(function (fillerSlot) {
+                return Math.abs(fillerSlot.left - slot.left) < 1 && Math.abs(fillerSlot.top - slot.top) < 1;
+            });
 
-                for (let si = 0; si < STATIC_SIZES.length; si++) {
-                    const size = STATIC_SIZES[si];
-                    if (left + size.w > packWidth) continue;
-                    if (top + size.h > bottomLimit) continue;
-                    if (!isFree(obstacles, left, top, size.w, size.h, packWidth)) continue;
-
-                    // Skip end-of-grid sponsored slots when no real ad comes after them.
-                    if (!hasRealAdAfter({ top: top, h: size.h }, placedAds)) continue;
-
-                    const key = left + ':' + top + ':' + size.w + ':' + size.h;
-                    if (pinnedKeys[key]) break;
-
-                    const slot = mountFiller(grid, left, top, size.w, size.h);
-                    fillers.push(slot);
-                    obstacles.push(toRect(slot));
-                    pinnedKeys[key] = true;
-                    break;
-                }
+            if (alreadyFilled) {
+                return;
             }
-        }
+
+            const sizeMeta = findBlankSizeMeta(slot.w, slot.h);
+            if (!sizeMeta) {
+                return;
+            }
+
+            const fillerSlot = mountBlankFiller(grid, slot.left, slot.top, slot.w, slot.h, sizeMeta);
+            if (!fillerSlot) {
+                return;
+            }
+
+            fillers.push(fillerSlot);
+            obstacles.push(toRect(fillerSlot));
+        });
 
         return fillers;
     }
@@ -354,13 +646,93 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         if (!packWidth) return;
 
         const state = getGridState(grid);
+
+        if (keepPinnedFillers) {
+            preserveUsedFillerKeysFromGrid(grid);
+
+            const placed = [];
+            const obstacles = [];
+            const existingFillerSlots = [];
+
+            grid.querySelectorAll('.ad-card:not([data-filler])').forEach(function (card) {
+                if (card.dataset.adsPacked !== '1') {
+                    return;
+                }
+
+                const packed = readPlacedCard(card);
+                placed.push(packed);
+                obstacles.push({
+                    left: packed.left,
+                    right: packed.right,
+                    top: packed.top,
+                    bottom: packed.bottom
+                });
+            });
+
+            grid.querySelectorAll('[data-filler]').forEach(function (filler) {
+                const slot = readFillerSlot(filler);
+                existingFillerSlots.push(slot);
+                obstacles.push(toRect(slot));
+            });
+
+            const newCards = Array.from(grid.querySelectorAll('.ad-card:not([data-filler])'))
+                .filter(function (card) { return card.dataset.adsPacked !== '1'; });
+
+            newCards.forEach(function (card) {
+                const dims = getDims(card);
+                let cardW = dims.w;
+                let cardH = dims.h;
+
+                if (cardW > packWidth) {
+                    const scale = packWidth / cardW;
+                    cardW = Math.max(1, Math.round(cardW * scale));
+                    cardH = Math.max(1, Math.round(cardH * scale));
+                }
+
+                if (cardW >= packWidth * 0.85) {
+                    cardW = packWidth;
+                }
+
+                const pos = findPlace(obstacles, cardW, cardH, packWidth);
+                placeCard(card, pos, cardW, cardH, placed);
+                obstacles.push({
+                    left: pos.left,
+                    right: pos.left + cardW,
+                    top: pos.top,
+                    bottom: pos.top + cardH
+                });
+            });
+
+            const contentHeight = placed.length
+                ? Math.max.apply(null, placed.map(function (item) { return item.bottom; }))
+                : 0;
+
+            const usedGapKeys = {};
+            existingFillerSlots.forEach(function (slot) {
+                usedGapKeys[gapKey(slot.left, slot.top, slot.w, slot.h)] = true;
+            });
+
+            const newFillers = addSponsoredGaps(grid, placed, packWidth, contentHeight, obstacles, usedGapKeys);
+            state.fillerPositions = existingFillerSlots.concat(newFillers);
+
+            let maxBottom = contentHeight;
+            grid.querySelectorAll('.ad-card').forEach(function (card) {
+                const bottom = card.offsetTop + card.offsetHeight;
+                if (bottom > maxBottom) maxBottom = bottom;
+            });
+
+            state.contentHeight = maxBottom;
+            grid.style.height = maxBottom + 'px';
+            return;
+        }
+
         const cards = Array.from(grid.querySelectorAll('.ad-card:not([data-filler])'));
-        const candidatePinned = keepPinnedFillers && Array.isArray(state.fillerPositions)
-            ? state.fillerPositions.filter(function (slot) { return slot.left + slot.w <= packWidth; })
-            : [];
 
         grid.querySelectorAll('[data-filler]').forEach(function (el) { el.remove(); });
-        fillerIndex = 0;
+        resetUsedFillers();
+        cards.forEach(function (card) {
+            card.dataset.adsPacked = '0';
+        });
 
         function packCards(reservedFillers) {
             const placed = [];
@@ -394,33 +766,18 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             return placed;
         }
 
-        // Pack around previously kept sponsored slots (if any).
-        let keptPinned = candidatePinned.slice();
-        let placed = packCards(keptPinned);
-
-        // Drop trailing sponsored slots that no longer have a real ad after them.
-        const filteredPinned = keptPinned.filter(function (slot) {
-            return hasRealAdAfter(slot, placed);
-        });
-        if (filteredPinned.length !== keptPinned.length) {
-            keptPinned = filteredPinned;
-            placed = packCards(keptPinned);
-        }
+        let placed = packCards([]);
 
         const contentHeight = placed.length
             ? Math.max.apply(null, placed.map(function (item) { return item.bottom; }))
             : 0;
-
-        keptPinned.forEach(function (slot) {
-            mountFiller(grid, slot.left, slot.top, slot.w, slot.h);
-        });
 
         state.fillerPositions = fillSponsoredGaps(
             grid,
             placed,
             packWidth,
             contentHeight,
-            keptPinned
+            []
         );
 
         let maxBottom = contentHeight;
@@ -451,6 +808,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         if (!appendMode || !layout.querySelector('.masonry-grid, .ads-full-width')) {
             layout.innerHTML = '';
             instance.gridState = new WeakMap();
+            instance.usedFillerKeys = new Set();
 
             let currentGrid = null;
             sourceCards.forEach(function (original) {
@@ -530,7 +888,10 @@ if (!window.__adsMasonryResizeBound) {
         window.__adsMasonryResizeTimer = setTimeout(function () {
             (window.__adsMasonryInstances || []).forEach(function (entry) {
                 if (typeof window.renderAdsMarketCards === 'function') {
-                    window.renderAdsMarketCards(entry.gridId, entry.fillerPool, { resetFillers: true });
+                    window.renderAdsMarketCards(entry.gridId, entry.fillerPool, {
+                        resetFillers: true,
+                        blankSizes: entry.blankSizes || []
+                    });
                 }
             });
         }, 250);
@@ -544,7 +905,9 @@ if (!window.__adsMasonryResizeBound) {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     if (typeof window.renderAdsMarketCards === 'function') {
-        window.renderAdsMarketCards(@json($gridId), @json($sponsoredFillers));
+        window.renderAdsMarketCards(@json($gridId), @json($sponsoredFillers), {
+            blankSizes: @json($sponsoredBlankSizes)
+        });
     }
 });
 </script>

@@ -494,6 +494,15 @@ class UserAdController extends Controller
         $sizes = AdSizes::all();
 
         return DataTables::of($ads)
+            ->editColumn('title', function (UserAd $ad) {
+                $title = e($ad->title);
+
+                if ($ad->is_sponsored) {
+                    $title .= ' <span class="badge text-bg-primary ms-1">Sponsored</span>';
+                }
+
+                return $title;
+            })
             ->addColumn('size_label', fn (UserAd $ad) => $sizes[$ad->size_type]['name'] ?? $ad->size_type)
             ->addColumn('template_name', fn (UserAd $ad) => $ad->template?->name ?? '-')
             ->addColumn('category_name', fn (UserAd $ad) => $ad->category?->name ?? '-')
@@ -529,7 +538,7 @@ class UserAdController extends Controller
             ->editColumn('submitted_at', fn (UserAd $ad) => $ad->submitted_at?->format('Y-m-d H:i') ?? '-')
             ->addColumn('valid_until', fn (UserAd $ad) => $ad->valid_until?->format('Y-m-d') ?? 'No Expiry')
             ->addColumn('actions', fn (UserAd $ad) => '<div class="d-flex justify-content-end gap-2"><a href="'.route('ads.show', $ad).'" class="btn btn-sm btn-outline-primary" title="View"><i class="fa-solid fa-eye"></i></a><a href="'.route('ads.edit', $ad).'" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fa-solid fa-pen"></i></a><button type="button" class="btn btn-sm btn-outline-danger js-delete-user-ad" data-id="'.$ad->id.'" title="Delete"><i class="fa-solid fa-trash"></i></button></div>')
-            ->rawColumns(['status_badge', 'banner_preview', 'actions'])
+            ->rawColumns(['title', 'status_badge', 'banner_preview', 'actions'])
             ->make(true);
     }
 
@@ -603,6 +612,9 @@ class UserAdController extends Controller
             $ad->final_image = $this->storeGeneratedAdImage($validated['generated_image_data'], (int) $size['w'], (int) $size['h']);
         }
 
+        $size = AdSizes::all()[$ad->size_type] ?? null;
+        $isSponsoredSize = $size && AdSizes::isSponsoredFillerSize($size);
+
         $ad->fill([
             'title' => $validated['title'],
             'short_description' => $validated['short_description'] ?? null,
@@ -610,19 +622,20 @@ class UserAdController extends Controller
             'subcategory_id' => (int) ($validated['subcategory_ids'][0] ?? 0),
             'selected_category_ids' => array_map('intval', $validated['category_ids'] ?? []),
             'selected_subcategory_ids' => array_map('intval', $validated['subcategory_ids'] ?? []),
-            'selected_modules' => $validated['selected_modules'] ?? [],
+            'selected_modules' => $isSponsoredSize ? [] : ($validated['selected_modules'] ?? []),
             'location' => $validated['location'],
             'location_lat' => $validated['location_lat'],
             'location_lng' => $validated['location_lng'],
             'valid_until' => $validated['valid_until'],
-            'is_sponsored' => $request->user()->isStaff() ? (bool) ($validated['is_sponsored'] ?? false) : false,
+            'is_sponsored' => $isSponsoredSize
+                ? true
+                : ($request->user()->isStaff() ? (bool) ($validated['is_sponsored'] ?? false) : false),
         ]);
 
-        $size = AdSizes::all(true)[$ad->size_type] ?? null;
         if ($size) {
             $totalBasePricePerDay = AdSizes::placementPricePerDay(
                 $size,
-                $validated['selected_modules'] ?? [],
+                $isSponsoredSize ? [] : ($validated['selected_modules'] ?? []),
                 $validated['category_ids'] ?? []
             );
             $pricing = $this->buildPricingDetails(
@@ -891,7 +904,10 @@ class UserAdController extends Controller
         $user = $request->user();
 
         $size = AdSizes::all()[$sizeType] ?? null;
-        $selectedModules = collect($validated['selected_modules'] ?? [])->unique()->values()->all();
+        $isSponsoredSize = $size && AdSizes::isSponsoredFillerSize($size);
+        $selectedModules = $isSponsoredSize
+            ? []
+            : collect($validated['selected_modules'] ?? [])->unique()->values()->all();
         $totalBasePricePerDay = $size
             ? AdSizes::placementPricePerDay($size, $selectedModules, $validated['category_ids'])
             : 0.0;
@@ -910,7 +926,7 @@ class UserAdController extends Controller
 
         $pricing = $this->buildPricingDetails($totalBasePricePerDay, $validated['valid_until']);
 
-        $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $pricing, $selectedModules, $primaryCategoryId, $primarySubcategoryId) {
+        $ad = DB::transaction(function () use ($sizeType, $validated, $fields, $user, $targetWidth, $targetHeight, $pricing, $selectedModules, $primaryCategoryId, $primarySubcategoryId, $isSponsoredSize) {
             $layoutHtml = (string) ($validated['custom_html'] ?? '');
             $renderedHtml = $layoutHtml;
 
@@ -920,7 +936,9 @@ class UserAdController extends Controller
                 $targetHeight,
             );
 
-            $isSponsored = $user->isStaff() ? (bool) ($validated['is_sponsored'] ?? false) : false;
+            $isSponsored = $isSponsoredSize
+                ? true
+                : ($user->isStaff() ? (bool) ($validated['is_sponsored'] ?? false) : false);
 
             return UserAd::create([
                 'user_id' => $user->id,

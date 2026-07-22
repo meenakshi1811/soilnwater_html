@@ -57,13 +57,12 @@ class MarketplaceAdsService
     }
 
     /**
-     * @return array<int, array{w:int, h:int, label:string, title:?string, image:?string, url:?string}>
+     * @return array<int, array{id:int, w:int, h:int, label:string, title:?string, image:?string, url:?string}>
      */
     public function getSponsoredFillers(?float $lat, ?float $lng, array $preferredModules = [], bool $strictModules = false): array
     {
-        $requiredSizes = collect([
-            [458, 458], [458, 229], [229, 458], [229, 229], [520, 360], [520, 300], [458, 300], [360, 360], [320, 300],
-        ])->mapWithKeys(fn (array $size) => [$size[0].'x'.$size[1] => ['w' => $size[0], 'h' => $size[1]]]);
+        $requiredDimensions = collect(AdSizes::sponsoredFillerDimensions())
+            ->flip();
 
         $sponsoredAdsQuery = UserAd::query()
             ->where('status', 'approved')
@@ -90,73 +89,38 @@ class MarketplaceAdsService
         }
 
         $sponsoredAds = $sponsoredAdsQuery
+            ->orderByDesc('reviewed_at')
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
             ->get(['id', 'title', 'size_type', 'final_image', 'reviewed_at', 'location_lat', 'location_lng']);
 
-        $normalizedSizes = collect(AdSizes::all())->mapWithKeys(function ($size, $key) {
-            $normalizedKey = strtolower(str_replace([' ', '-'], '_', (string) $key));
+        return $sponsoredAds
+            ->map(function (UserAd $ad) use ($requiredDimensions) {
+                $dims = AdSizes::dimensionsForSizeType((string) $ad->size_type);
+                if (! $dims || $dims['w'] <= 0 || $dims['h'] <= 0) {
+                    return null;
+                }
 
-            return [$normalizedKey => ['w' => (int) ($size['w'] ?? 0), 'h' => (int) ($size['h'] ?? 0)]];
-        });
+                $sizeKey = $dims['w'].'x'.$dims['h'];
+                if (! $requiredDimensions->has($sizeKey)) {
+                    return null;
+                }
 
-        $pickedBySize = [];
-
-        foreach ($sponsoredAds as $ad) {
-            $sizeType = strtolower(str_replace([' ', '-'], '_', (string) $ad->size_type));
-            $dims = $normalizedSizes[$sizeType] ?? null;
-            if (! $dims || $dims['w'] <= 0 || $dims['h'] <= 0) {
-                continue;
-            }
-
-            $sizeKey = $dims['w'].'x'.$dims['h'];
-            if (! $requiredSizes->has($sizeKey)) {
-                continue;
-            }
-
-            $distance = null;
-            if ($lat !== null && $lng !== null && $ad->location_lat !== null && $ad->location_lng !== null) {
-                $distance = 6371 * acos(
-                    cos(deg2rad($lat)) * cos(deg2rad((float) $ad->location_lat)) * cos(deg2rad((float) $ad->location_lng) - deg2rad($lng))
-                    + sin(deg2rad($lat)) * sin(deg2rad((float) $ad->location_lat))
-                );
-            }
-
-            $current = $pickedBySize[$sizeKey] ?? null;
-            if ($current === null) {
-                $pickedBySize[$sizeKey] = ['ad' => $ad, 'distance' => $distance];
-
-                continue;
-            }
-
-            $currentDistance = $current['distance'];
-            $shouldReplace = false;
-
-            if ($distance !== null && $currentDistance === null) {
-                $shouldReplace = true;
-            } elseif ($distance !== null && $currentDistance !== null && $distance < $currentDistance) {
-                $shouldReplace = true;
-            } elseif ($distance === $currentDistance && optional($ad->reviewed_at)->gt(optional($current['ad']->reviewed_at))) {
-                $shouldReplace = true;
-            } elseif ($distance === null && $currentDistance === null && optional($ad->reviewed_at)->gt(optional($current['ad']->reviewed_at))) {
-                $shouldReplace = true;
-            }
-
-            if ($shouldReplace) {
-                $pickedBySize[$sizeKey] = ['ad' => $ad, 'distance' => $distance];
-            }
-        }
-
-        return $requiredSizes->map(function (array $size, string $sizeKey) use ($pickedBySize) {
-            $picked = $pickedBySize[$sizeKey]['ad'] ?? null;
-
-            return [
-                'w' => $size['w'],
-                'h' => $size['h'],
-                'label' => 'Sponsored',
-                'title' => $picked?->title,
-                'image' => $picked?->final_image ? asset($picked->final_image) : null,
-                'url' => $picked ? route('frontend.ads.show', $picked) : null,
-            ];
-        })->values()->all();
+                return [
+                    'id' => $ad->id,
+                    'size_key' => (string) $ad->size_type,
+                    'name' => AdSizes::label((string) $ad->size_type),
+                    'w' => $dims['w'],
+                    'h' => $dims['h'],
+                    'label' => 'Sponsored',
+                    'title' => $ad->title,
+                    'image' => asset($ad->final_image),
+                    'url' => route('frontend.ads.show', $ad),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
     }
 
     /**

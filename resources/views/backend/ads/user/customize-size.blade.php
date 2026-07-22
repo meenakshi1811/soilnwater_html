@@ -128,6 +128,7 @@
     $sizeBasePricePerDay = \App\Support\AdSizes::basePricePerDay($size);
     $showSizePricing = $sizeIsPaid && $sizeBasePricePerDay !== null;
     $showFreePricing = ! $sizeIsPaid;
+    $isSponsoredSize = \App\Support\AdSizes::isSponsoredFillerSize($size ?? []);
 @endphp
 <div class="admin-panel ems-page" id="adsSizeCustomizerPage">
     <div class="ems-hero mb-4">
@@ -182,6 +183,7 @@
                     <label class="form-label fw-semibold">Short Description</label>
                     <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description', $ad->short_description ?? '') }}</textarea>
                 </div>
+                @if(! $isSponsoredSize)
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Select Module(s)</label>
                     @php $selectedModulesForCheckboxes = old('selected_modules', $ad->selected_modules ?? []); @endphp
@@ -211,6 +213,7 @@
                     </div>
                     <div id="adModulePriceNote" class="form-text text-muted">Modules are optional. Selecting paid modules adds their price to the base price.</div>
                 </div>
+                @endif
                 <div class="col-md-6">
                     <label for="categorySelect" class="form-label fw-semibold required-label">Category <i class="fa-solid fa-asterisk required-icon" aria-hidden="true"></i></label>
                     @php
@@ -252,7 +255,9 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-                @if(auth()->user()?->isStaff())
+                @if($isSponsoredSize)
+                    <input type="hidden" name="is_sponsored" value="1">
+                @elseif(auth()->user()?->isStaff())
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Is Sponsored</label>
                     <select name="is_sponsored" class="form-select">

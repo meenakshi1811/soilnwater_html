@@ -43,6 +43,7 @@
                 { data: 'actions', name: 'actions', orderable: false, searchable: false }
             ],
             createdRow: function (row, data) {
+                $(row).find('td').eq(0).html(data.title);
                 $(row).find('td').eq(3).html(data.status_badge);
                 $(row).find('td').eq(4).html(data.banner_preview);
                 $(row).find('td').eq(7).html(data.actions);

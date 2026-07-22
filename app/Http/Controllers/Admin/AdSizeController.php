@@ -30,8 +30,18 @@ class AdSizeController extends Controller
             ->with('modulePrices:id,ad_size_id,module_key,amount')
             ->select(['id', 'size_key', 'name', 'width', 'height', 'admin_only', 'is_paid', 'amount', 'is_active', 'created_at']);
 
+        $sponsoredDimensions = \App\Support\AdSizes::sponsoredFillerDimensions();
+
         return DataTables::of($sizes)
-            ->addColumn('dimensions', fn (AdSize $size) => $size->width.'×'.$size->height)
+            ->addColumn('dimensions', function (AdSize $size) use ($sponsoredDimensions) {
+                $label = $size->width.'×'.$size->height;
+                $key = $size->width.'x'.$size->height;
+                if (in_array($key, $sponsoredDimensions, true)) {
+                    $label .= ' <span class="badge text-bg-info ms-1">Sponsored</span>';
+                }
+
+                return $label;
+            })
             ->addColumn('placement', fn (AdSize $size) => $size->admin_only
                 ? '<span class="badge text-bg-warning">Admin</span>'
                 : '<span class="badge text-bg-success">User</span>')
@@ -55,7 +65,7 @@ class AdSizeController extends Controller
                     . '<button type="button" class="btn btn-sm btn-outline-danger js-delete-ad-size" data-id="'.$size->id.'"><i class="fa-solid fa-trash"></i></button>'
                     . '</div>';
             })
-            ->rawColumns(['placement', 'paid_status', 'status_toggle', 'actions'])
+            ->rawColumns(['dimensions', 'placement', 'paid_status', 'status_toggle', 'actions'])
             ->make(true);
     }
 

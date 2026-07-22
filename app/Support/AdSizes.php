@@ -136,4 +136,88 @@ final class AdSizes
 
         return $total > 0 ? round($total, 2) : null;
     }
+
+    /**
+     * @return list<string>
+     */
+    public static function sponsoredFillerDimensions(): array
+    {
+        return [
+            '458x458', '458x229', '229x458', '229x229',
+            '520x360', '520x300', '458x300', '360x360', '320x300',
+        ];
+    }
+
+    public static function isSponsoredFillerSize(array $size): bool
+    {
+        $width = (int) ($size['w'] ?? 0);
+        $height = (int) ($size['h'] ?? 0);
+
+        if ($width <= 0 || $height <= 0) {
+            return false;
+        }
+
+        return in_array($width.'x'.$height, self::sponsoredFillerDimensions(), true);
+    }
+
+    /**
+     * @return array{w:int, h:int}|null
+     */
+    public static function dimensionsForSizeType(string $sizeType, bool $includeInactive = true): ?array
+    {
+        $normalizedType = strtolower(str_replace([' ', '-'], '_', trim($sizeType)));
+        $sizes = self::all($includeInactive);
+
+        foreach ($sizes as $key => $size) {
+            $normalizedKey = strtolower(str_replace([' ', '-'], '_', (string) $key));
+            if ($normalizedKey === $normalizedType) {
+                return [
+                    'w' => (int) $size['w'],
+                    'h' => (int) $size['h'],
+                ];
+            }
+        }
+
+        $adSize = AdSize::query()
+            ->where('size_key', $sizeType)
+            ->first(['width', 'height']);
+
+        if ($adSize && $adSize->width > 0 && $adSize->height > 0) {
+            return [
+                'w' => (int) $adSize->width,
+                'h' => (int) $adSize->height,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Sponsored blank-slot sizes loaded from ad_sizes (exact DB width/height + labels).
+     *
+     * @return list<array{size_key:string, name:string, w:int, h:int}>
+     */
+    public static function sponsoredFillerSizesFromDatabase(bool $includeInactive = true): array
+    {
+        $allowedDimensions = collect(self::sponsoredFillerDimensions())->flip();
+
+        return AdSize::query()
+            ->when(! $includeInactive, fn ($query) => $query->where('is_active', true))
+            ->where('width', '>', 0)
+            ->where('height', '>', 0)
+            ->orderBy('name')
+            ->get(['size_key', 'name', 'width', 'height'])
+            ->filter(function (AdSize $size) use ($allowedDimensions) {
+                return $allowedDimensions->has(((int) $size->width).'x'.((int) $size->height));
+            })
+            ->map(fn (AdSize $size) => [
+                'size_key' => (string) $size->size_key,
+                'name' => (string) $size->name,
+                'w' => (int) $size->width,
+                'h' => (int) $size->height,
+            ])
+            ->unique(fn (array $size) => $size['w'].'x'.$size['h'])
+            ->values()
+            ->all();
+    }
 }
