@@ -812,6 +812,14 @@
             {{ $post->published_at?->format('M d, Y') ?? 'Draft' }}
         </p>
         <div @class(['d-flex flex-wrap gap-2 mt-2', 'justify-content-center' => ! $isArticlePost, 'community-article-hero__actions' => $isArticlePost])>
+            @if($isArticlePost)
+                <div class="community-article-font-size" data-article-font-controls role="group" aria-label="Page text size">
+                    <span class="community-article-font-size__label">Text size</span>
+                    <button type="button" class="community-article-font-size__btn" data-article-font-action="decrease" aria-label="Decrease text size" title="Decrease text size">A−</button>
+                    <button type="button" class="community-article-font-size__btn is-active" data-article-font-action="reset" aria-label="Default text size" title="Default text size" aria-pressed="true">A</button>
+                    <button type="button" class="community-article-font-size__btn" data-article-font-action="increase" aria-label="Increase text size" title="Increase text size">A+</button>
+                </div>
+            @endif
             @if($post->allowsSharing())
                 @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true, 'iconOnly' => true])
             @endif
@@ -859,21 +867,6 @@
             </div>
         @endif
     </section>
-
-    @if($isArticlePost)
-        <div class="community-article-font-bar" data-article-font-controls>
-            <div class="community-article-font-bar__inner">
-                <div class="community-article-font-size" role="group" aria-label="Page text size">
-                    <span class="community-article-font-size__label">Text size</span>
-                    <button type="button" class="community-article-font-size__btn" data-article-font-size="sm" aria-pressed="false" title="Small">S</button>
-                    <button type="button" class="community-article-font-size__btn is-active" data-article-font-size="md" aria-pressed="true" title="Default">M</button>
-                    <button type="button" class="community-article-font-size__btn" data-article-font-size="lg" aria-pressed="false" title="Large">L</button>
-                    <button type="button" class="community-article-font-size__btn" data-article-font-size="xl" aria-pressed="false" title="Extra large">XL</button>
-                    <span class="community-article-font-size__current" data-article-font-label>Default</span>
-                </div>
-            </div>
-        </div>
-    @endif
 
     <div class="about-inner{{ $isArticlePost ? ' community-article-scale' : '' }}">
         <section class="sec">
@@ -1803,31 +1796,32 @@
 
         const fontRoot = document.querySelector('[data-article-font-root]');
         if (fontRoot) {
-            const sizes = {
-                sm: 'Small',
-                md: 'Default',
-                lg: 'Large',
-                xl: 'Extra large',
-            };
+            const sizes = ['sm', 'md', 'lg', 'xl'];
             const storageKey = 'soilnwater.articleFontSize';
-            const buttons = fontRoot.querySelectorAll('[data-article-font-controls] [data-article-font-size]');
-            const label = fontRoot.querySelector('[data-article-font-label]');
+            const controls = fontRoot.querySelector('[data-article-font-controls]');
+            const decreaseBtn = controls?.querySelector('[data-article-font-action="decrease"]');
+            const resetBtn = controls?.querySelector('[data-article-font-action="reset"]');
+            const increaseBtn = controls?.querySelector('[data-article-font-action="increase"]');
 
             function applySize(size) {
-                if (!sizes[size]) {
+                if (!sizes.includes(size)) {
                     size = 'md';
                 }
 
                 fontRoot.setAttribute('data-article-font-size', size);
 
-                buttons.forEach(function (button) {
-                    const active = button.getAttribute('data-article-font-size') === size;
-                    button.classList.toggle('is-active', active);
-                    button.setAttribute('aria-pressed', active ? 'true' : 'false');
-                });
+                if (resetBtn) {
+                    const isDefault = size === 'md';
+                    resetBtn.classList.toggle('is-active', isDefault);
+                    resetBtn.setAttribute('aria-pressed', isDefault ? 'true' : 'false');
+                }
 
-                if (label) {
-                    label.textContent = sizes[size];
+                if (decreaseBtn) {
+                    decreaseBtn.disabled = size === sizes[0];
+                }
+
+                if (increaseBtn) {
+                    increaseBtn.disabled = size === sizes[sizes.length - 1];
                 }
 
                 try {
@@ -1835,10 +1829,25 @@
                 } catch (error) {}
             }
 
-            buttons.forEach(function (button) {
-                button.addEventListener('click', function () {
-                    applySize(button.getAttribute('data-article-font-size'));
-                });
+            function currentSize() {
+                return fontRoot.getAttribute('data-article-font-size') || 'md';
+            }
+
+            function stepSize(direction) {
+                const index = sizes.indexOf(currentSize());
+                applySize(sizes[Math.max(0, Math.min(sizes.length - 1, index + direction))]);
+            }
+
+            decreaseBtn?.addEventListener('click', function () {
+                stepSize(-1);
+            });
+
+            increaseBtn?.addEventListener('click', function () {
+                stepSize(1);
+            });
+
+            resetBtn?.addEventListener('click', function () {
+                applySize('md');
             });
 
             let saved = 'md';
