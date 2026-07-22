@@ -108,6 +108,147 @@
         border-color: #cbd5e1;
     }
 
+    .community-detail-card {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbfd 100%);
+        border: 1px solid rgba(15, 47, 85, 0.1);
+        border-radius: 1.15rem;
+        box-shadow: 0 8px 24px rgba(15, 47, 85, 0.05);
+        overflow: hidden;
+        padding: 1.15rem 1.25rem 1.25rem;
+    }
+
+    .community-detail-card__head {
+        align-items: flex-start;
+        border-bottom: 1px solid rgba(15, 47, 85, 0.08);
+        display: flex;
+        gap: 0.85rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.95rem;
+    }
+
+    .community-detail-card__icon {
+        align-items: center;
+        background: linear-gradient(135deg, #e8f3fb 0%, #e7f6ef 100%);
+        border: 1px solid rgba(27, 108, 168, 0.18);
+        border-radius: 0.85rem;
+        color: #1b6ca8;
+        display: inline-flex;
+        flex-shrink: 0;
+        font-size: 0.95rem;
+        height: 2.35rem;
+        justify-content: center;
+        width: 2.35rem;
+    }
+
+    .community-detail-card__title {
+        color: #0f2744;
+        font-size: 1.05rem;
+        font-weight: 700;
+        line-height: 1.25;
+        margin: 0;
+    }
+
+    .community-detail-card__subtitle {
+        color: #64748b;
+        font-size: 0.84rem;
+        margin: 0.2rem 0 0;
+    }
+
+    .community-detail-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .community-detail-item {
+        background: #fff;
+        border: 1px solid rgba(15, 47, 85, 0.08);
+        border-radius: 0.85rem;
+        padding: 0.8rem 0.9rem;
+    }
+
+    .community-detail-item__label {
+        color: #64748b;
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+    }
+
+    .community-detail-item__value {
+        color: #1e293b;
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.45;
+    }
+
+    .community-detail-location-note {
+        color: #475569;
+        font-size: 0.92rem;
+        margin: 0;
+    }
+
+    .community-detail-location-type {
+        align-items: center;
+        background: rgba(27, 108, 168, 0.08);
+        border-radius: 999px;
+        color: #0f4c75;
+        display: inline-flex;
+        font-size: 0.82rem;
+        font-weight: 700;
+        gap: 0.35rem;
+        margin-bottom: 0.75rem;
+        padding: 0.35rem 0.75rem;
+    }
+
+    .community-detail-map {
+        border: 1px solid rgba(15, 47, 85, 0.1);
+        border-radius: 0.9rem;
+        margin-top: 1rem;
+        overflow: hidden;
+    }
+
+    .community-detail-list {
+        display: grid;
+        gap: 0.65rem;
+        margin: 0;
+    }
+
+    .community-detail-list__row {
+        background: #fff;
+        border: 1px solid rgba(15, 47, 85, 0.08);
+        border-radius: 0.85rem;
+        display: grid;
+        gap: 0.2rem 1rem;
+        grid-template-columns: minmax(120px, 34%) 1fr;
+        padding: 0.8rem 0.95rem;
+    }
+
+    .community-detail-list__row dt {
+        color: #64748b;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        margin: 0;
+        text-transform: uppercase;
+    }
+
+    .community-detail-list__row dd {
+        color: #1e293b;
+        font-size: 0.94rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    @@media (max-width: 575.98px) {
+        .community-detail-list__row {
+            grid-template-columns: 1fr;
+        }
+    }
+
     .report-trust-score__header {
         align-items: center;
         display: flex;
@@ -1237,23 +1378,26 @@
                     $visibleMeta = $additionalWomensWorldMeta;
                 @endphp
             @elseif(\App\Models\CommunityPost::usesStructuredLocation($post->content_type) && ! in_array($post->content_type, ['news', 'awareness', 'business', 'womens-world', 'senior-citizens-forum', 'student-corner', 'youth-corner', 'local-voices', 'my-area', 'community-issues', 'agriculture', 'environment'], true) && $post->structuredLocationForDisplay()->isNotEmpty())
-                <div class="about-box mt-4">
-                    <h4>Location information</h4>
-                    <div class="row g-3">
+                <div class="community-detail-card community-detail-card--location mt-4">
+                    <div class="community-detail-card__head">
+                        <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+                        <div>
+                            <h4 class="community-detail-card__title">Location information</h4>
+                            <p class="community-detail-card__subtitle">Where this content is relevant</p>
+                        </div>
+                    </div>
+                    <div class="community-detail-grid">
                         @foreach($post->structuredLocationForDisplay() as $key => $value)
-                            <div class="col-md-6">
-                                <div class="border rounded p-3 h-100 bg-light">
-                                    <strong class="d-block mb-1">{{ \App\Models\CommunityPost::structuredLocationLabelsFor($post->content_type)[$key] ?? \Illuminate\Support\Str::headline($key) }}</strong>
-                                    <span>{{ $value }}</span>
-                                </div>
+                            <div class="community-detail-item">
+                                <span class="community-detail-item__label">{{ \App\Models\CommunityPost::structuredLocationLabelsFor($post->content_type)[$key] ?? \Illuminate\Support\Str::headline($key) }}</span>
+                                <span class="community-detail-item__value">{{ $value }}</span>
                             </div>
                         @endforeach
                     </div>
                     @if($post->hasMapCoordinates())
-                        <p class="mb-2 mt-3"><strong>Map location:</strong> {{ $post->location_lat }}, {{ $post->location_lng }}</p>
-                        <div class="ratio ratio-16x9 border rounded overflow-hidden">
+                        <div class="community-detail-map ratio ratio-16x9">
                             <iframe
-                                title="Post GPS location map"
+                                title="Post location map"
                                 loading="lazy"
                                 referrerpolicy="no-referrer-when-downgrade"
                                 src="https://www.openstreetmap.org/export/embed.html?bbox={{ $post->location_lng - 0.02 }},{{ $post->location_lat - 0.02 }},{{ $post->location_lng + 0.02 }},{{ $post->location_lat + 0.02 }}&layer=mapnik&marker={{ $post->location_lat }},{{ $post->location_lng }}"
@@ -1262,40 +1406,51 @@
                     @endif
                 </div>
             @elseif($post->content_type !== 'poetry' && filled($post->location_type))
-                <div class="about-box mt-4">
-                    <h4>Location information</h4>
-                    <p class="mb-2"><strong>Type:</strong> {{ $post->locationTypeLabel() }}</p>
+                <div class="community-detail-card community-detail-card--location mt-4">
+                    <div class="community-detail-card__head">
+                        <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+                        <div>
+                            <h4 class="community-detail-card__title">Location information</h4>
+                            <p class="community-detail-card__subtitle">Where this content is relevant</p>
+                        </div>
+                    </div>
+                    <span class="community-detail-location-type">
+                        <i class="fa-solid fa-map-pin" aria-hidden="true"></i>
+                        {{ $post->locationTypeLabel() }}
+                    </span>
                     @if($post->location_type === \App\Models\CommunityPost::LOCATION_TYPE_GLOBAL)
-                        <p class="mb-0 text-muted">This post has global relevance.</p>
+                        <p class="community-detail-location-note mb-0">This post has global relevance.</p>
                     @elseif($post->location_type === \App\Models\CommunityPost::LOCATION_TYPE_INDIA)
-                        <p class="mb-0 text-muted">This post applies across India.</p>
+                        <p class="community-detail-location-note mb-0">This post applies across India.</p>
                     @elseif($post->usesGpsLocation())
-                        <p class="mb-2 text-muted">This report uses an optional GPS location.</p>
+                        <p class="community-detail-location-note mb-0">This report uses an optional GPS location.</p>
                         @if($post->hasMapCoordinates())
-                            <p class="mb-2"><strong>Coordinates:</strong> {{ $post->location_lat }}, {{ $post->location_lng }}</p>
-                            <div class="ratio ratio-16x9 border rounded overflow-hidden">
+                            <div class="community-detail-map ratio ratio-16x9">
                                 <iframe
-                                    title="Report GPS location map"
+                                    title="Report location map"
                                     loading="lazy"
                                     referrerpolicy="no-referrer-when-downgrade"
                                     src="https://www.openstreetmap.org/export/embed.html?bbox={{ $post->location_lng - 0.02 }},{{ $post->location_lat - 0.02 }},{{ $post->location_lng + 0.02 }},{{ $post->location_lat + 0.02 }}&layer=mapnik&marker={{ $post->location_lat }},{{ $post->location_lng }}"
                                 ></iframe>
                             </div>
                         @else
-                            <p class="mb-0 text-muted">No GPS coordinates were provided for this report.</p>
+                            <p class="community-detail-location-note mb-0 mt-2">No map location was provided for this report.</p>
                         @endif
                     @elseif($post->requiresSpecificLocation() && filled($resolvedLocation))
-                        <p class="mb-0">{{ $resolvedLocation }}</p>
-                        @if(filled($post->location_lat) && filled($post->location_lng))
-                            <small class="text-muted">Coordinates: {{ $post->location_lat }}, {{ $post->location_lng }}</small>
-                        @endif
+                        <p class="community-detail-location-note mb-0">{{ $resolvedLocation }}</p>
                     @endif
                 </div>
             @endif
             @if($visibleMeta->isNotEmpty())
-                <div class="about-box mt-4">
-                    <h4>Additional details</h4>
-                    <ul class="about-list mb-0">
+                <div class="community-detail-card community-detail-card--meta mt-4">
+                    <div class="community-detail-card__head">
+                        <span class="community-detail-card__icon" aria-hidden="true"><i class="fa-solid fa-circle-info"></i></span>
+                        <div>
+                            <h4 class="community-detail-card__title">Additional details</h4>
+                            <p class="community-detail-card__subtitle">Extra context about this post</p>
+                        </div>
+                    </div>
+                    <dl class="community-detail-list mb-0">
                         @foreach($visibleMeta as $key => $value)
                             @if(blank($value) && $value !== false)
                                 @continue
@@ -1303,9 +1458,12 @@
                             @if(is_array($value) || is_object($value))
                                 @continue
                             @endif
-                            <li><strong>{{ $formFieldLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}:</strong> {!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</li>
+                            <div class="community-detail-list__row">
+                                <dt>{{ $formFieldLabels[$key] ?? \Illuminate\Support\Str::headline($key) }}</dt>
+                                <dd>{!! nl2br(e(is_bool($value) ? 'Yes' : $value)) !!}</dd>
+                            </div>
                         @endforeach
-                    </ul>
+                    </dl>
                 </div>
             @endif
 
@@ -1329,10 +1487,6 @@
                         @endauth
                     @endforeach
                 </div>
-            @endif
-
-            @if($post->allowsSharing())
-                @include('community.partials.share-panel', ['post' => $post, 'showInline' => true])
             @endif
 
             @if($post->allowsPoll())

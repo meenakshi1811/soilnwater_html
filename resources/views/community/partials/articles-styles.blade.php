@@ -444,6 +444,31 @@
         padding: 0.85rem 0.95rem;
     }
 
+    .about-page--articles .community-detail-card {
+        background: var(--article-paper);
+        border: 1px solid var(--article-line);
+        border-radius: 1.2rem;
+        box-shadow: 0 10px 28px rgba(16, 37, 63, 0.06);
+    }
+
+    .about-page--articles .community-detail-card__title {
+        color: var(--article-ink);
+        font-family: Fraunces, Georgia, serif;
+        font-size: 1.12rem;
+    }
+
+    .about-page--articles .community-detail-item,
+    .about-page--articles .community-detail-list__row {
+        background: linear-gradient(180deg, #f8fbfd 0%, #ffffff 100%);
+        border-color: var(--article-line);
+    }
+
+    .about-page--articles .community-detail-item__value,
+    .about-page--articles .community-detail-list__row dd {
+        color: #1e293b;
+        font-weight: 500;
+    }
+
     @@keyframes articleRise {
         from {
             opacity: 0;
