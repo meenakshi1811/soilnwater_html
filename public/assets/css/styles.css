@@ -3656,6 +3656,28 @@
   margin: 0 auto;
   max-width: min(920px, calc(100vw - 32px));
   padding: 1rem 1.15rem 1.05rem;
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+  .site-content-disclaimer {
+    padding: 20px 20px 28px;
+  }
+
+  .site-content-disclaimer__inner {
+    max-width: min(1520px, calc(100vw - 40px));
+    padding: 1.1rem 1.35rem 1.15rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  .site-content-disclaimer {
+    padding: 20px 16px 28px;
+  }
+
+  .site-content-disclaimer__inner {
+    max-width: calc(100vw - 32px);
+  }
 }
 
 .site-content-disclaimer__header {

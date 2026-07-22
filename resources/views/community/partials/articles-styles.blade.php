@@ -262,9 +262,10 @@
     }
 
     .about-page--articles .community-article-reading {
-        margin: 0 auto;
-        max-width: 44rem;
-        padding: clamp(1.6rem, 4vw, 2.85rem) clamp(1.2rem, 4vw, 2.4rem) clamp(2.1rem, 5vw, 3.1rem);
+        margin: 0;
+        max-width: none;
+        padding: clamp(1.6rem, 4vw, 2.85rem) clamp(1.5rem, 3vw, 2.5rem) clamp(2.1rem, 5vw, 3.1rem);
+        width: 100%;
     }
 
     .about-page--articles .community-article-reading__lead {
