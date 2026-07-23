@@ -3296,7 +3296,6 @@ The mountains keep.</pre>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
-<script src="https://www.google.com/jsapi"></script>
 <script src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.3.3/sanscript.js"></script>
 <script>
     window.communityTypes = @json($types);
@@ -3341,19 +3340,6 @@ The mountains keep.</pre>
     };
     let communityEditorTransliterationKeydownHandler = null;
     let communityEditorTransliterationEditor = null;
-    let communityTransliterationElementsReady = false;
-    let communityTransliterationElementsPromise = null;
-    let communityTransliterationControl = null;
-    const COMMUNITY_GOOGLE_TRANSLITERATION_DEST = {
-        hi: 'HINDI',
-        ur: 'URDU',
-        pa: 'PUNJABI',
-        bn: 'BENGALI',
-        mr: 'MARATHI',
-        gu: 'GUJARATI',
-        ta: 'TAMIL',
-        te: 'TELUGU',
-    };
 
     function isLifeStoryContentType(type) {
         return (window.communityLifeStoryTypes || []).includes(type);
@@ -5477,103 +5463,11 @@ The mountains keep.</pre>
         return true;
     }
 
-    function ensureCommunityTransliterationElementsApi() {
-        if (communityTransliterationElementsReady && communityTransliterationControl) {
-            return Promise.resolve(communityTransliterationControl);
-        }
-
-        if (communityTransliterationElementsPromise) {
-            return communityTransliterationElementsPromise;
-        }
-
-        communityTransliterationElementsPromise = new Promise(function (resolve) {
-            if (typeof google === 'undefined' || typeof google.load !== 'function') {
-                resolve(null);
-                return;
-            }
-
-            google.load('elements', '1', {
-                packages: 'transliteration',
-                callback: function () {
-                    try {
-                        if (!communityTransliterationControl && window.google?.elements?.transliteration?.TransliterationControl) {
-                            communityTransliterationControl = new window.google.elements.transliteration.TransliterationControl({
-                                sourceLanguage: window.google.elements.transliteration.LanguageCode.ENGLISH,
-                                destinationLanguage: [window.google.elements.transliteration.LanguageCode.HINDI],
-                                transliterationEnabled: true,
-                                shortcutKey: 'ctrl+g',
-                            });
-                        }
-
-                        communityTransliterationElementsReady = Boolean(communityTransliterationControl);
-                        resolve(communityTransliterationControl);
-                    } catch (error) {
-                        console.warn('Google transliteration could not be initialized.', error);
-                        resolve(null);
-                    }
-                },
-            });
-        });
-
-        return communityTransliterationElementsPromise;
-    }
-
-    function bindGoogleEditorTransliteration(editor, languageCode) {
-        const destCode = COMMUNITY_GOOGLE_TRANSLITERATION_DEST[normalizeEditorLanguage(languageCode)];
-
-        if (!destCode) {
-            if (communityTransliterationControl) {
-                communityTransliterationControl.disableTransliteration();
-            }
-
-            return;
-        }
-
-        ensureCommunityTransliterationElementsApi().then(function (control) {
-            if (!control || !editor) {
-                return;
-            }
-
-            const root = editor.editing.view.getDomRoot();
-
-            if (!root) {
-                return;
-            }
-
-            if (!root.id) {
-                root.id = 'communityBodyEditorEditable';
-            }
-
-            if (!root.dataset.transliterationBound) {
-                try {
-                    control.makeTransliteratable([root.id]);
-                    root.dataset.transliterationBound = '1';
-                } catch (error) {
-                    console.warn('Google transliteration could not bind to the editor.', error);
-                }
-            }
-
-            const languageCodeEnum = window.google?.elements?.transliteration?.LanguageCode || {};
-            const destKey = COMMUNITY_GOOGLE_TRANSLITERATION_DEST[destCode];
-            const destLanguage = destKey ? (languageCodeEnum[destKey] || destCode) : destCode;
-
-            control.setLanguagePair(
-                languageCodeEnum.ENGLISH || 'en',
-                destLanguage
-            );
-            control.enableTransliteration();
-        });
-    }
-
     function detachCommunityEditorTransliteration(editor) {
         const activeEditor = editor || communityEditorTransliterationEditor;
 
         if (activeEditor?.editing?.view?.document && communityEditorTransliterationKeydownHandler) {
             activeEditor.editing.view.document.off('keydown', communityEditorTransliterationKeydownHandler);
-        }
-
-        if (communityTransliterationControl) {
-            communityTransliterationControl.disableTransliteration();
         }
 
         communityEditorTransliterationKeydownHandler = null;
@@ -5609,7 +5503,6 @@ The mountains keep.</pre>
         };
 
         editor.editing.view.document.on('keydown', communityEditorTransliterationKeydownHandler, { priority: 'high' });
-        bindGoogleEditorTransliteration(editor, getActiveEditorLanguage());
     }
 
     function syncCommunityEditorTransliteration(languageCode) {
@@ -5623,7 +5516,7 @@ The mountains keep.</pre>
             hint.classList.toggle('d-none', !needsTransliteration);
 
             if (needsTransliteration) {
-                hint.innerHTML = '<strong>' + languageLabel + ' typing mode is ON.</strong> Type English letters like on a phone keyboard in the box below or directly in the editor, then press <strong>Space</strong> after each word. Press <strong>Ctrl+G</strong> to toggle typing in the editor.';
+                hint.innerHTML = '<strong>' + languageLabel + ' typing mode is ON.</strong> Use the phone-style box below: type English letters, see the Hindi preview, then press <strong>Space</strong> after each word to insert it into the editor.';
             }
         }
 
