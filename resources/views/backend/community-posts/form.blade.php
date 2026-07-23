@@ -3289,7 +3289,6 @@ The mountains keep.</pre>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
-<script src="https://www.google.com/jsapi"></script>
 <script src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.3.3/sanscript.js"></script>
 <script>
     window.communityTypes = @json($types);
@@ -3332,8 +3331,6 @@ The mountains keep.</pre>
         te: 'telugu',
         ur: 'urdu',
     };
-    let communityTransliterationLanguageApiReady = false;
-    let communityTransliterationLanguageApiPromise = null;
     let communityEditorTransliterationDomHandler = null;
     let communityEditorTransliterationEditor = null;
 
@@ -5323,32 +5320,6 @@ The mountains keep.</pre>
         }
     }
 
-    function ensureCommunityTransliterationLanguageApi() {
-        if (communityTransliterationLanguageApiReady) {
-            return Promise.resolve(true);
-        }
-
-        if (communityTransliterationLanguageApiPromise) {
-            return communityTransliterationLanguageApiPromise;
-        }
-
-        communityTransliterationLanguageApiPromise = new Promise(function (resolve) {
-            if (typeof google === 'undefined' || typeof google.load !== 'function') {
-                resolve(false);
-                return;
-            }
-
-            google.load('language', '1', {
-                callback: function () {
-                    communityTransliterationLanguageApiReady = Boolean(window.google?.language?.transliterate);
-                    resolve(communityTransliterationLanguageApiReady);
-                },
-            });
-        });
-
-        return communityTransliterationLanguageApiPromise;
-    }
-
     function getCommunitySanscript() {
         return window.Sanscript || null;
     }
@@ -5368,37 +5339,6 @@ The mountains keep.</pre>
         } catch (error) {
             return word;
         }
-    }
-
-    function transliterateCommunityWord(word, destLangCode) {
-        const syncResult = transliterateCommunityWordWithSanscript(word, destLangCode);
-
-        if (syncResult !== word) {
-            return Promise.resolve(syncResult);
-        }
-
-        return new Promise(function (resolve) {
-            if (!word) {
-                resolve(word);
-                return;
-            }
-
-            if (communityTransliterationLanguageApiReady && window.google?.language?.transliterate) {
-                window.google.language.transliterate([word], 'en', destLangCode, function (result) {
-                    const converted = result?.transliterations?.[0]?.transliteratedWords?.[0];
-
-                    if (!result?.error && converted) {
-                        resolve(converted);
-                        return;
-                    }
-
-                    resolve(word);
-                });
-                return;
-            }
-
-            resolve(word);
-        });
     }
 
     function findLatinWordRangeBeforeSelection(editor, skipTrailingSeparators) {
@@ -5561,10 +5501,6 @@ The mountains keep.</pre>
             if (needsTransliteration) {
                 hint.innerHTML = '<strong>' + languageLabel + ' phonetic mode is ON.</strong> Type English letters, then press <strong>Space</strong> to convert each word. Example: type <strong>namaste</strong> then press Space → Hindi text appears automatically. No Windows keyboard setup is required.';
             }
-        }
-
-        if (needsTransliteration) {
-            ensureCommunityTransliterationLanguageApi();
         }
 
         if (!editor) {
