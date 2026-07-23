@@ -1317,7 +1317,7 @@ The mountains keep.</pre>
                         >
                     </div>
                     <div id="editorTransliterationHint" class="alert alert-info py-2 px-3 small mb-2 d-none" role="status">
-                        Phonetic typing is on. Type English letters and press space — for example, <strong>namaste</strong> becomes Hindi text automatically.
+                        <strong>Hindi phonetic mode is ON.</strong> Type English letters, then press <strong>Space</strong> to convert each word. Example: type <strong>namaste</strong> then press Space → नमस्ते
                     </div>
                     <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
                 </div>
@@ -3290,7 +3290,7 @@ The mountains keep.</pre>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 <script src="https://www.google.com/jsapi"></script>
-<script src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.3.3/sanscript.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.3.3/sanscript.js"></script>
 <script>
     window.communityTypes = @json($types);
     window.communityBookTypes = @json(\App\Models\CommunityPost::BOOK_CONTENT_TYPES);
@@ -3334,8 +3334,8 @@ The mountains keep.</pre>
     };
     let communityTransliterationLanguageApiReady = false;
     let communityTransliterationLanguageApiPromise = null;
-    let communityEditorTransliterationHandler = null;
-    let communityEditorTransliterationBusy = false;
+    let communityEditorTransliterationDomHandler = null;
+    let communityEditorTransliterationEditor = null;
 
     function isLifeStoryContentType(type) {
         return (window.communityLifeStoryTypes || []).includes(type);
@@ -5349,21 +5349,34 @@ The mountains keep.</pre>
         return communityTransliterationLanguageApiPromise;
     }
 
+    function getCommunitySanscript() {
+        return window.Sanscript || null;
+    }
+
     function transliterateCommunityWordWithSanscript(word, destLangCode) {
+        const sanscript = getCommunitySanscript();
         const target = COMMUNITY_SANSCRIPT_TARGETS[destLangCode];
 
-        if (!target || typeof window.Sanscript === 'undefined') {
+        if (!target || !sanscript || typeof sanscript.t !== 'function') {
             return word;
         }
 
         try {
-            return window.Sanscript.t(word, 'itrans', target) || word;
+            const converted = sanscript.t(word, 'itrans', target, { syncope: true });
+
+            return converted && converted !== word ? converted : word;
         } catch (error) {
             return word;
         }
     }
 
     function transliterateCommunityWord(word, destLangCode) {
+        const syncResult = transliterateCommunityWordWithSanscript(word, destLangCode);
+
+        if (syncResult !== word) {
+            return Promise.resolve(syncResult);
+        }
+
         return new Promise(function (resolve) {
             if (!word) {
                 resolve(word);
@@ -5379,12 +5392,12 @@ The mountains keep.</pre>
                         return;
                     }
 
-                    resolve(transliterateCommunityWordWithSanscript(word, destLangCode));
+                    resolve(word);
                 });
                 return;
             }
 
-            resolve(transliterateCommunityWordWithSanscript(word, destLangCode));
+            resolve(word);
         });
     }
 
@@ -5396,10 +5409,16 @@ The mountains keep.</pre>
             return null;
         }
 
-        const position = selection.getFirstPosition();
+        let position = selection.getFirstPosition();
 
         if (!position.parent.is('$text')) {
-            return null;
+            const shifted = position.getShiftedBy(-1);
+
+            if (!shifted || !shifted.parent.is('$text')) {
+                return null;
+            }
+
+            position = model.createPositionAt(shifted.parent, shifted.offset);
         }
 
         const textNode = position.parent;
@@ -5450,62 +5469,83 @@ The mountains keep.</pre>
         };
     }
 
-    function detachCommunityEditorTransliteration(editor) {
-        if (communityEditorTransliterationHandler && editor?.editing?.view?.document) {
-            editor.editing.view.document.off('keyup', communityEditorTransliterationHandler);
-            communityEditorTransliterationHandler = null;
+    function replaceLatinWordInEditor(editor, match, converted, suffix) {
+        editor.model.change(function (writer) {
+            writer.remove(match.range);
+            writer.insertText(converted + (suffix || ''), match.range.start);
+        });
+    }
+
+    function tryCommunityEditorTransliteration(editor, triggerKey) {
+        const destCode = COMMUNITY_TRANSLITERATION_DEST_CODES[getActiveEditorLanguage()];
+
+        if (!destCode) {
+            return false;
         }
+
+        const skipTrailingSeparators = triggerKey !== ' ';
+        const match = findLatinWordRangeBeforeSelection(editor, skipTrailingSeparators);
+
+        if (!match) {
+            return false;
+        }
+
+        const converted = transliterateCommunityWordWithSanscript(match.word, destCode);
+
+        if (!converted || converted === match.word) {
+            return false;
+        }
+
+        const suffix = triggerKey === 'Enter' ? '\n' : (triggerKey === ' ' ? ' ' : triggerKey);
+        replaceLatinWordInEditor(editor, match, converted, suffix);
+
+        return true;
+    }
+
+    function detachCommunityEditorTransliteration(editor) {
+        const activeEditor = editor || communityEditorTransliterationEditor;
+        const root = activeEditor?.editing?.view?.getDomRoot();
+
+        if (root && communityEditorTransliterationDomHandler) {
+            root.removeEventListener('keydown', communityEditorTransliterationDomHandler, true);
+        }
+
+        communityEditorTransliterationDomHandler = null;
+        communityEditorTransliterationEditor = null;
     }
 
     function attachCommunityEditorTransliteration(editor) {
         detachCommunityEditorTransliteration(editor);
 
-        communityEditorTransliterationHandler = function (event, data) {
-            const language = getActiveEditorLanguage();
-            const destCode = COMMUNITY_TRANSLITERATION_DEST_CODES[language];
+        const root = editor.editing.view.getDomRoot();
 
-            if (!destCode || communityEditorTransliterationBusy) {
+        if (!root) {
+            return;
+        }
+
+        communityEditorTransliterationEditor = editor;
+        communityEditorTransliterationDomHandler = function (event) {
+            if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey) {
                 return;
             }
 
-            const domEvent = data.domEvent;
+            const triggerKeys = [' ', 'Enter'];
 
-            if (!domEvent || domEvent.isComposing || domEvent.type !== 'keyup') {
+            if (!triggerKeys.includes(event.key)) {
                 return;
             }
 
-            const triggerKeys = [' ', 'Enter', '.', ',', ';', ':', '!', '?'];
-
-            if (!triggerKeys.includes(domEvent.key)) {
+            if (!COMMUNITY_TRANSLITERATION_DEST_CODES[getActiveEditorLanguage()]) {
                 return;
             }
 
-            const match = findLatinWordRangeBeforeSelection(editor, true);
-
-            if (!match) {
-                return;
+            if (tryCommunityEditorTransliteration(editor, event.key)) {
+                event.preventDefault();
+                event.stopPropagation();
             }
-
-            communityEditorTransliterationBusy = true;
-
-            transliterateCommunityWord(match.word, destCode).then(function (converted) {
-                if (!converted || converted === match.word) {
-                    communityEditorTransliterationBusy = false;
-                    return;
-                }
-
-                editor.model.change(function (writer) {
-                    writer.remove(match.range);
-                    writer.insertText(converted, match.range.start);
-                });
-
-                communityEditorTransliterationBusy = false;
-            }).catch(function () {
-                communityEditorTransliterationBusy = false;
-            });
         };
 
-        editor.editing.view.document.on('keyup', communityEditorTransliterationHandler);
+        root.addEventListener('keydown', communityEditorTransliterationDomHandler, true);
     }
 
     function syncCommunityEditorTransliteration(languageCode) {
@@ -5519,7 +5559,7 @@ The mountains keep.</pre>
             hint.classList.toggle('d-none', !needsTransliteration);
 
             if (needsTransliteration) {
-                hint.innerHTML = 'Phonetic typing is on for <strong>' + languageLabel + '</strong>. Type English letters and press space — for example, <strong>namaste</strong> becomes ' + languageLabel + ' text automatically. No Windows keyboard setup is required.';
+                hint.innerHTML = '<strong>' + languageLabel + ' phonetic mode is ON.</strong> Type English letters, then press <strong>Space</strong> to convert each word. Example: type <strong>namaste</strong> then press Space → Hindi text appears automatically. No Windows keyboard setup is required.';
             }
         }
 
