@@ -1317,13 +1317,7 @@ The mountains keep.</pre>
                         >
                     </div>
                     <div id="editorTransliterationHint" class="alert alert-info py-2 px-3 small mb-2 d-none" role="status">
-                        <strong>Hindi typing mode is ON.</strong> Type English letters like on a phone keyboard — for example type <strong>namaste</strong> and press <strong>Space</strong> to get Hindi text. No Windows Hindi keyboard needed.
-                    </div>
-                    <div id="communityPhoneticTypingBar" class="d-none border rounded-3 p-3 mb-2 bg-light">
-                        <label class="form-label small mb-1 fw-semibold" for="communityPhoneticInput">Phone-style typing (English → Hindi)</label>
-                        <input type="text" id="communityPhoneticInput" class="form-control" placeholder="Type here in English, e.g. namaste" autocomplete="off" spellcheck="false">
-                        <div class="small mt-2">Preview: <span id="communityPhoneticPreview" class="fw-semibold text-dark">—</span></div>
-                        <small class="text-muted d-block mt-1">Press <strong>Space</strong> after each word to insert Hindi text into the editor above.</small>
+                        <strong>Hindi typing mode is ON.</strong> Click in the editor and type English letters — they convert to Hindi instantly as you type, like a phone keyboard.
                     </div>
                     <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
                 </div>
@@ -3100,7 +3094,6 @@ The mountains keep.</pre>
     }
     #bodyContentSection.is-waiting-for-type #editorLanguageWrap,
     #bodyContentSection.is-waiting-for-type #editorTransliterationHint,
-    #bodyContentSection.is-waiting-for-type #communityPhoneticTypingBar,
     #bodyContentSection.is-waiting-for-type #bodyEditor,
     #bodyContentSection.is-waiting-for-type .ck-editor {
         display: none !important;
@@ -3339,7 +3332,11 @@ The mountains keep.</pre>
         ur: 'urdu',
     };
     let communityEditorTransliterationKeydownHandler = null;
+    let communityEditorTransliterationSelectionHandler = null;
     let communityEditorTransliterationEditor = null;
+    let communityPhoneticBuffer = '';
+    let communityPhoneticInsertRange = null;
+    let communityPhoneticUpdating = false;
 
     function isLifeStoryContentType(type) {
         return (window.communityLifeStoryTypes || []).includes(type);
@@ -5348,117 +5345,57 @@ The mountains keep.</pre>
         }
     }
 
-    function findLatinWordRangeBeforeSelection(editor, skipTrailingSeparators) {
-        const model = editor.model;
-        const selection = model.document.selection;
-
-        if (!selection.isCollapsed) {
-            return null;
-        }
-
-        let endPosition = selection.focus;
-        const block = endPosition.findAncestor('$block');
-
-        if (!block) {
-            return null;
-        }
-
-        if (skipTrailingSeparators) {
-            while (endPosition.offset > 0 || endPosition.parent !== block) {
-                if (endPosition.parent.is('$text') && endPosition.offset > 0) {
-                    const char = endPosition.parent.data.charAt(endPosition.offset - 1);
-
-                    if (!/[\s.,;:!?]/.test(char)) {
-                        break;
-                    }
-
-                    endPosition = endPosition.getShiftedBy(-1);
-                    continue;
-                }
-
-                const shifted = endPosition.getShiftedBy(-1);
-
-                if (!shifted) {
-                    break;
-                }
-
-                endPosition = shifted;
-            }
-        }
-
-        const rangeToCursor = model.createRange(model.createPositionAt(block, 0), endPosition);
-        let textBefore = '';
-
-        for (const item of rangeToCursor.getItems()) {
-            if (item.is('$text')) {
-                textBefore += item.data;
-            }
-        }
-
-        const wordMatch = textBefore.match(/[A-Za-z]+$/);
-
-        if (!wordMatch) {
-            return null;
-        }
-
-        const word = wordMatch[0];
-        const wordStartIndex = textBefore.length - word.length;
-        let charCount = 0;
-        let startPos = null;
-
-        for (const item of rangeToCursor.getItems()) {
-            if (!item.is('$text')) {
-                continue;
-            }
-
-            const itemStart = charCount;
-            const itemEnd = charCount + item.data.length;
-            charCount = itemEnd;
-
-            if (startPos === null && itemEnd > wordStartIndex) {
-                startPos = model.createPositionAt(item, wordStartIndex - itemStart);
-            }
-        }
-
-        if (!startPos) {
-            return null;
-        }
-
-        return {
-            range: model.createRange(startPos, endPosition),
-            word: word,
-        };
+    function resetCommunityPhoneticComposition() {
+        communityPhoneticBuffer = '';
+        communityPhoneticInsertRange = null;
     }
 
-    function replaceLatinWordInEditor(editor, match, converted, suffix) {
+    function updateCommunityPhoneticCompositionInEditor(editor, destCode) {
+        const converted = transliterateCommunityWordWithSanscript(communityPhoneticBuffer, destCode) || communityPhoneticBuffer;
+
+        communityPhoneticUpdating = true;
+
         editor.model.change(function (writer) {
-            writer.remove(match.range);
-            writer.insertText(converted + (suffix || ''), match.range.start);
+            let insertPosition = editor.model.document.selection.getFirstPosition();
+
+            if (communityPhoneticInsertRange) {
+                insertPosition = communityPhoneticInsertRange.start;
+                writer.remove(communityPhoneticInsertRange);
+            }
+
+            writer.insertText(converted, insertPosition);
+
+            const endPosition = insertPosition.getShiftedBy(converted.length);
+            communityPhoneticInsertRange = writer.createRange(insertPosition, endPosition);
+            writer.setSelection(endPosition);
         });
+
+        communityPhoneticUpdating = false;
     }
 
-    function tryCommunityEditorTransliteration(editor, triggerKey) {
-        const destCode = COMMUNITY_TRANSLITERATION_DEST_CODES[getActiveEditorLanguage()];
-
-        if (!destCode) {
+    function commitCommunityPhoneticCompositionInEditor(editor, destCode, suffix) {
+        if (!communityPhoneticBuffer) {
             return false;
         }
 
-        const skipTrailingSeparators = triggerKey !== ' ';
-        const match = findLatinWordRangeBeforeSelection(editor, skipTrailingSeparators);
+        const converted = transliterateCommunityWordWithSanscript(communityPhoneticBuffer, destCode) || communityPhoneticBuffer;
 
-        if (!match) {
-            return false;
-        }
+        communityPhoneticUpdating = true;
 
-        const converted = transliterateCommunityWordWithSanscript(match.word, destCode);
+        editor.model.change(function (writer) {
+            let insertPosition = editor.model.document.selection.getFirstPosition();
 
-        if (!converted || converted === match.word) {
-            return false;
-        }
+            if (communityPhoneticInsertRange) {
+                insertPosition = communityPhoneticInsertRange.start;
+                writer.remove(communityPhoneticInsertRange);
+            }
 
-        const suffix = triggerKey === 'Enter' ? '\n' : (triggerKey === ' ' ? ' ' : triggerKey);
-        replaceLatinWordInEditor(editor, match, converted, suffix);
+            writer.insertText(converted + suffix, insertPosition);
+            writer.setSelection(insertPosition.getShiftedBy(converted.length + suffix.length));
+        });
+
+        communityPhoneticUpdating = false;
+        resetCommunityPhoneticComposition();
 
         return true;
     }
@@ -5470,14 +5407,40 @@ The mountains keep.</pre>
             activeEditor.editing.view.document.off('keydown', communityEditorTransliterationKeydownHandler);
         }
 
+        if (activeEditor?.model?.document?.selection && communityEditorTransliterationSelectionHandler) {
+            activeEditor.model.document.selection.off('change:range', communityEditorTransliterationSelectionHandler);
+        }
+
         communityEditorTransliterationKeydownHandler = null;
+        communityEditorTransliterationSelectionHandler = null;
         communityEditorTransliterationEditor = null;
+        resetCommunityPhoneticComposition();
     }
 
     function attachCommunityEditorTransliteration(editor) {
         detachCommunityEditorTransliteration(editor);
 
         communityEditorTransliterationEditor = editor;
+
+        communityEditorTransliterationSelectionHandler = function () {
+            if (communityPhoneticUpdating || !communityPhoneticBuffer || !communityPhoneticInsertRange) {
+                return;
+            }
+
+            const selection = editor.model.document.selection;
+
+            if (!selection.isCollapsed) {
+                resetCommunityPhoneticComposition();
+                return;
+            }
+
+            const focus = selection.focus;
+            const compositionEnd = communityPhoneticInsertRange.end;
+
+            if (!focus.isEqual(compositionEnd)) {
+                resetCommunityPhoneticComposition();
+            }
+        };
 
         communityEditorTransliterationKeydownHandler = function (event, data) {
             const domEvent = data.domEvent;
@@ -5486,23 +5449,58 @@ The mountains keep.</pre>
                 return;
             }
 
-            const triggerKeys = [' ', 'Enter'];
+            const destCode = COMMUNITY_TRANSLITERATION_DEST_CODES[getActiveEditorLanguage()];
 
-            if (!triggerKeys.includes(domEvent.key)) {
+            if (!destCode) {
                 return;
             }
 
-            if (!COMMUNITY_TRANSLITERATION_DEST_CODES[getActiveEditorLanguage()]) {
+            const key = domEvent.key;
+
+            if (key === ' ' || key === 'Enter') {
+                if (communityPhoneticBuffer) {
+                    domEvent.preventDefault();
+                    event.stop();
+                    commitCommunityPhoneticCompositionInEditor(editor, destCode, key === 'Enter' ? '\n' : ' ');
+                }
+
                 return;
             }
 
-            if (tryCommunityEditorTransliteration(editor, domEvent.key)) {
+            if (key === 'Backspace') {
+                if (!communityPhoneticBuffer) {
+                    return;
+                }
+
                 domEvent.preventDefault();
                 event.stop();
+                communityPhoneticBuffer = communityPhoneticBuffer.slice(0, -1);
+
+                if (communityPhoneticBuffer === '') {
+                    editor.model.change(function (writer) {
+                        if (communityPhoneticInsertRange) {
+                            writer.remove(communityPhoneticInsertRange);
+                            writer.setSelection(communityPhoneticInsertRange.start);
+                        }
+                    });
+                    resetCommunityPhoneticComposition();
+                    return;
+                }
+
+                updateCommunityPhoneticCompositionInEditor(editor, destCode);
+                return;
+            }
+
+            if (/^[a-zA-Z]$/.test(key)) {
+                domEvent.preventDefault();
+                event.stop();
+                communityPhoneticBuffer += key;
+                updateCommunityPhoneticCompositionInEditor(editor, destCode);
             }
         };
 
-        editor.editing.view.document.on('keydown', communityEditorTransliterationKeydownHandler, { priority: 'high' });
+        editor.model.document.selection.on('change:range', communityEditorTransliterationSelectionHandler);
+        editor.editing.view.document.on('keydown', communityEditorTransliterationKeydownHandler, { priority: 'highest' });
     }
 
     function syncCommunityEditorTransliteration(languageCode) {
@@ -5516,23 +5514,12 @@ The mountains keep.</pre>
             hint.classList.toggle('d-none', !needsTransliteration);
 
             if (needsTransliteration) {
-                hint.innerHTML = '<strong>' + languageLabel + ' typing mode is ON.</strong> Use the phone-style box below: type English letters, see the Hindi preview, then press <strong>Space</strong> after each word to insert it into the editor.';
+                hint.innerHTML = '<strong>' + languageLabel + ' typing mode is ON.</strong> Click in the editor and type English letters — they convert to ' + languageLabel + ' instantly as you type, like a phone keyboard. Press <strong>Space</strong> for the next word.';
             }
         }
 
-        const phoneticBar = document.getElementById('communityPhoneticTypingBar');
-        const phoneticInput = document.getElementById('communityPhoneticInput');
-
-        if (phoneticBar) {
-            phoneticBar.classList.toggle('d-none', !needsTransliteration);
-        }
-
-        if (phoneticInput && !needsTransliteration) {
-            phoneticInput.value = '';
-            updateCommunityPhoneticPreview('');
-        }
-
         if (!editor) {
+            resetCommunityPhoneticComposition();
             return;
         }
 
@@ -5542,115 +5529,6 @@ The mountains keep.</pre>
             detachCommunityEditorTransliteration(editor);
         }
     }
-
-    function updateCommunityPhoneticPreview(rawValue) {
-        const preview = document.getElementById('communityPhoneticPreview');
-        const destCode = COMMUNITY_TRANSLITERATION_DEST_CODES[getActiveEditorLanguage()];
-
-        if (!preview || !destCode) {
-            return;
-        }
-
-        const value = String(rawValue || '');
-
-        if (value.trim() === '') {
-            preview.textContent = '—';
-            return;
-        }
-
-        const parts = value.split(/(\s+)/);
-        const converted = parts.map(function (part) {
-            if (/^\s+$/.test(part)) {
-                return part;
-            }
-
-            return transliterateCommunityWordWithSanscript(part, destCode);
-        }).join('');
-
-        preview.textContent = converted;
-    }
-
-    function insertCommunityPhoneticTextIntoEditor(text) {
-        const editor = window.communityBodyEditor;
-        const trimmed = String(text || '').trim();
-
-        if (!editor || trimmed === '') {
-            return;
-        }
-
-        editor.model.change(function (writer) {
-            const insertPosition = editor.model.document.selection.getFirstPosition();
-            const needsLeadingSpace = (function () {
-                if (!insertPosition.parent.is('$text') || insertPosition.offset === 0) {
-                    return false;
-                }
-
-                const previousChar = insertPosition.parent.data.charAt(insertPosition.offset - 1);
-
-                return previousChar !== ' ' && previousChar !== '\n';
-            })();
-
-            writer.insertText((needsLeadingSpace ? ' ' : '') + trimmed, insertPosition);
-        });
-
-        editor.editing.view.focus();
-    }
-
-    function commitCommunityPhoneticWord(rawValue) {
-        const destCode = COMMUNITY_TRANSLITERATION_DEST_CODES[getActiveEditorLanguage()];
-
-        if (!destCode) {
-            return '';
-        }
-
-        const value = String(rawValue || '');
-        const match = value.match(/([A-Za-z]+)\s*$/);
-
-        if (!match) {
-            return value;
-        }
-
-        const converted = transliterateCommunityWordWithSanscript(match[1], destCode);
-
-        if (!converted || converted === match[1]) {
-            return value;
-        }
-
-        insertCommunityPhoneticTextIntoEditor(converted);
-
-        return value.slice(0, match.index).trimEnd();
-    }
-
-    document.getElementById('communityPhoneticInput')?.addEventListener('input', function () {
-        updateCommunityPhoneticPreview(this.value);
-    });
-
-    document.getElementById('communityPhoneticInput')?.addEventListener('keydown', function (event) {
-        if (!COMMUNITY_TRANSLITERATION_DEST_CODES[getActiveEditorLanguage()]) {
-            return;
-        }
-
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            const converted = transliterateCommunityWordWithSanscript(this.value.trim(), getActiveEditorLanguage());
-
-            if (converted) {
-                insertCommunityPhoneticTextIntoEditor(converted);
-            }
-
-            this.value = '';
-            updateCommunityPhoneticPreview('');
-            return;
-        }
-
-        if (event.key !== ' ') {
-            return;
-        }
-
-        event.preventDefault();
-        this.value = commitCommunityPhoneticWord(this.value + ' ');
-        updateCommunityPhoneticPreview(this.value);
-    });
 
     function applyEditorLanguage(languageCode, options) {
         const settings = options || {};
