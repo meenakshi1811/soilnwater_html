@@ -101,6 +101,11 @@ class MarketplaceAdsService
                     return null;
                 }
 
+                $sizeConfig = AdSizes::all(true)[(string) $ad->size_type] ?? null;
+                if (! $sizeConfig || ! AdSizes::isSponsoredFillerSize($sizeConfig)) {
+                    return null;
+                }
+
                 $sizeKey = $dims['w'].'x'.$dims['h'];
                 if (! $requiredDimensions->has($sizeKey)) {
                     return null;

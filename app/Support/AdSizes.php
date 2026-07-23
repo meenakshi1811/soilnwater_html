@@ -148,16 +148,22 @@ final class AdSizes
         ];
     }
 
-    public static function isSponsoredFillerSize(array $size): bool
+    public static function isSponsoredFillerDimension(int $width, int $height): bool
     {
-        $width = (int) ($size['w'] ?? 0);
-        $height = (int) ($size['h'] ?? 0);
-
         if ($width <= 0 || $height <= 0) {
             return false;
         }
 
         return in_array($width.'x'.$height, self::sponsoredFillerDimensions(), true);
+    }
+
+    public static function isSponsoredFillerSize(array $size): bool
+    {
+        if (! (bool) ($size['admin_only'] ?? false)) {
+            return false;
+        }
+
+        return self::isSponsoredFillerDimension((int) ($size['w'] ?? 0), (int) ($size['h'] ?? 0));
     }
 
     /**
@@ -203,6 +209,7 @@ final class AdSizes
 
         return AdSize::query()
             ->when(! $includeInactive, fn ($query) => $query->where('is_active', true))
+            ->where('admin_only', true)
             ->where('width', '>', 0)
             ->where('height', '>', 0)
             ->orderBy('name')

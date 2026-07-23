@@ -30,13 +30,10 @@ class AdSizeController extends Controller
             ->with('modulePrices:id,ad_size_id,module_key,amount')
             ->select(['id', 'size_key', 'name', 'width', 'height', 'admin_only', 'is_paid', 'amount', 'is_active', 'created_at']);
 
-        $sponsoredDimensions = \App\Support\AdSizes::sponsoredFillerDimensions();
-
         return DataTables::of($sizes)
-            ->addColumn('dimensions', function (AdSize $size) use ($sponsoredDimensions) {
+            ->addColumn('dimensions', function (AdSize $size) {
                 $label = $size->width.'×'.$size->height;
-                $key = $size->width.'x'.$size->height;
-                if (in_array($key, $sponsoredDimensions, true)) {
+                if ($size->admin_only && \App\Support\AdSizes::isSponsoredFillerDimension((int) $size->width, (int) $size->height)) {
                     $label .= ' <span class="badge text-bg-info ms-1">Sponsored</span>';
                 }
 

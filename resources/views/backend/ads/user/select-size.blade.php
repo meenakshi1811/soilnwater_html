@@ -30,7 +30,7 @@
                         <div class="d-flex justify-content-between align-items-center gap-2">
                             <div class="fw-semibold text-dark">{{ $size['name'] }}</div>
                             <div class="d-flex gap-2 flex-wrap">
-                                @if(in_array($size['w'] . 'x' . $size['h'], $sponsoredDimensions, true))
+                                @if(($size['admin_only'] ?? false) && in_array($size['w'] . 'x' . $size['h'], $sponsoredDimensions, true))
                                     <span class="badge text-bg-primary">Sponsored</span>
                                 @endif
                                 @if(($size['admin_only'] ?? false) === true)
