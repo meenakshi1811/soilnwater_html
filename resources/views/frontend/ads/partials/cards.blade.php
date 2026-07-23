@@ -2,6 +2,7 @@
     $adSizes = \App\Support\AdSizes::all();
     $sponsoredFillers = collect($sponsoredFillers ?? [])->values()->all();
     $sponsoredBlankSizes = collect($sponsoredBlankSizes ?? \App\Support\AdSizes::sponsoredFillerSizesFromDatabase())->values()->all();
+    $staticSponsoredImages = collect($staticSponsoredImages ?? \App\Support\StaticSponsoredAds::imageUrls())->values()->all();
     $selectedCategoryNamesByAdId = $selectedCategoryNamesByAdId ?? [];
     $gridId = $gridId ?? 'ads';
     $autoRender = $autoRender ?? ($gridId === 'ads');
@@ -86,7 +87,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     window.__adsMasonryInstances = window.__adsMasonryInstances || [];
     let instance = window.__adsMasonryInstances.find(function (entry) { return entry.gridId === gridId; });
     if (!instance) {
-        instance = { gridId: gridId, fillerPool: fillerPool, blankSizes: [], gridState: new WeakMap() };
+        instance = { gridId: gridId, fillerPool: fillerPool, blankSizes: [], staticImages: [], gridState: new WeakMap() };
         window.__adsMasonryInstances.push(instance);
     } else {
         instance.fillerPool = fillerPool;
@@ -97,6 +98,12 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         instance.blankSizes = options.blankSizes;
     } else if (!Array.isArray(instance.blankSizes)) {
         instance.blankSizes = [];
+    }
+
+    if (Array.isArray(options.staticImages)) {
+        instance.staticImages = options.staticImages;
+    } else if (!Array.isArray(instance.staticImages)) {
+        instance.staticImages = [];
     }
 
     const GAP = 8;
@@ -272,6 +279,15 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }) || null;
     }
 
+    function pickRandomStaticImage() {
+        const images = instance.staticImages || [];
+        if (!images.length) {
+            return null;
+        }
+
+        return images[Math.floor(Math.random() * images.length)];
+    }
+
     function mountFillerWithItem(grid, left, top, width, height, item) {
         instance.usedFillerKeys.add(fillerItemKey(item));
         const card = buildFillerCard(width, height, {
@@ -304,7 +320,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             exactH,
             buildFillerCard(exactW, exactH, {
                 label: 'Sponsored',
-                image: null,
+                image: pickRandomStaticImage(),
                 url: null,
                 title: null,
                 sizeKey: sizeMeta.size_key || null,
@@ -395,7 +411,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
         const item = matchingItems.length
             ? matchingItems[0]
-            : { label: 'Sponsored', image: null, url: null, title: null };
+            : { label: 'Sponsored', image: pickRandomStaticImage(), url: null, title: null };
 
         if (matchingItems.length) {
             instance.usedFillerKeys.add(fillerItemKey(item));
@@ -890,7 +906,8 @@ if (!window.__adsMasonryResizeBound) {
                 if (typeof window.renderAdsMarketCards === 'function') {
                     window.renderAdsMarketCards(entry.gridId, entry.fillerPool, {
                         resetFillers: true,
-                        blankSizes: entry.blankSizes || []
+                        blankSizes: entry.blankSizes || [],
+                        staticImages: entry.staticImages || []
                     });
                 }
             });
@@ -906,7 +923,8 @@ if (!window.__adsMasonryResizeBound) {
 document.addEventListener('DOMContentLoaded', function () {
     if (typeof window.renderAdsMarketCards === 'function') {
         window.renderAdsMarketCards(@json($gridId), @json($sponsoredFillers), {
-            blankSizes: @json($sponsoredBlankSizes)
+            blankSizes: @json($sponsoredBlankSizes),
+            staticImages: @json($staticSponsoredImages)
         });
     }
 });

@@ -8,6 +8,7 @@ use App\Models\HomepageSetting;
 use App\Models\UserAd;
 use App\Services\MarketplaceAdsService;
 use App\Support\AdSizes;
+use App\Support\StaticSponsoredAds;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -40,6 +41,7 @@ class AdsMarketController extends Controller
         $lng = $request->filled('lng') ? (float) $request->input('lng') : session('frontend_lng');
         $sponsoredFillers = $this->marketplaceAdsService->getSponsoredFillers($lat, $lng);
         $sponsoredBlankSizes = AdSizes::sponsoredFillerSizesFromDatabase();
+        $staticSponsoredImages = StaticSponsoredAds::imageUrls();
 
         $adsQuery = UserAd::query()
             ->with(['category:id,name', 'subcategory:id,name', 'adSize:id,size_key,width,height'])
@@ -75,6 +77,7 @@ class AdsMarketController extends Controller
                     'ads' => $ads,
                     'sponsoredFillers' => $sponsoredFillers,
                     'sponsoredBlankSizes' => $sponsoredBlankSizes,
+                    'staticSponsoredImages' => $staticSponsoredImages,
                     'selectedCategoryNamesByAdId' => $selectedCategoryNamesByAdId,
                 ])->render(),
                 'next_page_url' => $ads->nextPageUrl(),
@@ -85,7 +88,7 @@ class AdsMarketController extends Controller
 
         $homepageSetting = HomepageSetting::query()->find(1);
 
-        return view('frontend.ads.index', compact('ads', 'categories', 'categoriesForFilter', 'sponsoredFillers', 'sponsoredBlankSizes', 'homepageSetting', 'selectedCategoryNamesByAdId'));
+        return view('frontend.ads.index', compact('ads', 'categories', 'categoriesForFilter', 'sponsoredFillers', 'sponsoredBlankSizes', 'staticSponsoredImages', 'homepageSetting', 'selectedCategoryNamesByAdId'));
     }
 
     public function show(UserAd $ad): View

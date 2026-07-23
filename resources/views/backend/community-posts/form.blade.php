@@ -3335,6 +3335,10 @@ The mountains keep.</pre>
             .includes(selectedType);
     }
 
+    function isCommunityFormSectionVisible(section) {
+        return Boolean(section) && window.getComputedStyle(section).display !== 'none';
+    }
+
     function writingPurposeNounForType(selectedType) {
         const known = {
             articles: 'article',
@@ -6611,7 +6615,7 @@ The mountains keep.</pre>
         }
 
         document.querySelectorAll('.type-extra').forEach((field) => {
-            field.style.display = contentTypeMatchesDataset(selectedType, field.dataset.for) ? '' : 'none';
+            field.style.display = contentTypeMatchesDataset(selectedType, field.dataset.for) ? 'block' : 'none';
         });
 
         document.querySelectorAll('.general-extra').forEach((field) => {
@@ -6893,7 +6897,7 @@ The mountains keep.</pre>
 
         document.querySelectorAll('.type-field-required').forEach((field) => {
             const section = field.closest('.type-fields-flow');
-            field.required = Boolean(section && section.dataset.for === selectedType && section.style.display !== 'none');
+            field.required = Boolean(section && section.dataset.for === selectedType && isCommunityFormSectionVisible(section));
         });
 
         const fieldCopy = isReport ? {
