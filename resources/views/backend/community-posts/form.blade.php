@@ -1302,7 +1302,7 @@ The mountains keep.</pre>
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 px-1" id="editorLanguageWrap">
                         <div>
                             <label for="editorLanguageSelect" class="form-label mb-0 small fw-semibold" id="editorLanguageLabel">Editor language</label>
-                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Switch to Hindi to write in Devanagari.</small>
+                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Choose Hindi to type phonetically in the editor (no Windows keyboard setup needed).</small>
                         </div>
                         <select id="editorLanguageSelect" class="form-select form-select-sm community-editor-language-select">
                             @foreach(\App\Support\CommunityContentTaxonomy::standardEditorLanguages() as $code => $label)
@@ -1315,6 +1315,9 @@ The mountains keep.</pre>
                             id="editorLanguageHidden"
                             value="{{ old('editor_language', data_get($post->meta, 'editor_language', 'en')) }}"
                         >
+                    </div>
+                    <div id="editorTransliterationHint" class="alert alert-info py-2 px-3 small mb-2 d-none" role="status">
+                        Phonetic typing is on. Type English letters and press space — for example, <strong>namaste</strong> becomes Hindi text automatically.
                     </div>
                     <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
                 </div>
@@ -3090,6 +3093,7 @@ The mountains keep.</pre>
         display: block !important;
     }
     #bodyContentSection.is-waiting-for-type #editorLanguageWrap,
+    #bodyContentSection.is-waiting-for-type #editorTransliterationHint,
     #bodyContentSection.is-waiting-for-type #bodyEditor,
     #bodyContentSection.is-waiting-for-type .ck-editor {
         display: none !important;
@@ -3285,6 +3289,8 @@ The mountains keep.</pre>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
+<script src="https://www.google.com/jsapi"></script>
+<script src="https://cdn.jsdelivr.net/npm/@indic-transliteration/sanscript@1.3.3/sanscript.min.js"></script>
 <script>
     window.communityTypes = @json($types);
     window.communityBookTypes = @json(\App\Models\CommunityPost::BOOK_CONTENT_TYPES);
@@ -3306,6 +3312,30 @@ The mountains keep.</pre>
     };
     const COMMUNITY_STANDARD_EDITOR_LANGUAGE_CODES = @json(array_keys(\App\Support\CommunityContentTaxonomy::standardEditorLanguages()));
     const COMMUNITY_POETRY_EDITOR_LANGUAGE_CODES = @json(array_keys(\App\Support\CommunityContentTaxonomy::poetryEditorLanguages()));
+    const COMMUNITY_TRANSLITERATION_DEST_CODES = {
+        hi: 'hi',
+        ur: 'ur',
+        pa: 'pa',
+        bn: 'bn',
+        mr: 'mr',
+        gu: 'gu',
+        ta: 'ta',
+        te: 'te',
+    };
+    const COMMUNITY_SANSCRIPT_TARGETS = {
+        hi: 'devanagari',
+        mr: 'devanagari',
+        bn: 'bengali',
+        pa: 'gurmukhi',
+        gu: 'gujarati',
+        ta: 'tamil',
+        te: 'telugu',
+        ur: 'urdu',
+    };
+    let communityTransliterationLanguageApiReady = false;
+    let communityTransliterationLanguageApiPromise = null;
+    let communityEditorTransliterationHandler = null;
+    let communityEditorTransliterationBusy = false;
 
     function isLifeStoryContentType(type) {
         return (window.communityLifeStoryTypes || []).includes(type);
@@ -5250,9 +5280,11 @@ The mountains keep.</pre>
 
         if (help) {
             help.textContent = contentType === 'poetry'
-                ? 'Choose the script you are writing in. Unicode input is supported for all listed languages.'
-                : 'Default is English. Switch to Hindi to write in Devanagari.';
+                ? 'Choose the script you are writing in. Type English letters and press space to convert automatically.'
+                : 'Default is English. Choose Hindi to type phonetically in the editor (no Windows keyboard setup needed).';
         }
+
+        syncCommunityEditorTransliteration(nextValue);
     }
 
     function refreshPoetryEditorMode(contentType) {
@@ -5291,6 +5323,221 @@ The mountains keep.</pre>
         }
     }
 
+    function ensureCommunityTransliterationLanguageApi() {
+        if (communityTransliterationLanguageApiReady) {
+            return Promise.resolve(true);
+        }
+
+        if (communityTransliterationLanguageApiPromise) {
+            return communityTransliterationLanguageApiPromise;
+        }
+
+        communityTransliterationLanguageApiPromise = new Promise(function (resolve) {
+            if (typeof google === 'undefined' || typeof google.load !== 'function') {
+                resolve(false);
+                return;
+            }
+
+            google.load('language', '1', {
+                callback: function () {
+                    communityTransliterationLanguageApiReady = Boolean(window.google?.language?.transliterate);
+                    resolve(communityTransliterationLanguageApiReady);
+                },
+            });
+        });
+
+        return communityTransliterationLanguageApiPromise;
+    }
+
+    function transliterateCommunityWordWithSanscript(word, destLangCode) {
+        const target = COMMUNITY_SANSCRIPT_TARGETS[destLangCode];
+
+        if (!target || typeof window.Sanscript === 'undefined') {
+            return word;
+        }
+
+        try {
+            return window.Sanscript.t(word, 'itrans', target) || word;
+        } catch (error) {
+            return word;
+        }
+    }
+
+    function transliterateCommunityWord(word, destLangCode) {
+        return new Promise(function (resolve) {
+            if (!word) {
+                resolve(word);
+                return;
+            }
+
+            if (communityTransliterationLanguageApiReady && window.google?.language?.transliterate) {
+                window.google.language.transliterate([word], 'en', destLangCode, function (result) {
+                    const converted = result?.transliterations?.[0]?.transliteratedWords?.[0];
+
+                    if (!result?.error && converted) {
+                        resolve(converted);
+                        return;
+                    }
+
+                    resolve(transliterateCommunityWordWithSanscript(word, destLangCode));
+                });
+                return;
+            }
+
+            resolve(transliterateCommunityWordWithSanscript(word, destLangCode));
+        });
+    }
+
+    function findLatinWordRangeBeforeSelection(editor, skipTrailingSeparators) {
+        const model = editor.model;
+        const selection = model.document.selection;
+
+        if (!selection.isCollapsed) {
+            return null;
+        }
+
+        const position = selection.getFirstPosition();
+
+        if (!position.parent.is('$text')) {
+            return null;
+        }
+
+        const textNode = position.parent;
+        let endOffset = position.offset;
+
+        if (endOffset === 0) {
+            return null;
+        }
+
+        if (skipTrailingSeparators) {
+            while (endOffset > 0 && /[\s.,;:!?]/.test(textNode.data.charAt(endOffset - 1))) {
+                endOffset--;
+            }
+        }
+
+        if (endOffset === 0) {
+            return null;
+        }
+
+        let startOffset = endOffset;
+
+        while (startOffset > 0) {
+            const char = textNode.data.charAt(startOffset - 1);
+
+            if (!/[A-Za-z]/.test(char)) {
+                break;
+            }
+
+            startOffset--;
+        }
+
+        if (startOffset === endOffset) {
+            return null;
+        }
+
+        const word = textNode.data.substring(startOffset, endOffset);
+
+        if (!/^[A-Za-z]+$/.test(word)) {
+            return null;
+        }
+
+        return {
+            range: model.createRange(
+                model.createPositionAt(textNode, startOffset),
+                model.createPositionAt(textNode, endOffset)
+            ),
+            word: word,
+        };
+    }
+
+    function detachCommunityEditorTransliteration(editor) {
+        if (communityEditorTransliterationHandler && editor?.editing?.view?.document) {
+            editor.editing.view.document.off('keyup', communityEditorTransliterationHandler);
+            communityEditorTransliterationHandler = null;
+        }
+    }
+
+    function attachCommunityEditorTransliteration(editor) {
+        detachCommunityEditorTransliteration(editor);
+
+        communityEditorTransliterationHandler = function (event, data) {
+            const language = getActiveEditorLanguage();
+            const destCode = COMMUNITY_TRANSLITERATION_DEST_CODES[language];
+
+            if (!destCode || communityEditorTransliterationBusy) {
+                return;
+            }
+
+            const domEvent = data.domEvent;
+
+            if (!domEvent || domEvent.isComposing || domEvent.type !== 'keyup') {
+                return;
+            }
+
+            const triggerKeys = [' ', 'Enter', '.', ',', ';', ':', '!', '?'];
+
+            if (!triggerKeys.includes(domEvent.key)) {
+                return;
+            }
+
+            const match = findLatinWordRangeBeforeSelection(editor, true);
+
+            if (!match) {
+                return;
+            }
+
+            communityEditorTransliterationBusy = true;
+
+            transliterateCommunityWord(match.word, destCode).then(function (converted) {
+                if (!converted || converted === match.word) {
+                    communityEditorTransliterationBusy = false;
+                    return;
+                }
+
+                editor.model.change(function (writer) {
+                    writer.remove(match.range);
+                    writer.insertText(converted, match.range.start);
+                });
+
+                communityEditorTransliterationBusy = false;
+            }).catch(function () {
+                communityEditorTransliterationBusy = false;
+            });
+        };
+
+        editor.editing.view.document.on('keyup', communityEditorTransliterationHandler);
+    }
+
+    function syncCommunityEditorTransliteration(languageCode) {
+        const language = normalizeEditorLanguage(languageCode);
+        const editor = window.communityBodyEditor;
+        const hint = document.getElementById('editorTransliterationHint');
+        const needsTransliteration = Boolean(COMMUNITY_TRANSLITERATION_DEST_CODES[language]);
+        const languageLabel = (COMMUNITY_EDITOR_LANGUAGES[language] || {}).label || language;
+
+        if (hint) {
+            hint.classList.toggle('d-none', !needsTransliteration);
+
+            if (needsTransliteration) {
+                hint.innerHTML = 'Phonetic typing is on for <strong>' + languageLabel + '</strong>. Type English letters and press space — for example, <strong>namaste</strong> becomes ' + languageLabel + ' text automatically. No Windows keyboard setup is required.';
+            }
+        }
+
+        if (needsTransliteration) {
+            ensureCommunityTransliterationLanguageApi();
+        }
+
+        if (!editor) {
+            return;
+        }
+
+        if (needsTransliteration) {
+            attachCommunityEditorTransliteration(editor);
+        } else {
+            detachCommunityEditorTransliteration(editor);
+        }
+    }
+
     function applyEditorLanguage(languageCode, options) {
         const settings = options || {};
         const language = normalizeEditorLanguage(languageCode);
@@ -5314,6 +5561,8 @@ The mountains keep.</pre>
                 root.setAttribute('dir', languageMeta.dir || 'ltr');
             }
         }
+
+        syncCommunityEditorTransliteration(language);
 
         if (!settings.skipSave) {
             saveActiveEditorLanguage();
