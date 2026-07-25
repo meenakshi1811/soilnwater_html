@@ -1306,7 +1306,7 @@ The mountains keep.</pre>
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 px-1" id="editorLanguageWrap">
                         <div>
                             <label for="editorLanguageSelect" class="form-label mb-0 small fw-semibold" id="editorLanguageLabel">Editor language</label>
-                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Choose Hinglish for phonetic typing, or Hindi for Word-style fonts and formatting.</small>
+                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Choose Hinglish for in-editor phonetic typing, or Hindi to type with the Windows Hindi keyboard.</small>
                         </div>
                         <select id="editorLanguageSelect" class="form-select form-select-sm community-editor-language-select">
                             @foreach(\App\Support\CommunityContentTaxonomy::standardEditorLanguages() as $code => $label)
@@ -2737,6 +2737,14 @@ The mountains keep.</pre>
     #bodyEditorMount.is-hindi-word-mode .ck-editor__editable.ck-content {
         min-height: 280px;
         padding: 1.25rem 1.5rem;
+    }
+
+    .community-hindi-keyboard-steps li {
+        margin-bottom: 0.35rem;
+    }
+
+    .community-hindi-keyboard-steps li:last-child {
+        margin-bottom: 0;
     }
 
     .ck-editor__editable.ck-content[lang="ur"] {
@@ -5343,7 +5351,7 @@ The mountains keep.</pre>
         if (help) {
             help.textContent = contentType === 'poetry'
                 ? 'Choose the script you are writing in. Type English letters and press space to convert automatically.'
-                : 'Default is English. Choose Hinglish for phonetic typing, or Hindi for Word-style fonts and formatting.';
+                : 'Default is English. Choose Hinglish for in-editor phonetic typing, or Hindi to type with the Windows Hindi keyboard.';
         }
 
         syncCommunityEditorTransliteration(nextValue);
@@ -5583,7 +5591,15 @@ The mountains keep.</pre>
                 hint.innerHTML = '<strong>' + languageLabel + ' typing mode is ON.</strong> Click in the editor and type English letters — they convert to ' + languageLabel + ' instantly as you type.';
             } else if (isHindiWordMode) {
                 hint.classList.remove('d-none');
-                hint.innerHTML = '<strong>Hindi mode is ON.</strong> Use the toolbar to change font, size, color, highlight, and alignment — like Microsoft Word. Type with your Hindi keyboard or paste Hindi text.';
+                hint.innerHTML = ''
+                    + '<strong>Hindi mode is ON.</strong> No app changes are needed — use your Windows Hindi keyboard:'
+                    + '<ol class="community-hindi-keyboard-steps mb-0 mt-2 ps-3">'
+                    + '<li>Open <strong>Settings → Time &amp; language → Language &amp; region</strong>.</li>'
+                    + '<li>Add <strong>Hindi</strong> and install a Hindi keyboard (Devanagari or Phonetic).</li>'
+                    + '<li>Click in the editor, then press <strong>Win + Space</strong> (or <strong>Alt + Shift</strong>) to switch to Hindi.</li>'
+                    + '<li>Start typing. Press <strong>Win + Space</strong> again to switch back to English.</li>'
+                    + '</ol>'
+                    + '<span class="d-block mt-2">Use the toolbar for font, size, color, highlight, and alignment.</span>';
             } else {
                 hint.classList.add('d-none');
             }
