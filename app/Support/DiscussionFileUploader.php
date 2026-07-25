@@ -16,17 +16,20 @@ class DiscussionFileUploader
     public static function storeMedia(UploadedFile $file, string $subfolder): array
     {
         $directory = self::absoluteDirectory($subfolder);
-        $filename = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'bin';
+        $mime = (string) $file->getMimeType();
+        $kind = str_starts_with($mime, 'video/') ? 'video' : 'image';
+        $filename = Str::uuid()->toString().'.'.$extension;
+
         $file->move($directory, $filename);
 
         $path = self::relativePath($subfolder, $filename);
-        $mime = (string) $file->getMimeType();
-        $kind = str_starts_with($mime, 'video/') ? 'video' : 'image';
 
         return [
             'path' => $path,
             'url' => self::url($path),
-            'name' => $file->getClientOriginalName(),
+            'name' => $originalName,
             'type' => Str::before($mime, '/'),
             'kind' => $kind,
         ];
