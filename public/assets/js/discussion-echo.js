@@ -5,26 +5,34 @@
         return;
     }
 
-    const scheme = config.reverb?.scheme || 'http';
-    const port = config.reverb?.port || 8080;
-
-    window.Pusher = Pusher;
-
-    window.Echo = new Echo({
+    const pusher = config.pusher || {};
+    const echoOptions = {
         broadcaster: 'pusher',
-        key: config.reverb.key,
-        wsHost: config.reverb.host,
-        wsPort: port,
-        wssPort: port,
-        forceTLS: scheme === 'https',
-        enabledTransports: ['ws', 'wss'],
+        key: pusher.key,
         authEndpoint: config.authEndpoint,
         auth: {
             headers: {
                 'X-CSRF-TOKEN': config.csrfToken,
             },
         },
-    });
+    };
+
+    if (pusher.host) {
+        const scheme = pusher.scheme || 'https';
+        const port = pusher.port || 443;
+
+        echoOptions.wsHost = pusher.host;
+        echoOptions.wsPort = port;
+        echoOptions.wssPort = port;
+        echoOptions.forceTLS = scheme === 'https';
+        echoOptions.enabledTransports = ['ws', 'wss'];
+    } else {
+        echoOptions.cluster = pusher.cluster || 'mt1';
+        echoOptions.forceTLS = true;
+    }
+
+    window.Pusher = Pusher;
+    window.Echo = new Echo(echoOptions);
 
     const currentUserId = config.currentUserId;
 

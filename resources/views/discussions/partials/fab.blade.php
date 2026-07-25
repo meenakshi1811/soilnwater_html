@@ -145,11 +145,12 @@
 <script>
     window.soilnwaterDiscussion = {
         broadcastEnabled: @json($broadcastEnabled),
-        reverb: {
-            key: @json(config('broadcasting.connections.reverb.key')),
-            host: @json(config('broadcasting.connections.reverb.options.host', 'localhost')),
-            port: @json(config('broadcasting.connections.reverb.options.port', 8080)),
-            scheme: @json(config('broadcasting.connections.reverb.options.scheme', 'http')),
+        pusher: {
+            key: @json(config('broadcasting.connections.pusher.key')),
+            cluster: @json(config('broadcasting.connections.pusher.options.cluster')),
+            host: @json(env('PUSHER_HOST')),
+            port: @json(config('broadcasting.connections.pusher.options.port', 443)),
+            scheme: @json(config('broadcasting.connections.pusher.options.scheme', 'https')),
         },
         authEndpoint: @json(url('/broadcasting/auth')),
         csrfToken: @json(csrf_token()),
