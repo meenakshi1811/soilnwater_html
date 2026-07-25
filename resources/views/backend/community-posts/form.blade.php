@@ -122,9 +122,10 @@
                             <button
                                 type="button"
                                 class="community-post-type-card community-post-type-card--{{ $key }}{{ $selectedContentType === $key ? ' is-selected' : '' }}"
-                                style="--pill-color: {{ $pillColor }}; background-color: {{ $pillColor }};"
+                                style="--pill-color: {{ $pillColor }}; background: {{ $pillColor }} !important; background-color: {{ $pillColor }} !important; border-color: {{ $pillColor }} !important; color: #fff !important;"
                                 data-type="{{ $key }}"
                                 data-label="{{ strtolower($type['label']) }}"
+                                data-pill-color="{{ $pillColor }}"
                                 title="{{ $type['description'] }}"
                                 role="option"
                                 aria-selected="{{ $selectedContentType === $key ? 'true' : 'false' }}"
@@ -2553,16 +2554,16 @@ The mountains keep.</pre>
     .community-post-type-card {
         --pill-color: #78909c;
         align-items: center;
-        appearance: none;
-        -webkit-appearance: none;
+        appearance: none !important;
+        -webkit-appearance: none !important;
         background: var(--pill-color) !important;
         background-color: var(--pill-color) !important;
-        border: 1px solid color-mix(in srgb, var(--pill-color) 78%, #ffffff 22%);
-        border-radius: 999px;
-        box-shadow: 0 2px 10px color-mix(in srgb, var(--pill-color) 32%, transparent);
+        border: 1px solid var(--pill-color) !important;
+        border-radius: 999px !important;
+        box-shadow: 0 2px 8px rgba(15, 47, 85, 0.18);
         color: #fff !important;
         cursor: pointer;
-        display: inline-flex;
+        display: inline-flex !important;
         gap: 0.35rem;
         justify-content: center;
         min-height: 40px;
@@ -2573,31 +2574,38 @@ The mountains keep.</pre>
         width: auto;
     }
     @foreach(\App\Support\CommunityContentTaxonomy::pillColors() as $pillKey => $pillHex)
-    .community-post-type-card--{{ $pillKey }} {
+    .ems-page button.community-post-type-card.community-post-type-card--{{ $pillKey }},
+    .community-post-type-card.community-post-type-card--{{ $pillKey }} {
         --pill-color: {{ $pillHex }};
+        background: {{ $pillHex }} !important;
         background-color: {{ $pillHex }} !important;
+        border-color: {{ $pillHex }} !important;
+        color: #fff !important;
     }
     @endforeach
     .community-post-type-card:hover,
     .community-post-type-card:focus-visible {
+        background: var(--pill-color) !important;
         background-color: var(--pill-color) !important;
-        box-shadow: 0 4px 14px color-mix(in srgb, var(--pill-color) 42%, transparent);
+        box-shadow: 0 4px 14px rgba(15, 47, 85, 0.22);
         color: #fff !important;
         filter: brightness(1.06);
         outline: none;
         transform: translateY(-1px);
     }
     .community-post-type-card.is-selected {
+        background: var(--pill-color) !important;
         background-color: var(--pill-color) !important;
-        box-shadow: 0 6px 18px color-mix(in srgb, var(--pill-color) 40%, transparent);
+        box-shadow: 0 6px 18px rgba(15, 47, 85, 0.28);
         color: #fff !important;
         filter: brightness(1.04);
-        outline: 2px solid color-mix(in srgb, var(--pill-color) 55%, #0f2f55 45%);
+        outline: 2px solid #0f2f55;
         outline-offset: 2px;
         transform: none;
     }
     .community-post-type-card.is-selected:hover,
     .community-post-type-card.is-selected:focus-visible {
+        background: var(--pill-color) !important;
         background-color: var(--pill-color) !important;
         color: #fff !important;
         filter: brightness(1.08);
@@ -3517,6 +3525,23 @@ The mountains keep.</pre>
             }
         }
     }
+
+    function paintCommunityPostTypePillColors() {
+        document.querySelectorAll('.community-post-type-card[data-pill-color]').forEach((card) => {
+            const color = card.getAttribute('data-pill-color');
+            if (!color) {
+                return;
+            }
+
+            card.style.setProperty('--pill-color', color);
+            card.style.setProperty('background', color, 'important');
+            card.style.setProperty('background-color', color, 'important');
+            card.style.setProperty('border-color', color, 'important');
+            card.style.setProperty('color', '#fff', 'important');
+        });
+    }
+
+    paintCommunityPostTypePillColors();
 
     document.getElementById('contentTypeGrid')?.addEventListener('click', function (event) {
         const card = event.target.closest('.community-post-type-card');
@@ -8608,12 +8633,7 @@ The mountains keep.</pre>
     }
 
     function getCommunityBodyEditorConfig() {
-        const builtInPlugins = getCommunityBodyEditorPlugins();
         const extraPlugins = getCommunityBodyEditorExtraPlugins();
-        // Super-build does not reliably export individual plugin classes. Only use an
-        // explicit plugin list when Essentials is present; otherwise keep the full build.
-        const CK = window.CKEDITOR || {};
-        const useExplicitPlugins = Boolean(CK.Essentials) && builtInPlugins.includes(CK.Essentials) && builtInPlugins.length >= 8;
 
         const config = {
             toolbar: {
@@ -8775,13 +8795,8 @@ The mountains keep.</pre>
             table: {
                 contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
             },
-        };
-
-        if (useExplicitPlugins) {
-            config.plugins = builtInPlugins.concat(extraPlugins);
-        } else {
-            // Super-build fallback when individual plugin exports are unavailable.
-            config.removePlugins = [
+            // Always use the full super-build plugin set so Word-like font/background tools stay available.
+            removePlugins: [
                 'AIAssistant',
                 'CKBox',
                 'CKFinder',
@@ -8805,10 +8820,11 @@ The mountains keep.</pre>
                 'TableOfContents',
                 'PasteFromOfficeEnhanced',
                 'CaseChange',
-            ];
-            if (extraPlugins.length) {
-                config.extraPlugins = extraPlugins;
-            }
+            ],
+        };
+
+        if (extraPlugins.length) {
+            config.extraPlugins = extraPlugins;
         }
 
         return config;

@@ -1275,3 +1275,83 @@
         height: 34px;
     }
 }
+
+/* Community post type pills — solid brand colors */
+.ems-page .community-post-type-card,
+.community-post-type-card {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    border-radius: 999px !important;
+    color: #fff !important;
+    cursor: pointer;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0.48rem 1.1rem;
+    font-weight: 600;
+}
+.ems-page .community-post-type-card--articles,
+.community-post-type-card--articles { background: #1976d2 !important; background-color: #1976d2 !important; border-color: #1976d2 !important; }
+.ems-page .community-post-type-card--reports,
+.community-post-type-card--reports { background: #5c6bc0 !important; background-color: #5c6bc0 !important; border-color: #5c6bc0 !important; }
+.ems-page .community-post-type-card--my-area,
+.community-post-type-card--my-area { background: #00897b !important; background-color: #00897b !important; border-color: #00897b !important; }
+.ems-page .community-post-type-card--my-voice,
+.community-post-type-card--my-voice { background: #8e24aa !important; background-color: #8e24aa !important; border-color: #8e24aa !important; }
+.ems-page .community-post-type-card--news,
+.community-post-type-card--news { background: #e53935 !important; background-color: #e53935 !important; border-color: #e53935 !important; }
+.ems-page .community-post-type-card--stories,
+.community-post-type-card--stories { background: #fb8c00 !important; background-color: #fb8c00 !important; border-color: #fb8c00 !important; }
+.ems-page .community-post-type-card--poetry,
+.community-post-type-card--poetry { background: #ec407a !important; background-color: #ec407a !important; border-color: #ec407a !important; }
+.ems-page .community-post-type-card--biography,
+.community-post-type-card--biography { background: #795548 !important; background-color: #795548 !important; border-color: #795548 !important; }
+.ems-page .community-post-type-card--autobiography,
+.community-post-type-card--autobiography { background: #f4511e !important; background-color: #f4511e !important; border-color: #f4511e !important; }
+.ems-page .community-post-type-card--childrens-corner,
+.community-post-type-card--childrens-corner { background: #29b6f6 !important; background-color: #29b6f6 !important; border-color: #29b6f6 !important; }
+.ems-page .community-post-type-card--awareness,
+.community-post-type-card--awareness { background: #ffb300 !important; background-color: #ffb300 !important; border-color: #ffb300 !important; }
+.ems-page .community-post-type-card--business,
+.community-post-type-card--business { background: #3949ab !important; background-color: #3949ab !important; border-color: #3949ab !important; }
+.ems-page .community-post-type-card--student-corner,
+.community-post-type-card--student-corner { background: #00acc1 !important; background-color: #00acc1 !important; border-color: #00acc1 !important; }
+.ems-page .community-post-type-card--career,
+.community-post-type-card--career { background: #455a64 !important; background-color: #455a64 !important; border-color: #455a64 !important; }
+.ems-page .community-post-type-card--health-wellness,
+.community-post-type-card--health-wellness { background: #43a047 !important; background-color: #43a047 !important; border-color: #43a047 !important; }
+.ems-page .community-post-type-card--womens-world,
+.community-post-type-card--womens-world { background: #d81b60 !important; background-color: #d81b60 !important; border-color: #d81b60 !important; }
+.ems-page .community-post-type-card--senior-citizens-forum,
+.community-post-type-card--senior-citizens-forum { background: #7cb342 !important; background-color: #7cb342 !important; border-color: #7cb342 !important; }
+.ems-page .community-post-type-card--youth-corner,
+.community-post-type-card--youth-corner { background: #c0ca33 !important; background-color: #c0ca33 !important; border-color: #c0ca33 !important; }
+.ems-page .community-post-type-card--jobs-employment,
+.community-post-type-card--jobs-employment { background: #1565c0 !important; background-color: #1565c0 !important; border-color: #1565c0 !important; }
+.ems-page .community-post-type-card--opinions-views,
+.community-post-type-card--opinions-views { background: #673ab7 !important; background-color: #673ab7 !important; border-color: #673ab7 !important; }
+.ems-page .community-post-type-card--travel-diaries,
+.community-post-type-card--travel-diaries { background: #039be5 !important; background-color: #039be5 !important; border-color: #039be5 !important; }
+.ems-page .community-post-type-card--culture-heritage,
+.community-post-type-card--culture-heritage { background: #ff9800 !important; background-color: #ff9800 !important; border-color: #ff9800 !important; }
+.ems-page .community-post-type-card--astro-consultancy,
+.community-post-type-card--astro-consultancy { background: #7e57c2 !important; background-color: #7e57c2 !important; border-color: #7e57c2 !important; }
+.ems-page .community-post-type-card--religion-spirituality,
+.community-post-type-card--religion-spirituality { background: #ff7043 !important; background-color: #ff7043 !important; border-color: #ff7043 !important; }
+.ems-page .community-post-type-card--agriculture,
+.community-post-type-card--agriculture { background: #558b2f !important; background-color: #558b2f !important; border-color: #558b2f !important; }
+.ems-page .community-post-type-card--environment,
+.community-post-type-card--environment { background: #009688 !important; background-color: #009688 !important; border-color: #009688 !important; }
+.ems-page .community-post-type-card--science-technology,
+.community-post-type-card--science-technology { background: #3d5afe !important; background-color: #3d5afe !important; border-color: #3d5afe !important; }
+.ems-page .community-post-type-card--local-voices,
+.community-post-type-card--local-voices { background: #ff5722 !important; background-color: #ff5722 !important; border-color: #ff5722 !important; }
+.ems-page .community-post-type-card--community-issues,
+.community-post-type-card--community-issues { background: #c62828 !important; background-color: #c62828 !important; border-color: #c62828 !important; }
+.ems-page .community-post-type-card--creative-corner,
+.community-post-type-card--creative-corner { background: #e91e63 !important; background-color: #e91e63 !important; border-color: #e91e63 !important; }
+.ems-page .community-post-type-card--competitions,
+.community-post-type-card--competitions { background: #f9a825 !important; background-color: #f9a825 !important; border-color: #f9a825 !important; }
+.ems-page .community-post-type-card--discussions,
+.community-post-type-card--discussions { background: #607d8b !important; background-color: #607d8b !important; border-color: #607d8b !important; }
