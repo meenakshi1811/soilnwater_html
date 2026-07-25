@@ -3,44 +3,60 @@
 @section('meta_title', $topic->title . ' – Discussions')
 
 @section('content')
+@php
+    use Illuminate\Support\Str;
+    $authorName = $topic->displayAuthorName();
+    $authorInitials = collect(explode(' ', $authorName))
+        ->filter()
+        ->take(2)
+        ->map(fn ($part) => Str::upper(Str::substr($part, 0, 1)))
+        ->join('');
+@endphp
 <div class="discussion-page" data-discussion-topic-id="{{ $topic->id }}">
-    <section class="discussion-banner discussion-banner--compact">
+    <section class="discussion-hero discussion-hero--compact">
         <div class="container">
-            <a href="{{ route('discussions.index') }}" class="discussion-back-link"><i class="fa-solid fa-arrow-left me-1"></i> All topics</a>
+            <a href="{{ route('discussions.index') }}" class="discussion-back-link"><i class="fa-solid fa-arrow-left"></i> All conversations</a>
             <h1 class="discussion-topic-title">
                 @if($topic->is_pinned)
-                    <span class="badge bg-warning text-dark me-2 discussion-pin-badge"><i class="fa-solid fa-thumbtack me-1"></i>Pinned</span>
+                    <span class="discussion-pin-badge me-2"><i class="fa-solid fa-thumbtack"></i> Pinned</span>
                 @endif
                 <span id="discussionTopicTitle">{{ $topic->title }}</span>
             </h1>
-            <p class="mb-0 mt-2"><button type="button" class="btn btn-sm btn-light" id="discussionPageOpenTopicWidget"><i class="fa-solid fa-comments me-1"></i> Open in chat</button></p>
+            <p class="mb-0 mt-2">
+                <button type="button" class="discussion-btn discussion-btn--outline discussion-btn--sm" id="discussionPageOpenTopicWidget">
+                    <i class="fa-solid fa-message"></i> Open in chat
+                </button>
+            </p>
         </div>
     </section>
 
-    <div class="container discussion-inner py-4">
+    <div class="container discussion-inner py-5">
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
-        <article class="discussion-post border rounded-3 p-4 mb-4" id="discussionTopicPost" data-reactable-type="DiscussionTopic" data-reactable-id="{{ $topic->id }}">
-            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
-                <div>
-                    <strong>{{ $topic->displayAuthorName() }}</strong>
-                    <small class="text-muted d-block">{{ $topic->created_at->diffForHumans() }}</small>
+        <article class="discussion-thread-card" id="discussionTopicPost" data-reactable-type="DiscussionTopic" data-reactable-id="{{ $topic->id }}">
+            <div class="discussion-thread-card__header">
+                <div class="discussion-thread-card__author">
+                    <span class="discussion-avatar" aria-hidden="true">{{ $authorInitials ?: 'M' }}</span>
+                    <div>
+                        <div class="discussion-thread-card__author-name">{{ $authorName }}</div>
+                        <div class="discussion-thread-card__author-time">{{ $topic->created_at->diffForHumans() }}</div>
+                    </div>
                 </div>
                 @if($canPin)
                     <button type="button"
-                            class="btn btn-sm {{ $topic->is_pinned ? 'btn-warning' : 'btn-outline-warning' }} discussion-pin-btn"
+                            class="discussion-btn discussion-btn--outline discussion-btn--sm discussion-pin-btn {{ $topic->is_pinned ? 'is-pinned' : '' }}"
                             data-url="{{ route('discussions.pin', $topic) }}"
                             data-pinned="{{ $topic->is_pinned ? '1' : '0' }}">
-                        <i class="fa-solid fa-thumbtack me-1"></i>
+                        <i class="fa-solid fa-thumbtack"></i>
                         {{ $topic->is_pinned ? 'Unpin' : 'Pin' }}
                     </button>
                 @endif
             </div>
 
             @if($topic->body)
-                <p class="mb-3 discussion-body">{!! nl2br(e($topic->body)) !!}</p>
+                <p class="discussion-body">{!! nl2br(e($topic->body)) !!}</p>
             @endif
 
             @include('discussions.partials.attachments', ['attachments' => $topic->attachments ?? []])
@@ -55,21 +71,22 @@
         </article>
 
         <section class="discussion-replies-section">
-            <h2 class="h5 mb-3">Replies <span class="badge bg-secondary" id="discussionReplyCount">{{ $topic->replies_count }}</span></h2>
+            <h2>Replies <span class="discussion-count-badge" id="discussionReplyCount">{{ $topic->replies_count }}</span></h2>
 
-            <form class="discussion-reply-form mb-4" id="discussionReplyForm" data-url="{{ route('discussions.replies.store', $topic) }}" enctype="multipart/form-data">
+            <form class="discussion-composer-box" id="discussionReplyForm" data-url="{{ route('discussions.replies.store', $topic) }}" enctype="multipart/form-data">
                 @csrf
-                <label class="form-label" for="replyBody">Add a reply</label>
-                <textarea name="body" id="replyBody" class="form-control" rows="3" maxlength="5000" placeholder="Share your thoughts..."></textarea>
-                <div class="discussion-composer-media mt-2">
-                    <label class="btn btn-sm btn-outline-secondary discussion-media-btn mb-0" for="replyAttachments">
-                        <i class="fa-solid fa-paperclip me-1"></i> Photo / video
+                <label class="form-label" for="replyBody">Write a reply</label>
+                <textarea name="body" id="replyBody" class="form-control" rows="3" maxlength="5000" placeholder="Share your thoughts…"></textarea>
+                <div class="discussion-composer-media mt-3">
+                    <label class="discussion-media-btn mb-0" for="replyAttachments">
+                        <i class="fa-solid fa-image"></i>
+                        Add photo or video
                     </label>
                     <input type="file" id="replyAttachments" name="attachments[]" class="visually-hidden" accept="image/*,video/mp4,video/webm" multiple>
                     <div class="discussion-media-preview" id="replyAttachmentsPreview" hidden></div>
                 </div>
-                <button type="submit" class="btn btn-success mt-2">
-                    <i class="fa-solid fa-paper-plane me-1"></i> Post reply
+                <button type="submit" class="discussion-btn mt-3">
+                    <i class="fa-solid fa-paper-plane"></i> Send reply
                 </button>
             </form>
 
@@ -80,7 +97,10 @@
                         'userReactions' => $userReactions['replies'][$reply->id] ?? [],
                     ])
                 @empty
-                    <p class="text-muted discussion-empty-replies" id="discussionEmptyReplies">No replies yet. Start the conversation.</p>
+                    <div class="discussion-empty-replies" id="discussionEmptyReplies">
+                        <i class="fa-regular fa-comment-dots fa-2x"></i>
+                        <p class="mb-0 mt-2">No replies yet. Start the conversation.</p>
+                    </div>
                 @endforelse
             </div>
         </section>

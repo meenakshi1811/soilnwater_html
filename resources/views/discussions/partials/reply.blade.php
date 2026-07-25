@@ -1,25 +1,35 @@
-<div class="discussion-reply border rounded-3 p-3 mb-3"
+@php
+    use Illuminate\Support\Str;
+    $authorName = $reply->displayAuthorName();
+    $initials = collect(explode(' ', $authorName))
+        ->filter()
+        ->take(2)
+        ->map(fn ($part) => Str::upper(Str::substr($part, 0, 1)))
+        ->join('');
+@endphp
+<div class="discussion-reply"
      id="discussion-reply-{{ $reply->id }}"
      data-reply-id="{{ $reply->id }}"
      data-reactable-type="DiscussionReply"
      data-reactable-id="{{ $reply->id }}">
-    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-2">
-        <div>
-            <strong>{{ $reply->displayAuthorName() }}</strong>
-            <small class="text-muted d-block discussion-reply-time">{{ $reply->created_at->diffForHumans() }}</small>
+    <span class="discussion-avatar discussion-avatar--sm" aria-hidden="true">{{ $initials ?: 'M' }}</span>
+    <div class="discussion-reply__content">
+        <div class="discussion-reply__header">
+            <span class="discussion-reply__author">{{ $authorName }}</span>
+            <small class="discussion-reply-time">{{ $reply->created_at->diffForHumans() }}</small>
         </div>
+        @if($reply->body)
+            <p class="discussion-reply-body">{!! nl2br(e($reply->body)) !!}</p>
+        @endif
+
+        @include('discussions.partials.attachments', ['attachments' => $reply->attachments ?? []])
+
+        @include('discussions.partials.reactions', [
+            'reactableType' => 'DiscussionReply',
+            'reactableId' => $reply->id,
+            'counts' => $reply->reactionCounts(),
+            'userReactions' => $userReactions,
+            'reactUrl' => route('discussions.replies.react', $reply),
+        ])
     </div>
-    @if($reply->body)
-        <p class="mb-2 discussion-reply-body">{!! nl2br(e($reply->body)) !!}</p>
-    @endif
-
-    @include('discussions.partials.attachments', ['attachments' => $reply->attachments ?? []])
-
-    @include('discussions.partials.reactions', [
-        'reactableType' => 'DiscussionReply',
-        'reactableId' => $reply->id,
-        'counts' => $reply->reactionCounts(),
-        'userReactions' => $userReactions,
-        'reactUrl' => route('discussions.replies.react', $reply),
-    ])
 </div>

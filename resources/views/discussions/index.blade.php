@@ -4,25 +4,25 @@
 
 @section('content')
 <div class="discussion-page">
-    <section class="discussion-banner">
+    <section class="discussion-hero">
         <div class="container">
-            <h1><i class="fa-solid fa-comments me-2"></i>Discussions</h1>
-            <p class="mb-0">Use the chat button to join conversations without leaving the page — or browse topics below.</p>
+            <h1><i class="fa-solid fa-message me-2"></i>Community Chat</h1>
+            <p class="mb-0">Join conversations with fellow SoilNWater members — or open the chat widget from any page.</p>
         </div>
     </section>
 
-    <div class="container discussion-inner py-4">
+    <div class="container discussion-inner py-5">
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div class="discussion-page-header">
             <div>
-                <h2 class="h4 mb-1">Topics</h2>
-                <p class="text-muted mb-0 small">Pinned topics appear first.</p>
+                <h2>Conversations</h2>
+                <p>Pinned topics appear first · Unread shown with a badge</p>
             </div>
-            <button type="button" class="btn btn-success" id="discussionPageOpenWidget">
-                <i class="fa-solid fa-comments me-1"></i> Open chat
+            <button type="button" class="discussion-btn" id="discussionPageOpenWidget">
+                <i class="fa-solid fa-comments"></i> Open chat
             </button>
         </div>
 
@@ -30,9 +30,9 @@
             @forelse($topics as $topic)
                 @include('discussions.partials.topic-card', ['topic' => $topic, 'canPin' => $canPin, 'unreadCounts' => $unreadCounts])
             @empty
-                <div class="discussion-empty border rounded-3 p-4 text-center text-muted" id="discussionEmptyState">
-                    <i class="fa-regular fa-comments fa-2x mb-2"></i>
-                    <p class="mb-0">No topics yet. Be the first to start a discussion.</p>
+                <div class="discussion-empty" id="discussionEmptyState">
+                    <i class="fa-regular fa-comments fa-2x"></i>
+                    <p class="mb-0 mt-2">No conversations yet. Be the first to start one.</p>
                 </div>
             @endforelse
         </div>
@@ -51,7 +51,7 @@
     });
 
     document.getElementById('discussionTopicList')?.addEventListener('click', (event) => {
-        const link = event.target.closest('.discussion-topic-link, .btn-outline-success');
+        const link = event.target.closest('.discussion-topic-link, .discussion-btn');
         if (!link) {
             return;
         }

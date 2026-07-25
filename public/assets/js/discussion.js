@@ -159,8 +159,6 @@
             const label = button.dataset.reaction;
             const isActive = label === reaction ? active : button.dataset.active === '1';
             button.dataset.active = isActive ? '1' : '0';
-            button.classList.toggle('btn-success', isActive);
-            button.classList.toggle('btn-outline-secondary', !isActive);
             button.classList.toggle('is-active', isActive);
             button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 
@@ -186,6 +184,19 @@
         return `/discussions/replies/${replyId}/react`;
     }
 
+    function avatarInitials(name) {
+        const parts = String(name || 'M').trim().split(/\s+/).filter(Boolean);
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        return (parts[0]?.[0] || 'M').toUpperCase();
+    }
+
+    function avatarHtml(name, extraClass = 'discussion-avatar--sm') {
+        return `<span class="discussion-avatar ${extraClass}" aria-hidden="true">${escapeHtml(avatarInitials(name))}</span>`;
+    }
+
     function buildReplyHtml(reply) {
         const reactionLabels = config.reactionLabels || ['Like', 'Love', 'Insightful', 'Agree'];
         const icons = config.reactionIcons || {
@@ -197,62 +208,64 @@
 
         const buttons = reactionLabels.map((label) => {
             const icon = icons[label] || 'fa-face-smile';
-            return `<button type="button" class="btn btn-sm discussion-reaction-btn discussion-reaction-icon-btn btn-outline-secondary" data-reaction="${escapeHtml(label)}" data-active="0" aria-pressed="false" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">
+            return `<button type="button" class="discussion-reaction-btn discussion-reaction-icon-btn" data-reaction="${escapeHtml(label)}" data-active="0" aria-pressed="false" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">
                 <i class="fa-solid ${icon}"></i>
                 <span class="discussion-reaction-count"></span>
             </button>`;
         }).join('');
 
         const bodyHtml = reply.body
-            ? `<p class="mb-2 discussion-reply-body">${nl2br(reply.body || '')}</p>`
+            ? `<p class="discussion-reply-body">${nl2br(reply.body || '')}</p>`
             : '';
+        const authorName = reply.author?.name || 'Community member';
 
-        return `<div class="discussion-reply border rounded-3 p-3 mb-3" id="discussion-reply-${reply.id}" data-reply-id="${reply.id}" data-reactable-type="DiscussionReply" data-reactable-id="${reply.id}">
-            <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-2">
-                <div>
-                    <strong>${escapeHtml(reply.author?.name || 'Community member')}</strong>
-                    <small class="text-muted d-block discussion-reply-time">${escapeHtml(reply.created_at_human || 'just now')}</small>
+        return `<div class="discussion-reply" id="discussion-reply-${reply.id}" data-reply-id="${reply.id}" data-reactable-type="DiscussionReply" data-reactable-id="${reply.id}">
+            ${avatarHtml(authorName)}
+            <div class="discussion-reply__content">
+                <div class="discussion-reply__header">
+                    <span class="discussion-reply__author">${escapeHtml(authorName)}</span>
+                    <small class="discussion-reply-time">${escapeHtml(reply.created_at_human || 'just now')}</small>
                 </div>
-            </div>
-            ${bodyHtml}
-            ${buildAttachmentsHtml(reply.attachments || [])}
-            <div class="discussion-reactions d-flex flex-wrap gap-2" data-reactable-type="DiscussionReply" data-reactable-id="${reply.id}" data-react-url="${escapeHtml(replyReactUrl(reply.id))}">
-                ${buttons}
+                ${bodyHtml}
+                ${buildAttachmentsHtml(reply.attachments || [])}
+                <div class="discussion-reactions" data-reactable-type="DiscussionReply" data-reactable-id="${reply.id}" data-react-url="${escapeHtml(replyReactUrl(reply.id))}">
+                    ${buttons}
+                </div>
             </div>
         </div>`;
     }
 
     function buildTopicCardHtml(topic) {
-        const pinnedBadge = topic.is_pinned
-            ? '<span class="badge bg-warning text-dark mb-2 discussion-pin-badge"><i class="fa-solid fa-thumbtack me-1"></i>Pinned</span>'
-            : '';
-        const excerpt = topic.body
-            ? `<p class="text-muted small mb-2 discussion-topic-excerpt">${escapeHtml(topic.body).slice(0, 140)}</p>`
-            : '';
-        const replyLabel = topic.replies_count === 1 ? 'reply' : 'replies';
+        const authorName = topic.author?.name || 'Community member';
+        const pinnedClass = topic.is_pinned ? 'discussion-topic-card--pinned' : '';
         const unread = topic.unread_count || 0;
+        const unreadClass = unread > 0 ? 'discussion-topic-card--unread' : '';
         const unreadBadge = unread > 0
             ? `<span class="discussion-topic-unread-badge">${formatUnreadCount(unread)}</span>`
             : '';
+        const excerpt = topic.body
+            ? `<p class="discussion-topic-excerpt">${escapeHtml(topic.body).slice(0, 120)}</p>`
+            : '';
+        const replyLabel = topic.replies_count === 1 ? 'reply' : 'replies';
 
-        return `<div class="discussion-topic-card border rounded-3 p-3 mb-3 ${topic.is_pinned ? 'discussion-topic-card--pinned' : ''} ${unread > 0 ? 'discussion-topic-card--unread' : ''}" data-topic-id="${topic.id}" id="discussion-topic-${topic.id}">
-            <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-                <div class="flex-grow-1">
-                    ${pinnedBadge}
-                    <h3 class="h6 mb-1 d-flex align-items-center gap-2">
-                        <a href="${escapeHtml(topic.url)}" class="text-decoration-none discussion-topic-link">${escapeHtml(topic.title)}</a>
-                        ${unreadBadge}
-                    </h3>
-                    ${excerpt}
-                    <div class="d-flex flex-wrap gap-3 small text-muted">
-                        <span><i class="fa-solid fa-user me-1"></i>${escapeHtml(topic.author?.name || 'Community member')}</span>
-                        <span><i class="fa-regular fa-clock me-1"></i>${escapeHtml(topic.created_at_human || 'just now')}</span>
-                        <span><i class="fa-solid fa-reply me-1"></i>${topic.replies_count || 0} ${replyLabel}</span>
-                    </div>
+        return `<article class="discussion-topic-card ${pinnedClass} ${unreadClass}" data-topic-id="${topic.id}" id="discussion-topic-${topic.id}">
+            ${avatarHtml(authorName)}
+            <div class="discussion-topic-card__body">
+                <div class="discussion-topic-card__top">
+                    <a href="${escapeHtml(topic.url)}" class="discussion-topic-link">${escapeHtml(topic.title)}</a>
+                    <span class="discussion-widget-topic__time">${escapeHtml(topic.created_at_human || 'just now')}</span>
                 </div>
-                <a href="${escapeHtml(topic.url)}" class="btn btn-sm btn-outline-success">Open</a>
+                ${excerpt}
+                <div class="discussion-topic-meta">
+                    <span>${escapeHtml(authorName)}</span>
+                    <span>${topic.replies_count || 0} ${replyLabel}</span>
+                </div>
             </div>
-        </div>`;
+            <div class="d-flex flex-column align-items-end gap-2">
+                ${unreadBadge}
+                <a href="${escapeHtml(topic.url)}" class="discussion-btn discussion-btn--outline discussion-btn--sm">Open</a>
+            </div>
+        </article>`;
     }
 
     function prependTopic(topic) {
@@ -301,9 +314,9 @@
         card.classList.toggle('discussion-topic-card--pinned', isPinned);
         const badge = card.querySelector('.discussion-pin-badge');
         if (isPinned && !badge) {
-            const titleWrap = card.querySelector('.flex-grow-1');
-            if (titleWrap) {
-                titleWrap.insertAdjacentHTML('afterbegin', '<span class="badge bg-warning text-dark mb-2 discussion-pin-badge"><i class="fa-solid fa-thumbtack me-1"></i>Pinned</span>');
+            const body = card.querySelector('.discussion-topic-card__body');
+            if (body) {
+                body.insertAdjacentHTML('afterbegin', '<span class="discussion-pin-badge"><i class="fa-solid fa-thumbtack"></i> Pinned</span>');
             }
         } else if (!isPinned && badge) {
             badge.remove();
@@ -322,15 +335,14 @@
         }
 
         button.dataset.pinned = isPinned ? '1' : '0';
-        button.classList.toggle('btn-warning', isPinned);
-        button.classList.toggle('btn-outline-warning', !isPinned);
-        button.innerHTML = `<i class="fa-solid fa-thumbtack me-1"></i>${isPinned ? 'Unpin' : 'Pin'}`;
+        button.classList.toggle('is-pinned', isPinned);
+        button.innerHTML = `<i class="fa-solid fa-thumbtack"></i>${isPinned ? 'Unpin' : 'Pin'}`;
 
         const titleBadge = document.querySelector('.discussion-topic-title .discussion-pin-badge');
         if (isPinned && !titleBadge) {
             const title = document.getElementById('discussionTopicTitle');
             if (title) {
-                title.insertAdjacentHTML('beforebegin', '<span class="badge bg-warning text-dark me-2 discussion-pin-badge"><i class="fa-solid fa-thumbtack me-1"></i>Pinned</span>');
+                title.insertAdjacentHTML('beforebegin', '<span class="discussion-pin-badge me-2"><i class="fa-solid fa-thumbtack"></i> Pinned</span>');
             }
         } else if (!isPinned && titleBadge) {
             titleBadge.remove();

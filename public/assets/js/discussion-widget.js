@@ -98,6 +98,19 @@
             .replace(/'/g, '&#039;');
     }
 
+    function avatarInitials(name) {
+        const parts = String(name || 'M').trim().split(/\s+/).filter(Boolean);
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        return (parts[0]?.[0] || 'M').toUpperCase();
+    }
+
+    function avatarHtml(name, extraClass = '') {
+        return `<span class="discussion-avatar ${extraClass}" aria-hidden="true">${escapeHtml(avatarInitials(name))}</span>`;
+    }
+
     function formatUnreadCount(count) {
         return count > 99 ? '99+' : String(count);
     }
@@ -112,9 +125,11 @@
             fabBadge.textContent = formatUnreadCount(count);
             fabBadge.hidden = false;
             fabBadge.setAttribute('aria-label', `${count} unread messages`);
+            fab?.classList.add('has-unread');
         } else {
             fabBadge.hidden = true;
             fabBadge.textContent = '0';
+            fab?.classList.remove('has-unread');
         }
     }
 
@@ -349,12 +364,10 @@
     }
 
     function buildTopicCard(topic) {
+        const authorName = topic.author?.name || 'Member';
         const excerpt = topic.body
-            ? `<p class="discussion-widget-topic__excerpt">${escapeHtml(String(topic.body).slice(0, 120))}${String(topic.body).length > 120 ? '…' : ''}</p>`
-            : '';
-        const badge = topic.is_pinned
-            ? '<span class="discussion-widget-topic__badge"><i class="fa-solid fa-thumbtack"></i> Pinned</span>'
-            : '';
+            ? escapeHtml(String(topic.body).slice(0, 80)) + (String(topic.body).length > 80 ? '…' : '')
+            : `${topic.replies_count || 0} ${(topic.replies_count || 0) === 1 ? 'reply' : 'replies'}`;
         const replies = topic.replies_count || 0;
         const unread = topic.unread_count ?? getTopicUnread(topic.id);
         if (unread > 0) {
@@ -363,18 +376,21 @@
         const unreadBadge = unread > 0
             ? `<span class="discussion-widget-topic__unread">${formatUnreadCount(unread)}</span>`
             : '';
+        const pinnedClass = topic.is_pinned ? 'discussion-widget-topic--pinned' : '';
+        const unreadClass = unread > 0 ? 'discussion-widget-topic--unread' : '';
 
-        return `<button type="button" class="discussion-widget-topic ${topic.is_pinned ? 'discussion-widget-topic--pinned' : ''} ${unread > 0 ? 'discussion-widget-topic--unread' : ''}" data-topic-id="${topic.id}" id="discussion-widget-topic-${topic.id}">
-            ${badge}
-            <div class="discussion-widget-topic__head">
-                <h3 class="discussion-widget-topic__title">${escapeHtml(topic.title)}</h3>
-                ${unreadBadge}
-            </div>
-            ${excerpt}
-            <div class="discussion-widget-topic__meta">
-                <span><i class="fa-solid fa-user me-1"></i>${escapeHtml(topic.author?.name || 'Member')}</span>
-                <span><i class="fa-regular fa-clock me-1"></i>${escapeHtml(topic.created_at_human || 'just now')}</span>
-                <span><i class="fa-solid fa-reply me-1"></i>${replies} ${replies === 1 ? 'reply' : 'replies'}</span>
+        return `<button type="button" class="discussion-widget-topic ${pinnedClass} ${unreadClass}" data-topic-id="${topic.id}" data-search="${escapeHtml((topic.title + ' ' + (topic.body || '') + ' ' + authorName).toLowerCase())}" id="discussion-widget-topic-${topic.id}">
+            ${avatarHtml(authorName, 'discussion-avatar--sm')}
+            <div class="discussion-widget-topic__content">
+                <div class="discussion-widget-topic__row">
+                    <h3 class="discussion-widget-topic__title">${escapeHtml(topic.title)}</h3>
+                    <span class="discussion-widget-topic__time">${escapeHtml(topic.created_at_human || 'now')}</span>
+                </div>
+                <div class="discussion-widget-topic__row">
+                    <p class="discussion-widget-topic__excerpt">${excerpt}</p>
+                    ${unreadBadge}
+                </div>
+                <div class="discussion-widget-topic__meta-inline">${escapeHtml(authorName)} · ${replies} ${replies === 1 ? 'reply' : 'replies'}</div>
             </div>
         </button>`;
     }
@@ -404,32 +420,45 @@
     }
 
     function buildTopicMessage(topic) {
-        return `<article class="discussion-widget-msg discussion-widget-msg--topic" data-reactable-type="DiscussionTopic" data-reactable-id="${topic.id}">
-            <div class="discussion-widget-msg__meta">
-                <span class="discussion-widget-msg__author">${escapeHtml(topic.author?.name || 'Member')}</span>
-                <span>${escapeHtml(topic.created_at_human || 'just now')}</span>
+        const authorName = topic.author?.name || 'Member';
+        return `<article class="discussion-msg discussion-msg--topic discussion-widget-msg discussion-widget-msg--topic" data-reactable-type="DiscussionTopic" data-reactable-id="${topic.id}">
+            <span class="discussion-msg__topic-label"><i class="fa-solid fa-bookmark"></i> Topic</span>
+            <div class="discussion-msg__bubble">
+                <div class="discussion-msg__header">
+                    ${avatarHtml(authorName, 'discussion-avatar--sm')}
+                    <div>
+                        <span class="discussion-msg__author">${escapeHtml(authorName)}</span>
+                        <span class="discussion-msg__time">${escapeHtml(topic.created_at_human || 'just now')}</span>
+                    </div>
+                </div>
+                <h3 class="discussion-msg__title">${escapeHtml(topic.title)}</h3>
+                ${topic.body ? `<p class="discussion-msg__body">${escapeHtml(topic.body)}</p>` : ''}
+                ${buildAttachmentsHtml(topic.attachments || [])}
+                ${buildReactionsHtml('DiscussionTopic', topic.id, topicReactUrl(topic.id), topic.reaction_counts || {}, topic.user_reactions || [])}
             </div>
-            <h3 class="discussion-widget-msg__title">${escapeHtml(topic.title)}</h3>
-            ${topic.body ? `<p class="discussion-widget-msg__body">${escapeHtml(topic.body)}</p>` : ''}
-            ${buildAttachmentsHtml(topic.attachments || [])}
-            ${buildReactionsHtml('DiscussionTopic', topic.id, topicReactUrl(topic.id), topic.reaction_counts || {}, topic.user_reactions || [])}
         </article>`;
     }
 
     function buildReplyMessage(reply) {
         const mine = Number(reply.author?.id) === Number(config.currentUserId);
-        return `<article class="discussion-widget-msg ${mine ? 'discussion-widget-msg--mine' : ''}"
+        const authorName = reply.author?.name || 'Member';
+        const avatarClass = mine ? 'discussion-avatar--sm discussion-avatar--mine' : 'discussion-avatar--sm';
+
+        return `<article class="discussion-msg ${mine ? 'discussion-msg--mine' : ''} discussion-widget-msg ${mine ? 'discussion-widget-msg--mine' : ''}"
                          id="discussion-widget-reply-${reply.id}"
                          data-reply-id="${reply.id}"
                          data-reactable-type="DiscussionReply"
                          data-reactable-id="${reply.id}">
-            <div class="discussion-widget-msg__meta">
-                <span class="discussion-widget-msg__author">${escapeHtml(reply.author?.name || 'Member')}</span>
-                <span>${escapeHtml(reply.created_at_human || 'just now')}</span>
+            ${avatarHtml(mine ? (config.currentUserName || 'You') : authorName, avatarClass)}
+            <div class="discussion-msg__bubble">
+                <div class="discussion-msg__header">
+                    <span class="discussion-msg__author">${escapeHtml(mine ? 'You' : authorName)}</span>
+                    <span class="discussion-msg__time">${escapeHtml(reply.created_at_human || 'just now')}</span>
+                </div>
+                ${reply.body ? `<p class="discussion-msg__body">${escapeHtml(reply.body || '')}</p>` : ''}
+                ${buildAttachmentsHtml(reply.attachments || [])}
+                ${buildReactionsHtml('DiscussionReply', reply.id, replyReactUrl(reply.id), reply.reaction_counts || {}, reply.user_reactions || [])}
             </div>
-            ${reply.body ? `<p class="discussion-widget-msg__body">${escapeHtml(reply.body || '')}</p>` : ''}
-            ${buildAttachmentsHtml(reply.attachments || [])}
-            ${buildReactionsHtml('DiscussionReply', reply.id, replyReactUrl(reply.id), reply.reaction_counts || {}, reply.user_reactions || [])}
         </article>`;
     }
 
@@ -440,8 +469,9 @@
 
         if (!topics.length) {
             els.topicList.innerHTML = `<div class="discussion-widget__empty" id="discussionWidgetEmptyState">
-                <i class="fa-regular fa-comments fa-2x"></i>
-                <p>No topics yet. Start the first conversation.</p>
+                <div class="discussion-widget__empty-icon"><i class="fa-regular fa-comments"></i></div>
+                <h4>No conversations yet</h4>
+                <p>Start the first discussion with the community.</p>
             </div>`;
             return;
         }
@@ -581,7 +611,11 @@
             if (replies.length) {
                 html += replies.map(buildReplyMessage).join('');
             } else {
-                html += `<div class="discussion-widget__empty" id="discussionWidgetEmptyReplies"><p>No replies yet. Start the conversation.</p></div>`;
+                html += `<div class="discussion-widget__empty" id="discussionWidgetEmptyReplies">
+                    <div class="discussion-widget__empty-icon"><i class="fa-regular fa-comment-dots"></i></div>
+                    <h4>No replies yet</h4>
+                    <p>Be the first to respond.</p>
+                </div>`;
             }
 
             if (els.messages) {
@@ -606,11 +640,16 @@
         config.topicId = null;
         openRequestId += 1;
 
+        const search = document.getElementById('discussionWidgetSearch');
+        if (search) {
+            search.value = '';
+        }
+
         if (els.title) {
             els.title.textContent = 'Community Chat';
         }
         if (els.subtitle) {
-            els.subtitle.textContent = 'Discussions with fellow members';
+            els.subtitle.textContent = 'Your conversations';
         }
 
         showPanel('topics');
@@ -875,6 +914,14 @@
             }
         },
     };
+
+    document.getElementById('discussionWidgetSearch')?.addEventListener('input', (event) => {
+        const query = String(event.target.value || '').trim().toLowerCase();
+        els.topicList?.querySelectorAll('.discussion-widget-topic').forEach((card) => {
+            const haystack = card.dataset.search || card.textContent?.toLowerCase() || '';
+            card.hidden = query !== '' && !haystack.includes(query);
+        });
+    });
 
     bindMediaPreview(document.getElementById('discussionWidgetReplyAttachments'), document.getElementById('discussionWidgetReplyPreview'));
     bindMediaPreview(document.getElementById('discussionWidgetTopicAttachments'), document.getElementById('discussionWidgetTopicPreview'));
