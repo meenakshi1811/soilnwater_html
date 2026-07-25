@@ -1048,6 +1048,7 @@
             @elseif(! $isArticlePost)
                 @php
                     $editorLanguage = data_get($post->meta, 'editor_language', 'en');
+                    $editorHtmlLang = \App\Support\CommunityContentTaxonomy::editorLanguageHtmlLang($editorLanguage);
                     $bodyClasses = 'community-post-body';
                     if ($post->content_type === 'poetry' || ($post->isChildrensCornerPost() && $post->childrensCornerContentMode() === 'poem')) {
                         $bodyClasses .= ' community-post-body--poetry';
@@ -1056,10 +1057,10 @@
                 @if($post->content_type === 'poetry' || ($post->isChildrensCornerPost() && $post->childrensCornerContentMode() === 'poem'))
                     <div class="poetry-reading-card mb-4">
                         <div class="poetry-reading-card__kicker">Poem</div>
-                        <div class="{{ $bodyClasses }}" data-community-body-protected lang="{{ $editorLanguage }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
+                        <div class="{{ $bodyClasses }}" data-community-body-protected lang="{{ $editorHtmlLang }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
                     </div>
                 @else
-                    <div class="{{ $bodyClasses }}" data-community-body-protected lang="{{ $editorLanguage }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
+                    <div class="{{ $bodyClasses }}" data-community-body-protected lang="{{ $editorHtmlLang }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
                 @endif
             @endif
 

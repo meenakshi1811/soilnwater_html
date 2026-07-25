@@ -4,7 +4,8 @@
         $articleLanguage = data_get($post->meta, 'editor_language', 'en');
         $languageLabels = [
             'en' => 'English',
-            'hi' => 'Hindi',
+            'hi' => 'Hinglish',
+            'hindi' => 'Hindi',
             'ur' => 'Urdu',
             'pa' => 'Punjabi',
             'bn' => 'Bengali',
@@ -103,11 +104,12 @@
 
             @php
                 $editorLanguage = data_get($post->meta, 'editor_language', 'en');
+                $editorHtmlLang = \App\Support\CommunityContentTaxonomy::editorLanguageHtmlLang($editorLanguage);
             @endphp
             <div
                 class="community-post-body community-post-body--article"
                 data-community-body-protected
-                lang="{{ $editorLanguage }}"
+                lang="{{ $editorHtmlLang }}"
                 @if($editorLanguage === 'ur') dir="rtl" @endif
             >{!! $post->body !!}</div>
 

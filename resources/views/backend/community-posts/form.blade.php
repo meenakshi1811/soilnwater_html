@@ -116,10 +116,13 @@
                     </select>
                     <div class="community-post-type-grid" id="contentTypeGrid" role="listbox" aria-label="Post types">
                         @foreach($types as $key => $type)
+                            @php
+                                $pillColor = $postTypePillColors[$key] ?? $postTypePillFallback;
+                            @endphp
                             <button
                                 type="button"
                                 class="community-post-type-card community-post-type-card--{{ $key }}{{ $selectedContentType === $key ? ' is-selected' : '' }}"
-                                style="--pill-color: {{ $postTypePillColors[$key] ?? $postTypePillFallback }};"
+                                style="--pill-color: {{ $pillColor }}; background-color: {{ $pillColor }};"
                                 data-type="{{ $key }}"
                                 data-label="{{ strtolower($type['label']) }}"
                                 title="{{ $type['description'] }}"
@@ -1302,7 +1305,7 @@ The mountains keep.</pre>
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 px-1" id="editorLanguageWrap">
                         <div>
                             <label for="editorLanguageSelect" class="form-label mb-0 small fw-semibold" id="editorLanguageLabel">Editor language</label>
-                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Choose Hindi to type phonetically in the editor (no Windows keyboard setup needed).</small>
+                            <small class="text-muted d-block" id="editorLanguageHelp">Default is English. Choose Hinglish for phonetic typing, or Hindi for Word-style fonts and formatting.</small>
                         </div>
                         <select id="editorLanguageSelect" class="form-select form-select-sm community-editor-language-select">
                             @foreach(\App\Support\CommunityContentTaxonomy::standardEditorLanguages() as $code => $label)
@@ -1317,7 +1320,7 @@ The mountains keep.</pre>
                         >
                     </div>
                     <div id="editorTransliterationHint" class="alert alert-info py-2 px-3 small mb-2 d-none" role="status">
-                        <strong>Hindi typing mode is ON.</strong> Click in the editor and type English letters — they convert to Hindi instantly as you type, like a phone keyboard.
+                        <strong>Hinglish typing mode is ON.</strong> Click in the editor and type English letters — they convert to Hinglish instantly as you type.
                     </div>
                     <textarea name="body" id="bodyEditor" class="form-control" rows="12">{{ old('body', $post->body) }}</textarea>
                 </div>
@@ -2516,6 +2519,7 @@ The mountains keep.</pre>
 
 @push('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
 <style>
     .type-extra { display: none; }
     .community-consent-section__title {
@@ -2549,11 +2553,15 @@ The mountains keep.</pre>
     .community-post-type-card {
         --pill-color: #78909c;
         align-items: center;
-        background: var(--pill-color);
+        appearance: none;
+        -webkit-appearance: none;
+        background: var(--pill-color) !important;
+        background-color: var(--pill-color) !important;
         border: 1px solid color-mix(in srgb, var(--pill-color) 78%, #ffffff 22%);
         border-radius: 999px;
         box-shadow: 0 2px 10px color-mix(in srgb, var(--pill-color) 32%, transparent);
-        color: #fff;
+        color: #fff !important;
+        cursor: pointer;
         display: inline-flex;
         gap: 0.35rem;
         justify-content: center;
@@ -2564,17 +2572,25 @@ The mountains keep.</pre>
         transition: filter 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, outline-color 0.2s ease;
         width: auto;
     }
+    @foreach(\App\Support\CommunityContentTaxonomy::pillColors() as $pillKey => $pillHex)
+    .community-post-type-card--{{ $pillKey }} {
+        --pill-color: {{ $pillHex }};
+        background-color: {{ $pillHex }} !important;
+    }
+    @endforeach
     .community-post-type-card:hover,
     .community-post-type-card:focus-visible {
+        background-color: var(--pill-color) !important;
         box-shadow: 0 4px 14px color-mix(in srgb, var(--pill-color) 42%, transparent);
-        color: #fff;
+        color: #fff !important;
         filter: brightness(1.06);
         outline: none;
         transform: translateY(-1px);
     }
     .community-post-type-card.is-selected {
+        background-color: var(--pill-color) !important;
         box-shadow: 0 6px 18px color-mix(in srgb, var(--pill-color) 40%, transparent);
-        color: #fff;
+        color: #fff !important;
         filter: brightness(1.04);
         outline: 2px solid color-mix(in srgb, var(--pill-color) 55%, #0f2f55 45%);
         outline-offset: 2px;
@@ -2582,7 +2598,8 @@ The mountains keep.</pre>
     }
     .community-post-type-card.is-selected:hover,
     .community-post-type-card.is-selected:focus-visible {
-        color: #fff;
+        background-color: var(--pill-color) !important;
+        color: #fff !important;
         filter: brightness(1.08);
         transform: none;
     }
@@ -2693,7 +2710,19 @@ The mountains keep.</pre>
     }
 
     .ck-editor__editable.ck-content[lang="hi"] {
-        font-family: "Noto Sans Devanagari", "Nirmala UI", "Mangal", sans-serif;
+        font-family: "Noto Sans Devanagari", "Nirmala UI", "Mangal", "Aparajita", "Kokila", sans-serif;
+        font-size: 1.05rem;
+        line-height: 1.75;
+    }
+
+    #bodyEditorMount.is-hindi-word-mode .ck.ck-toolbar {
+        flex-wrap: wrap;
+        row-gap: 0.25rem;
+    }
+
+    #bodyEditorMount.is-hindi-word-mode .ck-editor__editable.ck-content {
+        min-height: 280px;
+        padding: 1.25rem 1.5rem;
     }
 
     .ck-editor__editable.ck-content[lang="ur"] {
@@ -3300,7 +3329,8 @@ The mountains keep.</pre>
     let communityBodyEditorInitPromise = null;
     const COMMUNITY_EDITOR_LANGUAGES = {
         en: { label: 'English', lang: 'en', dir: 'ltr' },
-        hi: { label: 'Hindi', lang: 'hi', dir: 'ltr' },
+        hi: { label: 'Hinglish', lang: 'hi', dir: 'ltr' },
+        hindi: { label: 'Hindi', lang: 'hi', dir: 'ltr' },
         ur: { label: 'Urdu', lang: 'ur', dir: 'rtl' },
         pa: { label: 'Punjabi', lang: 'pa', dir: 'ltr' },
         bn: { label: 'Bengali', lang: 'bn', dir: 'ltr' },
@@ -5282,7 +5312,7 @@ The mountains keep.</pre>
         if (help) {
             help.textContent = contentType === 'poetry'
                 ? 'Choose the script you are writing in. Type English letters and press space to convert automatically.'
-                : 'Default is English. Choose Hindi to type phonetically in the editor (no Windows keyboard setup needed).';
+                : 'Default is English. Choose Hinglish for phonetic typing, or Hindi for Word-style fonts and formatting.';
         }
 
         syncCommunityEditorTransliteration(nextValue);
@@ -5507,14 +5537,24 @@ The mountains keep.</pre>
         const language = normalizeEditorLanguage(languageCode);
         const editor = window.communityBodyEditor;
         const hint = document.getElementById('editorTransliterationHint');
+        const editorMount = document.getElementById('bodyEditorMount');
         const needsTransliteration = Boolean(COMMUNITY_TRANSLITERATION_DEST_CODES[language]);
         const languageLabel = (COMMUNITY_EDITOR_LANGUAGES[language] || {}).label || language;
+        const isHindiWordMode = language === 'hindi';
+
+        if (editorMount) {
+            editorMount.classList.toggle('is-hindi-word-mode', isHindiWordMode);
+        }
 
         if (hint) {
-            hint.classList.toggle('d-none', !needsTransliteration);
-
             if (needsTransliteration) {
-                hint.innerHTML = '<strong>' + languageLabel + ' typing mode is ON.</strong> Click in the editor and type English letters — they convert to ' + languageLabel + ' instantly as you type, like a phone keyboard. Press <strong>Space</strong> for the next word.';
+                hint.classList.remove('d-none');
+                hint.innerHTML = '<strong>' + languageLabel + ' typing mode is ON.</strong> Click in the editor and type English letters — they convert to ' + languageLabel + ' instantly as you type.';
+            } else if (isHindiWordMode) {
+                hint.classList.remove('d-none');
+                hint.innerHTML = '<strong>Hindi mode is ON.</strong> Use the toolbar to change font, size, color, highlight, and alignment — like Microsoft Word. Type with your Hindi keyboard or paste Hindi text.';
+            } else {
+                hint.classList.add('d-none');
             }
         }
 
@@ -8423,6 +8463,22 @@ The mountains keep.</pre>
             CK.Heading,
             CK.Bold,
             CK.Italic,
+            CK.Underline,
+            CK.Strikethrough,
+            CK.Subscript,
+            CK.Superscript,
+            CK.Font,
+            CK.FontFamily,
+            CK.FontSize,
+            CK.FontColor,
+            CK.FontBackgroundColor,
+            CK.Alignment,
+            CK.Indent,
+            CK.IndentBlock,
+            CK.Highlight,
+            CK.RemoveFormat,
+            CK.HorizontalLine,
+            CK.SpecialCharacters,
             CK.Link,
             CK.List,
             CK.BlockQuote,
@@ -8563,25 +8619,114 @@ The mountains keep.</pre>
             toolbar: {
                 items: [
                     'heading', '|',
-                    'bold', 'italic', 'bulletedList', 'numberedList', '|',
+                    'fontFamily', 'fontSize', '|',
+                    'fontColor', 'fontBackgroundColor', 'highlight', '|',
+                    'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript', '|',
+                    'alignment', '|',
+                    'outdent', 'indent', '|',
+                    'bulletedList', 'numberedList', '|',
                     'uploadImage', '|',
                     'mediaEmbed', 'uploadVideo', '|',
                     'insertDocument', '|',
-                    'link', '|',
+                    'link', 'horizontalLine', 'specialCharacters', '|',
                     'blockQuote', '|',
                     'insertPoll', '|',
                     'insertTable', 'insertChart', '|',
+                    'removeFormat', '|',
                     'undo', 'redo',
                 ],
                 shouldNotGroupWhenFull: true,
+            },
+            fontFamily: {
+                options: [
+                    'default',
+                    { title: 'Noto Sans Devanagari', model: 'Noto Sans Devanagari, Nirmala UI, Mangal, sans-serif' },
+                    { title: 'Tiro Devanagari Hindi', model: 'Tiro Devanagari Hindi, Noto Sans Devanagari, serif' },
+                    { title: 'Mangal', model: 'Mangal, Nirmala UI, sans-serif' },
+                    { title: 'Nirmala UI', model: 'Nirmala UI, Mangal, sans-serif' },
+                    { title: 'Aparajita', model: 'Aparajita, Mangal, serif' },
+                    { title: 'Kokila', model: 'Kokila, Mangal, serif' },
+                    { title: 'Utsaah', model: 'Utsaah, Mangal, sans-serif' },
+                    { title: 'Sanskrit Text', model: 'Sanskrit Text, Mangal, serif' },
+                    { title: 'Arial', model: 'Arial, Helvetica, sans-serif' },
+                    { title: 'Times New Roman', model: 'Times New Roman, Times, serif' },
+                    { title: 'Georgia', model: 'Georgia, serif' },
+                    { title: 'Verdana', model: 'Verdana, Geneva, sans-serif' },
+                    { title: 'Tahoma', model: 'Tahoma, Geneva, sans-serif' },
+                    { title: 'Courier New', model: 'Courier New, Courier, monospace' },
+                ],
+                supportAllValues: true,
+            },
+            fontSize: {
+                options: [
+                    9,
+                    11,
+                    13,
+                    'default',
+                    17,
+                    19,
+                    21,
+                    24,
+                    28,
+                    32,
+                    36,
+                    48,
+                    72,
+                ],
+                supportAllValues: true,
+            },
+            fontColor: {
+                colors: [
+                    { color: '#000000', label: 'Black' },
+                    { color: '#424242', label: 'Dim grey' },
+                    { color: '#757575', label: 'Grey' },
+                    { color: '#BDBDBD', label: 'Light grey' },
+                    { color: '#FFFFFF', label: 'White', hasBorder: true },
+                    { color: '#C62828', label: 'Red' },
+                    { color: '#EF6C00', label: 'Orange' },
+                    { color: '#F9A825', label: 'Yellow' },
+                    { color: '#2E7D32', label: 'Green' },
+                    { color: '#1565C0', label: 'Blue' },
+                    { color: '#6A1B9A', label: 'Purple' },
+                    { color: '#00838F', label: 'Teal' },
+                    { color: '#5D4037', label: 'Brown' },
+                ],
+                columns: 5,
+            },
+            fontBackgroundColor: {
+                colors: [
+                    { color: 'transparent', label: 'None', hasBorder: true },
+                    { color: '#FFF59D', label: 'Yellow' },
+                    { color: '#FFCC80', label: 'Orange' },
+                    { color: '#EF9A9A', label: 'Red' },
+                    { color: '#A5D6A7', label: 'Green' },
+                    { color: '#90CAF9', label: 'Blue' },
+                    { color: '#CE93D8', label: 'Purple' },
+                    { color: '#B2EBF2', label: 'Cyan' },
+                    { color: '#F5F5F5', label: 'Light grey' },
+                ],
+                columns: 5,
+            },
+            alignment: {
+                options: ['left', 'center', 'right', 'justify'],
+            },
+            highlight: {
+                options: [
+                    { model: 'yellowMarker', class: 'marker-yellow', title: 'Yellow marker', color: 'var(--ck-highlight-marker-yellow)', type: 'marker' },
+                    { model: 'greenMarker', class: 'marker-green', title: 'Green marker', color: 'var(--ck-highlight-marker-green)', type: 'marker' },
+                    { model: 'pinkMarker', class: 'marker-pink', title: 'Pink marker', color: 'var(--ck-highlight-marker-pink)', type: 'marker' },
+                    { model: 'blueMarker', class: 'marker-blue', title: 'Blue marker', color: 'var(--ck-highlight-marker-blue)', type: 'marker' },
+                    { model: 'redPen', class: 'pen-red', title: 'Red pen', color: 'var(--ck-highlight-pen-red)', type: 'pen' },
+                    { model: 'greenPen', class: 'pen-green', title: 'Green pen', color: 'var(--ck-highlight-pen-green)', type: 'pen' },
+                ],
             },
             mediaEmbed: {
                 previewsInData: true,
             },
             htmlSupport: {
                 allow: [
-                    { name: 'div', classes: ['community-inline-chart', 'community-inline-poll', 'community-inline-chart__bar'] },
-                    { name: 'p', classes: ['community-inline-chart__title', 'community-inline-poll__question'] },
+                    { name: 'div', classes: ['community-inline-chart', 'community-inline-poll', 'community-inline-chart__bar'], styles: true, attributes: true },
+                    { name: 'p', classes: ['community-inline-chart__title', 'community-inline-poll__question'], styles: true },
                     { name: 'ul', classes: ['community-inline-poll__options'] },
                     { name: 'li', classes: true },
                     { name: 'table', classes: ['community-inline-chart__table'] },
@@ -8592,8 +8737,16 @@ The mountains keep.</pre>
                     { name: 'figure', classes: ['media', 'community-inline-video'] },
                     { name: 'video', attributes: { controls: true, preload: true, src: true } },
                     { name: 'a', classes: ['community-inline-document'], attributes: { href: true, target: true, rel: true } },
-                    { name: 'span', classes: ['community-inline-chart__value'] },
-                    { name: 'strong', classes: true },
+                    { name: 'span', classes: true, styles: true, attributes: true },
+                    { name: 'strong', classes: true, styles: true },
+                    { name: 'em', classes: true, styles: true },
+                    { name: 'u', classes: true, styles: true },
+                    { name: 's', classes: true, styles: true },
+                    { name: 'sub', classes: true },
+                    { name: 'sup', classes: true },
+                    { name: 'h2', styles: true },
+                    { name: 'h3', styles: true },
+                    { name: 'h4', styles: true },
                 ],
             },
             image: {

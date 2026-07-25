@@ -964,7 +964,8 @@ class CommunityContentTaxonomy
     public static function poetryEditorLanguages(): array
     {
         return [
-            'hi' => 'Hindi',
+            'hi' => 'Hinglish',
+            'hindi' => 'Hindi',
             'en' => 'English',
             'ur' => 'Urdu',
             'pa' => 'Punjabi',
@@ -985,8 +986,27 @@ class CommunityContentTaxonomy
     {
         return [
             'en' => 'English',
-            'hi' => 'Hindi',
+            'hi' => 'Hinglish',
+            'hindi' => 'Hindi',
         ];
+    }
+
+    /**
+     * HTML lang attribute for a stored editor_language code.
+     */
+    public static function editorLanguageHtmlLang(?string $code): string
+    {
+        return match ($code) {
+            'hindi', 'hi' => 'hi',
+            'ur' => 'ur',
+            'pa' => 'pa',
+            'bn' => 'bn',
+            'mr' => 'mr',
+            'gu' => 'gu',
+            'ta' => 'ta',
+            'te' => 'te',
+            default => 'en',
+        };
     }
 
     /**
