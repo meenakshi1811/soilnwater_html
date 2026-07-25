@@ -2621,11 +2621,13 @@ The mountains keep.</pre>
         font-weight: 700;
     }
     .community-post-type-empty {
-        background: #f8fafc;
-        border: 1px dashed #cbd5e1;
-        border-radius: .75rem;
-        color: #64748b;
-        padding: .85rem 1rem;
+        background: linear-gradient(135deg, #e8f1fb 0%, #e7f6ef 55%, #f3faf6 100%);
+        border: 1px solid #c5d9ec;
+        border-radius: .85rem;
+        color: #475569;
+        font-weight: 500;
+        padding: 1.15rem 1.25rem;
+        text-align: center;
     }
     #communityPostDetails[hidden] {
         display: none !important;
