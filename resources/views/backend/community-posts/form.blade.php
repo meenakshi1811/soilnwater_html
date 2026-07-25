@@ -2547,9 +2547,13 @@ The mountains keep.</pre>
         min-width: min(100%, 220px);
     }
     .community-post-type-grid {
+        background: linear-gradient(135deg, #e8f1fb 0%, #e7f6ef 55%, #f3faf6 100%);
+        border: 1px solid #c5d9ec;
+        border-radius: 0.85rem;
         display: flex;
         flex-wrap: wrap;
         gap: 0.55rem;
+        padding: 0.9rem 1rem;
     }
     .community-post-type-card {
         --pill-color: #78909c;
