@@ -6,13 +6,18 @@ use App\Events\Discussion\TopicCreated;
 use App\Events\Discussion\TopicPinned;
 use App\Http\Controllers\Controller;
 use App\Models\DiscussionTopic;
+use App\Services\DiscussionReadService;
+use App\Support\DiscussionFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\View\View;
 
 class DiscussionTopicController extends Controller
 {
+    public function __construct(private DiscussionReadService $readService) {}
+
     public function index(Request $request): View|JsonResponse
     {
         $topics = DiscussionTopic::query()
@@ -24,11 +29,17 @@ class DiscussionTopicController extends Controller
             ->paginate(20);
 
         $canPin = $request->user()->isAdmin();
+        $unreadCounts = $this->readService->unreadCountsForTopics($request->user(), $topics->getCollection());
 
         if ($request->expectsJson()) {
             return response()->json([
-                'topics' => $topics->getCollection()->map->toBroadcastArray()->values(),
+                'topics' => $topics->getCollection()->map(function (DiscussionTopic $topic) use ($unreadCounts) {
+                    return array_merge($topic->toBroadcastArray(), [
+                        'unread_count' => $unreadCounts[$topic->id] ?? 0,
+                    ]);
+                })->values(),
                 'can_pin' => $canPin,
+                'global_unread' => array_sum($unreadCounts),
                 'meta' => [
                     'current_page' => $topics->currentPage(),
                     'last_page' => $topics->lastPage(),
@@ -41,6 +52,7 @@ class DiscussionTopicController extends Controller
         return view('discussions.index', [
             'topics' => $topics,
             'canPin' => $canPin,
+            'unreadCounts' => $unreadCounts,
         ]);
     }
 
@@ -52,6 +64,8 @@ class DiscussionTopicController extends Controller
             'replies.reactions',
             'reactions',
         ]);
+
+        $this->readService->markAsRead($request->user(), $topic);
 
         $canPin = auth()->user()?->isAdmin() ?? false;
         $userReactions = $this->userReactionsForTopic($topic);
@@ -68,6 +82,7 @@ class DiscussionTopicController extends Controller
                     })->values(),
                 ]),
                 'can_pin' => $canPin,
+                'global_unread' => $this->readService->globalUnreadCount($request->user()),
             ]);
         }
 
@@ -83,15 +98,21 @@ class DiscussionTopicController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:200'],
             'body' => ['nullable', 'string', 'max:5000'],
+            'attachments' => ['nullable', 'array', 'max:4'],
+            'attachments.*' => ['file', 'mimes:jpg,jpeg,png,gif,webp,mp4,webm', 'max:10240'],
         ]);
+
+        $attachments = $this->storeAttachments($request->file('attachments', []));
 
         $topic = DiscussionTopic::query()->create([
             'user_id' => $request->user()->id,
             'title' => $data['title'],
             'body' => $data['body'] ?? null,
+            'attachments' => $attachments ?: null,
         ]);
 
         $topic->load('user');
+        $this->readService->markAsRead($request->user(), $topic);
 
         TopicCreated::dispatch($topic);
 
@@ -131,6 +152,15 @@ class DiscussionTopicController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * @param  list<UploadedFile>  $files
+     * @return list<array<string, mixed>>
+     */
+    private function storeAttachments(array $files): array
+    {
+        return DiscussionFileUploader::storeMany($files, 'topics');
     }
 
     /**

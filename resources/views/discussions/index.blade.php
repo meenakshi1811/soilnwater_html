@@ -28,7 +28,7 @@
 
         <div class="discussion-topic-list" id="discussionTopicList" data-can-pin="{{ $canPin ? '1' : '0' }}">
             @forelse($topics as $topic)
-                @include('discussions.partials.topic-card', ['topic' => $topic, 'canPin' => $canPin])
+                @include('discussions.partials.topic-card', ['topic' => $topic, 'canPin' => $canPin, 'unreadCounts' => $unreadCounts])
             @empty
                 <div class="discussion-empty border rounded-3 p-4 text-center text-muted" id="discussionEmptyState">
                     <i class="fa-regular fa-comments fa-2x mb-2"></i>

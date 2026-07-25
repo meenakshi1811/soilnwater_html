@@ -6,6 +6,7 @@
     $topicRepliesTemplate = str_replace('999999999', '__TOPIC__', route('discussions.replies.store', ['topic' => 999999999]));
     $topicPinTemplate = str_replace('999999999', '__TOPIC__', route('discussions.pin', ['topic' => 999999999]));
     $topicReactTemplate = str_replace('999999999', '__TOPIC__', route('discussions.react', ['topic' => 999999999]));
+    $topicReadTemplate = str_replace('999999999', '__TOPIC__', route('discussions.read', ['topic' => 999999999]));
 @endphp
 
 <button type="button"
@@ -15,6 +16,7 @@
         aria-controls="discussionWidget"
         aria-expanded="false"
         title="Discussions">
+    <span class="discussion-fab__badge" id="discussionFabBadge" hidden aria-label="Unread messages">0</span>
     <span class="discussion-fab__icon" aria-hidden="true">
         <i class="fa-solid fa-comments"></i>
     </span>
@@ -92,17 +94,31 @@
                     <span>Opening conversation…</span>
                 </div>
             </div>
-            <form class="discussion-widget__composer" id="discussionWidgetReplyForm">
+            <form class="discussion-widget__composer" id="discussionWidgetReplyForm" enctype="multipart/form-data">
                 <label class="visually-hidden" for="discussionWidgetReplyBody">Write a reply</label>
-                <textarea id="discussionWidgetReplyBody"
-                          name="body"
-                          rows="1"
-                          maxlength="5000"
-                          required
-                          placeholder="Write a reply…"></textarea>
-                <button type="submit" class="discussion-widget__send" aria-label="Send reply">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
+                <div class="discussion-widget__composer-main">
+                    <textarea id="discussionWidgetReplyBody"
+                              name="body"
+                              rows="1"
+                              maxlength="5000"
+                              placeholder="Write a reply…"></textarea>
+                    <div class="discussion-widget__composer-actions">
+                        <label class="discussion-widget__attach-btn" for="discussionWidgetReplyAttachments" title="Attach photo or video">
+                            <i class="fa-solid fa-paperclip"></i>
+                            <span class="visually-hidden">Attach photo or video</span>
+                        </label>
+                        <input type="file"
+                               id="discussionWidgetReplyAttachments"
+                               name="attachments[]"
+                               class="visually-hidden"
+                               accept="image/*,video/mp4,video/webm"
+                               multiple>
+                        <button type="submit" class="discussion-widget__send" aria-label="Send reply">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="discussion-media-preview" id="discussionWidgetReplyPreview" hidden></div>
             </form>
         </section>
 
@@ -133,6 +149,18 @@
                               maxlength="5000"
                               placeholder="Add context so others can join in…"></textarea>
                 </div>
+                <div class="discussion-widget__field">
+                    <label class="discussion-media-btn" for="discussionWidgetTopicAttachments">
+                        <i class="fa-solid fa-paperclip me-1"></i> Add photo or video
+                    </label>
+                    <input type="file"
+                           id="discussionWidgetTopicAttachments"
+                           name="attachments[]"
+                           class="visually-hidden"
+                           accept="image/*,video/mp4,video/webm"
+                           multiple>
+                    <div class="discussion-media-preview" id="discussionWidgetTopicPreview" hidden></div>
+                </div>
                 <button type="submit" class="discussion-widget__primary-btn">
                     <i class="fa-solid fa-paper-plane me-1"></i>
                     Post topic
@@ -161,6 +189,8 @@
             topicRepliesTemplate: @json($topicRepliesTemplate),
             topicPinTemplate: @json($topicPinTemplate),
             topicReactTemplate: @json($topicReactTemplate),
+            topicReadTemplate: @json($topicReadTemplate),
+            unreadSummary: @json(route('discussions.unread-summary')),
             replyReactTemplate: @json($replyReactTemplate),
         },
         currentUserId: @json(auth()->id()),
@@ -168,6 +198,9 @@
         canPin: @json(auth()->user()?->isAdmin() ?? false),
         topicId: null,
         reactionLabels: @json(\App\Support\DiscussionReactions::labels()),
+        reactionIcons: @json(\App\Support\DiscussionReactions::icons()),
+        unreadTopics: {},
+        globalUnread: 0,
     };
 </script>
 <script src="{{ asset('assets/js/discussion.js') }}?v={{ now()->timestamp }}" defer></script>

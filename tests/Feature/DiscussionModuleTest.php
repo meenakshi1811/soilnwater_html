@@ -182,7 +182,50 @@ class DiscussionModuleTest extends TestCase
             ->assertOk()
             ->assertJsonPath('topics.0.id', $topic->id)
             ->assertJsonPath('topics.0.title', 'Widget topic')
-            ->assertJsonStructure(['topics', 'can_pin', 'meta']);
+            ->assertJsonStructure(['topics', 'can_pin', 'global_unread', 'meta']);
+    }
+
+    public function test_unread_summary_and_mark_read(): void
+    {
+        $author = User::factory()->create(['email_verified_at' => now()]);
+        $reader = User::factory()->create(['email_verified_at' => now()]);
+        $topic = DiscussionTopic::factory()->create([
+            'user_id' => $author->id,
+            'title' => 'Unread topic',
+            'body' => 'Hello everyone',
+        ]);
+
+        DiscussionReply::query()->create([
+            'discussion_topic_id' => $topic->id,
+            'user_id' => $author->id,
+            'body' => 'Follow-up message',
+        ]);
+
+        $this->actingAs($reader)
+            ->getJson(route('discussions.unread-summary'))
+            ->assertOk()
+            ->assertJsonPath('global_unread', 2)
+            ->assertJsonPath("topics.{$topic->id}", 2);
+
+        $this->actingAs($reader)
+            ->getJson(route('discussions.show', $topic))
+            ->assertOk();
+
+        $this->actingAs($reader)
+            ->getJson(route('discussions.unread-summary'))
+            ->assertOk()
+            ->assertJsonPath('global_unread', 0)
+            ->assertJsonPath("topics.{$topic->id}", 0);
+    }
+
+    public function test_reply_requires_body_or_attachment(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $topic = DiscussionTopic::factory()->create(['user_id' => $user->id]);
+
+        $this->actingAs($user)
+            ->postJson(route('discussions.replies.store', $topic), [])
+            ->assertUnprocessable();
     }
 
     public function test_verified_user_can_fetch_topic_thread_as_json_for_widget(): void

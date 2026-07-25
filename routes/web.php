@@ -51,6 +51,7 @@ use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantServiceController;
 use App\Http\Controllers\Discussion\DiscussionReactionController;
 use App\Http\Controllers\Discussion\DiscussionReplyController;
+use App\Http\Controllers\Discussion\DiscussionReadController;
 use App\Http\Controllers\Discussion\DiscussionTopicController;
 use App\Http\Controllers\Frontend\AdReportController;
 use App\Http\Controllers\Frontend\AdsMarketController;
@@ -180,8 +181,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::prefix('discussions')->name('discussions.')->group(function () {
         Route::get('/', [DiscussionTopicController::class, 'index'])->name('index');
+        Route::get('/unread-summary', [DiscussionReadController::class, 'summary'])->name('unread-summary');
         Route::post('/', [DiscussionTopicController::class, 'store'])->name('store');
         Route::get('/{topic}', [DiscussionTopicController::class, 'show'])->name('show');
+        Route::post('/{topic}/read', [DiscussionReadController::class, 'markRead'])->name('read');
         Route::post('/{topic}/replies', [DiscussionReplyController::class, 'store'])->name('replies.store');
         Route::post('/{topic}/pin', [DiscussionTopicController::class, 'pin'])->name('pin');
         Route::post('/{topic}/react', [DiscussionReactionController::class, 'reactToTopic'])->name('react');

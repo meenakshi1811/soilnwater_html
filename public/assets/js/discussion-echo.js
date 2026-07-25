@@ -67,9 +67,13 @@
                 return;
             }
 
-            if (activeTopicId() && Number(payload.reply.discussion_topic_id) === Number(activeTopicId())) {
+            const topicId = payload.reply.discussion_topic_id;
+            if (activeTopicId() && Number(topicId) === Number(activeTopicId())) {
                 ui().appendReply?.(payload.reply);
+                return;
             }
+
+            ui().incrementTopicUnread?.(topicId, 1);
         })
         .listen('.reaction.updated', (payload) => {
             const helpers = ui();

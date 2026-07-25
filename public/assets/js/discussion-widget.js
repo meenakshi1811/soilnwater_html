@@ -30,12 +30,14 @@
         composeBackBtn: document.getElementById('discussionWidgetComposeBackBtn'),
     };
 
-    const reactionIcons = {
+    const reactionIcons = config.reactionIcons || {
         Like: 'fa-thumbs-up',
         Love: 'fa-heart',
         Insightful: 'fa-lightbulb',
         Agree: 'fa-check',
     };
+
+    const fabBadge = document.getElementById('discussionFabBadge');
 
     let topicsLoaded = false;
     let currentTopic = null;
@@ -94,6 +96,193 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    function formatUnreadCount(count) {
+        return count > 99 ? '99+' : String(count);
+    }
+
+    function updateFabBadge(count) {
+        config.globalUnread = Math.max(0, count);
+        if (!fabBadge) {
+            return;
+        }
+
+        if (count > 0) {
+            fabBadge.textContent = formatUnreadCount(count);
+            fabBadge.hidden = false;
+            fabBadge.setAttribute('aria-label', `${count} unread messages`);
+        } else {
+            fabBadge.hidden = true;
+            fabBadge.textContent = '0';
+        }
+    }
+
+    function getTopicUnread(topicId) {
+        return config.unreadTopics?.[topicId] || 0;
+    }
+
+    function setTopicUnread(topicId, count) {
+        config.unreadTopics = config.unreadTopics || {};
+        if (count > 0) {
+            config.unreadTopics[topicId] = count;
+        } else {
+            delete config.unreadTopics[topicId];
+        }
+
+        updateTopicCardUnread(topicId, count);
+    }
+
+    function incrementTopicUnread(topicId, amount = 1) {
+        const next = getTopicUnread(topicId) + amount;
+        setTopicUnread(topicId, next);
+        updateFabBadge((config.globalUnread || 0) + amount);
+    }
+
+    function updateTopicCardUnread(topicId, count) {
+        const card = document.getElementById(`discussion-widget-topic-${topicId}`);
+        if (!card) {
+            return;
+        }
+
+        card.classList.toggle('discussion-widget-topic--unread', count > 0);
+
+        let badge = card.querySelector('.discussion-widget-topic__unread');
+        if (count > 0) {
+            if (!badge) {
+                const head = card.querySelector('.discussion-widget-topic__head');
+                if (head) {
+                    head.insertAdjacentHTML('beforeend', `<span class="discussion-widget-topic__unread">${formatUnreadCount(count)}</span>`);
+                }
+            } else {
+                badge.textContent = formatUnreadCount(count);
+            }
+        } else if (badge) {
+            badge.remove();
+        }
+    }
+
+    async function loadUnreadSummary() {
+        if (!config.routes?.unreadSummary) {
+            return;
+        }
+
+        try {
+            const data = await requestJson(config.routes.unreadSummary);
+            config.unreadTopics = data.topics || {};
+            updateFabBadge(data.global_unread || 0);
+        } catch (error) {
+            // ignore badge load failures
+        }
+    }
+
+    function topicReadUrl(topicId) {
+        return (config.routes?.topicReadTemplate || '/discussions/__TOPIC__/read')
+            .replace('__TOPIC__', String(topicId));
+    }
+
+    async function markTopicRead(topicId) {
+        const previous = getTopicUnread(topicId);
+        if (previous > 0) {
+            setTopicUnread(topicId, 0);
+            updateFabBadge(Math.max(0, (config.globalUnread || 0) - previous));
+        }
+
+        try {
+            const data = await requestJson(topicReadUrl(topicId), {
+                method: 'POST',
+                body: JSON.stringify({}),
+            });
+            updateFabBadge(data.global_unread || 0);
+        } catch (error) {
+            // ignore mark-read failures
+        }
+    }
+
+    function buildAttachmentsHtml(attachments) {
+        if (!attachments?.length) {
+            return '';
+        }
+
+        return `<div class="discussion-attachments">${attachments.map((attachment) => {
+            if (attachment.kind === 'video') {
+                return `<video class="discussion-attachments__video" controls preload="metadata" src="${escapeHtml(attachment.url || '')}"></video>`;
+            }
+
+            return `<a class="discussion-attachments__image-link" href="${escapeHtml(attachment.url || '#')}" target="_blank" rel="noopener">
+                <img class="discussion-attachments__image" src="${escapeHtml(attachment.url || '')}" alt="${escapeHtml(attachment.name || 'Attachment')}" loading="lazy">
+            </a>`;
+        }).join('')}</div>`;
+    }
+
+    function bindMediaPreview(input, previewEl) {
+        if (!input || !previewEl) {
+            return;
+        }
+
+        input.addEventListener('change', () => {
+            previewEl.innerHTML = '';
+            previewEl.hidden = true;
+
+            Array.from(input.files || []).forEach((file, index) => {
+                previewEl.hidden = false;
+                const item = document.createElement('div');
+                item.className = 'discussion-media-preview__item';
+
+                if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = URL.createObjectURL(file);
+                    video.muted = true;
+                    item.appendChild(video);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.alt = file.name;
+                    item.appendChild(img);
+                }
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'discussion-media-preview__remove';
+                remove.innerHTML = '&times;';
+                remove.addEventListener('click', () => {
+                    const transfer = new DataTransfer();
+                    Array.from(input.files || []).forEach((existing, existingIndex) => {
+                        if (existingIndex !== index) {
+                            transfer.items.add(existing);
+                        }
+                    });
+                    input.files = transfer.files;
+                    input.dispatchEvent(new Event('change'));
+                });
+                item.appendChild(remove);
+                previewEl.appendChild(item);
+            });
+        });
+    }
+
+    async function requestFormData(url, formData, method = 'POST') {
+        const response = await fetch(url, {
+            method,
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData,
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const message = data.message
+                || (data.errors ? Object.values(data.errors).flat().join(' ') : null)
+                || 'Something went wrong.';
+            throw new Error(message);
+        }
+
+        return data;
     }
 
     function topicUrl(topicId) {
@@ -167,10 +356,20 @@
             ? '<span class="discussion-widget-topic__badge"><i class="fa-solid fa-thumbtack"></i> Pinned</span>'
             : '';
         const replies = topic.replies_count || 0;
+        const unread = topic.unread_count ?? getTopicUnread(topic.id);
+        if (unread > 0) {
+            setTopicUnread(topic.id, unread);
+        }
+        const unreadBadge = unread > 0
+            ? `<span class="discussion-widget-topic__unread">${formatUnreadCount(unread)}</span>`
+            : '';
 
-        return `<button type="button" class="discussion-widget-topic ${topic.is_pinned ? 'discussion-widget-topic--pinned' : ''}" data-topic-id="${topic.id}" id="discussion-widget-topic-${topic.id}">
+        return `<button type="button" class="discussion-widget-topic ${topic.is_pinned ? 'discussion-widget-topic--pinned' : ''} ${unread > 0 ? 'discussion-widget-topic--unread' : ''}" data-topic-id="${topic.id}" id="discussion-widget-topic-${topic.id}">
             ${badge}
-            <h3 class="discussion-widget-topic__title">${escapeHtml(topic.title)}</h3>
+            <div class="discussion-widget-topic__head">
+                <h3 class="discussion-widget-topic__title">${escapeHtml(topic.title)}</h3>
+                ${unreadBadge}
+            </div>
             ${excerpt}
             <div class="discussion-widget-topic__meta">
                 <span><i class="fa-solid fa-user me-1"></i>${escapeHtml(topic.author?.name || 'Member')}</span>
@@ -194,9 +393,10 @@
                             class="discussion-widget-reaction discussion-reaction-btn ${active ? 'is-active' : ''}"
                             data-reaction="${escapeHtml(label)}"
                             data-active="${active ? '1' : '0'}"
-                            aria-pressed="${active ? 'true' : 'false'}">
+                            aria-pressed="${active ? 'true' : 'false'}"
+                            title="${escapeHtml(label)}"
+                            aria-label="${escapeHtml(label)}${count > 0 ? ` (${count})` : ''}">
                         <i class="fa-solid ${reactionIcons[label] || 'fa-face-smile'}"></i>
-                        <span>${escapeHtml(label)}</span>
                         <span class="discussion-reaction-count">${count > 0 ? count : ''}</span>
                     </button>`;
             }).join('')}
@@ -211,6 +411,7 @@
             </div>
             <h3 class="discussion-widget-msg__title">${escapeHtml(topic.title)}</h3>
             ${topic.body ? `<p class="discussion-widget-msg__body">${escapeHtml(topic.body)}</p>` : ''}
+            ${buildAttachmentsHtml(topic.attachments || [])}
             ${buildReactionsHtml('DiscussionTopic', topic.id, topicReactUrl(topic.id), topic.reaction_counts || {}, topic.user_reactions || [])}
         </article>`;
     }
@@ -226,7 +427,8 @@
                 <span class="discussion-widget-msg__author">${escapeHtml(reply.author?.name || 'Member')}</span>
                 <span>${escapeHtml(reply.created_at_human || 'just now')}</span>
             </div>
-            <p class="discussion-widget-msg__body">${escapeHtml(reply.body || '')}</p>
+            ${reply.body ? `<p class="discussion-widget-msg__body">${escapeHtml(reply.body || '')}</p>` : ''}
+            ${buildAttachmentsHtml(reply.attachments || [])}
             ${buildReactionsHtml('DiscussionReply', reply.id, replyReactUrl(reply.id), reply.reaction_counts || {}, reply.user_reactions || [])}
         </article>`;
     }
@@ -304,6 +506,9 @@
         try {
             const data = await requestJson(config.routes.discussionsIndex || '/discussions');
             config.canPin = Boolean(data.can_pin);
+            if (typeof data.global_unread === 'number') {
+                updateFabBadge(data.global_unread);
+            }
             renderTopics(data.topics || []);
             topicsLoaded = true;
         } catch (error) {
@@ -383,6 +588,8 @@
                 els.messages.innerHTML = html;
                 els.messages.scrollTop = els.messages.scrollHeight;
             }
+
+            markTopicRead(topic.id);
         } catch (error) {
             if (requestId !== openRequestId) {
                 return;
@@ -467,7 +674,10 @@
         }
 
         const body = els.replyBody?.value?.trim() || '';
-        if (!body) {
+        const fileInput = document.getElementById('discussionWidgetReplyAttachments');
+        const hasFiles = fileInput?.files?.length > 0;
+
+        if (!body && !hasFiles) {
             return;
         }
 
@@ -477,10 +687,15 @@
         }
 
         try {
-            const data = await requestJson(repliesUrl(currentTopic.id), {
-                method: 'POST',
-                body: JSON.stringify({ body }),
+            const formData = new FormData();
+            if (body) {
+                formData.append('body', body);
+            }
+            Array.from(fileInput?.files || []).forEach((file) => {
+                formData.append('attachments[]', file);
             });
+
+            const data = await requestFormData(repliesUrl(currentTopic.id), formData);
 
             if (data.reply) {
                 appendReplyMessage(data.reply);
@@ -489,6 +704,14 @@
             if (els.replyBody) {
                 els.replyBody.value = '';
                 autoResizeTextarea(els.replyBody);
+            }
+            if (fileInput) {
+                fileInput.value = '';
+            }
+            const preview = document.getElementById('discussionWidgetReplyPreview');
+            if (preview) {
+                preview.innerHTML = '';
+                preview.hidden = true;
             }
 
             notify('success', data.message || 'Reply posted.');
@@ -507,19 +730,34 @@
         const submit = els.newTopicForm.querySelector('[type="submit"]');
         const title = els.newTopicForm.querySelector('[name="title"]')?.value?.trim() || '';
         const body = els.newTopicForm.querySelector('[name="body"]')?.value?.trim() || '';
+        const fileInput = document.getElementById('discussionWidgetTopicAttachments');
 
         if (submit) {
             submit.disabled = true;
         }
 
         try {
-            const data = await requestJson(els.newTopicForm.dataset.url || config.routes.discussionsStore, {
-                method: 'POST',
-                body: JSON.stringify({ title, body }),
+            const formData = new FormData();
+            formData.append('title', title);
+            if (body) {
+                formData.append('body', body);
+            }
+            Array.from(fileInput?.files || []).forEach((file) => {
+                formData.append('attachments[]', file);
             });
+
+            const data = await requestFormData(els.newTopicForm.dataset.url || config.routes.discussionsStore, formData);
 
             notify('success', data.message || 'Topic created.');
             els.newTopicForm.reset();
+            if (fileInput) {
+                fileInput.value = '';
+            }
+            const preview = document.getElementById('discussionWidgetTopicPreview');
+            if (preview) {
+                preview.innerHTML = '';
+                preview.hidden = true;
+            }
             topicsLoaded = false;
 
             if (data.topic?.id) {
@@ -575,6 +813,9 @@
         prependTopic(topic) {
             previousUi.prependTopic?.(topic);
             prependTopicCard(topic);
+            if (topic.author?.id !== config.currentUserId) {
+                incrementTopicUnread(topic.id, 1);
+            }
         },
         appendReply(reply) {
             previousUi.appendReply?.(reply);
@@ -620,7 +861,24 @@
                 `.discussion-reactions[data-reactable-type="${reactableType}"][data-reactable-id="${reactableId}"]`
             ) || previousUi.findReactionContainer?.(reactableType, reactableId);
         },
+        incrementTopicUnread(topicId, amount = 1) {
+            incrementTopicUnread(topicId, amount);
+        },
+        markTopicRead(topicId) {
+            markTopicRead(topicId);
+        },
+        prependTopicWithUnread(topic) {
+            previousUi.prependTopic?.(topic);
+            prependTopicCard(topic);
+            if (topic.author?.id !== config.currentUserId) {
+                incrementTopicUnread(topic.id, 1);
+            }
+        },
     };
+
+    bindMediaPreview(document.getElementById('discussionWidgetReplyAttachments'), document.getElementById('discussionWidgetReplyPreview'));
+    bindMediaPreview(document.getElementById('discussionWidgetTopicAttachments'), document.getElementById('discussionWidgetTopicPreview'));
+    loadUnreadSummary();
 
     window.soilnwaterDiscussionWidget = {
         open() {

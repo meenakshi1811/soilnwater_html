@@ -47,6 +47,30 @@
         return data;
     }
 
+    async function postFormData(url, formData) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData,
+            credentials: 'same-origin',
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const message = data.message || data.errors
+                ? Object.values(data.errors || {}).flat().join(' ')
+                : 'Something went wrong.';
+            throw new Error(message);
+        }
+
+        return data;
+    }
+
     function escapeHtml(value) {
         return String(value)
             .replace(/&/g, '&amp;')
@@ -58,6 +82,72 @@
 
     function nl2br(value) {
         return escapeHtml(value).replace(/\n/g, '<br>');
+    }
+
+    function formatUnreadCount(count) {
+        return count > 99 ? '99+' : String(count);
+    }
+
+    function buildAttachmentsHtml(attachments) {
+        if (!attachments?.length) {
+            return '';
+        }
+
+        return `<div class="discussion-attachments">${attachments.map((attachment) => {
+            if (attachment.kind === 'video') {
+                return `<video class="discussion-attachments__video" controls preload="metadata" src="${escapeHtml(attachment.url || '')}"></video>`;
+            }
+
+            return `<a class="discussion-attachments__image-link" href="${escapeHtml(attachment.url || '#')}" target="_blank" rel="noopener">
+                <img class="discussion-attachments__image" src="${escapeHtml(attachment.url || '')}" alt="${escapeHtml(attachment.name || 'Attachment')}" loading="lazy">
+            </a>`;
+        }).join('')}</div>`;
+    }
+
+    function bindMediaPreview(input, previewEl) {
+        if (!input || !previewEl) {
+            return;
+        }
+
+        input.addEventListener('change', () => {
+            previewEl.innerHTML = '';
+            previewEl.hidden = true;
+
+            Array.from(input.files || []).forEach((file, index) => {
+                previewEl.hidden = false;
+                const item = document.createElement('div');
+                item.className = 'discussion-media-preview__item';
+
+                if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = URL.createObjectURL(file);
+                    video.muted = true;
+                    item.appendChild(video);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.alt = file.name;
+                    item.appendChild(img);
+                }
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'discussion-media-preview__remove';
+                remove.innerHTML = '&times;';
+                remove.addEventListener('click', () => {
+                    const transfer = new DataTransfer();
+                    Array.from(input.files || []).forEach((existing, existingIndex) => {
+                        if (existingIndex !== index) {
+                            transfer.items.add(existing);
+                        }
+                    });
+                    input.files = transfer.files;
+                    input.dispatchEvent(new Event('change'));
+                });
+                item.appendChild(remove);
+                previewEl.appendChild(item);
+            });
+        });
     }
 
     function updateReactionButtons(container, reaction, active, counts) {
@@ -98,7 +188,7 @@
 
     function buildReplyHtml(reply) {
         const reactionLabels = config.reactionLabels || ['Like', 'Love', 'Insightful', 'Agree'];
-        const icons = {
+        const icons = config.reactionIcons || {
             Like: 'fa-thumbs-up',
             Love: 'fa-heart',
             Insightful: 'fa-lightbulb',
@@ -107,12 +197,15 @@
 
         const buttons = reactionLabels.map((label) => {
             const icon = icons[label] || 'fa-face-smile';
-            return `<button type="button" class="btn btn-sm discussion-reaction-btn btn-outline-secondary" data-reaction="${escapeHtml(label)}" data-active="0" aria-pressed="false">
-                <i class="fa-solid ${icon} me-1"></i>
-                <span class="discussion-reaction-label">${escapeHtml(label)}</span>
+            return `<button type="button" class="btn btn-sm discussion-reaction-btn discussion-reaction-icon-btn btn-outline-secondary" data-reaction="${escapeHtml(label)}" data-active="0" aria-pressed="false" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">
+                <i class="fa-solid ${icon}"></i>
                 <span class="discussion-reaction-count"></span>
             </button>`;
         }).join('');
+
+        const bodyHtml = reply.body
+            ? `<p class="mb-2 discussion-reply-body">${nl2br(reply.body || '')}</p>`
+            : '';
 
         return `<div class="discussion-reply border rounded-3 p-3 mb-3" id="discussion-reply-${reply.id}" data-reply-id="${reply.id}" data-reactable-type="DiscussionReply" data-reactable-id="${reply.id}">
             <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-2">
@@ -121,7 +214,8 @@
                     <small class="text-muted d-block discussion-reply-time">${escapeHtml(reply.created_at_human || 'just now')}</small>
                 </div>
             </div>
-            <p class="mb-2 discussion-reply-body">${nl2br(reply.body || '')}</p>
+            ${bodyHtml}
+            ${buildAttachmentsHtml(reply.attachments || [])}
             <div class="discussion-reactions d-flex flex-wrap gap-2" data-reactable-type="DiscussionReply" data-reactable-id="${reply.id}" data-react-url="${escapeHtml(replyReactUrl(reply.id))}">
                 ${buttons}
             </div>
@@ -136,13 +230,18 @@
             ? `<p class="text-muted small mb-2 discussion-topic-excerpt">${escapeHtml(topic.body).slice(0, 140)}</p>`
             : '';
         const replyLabel = topic.replies_count === 1 ? 'reply' : 'replies';
+        const unread = topic.unread_count || 0;
+        const unreadBadge = unread > 0
+            ? `<span class="discussion-topic-unread-badge">${formatUnreadCount(unread)}</span>`
+            : '';
 
-        return `<div class="discussion-topic-card border rounded-3 p-3 mb-3 ${topic.is_pinned ? 'discussion-topic-card--pinned' : ''}" data-topic-id="${topic.id}" id="discussion-topic-${topic.id}">
+        return `<div class="discussion-topic-card border rounded-3 p-3 mb-3 ${topic.is_pinned ? 'discussion-topic-card--pinned' : ''} ${unread > 0 ? 'discussion-topic-card--unread' : ''}" data-topic-id="${topic.id}" id="discussion-topic-${topic.id}">
             <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
                 <div class="flex-grow-1">
                     ${pinnedBadge}
-                    <h3 class="h6 mb-1">
+                    <h3 class="h6 mb-1 d-flex align-items-center gap-2">
                         <a href="${escapeHtml(topic.url)}" class="text-decoration-none discussion-topic-link">${escapeHtml(topic.title)}</a>
+                        ${unreadBadge}
                     </h3>
                     ${excerpt}
                     <div class="d-flex flex-wrap gap-3 small text-muted">
@@ -329,19 +428,36 @@
             return;
         }
 
+        bindMediaPreview(document.getElementById('replyAttachments'), document.getElementById('replyAttachmentsPreview'));
+
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             const submit = form.querySelector('[type="submit"]');
             const textarea = form.querySelector('[name="body"]');
+            const fileInput = document.getElementById('replyAttachments');
+            const body = textarea?.value?.trim() || '';
+            const hasFiles = fileInput?.files?.length > 0;
+
+            if (!body && !hasFiles) {
+                notify('error', 'Please enter a message or attach a file.');
+                return;
+            }
+
             if (submit) {
                 submit.disabled = true;
             }
 
             try {
-                const data = await postJson(form.dataset.url, {
-                    body: textarea?.value || '',
+                const formData = new FormData();
+                if (body) {
+                    formData.append('body', body);
+                }
+                Array.from(fileInput?.files || []).forEach((file) => {
+                    formData.append('attachments[]', file);
                 });
+
+                const data = await postFormData(form.dataset.url, formData);
 
                 if (data.reply) {
                     appendReply(data.reply);
@@ -349,6 +465,14 @@
 
                 if (textarea) {
                     textarea.value = '';
+                }
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+                const preview = document.getElementById('replyAttachmentsPreview');
+                if (preview) {
+                    preview.innerHTML = '';
+                    preview.hidden = true;
                 }
 
                 notify('success', data.message);

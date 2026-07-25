@@ -18,6 +18,7 @@ class DiscussionTopic extends Model
         'user_id',
         'title',
         'body',
+        'attachments',
         'is_pinned',
         'pinned_by',
         'pinned_at',
@@ -27,6 +28,7 @@ class DiscussionTopic extends Model
     protected function casts(): array
     {
         return [
+            'attachments' => 'array',
             'is_pinned' => 'boolean',
             'pinned_at' => 'datetime',
             'replies_count' => 'integer',
@@ -81,6 +83,7 @@ class DiscussionTopic extends Model
             'id' => $this->id,
             'title' => $this->title,
             'body' => $this->body,
+            'attachments' => $this->attachments ?? [],
             'is_pinned' => $this->is_pinned,
             'replies_count' => $this->replies_count,
             'created_at' => $this->created_at?->toIso8601String(),

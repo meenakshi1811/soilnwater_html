@@ -43,6 +43,8 @@
                 <p class="mb-3 discussion-body">{!! nl2br(e($topic->body)) !!}</p>
             @endif
 
+            @include('discussions.partials.attachments', ['attachments' => $topic->attachments ?? []])
+
             @include('discussions.partials.reactions', [
                 'reactableType' => 'DiscussionTopic',
                 'reactableId' => $topic->id,
@@ -55,10 +57,17 @@
         <section class="discussion-replies-section">
             <h2 class="h5 mb-3">Replies <span class="badge bg-secondary" id="discussionReplyCount">{{ $topic->replies_count }}</span></h2>
 
-            <form class="discussion-reply-form mb-4" id="discussionReplyForm" data-url="{{ route('discussions.replies.store', $topic) }}">
+            <form class="discussion-reply-form mb-4" id="discussionReplyForm" data-url="{{ route('discussions.replies.store', $topic) }}" enctype="multipart/form-data">
                 @csrf
                 <label class="form-label" for="replyBody">Add a reply</label>
-                <textarea name="body" id="replyBody" class="form-control" rows="3" maxlength="5000" required placeholder="Share your thoughts..."></textarea>
+                <textarea name="body" id="replyBody" class="form-control" rows="3" maxlength="5000" placeholder="Share your thoughts..."></textarea>
+                <div class="discussion-composer-media mt-2">
+                    <label class="btn btn-sm btn-outline-secondary discussion-media-btn mb-0" for="replyAttachments">
+                        <i class="fa-solid fa-paperclip me-1"></i> Photo / video
+                    </label>
+                    <input type="file" id="replyAttachments" name="attachments[]" class="visually-hidden" accept="image/*,video/mp4,video/webm" multiple>
+                    <div class="discussion-media-preview" id="replyAttachmentsPreview" hidden></div>
+                </div>
                 <button type="submit" class="btn btn-success mt-2">
                     <i class="fa-solid fa-paper-plane me-1"></i> Post reply
                 </button>

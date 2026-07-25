@@ -14,7 +14,15 @@ class DiscussionReply extends Model
         'user_id',
         'parent_id',
         'body',
+        'attachments',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'attachments' => 'array',
+        ];
+    }
 
     public function topic(): BelongsTo
     {
@@ -69,6 +77,7 @@ class DiscussionReply extends Model
             'id' => $this->id,
             'discussion_topic_id' => $this->discussion_topic_id,
             'body' => $this->body,
+            'attachments' => $this->attachments ?? [],
             'parent_id' => $this->parent_id,
             'created_at' => $this->created_at?->toIso8601String(),
             'created_at_human' => $this->created_at?->diffForHumans(),

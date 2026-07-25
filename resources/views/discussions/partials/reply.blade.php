@@ -9,7 +9,11 @@
             <small class="text-muted d-block discussion-reply-time">{{ $reply->created_at->diffForHumans() }}</small>
         </div>
     </div>
-    <p class="mb-2 discussion-reply-body">{!! nl2br(e($reply->body)) !!}</p>
+    @if($reply->body)
+        <p class="mb-2 discussion-reply-body">{!! nl2br(e($reply->body)) !!}</p>
+    @endif
+
+    @include('discussions.partials.attachments', ['attachments' => $reply->attachments ?? []])
 
     @include('discussions.partials.reactions', [
         'reactableType' => 'DiscussionReply',
