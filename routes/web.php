@@ -181,6 +181,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::prefix('discussions')->name('discussions.')->group(function () {
         Route::get('/', [DiscussionTopicController::class, 'index'])->name('index');
+        Route::get('/messenger/{topic?}', [DiscussionTopicController::class, 'messenger'])->name('messenger');
         Route::get('/unread-summary', [DiscussionReadController::class, 'summary'])->name('unread-summary');
         Route::post('/', [DiscussionTopicController::class, 'store'])->name('store');
         Route::get('/{topic}', [DiscussionTopicController::class, 'show'])->name('show');

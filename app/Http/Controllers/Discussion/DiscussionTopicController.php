@@ -56,6 +56,14 @@ class DiscussionTopicController extends Controller
         ]);
     }
 
+    public function messenger(Request $request, ?DiscussionTopic $topic = null): View
+    {
+        return view('discussions.messenger', [
+            'initialTopicId' => $topic?->id,
+            'canPin' => $request->user()->isAdmin(),
+        ]);
+    }
+
     public function show(Request $request, DiscussionTopic $topic): View|JsonResponse
     {
         $topic->load([

@@ -4,8 +4,13 @@
 
     const fab = document.getElementById('discussionFab');
     const widget = document.getElementById('discussionWidget');
+    const isPageMode = Boolean(config.pageMode);
 
-    if (!fab || !widget) {
+    if (!widget) {
+        return;
+    }
+
+    if (!isPageMode && !fab) {
         return;
     }
 
@@ -28,7 +33,18 @@
         closeBtn: document.getElementById('discussionWidgetCloseBtn'),
         backBtn: document.getElementById('discussionWidgetBackBtn'),
         headerAvatar: document.getElementById('discussionWidgetHeaderAvatar'),
+        sizeBtn: document.getElementById('discussionWidgetSizeBtn'),
+        fullPageBtn: document.getElementById('discussionWidgetFullPageBtn'),
     };
+
+    const WIDGET_SIZE_ORDER = ['default', 'md', 'lg', 'xl'];
+    const WIDGET_SIZE_LABELS = {
+        default: 'Increase popup size',
+        md: 'Increase popup size',
+        lg: 'Increase popup size',
+        xl: 'Reset popup size',
+    };
+    const WIDGET_SIZE_STORAGE_KEY = 'soilnwaterDiscussionWidgetSize';
 
     const reactionIcons = config.reactionIcons || {
         Like: 'fa-thumbs-up',
@@ -326,6 +342,28 @@
     }
 
     function showPanel(name) {
+        if (isPageMode) {
+            panels.topics?.classList.add('is-active');
+            if (panels.topics) {
+                panels.topics.hidden = false;
+            }
+
+            const showThread = name === 'thread';
+            const showCompose = name === 'compose';
+
+            if (panels.thread) {
+                panels.thread.classList.toggle('is-active', showThread);
+                panels.thread.hidden = !showThread;
+            }
+            if (panels.compose) {
+                panels.compose.classList.toggle('is-active', showCompose);
+                panels.compose.hidden = !showCompose;
+            }
+
+            updateHeaderForPanel(name);
+            return;
+        }
+
         Object.entries(panels).forEach(([key, panel]) => {
             if (!panel) {
                 return;
@@ -345,13 +383,22 @@
         const isCompose = name === 'compose';
 
         if (els.backBtn) {
-            els.backBtn.hidden = isTopics;
+            els.backBtn.hidden = isPageMode ? isCompose : isTopics;
         }
         if (els.newTopicBtn) {
-            els.newTopicBtn.hidden = !isTopics;
+            els.newTopicBtn.hidden = isPageMode ? isCompose : !isTopics;
         }
         if (els.pinBtn) {
             els.pinBtn.hidden = !isThread || !config.canPin;
+        }
+        if (els.closeBtn) {
+            els.closeBtn.hidden = isPageMode;
+        }
+        if (els.sizeBtn) {
+            els.sizeBtn.hidden = isPageMode;
+        }
+        if (els.fullPageBtn) {
+            els.fullPageBtn.hidden = isPageMode;
         }
         if (els.headerAvatar && isTopics) {
             els.headerAvatar.innerHTML = '<i class="fa-solid fa-comments"></i>';
@@ -384,6 +431,13 @@
     }
 
     function setOpen(open) {
+        if (isPageMode) {
+            widget.classList.add('is-open');
+            widget.hidden = false;
+            document.body.classList.add('discussion-widget-open');
+            return;
+        }
+
         fab.classList.toggle('is-open', open);
         fab.setAttribute('aria-expanded', open ? 'true' : 'false');
         widget.classList.toggle('is-open', open);
@@ -402,7 +456,89 @@
     }
 
     function isOpen() {
-        return widget.classList.contains('is-open');
+        return isPageMode || widget.classList.contains('is-open');
+    }
+
+    function messengerUrl(topicId = null) {
+        const base = config.routes?.messenger || '/discussions/messenger';
+        if (!topicId) {
+            return base;
+        }
+
+        return `${base.replace(/\/$/, '')}/${topicId}`;
+    }
+
+    function updateFullPageLink(topicId = null) {
+        if (!els.fullPageBtn || isPageMode) {
+            return;
+        }
+
+        els.fullPageBtn.href = messengerUrl(topicId || currentTopic?.id || null);
+    }
+
+    function updateMessengerUrl(topicId = null) {
+        if (!isPageMode || !window.history?.replaceState) {
+            return;
+        }
+
+        window.history.replaceState({}, '', messengerUrl(topicId));
+    }
+
+    function showEmptyThreadPlaceholder() {
+        if (!els.messages) {
+            return;
+        }
+
+        els.messages.innerHTML = `<div class="discussion-widget__empty" id="discussionWidgetEmptyThread">
+            <div class="discussion-widget__empty-icon"><i class="fa-regular fa-comments"></i></div>
+            <h4>Select a chat</h4>
+            <p>Choose a conversation from the list or start a new one.</p>
+        </div>`;
+
+        setHeaderTitle('Chats', 'Select a conversation');
+        resetHeaderAvatar();
+    }
+
+    function getWidgetSize() {
+        return config.widgetSize || 'default';
+    }
+
+    function applyWidgetSize(size = getWidgetSize()) {
+        const nextSize = WIDGET_SIZE_ORDER.includes(size) ? size : 'default';
+        config.widgetSize = nextSize;
+
+        WIDGET_SIZE_ORDER.forEach((option) => {
+            widget.classList.toggle(`discussion-widget--size-${option}`, option === nextSize && option !== 'default');
+        });
+
+        if (els.sizeBtn) {
+            els.sizeBtn.title = WIDGET_SIZE_LABELS[nextSize] || 'Change popup size';
+            els.sizeBtn.setAttribute('aria-label', els.sizeBtn.title);
+        }
+
+        try {
+            localStorage.setItem(WIDGET_SIZE_STORAGE_KEY, nextSize);
+        } catch (error) {
+            // ignore storage failures
+        }
+    }
+
+    function cycleWidgetSize() {
+        const currentIndex = WIDGET_SIZE_ORDER.indexOf(getWidgetSize());
+        const nextIndex = (currentIndex + 1) % WIDGET_SIZE_ORDER.length;
+        applyWidgetSize(WIDGET_SIZE_ORDER[nextIndex]);
+    }
+
+    function restoreWidgetSize() {
+        let saved = 'default';
+
+        try {
+            saved = localStorage.getItem(WIDGET_SIZE_STORAGE_KEY) || 'default';
+        } catch (error) {
+            saved = 'default';
+        }
+
+        applyWidgetSize(saved);
     }
 
     function buildTopicCard(topic) {
@@ -681,6 +817,8 @@
             }
 
             markTopicRead(topic.id);
+            updateFullPageLink(topic.id);
+            updateMessengerUrl(topic.id);
         } catch (error) {
             if (requestId !== openRequestId) {
                 return;
@@ -702,11 +840,21 @@
             search.value = '';
         }
 
+        if (isPageMode) {
+            showPanel('thread');
+            showEmptyThreadPlaceholder();
+            loadTopics();
+            updateMessengerUrl(null);
+            updateFullPageLink(null);
+            return;
+        }
+
         setHeaderTitle('Chats', `${config.globalUnread || 0} unread`);
         resetHeaderAvatar();
 
         showPanel('topics');
         loadTopics();
+        updateFullPageLink(null);
     }
 
     function showCompose() {
@@ -734,11 +882,12 @@
         textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
     }
 
-    fab.addEventListener('click', () => {
+    fab?.addEventListener('click', () => {
         toggleOpen();
     });
 
     els.closeBtn?.addEventListener('click', () => setOpen(false));
+    els.sizeBtn?.addEventListener('click', cycleWidgetSize);
     els.backBtn?.addEventListener('click', () => {
         if (panels.compose?.classList.contains('is-active')) {
             showTopics();
@@ -894,7 +1043,7 @@
     });
 
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && isOpen()) {
+        if (event.key === 'Escape' && isOpen() && !isPageMode) {
             setOpen(false);
         }
     });
@@ -1003,6 +1152,22 @@
     bindMediaPreview(document.getElementById('discussionWidgetReplyAttachments'), document.getElementById('discussionWidgetReplyPreview'));
     bindMediaPreview(document.getElementById('discussionWidgetTopicAttachments'), document.getElementById('discussionWidgetTopicPreview'));
     loadUnreadSummary();
+    restoreWidgetSize();
+    updateFullPageLink(null);
+
+    function initPageMode() {
+        if (!isPageMode) {
+            return;
+        }
+
+        document.body.classList.add('discussion-messenger-page');
+        setOpen(true);
+        showTopics();
+
+        if (config.initialTopicId) {
+            openTopic(config.initialTopicId);
+        }
+    }
 
     window.soilnwaterDiscussionWidget = {
         open() {
@@ -1012,7 +1177,9 @@
             }
         },
         close() {
-            setOpen(false);
+            if (!isPageMode) {
+                setOpen(false);
+            }
         },
         openTopic(topicId) {
             if (!isOpen()) {
@@ -1026,5 +1193,10 @@
             }
             showCompose();
         },
+        initPageMode,
     };
+
+    if (isPageMode) {
+        initPageMode();
+    }
 })();

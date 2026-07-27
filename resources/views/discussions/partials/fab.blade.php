@@ -1,6 +1,8 @@
 @auth
 @php
     $broadcastEnabled = config('broadcasting.default') !== 'log' && config('broadcasting.default') !== 'null';
+    $discussionPageMode = request()->routeIs('discussions.messenger');
+    $discussionInitialTopicId = $discussionPageMode ? request()->route('topic')?->id : null;
     $replyReactTemplate = str_replace('999999999', '__REPLY__', route('discussions.replies.react', ['reply' => 999999999]));
     $topicShowTemplate = str_replace('999999999', '__TOPIC__', route('discussions.show', ['topic' => 999999999]));
     $topicRepliesTemplate = str_replace('999999999', '__TOPIC__', route('discussions.replies.store', ['topic' => 999999999]));
@@ -49,6 +51,20 @@
             </div>
         </div>
         <div class="discussion-widget__header-actions">
+            <a href="{{ route('discussions.messenger') }}"
+               class="discussion-widget__icon-btn discussion-widget__icon-btn--link"
+               id="discussionWidgetFullPageBtn"
+               title="Open full page"
+               aria-label="Open full page">
+                <i class="fa-solid fa-up-right-from-square"></i>
+            </a>
+            <button type="button"
+                    class="discussion-widget__icon-btn"
+                    id="discussionWidgetSizeBtn"
+                    title="Increase popup size"
+                    aria-label="Increase popup size">
+                <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+            </button>
             <button type="button"
                     class="discussion-widget__icon-btn"
                     id="discussionWidgetNewTopicBtn"
@@ -189,6 +205,7 @@
         routes: {
             discussionsIndex: @json(route('discussions.index')),
             discussionsStore: @json(route('discussions.store')),
+            messenger: @json(route('discussions.messenger')),
             topicShowTemplate: @json($topicShowTemplate),
             topicRepliesTemplate: @json($topicRepliesTemplate),
             topicPinTemplate: @json($topicPinTemplate),
@@ -205,6 +222,9 @@
         reactionIcons: @json(\App\Support\DiscussionReactions::icons()),
         unreadTopics: {},
         globalUnread: 0,
+        pageMode: @json($discussionPageMode),
+        initialTopicId: @json($discussionInitialTopicId),
+        widgetSize: 'default',
     };
 </script>
 <script src="{{ asset('assets/js/discussion.js') }}?v={{ now()->timestamp }}" defer></script>

@@ -224,6 +224,123 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
+.discussion-widget__icon-btn--link {
+    text-decoration: none;
+    color: #fff;
+}
+
+.discussion-widget__icon-btn--link:hover {
+    color: #fff;
+}
+
+.discussion-widget--size-md {
+    width: min(480px, calc(100vw - 16px));
+    height: min(780px, calc(100dvh - 100px));
+}
+
+.discussion-widget--size-lg {
+    width: min(560px, calc(100vw - 16px));
+    height: min(860px, calc(100dvh - 80px));
+}
+
+.discussion-widget--size-xl {
+    width: min(680px, calc(100vw - 16px));
+    height: min(920px, calc(100dvh - 72px));
+}
+
+.discussion-messenger-page__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--wa-panel);
+    border-bottom: 1px solid var(--wa-border);
+}
+
+.discussion-messenger-page__hint {
+    font-size: 0.8125rem;
+    color: var(--wa-text-secondary);
+}
+
+body.discussion-messenger-page .discussion-fab {
+    display: none !important;
+}
+
+body.discussion-messenger-page .discussion-widget {
+    position: fixed;
+    top: 49px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    box-shadow: none;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    z-index: 1040;
+}
+
+body.discussion-messenger-page .discussion-widget[hidden] {
+    display: flex !important;
+}
+
+body.discussion-messenger-page .discussion-widget__body {
+    display: flex;
+    flex-direction: row;
+}
+
+body.discussion-messenger-page #discussionWidgetTopics {
+    position: relative;
+    flex: 0 0 min(360px, 38vw);
+    opacity: 1 !important;
+    visibility: visible !important;
+    inset: auto;
+    width: auto;
+    height: auto;
+    border-right: 1px solid var(--wa-border);
+}
+
+body.discussion-messenger-page #discussionWidgetThread,
+body.discussion-messenger-page #discussionWidgetCompose {
+    flex: 1;
+    position: relative;
+    inset: auto;
+    width: auto;
+    height: auto;
+}
+
+body.discussion-messenger-page .discussion-widget__panel {
+    position: relative;
+}
+
+body.discussion-widget-open.discussion-messenger-page {
+    overflow: hidden;
+}
+
+@media (max-width: 767.98px) {
+    body.discussion-messenger-page .discussion-widget__body {
+        flex-direction: column;
+    }
+
+    body.discussion-messenger-page #discussionWidgetTopics {
+        flex: 0 0 auto;
+        max-height: 42dvh;
+        border-right: 0;
+        border-bottom: 1px solid var(--wa-border);
+    }
+
+    body.discussion-messenger-page #discussionWidgetThread,
+    body.discussion-messenger-page #discussionWidgetCompose {
+        flex: 1;
+        min-height: 0;
+    }
+}
+
 .discussion-widget__icon-btn.is-pinned {
     color: #ffe082;
 }
@@ -1129,6 +1246,17 @@
 
 .discussion-back-link:hover { color: #fff; }
 
+.discussion-hero__link {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.discussion-hero__link:hover {
+    color: #fff;
+    opacity: 0.9;
+}
+
 .discussion-inner { max-width: 800px; }
 
 .discussion-page-header {
@@ -1151,6 +1279,13 @@
     margin: 0;
     font-size: 0.85rem;
     color: var(--wa-text-secondary);
+}
+
+.discussion-page-header__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
 }
 
 .discussion-btn {

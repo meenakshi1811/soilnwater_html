@@ -17,6 +17,16 @@ class DiscussionModuleTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_authenticated_user_can_open_messenger_page(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('discussions.messenger'))
+            ->assertOk()
+            ->assertSee('Full-screen messenger');
+    }
+
     public function test_guest_cannot_access_discussions(): void
     {
         $this->get(route('discussions.index'))->assertRedirect(route('login'));

@@ -22,10 +22,16 @@
                 @endif
                 <span id="discussionTopicTitle">{{ $topic->title }}</span>
             </h1>
-            <p class="mb-0 mt-2">
+            <p class="mb-0 mt-2 d-flex flex-wrap gap-2">
+                <a href="{{ route('discussions.messenger', $topic) }}" class="discussion-btn discussion-btn--outline discussion-btn--sm">
+                    <i class="fa-solid fa-up-right-from-square"></i> Open full page
+                </a>
                 <button type="button" class="discussion-btn discussion-btn--outline discussion-btn--sm" id="discussionPageOpenTopicWidget">
-                    <i class="fa-solid fa-message"></i> Open in chat
+                    <i class="fa-solid fa-message"></i> Open popup
                 </button>
+                <a href="{{ route('discussions.show', $topic) }}" class="discussion-btn discussion-btn--outline discussion-btn--sm">
+                    <i class="fa-solid fa-list"></i> Thread view
+                </a>
             </p>
         </div>
     </section>

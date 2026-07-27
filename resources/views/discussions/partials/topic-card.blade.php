@@ -17,7 +17,7 @@
             <span class="discussion-pin-badge"><i class="fa-solid fa-thumbtack"></i> Pinned</span>
         @endif
         <div class="discussion-topic-card__top">
-            <a href="{{ route('discussions.show', $topic) }}" class="discussion-topic-link">
+            <a href="{{ route('discussions.messenger', $topic) }}" class="discussion-topic-link">
                 {{ $topic->title }}
             </a>
             <span class="discussion-widget-topic__time">{{ $topic->created_at->diffForHumans(null, true) }}</span>
@@ -34,6 +34,9 @@
         @if($unreadCount > 0)
             <span class="discussion-topic-unread-badge">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
         @endif
-        <a href="{{ route('discussions.show', $topic) }}" class="discussion-btn discussion-btn--outline discussion-btn--sm">Open</a>
+        <div class="d-flex flex-wrap gap-2 justify-content-end">
+            <a href="{{ route('discussions.messenger', $topic) }}" class="discussion-btn discussion-btn--outline discussion-btn--sm">Open</a>
+            <button type="button" class="discussion-btn discussion-btn--outline discussion-btn--sm" data-open-popup="1">Popup</button>
+        </div>
     </div>
 </article>
