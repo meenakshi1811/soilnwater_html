@@ -14,6 +14,7 @@
             <span class="discussion-messenger-page__hint">Full-screen messenger</span>
         </div>
     </div>
+    <div class="discussion-messenger-page__mount" id="discussionMessengerMount" aria-hidden="true"></div>
 </div>
 @endsection
 

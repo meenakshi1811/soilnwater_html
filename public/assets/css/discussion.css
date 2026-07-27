@@ -267,14 +267,37 @@ body.discussion-messenger-page .discussion-fab {
     display: none !important;
 }
 
+body.discussion-messenger-page .footer {
+    display: none;
+}
+
+body.discussion-messenger-page .discussion-messenger-page {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: calc(100dvh - var(--discussion-site-header-height, 110px));
+    background: var(--wa-list-bg);
+}
+
+body.discussion-messenger-page .discussion-messenger-page__mount {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 body.discussion-messenger-page .discussion-widget {
-    position: fixed;
-    top: 49px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: auto;
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
     height: auto;
+    min-height: 0;
     max-width: none;
     max-height: none;
     border-radius: 0;
@@ -282,7 +305,12 @@ body.discussion-messenger-page .discussion-widget {
     opacity: 1;
     transform: none;
     pointer-events: auto;
-    z-index: 1040;
+    z-index: 1;
+    overflow: hidden;
+}
+
+body.discussion-messenger-page .discussion-widget.is-open {
+    transform: none;
 }
 
 body.discussion-messenger-page .discussion-widget[hidden] {
@@ -292,6 +320,12 @@ body.discussion-messenger-page .discussion-widget[hidden] {
 body.discussion-messenger-page .discussion-widget__body {
     display: flex;
     flex-direction: row;
+    flex: 1;
+    min-height: 0;
+}
+
+body.discussion-messenger-page .discussion-widget__header {
+    flex-shrink: 0;
 }
 
 body.discussion-messenger-page #discussionWidgetTopics {
@@ -302,6 +336,7 @@ body.discussion-messenger-page #discussionWidgetTopics {
     inset: auto;
     width: auto;
     height: auto;
+    min-height: 0;
     border-right: 1px solid var(--wa-border);
 }
 
@@ -312,10 +347,23 @@ body.discussion-messenger-page #discussionWidgetCompose {
     inset: auto;
     width: auto;
     height: auto;
+    min-height: 0;
 }
 
 body.discussion-messenger-page .discussion-widget__panel {
     position: relative;
+    inset: auto;
+    min-height: 0;
+    opacity: 1;
+    visibility: visible;
+}
+
+body.discussion-messenger-page .discussion-widget__panel[hidden] {
+    display: none !important;
+}
+
+body.discussion-messenger-page .discussion-widget__scroll {
+    min-height: 0;
 }
 
 body.discussion-widget-open.discussion-messenger-page {
