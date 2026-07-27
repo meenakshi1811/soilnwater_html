@@ -657,18 +657,24 @@
 }
 
 .discussion-msg__actions {
+    position: absolute;
+    top: 4px;
+    right: -26px;
     display: flex;
-    justify-content: flex-end;
-    width: 100%;
-    min-height: 20px;
-    margin-top: 1px;
-    padding: 0 2px;
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.15s ease;
+    z-index: 3;
 }
 
 .discussion-msg--mine .discussion-msg__actions,
 .discussion-widget-msg--mine .discussion-msg__actions {
+    right: auto;
+    left: -26px;
     justify-content: flex-start;
 }
 
@@ -678,14 +684,17 @@
 .discussion-msg__bubble-wrap:focus-within .discussion-msg__actions,
 .discussion-msg__actions:has(.discussion-msg__menu-btn[aria-expanded="true"]) {
     opacity: 1;
+    pointer-events: auto;
 }
 
 .discussion-msg__reaction-summary {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 2px;
-    padding: 0 4px;
+    gap: 3px;
+    margin-top: -2px;
+    padding: 0 4px 1px;
+    position: relative;
+    z-index: 2;
 }
 
 .discussion-msg--mine .discussion-msg__reaction-summary,
@@ -744,6 +753,7 @@
 @media (hover: none) {
     .discussion-msg__actions {
         opacity: 1;
+        pointer-events: auto;
     }
 }
 
