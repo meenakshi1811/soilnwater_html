@@ -151,8 +151,8 @@
     }
 
     function updateReactionSummary(container, counts) {
-        const footer = container?.closest('.discussion-msg__footer');
-        const summaryEl = footer?.querySelector('.discussion-msg__reaction-summary');
+        const wrap = container?.closest('.discussion-msg__bubble-wrap');
+        const summaryEl = wrap?.querySelector('.discussion-msg__reaction-summary');
         if (!summaryEl) {
             return;
         }
@@ -204,9 +204,46 @@
         updateReactionSummary(container, counts);
     }
 
+    function resetMessageMenuPanel(panel) {
+        if (!panel) {
+            return;
+        }
+
+        panel.classList.remove('is-floating');
+        panel.style.top = '';
+        panel.style.left = '';
+        panel.hidden = true;
+    }
+
+    function positionMessageMenuPanel(menuBtn, panel) {
+        const isMine = Boolean(menuBtn.closest('.discussion-msg--mine, .discussion-widget-msg--mine'));
+        const padding = 8;
+        const gap = 4;
+
+        panel.classList.add('is-floating');
+        panel.hidden = false;
+
+        const btnRect = menuBtn.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+
+        let left = isMine ? btnRect.right - panelRect.width : btnRect.left;
+        let top = btnRect.bottom + gap;
+
+        left = Math.max(padding, Math.min(left, window.innerWidth - panelRect.width - padding));
+
+        if (top + panelRect.height > window.innerHeight - padding) {
+            top = btnRect.top - panelRect.height - gap;
+        }
+
+        top = Math.max(padding, top);
+
+        panel.style.left = `${Math.round(left)}px`;
+        panel.style.top = `${Math.round(top)}px`;
+    }
+
     function closeAllMessageMenus() {
         document.querySelectorAll('.discussion-msg__menu-panel').forEach((panel) => {
-            panel.hidden = true;
+            resetMessageMenuPanel(panel);
         });
         document.querySelectorAll('.discussion-msg__menu-btn').forEach((btn) => {
             btn.setAttribute('aria-expanded', 'false');
@@ -276,8 +313,7 @@
                 </button>`;
         }).join('');
 
-        return `<div class="discussion-msg__footer">
-            <div class="discussion-msg__reaction-summary${summary ? '' : ' is-empty'}">${summary}</div>
+        return `<div class="discussion-msg__actions">
             <div class="discussion-msg__menu">
                 <button type="button" class="discussion-msg__menu-btn" aria-label="Message actions" aria-expanded="false">
                     <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -292,7 +328,8 @@
                     </div>
                 </div>
             </div>
-        </div>`;
+        </div>
+        <div class="discussion-msg__reaction-summary${summary ? '' : ' is-empty'}">${summary}</div>`;
     }
 
     function buildReplyHtml(reply) {
@@ -474,6 +511,7 @@
                 closeAllMessageMenus();
                 if (willOpen && panel) {
                     panel.hidden = false;
+                    positionMessageMenuPanel(menuBtn, panel);
                     menuBtn.setAttribute('aria-expanded', 'true');
                 }
                 return;
@@ -639,6 +677,10 @@
     document.addEventListener('DOMContentLoaded', () => {
         bindReactionDelegation(document);
         bindMessageMenuDelegation(document);
+        document.querySelectorAll('.discussion-widget__scroll').forEach((el) => {
+            el.addEventListener('scroll', closeAllMessageMenus, { passive: true });
+        });
+        window.addEventListener('resize', closeAllMessageMenus);
         initNewTopicForm();
         initReplyForm();
         initPinButton();

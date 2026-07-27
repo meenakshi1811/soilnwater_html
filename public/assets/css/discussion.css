@@ -651,25 +651,46 @@
     max-width: 100%;
 }
 
-.discussion-msg--mine .discussion-msg__bubble-wrap {
+.discussion-msg--mine .discussion-msg__bubble-wrap,
+.discussion-widget-msg--mine .discussion-msg__bubble-wrap {
     align-items: flex-end;
 }
 
-.discussion-msg__footer {
+.discussion-msg__actions {
     display: flex;
-    align-items: center;
     justify-content: flex-end;
-    gap: 6px;
     width: 100%;
-    margin-top: 2px;
-    min-height: 18px;
+    min-height: 20px;
+    margin-top: 1px;
+    padding: 0 2px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.discussion-msg--mine .discussion-msg__actions,
+.discussion-widget-msg--mine .discussion-msg__actions {
+    justify-content: flex-start;
+}
+
+.discussion-msg:hover .discussion-msg__actions,
+.discussion-reply:hover .discussion-msg__actions,
+.discussion-thread-card:hover .discussion-msg__actions,
+.discussion-msg__bubble-wrap:focus-within .discussion-msg__actions,
+.discussion-msg__actions:has(.discussion-msg__menu-btn[aria-expanded="true"]) {
+    opacity: 1;
 }
 
 .discussion-msg__reaction-summary {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    flex: 1;
+    margin-top: 2px;
+    padding: 0 4px;
+}
+
+.discussion-msg--mine .discussion-msg__reaction-summary,
+.discussion-widget-msg--mine .discussion-msg__reaction-summary {
+    justify-content: flex-end;
 }
 
 .discussion-msg__reaction-summary.is-empty {
@@ -699,41 +720,36 @@
 }
 
 .discussion-msg__menu-btn {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border: 0;
     border-radius: 50%;
-    background: rgba(17, 27, 33, 0.06);
+    background: rgba(255, 255, 255, 0.92);
     color: var(--wa-text-secondary);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     line-height: 1;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.15s ease, background 0.15s ease;
-}
-
-.discussion-msg__bubble-wrap:hover .discussion-msg__menu-btn,
-.discussion-msg__menu-btn:focus-visible,
-.discussion-msg__menu-btn[aria-expanded="true"] {
-    opacity: 1;
+    box-shadow: 0 1px 2px rgba(11, 20, 26, 0.12);
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
 .discussion-msg__menu-btn:hover {
-    background: rgba(17, 27, 33, 0.12);
+    background: #fff;
+    color: var(--wa-text);
 }
 
 @media (hover: none) {
-    .discussion-msg__menu-btn {
+    .discussion-msg__actions {
         opacity: 1;
     }
 }
 
 .discussion-msg__menu-panel {
     position: absolute;
-    bottom: calc(100% + 6px);
+    top: calc(100% + 4px);
     right: 0;
     min-width: 170px;
     background: #fff;
@@ -741,6 +757,21 @@
     box-shadow: 0 2px 8px rgba(11, 20, 26, 0.16), 0 0 1px rgba(11, 20, 26, 0.08);
     padding: 6px 0;
     z-index: 30;
+}
+
+.discussion-msg--mine .discussion-msg__menu-panel,
+.discussion-widget-msg--mine .discussion-msg__menu-panel {
+    right: auto;
+    left: 0;
+}
+
+.discussion-msg__menu-panel.is-floating {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: auto;
+    bottom: auto;
+    z-index: 1060;
 }
 
 .discussion-msg__menu-panel[hidden] {

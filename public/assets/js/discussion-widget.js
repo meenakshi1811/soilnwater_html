@@ -464,8 +464,7 @@
                 </button>`;
         }).join('');
 
-        return `<div class="discussion-msg__footer">
-            <div class="discussion-msg__reaction-summary${summary ? '' : ' is-empty'}">${summary}</div>
+        return `<div class="discussion-msg__actions">
             <div class="discussion-msg__menu">
                 <button type="button" class="discussion-msg__menu-btn" aria-label="Message actions" aria-expanded="false">
                     <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -480,7 +479,8 @@
                     </div>
                 </div>
             </div>
-        </div>`;
+        </div>
+        <div class="discussion-msg__reaction-summary${summary ? '' : ' is-empty'}">${summary}</div>`;
     }
 
     function buildTopicMessage(topic) {

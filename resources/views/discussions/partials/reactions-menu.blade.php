@@ -6,18 +6,7 @@
     $hasSummary = collect($counts)->filter(fn ($c) => $c > 0)->isNotEmpty();
 @endphp
 
-<div class="discussion-msg__footer">
-    <div class="discussion-msg__reaction-summary{{ $hasSummary ? '' : ' is-empty' }}">
-        @foreach(DiscussionReactions::labels() as $label)
-            @php $count = $counts[$label] ?? 0; @endphp
-            @if($count > 0)
-                <span class="discussion-msg__reaction-chip {{ in_array($label, $userReactions, true) ? 'is-mine' : '' }}" title="{{ $label }}">
-                    <i class="fa-solid {{ $reactionIcons[$label] ?? 'fa-face-smile' }}"></i>
-                    <span>{{ $count }}</span>
-                </span>
-            @endif
-        @endforeach
-    </div>
+<div class="discussion-msg__actions">
     <div class="discussion-msg__menu">
         <button type="button"
                 class="discussion-msg__menu-btn"
@@ -52,4 +41,15 @@
             </div>
         </div>
     </div>
+</div>
+<div class="discussion-msg__reaction-summary{{ $hasSummary ? '' : ' is-empty' }}">
+    @foreach(DiscussionReactions::labels() as $label)
+        @php $count = $counts[$label] ?? 0; @endphp
+        @if($count > 0)
+            <span class="discussion-msg__reaction-chip {{ in_array($label, $userReactions, true) ? 'is-mine' : '' }}" title="{{ $label }}">
+                <i class="fa-solid {{ $reactionIcons[$label] ?? 'fa-face-smile' }}"></i>
+                <span>{{ $count }}</span>
+            </span>
+        @endif
+    @endforeach
 </div>
