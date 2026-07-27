@@ -25,6 +25,25 @@
     --wa-shadow: 0 6px 18px rgba(11, 20, 26, 0.18);
 }
 
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.visually-hidden,
+.discussion-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
 /* ─── FAB ─────────────────────────────────────────────────────────────────── */
 
 .discussion-fab {
@@ -299,6 +318,8 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
 body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetTopics {
     position: relative;
     flex: 0 0 min(360px, 38vw);
+    display: flex;
+    flex-direction: column;
     opacity: 1 !important;
     visibility: visible !important;
     inset: auto;
@@ -311,11 +332,35 @@ body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetT
 body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetThread,
 body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetCompose {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     position: relative;
     inset: auto;
     width: auto;
     height: auto;
     min-height: 0;
+}
+
+body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__scroll--list,
+body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__scroll--thread {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__scroll--thread {
+    display: flex;
+    flex-direction: column;
+}
+
+body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__scroll--thread .discussion-widget__empty {
+    flex: 1;
+    min-height: 100%;
+    justify-content: center;
+}
+
+body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__composer[hidden] {
+    display: none !important;
 }
 
 body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__panel {
@@ -981,6 +1026,17 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
 
 /* ─── Composer (WhatsApp footer) ──────────────────────────────────────────── */
 
+.discussion-widget__composer-inner input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
 .discussion-widget__composer {
     padding: 8px 10px;
     background: var(--wa-composer-bg);
@@ -1058,6 +1114,17 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
 }
 
 /* ─── Compose new chat ────────────────────────────────────────────────────── */
+
+.discussion-widget__compose-form input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
 
 .discussion-widget__compose-form {
     display: flex;

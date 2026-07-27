@@ -484,6 +484,18 @@
         window.history.replaceState({}, '', messengerUrl(topicId));
     }
 
+    function setComposerVisible(visible) {
+        if (!els.replyForm) {
+            return;
+        }
+
+        if (visible) {
+            els.replyForm.hidden = false;
+        } else if (isPageMode) {
+            els.replyForm.hidden = true;
+        }
+    }
+
     function showEmptyThreadPlaceholder() {
         if (!els.messages) {
             return;
@@ -497,6 +509,7 @@
 
         setHeaderTitle('Chats', 'Select a conversation');
         resetHeaderAvatar();
+        setComposerVisible(false);
     }
 
     function getWidgetSize() {
@@ -769,6 +782,7 @@
 
         setHeaderTitle('Loading…', 'Please wait');
         resetHeaderAvatar();
+        setComposerVisible(false);
         if (els.messages) {
             els.messages.innerHTML = `<div class="discussion-widget__loading" id="discussionWidgetThreadLoading">
                 <span class="discussion-widget__spinner" aria-hidden="true"></span>
@@ -816,6 +830,7 @@
                 els.messages.scrollTop = els.messages.scrollHeight;
             }
 
+            setComposerVisible(true);
             markTopicRead(topic.id);
             updateFullPageLink(topic.id);
             updateMessengerUrl(topic.id);
@@ -861,6 +876,7 @@
         showPanel('compose');
         setHeaderTitle('New chat', 'Create a group conversation');
         resetHeaderAvatar();
+        setComposerVisible(false);
         document.getElementById('discussionWidgetTopicTitle')?.focus();
     }
 
