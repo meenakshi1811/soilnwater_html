@@ -6,8 +6,8 @@
 <div class="discussion-page">
     <section class="discussion-hero">
         <div class="container">
-            <h1><i class="fa-solid fa-message me-2"></i>Community Chat</h1>
-            <p class="mb-0">Join conversations with fellow SoilNWater members — or open the chat widget from any page.</p>
+            <h1><i class="fa-brands fa-whatsapp me-2"></i>Chats</h1>
+            <p class="mb-0">Community group conversations — open the chat button on any page.</p>
         </div>
     </section>
 
@@ -18,11 +18,11 @@
 
         <div class="discussion-page-header">
             <div>
-                <h2>Conversations</h2>
-                <p>Pinned topics appear first · Unread shown with a badge</p>
+                <h2>Chats</h2>
+                <p>Search, open, or start a new group conversation</p>
             </div>
             <button type="button" class="discussion-btn" id="discussionPageOpenWidget">
-                <i class="fa-solid fa-comments"></i> Open chat
+                <i class="fa-brands fa-whatsapp"></i> Open chats
             </button>
         </div>
 

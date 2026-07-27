@@ -27,7 +27,7 @@
         newTopicBtn: document.getElementById('discussionWidgetNewTopicBtn'),
         closeBtn: document.getElementById('discussionWidgetCloseBtn'),
         backBtn: document.getElementById('discussionWidgetBackBtn'),
-        composeBackBtn: document.getElementById('discussionWidgetComposeBackBtn'),
+        headerAvatar: document.getElementById('discussionWidgetHeaderAvatar'),
     };
 
     const reactionIcons = config.reactionIcons || {
@@ -336,9 +336,51 @@
             panel.hidden = !active;
         });
 
-        if (els.newTopicBtn) {
-            els.newTopicBtn.hidden = name !== 'topics';
+        updateHeaderForPanel(name);
+    }
+
+    function updateHeaderForPanel(name) {
+        const isTopics = name === 'topics';
+        const isThread = name === 'thread';
+        const isCompose = name === 'compose';
+
+        if (els.backBtn) {
+            els.backBtn.hidden = isTopics;
         }
+        if (els.newTopicBtn) {
+            els.newTopicBtn.hidden = !isTopics;
+        }
+        if (els.pinBtn) {
+            els.pinBtn.hidden = !isThread || !config.canPin;
+        }
+        if (els.headerAvatar && isTopics) {
+            els.headerAvatar.innerHTML = '<i class="fa-solid fa-comments"></i>';
+        }
+    }
+
+    function setHeaderTitle(title, subtitle) {
+        if (els.title) {
+            els.title.textContent = title;
+        }
+        if (els.subtitle) {
+            els.subtitle.textContent = subtitle || '';
+        }
+    }
+
+    function setHeaderAvatar(name) {
+        if (!els.headerAvatar) {
+            return;
+        }
+        els.headerAvatar.className = 'discussion-widget__brand-mark discussion-avatar discussion-avatar--sm';
+        els.headerAvatar.textContent = avatarInitials(name);
+    }
+
+    function resetHeaderAvatar() {
+        if (!els.headerAvatar) {
+            return;
+        }
+        els.headerAvatar.className = 'discussion-widget__brand-mark';
+        els.headerAvatar.innerHTML = '<i class="fa-solid fa-comments"></i>';
     }
 
     function setOpen(open) {
@@ -380,7 +422,7 @@
         const unreadClass = unread > 0 ? 'discussion-widget-topic--unread' : '';
 
         return `<button type="button" class="discussion-widget-topic ${pinnedClass} ${unreadClass}" data-topic-id="${topic.id}" data-search="${escapeHtml((topic.title + ' ' + (topic.body || '') + ' ' + authorName).toLowerCase())}" id="discussion-widget-topic-${topic.id}">
-            ${avatarHtml(authorName, 'discussion-avatar--sm')}
+            ${avatarHtml(authorName)}
             <div class="discussion-widget-topic__content">
                 <div class="discussion-widget-topic__row">
                     <h3 class="discussion-widget-topic__title">${escapeHtml(topic.title)}</h3>
@@ -390,7 +432,6 @@
                     <p class="discussion-widget-topic__excerpt">${excerpt}</p>
                     ${unreadBadge}
                 </div>
-                <div class="discussion-widget-topic__meta-inline">${escapeHtml(authorName)} · ${replies} ${replies === 1 ? 'reply' : 'replies'}</div>
             </div>
         </button>`;
     }
@@ -421,44 +462,42 @@
 
     function buildTopicMessage(topic) {
         const authorName = topic.author?.name || 'Member';
-        return `<article class="discussion-msg discussion-msg--topic discussion-widget-msg discussion-widget-msg--topic" data-reactable-type="DiscussionTopic" data-reactable-id="${topic.id}">
-            <span class="discussion-msg__topic-label"><i class="fa-solid fa-bookmark"></i> Topic</span>
+        const separator = `<div class="discussion-msg__date-separator"><strong>${escapeHtml(topic.title)}</strong></div>`;
+        const bodyBlock = topic.body
+            ? `<p class="discussion-msg__body">${escapeHtml(topic.body)}</p>`
+            : '';
+
+        return `${separator}
+        <article class="discussion-msg discussion-msg--in discussion-widget-msg" data-reactable-type="DiscussionTopic" data-reactable-id="${topic.id}">
+            <span class="discussion-msg__sender">${escapeHtml(authorName)}</span>
             <div class="discussion-msg__bubble">
-                <div class="discussion-msg__header">
-                    ${avatarHtml(authorName, 'discussion-avatar--sm')}
-                    <div>
-                        <span class="discussion-msg__author">${escapeHtml(authorName)}</span>
-                        <span class="discussion-msg__time">${escapeHtml(topic.created_at_human || 'just now')}</span>
-                    </div>
-                </div>
-                <h3 class="discussion-msg__title">${escapeHtml(topic.title)}</h3>
-                ${topic.body ? `<p class="discussion-msg__body">${escapeHtml(topic.body)}</p>` : ''}
+                ${bodyBlock}
                 ${buildAttachmentsHtml(topic.attachments || [])}
-                ${buildReactionsHtml('DiscussionTopic', topic.id, topicReactUrl(topic.id), topic.reaction_counts || {}, topic.user_reactions || [])}
+                <span class="discussion-msg__time">${escapeHtml(topic.created_at_human || 'just now')}</span>
             </div>
+            ${buildReactionsHtml('DiscussionTopic', topic.id, topicReactUrl(topic.id), topic.reaction_counts || {}, topic.user_reactions || [])}
         </article>`;
     }
 
     function buildReplyMessage(reply) {
         const mine = Number(reply.author?.id) === Number(config.currentUserId);
         const authorName = reply.author?.name || 'Member';
-        const avatarClass = mine ? 'discussion-avatar--sm discussion-avatar--mine' : 'discussion-avatar--sm';
+        const bodyBlock = reply.body
+            ? `<p class="discussion-msg__body">${escapeHtml(reply.body || '')}</p>`
+            : '';
 
-        return `<article class="discussion-msg ${mine ? 'discussion-msg--mine' : ''} discussion-widget-msg ${mine ? 'discussion-widget-msg--mine' : ''}"
+        return `<article class="discussion-msg ${mine ? 'discussion-msg--mine' : 'discussion-msg--in'} discussion-widget-msg ${mine ? 'discussion-widget-msg--mine' : ''}"
                          id="discussion-widget-reply-${reply.id}"
                          data-reply-id="${reply.id}"
                          data-reactable-type="DiscussionReply"
                          data-reactable-id="${reply.id}">
-            ${avatarHtml(mine ? (config.currentUserName || 'You') : authorName, avatarClass)}
+            ${mine ? '' : `<span class="discussion-msg__sender">${escapeHtml(authorName)}</span>`}
             <div class="discussion-msg__bubble">
-                <div class="discussion-msg__header">
-                    <span class="discussion-msg__author">${escapeHtml(mine ? 'You' : authorName)}</span>
-                    <span class="discussion-msg__time">${escapeHtml(reply.created_at_human || 'just now')}</span>
-                </div>
-                ${reply.body ? `<p class="discussion-msg__body">${escapeHtml(reply.body || '')}</p>` : ''}
+                ${bodyBlock}
                 ${buildAttachmentsHtml(reply.attachments || [])}
-                ${buildReactionsHtml('DiscussionReply', reply.id, replyReactUrl(reply.id), reply.reaction_counts || {}, reply.user_reactions || [])}
+                <span class="discussion-msg__time">${escapeHtml(reply.created_at_human || 'just now')}</span>
             </div>
+            ${buildReactionsHtml('DiscussionReply', reply.id, replyReactUrl(reply.id), reply.reaction_counts || {}, reply.user_reactions || [])}
         </article>`;
     }
 
@@ -555,7 +594,7 @@
         }
 
         els.pinBtn.classList.toggle('is-pinned', isPinned);
-        els.pinBtn.innerHTML = `<i class="fa-solid fa-thumbtack"></i><span>${isPinned ? 'Unpin' : 'Pin'}</span>`;
+        els.pinBtn.title = isPinned ? 'Unpin' : 'Pin topic';
     }
 
     async function openTopic(topicId) {
@@ -565,12 +604,8 @@
 
         showPanel('thread');
 
-        if (els.title) {
-            els.title.textContent = 'Conversation';
-        }
-        if (els.subtitle) {
-            els.subtitle.textContent = 'Loading…';
-        }
+        setHeaderTitle('Loading…', 'Please wait');
+        resetHeaderAvatar();
         if (els.messages) {
             els.messages.innerHTML = `<div class="discussion-widget__loading" id="discussionWidgetThreadLoading">
                 <span class="discussion-widget__spinner" aria-hidden="true"></span>
@@ -592,13 +627,8 @@
             config.canPin = Boolean(data.can_pin);
             config.topicId = topic.id;
 
-            if (els.title) {
-                els.title.textContent = topic.title;
-            }
-            if (els.subtitle) {
-                const count = topic.replies_count || 0;
-                els.subtitle.textContent = `${count} ${count === 1 ? 'reply' : 'replies'}`;
-            }
+            setHeaderTitle(topic.title, `${(topic.replies_count || 0) + 1} messages`);
+            setHeaderAvatar(topic.author?.name || topic.title);
 
             updatePinButton(Boolean(topic.is_pinned));
             if (els.pinBtn) {
@@ -645,12 +675,8 @@
             search.value = '';
         }
 
-        if (els.title) {
-            els.title.textContent = 'Community Chat';
-        }
-        if (els.subtitle) {
-            els.subtitle.textContent = 'Your conversations';
-        }
+        setHeaderTitle('Chats', `${config.globalUnread || 0} unread`);
+        resetHeaderAvatar();
 
         showPanel('topics');
         loadTopics();
@@ -658,12 +684,8 @@
 
     function showCompose() {
         showPanel('compose');
-        if (els.title) {
-            els.title.textContent = 'New topic';
-        }
-        if (els.subtitle) {
-            els.subtitle.textContent = 'Share something with the community';
-        }
+        setHeaderTitle('New chat', 'Create a group conversation');
+        resetHeaderAvatar();
         document.getElementById('discussionWidgetTopicTitle')?.focus();
     }
 
@@ -690,8 +712,13 @@
     });
 
     els.closeBtn?.addEventListener('click', () => setOpen(false));
-    els.backBtn?.addEventListener('click', showTopics);
-    els.composeBackBtn?.addEventListener('click', showTopics);
+    els.backBtn?.addEventListener('click', () => {
+        if (panels.compose?.classList.contains('is-active')) {
+            showTopics();
+            return;
+        }
+        showTopics();
+    });
     els.newTopicBtn?.addEventListener('click', showCompose);
 
     els.topicList?.addEventListener('click', (event) => {

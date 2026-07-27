@@ -12,13 +12,13 @@
 <button type="button"
         class="discussion-fab"
         id="discussionFab"
-        aria-label="Open community discussions"
+        aria-label="Open chats"
         aria-controls="discussionWidget"
         aria-expanded="false"
-        title="Community Chat">
+        title="Chats">
     <span class="discussion-fab__badge" id="discussionFabBadge" hidden aria-label="Unread messages">0</span>
     <span class="discussion-fab__icon" aria-hidden="true">
-        <i class="fa-solid fa-message"></i>
+        <i class="fa-brands fa-whatsapp"></i>
     </span>
     <span class="discussion-fab__close" aria-hidden="true">
         <i class="fa-solid fa-xmark"></i>
@@ -32,135 +32,130 @@
      aria-labelledby="discussionWidgetTitle"
      hidden>
     <header class="discussion-widget__header">
-        <div class="discussion-widget__brand">
-            <span class="discussion-widget__brand-mark" aria-hidden="true">
-                <i class="fa-solid fa-seedling"></i>
+        <button type="button"
+                class="discussion-widget__header-back"
+                id="discussionWidgetBackBtn"
+                hidden
+                aria-label="Back">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="discussion-widget__header-main">
+            <span class="discussion-widget__brand-mark" id="discussionWidgetHeaderAvatar" aria-hidden="true">
+                <i class="fa-solid fa-comments"></i>
             </span>
-            <div>
-                <h2 class="discussion-widget__title" id="discussionWidgetTitle">Community Chat</h2>
-                <p class="discussion-widget__subtitle" id="discussionWidgetSubtitle">Connect with fellow members</p>
+            <div class="discussion-widget__header-text">
+                <h2 class="discussion-widget__title" id="discussionWidgetTitle">Chats</h2>
+                <p class="discussion-widget__subtitle" id="discussionWidgetSubtitle">Community discussions</p>
             </div>
         </div>
         <div class="discussion-widget__header-actions">
             <button type="button"
-                    class="discussion-widget__icon-btn discussion-widget__icon-btn--primary"
+                    class="discussion-widget__icon-btn"
                     id="discussionWidgetNewTopicBtn"
-                    title="New conversation"
-                    aria-label="Start a new conversation">
-                <i class="fa-solid fa-pen-to-square"></i>
+                    title="New chat"
+                    aria-label="New chat">
+                <i class="fa-solid fa-comment-medical"></i>
+            </button>
+            <button type="button"
+                    class="discussion-widget__icon-btn"
+                    id="discussionWidgetPinBtn"
+                    hidden
+                    title="Pin topic"
+                    aria-label="Pin topic">
+                <i class="fa-solid fa-thumbtack"></i>
             </button>
             <button type="button"
                     class="discussion-widget__icon-btn"
                     id="discussionWidgetCloseBtn"
                     title="Close"
-                    aria-label="Close chat">
+                    aria-label="Close">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
     </header>
 
     <div class="discussion-widget__body">
-        {{-- Topics inbox --}}
+        {{-- Chat list --}}
         <section class="discussion-widget__panel is-active" id="discussionWidgetTopics" data-panel="topics">
-            <div class="discussion-widget__toolbar">
+            <div class="discussion-widget__search-bar">
                 <div class="discussion-widget__search-wrap">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="search"
                            class="discussion-widget__search"
                            id="discussionWidgetSearch"
-                           placeholder="Search conversations…"
+                           placeholder="Search or start new chat"
                            autocomplete="off"
-                           aria-label="Search conversations">
+                           aria-label="Search chats">
                 </div>
             </div>
-            <div class="discussion-widget__scroll" id="discussionWidgetTopicList">
+            <div class="discussion-widget__scroll discussion-widget__scroll--list" id="discussionWidgetTopicList">
                 <div class="discussion-widget__loading" id="discussionWidgetTopicsLoading">
                     <span class="discussion-widget__spinner" aria-hidden="true"></span>
-                    <span>Loading conversations…</span>
+                    <span>Loading chats…</span>
                 </div>
             </div>
         </section>
 
-        {{-- Thread --}}
+        {{-- Chat thread --}}
         <section class="discussion-widget__panel" id="discussionWidgetThread" data-panel="thread" hidden>
-            <div class="discussion-widget__thread-bar">
-                <button type="button" class="discussion-widget__back" id="discussionWidgetBackBtn">
-                    <i class="fa-solid fa-chevron-left"></i>
-                    <span>Back</span>
-                </button>
-                <button type="button"
-                        class="discussion-widget__pin-btn"
-                        id="discussionWidgetPinBtn"
-                        hidden>
-                    <i class="fa-solid fa-thumbtack"></i>
-                    <span>Pin</span>
-                </button>
-            </div>
             <div class="discussion-widget__scroll discussion-widget__scroll--thread" id="discussionWidgetMessages">
                 <div class="discussion-widget__loading" id="discussionWidgetThreadLoading">
                     <span class="discussion-widget__spinner" aria-hidden="true"></span>
-                    <span>Opening conversation…</span>
+                    <span>Loading messages…</span>
                 </div>
             </div>
             <form class="discussion-widget__composer" id="discussionWidgetReplyForm" enctype="multipart/form-data">
-                <label class="visually-hidden" for="discussionWidgetReplyBody">Write a message</label>
-                <div class="discussion-widget__composer-main">
-                    <textarea id="discussionWidgetReplyBody"
-                              name="body"
-                              rows="1"
-                              maxlength="5000"
-                              placeholder="Type a message…"></textarea>
-                    <div class="discussion-widget__composer-actions">
-                        <label class="discussion-widget__attach-btn" for="discussionWidgetReplyAttachments" title="Attach photo or video">
-                            <i class="fa-solid fa-image"></i>
-                            <span class="visually-hidden">Attach media</span>
-                        </label>
-                        <input type="file"
-                               id="discussionWidgetReplyAttachments"
-                               name="attachments[]"
-                               class="visually-hidden"
-                               accept="image/*,video/mp4,video/webm"
-                               multiple>
-                        <button type="submit" class="discussion-widget__send" aria-label="Send message">
-                            <i class="fa-solid fa-arrow-up"></i>
-                        </button>
+                <label class="visually-hidden" for="discussionWidgetReplyBody">Type a message</label>
+                <div class="discussion-widget__composer-inner">
+                    <label class="discussion-widget__attach-btn" for="discussionWidgetReplyAttachments" title="Attach">
+                        <i class="fa-solid fa-plus"></i>
+                    </label>
+                    <input type="file"
+                           id="discussionWidgetReplyAttachments"
+                           name="attachments[]"
+                           class="visually-hidden"
+                           accept="image/*,video/mp4,video/webm"
+                           multiple>
+                    <div class="discussion-widget__composer-field">
+                        <textarea id="discussionWidgetReplyBody"
+                                  name="body"
+                                  rows="1"
+                                  maxlength="5000"
+                                  placeholder="Type a message"></textarea>
                     </div>
+                    <button type="submit" class="discussion-widget__send" aria-label="Send">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
                 </div>
                 <div class="discussion-media-preview" id="discussionWidgetReplyPreview" hidden></div>
             </form>
         </section>
 
-        {{-- Compose --}}
+        {{-- New chat --}}
         <section class="discussion-widget__panel" id="discussionWidgetCompose" data-panel="compose" hidden>
-            <div class="discussion-widget__thread-bar">
-                <button type="button" class="discussion-widget__back" id="discussionWidgetComposeBackBtn">
-                    <i class="fa-solid fa-chevron-left"></i>
-                    <span>Cancel</span>
-                </button>
-            </div>
             <form class="discussion-widget__compose-form" id="discussionWidgetNewTopicForm" data-url="{{ route('discussions.store') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="discussion-widget__field">
-                    <label for="discussionWidgetTopicTitle">Conversation title</label>
+                    <label for="discussionWidgetTopicTitle">Group / topic name</label>
                     <input type="text"
                            id="discussionWidgetTopicTitle"
                            name="title"
                            maxlength="200"
                            required
-                           placeholder="What's on your mind?">
+                           placeholder="e.g. Soil health tips">
                 </div>
                 <div class="discussion-widget__field">
-                    <label for="discussionWidgetTopicBody">Message <span>(optional)</span></label>
+                    <label for="discussionWidgetTopicBody">First message <span>(optional)</span></label>
                     <textarea id="discussionWidgetTopicBody"
                               name="body"
                               rows="4"
                               maxlength="5000"
-                              placeholder="Share details to start the discussion…"></textarea>
+                              placeholder="Write your first message…"></textarea>
                 </div>
                 <div class="discussion-widget__field">
                     <label class="discussion-media-btn" for="discussionWidgetTopicAttachments">
-                        <i class="fa-solid fa-image"></i>
-                        Add photos or video
+                        <i class="fa-solid fa-paperclip"></i>
+                        Photos &amp; videos
                     </label>
                     <input type="file"
                            id="discussionWidgetTopicAttachments"
@@ -171,8 +166,8 @@
                     <div class="discussion-media-preview" id="discussionWidgetTopicPreview" hidden></div>
                 </div>
                 <button type="submit" class="discussion-widget__primary-btn">
-                    <i class="fa-solid fa-paper-plane"></i>
-                    Start conversation
+                    <i class="fa-brands fa-whatsapp"></i>
+                    Create chat
                 </button>
             </form>
         </section>
