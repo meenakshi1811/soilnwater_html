@@ -248,58 +248,38 @@
     height: min(920px, calc(100dvh - 72px));
 }
 
-.discussion-messenger-page__toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 16px;
-    background: var(--wa-panel);
-    border-bottom: 1px solid var(--wa-border);
-}
-
 .discussion-messenger-page__hint {
     font-size: 0.8125rem;
     color: var(--wa-text-secondary);
 }
 
-body.discussion-messenger-page .discussion-fab {
-    display: none !important;
-}
-
-body.discussion-messenger-page .footer {
-    display: none;
+body.discussion-messenger-page {
+    margin: 0;
+    overflow: hidden;
+    background: var(--wa-list-bg);
+    font-family: var(--wa-font);
 }
 
 body.discussion-messenger-page .discussion-messenger-page {
     display: flex;
     flex-direction: column;
     width: 100%;
-    min-height: calc(100dvh - var(--discussion-site-header-height, 110px));
-    background: var(--wa-list-bg);
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
 }
 
-body.discussion-messenger-page .discussion-messenger-page__mount {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-body.discussion-messenger-page .discussion-widget {
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    bottom: auto;
+body.discussion-messenger-page .discussion-widget--standalone {
     flex: 1;
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: auto;
+    height: 100%;
     min-height: 0;
     max-width: none;
     max-height: none;
+    position: relative;
+    inset: auto;
     border-radius: 0;
     box-shadow: none;
     opacity: 1;
@@ -309,26 +289,14 @@ body.discussion-messenger-page .discussion-widget {
     overflow: hidden;
 }
 
-body.discussion-messenger-page .discussion-widget.is-open {
-    transform: none;
-}
-
-body.discussion-messenger-page .discussion-widget[hidden] {
-    display: flex !important;
-}
-
-body.discussion-messenger-page .discussion-widget__body {
+body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__body {
     display: flex;
     flex-direction: row;
     flex: 1;
     min-height: 0;
 }
 
-body.discussion-messenger-page .discussion-widget__header {
-    flex-shrink: 0;
-}
-
-body.discussion-messenger-page #discussionWidgetTopics {
+body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetTopics {
     position: relative;
     flex: 0 0 min(360px, 38vw);
     opacity: 1 !important;
@@ -340,8 +308,8 @@ body.discussion-messenger-page #discussionWidgetTopics {
     border-right: 1px solid var(--wa-border);
 }
 
-body.discussion-messenger-page #discussionWidgetThread,
-body.discussion-messenger-page #discussionWidgetCompose {
+body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetThread,
+body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetCompose {
     flex: 1;
     position: relative;
     inset: auto;
@@ -350,7 +318,7 @@ body.discussion-messenger-page #discussionWidgetCompose {
     min-height: 0;
 }
 
-body.discussion-messenger-page .discussion-widget__panel {
+body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__panel {
     position: relative;
     inset: auto;
     min-height: 0;
@@ -358,32 +326,28 @@ body.discussion-messenger-page .discussion-widget__panel {
     visibility: visible;
 }
 
-body.discussion-messenger-page .discussion-widget__panel[hidden] {
+body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__panel[hidden] {
     display: none !important;
 }
 
-body.discussion-messenger-page .discussion-widget__scroll {
+body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__scroll {
     min-height: 0;
 }
 
-body.discussion-widget-open.discussion-messenger-page {
-    overflow: hidden;
-}
-
 @media (max-width: 767.98px) {
-    body.discussion-messenger-page .discussion-widget__body {
+    body.discussion-messenger-page .discussion-widget--standalone .discussion-widget__body {
         flex-direction: column;
     }
 
-    body.discussion-messenger-page #discussionWidgetTopics {
+    body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetTopics {
         flex: 0 0 auto;
         max-height: 42dvh;
         border-right: 0;
         border-bottom: 1px solid var(--wa-border);
     }
 
-    body.discussion-messenger-page #discussionWidgetThread,
-    body.discussion-messenger-page #discussionWidgetCompose {
+    body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetThread,
+    body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetCompose {
         flex: 1;
         min-height: 0;
     }

@@ -24,7 +24,8 @@ class DiscussionModuleTest extends TestCase
         $this->actingAs($user)
             ->get(route('discussions.messenger'))
             ->assertOk()
-            ->assertSee('Full-screen messenger');
+            ->assertSee('discussion-widget--standalone', false)
+            ->assertSee('Search or start new chat');
     }
 
     public function test_guest_cannot_access_discussions(): void

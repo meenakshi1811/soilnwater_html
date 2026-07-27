@@ -1155,42 +1155,18 @@
     restoreWidgetSize();
     updateFullPageLink(null);
 
-    function updateMessengerLayoutMetrics() {
-        if (!isPageMode) {
-            return;
-        }
-
-        const header = document.getElementById('frontendHeader');
-        const headerHeight = header?.offsetHeight || 110;
-        document.documentElement.style.setProperty('--discussion-site-header-height', `${headerHeight}px`);
-    }
-
-    function mountMessengerWidget() {
-        const mount = document.getElementById('discussionMessengerMount');
-        if (!mount || widget.parentElement === mount) {
-            return;
-        }
-
-        mount.appendChild(widget);
-        mount.removeAttribute('aria-hidden');
-    }
-
     function initPageMode() {
         if (!isPageMode) {
             return;
         }
 
         document.body.classList.add('discussion-messenger-page');
-        updateMessengerLayoutMetrics();
-        mountMessengerWidget();
         setOpen(true);
         showTopics();
 
         if (config.initialTopicId) {
             openTopic(config.initialTopicId);
         }
-
-        window.addEventListener('resize', updateMessengerLayoutMetrics);
     }
 
     window.soilnwaterDiscussionWidget = {
