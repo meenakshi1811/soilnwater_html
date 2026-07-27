@@ -6,7 +6,7 @@
 <div class="discussion-page">
     <section class="discussion-hero">
         <div class="container">
-            <h1><i class="fa-brands fa-whatsapp me-2"></i>Chats</h1>
+            <h1><i class="fa-solid fa-comments me-2"></i>Chats</h1>
             <p class="mb-0">Community group conversations — open the chat button on any page.</p>
         </div>
     </section>
@@ -22,7 +22,7 @@
                 <p>Search, open, or start a new group conversation</p>
             </div>
             <button type="button" class="discussion-btn" id="discussionPageOpenWidget">
-                <i class="fa-brands fa-whatsapp"></i> Open chats
+                <i class="fa-solid fa-comments"></i> Open chats
             </button>
         </div>
 

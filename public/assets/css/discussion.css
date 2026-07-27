@@ -641,55 +641,170 @@
 .discussion-widget-msg__title,
 .discussion-widget-msg__body { all: unset; }
 
-/* ─── Reactions (compact, below bubble) ───────────────────────────────────── */
+/* ─── Message menu & reaction dropdown ────────────────────────────────────── */
 
-.discussion-reactions,
-.discussion-widget-reactions {
+.discussion-msg__bubble-wrap {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 100%;
+}
+
+.discussion-msg--mine .discussion-msg__bubble-wrap {
+    align-items: flex-end;
+}
+
+.discussion-msg__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    width: 100%;
+    margin-top: 2px;
+    min-height: 18px;
+}
+
+.discussion-msg__reaction-summary {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    margin-top: 4px;
-    padding-left: 4px;
+    flex: 1;
 }
 
-.discussion-msg--mine .discussion-reactions,
-.discussion-msg--mine .discussion-widget-reactions {
-    justify-content: flex-end;
-    padding-left: 0;
-    padding-right: 4px;
+.discussion-msg__reaction-summary.is-empty {
+    display: none;
 }
 
-.discussion-reaction-btn,
-.discussion-widget-reaction {
+.discussion-msg__reaction-chip {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 2px;
-    min-width: 28px;
-    height: 28px;
-    padding: 0 6px;
+    gap: 3px;
+    padding: 2px 7px;
     border-radius: 999px;
-    border: 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: #fff;
+    box-shadow: 0 1px 1px rgba(11, 20, 26, 0.12);
+    font-size: 0.68rem;
     color: var(--wa-text-secondary);
-    font-size: 0.7rem;
-    cursor: pointer;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.discussion-reaction-icon-btn {
-    width: 28px;
-    padding: 0;
-}
-
-.discussion-reaction-btn.is-active,
-.discussion-widget-reaction.is-active {
+.discussion-msg__reaction-chip.is-mine {
     background: var(--wa-green-light);
     color: var(--wa-teal-dark);
 }
 
+.discussion-msg__menu {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.discussion-msg__menu-btn {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(17, 27, 33, 0.06);
+    color: var(--wa-text-secondary);
+    font-size: 0.7rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.discussion-msg__bubble-wrap:hover .discussion-msg__menu-btn,
+.discussion-msg__menu-btn:focus-visible,
+.discussion-msg__menu-btn[aria-expanded="true"] {
+    opacity: 1;
+}
+
+.discussion-msg__menu-btn:hover {
+    background: rgba(17, 27, 33, 0.12);
+}
+
+@media (hover: none) {
+    .discussion-msg__menu-btn {
+        opacity: 1;
+    }
+}
+
+.discussion-msg__menu-panel {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: 0;
+    min-width: 170px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(11, 20, 26, 0.16), 0 0 1px rgba(11, 20, 26, 0.08);
+    padding: 6px 0;
+    z-index: 30;
+}
+
+.discussion-msg__menu-panel[hidden] {
+    display: none !important;
+}
+
+.discussion-msg__menu-title {
+    margin: 0;
+    padding: 6px 14px 8px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--wa-text-secondary);
+}
+
+.discussion-reactions--menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.discussion-reaction-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 0.875rem;
+    color: var(--wa-text);
+    cursor: pointer;
+    text-align: left;
+}
+
+.discussion-reaction-menu-item:hover {
+    background: #f5f6f6;
+}
+
+.discussion-reaction-menu-item.is-active {
+    background: #e7fce3;
+    color: var(--wa-teal-dark);
+}
+
+.discussion-reaction-menu-item .discussion-reaction-count {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--wa-text-secondary);
+}
+
+.discussion-reaction-menu-item .discussion-reaction-count:empty {
+    display: none;
+}
+
+.discussion-reactions:not(.discussion-reactions--menu),
+.discussion-widget-reactions:not(.discussion-reactions--menu) {
+    display: none;
+}
+
 .discussion-reaction-count:empty { display: none; }
-.discussion-widget-reaction span:not(.discussion-reaction-count) { display: none; }
 
 /* ─── Composer (WhatsApp footer) ──────────────────────────────────────────── */
 

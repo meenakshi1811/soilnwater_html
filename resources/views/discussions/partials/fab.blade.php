@@ -18,7 +18,7 @@
         title="Chats">
     <span class="discussion-fab__badge" id="discussionFabBadge" hidden aria-label="Unread messages">0</span>
     <span class="discussion-fab__icon" aria-hidden="true">
-        <i class="fa-brands fa-whatsapp"></i>
+        <i class="fa-solid fa-comments"></i>
     </span>
     <span class="discussion-fab__close" aria-hidden="true">
         <i class="fa-solid fa-xmark"></i>
@@ -166,7 +166,7 @@
                     <div class="discussion-media-preview" id="discussionWidgetTopicPreview" hidden></div>
                 </div>
                 <button type="submit" class="discussion-widget__primary-btn">
-                    <i class="fa-brands fa-whatsapp"></i>
+                    <i class="fa-solid fa-comments"></i>
                     Create chat
                 </button>
             </form>

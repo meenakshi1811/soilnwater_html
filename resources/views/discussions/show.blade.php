@@ -55,19 +55,23 @@
                 @endif
             </div>
 
-            @if($topic->body)
-                <p class="discussion-body">{!! nl2br(e($topic->body)) !!}</p>
-            @endif
+            <div class="discussion-msg__bubble-wrap">
+                @if($topic->body)
+                    <div class="discussion-msg__bubble">
+                        <p class="discussion-body discussion-msg__body">{!! nl2br(e($topic->body)) !!}</p>
+                    </div>
+                @endif
 
-            @include('discussions.partials.attachments', ['attachments' => $topic->attachments ?? []])
+                @include('discussions.partials.attachments', ['attachments' => $topic->attachments ?? []])
 
-            @include('discussions.partials.reactions', [
-                'reactableType' => 'DiscussionTopic',
-                'reactableId' => $topic->id,
-                'counts' => $topic->reactionCounts(),
-                'userReactions' => $userReactions['topic'] ?? [],
-                'reactUrl' => route('discussions.react', $topic),
-            ])
+                @include('discussions.partials.reactions', [
+                    'reactableType' => 'DiscussionTopic',
+                    'reactableId' => $topic->id,
+                    'counts' => $topic->reactionCounts(),
+                    'userReactions' => $userReactions['topic'] ?? [],
+                    'reactUrl' => route('discussions.react', $topic),
+                ])
+            </div>
         </article>
 
         <section class="discussion-replies-section">

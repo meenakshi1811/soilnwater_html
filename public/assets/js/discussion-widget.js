@@ -436,27 +436,50 @@
         </button>`;
     }
 
-    function buildReactionsHtml(reactableType, reactableId, reactUrl, counts = {}, userReactions = []) {
+    function buildReactionsMenuHtml(reactableType, reactableId, reactUrl, counts = {}, userReactions = []) {
         const labels = config.reactionLabels || Object.keys(reactionIcons);
-
-        return `<div class="discussion-widget-reactions discussion-reactions"
-                     data-reactable-type="${escapeHtml(reactableType)}"
-                     data-reactable-id="${escapeHtml(reactableId)}"
-                     data-react-url="${escapeHtml(reactUrl)}">
-            ${labels.map((label) => {
+        const summary = labels
+            .filter((label) => (counts[label] || 0) > 0)
+            .map((label) => {
                 const active = userReactions.includes(label);
                 const count = counts[label] || 0;
-                return `<button type="button"
-                            class="discussion-widget-reaction discussion-reaction-btn ${active ? 'is-active' : ''}"
-                            data-reaction="${escapeHtml(label)}"
-                            data-active="${active ? '1' : '0'}"
-                            aria-pressed="${active ? 'true' : 'false'}"
-                            title="${escapeHtml(label)}"
-                            aria-label="${escapeHtml(label)}${count > 0 ? ` (${count})` : ''}">
-                        <i class="fa-solid ${reactionIcons[label] || 'fa-face-smile'}"></i>
-                        <span class="discussion-reaction-count">${count > 0 ? count : ''}</span>
-                    </button>`;
-            }).join('')}
+                return `<span class="discussion-msg__reaction-chip ${active ? 'is-mine' : ''}" title="${escapeHtml(label)}">
+                    <i class="fa-solid ${reactionIcons[label] || 'fa-face-smile'}"></i>
+                    <span>${count}</span>
+                </span>`;
+            })
+            .join('');
+
+        const menuItems = labels.map((label) => {
+            const active = userReactions.includes(label);
+            const count = counts[label] || 0;
+            return `<button type="button"
+                        class="discussion-reaction-btn discussion-reaction-menu-item ${active ? 'is-active' : ''}"
+                        data-reaction="${escapeHtml(label)}"
+                        data-active="${active ? '1' : '0'}"
+                        aria-pressed="${active ? 'true' : 'false'}">
+                    <i class="fa-solid ${reactionIcons[label] || 'fa-face-smile'}"></i>
+                    <span>${escapeHtml(label)}</span>
+                    <span class="discussion-reaction-count">${count > 0 ? count : ''}</span>
+                </button>`;
+        }).join('');
+
+        return `<div class="discussion-msg__footer">
+            <div class="discussion-msg__reaction-summary${summary ? '' : ' is-empty'}">${summary}</div>
+            <div class="discussion-msg__menu">
+                <button type="button" class="discussion-msg__menu-btn" aria-label="Message actions" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+                <div class="discussion-msg__menu-panel" hidden>
+                    <p class="discussion-msg__menu-title">React to message</p>
+                    <div class="discussion-reactions discussion-reactions--menu discussion-widget-reactions"
+                         data-reactable-type="${escapeHtml(reactableType)}"
+                         data-reactable-id="${escapeHtml(reactableId)}"
+                         data-react-url="${escapeHtml(reactUrl)}">
+                        ${menuItems}
+                    </div>
+                </div>
+            </div>
         </div>`;
     }
 
@@ -470,12 +493,14 @@
         return `${separator}
         <article class="discussion-msg discussion-msg--in discussion-widget-msg" data-reactable-type="DiscussionTopic" data-reactable-id="${topic.id}">
             <span class="discussion-msg__sender">${escapeHtml(authorName)}</span>
-            <div class="discussion-msg__bubble">
-                ${bodyBlock}
-                ${buildAttachmentsHtml(topic.attachments || [])}
-                <span class="discussion-msg__time">${escapeHtml(topic.created_at_human || 'just now')}</span>
+            <div class="discussion-msg__bubble-wrap">
+                <div class="discussion-msg__bubble">
+                    ${bodyBlock}
+                    ${buildAttachmentsHtml(topic.attachments || [])}
+                    <span class="discussion-msg__time">${escapeHtml(topic.created_at_human || 'just now')}</span>
+                </div>
+                ${buildReactionsMenuHtml('DiscussionTopic', topic.id, topicReactUrl(topic.id), topic.reaction_counts || {}, topic.user_reactions || [])}
             </div>
-            ${buildReactionsHtml('DiscussionTopic', topic.id, topicReactUrl(topic.id), topic.reaction_counts || {}, topic.user_reactions || [])}
         </article>`;
     }
 
@@ -492,12 +517,14 @@
                          data-reactable-type="DiscussionReply"
                          data-reactable-id="${reply.id}">
             ${mine ? '' : `<span class="discussion-msg__sender">${escapeHtml(authorName)}</span>`}
-            <div class="discussion-msg__bubble">
-                ${bodyBlock}
-                ${buildAttachmentsHtml(reply.attachments || [])}
-                <span class="discussion-msg__time">${escapeHtml(reply.created_at_human || 'just now')}</span>
+            <div class="discussion-msg__bubble-wrap">
+                <div class="discussion-msg__bubble">
+                    ${bodyBlock}
+                    ${buildAttachmentsHtml(reply.attachments || [])}
+                    <span class="discussion-msg__time">${escapeHtml(reply.created_at_human || 'just now')}</span>
+                </div>
+                ${buildReactionsMenuHtml('DiscussionReply', reply.id, replyReactUrl(reply.id), reply.reaction_counts || {}, reply.user_reactions || [])}
             </div>
-            ${buildReactionsHtml('DiscussionReply', reply.id, replyReactUrl(reply.id), reply.reaction_counts || {}, reply.user_reactions || [])}
         </article>`;
     }
 
@@ -921,6 +948,29 @@
                     countEl.textContent = count > 0 ? String(count) : '';
                 }
             });
+
+            if (typeof previousUi.updateReactionSummary === 'function') {
+                // handled in discussion.js updateReactionButtons
+            } else {
+                const summaryEl = container.closest('.discussion-msg__footer')?.querySelector('.discussion-msg__reaction-summary');
+                if (summaryEl) {
+                    const labels = config.reactionLabels || Object.keys(reactionIcons);
+                    const chips = labels
+                        .filter((label) => (counts[label] || 0) > 0)
+                        .map((label) => {
+                            const btn = container.querySelector(`[data-reaction="${label}"]`);
+                            const isActiveChip = btn?.dataset.active === '1';
+                            const count = counts[label] || 0;
+                            return `<span class="discussion-msg__reaction-chip ${isActiveChip ? 'is-mine' : ''}" title="${escapeHtml(label)}">
+                                <i class="fa-solid ${reactionIcons[label] || 'fa-face-smile'}"></i>
+                                <span>${count}</span>
+                            </span>`;
+                        })
+                        .join('');
+                    summaryEl.innerHTML = chips;
+                    summaryEl.classList.toggle('is-empty', chips === '');
+                }
+            }
         },
         findReactionContainer(reactableType, reactableId) {
             return document.querySelector(

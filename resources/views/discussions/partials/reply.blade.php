@@ -18,18 +18,23 @@
             <span class="discussion-reply__author">{{ $authorName }}</span>
             <small class="discussion-reply-time">{{ $reply->created_at->diffForHumans() }}</small>
         </div>
-        @if($reply->body)
-            <p class="discussion-reply-body">{!! nl2br(e($reply->body)) !!}</p>
-        @endif
+        <div class="discussion-msg__bubble-wrap">
+            @if($reply->body || ! empty($reply->attachments))
+                <div class="discussion-msg__bubble">
+                    @if($reply->body)
+                        <p class="discussion-reply-body discussion-msg__body">{!! nl2br(e($reply->body)) !!}</p>
+                    @endif
+                    @include('discussions.partials.attachments', ['attachments' => $reply->attachments ?? []])
+                </div>
+            @endif
 
-        @include('discussions.partials.attachments', ['attachments' => $reply->attachments ?? []])
-
-        @include('discussions.partials.reactions', [
-            'reactableType' => 'DiscussionReply',
-            'reactableId' => $reply->id,
-            'counts' => $reply->reactionCounts(),
-            'userReactions' => $userReactions,
-            'reactUrl' => route('discussions.replies.react', $reply),
-        ])
+            @include('discussions.partials.reactions', [
+                'reactableType' => 'DiscussionReply',
+                'reactableId' => $reply->id,
+                'counts' => $reply->reactionCounts(),
+                'userReactions' => $userReactions,
+                'reactUrl' => route('discussions.replies.react', $reply),
+            ])
+        </div>
     </div>
 </div>

@@ -150,6 +150,38 @@
         });
     }
 
+    function updateReactionSummary(container, counts) {
+        const footer = container?.closest('.discussion-msg__footer');
+        const summaryEl = footer?.querySelector('.discussion-msg__reaction-summary');
+        if (!summaryEl) {
+            return;
+        }
+
+        const labels = config.reactionLabels || ['Like', 'Love', 'Insightful', 'Agree'];
+        const icons = config.reactionIcons || {
+            Like: 'fa-thumbs-up',
+            Love: 'fa-heart',
+            Insightful: 'fa-lightbulb',
+            Agree: 'fa-check',
+        };
+
+        const chips = labels
+            .filter((label) => (counts[label] || 0) > 0)
+            .map((label) => {
+                const button = container.querySelector(`[data-reaction="${label}"]`);
+                const active = button?.dataset.active === '1';
+                const count = counts[label] || 0;
+                return `<span class="discussion-msg__reaction-chip ${active ? 'is-mine' : ''}" title="${escapeHtml(label)}">
+                    <i class="fa-solid ${icons[label] || 'fa-face-smile'}"></i>
+                    <span>${count}</span>
+                </span>`;
+            })
+            .join('');
+
+        summaryEl.innerHTML = chips;
+        summaryEl.classList.toggle('is-empty', chips === '');
+    }
+
     function updateReactionButtons(container, reaction, active, counts) {
         if (!container) {
             return;
@@ -167,6 +199,17 @@
                 const count = counts[label] || 0;
                 countEl.textContent = count > 0 ? String(count) : '';
             }
+        });
+
+        updateReactionSummary(container, counts);
+    }
+
+    function closeAllMessageMenus() {
+        document.querySelectorAll('.discussion-msg__menu-panel').forEach((panel) => {
+            panel.hidden = true;
+        });
+        document.querySelectorAll('.discussion-msg__menu-btn').forEach((btn) => {
+            btn.setAttribute('aria-expanded', 'false');
         });
     }
 
@@ -197,7 +240,7 @@
         return `<span class="discussion-avatar ${extraClass}" aria-hidden="true">${escapeHtml(avatarInitials(name))}</span>`;
     }
 
-    function buildReplyHtml(reply) {
+    function buildReactionsMenuHtml(reactableType, reactableId, reactUrl, counts = {}, userReactions = []) {
         const reactionLabels = config.reactionLabels || ['Like', 'Love', 'Insightful', 'Agree'];
         const icons = config.reactionIcons || {
             Like: 'fa-thumbs-up',
@@ -206,14 +249,53 @@
             Agree: 'fa-check',
         };
 
-        const buttons = reactionLabels.map((label) => {
+        const summary = reactionLabels
+            .filter((label) => (counts[label] || 0) > 0)
+            .map((label) => {
+                const active = userReactions.includes(label);
+                const count = counts[label] || 0;
+                return `<span class="discussion-msg__reaction-chip ${active ? 'is-mine' : ''}" title="${escapeHtml(label)}">
+                    <i class="fa-solid ${icons[label] || 'fa-face-smile'}"></i>
+                    <span>${count}</span>
+                </span>`;
+            })
+            .join('');
+
+        const menuItems = reactionLabels.map((label) => {
+            const active = userReactions.includes(label);
+            const count = counts[label] || 0;
             const icon = icons[label] || 'fa-face-smile';
-            return `<button type="button" class="discussion-reaction-btn discussion-reaction-icon-btn" data-reaction="${escapeHtml(label)}" data-active="0" aria-pressed="false" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">
-                <i class="fa-solid ${icon}"></i>
-                <span class="discussion-reaction-count"></span>
-            </button>`;
+            return `<button type="button"
+                        class="discussion-reaction-btn discussion-reaction-menu-item ${active ? 'is-active' : ''}"
+                        data-reaction="${escapeHtml(label)}"
+                        data-active="${active ? '1' : '0'}"
+                        aria-pressed="${active ? 'true' : 'false'}">
+                    <i class="fa-solid ${icon}"></i>
+                    <span>${escapeHtml(label)}</span>
+                    <span class="discussion-reaction-count">${count > 0 ? count : ''}</span>
+                </button>`;
         }).join('');
 
+        return `<div class="discussion-msg__footer">
+            <div class="discussion-msg__reaction-summary${summary ? '' : ' is-empty'}">${summary}</div>
+            <div class="discussion-msg__menu">
+                <button type="button" class="discussion-msg__menu-btn" aria-label="Message actions" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+                <div class="discussion-msg__menu-panel" hidden>
+                    <p class="discussion-msg__menu-title">React to message</p>
+                    <div class="discussion-reactions discussion-reactions--menu"
+                         data-reactable-type="${escapeHtml(reactableType)}"
+                         data-reactable-id="${escapeHtml(reactableId)}"
+                         data-react-url="${escapeHtml(reactUrl)}">
+                        ${menuItems}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    function buildReplyHtml(reply) {
         const bodyHtml = reply.body
             ? `<p class="discussion-reply-body">${nl2br(reply.body || '')}</p>`
             : '';
@@ -226,10 +308,12 @@
                     <span class="discussion-reply__author">${escapeHtml(authorName)}</span>
                     <small class="discussion-reply-time">${escapeHtml(reply.created_at_human || 'just now')}</small>
                 </div>
-                ${bodyHtml}
-                ${buildAttachmentsHtml(reply.attachments || [])}
-                <div class="discussion-reactions" data-reactable-type="DiscussionReply" data-reactable-id="${reply.id}" data-react-url="${escapeHtml(replyReactUrl(reply.id))}">
-                    ${buttons}
+                <div class="discussion-msg__bubble-wrap">
+                    <div class="discussion-msg__bubble">
+                        ${bodyHtml}
+                        ${buildAttachmentsHtml(reply.attachments || [])}
+                    </div>
+                    ${buildReactionsMenuHtml('DiscussionReply', reply.id, replyReactUrl(reply.id), reply.reaction_counts || {}, reply.user_reactions || [])}
                 </div>
             </div>
         </div>`;
@@ -370,12 +454,35 @@
         try {
             const data = await postJson(url, { reaction: button.dataset.reaction });
             updateReactionButtons(container, data.reaction, data.active, data.counts || {});
-            notify('success', data.message);
+            closeAllMessageMenus();
         } catch (error) {
             notify('error', error.message);
         } finally {
             button.disabled = false;
         }
+    }
+
+    function bindMessageMenuDelegation(root) {
+        root.addEventListener('click', (event) => {
+            const menuBtn = event.target.closest('.discussion-msg__menu-btn');
+            if (menuBtn) {
+                event.preventDefault();
+                event.stopPropagation();
+                const menu = menuBtn.closest('.discussion-msg__menu');
+                const panel = menu?.querySelector('.discussion-msg__menu-panel');
+                const willOpen = panel?.hidden;
+                closeAllMessageMenus();
+                if (willOpen && panel) {
+                    panel.hidden = false;
+                    menuBtn.setAttribute('aria-expanded', 'true');
+                }
+                return;
+            }
+
+            if (!event.target.closest('.discussion-msg__menu')) {
+                closeAllMessageMenus();
+            }
+        });
     }
 
     function bindReactionDelegation(root) {
@@ -526,10 +633,12 @@
         updateTopicPinButton,
         updateReactionButtons,
         findReactionContainer,
+        closeAllMessageMenus,
     };
 
     document.addEventListener('DOMContentLoaded', () => {
         bindReactionDelegation(document);
+        bindMessageMenuDelegation(document);
         initNewTopicForm();
         initReplyForm();
         initPinButton();
