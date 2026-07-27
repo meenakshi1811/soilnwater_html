@@ -771,7 +771,10 @@
     left: 0;
     right: auto;
     bottom: auto;
-    z-index: 1060;
+    z-index: 1065;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 .discussion-msg__menu-panel[hidden] {

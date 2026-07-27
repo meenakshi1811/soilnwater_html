@@ -151,8 +151,17 @@
     }
 
     function updateReactionSummary(container, counts) {
-        const wrap = container?.closest('.discussion-msg__bubble-wrap');
-        const summaryEl = wrap?.querySelector('.discussion-msg__reaction-summary');
+        const reactableType = container?.dataset.reactableType;
+        const reactableId = container?.dataset.reactableId;
+        let summaryEl = container?.closest('.discussion-msg__bubble-wrap')
+            ?.querySelector('.discussion-msg__reaction-summary');
+
+        if (!summaryEl && reactableType && reactableId) {
+            summaryEl = document.querySelector(
+                `[data-reactable-type="${CSS.escape(reactableType)}"][data-reactable-id="${CSS.escape(String(reactableId))}"] .discussion-msg__reaction-summary`
+            );
+        }
+
         if (!summaryEl) {
             return;
         }
@@ -212,16 +221,31 @@
         panel.classList.remove('is-floating');
         panel.style.top = '';
         panel.style.left = '';
+
+        const host = panel._discussionMenuHost;
+        if (host && panel.parentElement === document.body) {
+            host.appendChild(panel);
+        }
+
         panel.hidden = true;
     }
 
     function positionMessageMenuPanel(menuBtn, panel) {
         const isMine = Boolean(menuBtn.closest('.discussion-msg--mine, .discussion-widget-msg--mine'));
+        const menu = menuBtn.closest('.discussion-msg__menu');
+        if (menu) {
+            panel._discussionMenuHost = menu;
+        }
+
         const padding = 8;
         const gap = 4;
 
         panel.classList.add('is-floating');
         panel.hidden = false;
+
+        if (panel.parentElement !== document.body) {
+            document.body.appendChild(panel);
+        }
 
         const btnRect = menuBtn.getBoundingClientRect();
         const panelRect = panel.getBoundingClientRect();
@@ -506,18 +530,18 @@
                 event.preventDefault();
                 event.stopPropagation();
                 const menu = menuBtn.closest('.discussion-msg__menu');
-                const panel = menu?.querySelector('.discussion-msg__menu-panel');
-                const willOpen = panel?.hidden;
+                const willOpen = menuBtn.getAttribute('aria-expanded') !== 'true';
                 closeAllMessageMenus();
+                const panel = menu?.querySelector('.discussion-msg__menu-panel');
                 if (willOpen && panel) {
-                    panel.hidden = false;
                     positionMessageMenuPanel(menuBtn, panel);
                     menuBtn.setAttribute('aria-expanded', 'true');
                 }
                 return;
             }
 
-            if (!event.target.closest('.discussion-msg__menu')) {
+            if (!event.target.closest('.discussion-msg__menu')
+                && !event.target.closest('.discussion-msg__menu-panel')) {
                 closeAllMessageMenus();
             }
         });
