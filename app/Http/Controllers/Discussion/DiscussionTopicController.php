@@ -20,6 +20,36 @@ class DiscussionTopicController extends Controller
 
     public function index(Request $request): View|JsonResponse
     {
+        $canPin = $request->user()->isAdmin();
+
+        if ($request->expectsJson()) {
+            $topics = DiscussionTopic::query()
+                ->with('user')
+                ->withCount('reactions')
+                ->orderByDesc('is_pinned')
+                ->orderByDesc('pinned_at')
+                ->latest()
+                ->get();
+
+            $unreadCounts = $this->readService->unreadCountsForTopics($request->user(), $topics);
+
+            return response()->json([
+                'topics' => $topics->map(function (DiscussionTopic $topic) use ($unreadCounts) {
+                    return array_merge($topic->toBroadcastArray(), [
+                        'unread_count' => $unreadCounts[$topic->id] ?? 0,
+                    ]);
+                })->values(),
+                'can_pin' => $canPin,
+                'global_unread' => array_sum($unreadCounts),
+                'meta' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => $topics->count(),
+                    'total' => $topics->count(),
+                ],
+            ]);
+        }
+
         $topics = DiscussionTopic::query()
             ->with('user')
             ->withCount('reactions')
@@ -28,26 +58,7 @@ class DiscussionTopicController extends Controller
             ->latest()
             ->paginate(20);
 
-        $canPin = $request->user()->isAdmin();
         $unreadCounts = $this->readService->unreadCountsForTopics($request->user(), $topics->getCollection());
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'topics' => $topics->getCollection()->map(function (DiscussionTopic $topic) use ($unreadCounts) {
-                    return array_merge($topic->toBroadcastArray(), [
-                        'unread_count' => $unreadCounts[$topic->id] ?? 0,
-                    ]);
-                })->values(),
-                'can_pin' => $canPin,
-                'global_unread' => array_sum($unreadCounts),
-                'meta' => [
-                    'current_page' => $topics->currentPage(),
-                    'last_page' => $topics->lastPage(),
-                    'per_page' => $topics->perPage(),
-                    'total' => $topics->total(),
-                ],
-            ]);
-        }
 
         return view('discussions.index', [
             'topics' => $topics,

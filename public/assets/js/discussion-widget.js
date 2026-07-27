@@ -554,12 +554,42 @@
         applyWidgetSize(saved);
     }
 
+    function formatPostedDate(item) {
+        if (item?.created_at_date) {
+            return item.created_at_date;
+        }
+
+        if (!item?.created_at) {
+            return item?.created_at_human || '';
+        }
+
+        try {
+            return new Date(item.created_at).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+            });
+        } catch (error) {
+            return item.created_at_human || '';
+        }
+    }
+
+    function formatMessageTimestamp(item) {
+        const date = formatPostedDate(item);
+        const time = item?.created_at_time || '';
+
+        if (date && time) {
+            return `${date}, ${time}`;
+        }
+
+        return date || item?.created_at_human || 'just now';
+    }
+
     function buildTopicCard(topic) {
         const authorName = topic.author?.name || 'Member';
         const excerpt = topic.body
             ? escapeHtml(String(topic.body).slice(0, 80)) + (String(topic.body).length > 80 ? '…' : '')
             : `${topic.replies_count || 0} ${(topic.replies_count || 0) === 1 ? 'reply' : 'replies'}`;
-        const replies = topic.replies_count || 0;
         const unread = topic.unread_count ?? getTopicUnread(topic.id);
         if (unread > 0) {
             setTopicUnread(topic.id, unread);
@@ -569,17 +599,22 @@
             : '';
         const pinnedClass = topic.is_pinned ? 'discussion-widget-topic--pinned' : '';
         const unreadClass = unread > 0 ? 'discussion-widget-topic--unread' : '';
+        const postedDate = formatPostedDate(topic);
+        const postedTime = topic.created_at_time || '';
 
         return `<button type="button" class="discussion-widget-topic ${pinnedClass} ${unreadClass}" data-topic-id="${topic.id}" data-search="${escapeHtml((topic.title + ' ' + (topic.body || '') + ' ' + authorName).toLowerCase())}" id="discussion-widget-topic-${topic.id}">
             ${avatarHtml(authorName)}
             <div class="discussion-widget-topic__content">
                 <div class="discussion-widget-topic__row">
                     <h3 class="discussion-widget-topic__title">${escapeHtml(topic.title)}</h3>
-                    <span class="discussion-widget-topic__time">${escapeHtml(topic.created_at_human || 'now')}</span>
+                    ${unreadBadge}
                 </div>
                 <div class="discussion-widget-topic__row">
                     <p class="discussion-widget-topic__excerpt">${excerpt}</p>
-                    ${unreadBadge}
+                </div>
+                <div class="discussion-widget-topic__row discussion-widget-topic__meta">
+                    <span class="discussion-widget-topic__author">${escapeHtml(authorName)}</span>
+                    <time class="discussion-widget-topic__date" datetime="${escapeHtml(topic.created_at || '')}">${escapeHtml(postedDate)}${postedTime ? ` · ${escapeHtml(postedTime)}` : ''}</time>
                 </div>
             </div>
         </button>`;
@@ -646,7 +681,7 @@
                 <div class="discussion-msg__bubble">
                     ${bodyBlock}
                     ${buildAttachmentsHtml(topic.attachments || [])}
-                    <span class="discussion-msg__time">${escapeHtml(topic.created_at_human || 'just now')}</span>
+                    <span class="discussion-msg__time">${escapeHtml(formatMessageTimestamp(topic))}</span>
                 </div>
                 ${buildReactionsMenuHtml('DiscussionTopic', topic.id, topicReactUrl(topic.id), topic.reaction_counts || {}, topic.user_reactions || [])}
             </div>
@@ -670,7 +705,7 @@
                 <div class="discussion-msg__bubble">
                     ${bodyBlock}
                     ${buildAttachmentsHtml(reply.attachments || [])}
-                    <span class="discussion-msg__time">${escapeHtml(reply.created_at_human || 'just now')}</span>
+                    <span class="discussion-msg__time">${escapeHtml(formatMessageTimestamp(reply))}</span>
                 </div>
                 ${buildReactionsMenuHtml('DiscussionReply', reply.id, replyReactUrl(reply.id), reply.reaction_counts || {}, reply.user_reactions || [])}
             </div>
@@ -692,6 +727,13 @@
         }
 
         els.topicList.innerHTML = topics.map(buildTopicCard).join('');
+
+        const search = document.getElementById('discussionWidgetSearch');
+        if (search) {
+            search.placeholder = topics.length
+                ? `Search ${topics.length} chats`
+                : 'Search or start new chat';
+        }
     }
 
     function prependTopicCard(topic) {

@@ -16,7 +16,7 @@
     <div class="discussion-reply__content">
         <div class="discussion-reply__header">
             <span class="discussion-reply__author">{{ $authorName }}</span>
-            <small class="discussion-reply-time">{{ $reply->created_at->diffForHumans() }}</small>
+            <small class="discussion-reply-time">{{ $reply->created_at->format('d M Y, h:i A') }}</small>
         </div>
         <div class="discussion-msg__bubble-wrap">
             @if($reply->body || ! empty($reply->attachments))

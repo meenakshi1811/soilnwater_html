@@ -611,15 +611,34 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
     text-overflow: ellipsis;
 }
 
-.discussion-widget-topic__time {
+.discussion-widget-topic__time,
+.discussion-widget-topic__date {
     font-size: 0.72rem;
     color: var(--wa-text-secondary);
     white-space: nowrap;
     flex-shrink: 0;
 }
 
-.discussion-widget-topic--unread .discussion-widget-topic__time {
+.discussion-widget-topic--unread .discussion-widget-topic__time,
+.discussion-widget-topic--unread .discussion-widget-topic__date {
     color: var(--wa-unread);
+}
+
+.discussion-widget-topic__meta {
+    margin-top: 4px;
+}
+
+.discussion-widget-topic__author {
+    font-size: 0.75rem;
+    color: var(--wa-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.discussion-widget-topic__date {
+    margin-left: auto;
+    text-align: right;
 }
 
 .discussion-widget-topic__excerpt {
@@ -656,8 +675,7 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
 
 .discussion-widget-topic__meta-inline,
 .discussion-widget-topic__badge,
-.discussion-widget-topic__head,
-.discussion-widget-topic__meta { display: none !important; }
+.discussion-widget-topic__head { display: none !important; }
 
 /* ─── Avatars ─────────────────────────────────────────────────────────────── */
 
@@ -1463,6 +1481,17 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
 }
 
 .discussion-topic-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--wa-text-secondary);
+}
+
+.discussion-topic-meta .discussion-widget-topic__date {
+    margin-left: auto;
+}
     display: none;
 }
 

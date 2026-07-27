@@ -193,6 +193,7 @@ class DiscussionModuleTest extends TestCase
             ->assertOk()
             ->assertJsonPath('topics.0.id', $topic->id)
             ->assertJsonPath('topics.0.title', 'Widget topic')
+            ->assertJsonPath('topics.0.created_at_date', $topic->created_at->format('d M Y'))
             ->assertJsonStructure(['topics', 'can_pin', 'global_unread', 'meta']);
     }
 

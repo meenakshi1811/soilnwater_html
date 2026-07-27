@@ -47,7 +47,7 @@
                     <span class="discussion-avatar" aria-hidden="true">{{ $authorInitials ?: 'M' }}</span>
                     <div>
                         <div class="discussion-thread-card__author-name">{{ $authorName }}</div>
-                        <div class="discussion-thread-card__author-time">{{ $topic->created_at->diffForHumans() }}</div>
+                        <div class="discussion-thread-card__author-time">{{ $topic->created_at->format('d M Y, h:i A') }}</div>
                     </div>
                 </div>
                 @if($canPin)

@@ -356,6 +356,37 @@
         </div>`;
     }
 
+    function formatPostedDate(item) {
+        if (item?.created_at_date) {
+            return item.created_at_date;
+        }
+
+        if (!item?.created_at) {
+            return item?.created_at_human || '';
+        }
+
+        try {
+            return new Date(item.created_at).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+            });
+        } catch (error) {
+            return item.created_at_human || '';
+        }
+    }
+
+    function formatMessageTimestamp(item) {
+        const date = formatPostedDate(item);
+        const time = item?.created_at_time || '';
+
+        if (date && time) {
+            return `${date}, ${time}`;
+        }
+
+        return date || item?.created_at_human || 'just now';
+    }
+
     function buildReplyHtml(reply) {
         const bodyHtml = reply.body
             ? `<p class="discussion-reply-body">${nl2br(reply.body || '')}</p>`
@@ -367,7 +398,7 @@
             <div class="discussion-reply__content">
                 <div class="discussion-reply__header">
                     <span class="discussion-reply__author">${escapeHtml(authorName)}</span>
-                    <small class="discussion-reply-time">${escapeHtml(reply.created_at_human || 'just now')}</small>
+                    <small class="discussion-reply-time">${escapeHtml(formatMessageTimestamp(reply))}</small>
                 </div>
                 <div class="discussion-msg__bubble-wrap">
                     <div class="discussion-msg__bubble">
@@ -398,12 +429,13 @@
             <div class="discussion-topic-card__body">
                 <div class="discussion-topic-card__top">
                     <a href="${escapeHtml(topic.url)}" class="discussion-topic-link">${escapeHtml(topic.title)}</a>
-                    <span class="discussion-widget-topic__time">${escapeHtml(topic.created_at_human || 'just now')}</span>
+                    ${unreadBadge}
                 </div>
                 ${excerpt}
                 <div class="discussion-topic-meta">
                     <span>${escapeHtml(authorName)}</span>
                     <span>${topic.replies_count || 0} ${replyLabel}</span>
+                    <time class="discussion-widget-topic__date">${escapeHtml(formatMessageTimestamp(topic))}</time>
                 </div>
             </div>
             <div class="d-flex flex-column align-items-end gap-2">

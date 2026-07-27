@@ -81,6 +81,8 @@ class DiscussionReply extends Model
             'parent_id' => $this->parent_id,
             'created_at' => $this->created_at?->toIso8601String(),
             'created_at_human' => $this->created_at?->diffForHumans(),
+            'created_at_date' => $this->created_at?->format('d M Y'),
+            'created_at_time' => $this->created_at?->format('h:i A'),
             'author' => [
                 'id' => $this->user_id,
                 'name' => $this->displayAuthorName(),

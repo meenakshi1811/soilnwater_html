@@ -20,7 +20,9 @@
             <a href="{{ route('discussions.messenger', $topic) }}" class="discussion-topic-link">
                 {{ $topic->title }}
             </a>
-            <span class="discussion-widget-topic__time">{{ $topic->created_at->diffForHumans(null, true) }}</span>
+            @if($unreadCount > 0)
+                <span class="discussion-topic-unread-badge">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+            @endif
         </div>
         @if($topic->body)
             <p class="discussion-topic-excerpt">{{ Str::limit($topic->body, 120) }}</p>
@@ -28,6 +30,9 @@
         <div class="discussion-topic-meta">
             <span>{{ $authorName }}</span>
             <span>{{ $topic->replies_count }} {{ Str::plural('reply', $topic->replies_count) }}</span>
+            <time class="discussion-widget-topic__date" datetime="{{ $topic->created_at->toIso8601String() }}">
+                {{ $topic->created_at->format('d M Y') }} · {{ $topic->created_at->format('h:i A') }}
+            </time>
         </div>
     </div>
     <div class="d-flex flex-column align-items-end gap-2">
