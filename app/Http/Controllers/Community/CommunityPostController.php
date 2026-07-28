@@ -715,7 +715,6 @@ class CommunityPostController extends Controller
                 'slug',
                 'content_type',
                 'category',
-                'writing_purpose',
                 'meta',
                 'title',
                 'status',
@@ -726,7 +725,6 @@ class CommunityPostController extends Controller
 
         return DataTables::of($query)
             ->addColumn('type_label', fn (CommunityPost $post): string => e($post->typeLabel()))
-            ->addColumn('writing_purpose_display', fn (CommunityPost $post): string => e($post->writingPurposeLabel() ?? '—'))
             ->addColumn('category_display', fn (CommunityPost $post): string => e($post->listingCategoryLabel()))
             ->addColumn('trust_score_display', fn (CommunityPost $post): string => CommunityReportTrustScoreService::badgeHtml($post))
             ->addColumn('status_badge', fn (CommunityPost $post): string => '<span class="badge '.$post->statusBadgeClass().'">'.e($post->statusLabel()).'</span>')
@@ -2184,7 +2182,7 @@ class CommunityPostController extends Controller
 
         $rules = [
             'content_type' => ['required', Rule::in($typeKeys)],
-            'writing_purpose' => ['required', 'string', 'max:120'],
+            'writing_purpose' => ['nullable', 'string', 'max:120'],
             'category' => [
                 'required',
                 'string',

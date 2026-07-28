@@ -68,31 +68,6 @@
                     'competitions' => 'fa-trophy',
                     'discussions' => 'fa-comments',
                 ];
-                $writingPurposeNounByType = [
-                    'articles' => 'article',
-                    'reports' => 'report',
-                    'stories' => 'story',
-                    'news' => 'news item',
-                    'poetry' => 'poem',
-                    'biography' => 'biography',
-                    'autobiography' => 'autobiography',
-                    'discussions' => 'discussion',
-                    'competitions' => 'competition',
-                ];
-                if (isset($writingPurposeNounByType[$selectedContentType])) {
-                    $writingPurposeNoun = $writingPurposeNounByType[$selectedContentType];
-                } elseif (filled($selectedContentType)) {
-                    $writingPurposeNoun = strtolower((string) data_get($types, $selectedContentType.'.label', 'post'));
-                    if (
-                        str_ends_with($writingPurposeNoun, 's')
-                        && ! str_ends_with($writingPurposeNoun, 'ss')
-                        && ! in_array($writingPurposeNoun, ['news', 'business'], true)
-                    ) {
-                        $writingPurposeNoun = substr($writingPurposeNoun, 0, -1);
-                    }
-                } else {
-                    $writingPurposeNoun = 'post';
-                }
                 $postTypePillColors = \App\Support\CommunityContentTaxonomy::pillColors();
                 $postTypePillFallback = \App\Support\CommunityContentTaxonomy::pillColorFallback();
             @endphp
@@ -144,24 +119,6 @@
 
             <div class="col-12" id="communityPostDetails" @if(! filled($selectedContentType)) hidden @endif>
             <div class="row g-3">
-            <div class="col-12" id="writingPurposeFieldWrap">
-                <label class="form-label" for="writingPurpose" id="writingPurposeLabel">Why are you writing this {{ $writingPurposeNoun }}? <span class="text-danger">*</span></label>
-                <input type="text"
-                    name="writing_purpose"
-                    id="writingPurpose"
-                    class="form-control"
-                    list="writingPurposeOptions"
-                    value="{{ old('writing_purpose', $post->writing_purpose) }}"
-                    maxlength="120"
-                    placeholder="Select a reason or type your own"
-                    required>
-                <datalist id="writingPurposeOptions">
-                    @foreach(\App\Models\CommunityPost::WRITING_PURPOSE_OPTIONS as $purposeOption)
-                        <option value="{{ $purposeOption }}"></option>
-                    @endforeach
-                </datalist>
-                <small class="text-muted d-block mt-1">Pick one of the suggestions or enter your own reason.</small>
-            </div>
             <div class="col-md-6" id="categoryFieldWrap">
                 <label class="form-label" id="categoryLabel">Category <span class="text-danger">*</span></label>
                 <select name="category" id="categorySelect" class="form-select" data-selected="{{ old('category', $post->category) }}" required>
@@ -3422,53 +3379,6 @@ The mountains keep.</pre>
         return Boolean(section) && window.getComputedStyle(section).display !== 'none';
     }
 
-    function writingPurposeNounForType(selectedType) {
-        const known = {
-            articles: 'article',
-            reports: 'report',
-            stories: 'story',
-            news: 'news item',
-            poetry: 'poem',
-            biography: 'biography',
-            autobiography: 'autobiography',
-            discussions: 'discussion',
-            competitions: 'competition',
-        };
-
-        if (known[selectedType]) {
-            return known[selectedType];
-        }
-
-        const card = document.querySelector('.community-post-type-card[data-type="' + selectedType + '"]');
-        const option = document.querySelector('#contentType option[value="' + selectedType + '"]');
-        let noun = (
-            card?.querySelector('.community-post-type-card__label')?.textContent
-            || option?.textContent
-            || 'post'
-        ).trim().toLowerCase();
-
-        if (
-            noun.endsWith('s')
-            && !noun.endsWith('ss')
-            && noun !== 'news'
-            && noun !== 'business'
-        ) {
-            noun = noun.slice(0, -1);
-        }
-
-        return noun || 'post';
-    }
-
-    function syncWritingPurposeLabel(selectedType) {
-        const labelEl = document.getElementById('writingPurposeLabel');
-        if (!labelEl) {
-            return;
-        }
-
-        const noun = selectedType ? writingPurposeNounForType(selectedType) : 'post';
-        labelEl.innerHTML = 'Why are you writing this ' + noun + '? <span class="text-danger">*</span>';
-    }
-
     function syncContentTypePicker(selectedType) {
         document.querySelectorAll('.community-post-type-card').forEach((card) => {
             const isSelected = card.dataset.type === selectedType;
@@ -3486,8 +3396,6 @@ The mountains keep.</pre>
         if (emptyHint) {
             emptyHint.classList.toggle('d-none', hasType);
         }
-
-        syncWritingPurposeLabel(selectedType);
     }
 
     function scrollToCommunityPostDetails() {

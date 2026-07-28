@@ -69,10 +69,9 @@
             processing: true,
             serverSide: true,
             ajax: $('#myCommunityPostsTable').data('source-url'),
-            order: [[6, 'desc']],
+            order: [[5, 'desc']],
             columns: [
                 { data: 'title', name: 'title' },
-                { data: 'writing_purpose_display', name: 'writing_purpose' },
                 { data: 'type_label', name: 'content_type', orderable: false, searchable: false },
                 { data: 'category_display', name: 'category' },
                 { data: 'status_badge', name: 'status', orderable: false, searchable: false },

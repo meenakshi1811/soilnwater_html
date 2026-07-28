@@ -222,7 +222,6 @@
                 <thead>
                     <tr>
                         <th>Title</th>
-                        <th>Why writing</th>
                         <th>Type</th>
                     <th>Category</th>
                     <th>Status</th>
