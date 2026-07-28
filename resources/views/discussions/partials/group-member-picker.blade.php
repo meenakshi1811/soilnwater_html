@@ -1,14 +1,15 @@
 @php
     $prefix = $prefix ?? 'discussionWidget';
-    $pickerId = "{$prefix}GroupPick";
     $selectedId = "{$prefix}GroupSelected";
     $searchId = "{$prefix}GroupSearch";
     $listId = "{$prefix}GroupList";
     $nextId = "{$prefix}GroupNext";
+    $footerId = "{$prefix}GroupFooter";
+    $countId = "{$prefix}GroupCount";
     $loadingId = "{$prefix}GroupLoading";
 @endphp
 
-<section class="discussion-group-pick" id="{{ $pickerId }}" data-prefix="{{ $prefix }}">
+<section class="discussion-group-pick" data-prefix="{{ $prefix }}">
     <div class="discussion-group-pick__selected-wrap">
         <div class="discussion-group-pick__selected" id="{{ $selectedId }}" hidden></div>
     </div>
@@ -30,11 +31,14 @@
         </div>
         <div class="discussion-group-pick__list" id="{{ $listId }}" role="listbox" aria-label="Select group members"></div>
     </div>
-    <button type="button"
-            class="discussion-group-pick__next"
-            id="{{ $nextId }}"
-            hidden
-            aria-label="Continue to group details">
-        <i class="fa-solid fa-arrow-right"></i>
-    </button>
+    <div class="discussion-group-pick__footer" id="{{ $footerId }}" hidden>
+        <span class="discussion-group-pick__footer-count" id="{{ $countId }}"></span>
+        <button type="button"
+                class="discussion-group-pick__next"
+                id="{{ $nextId }}"
+                aria-label="Continue to group details">
+            <span class="discussion-group-pick__next-label">Next</span>
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </button>
+    </div>
 </section>

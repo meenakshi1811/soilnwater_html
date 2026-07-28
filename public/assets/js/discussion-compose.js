@@ -128,13 +128,23 @@
         }).join('');
     }
 
-    function updateNextButton(nextBtn, selectionMap) {
+    function updateNextButton(nextBtn, selectionMap, footerEl, countEl) {
+        const count = selectionMap.size;
+
+        if (footerEl) {
+            footerEl.hidden = count === 0;
+        }
+
+        if (countEl) {
+            countEl.textContent = count === 1
+                ? '1 participant selected'
+                : `${count} participants selected`;
+        }
+
         if (!nextBtn) {
             return;
         }
 
-        const count = selectionMap.size;
-        nextBtn.hidden = count === 0;
         nextBtn.setAttribute('aria-label', count > 0 ? `Continue with ${count} participants` : 'Continue');
     }
 
@@ -145,6 +155,8 @@
         const searchInput = document.getElementById(`${prefix}GroupSearch`);
         const listEl = document.getElementById(`${prefix}GroupList`);
         const nextBtn = document.getElementById(`${prefix}GroupNext`);
+        const footerEl = document.getElementById(`${prefix}GroupFooter`);
+        const countEl = document.getElementById(`${prefix}GroupCount`);
         const loadingEl = document.getElementById(`${prefix}GroupLoading`);
         let usersCache = [];
         let searchTimer = null;
@@ -152,7 +164,7 @@
         function refreshUi() {
             renderSelectedStrip(selectedEl, selectionMap);
             renderGroupPickList(listEl, usersCache, selectionMap);
-            updateNextButton(nextBtn, selectionMap);
+            updateNextButton(nextBtn, selectionMap, footerEl, countEl);
 
             if (typeof options.onSelectionChange === 'function') {
                 options.onSelectionChange(selectionMap);
