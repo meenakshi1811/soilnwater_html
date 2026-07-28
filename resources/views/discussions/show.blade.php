@@ -88,11 +88,27 @@
                 <label class="form-label" for="replyBody">Write a reply</label>
                 <textarea name="body" id="replyBody" class="form-control" rows="3" maxlength="5000" placeholder="Share your thoughts…"></textarea>
                 <div class="discussion-composer-media mt-3">
-                    <label class="discussion-media-btn mb-0" for="replyAttachments">
-                        <i class="fa-solid fa-image"></i>
-                        Add photo or video
-                    </label>
-                    <input type="file" id="replyAttachments" name="attachments[]" class="visually-hidden" accept="image/*,video/mp4,video/webm" multiple>
+                    <div class="discussion-widget__attach-group discussion-widget__attach-group--stack">
+                        <button type="button"
+                                class="discussion-widget__attach-type-btn"
+                                id="replyAttachImageBtn">
+                            <i class="fa-solid fa-image"></i>
+                            <span>Image</span>
+                        </button>
+                        <button type="button"
+                                class="discussion-widget__attach-type-btn"
+                                id="replyAttachVideoBtn">
+                            <i class="fa-solid fa-video"></i>
+                            <span>Video</span>
+                        </button>
+                        <button type="button"
+                                class="discussion-widget__attach-type-btn"
+                                id="replyAttachDocumentBtn">
+                            <i class="fa-solid fa-file-lines"></i>
+                            <span>Document</span>
+                        </button>
+                    </div>
+                    <input type="file" id="replyAttachments" name="attachments[]" class="visually-hidden" multiple>
                     <div class="discussion-media-preview" id="replyAttachmentsPreview" hidden></div>
                 </div>
                 <button type="submit" class="discussion-btn mt-3">

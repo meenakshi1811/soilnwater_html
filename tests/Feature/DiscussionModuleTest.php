@@ -263,4 +263,85 @@ class DiscussionModuleTest extends TestCase
             ->assertJsonPath('topic.replies.0.body', 'First reply')
             ->assertJsonStructure(['topic' => ['replies', 'user_reactions'], 'can_pin']);
     }
+
+    public function test_group_chat_is_only_visible_to_creator_and_members(): void
+    {
+        $creator = User::factory()->create(['email_verified_at' => now()]);
+        $member = User::factory()->create(['email_verified_at' => now()]);
+        $outsider = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($creator)->postJson(route('discussions.store'), [
+            'title' => 'Private group',
+            'body' => 'Hello team',
+            'is_group' => true,
+            'member_ids' => [$member->id],
+        ])->assertOk();
+
+        $topic = DiscussionTopic::query()->firstOrFail();
+        $this->assertTrue($topic->is_group);
+        $this->assertTrue($topic->canAccess($creator));
+        $this->assertTrue($topic->canAccess($member));
+        $this->assertFalse($topic->canAccess($outsider));
+
+        $this->actingAs($creator)
+            ->getJson(route('discussions.index'))
+            ->assertOk()
+            ->assertJsonPath('topics.0.id', $topic->id);
+
+        $this->actingAs($member)
+            ->getJson(route('discussions.index'))
+            ->assertOk()
+            ->assertJsonPath('topics.0.id', $topic->id);
+
+        $this->actingAs($outsider)
+            ->getJson(route('discussions.index'))
+            ->assertOk()
+            ->assertJsonCount(0, 'topics');
+
+        $this->actingAs($outsider)
+            ->getJson(route('discussions.show', $topic))
+            ->assertForbidden();
+
+        $this->actingAs($member)
+            ->postJson(route('discussions.replies.store', $topic), [
+                'body' => 'Member reply',
+            ])
+            ->assertOk();
+
+        $this->actingAs($outsider)
+            ->postJson(route('discussions.replies.store', $topic), [
+                'body' => 'Should fail',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_group_creator_can_add_members(): void
+    {
+        $creator = User::factory()->create(['email_verified_at' => now()]);
+        $existingMember = User::factory()->create(['email_verified_at' => now()]);
+        $newMember = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($creator)->postJson(route('discussions.store'), [
+            'title' => 'Operations group',
+            'is_group' => true,
+            'member_ids' => [$existingMember->id],
+        ])->assertOk();
+
+        $topic = DiscussionTopic::query()->firstOrFail();
+
+        $this->actingAs($creator)
+            ->postJson(route('discussions.members.store', $topic), [
+                'member_ids' => [$newMember->id],
+            ])
+            ->assertOk()
+            ->assertJsonFragment(['message' => 'Members added.']);
+
+        $this->assertTrue($topic->fresh()->canAccess($newMember));
+
+        $this->actingAs($existingMember)
+            ->postJson(route('discussions.members.store', $topic), [
+                'member_ids' => [User::factory()->create(['email_verified_at' => now()])->id],
+            ])
+            ->assertForbidden();
+    }
 }

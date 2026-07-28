@@ -586,7 +586,7 @@ class UserAdController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:140',
-            'short_description' => 'nullable|string|max:300',
+            'short_description' => 'nullable|string|max:1000',
             'category_ids' => ['required', 'array', 'min:1'],
             'category_ids.*' => ['required', Rule::exists('categories', 'id')->where(fn ($query) => $query->whereNull('parent_id'))],
             'subcategory_ids' => ['required', 'array', 'min:1'],
@@ -865,7 +865,7 @@ class UserAdController extends Controller
 
         $validated = $request->validate(array_merge([
             'title' => 'required|string|max:140',
-            'short_description' => 'nullable|string|max:300',
+            'short_description' => 'nullable|string|max:1000',
             'custom_html' => 'nullable|string',
             'ad_image_input_type' => 'nullable|in:1,2',
             'generated_image_data' => ['required', 'string', 'starts_with:data:image/png;base64,'],

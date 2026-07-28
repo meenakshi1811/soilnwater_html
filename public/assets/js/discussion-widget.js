@@ -29,6 +29,12 @@
         replyBody: document.getElementById('discussionWidgetReplyBody'),
         newTopicForm: document.getElementById('discussionWidgetNewTopicForm'),
         pinBtn: document.getElementById('discussionWidgetPinBtn'),
+        membersBtn: document.getElementById('discussionWidgetMembersBtn'),
+        membersModal: document.getElementById('discussionWidgetMembersModal'),
+        membersList: document.getElementById('discussionWidgetMembersList'),
+        membersAddSection: document.getElementById('discussionWidgetMembersAddSection'),
+        membersAddBtn: document.getElementById('discussionWidgetMembersAddBtn'),
+        membersCloseBtn: document.getElementById('discussionWidgetMembersCloseBtn'),
         newTopicBtn: document.getElementById('discussionWidgetNewTopicBtn'),
         closeBtn: document.getElementById('discussionWidgetCloseBtn'),
         backBtn: document.getElementById('discussionWidgetBackBtn'),
@@ -58,6 +64,12 @@
     let topicsLoaded = false;
     let currentTopic = null;
     let openRequestId = 0;
+    const composeMemberSelection = new Map();
+    const modalMemberSelection = new Map();
+    let memberSearchTimer = null;
+    const attachmentHelpersRef = () => window.soilnwaterDiscussionAttachments || {};
+    let replyAttachmentPool = null;
+    let topicAttachmentPool = null;
 
     function csrfToken() {
         return config.csrfToken
@@ -125,6 +137,262 @@
 
     function avatarHtml(name, extraClass = '') {
         return `<span class="discussion-avatar ${extraClass}" aria-hidden="true">${escapeHtml(avatarInitials(name))}</span>`;
+    }
+
+    function canAccessTopic(topic) {
+        if (!topic?.is_group) {
+            return true;
+        }
+
+        const userId = Number(config.currentUserId);
+        if (Number(topic.author?.id) === userId) {
+            return true;
+        }
+
+        return (topic.member_ids || []).map(Number).includes(userId);
+    }
+
+    function topicListAvatarHtml(topic) {
+        if (topic?.is_group) {
+            return '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>';
+        }
+
+        return '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--topic" aria-hidden="true"><i class="fa-solid fa-hashtag"></i></span>';
+    }
+
+    function topicSubtitle(topic) {
+        const messageCount = `${(topic.replies_count || 0) + 1} messages`;
+
+        if (topic?.is_group) {
+            const memberCount = topic.members_count ?? topic.members?.length ?? topic.member_ids?.length ?? 0;
+
+            return `${memberCount} members · ${messageCount}`;
+        }
+
+        return messageCount;
+    }
+
+    function setHeaderTopicAvatar(topic) {
+        if (!els.headerAvatar) {
+            return;
+        }
+
+        if (topic?.is_group) {
+            els.headerAvatar.className = 'discussion-widget__brand-mark discussion-avatar discussion-avatar--icon discussion-avatar--group';
+            els.headerAvatar.innerHTML = '<i class="fa-solid fa-users"></i>';
+
+            return;
+        }
+
+        if (topic && topic.is_group === false) {
+            els.headerAvatar.className = 'discussion-widget__brand-mark discussion-avatar discussion-avatar--icon discussion-avatar--topic';
+            els.headerAvatar.innerHTML = '<i class="fa-solid fa-hashtag"></i>';
+
+            return;
+        }
+
+        setHeaderAvatar(topic?.author?.name || topic?.title || 'Member');
+    }
+
+    function updateMembersButton(topic = currentTopic) {
+        if (!els.membersBtn) {
+            return;
+        }
+
+        const show = Boolean(topic?.is_group && topic?.can_manage_members);
+        els.membersBtn.hidden = !show;
+        els.membersBtn.dataset.topicId = topic?.id ? String(topic.id) : '';
+    }
+
+    function renderMemberChips(containerId, selectionMap) {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            return;
+        }
+
+        container.innerHTML = Array.from(selectionMap.values()).map((user) => {
+            return `<span class="discussion-widget__member-chip" data-user-id="${user.id}">
+                ${escapeHtml(user.name)}
+                <button type="button" aria-label="Remove ${escapeHtml(user.name)}">&times;</button>
+            </span>`;
+        }).join('');
+    }
+
+    function bindMemberChipRemoval(containerId, selectionMap) {
+        const container = document.getElementById(containerId);
+        if (!container) {
+            return;
+        }
+
+        container.addEventListener('click', (event) => {
+            const button = event.target.closest('button');
+            const chip = event.target.closest('.discussion-widget__member-chip');
+            if (!button || !chip) {
+                return;
+            }
+
+            selectionMap.delete(Number(chip.dataset.userId));
+            renderMemberChips(containerId, selectionMap);
+        });
+    }
+
+    async function searchUsers(query) {
+        if (!config.routes?.usersSearch) {
+            return [];
+        }
+
+        const url = new URL(config.routes.usersSearch, window.location.origin);
+        url.searchParams.set('q', query);
+
+        const data = await requestJson(url.toString(), { method: 'GET' });
+
+        return data.users || [];
+    }
+
+    function renderMemberSearchResults(resultsEl, users, selectionMap, chipsContainerId) {
+        if (!resultsEl) {
+            return;
+        }
+
+        if (!users.length) {
+            resultsEl.hidden = true;
+            resultsEl.innerHTML = '';
+
+            return;
+        }
+
+        resultsEl.hidden = false;
+        resultsEl.innerHTML = users.map((user) => {
+            const selected = selectionMap.has(Number(user.id));
+
+            return `<button type="button" class="discussion-widget__member-result ${selected ? 'is-selected' : ''}" data-user-id="${user.id}" data-user-name="${escapeHtml(user.name)}" ${selected ? 'disabled' : ''}>
+                <strong>${escapeHtml(user.name)}</strong>
+                <span>${escapeHtml(user.email || '')}</span>
+            </button>`;
+        }).join('');
+
+        resultsEl.querySelectorAll('.discussion-widget__member-result:not([disabled])').forEach((button) => {
+            button.addEventListener('click', () => {
+                selectionMap.set(Number(button.dataset.userId), {
+                    id: Number(button.dataset.userId),
+                    name: button.dataset.userName,
+                });
+                renderMemberChips(chipsContainerId, selectionMap);
+                resultsEl.hidden = true;
+                resultsEl.innerHTML = '';
+                const input = resultsEl.previousElementSibling;
+                if (input) {
+                    input.value = '';
+                }
+            });
+        });
+    }
+
+    function bindMemberSearchInput(inputId, resultsId, selectionMap, chipsContainerId) {
+        const input = document.getElementById(inputId);
+        const resultsEl = document.getElementById(resultsId);
+        if (!input || !resultsEl) {
+            return;
+        }
+
+        input.addEventListener('input', () => {
+            clearTimeout(memberSearchTimer);
+            const query = input.value.trim();
+
+            if (query.length < 2) {
+                resultsEl.hidden = true;
+                resultsEl.innerHTML = '';
+
+                return;
+            }
+
+            memberSearchTimer = window.setTimeout(async () => {
+                try {
+                    const users = await searchUsers(query);
+                    renderMemberSearchResults(resultsEl, users, selectionMap, chipsContainerId);
+                } catch (error) {
+                    notify('error', error.message);
+                }
+            }, 250);
+        });
+    }
+
+    function membersUrl(topicId) {
+        return (config.routes?.topicMembersTemplate || '/discussions/__TOPIC__/members')
+            .replace('__TOPIC__', String(topicId));
+    }
+
+    function membersStoreUrl(topicId) {
+        return (config.routes?.topicMembersStoreTemplate || '/discussions/__TOPIC__/members')
+            .replace('__TOPIC__', String(topicId));
+    }
+
+    function renderMembersList(members = []) {
+        if (!els.membersList) {
+            return;
+        }
+
+        if (!members.length) {
+            els.membersList.innerHTML = '<p class="discussion-widget__members-empty">No members yet.</p>';
+
+            return;
+        }
+
+        els.membersList.innerHTML = members.map((member) => {
+            const icon = member.is_owner
+                ? '<i class="fa-solid fa-crown" title="Group creator"></i>'
+                : '<i class="fa-solid fa-user"></i>';
+
+            return `<div class="discussion-widget__member-item">
+                <span class="discussion-widget__member-item-icon">${icon}</span>
+                <div>
+                    <strong>${escapeHtml(member.name)}</strong>
+                    <span>${member.is_owner ? 'Creator' : 'Member'}</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async function openMembersModal() {
+        if (!currentTopic?.id || !els.membersModal) {
+            return;
+        }
+
+        modalMemberSelection.clear();
+        renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
+
+        try {
+            const data = await requestJson(membersUrl(currentTopic.id), { method: 'GET' });
+            renderMembersList(data.members || []);
+            if (els.membersAddSection) {
+                els.membersAddSection.hidden = !data.can_manage_members;
+            }
+            els.membersModal.hidden = false;
+        } catch (error) {
+            notify('error', error.message);
+        }
+    }
+
+    function closeMembersModal() {
+        modalMemberSelection.clear();
+        renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
+        if (els.membersModal) {
+            els.membersModal.hidden = true;
+        }
+    }
+
+    function syncComposeChatType() {
+        const isGroup = els.newTopicForm?.querySelector('input[name="is_group"]:checked')?.value === '1';
+        const field = document.getElementById('discussionWidgetMembersField');
+
+        if (field) {
+            field.hidden = !isGroup;
+        }
+
+        if (!isGroup) {
+            composeMemberSelection.clear();
+            renderMemberChips('discussionWidgetMemberChips', composeMemberSelection);
+        }
     }
 
     function formatUnreadCount(count) {
@@ -230,66 +498,18 @@
         }
     }
 
-    function buildAttachmentsHtml(attachments) {
-        if (!attachments?.length) {
-            return '';
-        }
-
-        return `<div class="discussion-attachments">${attachments.map((attachment) => {
-            if (attachment.kind === 'video') {
-                return `<video class="discussion-attachments__video" controls preload="metadata" src="${escapeHtml(attachment.url || '')}"></video>`;
-            }
-
-            return `<a class="discussion-attachments__image-link" href="${escapeHtml(attachment.url || '#')}" target="_blank" rel="noopener">
-                <img class="discussion-attachments__image" src="${escapeHtml(attachment.url || '')}" alt="${escapeHtml(attachment.name || 'Attachment')}" loading="lazy">
-            </a>`;
-        }).join('')}</div>`;
+    function attachmentHelpers() {
+        return window.soilnwaterDiscussionAttachments || {};
     }
 
-    function bindMediaPreview(input, previewEl) {
-        if (!input || !previewEl) {
-            return;
+    function buildAttachmentsHtml(attachments) {
+        const helpers = attachmentHelpers();
+
+        if (typeof helpers.buildAttachmentsHtml === 'function') {
+            return helpers.buildAttachmentsHtml(attachments, escapeHtml);
         }
 
-        input.addEventListener('change', () => {
-            previewEl.innerHTML = '';
-            previewEl.hidden = true;
-
-            Array.from(input.files || []).forEach((file, index) => {
-                previewEl.hidden = false;
-                const item = document.createElement('div');
-                item.className = 'discussion-media-preview__item';
-
-                if (file.type.startsWith('video/')) {
-                    const video = document.createElement('video');
-                    video.src = URL.createObjectURL(file);
-                    video.muted = true;
-                    item.appendChild(video);
-                } else {
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(file);
-                    img.alt = file.name;
-                    item.appendChild(img);
-                }
-
-                const remove = document.createElement('button');
-                remove.type = 'button';
-                remove.className = 'discussion-media-preview__remove';
-                remove.innerHTML = '&times;';
-                remove.addEventListener('click', () => {
-                    const transfer = new DataTransfer();
-                    Array.from(input.files || []).forEach((existing, existingIndex) => {
-                        if (existingIndex !== index) {
-                            transfer.items.add(existing);
-                        }
-                    });
-                    input.files = transfer.files;
-                    input.dispatchEvent(new Event('change'));
-                });
-                item.appendChild(remove);
-                previewEl.appendChild(item);
-            });
-        });
+        return '';
     }
 
     async function requestFormData(url, formData, method = 'POST') {
@@ -399,6 +619,9 @@
         }
         if (els.fullPageBtn) {
             els.fullPageBtn.hidden = isPageMode;
+        }
+        if (els.membersBtn) {
+            els.membersBtn.hidden = !isThread || !currentTopic?.is_group || !currentTopic?.can_manage_members;
         }
         if (els.headerAvatar && isTopics) {
             els.headerAvatar.innerHTML = '<i class="fa-solid fa-comments"></i>';
@@ -603,7 +826,7 @@
         const postedTime = topic.created_at_time || '';
 
         return `<button type="button" class="discussion-widget-topic ${pinnedClass} ${unreadClass}" data-topic-id="${topic.id}" data-search="${escapeHtml((topic.title + ' ' + (topic.body || '') + ' ' + authorName).toLowerCase())}" id="discussion-widget-topic-${topic.id}">
-            ${avatarHtml(authorName)}
+            ${topicListAvatarHtml(topic)}
             <div class="discussion-widget-topic__content">
                 <div class="discussion-widget-topic__row">
                     <h3 class="discussion-widget-topic__title">${escapeHtml(topic.title)}</h3>
@@ -613,7 +836,7 @@
                     <p class="discussion-widget-topic__excerpt">${excerpt}</p>
                 </div>
                 <div class="discussion-widget-topic__row discussion-widget-topic__meta">
-                    <span class="discussion-widget-topic__author">${escapeHtml(authorName)}</span>
+                    <span class="discussion-widget-topic__author">${topic.is_group ? `<i class="fa-solid fa-users"></i> Group` : `<i class="fa-solid fa-hashtag"></i> Topic`} · ${escapeHtml(authorName)}</span>
                     <time class="discussion-widget-topic__date" datetime="${escapeHtml(topic.created_at || '')}">${escapeHtml(postedDate)}${postedTime ? ` · ${escapeHtml(postedTime)}` : ''}</time>
                 </div>
             </div>
@@ -834,6 +1057,7 @@
         if (els.pinBtn) {
             els.pinBtn.hidden = !config.canPin;
         }
+        updateMembersButton(null);
 
         try {
             const data = await requestJson(topicUrl(topicId));
@@ -846,8 +1070,9 @@
             config.canPin = Boolean(data.can_pin);
             config.topicId = topic.id;
 
-            setHeaderTitle(topic.title, `${(topic.replies_count || 0) + 1} messages`);
-            setHeaderAvatar(topic.author?.name || topic.title);
+            setHeaderTitle(topic.title, topicSubtitle(topic));
+            setHeaderTopicAvatar(topic);
+            updateMembersButton(topic);
 
             updatePinButton(Boolean(topic.is_pinned));
             if (els.pinBtn) {
@@ -908,6 +1133,7 @@
 
         setHeaderTitle('Chats', `${config.globalUnread || 0} unread`);
         resetHeaderAvatar();
+        updateMembersButton(null);
 
         showPanel('topics');
         loadTopics();
@@ -916,9 +1142,11 @@
 
     function showCompose() {
         showPanel('compose');
-        setHeaderTitle('New chat', 'Create a group conversation');
+        setHeaderTitle('New chat', 'Create a public topic or private group');
         resetHeaderAvatar();
+        updateMembersButton(null);
         setComposerVisible(false);
+        syncComposeChatType();
         document.getElementById('discussionWidgetTopicTitle')?.focus();
     }
 
@@ -954,6 +1182,46 @@
         showTopics();
     });
     els.newTopicBtn?.addEventListener('click', showCompose);
+    els.membersBtn?.addEventListener('click', openMembersModal);
+    els.membersCloseBtn?.addEventListener('click', closeMembersModal);
+    els.membersModal?.addEventListener('click', (event) => {
+        if (event.target === els.membersModal) {
+            closeMembersModal();
+        }
+    });
+    els.membersAddBtn?.addEventListener('click', async () => {
+        if (!currentTopic?.id || modalMemberSelection.size === 0) {
+            return;
+        }
+
+        els.membersAddBtn.disabled = true;
+
+        try {
+            const data = await requestJson(membersStoreUrl(currentTopic.id), {
+                method: 'POST',
+                body: JSON.stringify({
+                    member_ids: Array.from(modalMemberSelection.keys()),
+                }),
+            });
+
+            renderMembersList(data.members || []);
+            modalMemberSelection.clear();
+            renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
+            notify('success', data.message || 'Members added.');
+        } catch (error) {
+            notify('error', error.message);
+        } finally {
+            els.membersAddBtn.disabled = false;
+        }
+    });
+
+    els.newTopicForm?.querySelectorAll('input[name="is_group"]').forEach((input) => {
+        input.addEventListener('change', syncComposeChatType);
+    });
+    bindMemberChipRemoval('discussionWidgetMemberChips', composeMemberSelection);
+    bindMemberChipRemoval('discussionWidgetMembersAddChips', modalMemberSelection);
+    bindMemberSearchInput('discussionWidgetMemberSearch', 'discussionWidgetMemberResults', composeMemberSelection, 'discussionWidgetMemberChips');
+    bindMemberSearchInput('discussionWidgetMembersAddSearch', 'discussionWidgetMembersAddResults', modalMemberSelection, 'discussionWidgetMembersAddChips');
 
     els.topicList?.addEventListener('click', (event) => {
         const card = event.target.closest('[data-topic-id]');
@@ -974,8 +1242,7 @@
         }
 
         const body = els.replyBody?.value?.trim() || '';
-        const fileInput = document.getElementById('discussionWidgetReplyAttachments');
-        const hasFiles = fileInput?.files?.length > 0;
+        const hasFiles = replyAttachmentPool?.files?.length > 0;
 
         if (!body && !hasFiles) {
             return;
@@ -991,9 +1258,7 @@
             if (body) {
                 formData.append('body', body);
             }
-            Array.from(fileInput?.files || []).forEach((file) => {
-                formData.append('attachments[]', file);
-            });
+            attachmentHelpersRef().appendPoolToFormData?.(formData, replyAttachmentPool);
 
             const data = await requestFormData(repliesUrl(currentTopic.id), formData);
 
@@ -1005,14 +1270,10 @@
                 els.replyBody.value = '';
                 autoResizeTextarea(els.replyBody);
             }
-            if (fileInput) {
-                fileInput.value = '';
-            }
-            const preview = document.getElementById('discussionWidgetReplyPreview');
-            if (preview) {
-                preview.innerHTML = '';
-                preview.hidden = true;
-            }
+            attachmentHelpersRef().clearAttachmentPool?.(
+                replyAttachmentPool,
+                document.getElementById('discussionWidgetReplyPreview')
+            );
 
             notify('success', data.message || 'Reply posted.');
         } catch (error) {
@@ -1030,7 +1291,6 @@
         const submit = els.newTopicForm.querySelector('[type="submit"]');
         const title = els.newTopicForm.querySelector('[name="title"]')?.value?.trim() || '';
         const body = els.newTopicForm.querySelector('[name="body"]')?.value?.trim() || '';
-        const fileInput = document.getElementById('discussionWidgetTopicAttachments');
 
         if (submit) {
             submit.disabled = true;
@@ -1039,25 +1299,27 @@
         try {
             const formData = new FormData();
             formData.append('title', title);
+            const isGroup = els.newTopicForm.querySelector('input[name="is_group"]:checked')?.value === '1';
+            formData.append('is_group', isGroup ? '1' : '0');
             if (body) {
                 formData.append('body', body);
             }
-            Array.from(fileInput?.files || []).forEach((file) => {
-                formData.append('attachments[]', file);
+            Array.from(composeMemberSelection.values()).forEach((member) => {
+                formData.append('member_ids[]', String(member.id));
             });
+            attachmentHelpersRef().appendPoolToFormData?.(formData, topicAttachmentPool);
 
             const data = await requestFormData(els.newTopicForm.dataset.url || config.routes.discussionsStore, formData);
 
             notify('success', data.message || 'Topic created.');
             els.newTopicForm.reset();
-            if (fileInput) {
-                fileInput.value = '';
-            }
-            const preview = document.getElementById('discussionWidgetTopicPreview');
-            if (preview) {
-                preview.innerHTML = '';
-                preview.hidden = true;
-            }
+            composeMemberSelection.clear();
+            renderMemberChips('discussionWidgetMemberChips', composeMemberSelection);
+            syncComposeChatType();
+            attachmentHelpersRef().clearAttachmentPool?.(
+                topicAttachmentPool,
+                document.getElementById('discussionWidgetTopicPreview')
+            );
             topicsLoaded = false;
 
             if (data.topic?.id) {
@@ -1111,6 +1373,10 @@
     window.soilnwaterDiscussionUi = {
         ...previousUi,
         prependTopic(topic) {
+            if (!canAccessTopic(topic)) {
+                return;
+            }
+
             previousUi.prependTopic?.(topic);
             prependTopicCard(topic);
             if (topic.author?.id !== config.currentUserId) {
@@ -1191,12 +1457,17 @@
             markTopicRead(topicId);
         },
         prependTopicWithUnread(topic) {
+            if (!canAccessTopic(topic)) {
+                return;
+            }
+
             previousUi.prependTopic?.(topic);
             prependTopicCard(topic);
             if (topic.author?.id !== config.currentUserId) {
                 incrementTopicUnread(topic.id, 1);
             }
         },
+        canAccessTopic,
     };
 
     document.getElementById('discussionWidgetSearch')?.addEventListener('input', (event) => {
@@ -1207,8 +1478,20 @@
         });
     });
 
-    bindMediaPreview(document.getElementById('discussionWidgetReplyAttachments'), document.getElementById('discussionWidgetReplyPreview'));
-    bindMediaPreview(document.getElementById('discussionWidgetTopicAttachments'), document.getElementById('discussionWidgetTopicPreview'));
+    replyAttachmentPool = attachmentHelpersRef().bindAttachmentPicker?.({
+        input: document.getElementById('discussionWidgetReplyAttachments'),
+        previewEl: document.getElementById('discussionWidgetReplyPreview'),
+        imageButton: document.getElementById('discussionWidgetReplyAttachImageBtn'),
+        videoButton: document.getElementById('discussionWidgetReplyAttachVideoBtn'),
+        documentButton: document.getElementById('discussionWidgetReplyAttachDocumentBtn'),
+    });
+    topicAttachmentPool = attachmentHelpersRef().bindAttachmentPicker?.({
+        input: document.getElementById('discussionWidgetTopicAttachments'),
+        previewEl: document.getElementById('discussionWidgetTopicPreview'),
+        imageButton: document.getElementById('discussionWidgetTopicAttachImageBtn'),
+        videoButton: document.getElementById('discussionWidgetTopicAttachVideoBtn'),
+        documentButton: document.getElementById('discussionWidgetTopicAttachDocumentBtn'),
+    });
     loadUnreadSummary();
     restoreWidgetSize();
     updateFullPageLink(null);

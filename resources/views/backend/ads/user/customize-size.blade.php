@@ -181,7 +181,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Short Description</label>
-                    <textarea name="short_description" class="form-control" rows="2" maxlength="300" placeholder="Write a short summary for this ad (max 300 characters)...">{{ old('short_description', $ad->short_description ?? '') }}</textarea>
+                    <textarea name="short_description" class="form-control" rows="4" maxlength="1000" placeholder="Write a short summary for this ad (max 1000 characters)...">{{ old('short_description', $ad->short_description ?? '') }}</textarea>
                 </div>
                 @if(! $isSponsoredSize)
                 <div class="col-md-6">

@@ -7,6 +7,7 @@ use App\Events\Discussion\TopicPinned;
 use App\Http\Controllers\Controller;
 use App\Models\DiscussionTopic;
 use App\Services\DiscussionReadService;
+use App\Support\DiscussionAttachments;
 use App\Support\DiscussionFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -24,8 +25,9 @@ class DiscussionTopicController extends Controller
 
         if ($request->expectsJson()) {
             $topics = DiscussionTopic::query()
+                ->visibleTo($request->user())
                 ->with('user')
-                ->withCount('reactions')
+                ->withCount(['reactions', 'members'])
                 ->orderByDesc('is_pinned')
                 ->orderByDesc('pinned_at')
                 ->latest()
@@ -51,8 +53,9 @@ class DiscussionTopicController extends Controller
         }
 
         $topics = DiscussionTopic::query()
+            ->visibleTo($request->user())
             ->with('user')
-            ->withCount('reactions')
+            ->withCount(['reactions', 'members'])
             ->orderByDesc('is_pinned')
             ->orderByDesc('pinned_at')
             ->latest()
@@ -77,8 +80,11 @@ class DiscussionTopicController extends Controller
 
     public function show(Request $request, DiscussionTopic $topic): View|JsonResponse
     {
+        $this->authorize('view', $topic);
+
         $topic->load([
             'user',
+            'members',
             'replies.user',
             'replies.reactions',
             'reactions',
@@ -94,6 +100,7 @@ class DiscussionTopicController extends Controller
                 'topic' => array_merge($topic->toBroadcastArray(), [
                     'reaction_counts' => $topic->reactionCounts(),
                     'user_reactions' => $userReactions['topic'],
+                    'members' => $topic->is_group ? $topic->memberSummaries() : [],
                     'replies' => $topic->replies->map(function ($reply) use ($userReactions) {
                         return array_merge($reply->toBroadcastArray(), [
                             'user_reactions' => $userReactions['replies'][$reply->id] ?? [],
@@ -117,20 +124,36 @@ class DiscussionTopicController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:200'],
             'body' => ['nullable', 'string', 'max:5000'],
+            'is_group' => ['nullable', 'boolean'],
+            'member_ids' => ['nullable', 'array'],
+            'member_ids.*' => ['integer', 'exists:users,id'],
             'attachments' => ['nullable', 'array', 'max:4'],
-            'attachments.*' => ['file', 'mimes:jpg,jpeg,png,gif,webp,mp4,webm', 'max:10240'],
+            'attachments.*' => ['file', DiscussionAttachments::validationMimesRule(), 'max:10240'],
         ]);
 
         $attachments = $this->storeAttachments($request->file('attachments', []));
+        $isGroup = $request->boolean('is_group');
 
         $topic = DiscussionTopic::query()->create([
             'user_id' => $request->user()->id,
             'title' => $data['title'],
+            'is_group' => $isGroup,
             'body' => $data['body'] ?? null,
             'attachments' => $attachments ?: null,
         ]);
 
-        $topic->load('user');
+        if ($isGroup) {
+            $memberIds = collect($data['member_ids'] ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+
+            $topic->syncGroupMembers($request->user(), $memberIds);
+        }
+
+        $topic->load(['user', 'members']);
+        $topic->loadCount('members');
         $this->readService->markAsRead($request->user(), $topic);
 
         TopicCreated::dispatch($topic);

@@ -19,6 +19,8 @@ class DiscussionReadController extends Controller
 
     public function markRead(Request $request, DiscussionTopic $topic): JsonResponse
     {
+        $this->authorize('view', $topic);
+
         $this->readService->markAsRead($request->user(), $topic);
 
         return response()->json([

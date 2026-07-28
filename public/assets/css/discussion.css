@@ -1230,6 +1230,86 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
     margin: 4px 0 2px;
 }
 
+.discussion-attachments__image-wrap,
+.discussion-attachments__video-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.discussion-attachments__type-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(17, 27, 33, 0.72);
+    color: #fff;
+    font-size: 0.75rem;
+}
+
+.discussion-attachments__document {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 320px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f0f2f5;
+    color: inherit;
+    text-decoration: none;
+}
+
+.discussion-attachments__document:hover {
+    background: #e7edf0;
+    color: inherit;
+}
+
+.discussion-attachments__document-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #fff;
+    color: #128c7e;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.discussion-attachments__document-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.discussion-attachments__document-meta strong {
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.discussion-attachments__document-meta span {
+    font-size: 0.75rem;
+    color: #667781;
+}
+
+.discussion-attachments__document .discussion-attachments__type-badge {
+    position: static;
+    margin-left: auto;
+    background: #128c7e;
+}
+
 .discussion-attachments__image-link {
     display: block;
     max-width: 260px;
@@ -1262,11 +1342,97 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
 
 .discussion-media-preview__item {
     position: relative;
-    width: 52px;
-    height: 52px;
+    width: 72px;
+    height: 72px;
     border-radius: 6px;
     overflow: hidden;
     border: 1px solid var(--wa-border);
+}
+
+.discussion-media-preview__document {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    height: 100%;
+    padding: 6px;
+    text-align: center;
+}
+
+.discussion-media-preview__document-icon {
+    font-size: 1.2rem;
+    color: #128c7e;
+}
+
+.discussion-media-preview__document-name {
+    font-size: 0.625rem;
+    line-height: 1.2;
+    color: #667781;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.discussion-media-preview__type-badge {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(17, 27, 33, 0.72);
+    color: #fff;
+    font-size: 0.625rem;
+}
+
+.discussion-widget__attach-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.discussion-widget__attach-group--stack {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+
+.discussion-widget__attach-type-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 72px;
+    padding: 10px 8px;
+    border: 1px solid #d1d7db;
+    border-radius: 10px;
+    background: #fff;
+    color: #54656f;
+    cursor: pointer;
+}
+
+.discussion-widget__attach-type-btn i {
+    font-size: 1.1rem;
+    color: #128c7e;
+}
+
+.discussion-widget__attach-type-btn span {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.discussion-widget__attach-type-btn:hover {
+    border-color: #128c7e;
+    background: #e7f6f3;
 }
 
 .discussion-media-preview__item img,
@@ -1640,4 +1806,205 @@ body.discussion-widget-open { overflow: hidden; }
         max-height: 100dvh;
         border-radius: 0;
     }
+}
+
+.discussion-avatar--icon {
+    font-size: 1rem;
+}
+
+.discussion-avatar--group {
+    background: #128c7e;
+}
+
+.discussion-avatar--topic {
+    background: #54656f;
+}
+
+.discussion-widget__type-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.discussion-widget__type-option {
+    display: block;
+    margin: 0;
+    cursor: pointer;
+}
+
+.discussion-widget__type-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.discussion-widget__type-option span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid #d1d7db;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.discussion-widget__type-option input:checked + span {
+    border-color: #128c7e;
+    background: #e7f6f3;
+    color: #075e54;
+}
+
+.discussion-widget__member-search-wrap {
+    position: relative;
+}
+
+.discussion-widget__member-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    max-height: 220px;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #d1d7db;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.discussion-widget__member-result {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-bottom: 1px solid #eef1f3;
+    background: #fff;
+    text-align: left;
+}
+
+.discussion-widget__member-result:last-child {
+    border-bottom: 0;
+}
+
+.discussion-widget__member-result:hover:not([disabled]) {
+    background: #f5f6f6;
+}
+
+.discussion-widget__member-result span {
+    font-size: 0.75rem;
+    color: #667781;
+}
+
+.discussion-widget__member-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.discussion-widget__member-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px 4px 10px;
+    border-radius: 999px;
+    background: #e7f6f3;
+    color: #075e54;
+    font-size: 0.8125rem;
+}
+
+.discussion-widget__member-chip button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.discussion-widget__members-modal {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(17, 27, 33, 0.45);
+}
+
+.discussion-widget__members-card {
+    width: min(100%, 360px);
+    max-height: calc(100% - 32px);
+    overflow: auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.discussion-widget__members-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 16px 8px;
+}
+
+.discussion-widget__members-head h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.discussion-widget__members-list {
+    padding: 0 16px;
+}
+
+.discussion-widget__member-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eef1f3;
+}
+
+.discussion-widget__member-item:last-child {
+    border-bottom: 0;
+}
+
+.discussion-widget__member-item-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e7f6f3;
+    color: #128c7e;
+}
+
+.discussion-widget__member-item strong {
+    display: block;
+}
+
+.discussion-widget__member-item span {
+    font-size: 0.75rem;
+    color: #667781;
+}
+
+.discussion-widget__members-add {
+    padding: 16px;
+    border-top: 1px solid #eef1f3;
+}
+
+.discussion-widget__members-empty {
+    margin: 0;
+    padding: 8px 0 16px;
+    color: #667781;
+    font-size: 0.875rem;
 }

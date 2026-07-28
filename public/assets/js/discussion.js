@@ -88,66 +88,18 @@
         return count > 99 ? '99+' : String(count);
     }
 
-    function buildAttachmentsHtml(attachments) {
-        if (!attachments?.length) {
-            return '';
-        }
-
-        return `<div class="discussion-attachments">${attachments.map((attachment) => {
-            if (attachment.kind === 'video') {
-                return `<video class="discussion-attachments__video" controls preload="metadata" src="${escapeHtml(attachment.url || '')}"></video>`;
-            }
-
-            return `<a class="discussion-attachments__image-link" href="${escapeHtml(attachment.url || '#')}" target="_blank" rel="noopener">
-                <img class="discussion-attachments__image" src="${escapeHtml(attachment.url || '')}" alt="${escapeHtml(attachment.name || 'Attachment')}" loading="lazy">
-            </a>`;
-        }).join('')}</div>`;
+    function attachmentHelpers() {
+        return window.soilnwaterDiscussionAttachments || {};
     }
 
-    function bindMediaPreview(input, previewEl) {
-        if (!input || !previewEl) {
-            return;
+    function buildAttachmentsHtml(attachments) {
+        const helpers = attachmentHelpers();
+
+        if (typeof helpers.buildAttachmentsHtml === 'function') {
+            return helpers.buildAttachmentsHtml(attachments, escapeHtml);
         }
 
-        input.addEventListener('change', () => {
-            previewEl.innerHTML = '';
-            previewEl.hidden = true;
-
-            Array.from(input.files || []).forEach((file, index) => {
-                previewEl.hidden = false;
-                const item = document.createElement('div');
-                item.className = 'discussion-media-preview__item';
-
-                if (file.type.startsWith('video/')) {
-                    const video = document.createElement('video');
-                    video.src = URL.createObjectURL(file);
-                    video.muted = true;
-                    item.appendChild(video);
-                } else {
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(file);
-                    img.alt = file.name;
-                    item.appendChild(img);
-                }
-
-                const remove = document.createElement('button');
-                remove.type = 'button';
-                remove.className = 'discussion-media-preview__remove';
-                remove.innerHTML = '&times;';
-                remove.addEventListener('click', () => {
-                    const transfer = new DataTransfer();
-                    Array.from(input.files || []).forEach((existing, existingIndex) => {
-                        if (existingIndex !== index) {
-                            transfer.items.add(existing);
-                        }
-                    });
-                    input.files = transfer.files;
-                    input.dispatchEvent(new Event('change'));
-                });
-                item.appendChild(remove);
-                previewEl.appendChild(item);
-            });
-        });
+        return '';
     }
 
     function updateReactionSummary(container, counts) {
@@ -423,9 +375,15 @@
             ? `<p class="discussion-topic-excerpt">${escapeHtml(topic.body).slice(0, 120)}</p>`
             : '';
         const replyLabel = topic.replies_count === 1 ? 'reply' : 'replies';
+        const listAvatar = topic.is_group
+            ? '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>'
+            : '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--topic" aria-hidden="true"><i class="fa-solid fa-hashtag"></i></span>';
+        const typeLabel = topic.is_group
+            ? '<i class="fa-solid fa-users"></i> Group'
+            : '<i class="fa-solid fa-hashtag"></i> Topic';
 
         return `<article class="discussion-topic-card ${pinnedClass} ${unreadClass}" data-topic-id="${topic.id}" id="discussion-topic-${topic.id}">
-            ${avatarHtml(authorName)}
+            ${listAvatar}
             <div class="discussion-topic-card__body">
                 <div class="discussion-topic-card__top">
                     <a href="${escapeHtml(topic.url)}" class="discussion-topic-link">${escapeHtml(topic.title)}</a>
@@ -433,7 +391,7 @@
                 </div>
                 ${excerpt}
                 <div class="discussion-topic-meta">
-                    <span>${escapeHtml(authorName)}</span>
+                    <span>${typeLabel} · ${escapeHtml(authorName)}</span>
                     <span>${topic.replies_count || 0} ${replyLabel}</span>
                     <time class="discussion-widget-topic__date">${escapeHtml(formatMessageTimestamp(topic))}</time>
                 </div>
@@ -445,7 +403,23 @@
         </article>`;
     }
 
+    function canAccessTopic(topic) {
+        if (!topic?.is_group) {
+            return true;
+        }
+
+        const userId = Number(config.currentUserId);
+        if (Number(topic.author?.id) === userId) {
+            return true;
+        }
+
+        return (topic.member_ids || []).map(Number).includes(userId);
+    }
+
     function prependTopic(topic) {
+        if (!canAccessTopic(topic)) {
+            return;
+        }
         const list = document.getElementById('discussionTopicList');
         if (!list || document.getElementById(`discussion-topic-${topic.id}`)) {
             return;
@@ -641,16 +615,22 @@
             return;
         }
 
-        bindMediaPreview(document.getElementById('replyAttachments'), document.getElementById('replyAttachmentsPreview'));
+        const helpers = attachmentHelpers();
+        const replyAttachmentPool = helpers.bindAttachmentPicker?.({
+            input: document.getElementById('replyAttachments'),
+            previewEl: document.getElementById('replyAttachmentsPreview'),
+            imageButton: document.getElementById('replyAttachImageBtn'),
+            videoButton: document.getElementById('replyAttachVideoBtn'),
+            documentButton: document.getElementById('replyAttachDocumentBtn'),
+        });
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             const submit = form.querySelector('[type="submit"]');
             const textarea = form.querySelector('[name="body"]');
-            const fileInput = document.getElementById('replyAttachments');
             const body = textarea?.value?.trim() || '';
-            const hasFiles = fileInput?.files?.length > 0;
+            const hasFiles = replyAttachmentPool?.files?.length > 0;
 
             if (!body && !hasFiles) {
                 notify('error', 'Please enter a message or attach a file.');
@@ -666,9 +646,7 @@
                 if (body) {
                     formData.append('body', body);
                 }
-                Array.from(fileInput?.files || []).forEach((file) => {
-                    formData.append('attachments[]', file);
-                });
+                helpers.appendPoolToFormData?.(formData, replyAttachmentPool);
 
                 const data = await postFormData(form.dataset.url, formData);
 
@@ -679,14 +657,10 @@
                 if (textarea) {
                     textarea.value = '';
                 }
-                if (fileInput) {
-                    fileInput.value = '';
-                }
-                const preview = document.getElementById('replyAttachmentsPreview');
-                if (preview) {
-                    preview.innerHTML = '';
-                    preview.hidden = true;
-                }
+                helpers.clearAttachmentPool?.(
+                    replyAttachmentPool,
+                    document.getElementById('replyAttachmentsPreview')
+                );
 
                 notify('success', data.message);
             } catch (error) {

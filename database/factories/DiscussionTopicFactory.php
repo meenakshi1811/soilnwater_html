@@ -31,4 +31,11 @@ class DiscussionTopicFactory extends Factory
             'pinned_at' => now(),
         ]);
     }
+
+    public function group(): static
+    {
+        return $this->state(fn () => [
+            'is_group' => true,
+        ]);
+    }
 }

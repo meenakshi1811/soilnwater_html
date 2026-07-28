@@ -1,4 +1,5 @@
 @php
+    use App\Support\DiscussionAttachments;
     $broadcastEnabled = config('broadcasting.default') !== 'log' && config('broadcasting.default') !== 'null';
     $discussionPageMode = $discussionPageMode ?? request()->routeIs('discussions.messenger');
     $discussionInitialTopicId = $discussionInitialTopicId ?? ($discussionPageMode ? request()->route('topic')?->id : null);
@@ -8,6 +9,8 @@
     $topicPinTemplate = str_replace('999999999', '__TOPIC__', route('discussions.pin', ['topic' => 999999999]));
     $topicReactTemplate = str_replace('999999999', '__TOPIC__', route('discussions.react', ['topic' => 999999999]));
     $topicReadTemplate = str_replace('999999999', '__TOPIC__', route('discussions.read', ['topic' => 999999999]));
+    $topicMembersTemplate = str_replace('999999999', '__TOPIC__', route('discussions.members.index', ['topic' => 999999999]));
+    $topicMembersStoreTemplate = str_replace('999999999', '__TOPIC__', route('discussions.members.store', ['topic' => 999999999]));
 @endphp
 <script>
     window.soilnwaterDiscussion = {
@@ -30,6 +33,9 @@
             topicPinTemplate: @json($topicPinTemplate),
             topicReactTemplate: @json($topicReactTemplate),
             topicReadTemplate: @json($topicReadTemplate),
+            topicMembersTemplate: @json($topicMembersTemplate),
+            topicMembersStoreTemplate: @json($topicMembersStoreTemplate),
+            usersSearch: @json(route('discussions.users.search')),
             unreadSummary: @json(route('discussions.unread-summary')),
             replyReactTemplate: @json($replyReactTemplate),
         },
@@ -44,8 +50,15 @@
         pageMode: @json($discussionPageMode),
         initialTopicId: @json($discussionInitialTopicId),
         widgetSize: 'default',
+        attachments: {
+            acceptImages: @json(DiscussionAttachments::acceptImages()),
+            acceptVideos: @json(DiscussionAttachments::acceptVideos()),
+            acceptDocuments: @json(DiscussionAttachments::acceptDocuments()),
+            documentIcons: @json(DiscussionAttachments::documentIconMap()),
+        },
     };
 </script>
+<script src="{{ asset('assets/js/discussion-attachments.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/discussion.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/discussion-widget.js') }}?v={{ now()->timestamp }}" defer></script>
 @if($broadcastEnabled)

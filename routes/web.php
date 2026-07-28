@@ -49,6 +49,7 @@ use App\Http\Controllers\Consultant\ConsultantPendingController;
 use App\Http\Controllers\Consultant\ConsultantProfileController;
 use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantServiceController;
+use App\Http\Controllers\Discussion\DiscussionMemberController;
 use App\Http\Controllers\Discussion\DiscussionReactionController;
 use App\Http\Controllers\Discussion\DiscussionReplyController;
 use App\Http\Controllers\Discussion\DiscussionReadController;
@@ -180,11 +181,14 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::prefix('discussions')->name('discussions.')->group(function () {
+        Route::get('/users/search', [DiscussionMemberController::class, 'searchUsers'])->name('users.search');
         Route::get('/', [DiscussionTopicController::class, 'index'])->name('index');
         Route::get('/messenger/{topic?}', [DiscussionTopicController::class, 'messenger'])->name('messenger');
         Route::get('/unread-summary', [DiscussionReadController::class, 'summary'])->name('unread-summary');
         Route::post('/', [DiscussionTopicController::class, 'store'])->name('store');
         Route::get('/{topic}', [DiscussionTopicController::class, 'show'])->name('show');
+        Route::get('/{topic}/members', [DiscussionMemberController::class, 'index'])->name('members.index');
+        Route::post('/{topic}/members', [DiscussionMemberController::class, 'store'])->name('members.store');
         Route::post('/{topic}/read', [DiscussionReadController::class, 'markRead'])->name('read');
         Route::post('/{topic}/replies', [DiscussionReplyController::class, 'store'])->name('replies.store');
         Route::post('/{topic}/pin', [DiscussionTopicController::class, 'pin'])->name('pin');

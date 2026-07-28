@@ -11,15 +11,15 @@ class DiscussionFileUploader
     public const BASE_PATH = 'uploads/discussions';
 
     /**
-     * @return array{path: string, url: string, name: string, type: string, kind: string}
+     * @return array{path: string, url: string, name: string, type: string, kind: string, extension: string, icon: string}
      */
     public static function storeMedia(UploadedFile $file, string $subfolder): array
     {
         $directory = self::absoluteDirectory($subfolder);
         $originalName = $file->getClientOriginalName();
-        $extension = $file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'bin';
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'bin');
         $mime = (string) $file->getMimeType();
-        $kind = str_starts_with($mime, 'video/') ? 'video' : 'image';
+        $kind = DiscussionAttachments::detectKind($mime, $extension);
         $filename = Str::uuid()->toString().'.'.$extension;
 
         $file->move($directory, $filename);
@@ -32,6 +32,8 @@ class DiscussionFileUploader
             'name' => $originalName,
             'type' => Str::before($mime, '/'),
             'kind' => $kind,
+            'extension' => $extension,
+            'icon' => DiscussionAttachments::iconForKind($kind, $extension),
         ];
     }
 

@@ -57,6 +57,14 @@
             </button>
             <button type="button"
                     class="discussion-widget__icon-btn"
+                    id="discussionWidgetMembersBtn"
+                    hidden
+                    title="Manage group members"
+                    aria-label="Manage group members">
+                <i class="fa-solid fa-user-plus"></i>
+            </button>
+            <button type="button"
+                    class="discussion-widget__icon-btn"
                     id="discussionWidgetPinBtn"
                     hidden
                     title="Pin topic"
@@ -106,14 +114,33 @@
             <form class="discussion-widget__composer" id="discussionWidgetReplyForm" enctype="multipart/form-data">
                 <label class="visually-hidden" for="discussionWidgetReplyBody">Type a message</label>
                 <div class="discussion-widget__composer-inner">
-                    <label class="discussion-widget__attach-btn" for="discussionWidgetReplyAttachments" title="Attach">
-                        <i class="fa-solid fa-plus"></i>
-                    </label>
+                    <div class="discussion-widget__attach-group">
+                        <button type="button"
+                                class="discussion-widget__attach-btn"
+                                id="discussionWidgetReplyAttachImageBtn"
+                                title="Attach image"
+                                aria-label="Attach image">
+                            <i class="fa-solid fa-image"></i>
+                        </button>
+                        <button type="button"
+                                class="discussion-widget__attach-btn"
+                                id="discussionWidgetReplyAttachVideoBtn"
+                                title="Attach video"
+                                aria-label="Attach video">
+                            <i class="fa-solid fa-video"></i>
+                        </button>
+                        <button type="button"
+                                class="discussion-widget__attach-btn"
+                                id="discussionWidgetReplyAttachDocumentBtn"
+                                title="Attach document"
+                                aria-label="Attach document">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </button>
+                    </div>
                     <input type="file"
                            id="discussionWidgetReplyAttachments"
                            name="attachments[]"
                            class="visually-hidden"
-                           accept="image/*,video/mp4,video/webm"
                            multiple>
                     <div class="discussion-widget__composer-field">
                         <textarea id="discussionWidgetReplyBody"
@@ -134,6 +161,19 @@
             <form class="discussion-widget__compose-form" id="discussionWidgetNewTopicForm" data-url="{{ route('discussions.store') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="discussion-widget__field">
+                    <label>Chat type</label>
+                    <div class="discussion-widget__type-toggle" role="radiogroup" aria-label="Chat type">
+                        <label class="discussion-widget__type-option">
+                            <input type="radio" name="is_group" value="0" checked>
+                            <span><i class="fa-solid fa-hashtag"></i> Public topic</span>
+                        </label>
+                        <label class="discussion-widget__type-option">
+                            <input type="radio" name="is_group" value="1">
+                            <span><i class="fa-solid fa-users"></i> Private group</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="discussion-widget__field">
                     <label for="discussionWidgetTopicTitle">Group / topic name</label>
                     <input type="text"
                            id="discussionWidgetTopicTitle"
@@ -141,6 +181,18 @@
                            maxlength="200"
                            required
                            placeholder="e.g. Soil health tips">
+                </div>
+                <div class="discussion-widget__field" id="discussionWidgetMembersField" hidden>
+                    <label for="discussionWidgetMemberSearch">Add members</label>
+                    <div class="discussion-widget__member-search-wrap">
+                        <input type="search"
+                               id="discussionWidgetMemberSearch"
+                               class="form-control"
+                               placeholder="Search members by name or email"
+                               autocomplete="off">
+                        <div class="discussion-widget__member-results" id="discussionWidgetMemberResults" hidden></div>
+                    </div>
+                    <div class="discussion-widget__member-chips" id="discussionWidgetMemberChips"></div>
                 </div>
                 <div class="discussion-widget__field">
                     <label for="discussionWidgetTopicBody">First message <span>(optional)</span></label>
@@ -151,15 +203,31 @@
                               placeholder="Write your first message…"></textarea>
                 </div>
                 <div class="discussion-widget__field">
-                    <label class="discussion-media-btn" for="discussionWidgetTopicAttachments">
-                        <i class="fa-solid fa-paperclip"></i>
-                        Photos &amp; videos
-                    </label>
+                    <label>Attachments</label>
+                    <div class="discussion-widget__attach-group discussion-widget__attach-group--stack">
+                        <button type="button"
+                                class="discussion-widget__attach-type-btn"
+                                id="discussionWidgetTopicAttachImageBtn">
+                            <i class="fa-solid fa-image"></i>
+                            <span>Image</span>
+                        </button>
+                        <button type="button"
+                                class="discussion-widget__attach-type-btn"
+                                id="discussionWidgetTopicAttachVideoBtn">
+                            <i class="fa-solid fa-video"></i>
+                            <span>Video</span>
+                        </button>
+                        <button type="button"
+                                class="discussion-widget__attach-type-btn"
+                                id="discussionWidgetTopicAttachDocumentBtn">
+                            <i class="fa-solid fa-file-lines"></i>
+                            <span>Document</span>
+                        </button>
+                    </div>
                     <input type="file"
                            id="discussionWidgetTopicAttachments"
                            name="attachments[]"
                            class="visually-hidden"
-                           accept="image/*,video/mp4,video/webm"
                            multiple>
                     <div class="discussion-media-preview" id="discussionWidgetTopicPreview" hidden></div>
                 </div>
@@ -169,5 +237,33 @@
                 </button>
             </form>
         </section>
+
+        <div class="discussion-widget__members-modal" id="discussionWidgetMembersModal" hidden>
+            <div class="discussion-widget__members-card">
+                <div class="discussion-widget__members-head">
+                    <h3>Group members</h3>
+                    <button type="button" class="discussion-widget__icon-btn" id="discussionWidgetMembersCloseBtn" aria-label="Close">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="discussion-widget__members-list" id="discussionWidgetMembersList"></div>
+                <div class="discussion-widget__members-add" id="discussionWidgetMembersAddSection" hidden>
+                    <label for="discussionWidgetMembersAddSearch">Add members</label>
+                    <div class="discussion-widget__member-search-wrap">
+                        <input type="search"
+                               id="discussionWidgetMembersAddSearch"
+                               class="form-control"
+                               placeholder="Search members by name or email"
+                               autocomplete="off">
+                        <div class="discussion-widget__member-results" id="discussionWidgetMembersAddResults" hidden></div>
+                    </div>
+                    <div class="discussion-widget__member-chips" id="discussionWidgetMembersAddChips"></div>
+                    <button type="button" class="discussion-widget__primary-btn" id="discussionWidgetMembersAddBtn">
+                        <i class="fa-solid fa-user-plus"></i>
+                        Add selected members
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

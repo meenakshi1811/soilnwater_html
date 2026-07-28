@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DiscussionReply;
 use App\Models\DiscussionTopic;
 use App\Services\DiscussionReadService;
+use App\Support\DiscussionAttachments;
 use App\Support\DiscussionFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -20,11 +21,13 @@ class DiscussionReplyController extends Controller
 
     public function store(Request $request, DiscussionTopic $topic): JsonResponse|RedirectResponse
     {
+        $this->authorize('reply', $topic);
+
         $data = $request->validate([
             'body' => ['nullable', 'string', 'max:5000'],
             'parent_id' => ['nullable', 'integer', 'exists:discussion_replies,id'],
             'attachments' => ['nullable', 'array', 'max:4'],
-            'attachments.*' => ['file', 'mimes:jpg,jpeg,png,gif,webp,mp4,webm', 'max:10240'],
+            'attachments.*' => ['file', DiscussionAttachments::validationMimesRule(), 'max:10240'],
         ]);
 
         $body = trim((string) ($data['body'] ?? ''));

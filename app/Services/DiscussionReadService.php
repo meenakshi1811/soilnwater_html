@@ -86,7 +86,9 @@ class DiscussionReadService
 
     public function globalUnreadCount(User $user): int
     {
-        $topics = DiscussionTopic::query()->get(['id', 'user_id', 'created_at']);
+        $topics = DiscussionTopic::query()
+            ->visibleTo($user)
+            ->get(['id', 'user_id', 'created_at']);
 
         return array_sum($this->unreadCountsForTopics($user, $topics));
     }
@@ -96,7 +98,9 @@ class DiscussionReadService
      */
     public function unreadSummary(User $user): array
     {
-        $topics = DiscussionTopic::query()->get(['id', 'user_id', 'created_at']);
+        $topics = DiscussionTopic::query()
+            ->visibleTo($user)
+            ->get(['id', 'user_id', 'created_at']);
         $counts = $this->unreadCountsForTopics($user, $topics);
 
         return [

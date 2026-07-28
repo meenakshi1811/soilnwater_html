@@ -18,11 +18,16 @@ class DiscussionReactionController extends Controller
 {
     public function reactToTopic(Request $request, DiscussionTopic $topic): JsonResponse|RedirectResponse
     {
+        $this->authorize('view', $topic);
+
         return $this->toggleReaction($request, $topic);
     }
 
     public function reactToReply(Request $request, DiscussionReply $reply): JsonResponse|RedirectResponse
     {
+        $reply->loadMissing('topic');
+        $this->authorize('view', $reply->topic);
+
         return $this->toggleReaction($request, $reply);
     }
 

@@ -54,6 +54,10 @@
                 return;
             }
 
+            if (typeof ui().canAccessTopic === 'function' && !ui().canAccessTopic(payload.topic)) {
+                return;
+            }
+
             ui().prependTopic?.(payload.topic);
         })
         .listen('.topic.pinned', (payload) => {
