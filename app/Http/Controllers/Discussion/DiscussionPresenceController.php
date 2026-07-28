@@ -23,9 +23,27 @@ class DiscussionPresenceController extends Controller
         return response()->json([
             'context' => $context,
             'online_users' => $this->onlineService->onlineUsersForTopic($topic),
-            'members' => $topic->isGroupContainer()
-                ? $this->onlineService->membersWithOnlineStatus($topic)
-                : [],
+            'members' => $this->membersForTopic($topic),
         ]);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function membersForTopic(DiscussionTopic $topic): array
+    {
+        if ($topic->isGroupContainer()) {
+            return $this->onlineService->membersWithOnlineStatus($topic);
+        }
+
+        if ($topic->parent_topic_id) {
+            $topic->loadMissing('parent');
+
+            if ($topic->parent?->isGroupContainer()) {
+                return $this->onlineService->membersWithOnlineStatus($topic->parent);
+            }
+        }
+
+        return [];
     }
 }

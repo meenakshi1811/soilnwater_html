@@ -8,17 +8,19 @@
      aria-labelledby="discussionWidgetTitle"
      @unless($standalone) hidden @endunless>
     <header class="discussion-widget__header">
-        <button type="button"
-                class="discussion-widget__header-back"
-                id="discussionWidgetBackBtn"
-                hidden
-                aria-label="Back">
-            <i class="fa-solid fa-arrow-left"></i>
-        </button>
-        <div class="discussion-widget__header-main">
+        <div class="discussion-widget__header-start">
+            <button type="button"
+                    class="discussion-widget__header-back"
+                    id="discussionWidgetBackBtn"
+                    hidden
+                    aria-label="Back">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
             <span class="discussion-widget__brand-mark" id="discussionWidgetHeaderAvatar" aria-hidden="true">
                 <i class="fa-solid fa-comments"></i>
             </span>
+        </div>
+        <div class="discussion-widget__header-center">
             <div class="discussion-widget__header-text">
                 <h2 class="discussion-widget__title" id="discussionWidgetTitle">Chats</h2>
                 <p class="discussion-widget__subtitle" id="discussionWidgetSubtitle">Community discussions</p>
@@ -219,6 +221,10 @@
                 </button>
             </form>
         </section>
+
+        <aside class="discussion-widget__presence-sidebar" id="discussionWidgetPresenceSidebar" hidden aria-label="Online users and members">
+            <div class="discussion-widget__presence-sidebar-inner" id="discussionWidgetPresenceSidebarInner"></div>
+        </aside>
 
         <div class="discussion-widget__members-modal" id="discussionWidgetMembersModal" hidden>
             <div class="discussion-widget__members-card">

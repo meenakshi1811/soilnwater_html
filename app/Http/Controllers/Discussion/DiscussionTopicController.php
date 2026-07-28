@@ -143,9 +143,11 @@ class DiscussionTopicController extends Controller
                 'topic' => array_merge($topic->toBroadcastArray(), [
                     'reaction_counts' => $topic->reactionCounts(),
                     'user_reactions' => $userReactions['topic'],
-                    'members' => $topic->is_group
+                    'members' => $topic->isGroupContainer()
                         ? $this->onlineService->membersWithOnlineStatus($topic)
-                        : [],
+                        : ($topic->parent_topic_id && $topic->parent?->isGroupContainer()
+                            ? $this->onlineService->membersWithOnlineStatus($topic->parent)
+                            : []),
                     'online_users' => $this->onlineService->onlineUsersForTopic($topic),
                     'parent' => $topic->parent
                         ? array_merge($topic->parent->toBroadcastArray(), [

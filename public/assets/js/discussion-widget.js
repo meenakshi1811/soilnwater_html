@@ -64,6 +64,8 @@
         sizeBtn: document.getElementById('discussionWidgetSizeBtn'),
         fullPageBtn: document.getElementById('discussionWidgetFullPageBtn'),
         online: document.getElementById('discussionWidgetOnline'),
+        presenceSidebar: document.getElementById('discussionWidgetPresenceSidebar'),
+        presenceSidebarInner: document.getElementById('discussionWidgetPresenceSidebarInner'),
     };
 
     const WIDGET_SIZE_ORDER = ['default', 'md', 'lg', 'xl'];
@@ -101,6 +103,7 @@
     let replyAttachmentPool = null;
     let onlinePollTimer = null;
     let onlineTopicId = null;
+    let currentPresenceMembers = [];
 
     function csrfToken() {
         return config.csrfToken
@@ -294,12 +297,128 @@
         }).join('');
     }
 
-    function renderOnlinePresence(onlineUsers = [], context = 'participants') {
+    function dedupeOnlineUsers(users = []) {
+        const seen = new Set();
+
+        return users.filter((user) => {
+            const id = Number(user?.id);
+
+            if (!id || seen.has(id)) {
+                return false;
+            }
+
+            seen.add(id);
+
+            return true;
+        });
+    }
+
+    function buildPresenceSidebarItem(user, isOnline = false, roleLabel = '') {
+        const initials = escapeHtml(user.initials || avatarInitials(user.name || '?'));
+        const statusText = isOnline
+            ? (roleLabel ? `Online · ${roleLabel}` : 'Online')
+            : (roleLabel || 'Offline');
+
+        return `<div class="discussion-widget__presence-item ${isOnline ? 'is-online' : ''}">
+            <span class="discussion-widget__presence-item-avatar">
+                ${initials}
+                ${isOnline ? '<span class="discussion-widget__online-dot" aria-hidden="true"></span>' : ''}
+            </span>
+            <div class="discussion-widget__presence-item-body">
+                <strong>${escapeHtml(user.name || 'User')}</strong>
+                <span>${escapeHtml(statusText)}</span>
+            </div>
+        </div>`;
+    }
+
+    function hidePresenceSidebar() {
+        if (els.presenceSidebar) {
+            els.presenceSidebar.hidden = true;
+        }
+
+        if (els.presenceSidebarInner) {
+            els.presenceSidebarInner.innerHTML = '';
+        }
+
+        widget.classList.remove('discussion-widget--presence-open');
+    }
+
+    function renderPresenceSidebar({ onlineUsers = [], members = [], context = 'participants' } = {}) {
+        if (!isPageMode || !els.presenceSidebar || !els.presenceSidebarInner) {
+            return;
+        }
+
+        const uniqueOnline = dedupeOnlineUsers(onlineUsers);
+        const hasMembers = members.length > 0;
+        const hasOnline = uniqueOnline.length > 0;
+
+        if (!hasMembers && !hasOnline) {
+            hidePresenceSidebar();
+
+            return;
+        }
+
+        widget.classList.add('discussion-widget--presence-open');
+        els.presenceSidebar.hidden = false;
+
+        let html = '';
+
+        if (hasOnline) {
+            html += `<section class="discussion-widget__presence-section">
+                <h3 class="discussion-widget__presence-section-title">Online now</h3>
+                <div class="discussion-widget__presence-list">
+                    ${uniqueOnline.map((user) => buildPresenceSidebarItem(user, true)).join('')}
+                </div>
+            </section>`;
+        } else if (hasMembers) {
+            html += `<section class="discussion-widget__presence-section">
+                <h3 class="discussion-widget__presence-section-title">Online now</h3>
+                <p class="discussion-widget__presence-empty">No ${context === 'members' ? 'members' : 'participants'} online right now.</p>
+            </section>`;
+        }
+
+        if (hasMembers) {
+            html += `<section class="discussion-widget__presence-section">
+                <h3 class="discussion-widget__presence-section-title">Members</h3>
+                <div class="discussion-widget__presence-list">
+                    ${members.map((member) => buildPresenceSidebarItem(
+                        member,
+                        Boolean(member.is_online),
+                        member.is_owner ? 'Creator' : 'Member'
+                    )).join('')}
+                </div>
+            </section>`;
+        }
+
+        els.presenceSidebarInner.innerHTML = html;
+    }
+
+    function renderOnlinePresence(onlineUsers = [], context = 'participants', members = []) {
+        const uniqueOnline = dedupeOnlineUsers(onlineUsers);
+        currentPresenceMembers = members;
+
+        if (isPageMode) {
+            if (els.online) {
+                els.online.hidden = true;
+                els.online.innerHTML = '';
+            }
+
+            renderPresenceSidebar({
+                onlineUsers: uniqueOnline,
+                members,
+                context,
+            });
+
+            return;
+        }
+
+        hidePresenceSidebar();
+
         if (!els.online) {
             return;
         }
 
-        if (!onlineUsers.length) {
+        if (!uniqueOnline.length) {
             els.online.hidden = true;
             els.online.innerHTML = '';
 
@@ -308,19 +427,25 @@
 
         els.online.hidden = false;
         els.online.innerHTML = `<span class="discussion-widget__online-dot" aria-hidden="true"></span>
-            <span class="discussion-widget__online-avatars">${buildOnlineAvatars(onlineUsers)}</span>
-            <span class="discussion-widget__online-text">${escapeHtml(onlineUserLabel(onlineUsers, context))}</span>`;
+            <span class="discussion-widget__online-avatars">${buildOnlineAvatars(uniqueOnline)}</span>
+            <span class="discussion-widget__online-text">${escapeHtml(onlineUserLabel(uniqueOnline, context))}</span>`;
     }
 
     function clearOnlinePresence() {
         onlineTopicId = null;
+        currentPresenceMembers = [];
 
         if (onlinePollTimer) {
             window.clearInterval(onlinePollTimer);
             onlinePollTimer = null;
         }
 
-        renderOnlinePresence([]);
+        if (els.online) {
+            els.online.hidden = true;
+            els.online.innerHTML = '';
+        }
+
+        hidePresenceSidebar();
     }
 
     function startOnlinePolling(topicId, context = 'participants') {
@@ -343,11 +468,12 @@
 
             try {
                 const data = await requestJson(topicOnlineUrl(onlineTopicId));
-                renderOnlinePresence(data.online_users || [], data.context || context);
+                const members = data.members || currentPresenceMembers;
+                renderOnlinePresence(data.online_users || [], data.context || context, members);
 
                 if (currentGroup?.is_group && !currentGroup?.parent_topic_id && Array.isArray(data.members)) {
                     currentGroup.members = data.members;
-                    renderGroupProfile(currentGroup, data.online_users || []);
+                    renderGroupProfile(currentGroup, isPageMode ? [] : (data.online_users || []));
                     if (!els.membersModal?.hidden) {
                         renderMembersList(data.members, canManageMembersModal);
                     }
@@ -359,12 +485,13 @@
     }
 
     function applyOnlinePresence(topic, data = {}) {
-        const onlineUsers = data.online_users || topic.online_users || [];
+        const onlineUsers = dedupeOnlineUsers(data.online_users || topic.online_users || []);
+        const members = data.members || topic.members || currentPresenceMembers || [];
         const context = topic?.is_group && !topic?.parent_topic_id || topic?.parent_topic_id
             ? 'members'
             : 'participants';
 
-        renderOnlinePresence(onlineUsers, context);
+        renderOnlinePresence(onlineUsers, context, members);
         startOnlinePolling(topic.id, context);
 
         if (topic?.is_group && !topic?.parent_topic_id) {
@@ -372,7 +499,7 @@
                 topic.members = data.members;
             }
 
-            renderGroupProfile(topic, onlineUsers);
+            renderGroupProfile(topic, isPageMode ? [] : onlineUsers);
         }
     }
 
@@ -1016,6 +1143,11 @@
             }
 
             updateHeaderForPanel(name);
+
+            if (name === 'compose' || name === 'groupPick') {
+                clearOnlinePresence();
+            }
+
             return;
         }
 
@@ -1030,6 +1162,10 @@
         });
 
         updateHeaderForPanel(name);
+
+        if (name === 'compose' || name === 'groupPick') {
+            clearOnlinePresence();
+        }
     }
 
     function updateHeaderForPanel(name) {
@@ -1071,6 +1207,11 @@
         }
         if (els.headerAvatar && isTopics) {
             els.headerAvatar.innerHTML = '<i class="fa-solid fa-comments"></i>';
+        }
+
+        const header = widget.querySelector('.discussion-widget__header');
+        if (header) {
+            header.classList.toggle('discussion-widget__header--conversation', isThread || isGroupTopics);
         }
     }
 
@@ -1612,7 +1753,10 @@
 
         setComposerVisible(true);
         markTopicRead(topic.id);
-        applyOnlinePresence(topic, { online_users: topic.online_users || [] });
+        applyOnlinePresence(topic, {
+            online_users: topic.online_users || [],
+            members: topic.members || [],
+        });
         updateFullPageLink(topic.id);
         updateMessengerUrl(topic.id);
     }
