@@ -18,6 +18,33 @@
 
 @if($mode === 'group')
     <div class="{{ $fieldClass }} discussion-group-pick__summary" id="{{ $selectedSummaryId }}"></div>
+    <div class="{{ $fieldClass }}">
+        <label for="{{ $prefix }}GroupImage">Group photo <span>(optional)</span></label>
+        <div class="discussion-widget__group-image-field">
+            <div class="discussion-widget__group-image-preview" id="{{ $prefix }}GroupImagePreview">
+                <span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true">
+                    <i class="fa-solid fa-users"></i>
+                </span>
+            </div>
+            <div class="discussion-widget__group-image-actions">
+                <label class="discussion-widget__attach-type-btn" for="{{ $prefix }}GroupImageInput">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Choose photo</span>
+                </label>
+                <input type="file"
+                       id="{{ $prefix }}GroupImageInput"
+                       name="group_image"
+                       class="visually-hidden"
+                       accept="image/jpeg,image/png,image/gif,image/webp">
+                <button type="button"
+                        class="discussion-widget__group-image-clear"
+                        id="{{ $prefix }}GroupImageClearBtn"
+                        hidden>
+                    Remove
+                </button>
+            </div>
+        </div>
+    </div>
 @endif
 
 <div class="{{ $fieldClass }}">

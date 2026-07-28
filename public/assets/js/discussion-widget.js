@@ -16,6 +16,7 @@
 
     const panels = {
         topics: document.getElementById('discussionWidgetTopics'),
+        groupTopics: document.getElementById('discussionWidgetGroupTopics'),
         thread: document.getElementById('discussionWidgetThread'),
         groupPick: document.getElementById('discussionWidgetGroupPick'),
         compose: document.getElementById('discussionWidgetCompose'),
@@ -30,10 +31,19 @@
         replyBody: document.getElementById('discussionWidgetReplyBody'),
         newTopicForm: document.getElementById('discussionWidgetNewTopicForm'),
         newGroupForm: document.getElementById('discussionWidgetNewGroupForm'),
+        newGroupTopicForm: document.getElementById('discussionWidgetNewGroupTopicForm'),
+        groupTopicsList: document.getElementById('discussionWidgetGroupTopicsList'),
+        newGroupTopicBtn: document.getElementById('discussionWidgetNewGroupTopicBtn'),
+        groupTopicParentInput: document.getElementById('discussionWidgetGroupTopicParentId'),
         pinBtn: document.getElementById('discussionWidgetPinBtn'),
         membersBtn: document.getElementById('discussionWidgetMembersBtn'),
         membersModal: document.getElementById('discussionWidgetMembersModal'),
         membersList: document.getElementById('discussionWidgetMembersList'),
+        membersPhotoSection: document.getElementById('discussionWidgetMembersPhotoSection'),
+        membersPhotoPreview: document.getElementById('discussionWidgetMembersPhotoPreview'),
+        membersPhotoInput: document.getElementById('discussionWidgetMembersPhotoInput'),
+        membersPhotoRemoveBtn: document.getElementById('discussionWidgetMembersPhotoRemoveBtn'),
+        membersPhotoActionLabel: document.getElementById('discussionWidgetMembersPhotoActionLabel'),
         membersAddSection: document.getElementById('discussionWidgetMembersAddSection'),
         membersAddBtn: document.getElementById('discussionWidgetMembersAddBtn'),
         membersCloseBtn: document.getElementById('discussionWidgetMembersCloseBtn'),
@@ -66,8 +76,10 @@
 
     let topicsLoaded = false;
     let currentTopic = null;
+    let currentGroup = null;
     let openRequestId = 0;
     const modalMemberSelection = new Map();
+    let canManageMembersModal = false;
     let memberSearchTimer = null;
     let widgetComposeController = null;
     let widgetGroupComposeController = null;
@@ -95,6 +107,30 @@
         if (type === 'error') {
             console.error(message);
         }
+    }
+
+    async function requestFormJson(url, formData, method = 'POST') {
+        const response = await fetch(url, {
+            method,
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData,
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const message = data.message
+                || (data.errors ? Object.values(data.errors).flat().join(' ') : null)
+                || 'Something went wrong.';
+            throw new Error(message);
+        }
+
+        return data;
     }
 
     async function requestJson(url, options = {}) {
@@ -157,22 +193,32 @@
         return (topic.member_ids || []).map(Number).includes(userId);
     }
 
+    function groupAvatarHtml(topic, extraClass = '') {
+        const imageUrl = topic?.group_image_url;
+        if (imageUrl) {
+            return `<span class="discussion-avatar discussion-avatar--photo ${extraClass}" aria-hidden="true"><img src="${escapeHtml(imageUrl)}" alt=""></span>`;
+        }
+
+        return `<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group ${extraClass}" aria-hidden="true"><i class="fa-solid fa-users"></i></span>`;
+    }
+
     function topicListAvatarHtml(topic) {
         if (topic?.is_group) {
-            return '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>';
+            return groupAvatarHtml(topic);
         }
 
         return '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--topic" aria-hidden="true"><i class="fa-solid fa-hashtag"></i></span>';
     }
 
     function topicSubtitle(topic) {
-        const messageCount = `${(topic.replies_count || 0) + 1} messages`;
-
-        if (topic?.is_group) {
+        if (topic?.is_group && !topic?.parent_topic_id) {
+            const topicCount = topic.children_count ?? topic.children?.length ?? 0;
             const memberCount = topic.members_count ?? topic.members?.length ?? topic.member_ids?.length ?? 0;
 
-            return `${memberCount} members · ${messageCount}`;
+            return `${topicCount} topics · ${memberCount} members`;
         }
+
+        const messageCount = `${(topic.replies_count || 0) + 1} messages`;
 
         return messageCount;
     }
@@ -183,8 +229,13 @@
         }
 
         if (topic?.is_group) {
-            els.headerAvatar.className = 'discussion-widget__brand-mark discussion-avatar discussion-avatar--icon discussion-avatar--group';
-            els.headerAvatar.innerHTML = '<i class="fa-solid fa-users"></i>';
+            if (topic.group_image_url) {
+                els.headerAvatar.className = 'discussion-widget__brand-mark discussion-avatar discussion-avatar--photo';
+                els.headerAvatar.innerHTML = `<img src="${escapeHtml(topic.group_image_url)}" alt="">`;
+            } else {
+                els.headerAvatar.className = 'discussion-widget__brand-mark discussion-avatar discussion-avatar--icon discussion-avatar--group';
+                els.headerAvatar.innerHTML = '<i class="fa-solid fa-users"></i>';
+            }
 
             return;
         }
@@ -199,14 +250,15 @@
         setHeaderAvatar(topic?.author?.name || topic?.title || 'Member');
     }
 
-    function updateMembersButton(topic = currentTopic) {
+    function updateMembersButton(topic = currentGroup || currentTopic) {
         if (!els.membersBtn) {
             return;
         }
 
-        const show = Boolean(topic?.is_group && topic?.can_manage_members);
+        const group = topic?.is_group && !topic?.parent_topic_id ? topic : null;
+        const show = Boolean(group?.can_manage_members);
         els.membersBtn.hidden = !show;
-        els.membersBtn.dataset.topicId = topic?.id ? String(topic.id) : '';
+        els.membersBtn.dataset.topicId = group?.id ? String(group.id) : '';
     }
 
     function renderMemberChips(containerId, selectionMap) {
@@ -332,7 +384,63 @@
             .replace('__TOPIC__', String(topicId));
     }
 
-    function renderMembersList(members = []) {
+    function membersDestroyUrl(topicId, memberId) {
+        return (config.routes?.topicMembersDestroyTemplate || '/discussions/__TOPIC__/members/__MEMBER__')
+            .replace('__TOPIC__', String(topicId))
+            .replace('__MEMBER__', String(memberId));
+    }
+
+    function groupImageUpdateUrl(topicId) {
+        return (config.routes?.topicGroupImageUpdateTemplate || '/discussions/__TOPIC__/group-image')
+            .replace('__TOPIC__', String(topicId));
+    }
+
+    function groupImageDestroyUrl(topicId) {
+        return (config.routes?.topicGroupImageDestroyTemplate || '/discussions/__TOPIC__/group-image')
+            .replace('__TOPIC__', String(topicId));
+    }
+
+    function renderMembersPhotoPreview(imageUrl = null) {
+        if (!els.membersPhotoPreview) {
+            return;
+        }
+
+        els.membersPhotoPreview.innerHTML = imageUrl
+            ? `<img src="${escapeHtml(imageUrl)}" alt="" class="discussion-avatar discussion-avatar--photo">`
+            : '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>';
+
+        if (els.membersPhotoRemoveBtn) {
+            els.membersPhotoRemoveBtn.hidden = !imageUrl;
+        }
+
+        if (els.membersPhotoActionLabel) {
+            els.membersPhotoActionLabel.textContent = imageUrl ? 'Change photo' : 'Add group photo';
+        }
+    }
+
+    function syncTopicGroupSettings(topicPayload = {}) {
+        if (!currentTopic?.id || Number(topicPayload.id) !== Number(currentTopic.id)) {
+            return;
+        }
+
+        currentTopic = {
+            ...currentTopic,
+            ...topicPayload,
+            group_image_url: topicPayload.group_image_url ?? currentTopic.group_image_url ?? null,
+        };
+
+        setHeaderTopicAvatar(currentTopic);
+
+        const card = document.getElementById(`discussion-widget-topic-${currentTopic.id}`);
+        if (card) {
+            const avatar = card.querySelector('.discussion-avatar, .discussion-avatar--photo, .discussion-avatar--group');
+            if (avatar) {
+                avatar.outerHTML = topicListAvatarHtml(currentTopic);
+            }
+        }
+    }
+
+    function renderMembersList(members = [], canManage = canManageMembersModal) {
         if (!els.membersList) {
             return;
         }
@@ -347,19 +455,29 @@
             const icon = member.is_owner
                 ? '<i class="fa-solid fa-crown" title="Group creator"></i>'
                 : '<i class="fa-solid fa-user"></i>';
+            const removeBtn = canManage && !member.is_owner
+                ? `<button type="button"
+                           class="discussion-widget__member-remove"
+                           data-member-id="${member.id}"
+                           aria-label="Remove ${escapeHtml(member.name)}">
+                       Remove
+                   </button>`
+                : '';
 
             return `<div class="discussion-widget__member-item">
                 <span class="discussion-widget__member-item-icon">${icon}</span>
-                <div>
+                <div class="discussion-widget__member-item-body">
                     <strong>${escapeHtml(member.name)}</strong>
                     <span>${member.is_owner ? 'Creator' : 'Member'}</span>
                 </div>
+                ${removeBtn}
             </div>`;
         }).join('');
     }
 
     async function openMembersModal() {
-        if (!currentTopic?.id || !els.membersModal) {
+        const group = currentGroup || (currentTopic?.is_group && !currentTopic?.parent_topic_id ? currentTopic : null);
+        if (!group?.id || !els.membersModal) {
             return;
         }
 
@@ -367,10 +485,15 @@
         renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
 
         try {
-            const data = await requestJson(membersUrl(currentTopic.id), { method: 'GET' });
-            renderMembersList(data.members || []);
+            const data = await requestJson(membersUrl(group.id), { method: 'GET' });
+            canManageMembersModal = Boolean(data.can_manage_members);
+            renderMembersPhotoPreview(data.group_image_url || null);
+            if (els.membersPhotoSection) {
+                els.membersPhotoSection.hidden = !canManageMembersModal;
+            }
+            renderMembersList(data.members || [], canManageMembersModal);
             if (els.membersAddSection) {
-                els.membersAddSection.hidden = !data.can_manage_members;
+                els.membersAddSection.hidden = !canManageMembersModal;
             }
             els.membersModal.hidden = false;
         } catch (error) {
@@ -397,6 +520,9 @@
         }
         if (els.newGroupForm) {
             els.newGroupForm.hidden = mode !== 'group';
+        }
+        if (els.newGroupTopicForm) {
+            els.newGroupTopicForm.hidden = mode !== 'groupTopic';
         }
         if (mode === 'group') {
             widgetGroupComposeController?.renderSummary?.();
@@ -579,10 +705,15 @@
             const showThread = name === 'thread';
             const showCompose = name === 'compose';
             const showGroupPick = name === 'groupPick';
+            const showGroupTopics = name === 'groupTopics';
 
             if (panels.thread) {
                 panels.thread.classList.toggle('is-active', showThread);
                 panels.thread.hidden = !showThread;
+            }
+            if (panels.groupTopics) {
+                panels.groupTopics.classList.toggle('is-active', showGroupTopics);
+                panels.groupTopics.hidden = !showGroupTopics;
             }
             if (panels.groupPick) {
                 panels.groupPick.classList.toggle('is-active', showGroupPick);
@@ -615,11 +746,12 @@
         const isThread = name === 'thread';
         const isCompose = name === 'compose';
         const isGroupPick = name === 'groupPick';
+        const isGroupTopics = name === 'groupTopics';
         const showListActions = isTopics;
 
         if (els.backBtn) {
             els.backBtn.hidden = isPageMode
-                ? !(isCompose || isGroupPick || currentTopic)
+                ? !(isCompose || isGroupPick || isGroupTopics || currentTopic)
                 : isTopics;
         }
         if (els.newTopicBtn) {
@@ -641,7 +773,10 @@
             els.fullPageBtn.hidden = isPageMode;
         }
         if (els.membersBtn) {
-            els.membersBtn.hidden = !isThread || !currentTopic?.is_group || !currentTopic?.can_manage_members;
+            const group = isGroupTopics
+                ? currentGroup
+                : (isThread && currentTopic?.parent_topic_id ? null : currentGroup);
+            els.membersBtn.hidden = !group?.can_manage_members;
         }
         if (els.headerAvatar && isTopics) {
             els.headerAvatar.innerHTML = '<i class="fa-solid fa-comments"></i>';
@@ -1058,6 +1193,149 @@
         els.pinBtn.title = isPinned ? 'Unpin' : 'Pin topic';
     }
 
+    function buildGroupTopicCard(topic) {
+        const authorName = topic.author?.name || 'Member';
+        const excerpt = topic.body
+            ? escapeHtml(String(topic.body).slice(0, 80)) + (String(topic.body).length > 80 ? '…' : '')
+            : `${topic.replies_count || 0} ${(topic.replies_count || 0) === 1 ? 'reply' : 'replies'}`;
+        const unread = topic.unread_count ?? getTopicUnread(topic.id);
+        if (unread > 0) {
+            setTopicUnread(topic.id, unread);
+        }
+        const unreadBadge = unread > 0
+            ? `<span class="discussion-widget-topic__unread">${formatUnreadCount(unread)}</span>`
+            : '';
+        const unreadClass = unread > 0 ? 'discussion-widget-topic--unread' : '';
+        const postedDate = formatPostedDate(topic);
+        const postedTime = topic.created_at_time || '';
+
+        return `<button type="button" class="discussion-widget-topic ${unreadClass}" data-topic-id="${topic.id}" data-group-topic="1">
+            <span class="discussion-avatar discussion-avatar--icon discussion-avatar--topic" aria-hidden="true"><i class="fa-solid fa-hashtag"></i></span>
+            <div class="discussion-widget-topic__content">
+                <div class="discussion-widget-topic__row">
+                    <h3 class="discussion-widget-topic__title">${escapeHtml(topic.title)}</h3>
+                    ${unreadBadge}
+                </div>
+                <div class="discussion-widget-topic__row">
+                    <p class="discussion-widget-topic__excerpt">${excerpt}</p>
+                </div>
+                <div class="discussion-widget-topic__row discussion-widget-topic__meta">
+                    <span class="discussion-widget-topic__author"><i class="fa-solid fa-hashtag"></i> Topic · ${escapeHtml(authorName)}</span>
+                    <time class="discussion-widget-topic__date" datetime="${escapeHtml(topic.created_at || '')}">${escapeHtml(postedDate)}${postedTime ? ` · ${escapeHtml(postedTime)}` : ''}</time>
+                </div>
+            </div>
+        </button>`;
+    }
+
+    function renderGroupTopicsList(children = []) {
+        const listEl = els.groupTopicsList;
+        const emptyEl = document.getElementById('discussionWidgetGroupTopicsEmpty');
+        if (!listEl) {
+            return;
+        }
+
+        if (!children.length) {
+            listEl.innerHTML = '';
+            if (emptyEl) {
+                emptyEl.hidden = false;
+                listEl.appendChild(emptyEl);
+            }
+
+            return;
+        }
+
+        if (emptyEl) {
+            emptyEl.hidden = true;
+        }
+
+        listEl.innerHTML = children.map(buildGroupTopicCard).join('');
+    }
+
+    function openGroupTopics(group) {
+        currentGroup = group;
+        currentTopic = group;
+        config.topicId = group.id;
+        openRequestId += 1;
+
+        showPanel('groupTopics');
+        setHeaderTitle(group.title, topicSubtitle(group));
+        setHeaderTopicAvatar(group);
+        updateMembersButton(group);
+        setComposerVisible(false);
+        renderGroupTopicsList(group.children || []);
+        updateFullPageLink(group.id);
+        updateMessengerUrl(group.id);
+
+        if (els.pinBtn) {
+            els.pinBtn.hidden = true;
+        }
+    }
+
+    function openThreadFromData(topic, data = {}) {
+        currentTopic = topic;
+        config.canPin = Boolean(data.can_pin);
+        config.topicId = topic.id;
+
+        if (topic.parent && topic.parent.id) {
+            currentGroup = topic.parent;
+        } else if (topic.parent_topic_id && currentGroup?.id !== Number(topic.parent_topic_id)) {
+            currentGroup = { id: topic.parent_topic_id, title: 'Group' };
+        }
+
+        showPanel('thread');
+        setHeaderTitle(topic.title, topicSubtitle(topic));
+        if (topic.parent_topic_id) {
+            if (els.headerAvatar) {
+                els.headerAvatar.className = 'discussion-widget__brand-mark discussion-avatar discussion-avatar--icon discussion-avatar--topic';
+                els.headerAvatar.innerHTML = '<i class="fa-solid fa-hashtag"></i>';
+            }
+        } else {
+            setHeaderTopicAvatar(topic);
+        }
+        updateMembersButton(null);
+
+        updatePinButton(Boolean(topic.is_pinned));
+        if (els.pinBtn) {
+            els.pinBtn.hidden = !config.canPin;
+            els.pinBtn.dataset.url = pinUrl(topic.id);
+        }
+
+        const replies = topic.replies || [];
+        let html = buildTopicMessage(topic);
+        if (replies.length) {
+            html += replies.map(buildReplyMessage).join('');
+        } else {
+            html += `<div class="discussion-widget__empty" id="discussionWidgetEmptyReplies">
+                <div class="discussion-widget__empty-icon"><i class="fa-regular fa-comment-dots"></i></div>
+                <h4>No replies yet</h4>
+                <p>Be the first to respond.</p>
+            </div>`;
+        }
+
+        if (els.messages) {
+            els.messages.innerHTML = html;
+            els.messages.scrollTop = els.messages.scrollHeight;
+        }
+
+        setComposerVisible(true);
+        markTopicRead(topic.id);
+        updateFullPageLink(topic.id);
+        updateMessengerUrl(topic.id);
+    }
+
+    async function reloadCurrentGroup() {
+        if (!currentGroup?.id) {
+            return;
+        }
+
+        try {
+            const data = await requestJson(topicUrl(currentGroup.id));
+            openGroupTopics(data.topic);
+        } catch (error) {
+            notify('error', error.message);
+        }
+    }
+
     async function openTopic(topicId) {
         const requestId = ++openRequestId;
         currentTopic = { id: topicId };
@@ -1086,41 +1364,14 @@
             }
 
             const topic = data.topic;
-            currentTopic = topic;
-            config.canPin = Boolean(data.can_pin);
-            config.topicId = topic.id;
 
-            setHeaderTitle(topic.title, topicSubtitle(topic));
-            setHeaderTopicAvatar(topic);
-            updateMembersButton(topic);
+            if (topic.is_group && !topic.parent_topic_id) {
+                openGroupTopics(topic);
 
-            updatePinButton(Boolean(topic.is_pinned));
-            if (els.pinBtn) {
-                els.pinBtn.hidden = !config.canPin;
-                els.pinBtn.dataset.url = pinUrl(topic.id);
+                return;
             }
 
-            const replies = topic.replies || [];
-            let html = buildTopicMessage(topic);
-            if (replies.length) {
-                html += replies.map(buildReplyMessage).join('');
-            } else {
-                html += `<div class="discussion-widget__empty" id="discussionWidgetEmptyReplies">
-                    <div class="discussion-widget__empty-icon"><i class="fa-regular fa-comment-dots"></i></div>
-                    <h4>No replies yet</h4>
-                    <p>Be the first to respond.</p>
-                </div>`;
-            }
-
-            if (els.messages) {
-                els.messages.innerHTML = html;
-                els.messages.scrollTop = els.messages.scrollHeight;
-            }
-
-            setComposerVisible(true);
-            markTopicRead(topic.id);
-            updateFullPageLink(topic.id);
-            updateMessengerUrl(topic.id);
+            openThreadFromData(topic, data);
         } catch (error) {
             if (requestId !== openRequestId) {
                 return;
@@ -1134,6 +1385,7 @@
 
     function showTopics() {
         currentTopic = null;
+        currentGroup = null;
         config.topicId = null;
         openRequestId += 1;
 
@@ -1191,6 +1443,24 @@
         document.getElementById('discussionWidgetGroupTitle')?.focus();
     }
 
+    function showComposeGroupTopic() {
+        if (!currentGroup?.id) {
+            return;
+        }
+
+        if (els.groupTopicParentInput) {
+            els.groupTopicParentInput.value = String(currentGroup.id);
+        }
+
+        setComposeFormVisible('groupTopic');
+        showPanel('compose');
+        setHeaderTitle('New topic', `In ${currentGroup.title}`);
+        resetHeaderAvatar();
+        updateMembersButton(null);
+        setComposerVisible(false);
+        document.getElementById('discussionWidgetGroupTopicTitle')?.focus();
+    }
+
     function showCompose() {
         showComposeTopic();
     }
@@ -1225,14 +1495,31 @@
             widgetGroupPicker?.reset?.();
             return;
         }
+        if (panels.compose?.classList.contains('is-active') && composeMode === 'groupTopic') {
+            reloadCurrentGroup();
+            return;
+        }
         if (panels.compose?.classList.contains('is-active') && composeMode === 'group') {
             showGroupPick();
+            return;
+        }
+        if (panels.compose?.classList.contains('is-active')) {
+            showTopics();
+            return;
+        }
+        if (panels.thread?.classList.contains('is-active') && currentTopic?.parent_topic_id && currentGroup?.id) {
+            reloadCurrentGroup();
+            return;
+        }
+        if (panels.groupTopics?.classList.contains('is-active')) {
+            showTopics();
             return;
         }
         showTopics();
     });
     els.newTopicBtn?.addEventListener('click', showComposeTopic);
     els.newGroupBtn?.addEventListener('click', showGroupPick);
+    els.newGroupTopicBtn?.addEventListener('click', showComposeGroupTopic);
     els.membersBtn?.addEventListener('click', openMembersModal);
     els.membersCloseBtn?.addEventListener('click', closeMembersModal);
     els.membersModal?.addEventListener('click', (event) => {
@@ -1241,21 +1528,22 @@
         }
     });
     els.membersAddBtn?.addEventListener('click', async () => {
-        if (!currentTopic?.id || modalMemberSelection.size === 0) {
+        const group = currentGroup || (currentTopic?.is_group && !currentTopic?.parent_topic_id ? currentTopic : null);
+        if (!group?.id || modalMemberSelection.size === 0) {
             return;
         }
 
         els.membersAddBtn.disabled = true;
 
         try {
-            const data = await requestJson(membersStoreUrl(currentTopic.id), {
+            const data = await requestJson(membersStoreUrl(group.id), {
                 method: 'POST',
                 body: JSON.stringify({
                     member_ids: Array.from(modalMemberSelection.keys()),
                 }),
             });
 
-            renderMembersList(data.members || []);
+            renderMembersList(data.members || [], canManageMembersModal);
             modalMemberSelection.clear();
             renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
             notify('success', data.message || 'Members added.');
@@ -1263,6 +1551,74 @@
             notify('error', error.message);
         } finally {
             els.membersAddBtn.disabled = false;
+        }
+    });
+
+    els.membersList?.addEventListener('click', async (event) => {
+        const removeBtn = event.target.closest('.discussion-widget__member-remove');
+        const group = currentGroup || (currentTopic?.is_group && !currentTopic?.parent_topic_id ? currentTopic : null);
+        if (!removeBtn || !group?.id) {
+            return;
+        }
+
+        const memberId = Number(removeBtn.dataset.memberId);
+        removeBtn.disabled = true;
+
+        try {
+            const data = await requestJson(membersDestroyUrl(group.id, memberId), {
+                method: 'DELETE',
+            });
+
+            renderMembersList(data.members || [], canManageMembersModal);
+            notify('success', data.message || 'Member removed.');
+        } catch (error) {
+            notify('error', error.message);
+            removeBtn.disabled = false;
+        }
+    });
+
+    els.membersPhotoInput?.addEventListener('change', async () => {
+        const file = els.membersPhotoInput.files?.[0];
+        const group = currentGroup || (currentTopic?.is_group && !currentTopic?.parent_topic_id ? currentTopic : null);
+        if (!file || !group?.id) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('group_image', file);
+
+        try {
+            const data = await requestFormJson(groupImageUpdateUrl(group.id), formData);
+            renderMembersPhotoPreview(data.group_image_url || null);
+            syncTopicGroupSettings(data.topic || { group_image_url: data.group_image_url });
+            notify('success', data.message || 'Group photo updated.');
+        } catch (error) {
+            notify('error', error.message);
+        } finally {
+            els.membersPhotoInput.value = '';
+        }
+    });
+
+    els.membersPhotoRemoveBtn?.addEventListener('click', async () => {
+        const group = currentGroup || (currentTopic?.is_group && !currentTopic?.parent_topic_id ? currentTopic : null);
+        if (!group?.id) {
+            return;
+        }
+
+        els.membersPhotoRemoveBtn.disabled = true;
+
+        try {
+            const data = await requestJson(groupImageDestroyUrl(group.id), {
+                method: 'DELETE',
+            });
+
+            renderMembersPhotoPreview(null);
+            syncTopicGroupSettings(data.topic || { group_image_url: null });
+            notify('success', data.message || 'Group photo removed.');
+        } catch (error) {
+            notify('error', error.message);
+        } finally {
+            els.membersPhotoRemoveBtn.disabled = false;
         }
     });
 
@@ -1328,8 +1684,42 @@
         });
     }
 
+    if (els.newGroupTopicForm) {
+        window.soilnwaterDiscussionCompose?.initNewChatForm?.({
+            form: els.newGroupTopicForm,
+            attachImageBtnId: 'discussionWidgetGroupTopicAttachImageBtn',
+            attachVideoBtnId: 'discussionWidgetGroupTopicAttachVideoBtn',
+            attachDocumentBtnId: 'discussionWidgetGroupTopicAttachDocumentBtn',
+            attachmentsInputId: 'discussionWidgetGroupTopicAttachments',
+            attachmentsPreviewId: 'discussionWidgetGroupTopicAttachmentsPreview',
+            onSuccess(data) {
+                notify('success', data.message || 'Group topic created.');
+
+                if (data.topic?.id && currentGroup?.id) {
+                    reloadCurrentGroup().then(() => {
+                        openTopic(data.topic.id);
+                    });
+                } else if (currentGroup?.id) {
+                    reloadCurrentGroup();
+                }
+            },
+            onError(error) {
+                notify('error', error.message);
+            },
+        });
+    }
+
     els.topicList?.addEventListener('click', (event) => {
         const card = event.target.closest('[data-topic-id]');
+        if (!card) {
+            return;
+        }
+
+        openTopic(card.dataset.topicId);
+    });
+
+    els.groupTopicsList?.addEventListener('click', (event) => {
+        const card = event.target.closest('[data-group-topic]');
         if (!card) {
             return;
         }
@@ -1430,6 +1820,14 @@
                 return;
             }
 
+            if (topic.parent_topic_id) {
+                if (currentGroup && Number(currentGroup.id) === Number(topic.parent_topic_id)) {
+                    reloadCurrentGroup();
+                }
+
+                return;
+            }
+
             previousUi.prependTopic?.(topic);
             prependTopicCard(topic);
             if (topic.author?.id !== config.currentUserId) {
@@ -1511,6 +1909,16 @@
         },
         prependTopicWithUnread(topic) {
             if (!canAccessTopic(topic)) {
+                return;
+            }
+
+            if (topic.parent_topic_id) {
+                const groupId = Number(topic.parent_topic_id);
+                incrementTopicUnread(groupId, 1);
+                if (currentGroup && Number(currentGroup.id) === groupId) {
+                    reloadCurrentGroup();
+                }
+
                 return;
             }
 

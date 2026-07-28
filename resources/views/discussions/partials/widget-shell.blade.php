@@ -66,8 +66,8 @@
                     class="discussion-widget__icon-btn"
                     id="discussionWidgetMembersBtn"
                     hidden
-                    title="Manage group members"
-                    aria-label="Manage group members">
+                    title="Group settings"
+                    aria-label="Group settings">
                 <i class="fa-solid fa-user-plus"></i>
             </button>
             <button type="button"
@@ -107,6 +107,22 @@
                 <div class="discussion-widget__loading" id="discussionWidgetTopicsLoading">
                     <span class="discussion-widget__spinner" aria-hidden="true"></span>
                     <span>Loading chats…</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="discussion-widget__panel" id="discussionWidgetGroupTopics" data-panel="groupTopics" hidden>
+            <div class="discussion-widget__group-topics-bar">
+                <button type="button" class="discussion-widget__primary-btn" id="discussionWidgetNewGroupTopicBtn">
+                    <i class="fa-solid fa-plus"></i>
+                    New topic
+                </button>
+            </div>
+            <div class="discussion-widget__scroll discussion-widget__scroll--list" id="discussionWidgetGroupTopicsList">
+                <div class="discussion-widget__empty" id="discussionWidgetGroupTopicsEmpty" hidden>
+                    <div class="discussion-widget__empty-icon"><i class="fa-solid fa-hashtag"></i></div>
+                    <h4>No topics yet</h4>
+                    <p>Start the first discussion in this group.</p>
                 </div>
             </div>
         </section>
@@ -185,15 +201,47 @@
                     Create group
                 </button>
             </form>
+            <form class="discussion-widget__compose-form" id="discussionWidgetNewGroupTopicForm" data-url="{{ route('discussions.store') }}" data-compose-mode="group-topic" enctype="multipart/form-data" hidden>
+                @csrf
+                <input type="hidden" name="parent_topic_id" id="discussionWidgetGroupTopicParentId" value="">
+                @include('discussions.partials.new-chat-compose-fields', ['prefix' => 'discussionWidgetGroupTopic', 'mode' => 'topic'])
+                <button type="submit" class="discussion-widget__primary-btn">
+                    <i class="fa-solid fa-hashtag"></i>
+                    Create topic
+                </button>
+            </form>
         </section>
 
         <div class="discussion-widget__members-modal" id="discussionWidgetMembersModal" hidden>
             <div class="discussion-widget__members-card">
                 <div class="discussion-widget__members-head">
-                    <h3>Group members</h3>
+                    <h3>Group settings</h3>
                     <button type="button" class="discussion-widget__icon-btn" id="discussionWidgetMembersCloseBtn" aria-label="Close">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
+                </div>
+                <div class="discussion-widget__members-photo" id="discussionWidgetMembersPhotoSection" hidden>
+                    <div class="discussion-widget__members-photo-preview" id="discussionWidgetMembersPhotoPreview">
+                        <span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true">
+                            <i class="fa-solid fa-users"></i>
+                        </span>
+                    </div>
+                    <div class="discussion-widget__members-photo-actions">
+                        <label class="discussion-widget__members-photo-btn" for="discussionWidgetMembersPhotoInput">
+                            <i class="fa-solid fa-camera"></i>
+                            <span id="discussionWidgetMembersPhotoActionLabel">Add group photo</span>
+                        </label>
+                        <input type="file"
+                               id="discussionWidgetMembersPhotoInput"
+                               class="visually-hidden"
+                               accept="image/jpeg,image/png,image/gif,image/webp">
+                        <button type="button"
+                                class="discussion-widget__members-photo-remove"
+                                id="discussionWidgetMembersPhotoRemoveBtn"
+                                hidden>
+                            Remove photo
+                        </button>
+                    </div>
                 </div>
                 <div class="discussion-widget__members-list" id="discussionWidgetMembersList"></div>
                 <div class="discussion-widget__members-add" id="discussionWidgetMembersAddSection" hidden>

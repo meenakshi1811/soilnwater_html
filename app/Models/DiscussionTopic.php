@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\DiscussionFileUploader;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\File;
 
 class DiscussionTopic extends Model
 {
@@ -20,6 +22,8 @@ class DiscussionTopic extends Model
         'user_id',
         'title',
         'is_group',
+        'parent_topic_id',
+        'group_image',
         'body',
         'attachments',
         'is_pinned',
@@ -66,10 +70,26 @@ class DiscussionTopic extends Model
         return $this->hasMany(DiscussionTopicMember::class);
     }
 
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_topic_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_topic_id')
+            ->where('is_group', false)
+            ->latest();
+    }
+
     public function canAccess(?User $user): bool
     {
         if (! $user) {
             return false;
+        }
+
+        if ($this->parent_topic_id) {
+            return $this->parent?->canAccess($user) ?? false;
         }
 
         if (! $this->is_group) {
@@ -81,6 +101,11 @@ class DiscussionTopic extends Model
         }
 
         return $this->members()->where('users.id', $user->id)->exists();
+    }
+
+    public function isGroupContainer(): bool
+    {
+        return $this->is_group && $this->parent_topic_id === null;
     }
 
     public function isOwner(User $user): bool
@@ -130,6 +155,39 @@ class DiscussionTopic extends Model
         return $added;
     }
 
+    public function removeGroupMember(int $userId): bool
+    {
+        if ((int) $this->user_id === $userId) {
+            return false;
+        }
+
+        if (! $this->members()->where('users.id', $userId)->exists()) {
+            return false;
+        }
+
+        $this->members()->detach($userId);
+
+        return true;
+    }
+
+    public function groupImageUrl(): ?string
+    {
+        return DiscussionFileUploader::url($this->group_image);
+    }
+
+    public function deleteStoredGroupImage(): void
+    {
+        if (! filled($this->group_image)) {
+            return;
+        }
+
+        $absolutePath = public_path($this->group_image);
+
+        if (File::isFile($absolutePath)) {
+            File::delete($absolutePath);
+        }
+    }
+
     /**
      * @param  Builder<DiscussionTopic>  $query
      * @return Builder<DiscussionTopic>
@@ -137,10 +195,35 @@ class DiscussionTopic extends Model
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
         return $query->where(function (Builder $builder) use ($user): void {
-            $builder->where('is_group', false)
-                ->orWhere('user_id', $user->id)
-                ->orWhereHas('members', fn (Builder $memberQuery) => $memberQuery->where('users.id', $user->id));
+            $builder->where(function (Builder $publicBuilder): void {
+                $publicBuilder->where('is_group', false)
+                    ->whereNull('parent_topic_id');
+            })
+                ->orWhere(function (Builder $groupBuilder) use ($user): void {
+                    $groupBuilder->where('is_group', true)
+                        ->whereNull('parent_topic_id')
+                        ->where(function (Builder $accessBuilder) use ($user): void {
+                            $accessBuilder->where('user_id', $user->id)
+                                ->orWhereHas('members', fn (Builder $memberQuery) => $memberQuery->where('users.id', $user->id));
+                        });
+                })
+                ->orWhereHas('parent', function (Builder $parentQuery) use ($user): void {
+                    $parentQuery->where('is_group', true)
+                        ->where(function (Builder $accessBuilder) use ($user): void {
+                            $accessBuilder->where('user_id', $user->id)
+                                ->orWhereHas('members', fn (Builder $memberQuery) => $memberQuery->where('users.id', $user->id));
+                        });
+                });
         });
+    }
+
+    /**
+     * @param  Builder<DiscussionTopic>  $query
+     * @return Builder<DiscussionTopic>
+     */
+    public function scopeRootOnly(Builder $query): Builder
+    {
+        return $query->whereNull('parent_topic_id');
     }
 
     /**
@@ -196,17 +279,20 @@ class DiscussionTopic extends Model
             'id' => $this->id,
             'title' => $this->title,
             'is_group' => $this->is_group,
+            'parent_topic_id' => $this->parent_topic_id,
+            'group_image_url' => $this->is_group ? $this->groupImageUrl() : null,
             'body' => $this->body,
             'attachments' => $this->attachments ?? [],
             'is_pinned' => $this->is_pinned,
             'replies_count' => $this->replies_count,
+            'children_count' => $this->children_count ?? ($this->relationLoaded('children') ? $this->children->count() : null),
             'members_count' => $this->members_count ?? ($this->relationLoaded('members') ? $this->members->count() : null),
             'member_ids' => $this->is_group
                 ? ($this->relationLoaded('members')
                     ? $this->members->pluck('id')->all()
                     : $this->members()->pluck('users.id')->all())
                 : [],
-            'can_manage_members' => $user ? $user->can('manageMembers', $this) : false,
+            'can_manage_members' => $user && $this->isGroupContainer() ? $user->can('manageMembers', $this) : false,
             'created_at' => $this->created_at?->toIso8601String(),
             'created_at_human' => $this->created_at?->diffForHumans(),
             'created_at_date' => $this->created_at?->format('d M Y'),

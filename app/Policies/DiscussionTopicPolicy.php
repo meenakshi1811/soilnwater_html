@@ -19,11 +19,18 @@ class DiscussionTopicPolicy
 
     public function manageMembers(User $user, DiscussionTopic $topic): bool
     {
-        return $topic->is_group && $topic->isOwner($user);
+        return $topic->isGroupContainer() && $topic->isOwner($user);
     }
 
     public function pin(User $user, DiscussionTopic $topic): bool
     {
         return $user->isAdmin();
+    }
+
+    public function createInGroup(User $user, DiscussionTopic $group): bool
+    {
+        return $group->is_group
+            && $group->parent_topic_id === null
+            && $group->canAccess($user);
     }
 }

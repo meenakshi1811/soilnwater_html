@@ -344,4 +344,85 @@ class DiscussionModuleTest extends TestCase
             ])
             ->assertForbidden();
     }
+
+    public function test_group_creator_can_remove_members_and_manage_group_image(): void
+    {
+        $creator = User::factory()->create(['email_verified_at' => now()]);
+        $member = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($creator)->postJson(route('discussions.store'), [
+            'title' => 'Photo group',
+            'is_group' => true,
+            'member_ids' => [$member->id],
+        ])->assertOk();
+
+        $topic = DiscussionTopic::query()->firstOrFail();
+
+        $this->actingAs($creator)
+            ->postJson(route('discussions.group-image.update', $topic), [
+                'group_image' => \Illuminate\Http\UploadedFile::fake()->image('group.jpg'),
+            ])
+            ->assertOk()
+            ->assertJsonPath('group_image_url', fn ($url) => is_string($url) && $url !== '');
+
+        $this->assertNotNull($topic->fresh()->group_image);
+
+        $this->actingAs($creator)
+            ->deleteJson(route('discussions.group-image.destroy', $topic))
+            ->assertOk()
+            ->assertJsonPath('group_image_url', null);
+
+        $this->assertNull($topic->fresh()->group_image);
+
+        $this->actingAs($creator)
+            ->deleteJson(route('discussions.members.destroy', ['topic' => $topic, 'member' => $member]))
+            ->assertOk()
+            ->assertJsonFragment(['message' => 'Member removed.']);
+
+        $this->assertFalse($topic->fresh()->canAccess($member));
+
+        $this->actingAs($member)
+            ->deleteJson(route('discussions.members.destroy', ['topic' => $topic, 'member' => $member]))
+            ->assertForbidden();
+    }
+
+    public function test_group_member_can_create_topic_under_group(): void
+    {
+        $creator = User::factory()->create(['email_verified_at' => now()]);
+        $member = User::factory()->create(['email_verified_at' => now()]);
+        $outsider = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($creator)->postJson(route('discussions.store'), [
+            'title' => 'Planning group',
+            'is_group' => true,
+            'member_ids' => [$member->id],
+        ])->assertOk();
+
+        $group = DiscussionTopic::query()->firstOrFail();
+
+        $this->actingAs($member)
+            ->postJson(route('discussions.store'), [
+                'title' => 'Irrigation ideas',
+                'body' => 'Share your methods',
+                'parent_topic_id' => $group->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('topic.parent_topic_id', $group->id);
+
+        $child = DiscussionTopic::query()->where('parent_topic_id', $group->id)->firstOrFail();
+        $this->assertFalse($child->is_group);
+        $this->assertTrue($child->canAccess($member));
+
+        $this->actingAs($member)
+            ->getJson(route('discussions.show', $group))
+            ->assertOk()
+            ->assertJsonPath('topic.children.0.id', $child->id);
+
+        $this->actingAs($outsider)
+            ->postJson(route('discussions.store'), [
+                'title' => 'Blocked topic',
+                'parent_topic_id' => $group->id,
+            ])
+            ->assertForbidden();
+    }
 }

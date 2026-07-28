@@ -12,6 +12,9 @@
     $topicReadTemplate = str_replace('999999999', '__TOPIC__', route('discussions.read', ['topic' => 999999999]));
     $topicMembersTemplate = str_replace('999999999', '__TOPIC__', route('discussions.members.index', ['topic' => 999999999]));
     $topicMembersStoreTemplate = str_replace('999999999', '__TOPIC__', route('discussions.members.store', ['topic' => 999999999]));
+    $topicMembersDestroyTemplate = str_replace(['999999999', '888888888'], ['__TOPIC__', '__MEMBER__'], route('discussions.members.destroy', ['topic' => 999999999, 'member' => 888888888]));
+    $topicGroupImageUpdateTemplate = str_replace('999999999', '__TOPIC__', route('discussions.group-image.update', ['topic' => 999999999]));
+    $topicGroupImageDestroyTemplate = str_replace('999999999', '__TOPIC__', route('discussions.group-image.destroy', ['topic' => 999999999]));
 @endphp
 <script>
     window.soilnwaterDiscussion = {
@@ -36,6 +39,9 @@
             topicReadTemplate: @json($topicReadTemplate),
             topicMembersTemplate: @json($topicMembersTemplate),
             topicMembersStoreTemplate: @json($topicMembersStoreTemplate),
+            topicMembersDestroyTemplate: @json($topicMembersDestroyTemplate),
+            topicGroupImageUpdateTemplate: @json($topicGroupImageUpdateTemplate),
+            topicGroupImageDestroyTemplate: @json($topicGroupImageDestroyTemplate),
             usersSearch: @json(route('discussions.users.search')),
             unreadSummary: @json(route('discussions.unread-summary')),
             replyReactTemplate: @json($replyReactTemplate),

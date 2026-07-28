@@ -189,6 +189,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{topic}', [DiscussionTopicController::class, 'show'])->name('show');
         Route::get('/{topic}/members', [DiscussionMemberController::class, 'index'])->name('members.index');
         Route::post('/{topic}/members', [DiscussionMemberController::class, 'store'])->name('members.store');
+        Route::delete('/{topic}/members/{member}', [DiscussionMemberController::class, 'destroy'])->name('members.destroy');
+        Route::post('/{topic}/group-image', [DiscussionTopicController::class, 'updateGroupImage'])->name('group-image.update');
+        Route::delete('/{topic}/group-image', [DiscussionTopicController::class, 'destroyGroupImage'])->name('group-image.destroy');
         Route::post('/{topic}/read', [DiscussionReadController::class, 'markRead'])->name('read');
         Route::post('/{topic}/replies', [DiscussionReplyController::class, 'store'])->name('replies.store');
         Route::post('/{topic}/pin', [DiscussionTopicController::class, 'pin'])->name('pin');

@@ -84,10 +84,42 @@ class DiscussionReadService
         return $counts;
     }
 
+    /**
+     * @param  Collection<int, DiscussionTopic>  $topics
+     * @return array<int, int>
+     */
+    public function unreadCountsForRootTopics(User $user, Collection $topics): array
+    {
+        if ($topics->isEmpty()) {
+            return [];
+        }
+
+        $counts = [];
+
+        foreach ($topics as $topic) {
+            if ($topic->is_group) {
+                $children = $topic->children()->get(['id', 'user_id', 'created_at']);
+                $counts[$topic->id] = array_sum($this->unreadCountsForTopics($user, $children));
+
+                continue;
+            }
+
+            $counts[$topic->id] = $this->unreadCountForTopic($user, $topic);
+        }
+
+        return $counts;
+    }
+
     public function globalUnreadCount(User $user): int
     {
         $topics = DiscussionTopic::query()
             ->visibleTo($user)
+            ->where(function ($query): void {
+                $query->where(function ($publicQuery): void {
+                    $publicQuery->where('is_group', false)
+                        ->whereNull('parent_topic_id');
+                })->orWhereNotNull('parent_topic_id');
+            })
             ->get(['id', 'user_id', 'created_at']);
 
         return array_sum($this->unreadCountsForTopics($user, $topics));
@@ -98,13 +130,14 @@ class DiscussionReadService
      */
     public function unreadSummary(User $user): array
     {
-        $topics = DiscussionTopic::query()
+        $roots = DiscussionTopic::query()
             ->visibleTo($user)
-            ->get(['id', 'user_id', 'created_at']);
-        $counts = $this->unreadCountsForTopics($user, $topics);
+            ->rootOnly()
+            ->get(['id', 'user_id', 'created_at', 'is_group']);
+        $counts = $this->unreadCountsForRootTopics($user, $roots);
 
         return [
-            'global_unread' => array_sum($counts),
+            'global_unread' => $this->globalUnreadCount($user),
             'topics' => $counts,
         ];
     }

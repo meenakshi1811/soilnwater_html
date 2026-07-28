@@ -8,7 +8,13 @@
      data-topic-id="{{ $topic->id }}"
      id="discussion-topic-{{ $topic->id }}">
     @if($isGroup)
-        <span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>
+        @if($topic->groupImageUrl())
+            <span class="discussion-avatar discussion-avatar--photo" aria-hidden="true">
+                <img src="{{ $topic->groupImageUrl() }}" alt="">
+            </span>
+        @else
+            <span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>
+        @endif
     @else
         <span class="discussion-avatar discussion-avatar--icon discussion-avatar--topic" aria-hidden="true"><i class="fa-solid fa-hashtag"></i></span>
     @endif

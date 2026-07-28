@@ -47,11 +47,12 @@ class DiscussionMemberController extends Controller
     {
         $this->authorize('view', $topic);
 
-        abort_unless($topic->is_group, 404);
+        abort_unless($topic->isGroupContainer(), 404);
 
         return response()->json([
             'members' => $topic->memberSummaries(),
             'can_manage_members' => $request->user()->can('manageMembers', $topic),
+            'group_image_url' => $topic->groupImageUrl(),
         ]);
     }
 
@@ -78,6 +79,24 @@ class DiscussionMemberController extends Controller
         return response()->json([
             'message' => count($added) > 0 ? 'Members added.' : 'Selected members are already in this group.',
             'added_ids' => $added,
+            'members' => $topic->fresh(['members'])->memberSummaries(),
+        ]);
+    }
+
+    public function destroy(Request $request, DiscussionTopic $topic, User $member): JsonResponse
+    {
+        $this->authorize('manageMembers', $topic);
+
+        abort_unless($topic->isGroupContainer(), 404);
+
+        if (! $topic->removeGroupMember((int) $member->id)) {
+            return response()->json([
+                'message' => 'This member cannot be removed from the group.',
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Member removed.',
             'members' => $topic->fresh(['members'])->memberSummaries(),
         ]);
     }

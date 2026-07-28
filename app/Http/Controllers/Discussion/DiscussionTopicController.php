@@ -26,14 +26,15 @@ class DiscussionTopicController extends Controller
         if ($request->expectsJson()) {
             $topics = DiscussionTopic::query()
                 ->visibleTo($request->user())
+                ->rootOnly()
                 ->with('user')
-                ->withCount(['reactions', 'members'])
+                ->withCount(['reactions', 'members', 'children'])
                 ->orderByDesc('is_pinned')
                 ->orderByDesc('pinned_at')
                 ->latest()
                 ->get();
 
-            $unreadCounts = $this->readService->unreadCountsForTopics($request->user(), $topics);
+            $unreadCounts = $this->readService->unreadCountsForRootTopics($request->user(), $topics);
 
             return response()->json([
                 'topics' => $topics->map(function (DiscussionTopic $topic) use ($unreadCounts) {
@@ -54,14 +55,15 @@ class DiscussionTopicController extends Controller
 
         $topics = DiscussionTopic::query()
             ->visibleTo($request->user())
+            ->rootOnly()
             ->with('user')
-            ->withCount(['reactions', 'members'])
+            ->withCount(['reactions', 'members', 'children'])
             ->orderByDesc('is_pinned')
             ->orderByDesc('pinned_at')
             ->latest()
             ->paginate(20);
 
-        $unreadCounts = $this->readService->unreadCountsForTopics($request->user(), $topics->getCollection());
+        $unreadCounts = $this->readService->unreadCountsForRootTopics($request->user(), $topics->getCollection());
 
         return view('discussions.index', [
             'topics' => $topics,
@@ -82,8 +84,43 @@ class DiscussionTopicController extends Controller
     {
         $this->authorize('view', $topic);
 
+        if ($topic->isGroupContainer()) {
+            $topic->load(['user', 'members']);
+            $topic->loadCount(['members', 'children']);
+
+            $children = $topic->children()
+                ->with('user')
+                ->withCount('replies')
+                ->latest()
+                ->get();
+
+            $unreadCounts = $this->readService->unreadCountsForTopics($request->user(), $children);
+            $canPin = auth()->user()?->isAdmin() ?? false;
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'topic' => array_merge($topic->toBroadcastArray(), [
+                        'children' => $children->map(function (DiscussionTopic $child) use ($unreadCounts) {
+                            return array_merge($child->toBroadcastArray(), [
+                                'unread_count' => $unreadCounts[$child->id] ?? 0,
+                            ]);
+                        })->values(),
+                    ]),
+                    'can_pin' => $canPin,
+                    'global_unread' => $this->readService->globalUnreadCount($request->user()),
+                ]);
+            }
+
+            return view('discussions.show', [
+                'topic' => $topic,
+                'canPin' => $canPin,
+                'userReactions' => ['topic' => [], 'replies' => []],
+            ]);
+        }
+
         $topic->load([
             'user',
+            'parent',
             'members',
             'replies.user',
             'replies.reactions',
@@ -101,6 +138,11 @@ class DiscussionTopicController extends Controller
                     'reaction_counts' => $topic->reactionCounts(),
                     'user_reactions' => $userReactions['topic'],
                     'members' => $topic->is_group ? $topic->memberSummaries() : [],
+                    'parent' => $topic->parent
+                        ? array_merge($topic->parent->toBroadcastArray(), [
+                            'children_count' => $topic->parent->children()->count(),
+                        ])
+                        : null,
                     'replies' => $topic->replies->map(function ($reply) use ($userReactions) {
                         return array_merge($reply->toBroadcastArray(), [
                             'user_reactions' => $userReactions['replies'][$reply->id] ?? [],
@@ -125,19 +167,33 @@ class DiscussionTopicController extends Controller
             'title' => ['required', 'string', 'max:200'],
             'body' => ['nullable', 'string', 'max:5000'],
             'is_group' => ['nullable', 'boolean'],
+            'parent_topic_id' => ['nullable', 'integer', 'exists:discussion_topics,id'],
             'member_ids' => ['nullable', 'array'],
             'member_ids.*' => ['integer', 'exists:users,id'],
+            'group_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
             'attachments' => ['nullable', 'array', 'max:4'],
             'attachments.*' => ['file', DiscussionAttachments::validationMimesRule(), 'max:10240'],
         ]);
 
         $attachments = $this->storeAttachments($request->file('attachments', []));
-        $isGroup = $request->boolean('is_group');
+        $parentTopic = null;
+
+        if (! empty($data['parent_topic_id'])) {
+            $parentTopic = DiscussionTopic::query()->findOrFail((int) $data['parent_topic_id']);
+            $this->authorize('createInGroup', $parentTopic);
+        }
+
+        $isGroup = $parentTopic ? false : $request->boolean('is_group');
+        $groupImagePath = $isGroup && $request->hasFile('group_image')
+            ? $this->storeGroupImage($request->file('group_image'))
+            : null;
 
         $topic = DiscussionTopic::query()->create([
             'user_id' => $request->user()->id,
             'title' => $data['title'],
             'is_group' => $isGroup,
+            'parent_topic_id' => $parentTopic?->id,
+            'group_image' => $groupImagePath,
             'body' => $data['body'] ?? null,
             'attachments' => $attachments ?: null,
         ]);
@@ -152,15 +208,15 @@ class DiscussionTopicController extends Controller
             $topic->syncGroupMembers($request->user(), $memberIds);
         }
 
-        $topic->load(['user', 'members']);
-        $topic->loadCount('members');
+        $topic->load(['user', 'members', 'parent']);
+        $topic->loadCount(['members', 'children']);
         $this->readService->markAsRead($request->user(), $topic);
 
         TopicCreated::dispatch($topic);
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Topic created.',
+                'message' => $parentTopic ? 'Group topic created.' : 'Topic created.',
                 'topic' => $topic->toBroadcastArray(),
             ]);
         }
@@ -196,6 +252,44 @@ class DiscussionTopicController extends Controller
         return back()->with('success', $message);
     }
 
+    public function updateGroupImage(Request $request, DiscussionTopic $topic): JsonResponse
+    {
+        $this->authorize('manageMembers', $topic);
+
+        abort_unless($topic->isGroupContainer(), 404);
+
+        $request->validate([
+            'group_image' => ['required', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:5120'],
+        ]);
+
+        $topic->deleteStoredGroupImage();
+        $topic->update([
+            'group_image' => $this->storeGroupImage($request->file('group_image')),
+        ]);
+
+        return response()->json([
+            'message' => 'Group photo updated.',
+            'group_image_url' => $topic->fresh()->groupImageUrl(),
+            'topic' => $topic->fresh(['user', 'members'])->loadCount('members')->toBroadcastArray(),
+        ]);
+    }
+
+    public function destroyGroupImage(Request $request, DiscussionTopic $topic): JsonResponse
+    {
+        $this->authorize('manageMembers', $topic);
+
+        abort_unless($topic->is_group, 404);
+
+        $topic->deleteStoredGroupImage();
+        $topic->update(['group_image' => null]);
+
+        return response()->json([
+            'message' => 'Group photo removed.',
+            'group_image_url' => null,
+            'topic' => $topic->fresh(['user', 'members'])->loadCount('members')->toBroadcastArray(),
+        ]);
+    }
+
     /**
      * @param  list<UploadedFile>  $files
      * @return list<array<string, mixed>>
@@ -203,6 +297,11 @@ class DiscussionTopicController extends Controller
     private function storeAttachments(array $files): array
     {
         return DiscussionFileUploader::storeMany($files, 'topics');
+    }
+
+    private function storeGroupImage(UploadedFile $file): string
+    {
+        return DiscussionFileUploader::storeMedia($file, 'group-images')['path'];
     }
 
     /**

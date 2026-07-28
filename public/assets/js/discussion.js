@@ -376,7 +376,9 @@
             : '';
         const replyLabel = topic.replies_count === 1 ? 'reply' : 'replies';
         const listAvatar = topic.is_group
-            ? '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>'
+            ? (topic.group_image_url
+                ? `<span class="discussion-avatar discussion-avatar--photo" aria-hidden="true"><img src="${escapeHtml(topic.group_image_url)}" alt=""></span>`
+                : '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>')
             : '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--topic" aria-hidden="true"><i class="fa-solid fa-hashtag"></i></span>';
         const typeLabel = topic.is_group
             ? '<i class="fa-solid fa-users"></i> Group'

@@ -263,12 +263,22 @@
         const body = form.querySelector('[name="body"]')?.value?.trim() || '';
         const isGroup = form.querySelector('[name="is_group"]')?.value === '1'
             || form.dataset.composeMode === 'group';
+        const parentTopicId = form.querySelector('[name="parent_topic_id"]')?.value?.trim() || '';
 
         formData.append('title', title);
-        formData.append('is_group', isGroup ? '1' : '0');
+        formData.append('is_group', parentTopicId ? '0' : (isGroup ? '1' : '0'));
+
+        if (parentTopicId) {
+            formData.append('parent_topic_id', parentTopicId);
+        }
 
         if (body) {
             formData.append('body', body);
+        }
+
+        const groupImageInput = form.querySelector('[name="group_image"]');
+        if (groupImageInput?.files?.[0]) {
+            formData.append('group_image', groupImageInput.files[0]);
         }
 
         Array.from(memberSelection.values()).forEach((member) => {
@@ -280,10 +290,55 @@
         return formData;
     }
 
+    function resetGroupImageField(form) {
+        const input = form?.querySelector('[name="group_image"]');
+        const preview = form?.querySelector('.discussion-widget__group-image-preview');
+        const clearBtn = form?.querySelector('.discussion-widget__group-image-clear');
+
+        if (input) {
+            input.value = '';
+        }
+
+        if (preview) {
+            preview.innerHTML = '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>';
+        }
+
+        if (clearBtn) {
+            clearBtn.hidden = true;
+        }
+    }
+
+    function bindGroupImageField(form) {
+        const input = form?.querySelector('[name="group_image"]');
+        const preview = form?.querySelector('.discussion-widget__group-image-preview');
+        const clearBtn = form?.querySelector('.discussion-widget__group-image-clear');
+
+        if (!input || !preview) {
+            return;
+        }
+
+        input.addEventListener('change', () => {
+            const file = input.files?.[0];
+            if (!file) {
+                return;
+            }
+
+            preview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="" class="discussion-avatar discussion-avatar--photo">`;
+            if (clearBtn) {
+                clearBtn.hidden = false;
+            }
+        });
+
+        clearBtn?.addEventListener('click', () => {
+            resetGroupImageField(form);
+        });
+    }
+
     function resetForm(form, memberSelection, attachmentPool, attachmentsPreviewId, summaryEl, pickerController) {
         form?.reset();
         memberSelection?.clear?.();
         pickerController?.reset?.();
+        resetGroupImageField(form);
         if (summaryEl) {
             summaryEl.innerHTML = '';
         }
@@ -320,6 +375,8 @@
         };
 
         renderSummary();
+
+        bindGroupImageField(form);
 
         if (options.handleSubmit === false) {
             return {
