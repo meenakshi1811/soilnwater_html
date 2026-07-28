@@ -115,10 +115,7 @@
         <div class="refund-section-heading"><span>04</span><h2>CONTENT CATEGORIES</h2></div>
 
         <h3>Local Voices</h3>
-        <p>Content related to community concerns, local culture, local achievements, social initiatives, and citizen opinions must focus on constructive discussion and public interest.</p>
-
-        <h3>My Area</h3>
-        <p>Content related to local events, area development, public facilities, civic issues, infrastructure concerns, and local opportunities. False complaints or defamatory statements are prohibited.</p>
+        <p>Content related to community concerns, local culture, local achievements, social initiatives, civic issues, area development, and citizen opinions must focus on constructive discussion and public interest. False complaints or defamatory statements are prohibited.</p>
 
         <h3>Articles</h3>
         <p>Educational, informative, analytical, or opinion-based content. Authors should clearly distinguish facts from personal opinions.</p>

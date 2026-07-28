@@ -38,7 +38,6 @@
                 $postTypeIcons = [
                     'articles' => 'fa-file-lines',
                     'reports' => 'fa-clipboard-list',
-                    'my-area' => 'fa-map-location-dot',
                     'news' => 'fa-newspaper',
                     'stories' => 'fa-book-open',
                     'poetry' => 'fa-feather-pointed',
@@ -426,9 +425,11 @@
             <div class="col-12 type-extra local-voices-flow" data-for="local-voices">
                 @include('backend.community-posts.partials.local-voices-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @if(old('content_type', $post->content_type) === 'my-area')
             <div class="col-12 type-extra my-area-flow" data-for="my-area">
                 @include('backend.community-posts.partials.my-area-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
+            @endif
             <div class="col-12 type-extra community-issues-flow" data-for="community-issues">
                 @include('backend.community-posts.partials.community-issues-flow-fields', ['post' => $post, 'placement' => 'setup'])
             </div>
@@ -860,41 +861,6 @@ The mountains keep.</pre>
                         </div>
                     </div>
                 </div>
-                <div id="myAreaContentGuide" class="story-content-guide mb-3 my-area-flow-section" style="display:none;">
-                    <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
-                        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
-                            <div>
-                                <h5 class="mb-1">Content</h5>
-                                <p class="text-muted mb-0 small">Use the rich text editor below for your full My Area post.</p>
-                            </div>
-                            <span class="badge bg-success text-white">My Area</span>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-lg-6">
-                                <div class="story-content-panel h-100">
-                                    <h6 class="story-content-panel__title">Rich text editor <span class="text-danger">*</span></h6>
-                                    <p class="text-muted small mb-2">Report issues, recognize heroes, share achievements, or raise awareness for your neighbourhood.</p>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" id="insertMyAreaStructureBtn">
-                                        Insert suggested structure
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="story-content-panel h-100">
-                                    <h6 class="story-content-panel__title">Suggested structure</h6>
-                                    <ul class="story-content-structure list-unstyled small mb-0">
-                                        @foreach(\App\Support\CommunityContentTaxonomy::myAreaContentStructure() as $heading => $hint)
-                                            <li class="mb-2">
-                                                <strong>{{ $heading }}</strong>
-                                                <span class="text-muted d-block">{{ $hint }}</span>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div id="communityIssuesContentGuide" class="story-content-guide mb-3 community-issues-flow-section" style="display:none;">
                     <div class="news-flow-card story-flow-card border rounded-3 p-3 p-md-4 bg-white">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
@@ -1313,9 +1279,11 @@ The mountains keep.</pre>
             <div class="col-12 type-extra local-voices-flow" data-for="local-voices">
                 @include('backend.community-posts.partials.local-voices-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @if(old('content_type', $post->content_type) === 'my-area')
             <div class="col-12 type-extra my-area-flow" data-for="my-area">
                 @include('backend.community-posts.partials.my-area-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>
+            @endif
             <div class="col-12 type-extra community-issues-flow" data-for="community-issues">
                 @include('backend.community-posts.partials.community-issues-flow-fields', ['post' => $post, 'placement' => 'rest'])
             </div>

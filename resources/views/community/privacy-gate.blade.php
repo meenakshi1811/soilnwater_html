@@ -42,7 +42,7 @@
         default => 'childrens-corner',
     };
     $backLabel = match (true) {
-        $isMyArea => 'My Area',
+        $isMyArea => 'Local Voices',
         $isLocalVoices => 'Local Voices',
         $isWomensWorld => "Women's World",
         $isSeniorCitizensForum => 'Senior Citizens Forum',
@@ -50,7 +50,9 @@
         $isYouthCorner => 'Youth Corner',
         default => "Children's Corner",
     };
-    $backRoute = $isMyArea ? route('community.my-area.index') : route('community.index', ['type' => $backType]);
+    $backRoute = $isMyArea
+        ? route('community.index', ['type' => 'local-voices'])
+        : route('community.index', ['type' => $backType]);
 @endphp
 <div class="about-page">
     <section class="about-banner text-center">

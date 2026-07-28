@@ -504,9 +504,9 @@
             <div class="community-article-hero__inner">
         @endif
         <div class="community-post-back-wrap">
-            <a href="{{ $post->isMyAreaPost() ? route('community.my-area.index') : route('community.index') }}" class="community-post-back">
+            <a href="{{ route('community.index', $post->isMyAreaPost() ? ['type' => 'local-voices'] : []) }}" class="community-post-back">
                 <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-                {{ $post->isMyAreaPost() ? 'Back to My Area' : 'Back to Community' }}
+                {{ $post->isMyAreaPost() ? 'Back to Local Voices' : 'Back to Community' }}
             </a>
         </div>
         @if($isArticlePost)

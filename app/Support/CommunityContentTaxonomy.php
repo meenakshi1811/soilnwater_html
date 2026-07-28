@@ -21,21 +21,8 @@ class CommunityContentTaxonomy
             ],
             'reports' => [
                 'label' => 'Reports',
-                'description' => 'Research, analytical content, and My Area civic problem reports.',
+                'description' => 'Research and analytical content.',
                 'categories' => self::reportMainCategories(),
-            ],
-            'my-area' => [
-                'label' => 'My Area',
-                'description' => 'Your local civic hub — report issues, suggest improvements, recognize heroes, share achievements, raise awareness, and track resolutions in your area.',
-                'categories' => self::myAreaTopicCategories(),
-                'features' => [
-                    'Location-based feeds',
-                    'Area discussions',
-                    'Community voting',
-                    'Issue tracking',
-                    'Authority tagging',
-                    'Resolution monitoring',
-                ],
             ],
             'my-voice' => [
                 'label' => 'My Voice',
@@ -228,6 +215,50 @@ class CommunityContentTaxonomy
         return collect(self::types())
             ->except(['my-voice'])
             ->all();
+    }
+
+    /**
+     * Deprecated content types kept for editing existing posts.
+     *
+     * @return array<string, array{label: string, description: string, categories: list<string>}>
+     */
+    public static function legacyContentTypes(): array
+    {
+        return [
+            'my-area' => [
+                'label' => 'My Area (legacy)',
+                'description' => 'Deprecated. Use Local Voices for new local posts.',
+                'categories' => self::myAreaTopicCategories(),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array{label: string, description: string, categories: list<string>, features?: list<string>, monetization?: list<string>, rewards?: list<string>, examples?: list<string>}>
+     */
+    public static function editableTypes(?\App\Models\CommunityPost $post = null): array
+    {
+        $types = self::formTypes();
+
+        if ($post?->content_type && array_key_exists($post->content_type, self::legacyContentTypes())) {
+            $types[$post->content_type] = self::legacyContentTypes()[$post->content_type];
+        }
+
+        return $types;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function allowedContentTypeKeys(?\App\Models\CommunityPost $post = null): array
+    {
+        $keys = array_keys(self::formTypes());
+
+        if ($post?->content_type && array_key_exists($post->content_type, self::legacyContentTypes())) {
+            $keys[] = $post->content_type;
+        }
+
+        return array_values(array_unique($keys));
     }
 
     /**
@@ -3791,7 +3822,6 @@ class CommunityContentTaxonomy
             'all' => '#546e7a',
             'articles' => '#1976d2',
             'reports' => '#5c6bc0',
-            'my-area' => '#00897b',
             'my-voice' => '#8e24aa',
             'news' => '#e53935',
             'stories' => '#fb8c00',
@@ -4231,10 +4261,6 @@ class CommunityContentTaxonomy
 
         if ($type === 'local-voices') {
             return in_array($category, self::localVoiceMainCategories(), true);
-        }
-
-        if ($type === 'my-area') {
-            return in_array($category, self::myAreaTopicCategories(), true);
         }
 
         if ($type === 'community-issues') {

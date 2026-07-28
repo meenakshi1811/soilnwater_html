@@ -38,7 +38,6 @@ use App\Http\Controllers\Community\CommunityCommunityIssuesController;
 use App\Http\Controllers\Community\CommunityEngagementController;
 use App\Http\Controllers\Community\CommunityEnvironmentEngagementController;
 use App\Http\Controllers\Community\CommunityLocalVoiceEngagementController;
-use App\Http\Controllers\Community\CommunityMyAreaController;
 use App\Http\Controllers\Community\CommunityPostController;
 use App\Http\Controllers\Community\CommunityPostParticipationController;
 use App\Http\Controllers\Community\CommunityReportEngagementController;
@@ -116,7 +115,7 @@ Route::view('/refund-policy', 'frontend.refund-policy')->name('frontend.refund-p
 Route::view('/community-posting-policy', 'frontend.community-posting-policy')->name('frontend.community-posting-policy');
 
 Route::get('/community', [CommunityPostController::class, 'index'])->name('community.index');
-Route::get('/community/my-area', [CommunityMyAreaController::class, 'index'])->name('community.my-area.index');
+Route::redirect('/community/my-area', '/community?type=local-voices')->name('community.my-area.index');
 Route::get('/community/community-issues', [CommunityCommunityIssuesController::class, 'index'])->name('community.community-issues.index');
 Route::get('/community/community-issues/heat-map', [CommunityCommunityIssuesController::class, 'heatMapData'])->name('community.community-issues.heat-map');
 Route::get('/auther/{uniqueName}', [CommunityPostController::class, 'author'])->name('community.authors.show');

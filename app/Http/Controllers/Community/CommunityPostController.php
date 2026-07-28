@@ -1260,7 +1260,7 @@ class CommunityPostController extends Controller
 
         return view('backend.community-posts.form', [
             'post' => $post,
-            'types' => CommunityContentTaxonomy::formTypes(),
+            'types' => CommunityContentTaxonomy::editableTypes($post),
             'mode' => 'edit',
         ]);
     }
@@ -2079,7 +2079,7 @@ class CommunityPostController extends Controller
      */
     private function validated(Request $request, ?CommunityPost $post = null): array
     {
-        $typeKeys = array_keys(CommunityContentTaxonomy::formTypes());
+        $typeKeys = CommunityContentTaxonomy::allowedContentTypeKeys($post);
         $contentType = $request->input('content_type');
         $isReport = $contentType === 'reports';
         $usesStructuredLocation = CommunityPost::usesStructuredLocation(is_string($contentType) ? $contentType : null);
