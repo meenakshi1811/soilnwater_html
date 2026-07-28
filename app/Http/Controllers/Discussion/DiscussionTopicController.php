@@ -7,6 +7,7 @@ use App\Events\Discussion\TopicPinned;
 use App\Http\Controllers\Controller;
 use App\Models\DiscussionTopic;
 use App\Services\DiscussionReadService;
+use App\Services\DiscussionOnlineService;
 use App\Support\DiscussionAttachments;
 use App\Support\DiscussionFileUploader;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +18,10 @@ use Illuminate\View\View;
 
 class DiscussionTopicController extends Controller
 {
-    public function __construct(private DiscussionReadService $readService) {}
+    public function __construct(
+        private DiscussionReadService $readService,
+        private DiscussionOnlineService $onlineService,
+    ) {}
 
     public function index(Request $request): View|JsonResponse
     {
@@ -105,6 +109,8 @@ class DiscussionTopicController extends Controller
                                 'unread_count' => $unreadCounts[$child->id] ?? 0,
                             ]);
                         })->values(),
+                        'online_users' => $this->onlineService->onlineUsersForTopic($topic),
+                        'members' => $this->onlineService->membersWithOnlineStatus($topic),
                     ]),
                     'can_pin' => $canPin,
                     'global_unread' => $this->readService->globalUnreadCount($request->user()),
@@ -137,7 +143,10 @@ class DiscussionTopicController extends Controller
                 'topic' => array_merge($topic->toBroadcastArray(), [
                     'reaction_counts' => $topic->reactionCounts(),
                     'user_reactions' => $userReactions['topic'],
-                    'members' => $topic->is_group ? $topic->memberSummaries() : [],
+                    'members' => $topic->is_group
+                        ? $this->onlineService->membersWithOnlineStatus($topic)
+                        : [],
+                    'online_users' => $this->onlineService->onlineUsersForTopic($topic),
                     'parent' => $topic->parent
                         ? array_merge($topic->parent->toBroadcastArray(), [
                             'children_count' => $topic->parent->children()->count(),

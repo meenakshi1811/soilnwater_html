@@ -63,6 +63,7 @@
         headerAvatar: document.getElementById('discussionWidgetHeaderAvatar'),
         sizeBtn: document.getElementById('discussionWidgetSizeBtn'),
         fullPageBtn: document.getElementById('discussionWidgetFullPageBtn'),
+        online: document.getElementById('discussionWidgetOnline'),
     };
 
     const WIDGET_SIZE_ORDER = ['default', 'md', 'lg', 'xl'];
@@ -98,6 +99,8 @@
     let composeMode = 'topic';
     const attachmentHelpersRef = () => window.soilnwaterDiscussionAttachments || {};
     let replyAttachmentPool = null;
+    let onlinePollTimer = null;
+    let onlineTopicId = null;
 
     function csrfToken() {
         return config.csrfToken
@@ -118,6 +121,27 @@
         if (type === 'error') {
             console.error(message);
         }
+    }
+
+    async function confirmDestructiveAction(options = {}) {
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+            const result = await window.Swal.fire({
+                title: options.title || 'Are you sure?',
+                text: options.text || '',
+                icon: options.icon || 'warning',
+                showCancelButton: true,
+                confirmButtonText: options.confirmText || 'Confirm',
+                cancelButtonText: options.cancelText || 'Cancel',
+                confirmButtonColor: options.confirmColor || '#d9534f',
+                reverseButtons: true,
+            });
+
+            return Boolean(result.isConfirmed);
+        }
+
+        const message = [options.title, options.text].filter(Boolean).join('\n\n');
+
+        return window.confirm(message || 'Are you sure?');
     }
 
     async function requestFormJson(url, formData, method = 'POST') {
@@ -232,6 +256,140 @@
         const messageCount = `${(topic.replies_count || 0) + 1} messages`;
 
         return messageCount;
+    }
+
+    function topicOnlineUrl(topicId) {
+        return (config.routes?.topicOnlineTemplate || '/discussions/__TOPIC__/online')
+            .replace('__TOPIC__', String(topicId));
+    }
+
+    function onlineUserLabel(users = [], context = 'participants') {
+        if (!users.length) {
+            return '';
+        }
+
+        const names = users.map((user) => user.name).filter(Boolean);
+        const noun = context === 'members' ? 'member' : 'participant';
+
+        if (names.length === 1) {
+            return `${names[0]} online`;
+        }
+
+        if (names.length === 2) {
+            return `${names[0]} and ${names[1]} online`;
+        }
+
+        if (names.length === 3) {
+            return `${names[0]}, ${names[1]}, and ${names[2]} online`;
+        }
+
+        return `${names.length} ${noun}s online`;
+    }
+
+    function buildOnlineAvatars(users = []) {
+        return users.slice(0, 4).map((user) => {
+            const initials = escapeHtml(user.initials || avatarInitials(user.name || '?'));
+
+            return `<span class="discussion-widget__online-avatar" title="${escapeHtml(user.name || 'Online user')}">${initials}</span>`;
+        }).join('');
+    }
+
+    function renderOnlinePresence(onlineUsers = [], context = 'participants') {
+        if (!els.online) {
+            return;
+        }
+
+        if (!onlineUsers.length) {
+            els.online.hidden = true;
+            els.online.innerHTML = '';
+
+            return;
+        }
+
+        els.online.hidden = false;
+        els.online.innerHTML = `<span class="discussion-widget__online-dot" aria-hidden="true"></span>
+            <span class="discussion-widget__online-avatars">${buildOnlineAvatars(onlineUsers)}</span>
+            <span class="discussion-widget__online-text">${escapeHtml(onlineUserLabel(onlineUsers, context))}</span>`;
+    }
+
+    function clearOnlinePresence() {
+        onlineTopicId = null;
+
+        if (onlinePollTimer) {
+            window.clearInterval(onlinePollTimer);
+            onlinePollTimer = null;
+        }
+
+        renderOnlinePresence([]);
+    }
+
+    function startOnlinePolling(topicId, context = 'participants') {
+        if (!topicId) {
+            clearOnlinePresence();
+
+            return;
+        }
+
+        onlineTopicId = Number(topicId);
+
+        if (onlinePollTimer) {
+            window.clearInterval(onlinePollTimer);
+        }
+
+        onlinePollTimer = window.setInterval(async () => {
+            if (!onlineTopicId || Number(currentTopic?.id) !== onlineTopicId && Number(currentGroup?.id) !== onlineTopicId) {
+                return;
+            }
+
+            try {
+                const data = await requestJson(topicOnlineUrl(onlineTopicId));
+                renderOnlinePresence(data.online_users || [], data.context || context);
+
+                if (currentGroup?.is_group && !currentGroup?.parent_topic_id && Array.isArray(data.members)) {
+                    currentGroup.members = data.members;
+                    renderGroupProfile(currentGroup, data.online_users || []);
+                    if (!els.membersModal?.hidden) {
+                        renderMembersList(data.members, canManageMembersModal);
+                    }
+                }
+            } catch (error) {
+                // Ignore polling errors silently.
+            }
+        }, 45000);
+    }
+
+    function applyOnlinePresence(topic, data = {}) {
+        const onlineUsers = data.online_users || topic.online_users || [];
+        const context = topic?.is_group && !topic?.parent_topic_id || topic?.parent_topic_id
+            ? 'members'
+            : 'participants';
+
+        renderOnlinePresence(onlineUsers, context);
+        startOnlinePolling(topic.id, context);
+
+        if (topic?.is_group && !topic?.parent_topic_id) {
+            if (Array.isArray(data.members)) {
+                topic.members = data.members;
+            }
+
+            renderGroupProfile(topic, onlineUsers);
+        }
+    }
+
+    function buildGroupOnlineSection(onlineUsers = []) {
+        if (!onlineUsers.length) {
+            return '';
+        }
+
+        return `<div class="discussion-widget__group-online">
+            <span class="discussion-widget__group-online-label">Online now</span>
+            <div class="discussion-widget__group-online-list">
+                ${onlineUsers.map((user) => `<span class="discussion-widget__group-online-chip">
+                    <span class="discussion-widget__online-dot" aria-hidden="true"></span>
+                    <span>${escapeHtml(user.name)}</span>
+                </span>`).join('')}
+            </div>
+        </div>`;
     }
 
     function setHeaderTopicAvatar(topic) {
@@ -503,7 +661,7 @@
         }
     }
 
-    function renderGroupProfile(group) {
+    function renderGroupProfile(group, onlineUsers = group?.online_users || []) {
         if (!els.groupProfile || !group) {
             return;
         }
@@ -512,13 +670,15 @@
             ? escapeHtml(group.body)
             : '<span class="discussion-widget__group-profile-empty">No group details added yet.</span>';
 
+        const onlineSection = buildGroupOnlineSection(onlineUsers);
+
         els.groupProfile.innerHTML = `<div class="discussion-widget__group-profile-inner">
             ${groupAvatarHtml(group, 'discussion-avatar--lg')}
             <div class="discussion-widget__group-profile-text">
                 <strong>${escapeHtml(group.title)}</strong>
                 <p>${details}</p>
             </div>
-        </div>`;
+        </div>${onlineSection}`;
     }
 
     function renderMembersDetails(group, canManage = canManageMembersModal) {
@@ -575,8 +735,9 @@
                 <span class="discussion-widget__member-item-icon">${icon}</span>
                 <div class="discussion-widget__member-item-body">
                     <strong>${escapeHtml(member.name)}</strong>
-                    <span>${member.is_owner ? 'Creator' : 'Member'}</span>
+                    <span>${member.is_owner ? 'Creator' : 'Member'}${member.is_online ? ' · Online' : ''}</span>
                 </div>
+                ${member.is_online ? '<span class="discussion-widget__member-online-dot" title="Online now" aria-label="Online now"></span>' : ''}
                 ${removeBtn}
             </div>`;
         }).join('');
@@ -1017,6 +1178,7 @@
 
         setHeaderTitle('Chats', 'Select a conversation');
         resetHeaderAvatar();
+        clearOnlinePresence();
         setComposerVisible(false);
     }
 
@@ -1392,8 +1554,8 @@
         setHeaderTopicAvatar(group);
         updateMembersButton(group);
         setComposerVisible(false);
-        renderGroupProfile(group);
         renderGroupTopicsList(group.children || []);
+        applyOnlinePresence(group, { online_users: group.online_users || [], members: group.members || [] });
         updateFullPageLink(group.id);
         updateMessengerUrl(group.id);
 
@@ -1450,6 +1612,7 @@
 
         setComposerVisible(true);
         markTopicRead(topic.id);
+        applyOnlinePresence(topic, { online_users: topic.online_users || [] });
         updateFullPageLink(topic.id);
         updateMessengerUrl(topic.id);
     }
@@ -1519,6 +1682,7 @@
         currentGroup = null;
         config.topicId = null;
         openRequestId += 1;
+        clearOnlinePresence();
 
         const search = document.getElementById('discussionWidgetSearch');
         if (search) {
@@ -1821,9 +1985,12 @@
             return;
         }
 
-        const confirmed = window.confirm(
-            'Delete this group permanently? All topics, chats, and uploaded files in this group will be removed.'
-        );
+        const confirmed = await confirmDestructiveAction({
+            title: 'Delete this group?',
+            text: 'All topics, chats, and uploaded files in this group will be permanently removed. This cannot be undone.',
+            confirmText: 'Delete group',
+            cancelText: 'Cancel',
+        });
         if (!confirmed) {
             return;
         }

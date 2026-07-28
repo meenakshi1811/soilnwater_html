@@ -18,6 +18,7 @@
     $topicGroupSettingsUpdateTemplate = str_replace('999999999', '__TOPIC__', route('discussions.group-settings.update', ['topic' => 999999999]));
     $topicGroupDestroyTemplate = str_replace('999999999', '__TOPIC__', route('discussions.group.destroy', ['topic' => 999999999]));
     $topicLeaveTemplate = str_replace('999999999', '__TOPIC__', route('discussions.leave', ['topic' => 999999999]));
+    $topicOnlineTemplate = str_replace('999999999', '__TOPIC__', route('discussions.online', ['topic' => 999999999]));
 @endphp
 <script>
     window.soilnwaterDiscussion = {
@@ -48,6 +49,7 @@
             topicGroupSettingsUpdateTemplate: @json($topicGroupSettingsUpdateTemplate),
             topicGroupDestroyTemplate: @json($topicGroupDestroyTemplate),
             topicLeaveTemplate: @json($topicLeaveTemplate),
+            topicOnlineTemplate: @json($topicOnlineTemplate),
             usersSearch: @json(route('discussions.users.search')),
             unreadSummary: @json(route('discussions.unread-summary')),
             replyReactTemplate: @json($replyReactTemplate),
@@ -72,6 +74,7 @@
         },
     };
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('assets/js/discussion-attachments.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/discussion-compose.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/discussion.js') }}?v={{ now()->timestamp }}" defer></script>

@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Discussion;
 use App\Http\Controllers\Controller;
 use App\Models\DiscussionTopic;
 use App\Models\User;
+use App\Services\DiscussionOnlineService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class DiscussionMemberController extends Controller
 {
+    public function __construct(private DiscussionOnlineService $onlineService) {}
+
     public function searchUsers(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -50,7 +53,8 @@ class DiscussionMemberController extends Controller
         abort_unless($topic->isGroupContainer(), 404);
 
         return response()->json([
-            'members' => $topic->memberSummaries(),
+            'members' => $this->onlineService->membersWithOnlineStatus($topic),
+            'online_users' => $this->onlineService->onlineUsersForTopic($topic),
             'can_manage_members' => $request->user()->can('manageMembers', $topic),
             'can_delete_group' => $request->user()->can('deleteGroup', $topic),
             'can_leave_group' => $request->user()->can('leaveGroup', $topic),
@@ -81,7 +85,7 @@ class DiscussionMemberController extends Controller
         return response()->json([
             'message' => count($added) > 0 ? 'Members added.' : 'Selected members are already in this group.',
             'added_ids' => $added,
-            'members' => $topic->fresh(['members'])->memberSummaries(),
+            'members' => $this->onlineService->membersWithOnlineStatus($topic->fresh(['members', 'user'])),
         ]);
     }
 
@@ -99,7 +103,7 @@ class DiscussionMemberController extends Controller
 
         return response()->json([
             'message' => 'Member removed.',
-            'members' => $topic->fresh(['members'])->memberSummaries(),
+            'members' => $this->onlineService->membersWithOnlineStatus($topic->fresh(['members', 'user'])),
         ]);
     }
 

@@ -462,4 +462,61 @@ class DiscussionModuleTest extends TestCase
         $this->assertSoftDeleted('discussion_topics', ['id' => $group->id]);
         $this->assertSoftDeleted('discussion_topics', ['id' => $child->id]);
     }
+
+    public function test_group_and_topic_responses_include_online_users_from_active_sessions(): void
+    {
+        config(['session.driver' => 'database']);
+
+        $creator = User::factory()->create(['email_verified_at' => now()]);
+        $member = User::factory()->create(['email_verified_at' => now()]);
+        $outsider = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($creator)->postJson(route('discussions.store'), [
+            'title' => 'Online group',
+            'is_group' => true,
+            'member_ids' => [$member->id],
+        ])->assertOk();
+
+        $group = DiscussionTopic::query()->firstOrFail();
+
+        $this->actingAs($member)->postJson(route('discussions.store'), [
+            'title' => 'Online topic',
+            'parent_topic_id' => $group->id,
+            'body' => 'Hello',
+        ])->assertOk();
+
+        $child = DiscussionTopic::query()->where('parent_topic_id', $group->id)->firstOrFail();
+
+        $this->seedActiveSession($member->id);
+        $this->seedActiveSession($outsider->id);
+
+        $this->actingAs($creator)
+            ->getJson(route('discussions.show', $group))
+            ->assertOk()
+            ->assertJsonPath('topic.online_users.0.id', $member->id)
+            ->assertJsonPath('topic.members.0.is_online', true);
+
+        $this->actingAs($creator)
+            ->getJson(route('discussions.show', $child))
+            ->assertOk()
+            ->assertJsonPath('topic.online_users.0.id', $member->id);
+
+        $this->actingAs($creator)
+            ->getJson(route('discussions.online', $group))
+            ->assertOk()
+            ->assertJsonPath('context', 'members')
+            ->assertJsonPath('online_users.0.id', $member->id);
+    }
+
+    private function seedActiveSession(int $userId): void
+    {
+        \Illuminate\Support\Facades\DB::table('sessions')->insert([
+            'id' => \Illuminate\Support\Str::random(40),
+            'user_id' => $userId,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'PHPUnit',
+            'payload' => base64_encode(''),
+            'last_activity' => now()->getTimestamp(),
+        ]);
+    }
 }

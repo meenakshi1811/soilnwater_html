@@ -22,6 +22,7 @@
             <div class="discussion-widget__header-text">
                 <h2 class="discussion-widget__title" id="discussionWidgetTitle">Chats</h2>
                 <p class="discussion-widget__subtitle" id="discussionWidgetSubtitle">Community discussions</p>
+                <div class="discussion-widget__online" id="discussionWidgetOnline" hidden aria-live="polite"></div>
             </div>
         </div>
         <div class="discussion-widget__header-actions">
@@ -36,8 +37,10 @@
                 <a href="{{ route('discussions.messenger') }}"
                    class="discussion-widget__icon-btn discussion-widget__icon-btn--link"
                    id="discussionWidgetFullPageBtn"
-                   title="Open full page"
-                   aria-label="Open full page">
+                   title="Open full page in new tab"
+                   aria-label="Open full page in new tab"
+                   target="_blank"
+                   rel="noopener noreferrer">
                     <i class="fa-solid fa-up-right-from-square"></i>
                 </a>
                 <button type="button"

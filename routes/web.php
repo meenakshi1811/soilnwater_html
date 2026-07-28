@@ -50,6 +50,7 @@ use App\Http\Controllers\Consultant\ConsultantProfileController;
 use App\Http\Controllers\Consultant\ConsultantPublicPageController;
 use App\Http\Controllers\Consultant\ConsultantServiceController;
 use App\Http\Controllers\Discussion\DiscussionMemberController;
+use App\Http\Controllers\Discussion\DiscussionPresenceController;
 use App\Http\Controllers\Discussion\DiscussionReactionController;
 use App\Http\Controllers\Discussion\DiscussionReplyController;
 use App\Http\Controllers\Discussion\DiscussionReadController;
@@ -187,6 +188,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/unread-summary', [DiscussionReadController::class, 'summary'])->name('unread-summary');
         Route::post('/', [DiscussionTopicController::class, 'store'])->name('store');
         Route::get('/{topic}', [DiscussionTopicController::class, 'show'])->name('show');
+        Route::get('/{topic}/online', [DiscussionPresenceController::class, 'show'])->name('online');
         Route::get('/{topic}/members', [DiscussionMemberController::class, 'index'])->name('members.index');
         Route::post('/{topic}/members', [DiscussionMemberController::class, 'store'])->name('members.store');
         Route::delete('/{topic}/members/{member}', [DiscussionMemberController::class, 'destroy'])->name('members.destroy');
