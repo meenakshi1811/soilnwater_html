@@ -42,6 +42,8 @@
         membersGroupTitle: document.getElementById('discussionWidgetMembersGroupTitle'),
         membersGroupDetails: document.getElementById('discussionWidgetMembersGroupDetails'),
         membersSaveDetailsBtn: document.getElementById('discussionWidgetMembersSaveDetailsBtn'),
+        leaveGroupBtn: document.getElementById('discussionWidgetLeaveGroupBtn'),
+        deleteGroupBtn: document.getElementById('discussionWidgetDeleteGroupBtn'),
         pinBtn: document.getElementById('discussionWidgetPinBtn'),
         membersBtn: document.getElementById('discussionWidgetMembersBtn'),
         membersModal: document.getElementById('discussionWidgetMembersModal'),
@@ -87,6 +89,8 @@
     let openRequestId = 0;
     const modalMemberSelection = new Map();
     let canManageMembersModal = false;
+    let canLeaveGroupModal = false;
+    let canDeleteGroupModal = false;
     let memberSearchTimer = null;
     let widgetComposeController = null;
     let widgetGroupComposeController = null;
@@ -412,6 +416,32 @@
             .replace('__TOPIC__', String(topicId));
     }
 
+    function groupDestroyUrl(topicId) {
+        return (config.routes?.topicGroupDestroyTemplate || '/discussions/__TOPIC__/group')
+            .replace('__TOPIC__', String(topicId));
+    }
+
+    function groupLeaveUrl(topicId) {
+        return (config.routes?.topicLeaveTemplate || '/discussions/__TOPIC__/leave')
+            .replace('__TOPIC__', String(topicId));
+    }
+
+    function removeTopicCard(topicId) {
+        document.getElementById(`discussion-widget-topic-${topicId}`)?.remove();
+        setTopicUnread(topicId, 0);
+    }
+
+    function handleGroupRemoved(groupId, message) {
+        closeMembersModal();
+        removeTopicCard(groupId);
+        currentGroup = null;
+        currentTopic = null;
+        config.topicId = null;
+        topicsLoaded = false;
+        showTopics();
+        notify('success', message);
+    }
+
     function groupPhotoPreviewHtml(imageUrl = null) {
         if (imageUrl) {
             return `<span class="discussion-avatar discussion-avatar--photo discussion-avatar--lg"><img src="${escapeHtml(imageUrl)}" alt=""></span>`;
@@ -564,6 +594,8 @@
         try {
             const data = await requestJson(membersUrl(group.id), { method: 'GET' });
             canManageMembersModal = Boolean(data.can_manage_members);
+            canLeaveGroupModal = Boolean(data.can_leave_group);
+            canDeleteGroupModal = Boolean(data.can_delete_group);
             const modalGroup = {
                 ...group,
                 body: currentGroup?.body ?? group.body,
@@ -581,6 +613,12 @@
             if (els.membersAddSection) {
                 els.membersAddSection.hidden = !canManageMembersModal;
             }
+            if (els.leaveGroupBtn) {
+                els.leaveGroupBtn.hidden = !canLeaveGroupModal;
+            }
+            if (els.deleteGroupBtn) {
+                els.deleteGroupBtn.hidden = !canDeleteGroupModal;
+            }
             els.membersModal.hidden = false;
         } catch (error) {
             notify('error', error.message);
@@ -592,6 +630,12 @@
         renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
         if (els.membersModal) {
             els.membersModal.hidden = true;
+        }
+        if (els.leaveGroupBtn) {
+            els.leaveGroupBtn.hidden = true;
+        }
+        if (els.deleteGroupBtn) {
+            els.deleteGroupBtn.hidden = true;
         }
     }
 
@@ -1742,6 +1786,59 @@
             notify('error', error.message);
         } finally {
             els.membersSaveDetailsBtn.disabled = false;
+        }
+    });
+
+    els.leaveGroupBtn?.addEventListener('click', async () => {
+        const group = currentGroup || (currentTopic?.is_group && !currentTopic?.parent_topic_id ? currentTopic : null);
+        if (!group?.id || !canLeaveGroupModal) {
+            return;
+        }
+
+        const confirmed = window.confirm('Leave this group? You will no longer see its topics or messages.');
+        if (!confirmed) {
+            return;
+        }
+
+        els.leaveGroupBtn.disabled = true;
+
+        try {
+            const data = await requestJson(groupLeaveUrl(group.id), {
+                method: 'POST',
+                body: JSON.stringify({}),
+            });
+
+            handleGroupRemoved(data.left_group_id || group.id, data.message || 'You left the group.');
+        } catch (error) {
+            notify('error', error.message);
+            els.leaveGroupBtn.disabled = false;
+        }
+    });
+
+    els.deleteGroupBtn?.addEventListener('click', async () => {
+        const group = currentGroup || (currentTopic?.is_group && !currentTopic?.parent_topic_id ? currentTopic : null);
+        if (!group?.id || !canDeleteGroupModal) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            'Delete this group permanently? All topics, chats, and uploaded files in this group will be removed.'
+        );
+        if (!confirmed) {
+            return;
+        }
+
+        els.deleteGroupBtn.disabled = true;
+
+        try {
+            const data = await requestJson(groupDestroyUrl(group.id), {
+                method: 'DELETE',
+            });
+
+            handleGroupRemoved(data.deleted_group_id || group.id, data.message || 'Group deleted.');
+        } catch (error) {
+            notify('error', error.message);
+            els.deleteGroupBtn.disabled = false;
         }
     });
 

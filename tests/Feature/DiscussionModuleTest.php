@@ -425,4 +425,41 @@ class DiscussionModuleTest extends TestCase
             ])
             ->assertForbidden();
     }
+
+    public function test_group_creator_can_delete_group_and_member_can_leave(): void
+    {
+        $creator = User::factory()->create(['email_verified_at' => now()]);
+        $member = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($creator)->postJson(route('discussions.store'), [
+            'title' => 'Delete me group',
+            'is_group' => true,
+            'member_ids' => [$member->id],
+        ])->assertOk();
+
+        $group = DiscussionTopic::query()->firstOrFail();
+
+        $this->actingAs($member)->postJson(route('discussions.store'), [
+            'title' => 'Child topic',
+            'parent_topic_id' => $group->id,
+            'body' => 'Hello',
+        ])->assertOk();
+
+        $child = DiscussionTopic::query()->where('parent_topic_id', $group->id)->firstOrFail();
+
+        $this->actingAs($member)
+            ->postJson(route('discussions.leave', $group))
+            ->assertOk()
+            ->assertJsonFragment(['message' => 'You left the group.']);
+
+        $this->assertFalse($group->fresh()->canAccess($member));
+
+        $this->actingAs($creator)
+            ->deleteJson(route('discussions.group.destroy', $group))
+            ->assertOk()
+            ->assertJsonFragment(['message' => 'Group deleted. All topics, chats, and files in this group were removed.']);
+
+        $this->assertSoftDeleted('discussion_topics', ['id' => $group->id]);
+        $this->assertSoftDeleted('discussion_topics', ['id' => $child->id]);
+    }
 }

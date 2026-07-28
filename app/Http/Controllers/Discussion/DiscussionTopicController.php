@@ -315,6 +315,21 @@ class DiscussionTopicController extends Controller
         ]);
     }
 
+    public function destroyGroup(Request $request, DiscussionTopic $topic): JsonResponse
+    {
+        $this->authorize('deleteGroup', $topic);
+
+        abort_unless($topic->isGroupContainer(), 404);
+
+        $groupId = $topic->id;
+        $topic->deleteGroupCompletely();
+
+        return response()->json([
+            'message' => 'Group deleted. All topics, chats, and files in this group were removed.',
+            'deleted_group_id' => $groupId,
+        ]);
+    }
+
     /**
      * @param  list<UploadedFile>  $files
      * @return list<array<string, mixed>>

@@ -52,6 +52,8 @@ class DiscussionMemberController extends Controller
         return response()->json([
             'members' => $topic->memberSummaries(),
             'can_manage_members' => $request->user()->can('manageMembers', $topic),
+            'can_delete_group' => $request->user()->can('deleteGroup', $topic),
+            'can_leave_group' => $request->user()->can('leaveGroup', $topic),
             'group_image_url' => $topic->groupImageUrl(),
         ]);
     }
@@ -98,6 +100,24 @@ class DiscussionMemberController extends Controller
         return response()->json([
             'message' => 'Member removed.',
             'members' => $topic->fresh(['members'])->memberSummaries(),
+        ]);
+    }
+
+    public function leave(Request $request, DiscussionTopic $topic): JsonResponse
+    {
+        $this->authorize('leaveGroup', $topic);
+
+        abort_unless($topic->isGroupContainer(), 404);
+
+        if (! $topic->leaveGroup($request->user())) {
+            return response()->json([
+                'message' => 'You cannot leave this group.',
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'You left the group.',
+            'left_group_id' => $topic->id,
         ]);
     }
 }

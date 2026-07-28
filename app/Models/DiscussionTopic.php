@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\File;
 
 class DiscussionTopic extends Model
 {
@@ -177,15 +176,58 @@ class DiscussionTopic extends Model
 
     public function deleteStoredGroupImage(): void
     {
-        if (! filled($this->group_image)) {
+        DiscussionFileUploader::deleteStoredFile($this->group_image);
+    }
+
+    public function purgeDiscussionContent(): void
+    {
+        DiscussionFileUploader::deleteAttachmentFiles($this->attachments);
+
+        foreach ($this->replies()->get() as $reply) {
+            DiscussionFileUploader::deleteAttachmentFiles($reply->attachments);
+            $reply->reactions()->delete();
+            $reply->delete();
+        }
+
+        $this->reactions()->delete();
+        DiscussionTopicRead::query()->where('discussion_topic_id', $this->id)->delete();
+    }
+
+    public function deleteGroupCompletely(): void
+    {
+        if (! $this->isGroupContainer()) {
             return;
         }
 
-        $absolutePath = public_path($this->group_image);
-
-        if (File::isFile($absolutePath)) {
-            File::delete($absolutePath);
+        foreach ($this->children()->get() as $child) {
+            $child->purgeDiscussionContent();
+            $child->delete();
         }
+
+        $this->deleteStoredGroupImage();
+        $this->purgeDiscussionContent();
+        $this->members()->detach();
+        $this->memberRecords()->delete();
+        $this->delete();
+    }
+
+    public function leaveGroup(User $user): bool
+    {
+        if (! $this->isGroupContainer() || $this->isOwner($user)) {
+            return false;
+        }
+
+        if (! $this->members()->where('users.id', $user->id)->exists()) {
+            return false;
+        }
+
+        $this->members()->detach($user->id);
+        DiscussionTopicRead::query()
+            ->where('discussion_topic_id', $this->id)
+            ->where('user_id', $user->id)
+            ->delete();
+
+        return true;
     }
 
     /**
@@ -293,6 +335,8 @@ class DiscussionTopic extends Model
                     : $this->members()->pluck('users.id')->all())
                 : [],
             'can_manage_members' => $user && $this->isGroupContainer() ? $user->can('manageMembers', $this) : false,
+            'can_delete_group' => $user && $this->isGroupContainer() ? $user->can('deleteGroup', $this) : false,
+            'can_leave_group' => $user && $this->isGroupContainer() ? $user->can('leaveGroup', $this) : false,
             'created_at' => $this->created_at?->toIso8601String(),
             'created_at_human' => $this->created_at?->diffForHumans(),
             'created_at_date' => $this->created_at?->format('d M Y'),

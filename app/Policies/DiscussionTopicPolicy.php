@@ -33,4 +33,18 @@ class DiscussionTopicPolicy
             && $group->parent_topic_id === null
             && $group->canAccess($user);
     }
+
+    public function deleteGroup(User $user, DiscussionTopic $topic): bool
+    {
+        return $topic->isGroupContainer() && $topic->isOwner($user);
+    }
+
+    public function leaveGroup(User $user, DiscussionTopic $topic): bool
+    {
+        if (! $topic->isGroupContainer() || $topic->isOwner($user)) {
+            return false;
+        }
+
+        return $topic->members()->where('users.id', $user->id)->exists();
+    }
 }

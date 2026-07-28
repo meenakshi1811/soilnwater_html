@@ -2059,6 +2059,46 @@ img.discussion-avatar--photo {
     color: #54656f;
 }
 
+.discussion-widget__outline-btn--danger {
+    border-color: #d9534f;
+    color: #d9534f;
+}
+
+.discussion-widget__danger-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 24px;
+    background: #d9534f;
+    color: #fff;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.discussion-widget__danger-btn:hover {
+    background: #c9302c;
+}
+
+.discussion-widget__members-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border-top: 1px solid #eef1f3;
+}
+
+.discussion-widget__members-footer .discussion-widget__outline-btn,
+.discussion-widget__members-footer .discussion-widget__danger-btn {
+    width: 100%;
+    justify-content: center;
+}
+
 #discussionWidgetGroupTopics {
     display: flex;
     flex-direction: column;

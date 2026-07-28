@@ -16,6 +16,8 @@
     $topicGroupImageUpdateTemplate = str_replace('999999999', '__TOPIC__', route('discussions.group-image.update', ['topic' => 999999999]));
     $topicGroupImageDestroyTemplate = str_replace('999999999', '__TOPIC__', route('discussions.group-image.destroy', ['topic' => 999999999]));
     $topicGroupSettingsUpdateTemplate = str_replace('999999999', '__TOPIC__', route('discussions.group-settings.update', ['topic' => 999999999]));
+    $topicGroupDestroyTemplate = str_replace('999999999', '__TOPIC__', route('discussions.group.destroy', ['topic' => 999999999]));
+    $topicLeaveTemplate = str_replace('999999999', '__TOPIC__', route('discussions.leave', ['topic' => 999999999]));
 @endphp
 <script>
     window.soilnwaterDiscussion = {
@@ -44,6 +46,8 @@
             topicGroupImageUpdateTemplate: @json($topicGroupImageUpdateTemplate),
             topicGroupImageDestroyTemplate: @json($topicGroupImageDestroyTemplate),
             topicGroupSettingsUpdateTemplate: @json($topicGroupSettingsUpdateTemplate),
+            topicGroupDestroyTemplate: @json($topicGroupDestroyTemplate),
+            topicLeaveTemplate: @json($topicLeaveTemplate),
             usersSearch: @json(route('discussions.users.search')),
             unreadSummary: @json(route('discussions.unread-summary')),
             replyReactTemplate: @json($replyReactTemplate),

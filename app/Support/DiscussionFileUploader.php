@@ -58,6 +58,43 @@ class DiscussionFileUploader
         return asset($path);
     }
 
+    /**
+     * @param  list<array<string, mixed>>|null  $attachments
+     */
+    public static function deleteAttachmentFiles(?array $attachments): void
+    {
+        foreach ($attachments ?? [] as $attachment) {
+            if (! is_array($attachment)) {
+                continue;
+            }
+
+            $path = $attachment['path'] ?? null;
+
+            if (! filled($path)) {
+                continue;
+            }
+
+            $absolutePath = public_path($path);
+
+            if (File::isFile($absolutePath)) {
+                File::delete($absolutePath);
+            }
+        }
+    }
+
+    public static function deleteStoredFile(?string $path): void
+    {
+        if (! filled($path)) {
+            return;
+        }
+
+        $absolutePath = public_path($path);
+
+        if (File::isFile($absolutePath)) {
+            File::delete($absolutePath);
+        }
+    }
+
     private static function absoluteDirectory(string $subfolder): string
     {
         $directory = public_path(self::BASE_PATH.($subfolder !== '' ? '/'.$subfolder : ''));

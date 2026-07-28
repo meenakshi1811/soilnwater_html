@@ -286,6 +286,22 @@
                         Add selected members
                     </button>
                 </div>
+                <div class="discussion-widget__members-footer" id="discussionWidgetMembersFooter">
+                    <button type="button"
+                            class="discussion-widget__outline-btn discussion-widget__outline-btn--danger"
+                            id="discussionWidgetLeaveGroupBtn"
+                            hidden>
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        Leave group
+                    </button>
+                    <button type="button"
+                            class="discussion-widget__danger-btn"
+                            id="discussionWidgetDeleteGroupBtn"
+                            hidden>
+                        <i class="fa-solid fa-trash"></i>
+                        Delete group
+                    </button>
+                </div>
             </div>
         </div>
     </div>
