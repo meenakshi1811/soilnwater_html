@@ -1940,6 +1940,10 @@ body.discussion-widget-open { overflow: hidden; }
     background: rgba(17, 27, 33, 0.45);
 }
 
+.discussion-widget__members-modal[hidden] {
+    display: none !important;
+}
+
 .discussion-widget__members-card {
     width: min(100%, 360px);
     max-height: calc(100% - 32px);
@@ -1960,6 +1964,14 @@ body.discussion-widget-open { overflow: hidden; }
 .discussion-widget__members-head h3 {
     margin: 0;
     font-size: 1rem;
+}
+
+.discussion-widget__members-head .discussion-widget__icon-btn {
+    color: #54656f;
+}
+
+.discussion-widget__members-head .discussion-widget__icon-btn:hover {
+    background: #f0f2f5;
 }
 
 .discussion-widget__members-list {
