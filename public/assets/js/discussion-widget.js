@@ -17,6 +17,7 @@
     const panels = {
         topics: document.getElementById('discussionWidgetTopics'),
         thread: document.getElementById('discussionWidgetThread'),
+        groupPick: document.getElementById('discussionWidgetGroupPick'),
         compose: document.getElementById('discussionWidgetCompose'),
     };
 
@@ -28,6 +29,7 @@
         replyForm: document.getElementById('discussionWidgetReplyForm'),
         replyBody: document.getElementById('discussionWidgetReplyBody'),
         newTopicForm: document.getElementById('discussionWidgetNewTopicForm'),
+        newGroupForm: document.getElementById('discussionWidgetNewGroupForm'),
         pinBtn: document.getElementById('discussionWidgetPinBtn'),
         membersBtn: document.getElementById('discussionWidgetMembersBtn'),
         membersModal: document.getElementById('discussionWidgetMembersModal'),
@@ -36,6 +38,7 @@
         membersAddBtn: document.getElementById('discussionWidgetMembersAddBtn'),
         membersCloseBtn: document.getElementById('discussionWidgetMembersCloseBtn'),
         newTopicBtn: document.getElementById('discussionWidgetNewTopicBtn'),
+        newGroupBtn: document.getElementById('discussionWidgetNewGroupBtn'),
         closeBtn: document.getElementById('discussionWidgetCloseBtn'),
         backBtn: document.getElementById('discussionWidgetBackBtn'),
         headerAvatar: document.getElementById('discussionWidgetHeaderAvatar'),
@@ -67,6 +70,9 @@
     const modalMemberSelection = new Map();
     let memberSearchTimer = null;
     let widgetComposeController = null;
+    let widgetGroupComposeController = null;
+    let widgetGroupPicker = null;
+    let composeMode = 'topic';
     const attachmentHelpersRef = () => window.soilnwaterDiscussionAttachments || {};
     let replyAttachmentPool = null;
 
@@ -381,7 +387,20 @@
     }
 
     function syncComposeChatType() {
-        widgetComposeController?.syncChatType?.();
+        // Legacy hook retained for compatibility.
+    }
+
+    function setComposeFormVisible(mode) {
+        composeMode = mode;
+        if (els.newTopicForm) {
+            els.newTopicForm.hidden = mode !== 'topic';
+        }
+        if (els.newGroupForm) {
+            els.newGroupForm.hidden = mode !== 'group';
+        }
+        if (mode === 'group') {
+            widgetGroupComposeController?.renderSummary?.();
+        }
     }
 
     function formatUnreadCount(count) {
@@ -559,10 +578,15 @@
 
             const showThread = name === 'thread';
             const showCompose = name === 'compose';
+            const showGroupPick = name === 'groupPick';
 
             if (panels.thread) {
                 panels.thread.classList.toggle('is-active', showThread);
                 panels.thread.hidden = !showThread;
+            }
+            if (panels.groupPick) {
+                panels.groupPick.classList.toggle('is-active', showGroupPick);
+                panels.groupPick.hidden = !showGroupPick;
             }
             if (panels.compose) {
                 panels.compose.classList.toggle('is-active', showCompose);
@@ -590,12 +614,19 @@
         const isTopics = name === 'topics';
         const isThread = name === 'thread';
         const isCompose = name === 'compose';
+        const isGroupPick = name === 'groupPick';
+        const showListActions = isTopics;
 
         if (els.backBtn) {
-            els.backBtn.hidden = isPageMode ? (!isCompose && !currentTopic) : isTopics;
+            els.backBtn.hidden = isPageMode
+                ? !(isCompose || isGroupPick || currentTopic)
+                : isTopics;
         }
         if (els.newTopicBtn) {
-            els.newTopicBtn.hidden = isPageMode ? isCompose : !isTopics;
+            els.newTopicBtn.hidden = !showListActions;
+        }
+        if (els.newGroupBtn) {
+            els.newGroupBtn.hidden = !showListActions;
         }
         if (els.pinBtn) {
             els.pinBtn.hidden = !isThread || !config.canPin;
@@ -1129,14 +1160,39 @@
         updateFullPageLink(null);
     }
 
-    function showCompose() {
+    function showComposeTopic() {
+        setComposeFormVisible('topic');
         showPanel('compose');
-        setHeaderTitle('New chat', 'Create a public topic or private group');
+        setHeaderTitle('New topic', 'Create a public discussion');
         resetHeaderAvatar();
         updateMembersButton(null);
         setComposerVisible(false);
-        syncComposeChatType();
         document.getElementById('discussionWidgetTopicTitle')?.focus();
+    }
+
+    function showGroupPick() {
+        showPanel('groupPick');
+        setHeaderTitle('Add participants', 'Select contacts for your group');
+        resetHeaderAvatar();
+        updateMembersButton(null);
+        setComposerVisible(false);
+        widgetGroupPicker?.loadUsers?.('');
+        document.getElementById('discussionWidgetGroupSearch')?.focus();
+    }
+
+    function showComposeGroup() {
+        setComposeFormVisible('group');
+        showPanel('compose');
+        setHeaderTitle('New group', 'Add a subject and optional first message');
+        resetHeaderAvatar();
+        updateMembersButton(null);
+        setComposerVisible(false);
+        widgetGroupComposeController?.renderSummary?.();
+        document.getElementById('discussionWidgetGroupTitle')?.focus();
+    }
+
+    function showCompose() {
+        showComposeTopic();
     }
 
     async function toggleOpen() {
@@ -1164,13 +1220,19 @@
     els.closeBtn?.addEventListener('click', () => setOpen(false));
     els.sizeBtn?.addEventListener('click', cycleWidgetSize);
     els.backBtn?.addEventListener('click', () => {
-        if (panels.compose?.classList.contains('is-active')) {
+        if (panels.groupPick?.classList.contains('is-active')) {
             showTopics();
+            widgetGroupPicker?.reset?.();
+            return;
+        }
+        if (panels.compose?.classList.contains('is-active') && composeMode === 'group') {
+            showGroupPick();
             return;
         }
         showTopics();
     });
-    els.newTopicBtn?.addEventListener('click', showCompose);
+    els.newTopicBtn?.addEventListener('click', showComposeTopic);
+    els.newGroupBtn?.addEventListener('click', showGroupPick);
     els.membersBtn?.addEventListener('click', openMembersModal);
     els.membersCloseBtn?.addEventListener('click', closeMembersModal);
     els.membersModal?.addEventListener('click', (event) => {
@@ -1207,12 +1269,15 @@
     bindMemberChipRemoval('discussionWidgetMembersAddChips', modalMemberSelection);
     bindMemberSearchInput('discussionWidgetMembersAddSearch', 'discussionWidgetMembersAddResults', modalMemberSelection, 'discussionWidgetMembersAddChips');
 
+    widgetGroupPicker = window.soilnwaterDiscussionCompose?.initGroupMemberPicker?.({
+        prefix: 'discussionWidget',
+        onNext() {
+            showComposeGroup();
+        },
+    }) || null;
+
     widgetComposeController = window.soilnwaterDiscussionCompose?.initNewChatForm?.({
         form: els.newTopicForm,
-        membersFieldId: 'discussionWidgetMembersField',
-        memberSearchId: 'discussionWidgetMemberSearch',
-        memberResultsId: 'discussionWidgetMemberResults',
-        memberChipsId: 'discussionWidgetMemberChips',
         attachImageBtnId: 'discussionWidgetTopicAttachImageBtn',
         attachVideoBtnId: 'discussionWidgetTopicAttachVideoBtn',
         attachDocumentBtnId: 'discussionWidgetTopicAttachDocumentBtn',
@@ -1233,6 +1298,35 @@
             notify('error', error.message);
         },
     });
+
+    if (els.newGroupForm) {
+        widgetGroupComposeController = window.soilnwaterDiscussionCompose?.initNewChatForm?.({
+            form: els.newGroupForm,
+            memberSelection: widgetGroupPicker?.selectionMap || new Map(),
+            pickerController: widgetGroupPicker,
+            summaryElId: 'discussionWidgetGroupSelectedSummary',
+            attachImageBtnId: 'discussionWidgetGroupAttachImageBtn',
+            attachVideoBtnId: 'discussionWidgetGroupAttachVideoBtn',
+            attachDocumentBtnId: 'discussionWidgetGroupAttachDocumentBtn',
+            attachmentsInputId: 'discussionWidgetGroupAttachments',
+            attachmentsPreviewId: 'discussionWidgetGroupAttachmentsPreview',
+            onSuccess(data) {
+                notify('success', data.message || 'Group created.');
+                topicsLoaded = false;
+                widgetGroupPicker?.reset?.();
+
+                if (data.topic?.id) {
+                    prependTopicCard(data.topic);
+                    openTopic(data.topic.id);
+                } else {
+                    showTopics();
+                }
+            },
+            onError(error) {
+                notify('error', error.message);
+            },
+        });
+    }
 
     els.topicList?.addEventListener('click', (event) => {
         const card = event.target.closest('[data-topic-id]');
@@ -1489,7 +1583,13 @@
             if (!isOpen()) {
                 setOpen(true);
             }
-            showCompose();
+            showComposeTopic();
+        },
+        showGroupPick() {
+            if (!isOpen()) {
+                setOpen(true);
+            }
+            showGroupPick();
         },
         initPageMode,
     };

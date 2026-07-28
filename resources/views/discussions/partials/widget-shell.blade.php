@@ -50,10 +50,17 @@
             @endif
             <button type="button"
                     class="discussion-widget__icon-btn"
+                    id="discussionWidgetNewGroupBtn"
+                    title="New group"
+                    aria-label="New group">
+                <i class="fa-solid fa-user-group"></i>
+            </button>
+            <button type="button"
+                    class="discussion-widget__icon-btn"
                     id="discussionWidgetNewTopicBtn"
-                    title="New chat"
-                    aria-label="New chat">
-                <i class="fa-solid fa-comment-medical"></i>
+                    title="New topic"
+                    aria-label="New topic">
+                <i class="fa-solid fa-hashtag"></i>
             </button>
             <button type="button"
                     class="discussion-widget__icon-btn"
@@ -157,13 +164,25 @@
             </form>
         </section>
 
+        <section class="discussion-widget__panel" id="discussionWidgetGroupPick" data-panel="groupPick" hidden>
+            @include('discussions.partials.group-member-picker', ['prefix' => 'discussionWidget'])
+        </section>
+
         <section class="discussion-widget__panel" id="discussionWidgetCompose" data-panel="compose" hidden>
-            <form class="discussion-widget__compose-form" id="discussionWidgetNewTopicForm" data-url="{{ route('discussions.store') }}" enctype="multipart/form-data">
+            <form class="discussion-widget__compose-form" id="discussionWidgetNewTopicForm" data-url="{{ route('discussions.store') }}" data-compose-mode="topic" enctype="multipart/form-data">
                 @csrf
-                @include('discussions.partials.new-chat-compose-fields', ['prefix' => 'discussionWidget'])
+                @include('discussions.partials.new-chat-compose-fields', ['prefix' => 'discussionWidget', 'mode' => 'topic'])
                 <button type="submit" class="discussion-widget__primary-btn">
-                    <i class="fa-solid fa-comments"></i>
-                    Create chat
+                    <i class="fa-solid fa-hashtag"></i>
+                    Create topic
+                </button>
+            </form>
+            <form class="discussion-widget__compose-form" id="discussionWidgetNewGroupForm" data-url="{{ route('discussions.store') }}" data-compose-mode="group" enctype="multipart/form-data" hidden>
+                @csrf
+                @include('discussions.partials.new-chat-compose-fields', ['prefix' => 'discussionWidgetGroup', 'mode' => 'group'])
+                <button type="submit" class="discussion-widget__primary-btn">
+                    <i class="fa-solid fa-user-group"></i>
+                    Create group
                 </button>
             </form>
         </section>

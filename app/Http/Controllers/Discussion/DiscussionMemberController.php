@@ -30,7 +30,7 @@ class DiscussionMemberController extends Controller
                 });
             })
             ->orderBy('name')
-            ->limit(10)
+            ->limit($query === '' ? 50 : 15)
             ->get(['id', 'name', 'full_name', 'email']);
 
         return response()->json([
@@ -38,6 +38,7 @@ class DiscussionMemberController extends Controller
                 'id' => $user->id,
                 'name' => $user->authorDisplayName(),
                 'email' => $user->email,
+                'initials' => $user->authorInitials(),
             ])->values(),
         ]);
     }

@@ -563,17 +563,66 @@
     }
 
     function initNewTopicForm() {
-        const form = document.getElementById('newTopicForm');
-        if (!form || !window.soilnwaterDiscussionCompose?.initNewChatForm) {
+        const topicForm = document.getElementById('newTopicForm');
+        const groupForm = document.getElementById('newGroupForm');
+        const modalEl = document.getElementById('newTopicModal');
+        const modalTitle = document.getElementById('newTopicModalLabel');
+
+        if (!topicForm || !window.soilnwaterDiscussionCompose?.initNewChatForm) {
             return;
         }
 
+        const modalPanels = {
+            topic: document.querySelector('[data-modal-panel="topic"]'),
+            groupPick: document.querySelector('[data-modal-panel="groupPick"]'),
+            group: document.querySelector('[data-modal-panel="group"]'),
+        };
+
+        function showModalPanel(name) {
+            Object.entries(modalPanels).forEach(([key, panel]) => {
+                if (!panel) {
+                    return;
+                }
+                panel.classList.toggle('is-active', key === name);
+            });
+
+            document.querySelectorAll('[data-modal-tab]').forEach((tab) => {
+                tab.classList.toggle('is-active', tab.dataset.modalTab === name || (name !== 'topic' && tab.dataset.modalTab === 'group'));
+            });
+
+            if (modalTitle) {
+                if (name === 'groupPick') {
+                    modalTitle.textContent = 'Add participants';
+                } else if (name === 'group') {
+                    modalTitle.textContent = 'New group';
+                } else {
+                    modalTitle.textContent = 'New topic';
+                }
+            }
+        }
+
+        function handleCreatedTopic(data) {
+            if (data.topic && window.soilnwaterDiscussionWidget?.openTopic) {
+                window.soilnwaterDiscussionUi?.prependTopic?.(data.topic);
+                window.soilnwaterDiscussionWidget.openTopic(data.topic.id);
+                return;
+            }
+
+            if (data.topic?.url) {
+                window.location.href = data.topic.url;
+            }
+        }
+
+        const modalGroupPicker = window.soilnwaterDiscussionCompose.initGroupMemberPicker({
+            prefix: 'newTopic',
+            onNext() {
+                showModalPanel('group');
+                modalGroupComposeController?.renderSummary?.();
+            },
+        });
+
         window.soilnwaterDiscussionCompose.initNewChatForm({
-            form,
-            membersFieldId: 'newTopicMembersField',
-            memberSearchId: 'newTopicMemberSearch',
-            memberResultsId: 'newTopicMemberResults',
-            memberChipsId: 'newTopicMemberChips',
+            form: topicForm,
             attachImageBtnId: 'newTopicAttachImageBtn',
             attachVideoBtnId: 'newTopicAttachVideoBtn',
             attachDocumentBtnId: 'newTopicAttachDocumentBtn',
@@ -581,25 +630,62 @@
             attachmentsPreviewId: 'newTopicAttachmentsPreview',
             onSuccess(data) {
                 notify('success', data.message || 'Topic created.');
-
-                const modalEl = document.getElementById('newTopicModal');
                 if (modalEl && window.bootstrap?.Modal) {
                     window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
                 }
-
-                if (data.topic && window.soilnwaterDiscussionWidget?.openTopic) {
-                    window.soilnwaterDiscussionUi?.prependTopic?.(data.topic);
-                    window.soilnwaterDiscussionWidget.openTopic(data.topic.id);
-                    return;
-                }
-
-                if (data.topic?.url) {
-                    window.location.href = data.topic.url;
-                }
+                handleCreatedTopic(data);
             },
             onError(error) {
                 notify('error', error.message);
             },
+        });
+
+        const modalGroupComposeController = groupForm
+            ? window.soilnwaterDiscussionCompose.initNewChatForm({
+                form: groupForm,
+                memberSelection: modalGroupPicker.selectionMap,
+                pickerController: modalGroupPicker,
+                summaryElId: 'newTopicGroupSelectedSummary',
+                attachImageBtnId: 'newTopicGroupAttachImageBtn',
+                attachVideoBtnId: 'newTopicGroupAttachVideoBtn',
+                attachDocumentBtnId: 'newTopicGroupAttachDocumentBtn',
+                attachmentsInputId: 'newTopicGroupAttachments',
+                attachmentsPreviewId: 'newTopicGroupAttachmentsPreview',
+                onSuccess(data) {
+                    notify('success', data.message || 'Group created.');
+                    modalGroupPicker.reset();
+                    showModalPanel('topic');
+                    if (modalEl && window.bootstrap?.Modal) {
+                        window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                    }
+                    handleCreatedTopic(data);
+                },
+                onError(error) {
+                    notify('error', error.message);
+                },
+            })
+            : null;
+
+        document.querySelectorAll('[data-modal-tab]').forEach((tab) => {
+            tab.addEventListener('click', () => {
+                if (tab.dataset.modalTab === 'group') {
+                    showModalPanel('groupPick');
+                    modalGroupPicker.loadUsers('');
+                    return;
+                }
+
+                modalGroupPicker.reset();
+                showModalPanel('topic');
+            });
+        });
+
+        document.getElementById('newTopicGroupBackBtn')?.addEventListener('click', () => {
+            showModalPanel('groupPick');
+        });
+
+        modalEl?.addEventListener('hidden.bs.modal', () => {
+            modalGroupPicker.reset();
+            showModalPanel('topic');
         });
     }
 
