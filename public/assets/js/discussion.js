@@ -645,14 +645,10 @@
         const modalGroupComposeController = groupForm
             ? window.soilnwaterDiscussionCompose.initNewChatForm({
                 form: groupForm,
+                skipAttachments: true,
                 memberSelection: modalGroupPicker.selectionMap,
                 pickerController: modalGroupPicker,
                 summaryElId: 'newTopicGroupSelectedSummary',
-                attachImageBtnId: 'newTopicGroupAttachImageBtn',
-                attachVideoBtnId: 'newTopicGroupAttachVideoBtn',
-                attachDocumentBtnId: 'newTopicGroupAttachDocumentBtn',
-                attachmentsInputId: 'newTopicGroupAttachments',
-                attachmentsPreviewId: 'newTopicGroupAttachmentsPreview',
                 onSuccess(data) {
                     notify('success', data.message || 'Group created.');
                     modalGroupPicker.reset();

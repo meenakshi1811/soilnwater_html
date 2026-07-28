@@ -68,7 +68,7 @@
                     hidden
                     title="Group settings"
                     aria-label="Group settings">
-                <i class="fa-solid fa-user-plus"></i>
+                <i class="fa-solid fa-gear"></i>
             </button>
             <button type="button"
                     class="discussion-widget__icon-btn"
@@ -112,7 +112,12 @@
         </section>
 
         <section class="discussion-widget__panel" id="discussionWidgetGroupTopics" data-panel="groupTopics" hidden>
+            <div class="discussion-widget__group-profile" id="discussionWidgetGroupProfile"></div>
             <div class="discussion-widget__group-topics-bar">
+                <button type="button" class="discussion-widget__outline-btn" id="discussionWidgetGroupInfoBtn">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Group info
+                </button>
                 <button type="button" class="discussion-widget__primary-btn" id="discussionWidgetNewGroupTopicBtn">
                     <i class="fa-solid fa-plus"></i>
                     New topic
@@ -222,7 +227,7 @@
                 </div>
                 <div class="discussion-widget__members-photo" id="discussionWidgetMembersPhotoSection" hidden>
                     <div class="discussion-widget__members-photo-preview" id="discussionWidgetMembersPhotoPreview">
-                        <span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true">
+                        <span class="discussion-avatar discussion-avatar--icon discussion-avatar--group discussion-avatar--lg" aria-hidden="true">
                             <i class="fa-solid fa-users"></i>
                         </span>
                     </div>
@@ -243,6 +248,27 @@
                         </button>
                     </div>
                 </div>
+                <div class="discussion-widget__members-details" id="discussionWidgetMembersDetailsSection">
+                    <div class="discussion-widget__members-details-view" id="discussionWidgetMembersDetailsView"></div>
+                    <div class="discussion-widget__members-details-edit" id="discussionWidgetMembersDetailsEdit" hidden>
+                        <label for="discussionWidgetMembersGroupTitle">Group name</label>
+                        <input type="text"
+                               id="discussionWidgetMembersGroupTitle"
+                               class="discussion-widget__field-input"
+                               maxlength="200"
+                               autocomplete="off">
+                        <label for="discussionWidgetMembersGroupDetails">Group details</label>
+                        <textarea id="discussionWidgetMembersGroupDetails"
+                                  class="discussion-widget__field-input"
+                                  rows="3"
+                                  maxlength="1000"
+                                  placeholder="What is this group about?"></textarea>
+                        <button type="button" class="discussion-widget__primary-btn" id="discussionWidgetMembersSaveDetailsBtn">
+                            Save group details
+                        </button>
+                    </div>
+                </div>
+                <h4 class="discussion-widget__members-section-title">Members</h4>
                 <div class="discussion-widget__members-list" id="discussionWidgetMembersList"></div>
                 <div class="discussion-widget__members-add" id="discussionWidgetMembersAddSection" hidden>
                     <label for="discussionWidgetMembersAddSearch">Add members</label>

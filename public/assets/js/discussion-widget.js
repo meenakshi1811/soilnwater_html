@@ -33,8 +33,15 @@
         newGroupForm: document.getElementById('discussionWidgetNewGroupForm'),
         newGroupTopicForm: document.getElementById('discussionWidgetNewGroupTopicForm'),
         groupTopicsList: document.getElementById('discussionWidgetGroupTopicsList'),
+        groupProfile: document.getElementById('discussionWidgetGroupProfile'),
+        groupInfoBtn: document.getElementById('discussionWidgetGroupInfoBtn'),
         newGroupTopicBtn: document.getElementById('discussionWidgetNewGroupTopicBtn'),
         groupTopicParentInput: document.getElementById('discussionWidgetGroupTopicParentId'),
+        membersDetailsView: document.getElementById('discussionWidgetMembersDetailsView'),
+        membersDetailsEdit: document.getElementById('discussionWidgetMembersDetailsEdit'),
+        membersGroupTitle: document.getElementById('discussionWidgetMembersGroupTitle'),
+        membersGroupDetails: document.getElementById('discussionWidgetMembersGroupDetails'),
+        membersSaveDetailsBtn: document.getElementById('discussionWidgetMembersSaveDetailsBtn'),
         pinBtn: document.getElementById('discussionWidgetPinBtn'),
         membersBtn: document.getElementById('discussionWidgetMembersBtn'),
         membersModal: document.getElementById('discussionWidgetMembersModal'),
@@ -400,14 +407,25 @@
             .replace('__TOPIC__', String(topicId));
     }
 
+    function groupSettingsUpdateUrl(topicId) {
+        return (config.routes?.topicGroupSettingsUpdateTemplate || '/discussions/__TOPIC__/group-settings')
+            .replace('__TOPIC__', String(topicId));
+    }
+
+    function groupPhotoPreviewHtml(imageUrl = null) {
+        if (imageUrl) {
+            return `<span class="discussion-avatar discussion-avatar--photo discussion-avatar--lg"><img src="${escapeHtml(imageUrl)}" alt=""></span>`;
+        }
+
+        return '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group discussion-avatar--lg" aria-hidden="true"><i class="fa-solid fa-users"></i></span>';
+    }
+
     function renderMembersPhotoPreview(imageUrl = null) {
         if (!els.membersPhotoPreview) {
             return;
         }
 
-        els.membersPhotoPreview.innerHTML = imageUrl
-            ? `<img src="${escapeHtml(imageUrl)}" alt="" class="discussion-avatar discussion-avatar--photo">`
-            : '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>';
+        els.membersPhotoPreview.innerHTML = groupPhotoPreviewHtml(imageUrl);
 
         if (els.membersPhotoRemoveBtn) {
             els.membersPhotoRemoveBtn.hidden = !imageUrl;
@@ -419,24 +437,83 @@
     }
 
     function syncTopicGroupSettings(topicPayload = {}) {
-        if (!currentTopic?.id || Number(topicPayload.id) !== Number(currentTopic.id)) {
+        const targetId = Number(topicPayload.id);
+        const appliesToGroup = currentGroup && Number(currentGroup.id) === targetId;
+        const appliesToTopic = currentTopic && Number(currentTopic.id) === targetId;
+
+        if (appliesToGroup) {
+            currentGroup = {
+                ...currentGroup,
+                ...topicPayload,
+                group_image_url: topicPayload.group_image_url ?? currentGroup.group_image_url ?? null,
+            };
+            currentTopic = currentGroup;
+            renderGroupProfile(currentGroup);
+            setHeaderTitle(currentGroup.title, topicSubtitle(currentGroup));
+            setHeaderTopicAvatar(currentGroup);
+        } else if (appliesToTopic) {
+            currentTopic = {
+                ...currentTopic,
+                ...topicPayload,
+                group_image_url: topicPayload.group_image_url ?? currentTopic.group_image_url ?? null,
+            };
+        }
+
+        const listTopic = appliesToGroup ? currentGroup : (appliesToTopic ? currentTopic : null);
+        if (!listTopic) {
             return;
         }
 
-        currentTopic = {
-            ...currentTopic,
-            ...topicPayload,
-            group_image_url: topicPayload.group_image_url ?? currentTopic.group_image_url ?? null,
-        };
-
-        setHeaderTopicAvatar(currentTopic);
-
-        const card = document.getElementById(`discussion-widget-topic-${currentTopic.id}`);
+        const card = document.getElementById(`discussion-widget-topic-${listTopic.id}`);
         if (card) {
             const avatar = card.querySelector('.discussion-avatar, .discussion-avatar--photo, .discussion-avatar--group');
             if (avatar) {
-                avatar.outerHTML = topicListAvatarHtml(currentTopic);
+                avatar.outerHTML = topicListAvatarHtml(listTopic);
             }
+        }
+    }
+
+    function renderGroupProfile(group) {
+        if (!els.groupProfile || !group) {
+            return;
+        }
+
+        const details = group.body
+            ? escapeHtml(group.body)
+            : '<span class="discussion-widget__group-profile-empty">No group details added yet.</span>';
+
+        els.groupProfile.innerHTML = `<div class="discussion-widget__group-profile-inner">
+            ${groupAvatarHtml(group, 'discussion-avatar--lg')}
+            <div class="discussion-widget__group-profile-text">
+                <strong>${escapeHtml(group.title)}</strong>
+                <p>${details}</p>
+            </div>
+        </div>`;
+    }
+
+    function renderMembersDetails(group, canManage = canManageMembersModal) {
+        if (els.membersDetailsEdit) {
+            els.membersDetailsEdit.hidden = !canManage;
+        }
+
+        if (canManage) {
+            if (els.membersGroupTitle) {
+                els.membersGroupTitle.value = group?.title || '';
+            }
+            if (els.membersGroupDetails) {
+                els.membersGroupDetails.value = group?.body || '';
+            }
+            if (els.membersDetailsView) {
+                els.membersDetailsView.hidden = true;
+            }
+
+            return;
+        }
+
+        if (els.membersDetailsView) {
+            els.membersDetailsView.hidden = false;
+            els.membersDetailsView.innerHTML = `<strong>${escapeHtml(group?.title || 'Group')}</strong>
+                <p>${group?.body ? escapeHtml(group.body) : 'No group details added yet.'}</p>`;
         }
     }
 
@@ -487,7 +564,16 @@
         try {
             const data = await requestJson(membersUrl(group.id), { method: 'GET' });
             canManageMembersModal = Boolean(data.can_manage_members);
-            renderMembersPhotoPreview(data.group_image_url || null);
+            const modalGroup = {
+                ...group,
+                body: currentGroup?.body ?? group.body,
+            };
+            const modalTitle = document.querySelector('.discussion-widget__members-head h3');
+            if (modalTitle) {
+                modalTitle.textContent = canManageMembersModal ? 'Group settings' : 'Group info';
+            }
+            renderMembersPhotoPreview(data.group_image_url || modalGroup.group_image_url || null);
+            renderMembersDetails(modalGroup, canManageMembersModal);
             if (els.membersPhotoSection) {
                 els.membersPhotoSection.hidden = !canManageMembersModal;
             }
@@ -1262,6 +1348,7 @@
         setHeaderTopicAvatar(group);
         updateMembersButton(group);
         setComposerVisible(false);
+        renderGroupProfile(group);
         renderGroupTopicsList(group.children || []);
         updateFullPageLink(group.id);
         updateMessengerUrl(group.id);
@@ -1435,7 +1522,7 @@
     function showComposeGroup() {
         setComposeFormVisible('group');
         showPanel('compose');
-        setHeaderTitle('New group', 'Add a subject and optional first message');
+        setHeaderTitle('New group', 'Add name, photo, and details');
         resetHeaderAvatar();
         updateMembersButton(null);
         setComposerVisible(false);
@@ -1520,6 +1607,7 @@
     els.newTopicBtn?.addEventListener('click', showComposeTopic);
     els.newGroupBtn?.addEventListener('click', showGroupPick);
     els.newGroupTopicBtn?.addEventListener('click', showComposeGroupTopic);
+    els.groupInfoBtn?.addEventListener('click', openMembersModal);
     els.membersBtn?.addEventListener('click', openMembersModal);
     els.membersCloseBtn?.addEventListener('click', closeMembersModal);
     els.membersModal?.addEventListener('click', (event) => {
@@ -1590,7 +1678,7 @@
         try {
             const data = await requestFormJson(groupImageUpdateUrl(group.id), formData);
             renderMembersPhotoPreview(data.group_image_url || null);
-            syncTopicGroupSettings(data.topic || { group_image_url: data.group_image_url });
+            syncTopicGroupSettings(data.topic || { id: group.id, group_image_url: data.group_image_url });
             notify('success', data.message || 'Group photo updated.');
         } catch (error) {
             notify('error', error.message);
@@ -1613,12 +1701,47 @@
             });
 
             renderMembersPhotoPreview(null);
-            syncTopicGroupSettings(data.topic || { group_image_url: null });
+            syncTopicGroupSettings(data.topic || { id: group.id, group_image_url: null });
             notify('success', data.message || 'Group photo removed.');
         } catch (error) {
             notify('error', error.message);
         } finally {
             els.membersPhotoRemoveBtn.disabled = false;
+        }
+    });
+
+    els.membersSaveDetailsBtn?.addEventListener('click', async () => {
+        const group = currentGroup || (currentTopic?.is_group && !currentTopic?.parent_topic_id ? currentTopic : null);
+        if (!group?.id || !canManageMembersModal) {
+            return;
+        }
+
+        const title = els.membersGroupTitle?.value?.trim() || '';
+        const body = els.membersGroupDetails?.value?.trim() || '';
+
+        if (!title) {
+            notify('error', 'Group name is required.');
+            return;
+        }
+
+        els.membersSaveDetailsBtn.disabled = true;
+
+        try {
+            const data = await requestJson(groupSettingsUpdateUrl(group.id), {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    title,
+                    body: body || null,
+                }),
+            });
+
+            syncTopicGroupSettings(data.topic || { id: group.id, title, body });
+            renderMembersDetails(data.topic || { title, body }, true);
+            notify('success', data.message || 'Group settings updated.');
+        } catch (error) {
+            notify('error', error.message);
+        } finally {
+            els.membersSaveDetailsBtn.disabled = false;
         }
     });
 
@@ -1658,14 +1781,10 @@
     if (els.newGroupForm) {
         widgetGroupComposeController = window.soilnwaterDiscussionCompose?.initNewChatForm?.({
             form: els.newGroupForm,
+            skipAttachments: true,
             memberSelection: widgetGroupPicker?.selectionMap || new Map(),
             pickerController: widgetGroupPicker,
             summaryElId: 'discussionWidgetGroupSelectedSummary',
-            attachImageBtnId: 'discussionWidgetGroupAttachImageBtn',
-            attachVideoBtnId: 'discussionWidgetGroupAttachVideoBtn',
-            attachDocumentBtnId: 'discussionWidgetGroupAttachDocumentBtn',
-            attachmentsInputId: 'discussionWidgetGroupAttachments',
-            attachmentsPreviewId: 'discussionWidgetGroupAttachmentsPreview',
             onSuccess(data) {
                 notify('success', data.message || 'Group created.');
                 topicsLoaded = false;

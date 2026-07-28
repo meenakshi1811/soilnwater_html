@@ -163,9 +163,11 @@ class DiscussionTopicController extends Controller
 
     public function store(Request $request): JsonResponse|RedirectResponse
     {
+        $isGroupContainer = $request->boolean('is_group') && ! $request->filled('parent_topic_id');
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:200'],
-            'body' => ['nullable', 'string', 'max:5000'],
+            'body' => ['nullable', 'string', 'max:'.($isGroupContainer ? '1000' : '5000')],
             'is_group' => ['nullable', 'boolean'],
             'parent_topic_id' => ['nullable', 'integer', 'exists:discussion_topics,id'],
             'member_ids' => ['nullable', 'array'],
@@ -175,7 +177,6 @@ class DiscussionTopicController extends Controller
             'attachments.*' => ['file', DiscussionAttachments::validationMimesRule(), 'max:10240'],
         ]);
 
-        $attachments = $this->storeAttachments($request->file('attachments', []));
         $parentTopic = null;
 
         if (! empty($data['parent_topic_id'])) {
@@ -184,6 +185,9 @@ class DiscussionTopicController extends Controller
         }
 
         $isGroup = $parentTopic ? false : $request->boolean('is_group');
+        $attachments = $isGroup
+            ? []
+            : $this->storeAttachments($request->file('attachments', []));
         $groupImagePath = $isGroup && $request->hasFile('group_image')
             ? $this->storeGroupImage($request->file('group_image'))
             : null;
@@ -287,6 +291,27 @@ class DiscussionTopicController extends Controller
             'message' => 'Group photo removed.',
             'group_image_url' => null,
             'topic' => $topic->fresh(['user', 'members'])->loadCount('members')->toBroadcastArray(),
+        ]);
+    }
+
+    public function updateGroupSettings(Request $request, DiscussionTopic $topic): JsonResponse
+    {
+        $this->authorize('manageMembers', $topic);
+
+        abort_unless($topic->isGroupContainer(), 404);
+
+        $data = $request->validate([
+            'title' => ['sometimes', 'required', 'string', 'max:200'],
+            'body' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $topic->update($data);
+
+        $topic = $topic->fresh(['user', 'members'])->loadCount(['members', 'children']);
+
+        return response()->json([
+            'message' => 'Group settings updated.',
+            'topic' => $topic->toBroadcastArray(),
         ]);
     }
 

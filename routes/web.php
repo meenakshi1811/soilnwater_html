@@ -192,6 +192,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/{topic}/members/{member}', [DiscussionMemberController::class, 'destroy'])->name('members.destroy');
         Route::post('/{topic}/group-image', [DiscussionTopicController::class, 'updateGroupImage'])->name('group-image.update');
         Route::delete('/{topic}/group-image', [DiscussionTopicController::class, 'destroyGroupImage'])->name('group-image.destroy');
+        Route::patch('/{topic}/group-settings', [DiscussionTopicController::class, 'updateGroupSettings'])->name('group-settings.update');
         Route::post('/{topic}/read', [DiscussionReadController::class, 'markRead'])->name('read');
         Route::post('/{topic}/replies', [DiscussionReplyController::class, 'store'])->name('replies.store');
         Route::post('/{topic}/pin', [DiscussionTopicController::class, 'pin'])->name('pin');

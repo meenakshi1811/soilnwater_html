@@ -18,11 +18,12 @@
 
 @if($mode === 'group')
     <div class="{{ $fieldClass }} discussion-group-pick__summary" id="{{ $selectedSummaryId }}"></div>
+
     <div class="{{ $fieldClass }}">
-        <label for="{{ $prefix }}GroupImage">Group photo <span>(optional)</span></label>
+        <label for="{{ $prefix }}GroupImageInput">Group photo <span>(optional)</span></label>
         <div class="discussion-widget__group-image-field">
             <div class="discussion-widget__group-image-preview" id="{{ $prefix }}GroupImagePreview">
-                <span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true">
+                <span class="discussion-avatar discussion-avatar--icon discussion-avatar--group discussion-avatar--lg" aria-hidden="true">
                     <i class="fa-solid fa-users"></i>
                 </span>
             </div>
@@ -40,48 +41,67 @@
                         class="discussion-widget__group-image-clear"
                         id="{{ $prefix }}GroupImageClearBtn"
                         hidden>
-                    Remove
+                    Remove photo
                 </button>
             </div>
         </div>
     </div>
-@endif
 
-<div class="{{ $fieldClass }}">
-    <label for="{{ $titleInputId }}">{{ $mode === 'group' ? 'Group subject' : 'Topic name' }}</label>
-    <input type="text"
-           id="{{ $titleInputId }}"
-           name="title"
-           maxlength="200"
-           required
-           placeholder="{{ $mode === 'group' ? 'e.g. Farm planning team' : 'e.g. Soil health tips' }}">
-</div>
-
-<div class="{{ $fieldClass }}">
-    <label for="{{ $bodyInputId }}">First message <span>(optional)</span></label>
-    <textarea id="{{ $bodyInputId }}"
-              name="body"
-              rows="4"
-              maxlength="5000"
-              placeholder="Write your first message…"></textarea>
-</div>
-
-<div class="{{ $fieldClass }}">
-    <label>Attachments</label>
-    <div class="discussion-widget__attach-group discussion-widget__attach-group--stack">
-        <button type="button" class="discussion-widget__attach-type-btn" id="{{ $attachImageBtnId }}">
-            <i class="fa-solid fa-image"></i>
-            <span>Image</span>
-        </button>
-        <button type="button" class="discussion-widget__attach-type-btn" id="{{ $attachVideoBtnId }}">
-            <i class="fa-solid fa-video"></i>
-            <span>Video</span>
-        </button>
-        <button type="button" class="discussion-widget__attach-type-btn" id="{{ $attachDocumentBtnId }}">
-            <i class="fa-solid fa-file-lines"></i>
-            <span>Document</span>
-        </button>
+    <div class="{{ $fieldClass }}">
+        <label for="{{ $titleInputId }}">Group name</label>
+        <input type="text"
+               id="{{ $titleInputId }}"
+               name="title"
+               maxlength="200"
+               required
+               placeholder="e.g. Farm planning team">
     </div>
-    <input type="file" id="{{ $attachmentsInputId }}" name="attachments[]" class="visually-hidden" multiple>
-    <div class="discussion-media-preview" id="{{ $attachmentsPreviewId }}" hidden></div>
-</div>
+
+    <div class="{{ $fieldClass }}">
+        <label for="{{ $bodyInputId }}">Group details <span>(optional)</span></label>
+        <textarea id="{{ $bodyInputId }}"
+                  name="body"
+                  rows="3"
+                  maxlength="1000"
+                  placeholder="What is this group about?"></textarea>
+    </div>
+@else
+    <div class="{{ $fieldClass }}">
+        <label for="{{ $titleInputId }}">Topic name</label>
+        <input type="text"
+               id="{{ $titleInputId }}"
+               name="title"
+               maxlength="200"
+               required
+               placeholder="e.g. Soil health tips">
+    </div>
+
+    <div class="{{ $fieldClass }}">
+        <label for="{{ $bodyInputId }}">First message <span>(optional)</span></label>
+        <textarea id="{{ $bodyInputId }}"
+                  name="body"
+                  rows="4"
+                  maxlength="5000"
+                  placeholder="Write your first message…"></textarea>
+    </div>
+
+    <div class="{{ $fieldClass }}">
+        <label>Attachments</label>
+        <div class="discussion-widget__attach-group discussion-widget__attach-group--stack">
+            <button type="button" class="discussion-widget__attach-type-btn" id="{{ $attachImageBtnId }}">
+                <i class="fa-solid fa-image"></i>
+                <span>Image</span>
+            </button>
+            <button type="button" class="discussion-widget__attach-type-btn" id="{{ $attachVideoBtnId }}">
+                <i class="fa-solid fa-video"></i>
+                <span>Video</span>
+            </button>
+            <button type="button" class="discussion-widget__attach-type-btn" id="{{ $attachDocumentBtnId }}">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Document</span>
+            </button>
+        </div>
+        <input type="file" id="{{ $attachmentsInputId }}" name="attachments[]" class="visually-hidden" multiple>
+        <div class="discussion-media-preview" id="{{ $attachmentsPreviewId }}" hidden></div>
+    </div>
+@endif

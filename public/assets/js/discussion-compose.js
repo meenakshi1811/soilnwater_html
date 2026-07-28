@@ -300,7 +300,7 @@
         }
 
         if (preview) {
-            preview.innerHTML = '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group" aria-hidden="true"><i class="fa-solid fa-users"></i></span>';
+            preview.innerHTML = '<span class="discussion-avatar discussion-avatar--icon discussion-avatar--group discussion-avatar--lg" aria-hidden="true"><i class="fa-solid fa-users"></i></span>';
         }
 
         if (clearBtn) {
@@ -323,7 +323,7 @@
                 return;
             }
 
-            preview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="" class="discussion-avatar discussion-avatar--photo">`;
+            preview.innerHTML = `<span class="discussion-avatar discussion-avatar--photo discussion-avatar--lg"><img src="${URL.createObjectURL(file)}" alt=""></span>`;
             if (clearBtn) {
                 clearBtn.hidden = false;
             }
@@ -360,13 +360,15 @@
         const memberSelection = options.memberSelection || new Map();
         const summaryEl = options.summaryElId ? document.getElementById(options.summaryElId) : null;
         const attachmentHelpers = window.soilnwaterDiscussionAttachments || {};
-        const attachmentPool = attachmentHelpers.bindAttachmentPicker?.({
-            input: document.getElementById(options.attachmentsInputId),
-            previewEl: document.getElementById(options.attachmentsPreviewId),
-            imageButton: document.getElementById(options.attachImageBtnId),
-            videoButton: document.getElementById(options.attachVideoBtnId),
-            documentButton: document.getElementById(options.attachDocumentBtnId),
-        });
+        const attachmentPool = options.skipAttachments
+            ? null
+            : attachmentHelpers.bindAttachmentPicker?.({
+                input: document.getElementById(options.attachmentsInputId),
+                previewEl: document.getElementById(options.attachmentsPreviewId),
+                imageButton: document.getElementById(options.attachImageBtnId),
+                videoButton: document.getElementById(options.attachVideoBtnId),
+                documentButton: document.getElementById(options.attachDocumentBtnId),
+            });
 
         const renderSummary = () => {
             if (summaryEl) {
