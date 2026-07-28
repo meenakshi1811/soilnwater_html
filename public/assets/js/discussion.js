@@ -564,27 +564,24 @@
 
     function initNewTopicForm() {
         const form = document.getElementById('newTopicForm');
-        if (!form) {
+        if (!form || !window.soilnwaterDiscussionCompose?.initNewChatForm) {
             return;
         }
 
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        window.soilnwaterDiscussionCompose.initNewChatForm({
+            form,
+            membersFieldId: 'newTopicMembersField',
+            memberSearchId: 'newTopicMemberSearch',
+            memberResultsId: 'newTopicMemberResults',
+            memberChipsId: 'newTopicMemberChips',
+            attachImageBtnId: 'newTopicAttachImageBtn',
+            attachVideoBtnId: 'newTopicAttachVideoBtn',
+            attachDocumentBtnId: 'newTopicAttachDocumentBtn',
+            attachmentsInputId: 'newTopicAttachments',
+            attachmentsPreviewId: 'newTopicAttachmentsPreview',
+            onSuccess(data) {
+                notify('success', data.message || 'Topic created.');
 
-            const submit = form.querySelector('[type="submit"]');
-            if (submit) {
-                submit.disabled = true;
-            }
-
-            try {
-                const data = await postJson(form.dataset.url, {
-                    title: form.querySelector('[name="title"]')?.value || '',
-                    body: form.querySelector('[name="body"]')?.value || '',
-                });
-
-                notify('success', data.message);
-
-                form.reset();
                 const modalEl = document.getElementById('newTopicModal');
                 if (modalEl && window.bootstrap?.Modal) {
                     window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
@@ -599,13 +596,10 @@
                 if (data.topic?.url) {
                     window.location.href = data.topic.url;
                 }
-            } catch (error) {
+            },
+            onError(error) {
                 notify('error', error.message);
-            } finally {
-                if (submit) {
-                    submit.disabled = false;
-                }
-            }
+            },
         });
     }
 

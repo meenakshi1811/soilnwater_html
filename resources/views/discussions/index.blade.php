@@ -22,10 +22,16 @@
                 <p>Search, open, or start a new group conversation</p>
             </div>
             <div class="discussion-page-header__actions">
-                <a href="{{ route('discussions.messenger') }}" class="discussion-btn discussion-btn--outline">
+                <button type="button"
+                        class="discussion-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#newTopicModal">
+                    <i class="fa-solid fa-comment-medical"></i> New chat
+                </button>
+                <a href="{{ route('discussions.messenger', ['compose' => 1]) }}" class="discussion-btn discussion-btn--outline">
                     <i class="fa-solid fa-up-right-from-square"></i> Full page
                 </a>
-                <button type="button" class="discussion-btn" id="discussionPageOpenWidget">
+                <button type="button" class="discussion-btn discussion-btn--outline" id="discussionPageOpenWidget">
                     <i class="fa-solid fa-comments"></i> Open popup
                 </button>
             </div>
@@ -47,6 +53,8 @@
         </div>
     </div>
 </div>
+
+@include('discussions.partials.new-topic-modal')
 @endsection
 
 @push('scripts')

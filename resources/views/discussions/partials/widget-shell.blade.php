@@ -160,77 +160,7 @@
         <section class="discussion-widget__panel" id="discussionWidgetCompose" data-panel="compose" hidden>
             <form class="discussion-widget__compose-form" id="discussionWidgetNewTopicForm" data-url="{{ route('discussions.store') }}" enctype="multipart/form-data">
                 @csrf
-                <div class="discussion-widget__field">
-                    <label>Chat type</label>
-                    <div class="discussion-widget__type-toggle" role="radiogroup" aria-label="Chat type">
-                        <label class="discussion-widget__type-option">
-                            <input type="radio" name="is_group" value="0" checked>
-                            <span><i class="fa-solid fa-hashtag"></i> Public topic</span>
-                        </label>
-                        <label class="discussion-widget__type-option">
-                            <input type="radio" name="is_group" value="1">
-                            <span><i class="fa-solid fa-users"></i> Private group</span>
-                        </label>
-                    </div>
-                </div>
-                <div class="discussion-widget__field">
-                    <label for="discussionWidgetTopicTitle">Group / topic name</label>
-                    <input type="text"
-                           id="discussionWidgetTopicTitle"
-                           name="title"
-                           maxlength="200"
-                           required
-                           placeholder="e.g. Soil health tips">
-                </div>
-                <div class="discussion-widget__field" id="discussionWidgetMembersField" hidden>
-                    <label for="discussionWidgetMemberSearch">Add members</label>
-                    <div class="discussion-widget__member-search-wrap">
-                        <input type="search"
-                               id="discussionWidgetMemberSearch"
-                               class="form-control"
-                               placeholder="Search members by name or email"
-                               autocomplete="off">
-                        <div class="discussion-widget__member-results" id="discussionWidgetMemberResults" hidden></div>
-                    </div>
-                    <div class="discussion-widget__member-chips" id="discussionWidgetMemberChips"></div>
-                </div>
-                <div class="discussion-widget__field">
-                    <label for="discussionWidgetTopicBody">First message <span>(optional)</span></label>
-                    <textarea id="discussionWidgetTopicBody"
-                              name="body"
-                              rows="4"
-                              maxlength="5000"
-                              placeholder="Write your first message…"></textarea>
-                </div>
-                <div class="discussion-widget__field">
-                    <label>Attachments</label>
-                    <div class="discussion-widget__attach-group discussion-widget__attach-group--stack">
-                        <button type="button"
-                                class="discussion-widget__attach-type-btn"
-                                id="discussionWidgetTopicAttachImageBtn">
-                            <i class="fa-solid fa-image"></i>
-                            <span>Image</span>
-                        </button>
-                        <button type="button"
-                                class="discussion-widget__attach-type-btn"
-                                id="discussionWidgetTopicAttachVideoBtn">
-                            <i class="fa-solid fa-video"></i>
-                            <span>Video</span>
-                        </button>
-                        <button type="button"
-                                class="discussion-widget__attach-type-btn"
-                                id="discussionWidgetTopicAttachDocumentBtn">
-                            <i class="fa-solid fa-file-lines"></i>
-                            <span>Document</span>
-                        </button>
-                    </div>
-                    <input type="file"
-                           id="discussionWidgetTopicAttachments"
-                           name="attachments[]"
-                           class="visually-hidden"
-                           multiple>
-                    <div class="discussion-media-preview" id="discussionWidgetTopicPreview" hidden></div>
-                </div>
+                @include('discussions.partials.new-chat-compose-fields', ['prefix' => 'discussionWidget'])
                 <button type="submit" class="discussion-widget__primary-btn">
                     <i class="fa-solid fa-comments"></i>
                     Create chat

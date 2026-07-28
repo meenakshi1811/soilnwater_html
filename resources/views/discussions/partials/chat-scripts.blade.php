@@ -3,6 +3,7 @@
     $broadcastEnabled = config('broadcasting.default') !== 'log' && config('broadcasting.default') !== 'null';
     $discussionPageMode = $discussionPageMode ?? request()->routeIs('discussions.messenger');
     $discussionInitialTopicId = $discussionInitialTopicId ?? ($discussionPageMode ? request()->route('topic')?->id : null);
+    $discussionInitialCompose = $discussionInitialCompose ?? ($discussionPageMode && request()->boolean('compose'));
     $replyReactTemplate = str_replace('999999999', '__REPLY__', route('discussions.replies.react', ['reply' => 999999999]));
     $topicShowTemplate = str_replace('999999999', '__TOPIC__', route('discussions.show', ['topic' => 999999999]));
     $topicRepliesTemplate = str_replace('999999999', '__TOPIC__', route('discussions.replies.store', ['topic' => 999999999]));
@@ -49,6 +50,7 @@
         globalUnread: 0,
         pageMode: @json($discussionPageMode),
         initialTopicId: @json($discussionInitialTopicId),
+        initialCompose: @json($discussionInitialCompose ?? false),
         widgetSize: 'default',
         attachments: {
             acceptImages: @json(DiscussionAttachments::acceptImages()),
@@ -59,6 +61,7 @@
     };
 </script>
 <script src="{{ asset('assets/js/discussion-attachments.js') }}?v={{ now()->timestamp }}" defer></script>
+<script src="{{ asset('assets/js/discussion-compose.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/discussion.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/discussion-widget.js') }}?v={{ now()->timestamp }}" defer></script>
 @if($broadcastEnabled)

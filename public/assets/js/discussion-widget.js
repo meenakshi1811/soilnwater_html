@@ -64,12 +64,11 @@
     let topicsLoaded = false;
     let currentTopic = null;
     let openRequestId = 0;
-    const composeMemberSelection = new Map();
     const modalMemberSelection = new Map();
     let memberSearchTimer = null;
+    let widgetComposeController = null;
     const attachmentHelpersRef = () => window.soilnwaterDiscussionAttachments || {};
     let replyAttachmentPool = null;
-    let topicAttachmentPool = null;
 
     function csrfToken() {
         return config.csrfToken
@@ -382,17 +381,7 @@
     }
 
     function syncComposeChatType() {
-        const isGroup = els.newTopicForm?.querySelector('input[name="is_group"]:checked')?.value === '1';
-        const field = document.getElementById('discussionWidgetMembersField');
-
-        if (field) {
-            field.hidden = !isGroup;
-        }
-
-        if (!isGroup) {
-            composeMemberSelection.clear();
-            renderMemberChips('discussionWidgetMemberChips', composeMemberSelection);
-        }
+        widgetComposeController?.syncChatType?.();
     }
 
     function formatUnreadCount(count) {
@@ -603,7 +592,7 @@
         const isCompose = name === 'compose';
 
         if (els.backBtn) {
-            els.backBtn.hidden = isPageMode ? isCompose : isTopics;
+            els.backBtn.hidden = isPageMode ? (!isCompose && !currentTopic) : isTopics;
         }
         if (els.newTopicBtn) {
             els.newTopicBtn.hidden = isPageMode ? isCompose : !isTopics;
@@ -1215,13 +1204,35 @@
         }
     });
 
-    els.newTopicForm?.querySelectorAll('input[name="is_group"]').forEach((input) => {
-        input.addEventListener('change', syncComposeChatType);
-    });
-    bindMemberChipRemoval('discussionWidgetMemberChips', composeMemberSelection);
     bindMemberChipRemoval('discussionWidgetMembersAddChips', modalMemberSelection);
-    bindMemberSearchInput('discussionWidgetMemberSearch', 'discussionWidgetMemberResults', composeMemberSelection, 'discussionWidgetMemberChips');
     bindMemberSearchInput('discussionWidgetMembersAddSearch', 'discussionWidgetMembersAddResults', modalMemberSelection, 'discussionWidgetMembersAddChips');
+
+    widgetComposeController = window.soilnwaterDiscussionCompose?.initNewChatForm?.({
+        form: els.newTopicForm,
+        membersFieldId: 'discussionWidgetMembersField',
+        memberSearchId: 'discussionWidgetMemberSearch',
+        memberResultsId: 'discussionWidgetMemberResults',
+        memberChipsId: 'discussionWidgetMemberChips',
+        attachImageBtnId: 'discussionWidgetTopicAttachImageBtn',
+        attachVideoBtnId: 'discussionWidgetTopicAttachVideoBtn',
+        attachDocumentBtnId: 'discussionWidgetTopicAttachDocumentBtn',
+        attachmentsInputId: 'discussionWidgetTopicAttachments',
+        attachmentsPreviewId: 'discussionWidgetTopicPreview',
+        onSuccess(data) {
+            notify('success', data.message || 'Topic created.');
+            topicsLoaded = false;
+
+            if (data.topic?.id) {
+                prependTopicCard(data.topic);
+                openTopic(data.topic.id);
+            } else {
+                showTopics();
+            }
+        },
+        onError(error) {
+            notify('error', error.message);
+        },
+    });
 
     els.topicList?.addEventListener('click', (event) => {
         const card = event.target.closest('[data-topic-id]');
@@ -1276,58 +1287,6 @@
             );
 
             notify('success', data.message || 'Reply posted.');
-        } catch (error) {
-            notify('error', error.message);
-        } finally {
-            if (submit) {
-                submit.disabled = false;
-            }
-        }
-    });
-
-    els.newTopicForm?.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const submit = els.newTopicForm.querySelector('[type="submit"]');
-        const title = els.newTopicForm.querySelector('[name="title"]')?.value?.trim() || '';
-        const body = els.newTopicForm.querySelector('[name="body"]')?.value?.trim() || '';
-
-        if (submit) {
-            submit.disabled = true;
-        }
-
-        try {
-            const formData = new FormData();
-            formData.append('title', title);
-            const isGroup = els.newTopicForm.querySelector('input[name="is_group"]:checked')?.value === '1';
-            formData.append('is_group', isGroup ? '1' : '0');
-            if (body) {
-                formData.append('body', body);
-            }
-            Array.from(composeMemberSelection.values()).forEach((member) => {
-                formData.append('member_ids[]', String(member.id));
-            });
-            attachmentHelpersRef().appendPoolToFormData?.(formData, topicAttachmentPool);
-
-            const data = await requestFormData(els.newTopicForm.dataset.url || config.routes.discussionsStore, formData);
-
-            notify('success', data.message || 'Topic created.');
-            els.newTopicForm.reset();
-            composeMemberSelection.clear();
-            renderMemberChips('discussionWidgetMemberChips', composeMemberSelection);
-            syncComposeChatType();
-            attachmentHelpersRef().clearAttachmentPool?.(
-                topicAttachmentPool,
-                document.getElementById('discussionWidgetTopicPreview')
-            );
-            topicsLoaded = false;
-
-            if (data.topic?.id) {
-                prependTopicCard(data.topic);
-                openTopic(data.topic.id);
-            } else {
-                showTopics();
-            }
         } catch (error) {
             notify('error', error.message);
         } finally {
@@ -1485,13 +1444,6 @@
         videoButton: document.getElementById('discussionWidgetReplyAttachVideoBtn'),
         documentButton: document.getElementById('discussionWidgetReplyAttachDocumentBtn'),
     });
-    topicAttachmentPool = attachmentHelpersRef().bindAttachmentPicker?.({
-        input: document.getElementById('discussionWidgetTopicAttachments'),
-        previewEl: document.getElementById('discussionWidgetTopicPreview'),
-        imageButton: document.getElementById('discussionWidgetTopicAttachImageBtn'),
-        videoButton: document.getElementById('discussionWidgetTopicAttachVideoBtn'),
-        documentButton: document.getElementById('discussionWidgetTopicAttachDocumentBtn'),
-    });
     loadUnreadSummary();
     restoreWidgetSize();
     updateFullPageLink(null);
@@ -1507,6 +1459,11 @@
 
         if (config.initialTopicId) {
             openTopic(config.initialTopicId);
+            return;
+        }
+
+        if (config.initialCompose) {
+            showCompose();
         }
     }
 
