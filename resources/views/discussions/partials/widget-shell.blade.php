@@ -146,7 +146,28 @@
             </div>
             <form class="discussion-widget__composer" id="discussionWidgetReplyForm" enctype="multipart/form-data">
                 <label class="visually-hidden" for="discussionWidgetReplyBody">Type a message</label>
+                <div class="discussion-widget__emoji-picker" id="discussionWidgetReplyEmojiPicker" hidden>
+                    <div class="discussion-widget__emoji-search">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <input type="search"
+                               class="discussion-widget__emoji-search-input"
+                               placeholder="Search emoji"
+                               autocomplete="off"
+                               aria-label="Search emoji">
+                    </div>
+                    <div class="discussion-widget__emoji-grid" role="grid" aria-label="Emoji"></div>
+                    <div class="discussion-widget__emoji-tabs" role="tablist" aria-label="Emoji categories"></div>
+                </div>
                 <div class="discussion-widget__composer-inner">
+                    <button type="button"
+                            class="discussion-widget__attach-btn discussion-widget__emoji-btn"
+                            id="discussionWidgetReplyEmojiBtn"
+                            title="Emoji"
+                            aria-label="Emoji"
+                            aria-expanded="false"
+                            aria-controls="discussionWidgetReplyEmojiPicker">
+                        <i class="fa-regular fa-face-smile"></i>
+                    </button>
                     <div class="discussion-widget__attach-group">
                         <button type="button"
                                 class="discussion-widget__attach-btn"

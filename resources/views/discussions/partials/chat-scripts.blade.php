@@ -76,6 +76,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('assets/js/discussion-attachments.js') }}?v={{ now()->timestamp }}" defer></script>
+<script src="{{ asset('assets/js/discussion-emoji.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/discussion-compose.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/discussion.js') }}?v={{ now()->timestamp }}" defer></script>
 <script src="{{ asset('assets/js/discussion-widget.js') }}?v={{ now()->timestamp }}" defer></script>

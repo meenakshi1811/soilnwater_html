@@ -108,6 +108,7 @@
     }
     const attachmentHelpersRef = () => window.soilnwaterDiscussionAttachments || {};
     let replyAttachmentPool = null;
+    let replyEmojiPicker = null;
     let onlinePollTimer = null;
     let onlineTopicId = null;
     let currentPresenceMembers = [];
@@ -1210,6 +1211,10 @@
 
             updateHeaderForPanel(name);
 
+            if (name !== 'thread') {
+                replyEmojiPicker?.close?.();
+            }
+
             if (isComposePanel(name) || name === 'groupPick') {
                 clearOnlinePresence();
             }
@@ -1228,6 +1233,10 @@
         });
 
         updateHeaderForPanel(name);
+
+        if (name !== 'thread') {
+            replyEmojiPicker?.close?.();
+        }
 
         if (isComposePanel(name) || name === 'groupPick') {
             clearOnlinePresence();
@@ -2367,6 +2376,7 @@
                 els.replyBody.value = '';
                 autoResizeTextarea(els.replyBody);
             }
+            replyEmojiPicker?.close?.();
             attachmentHelpersRef().clearAttachmentPool?.(
                 replyAttachmentPool,
                 document.getElementById('discussionWidgetReplyPreview')
@@ -2548,6 +2558,13 @@
         videoButton: document.getElementById('discussionWidgetReplyAttachVideoBtn'),
         documentButton: document.getElementById('discussionWidgetReplyAttachDocumentBtn'),
     });
+
+    replyEmojiPicker = window.soilnwaterDiscussionEmoji?.initPicker?.({
+        trigger: document.getElementById('discussionWidgetReplyEmojiBtn'),
+        textarea: els.replyBody,
+        panel: document.getElementById('discussionWidgetReplyEmojiPicker'),
+        anchor: els.replyForm,
+    }) || null;
     loadUnreadSummary();
     restoreWidgetSize();
     updateFullPageLink(null);

@@ -1306,10 +1306,131 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
 }
 
 .discussion-widget__composer {
+    position: relative;
     padding: 8px 10px;
     background: var(--wa-composer-bg);
     border-top: 1px solid var(--wa-border);
     flex-shrink: 0;
+}
+
+.discussion-widget__emoji-btn.is-active {
+    color: var(--wa-teal);
+}
+
+.discussion-widget__emoji-picker {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% - 1px);
+    z-index: 25;
+    display: flex;
+    flex-direction: column;
+    height: min(320px, 42vh);
+    background: #fff;
+    border-top: 1px solid var(--wa-border);
+    box-shadow: 0 -8px 24px rgba(17, 27, 33, 0.08);
+}
+
+.discussion-widget__emoji-picker[hidden] {
+    display: none !important;
+}
+
+.discussion-widget__emoji-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #eef1f3;
+    flex-shrink: 0;
+}
+
+.discussion-widget__emoji-search > .fa-magnifying-glass {
+    color: #8696a0;
+    font-size: 0.875rem;
+}
+
+.discussion-widget__emoji-search-input {
+    flex: 1;
+    border: 0;
+    background: #f0f2f5;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 0.875rem;
+    color: var(--wa-text);
+    outline: none;
+}
+
+.discussion-widget__emoji-search-input:focus {
+    background: #e9edef;
+}
+
+.discussion-widget__emoji-grid {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 2px;
+    padding: 8px 10px;
+}
+
+.discussion-widget__emoji-item {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 1.45rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.discussion-widget__emoji-item:hover {
+    background: #f0f2f5;
+}
+
+.discussion-widget__emoji-empty {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 24px 12px;
+    text-align: center;
+    color: #667781;
+    font-size: 0.875rem;
+}
+
+.discussion-widget__emoji-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 8px;
+    border-top: 1px solid #eef1f3;
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.discussion-widget__emoji-tab {
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 1.25rem;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.discussion-widget__emoji-tab:hover:not([disabled]) {
+    background: #f0f2f5;
+}
+
+.discussion-widget__emoji-tab.is-active {
+    background: #e7f6f3;
+}
+
+.discussion-widget__emoji-tab[disabled] {
+    opacity: 0.35;
+    cursor: default;
 }
 
 .discussion-widget__composer-inner {
