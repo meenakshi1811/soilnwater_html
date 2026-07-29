@@ -93,6 +93,7 @@
     let currentGroup = null;
     let openRequestId = 0;
     const modalMemberSelection = new Map();
+    const modalGroupMemberIds = new Set();
     let canManageMembersModal = false;
     let canLeaveGroupModal = false;
     let canDeleteGroupModal = false;
@@ -608,14 +609,18 @@
         return data.users || [];
     }
 
-    function renderMemberSearchResults(resultsEl, users, selectionMap, chipsContainerId) {
+    function renderMemberSearchResults(resultsEl, users, selectionMap, chipsContainerId, inputEl, query = '') {
         if (!resultsEl) {
             return;
         }
 
+        if (inputEl) {
+            inputEl.setAttribute('aria-expanded', users.length ? 'true' : 'false');
+        }
+
         if (!users.length) {
-            resultsEl.hidden = true;
-            resultsEl.innerHTML = '';
+            resultsEl.hidden = false;
+            resultsEl.innerHTML = `<div class="discussion-widget__member-results-empty">${query ? 'No contacts found.' : 'No contacts available.'}</div>`;
 
             return;
         }
@@ -624,7 +629,7 @@
         resultsEl.innerHTML = users.map((user) => {
             const selected = selectionMap.has(Number(user.id));
 
-            return `<button type="button" class="discussion-widget__member-result ${selected ? 'is-selected' : ''}" data-user-id="${user.id}" data-user-name="${escapeHtml(user.name)}" ${selected ? 'disabled' : ''}>
+            return `<button type="button" class="discussion-widget__member-result ${selected ? 'is-selected' : ''}" data-user-id="${user.id}" data-user-name="${escapeHtml(user.name)}" ${selected ? 'disabled' : ''} role="option">
                 <strong>${escapeHtml(user.name)}</strong>
                 <span>${escapeHtml(user.email || '')}</span>
             </button>`;
@@ -639,40 +644,77 @@
                 renderMemberChips(chipsContainerId, selectionMap);
                 resultsEl.hidden = true;
                 resultsEl.innerHTML = '';
-                const input = resultsEl.previousElementSibling;
-                if (input) {
-                    input.value = '';
+                if (inputEl) {
+                    inputEl.value = '';
+                    inputEl.setAttribute('aria-expanded', 'false');
                 }
             });
         });
     }
 
-    function bindMemberSearchInput(inputId, resultsId, selectionMap, chipsContainerId) {
+    function hideMemberSearchResults(resultsEl, inputEl) {
+        if (!resultsEl) {
+            return;
+        }
+
+        resultsEl.hidden = true;
+        resultsEl.innerHTML = '';
+
+        if (inputEl) {
+            inputEl.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    async function loadMemberSearchResults(input, resultsEl, selectionMap, chipsContainerId, options = {}) {
+        const query = input.value.trim();
+        const excludeIds = options.getExcludeIds?.() || new Set();
+
+        try {
+            let users = await searchUsers(query);
+            users = users.filter((user) => !excludeIds.has(Number(user.id)));
+            renderMemberSearchResults(resultsEl, users, selectionMap, chipsContainerId, input, query);
+        } catch (error) {
+            notify('error', error.message);
+        }
+    }
+
+    function bindMemberSearchInput(inputId, resultsId, selectionMap, chipsContainerId, options = {}) {
         const input = document.getElementById(inputId);
         const resultsEl = document.getElementById(resultsId);
         if (!input || !resultsEl) {
             return;
         }
 
+        const openResults = () => {
+            clearTimeout(memberSearchTimer);
+            memberSearchTimer = window.setTimeout(() => {
+                loadMemberSearchResults(input, resultsEl, selectionMap, chipsContainerId, options);
+            }, options.debounceMs ?? 150);
+        };
+
+        input.addEventListener('focus', openResults);
+        input.addEventListener('click', openResults);
+
         input.addEventListener('input', () => {
             clearTimeout(memberSearchTimer);
-            const query = input.value.trim();
+            memberSearchTimer = window.setTimeout(() => {
+                loadMemberSearchResults(input, resultsEl, selectionMap, chipsContainerId, options);
+            }, 250);
+        });
 
-            if (query.length < 2) {
-                resultsEl.hidden = true;
-                resultsEl.innerHTML = '';
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                hideMemberSearchResults(resultsEl, input);
+            }
+        });
 
+        document.addEventListener('click', (event) => {
+            const wrap = input.closest('.discussion-widget__member-search-wrap');
+            if (wrap?.contains(event.target)) {
                 return;
             }
 
-            memberSearchTimer = window.setTimeout(async () => {
-                try {
-                    const users = await searchUsers(query);
-                    renderMemberSearchResults(resultsEl, users, selectionMap, chipsContainerId);
-                } catch (error) {
-                    notify('error', error.message);
-                }
-            }, 250);
+            hideMemberSearchResults(resultsEl, input);
         });
     }
 
@@ -845,6 +887,13 @@
             return;
         }
 
+        modalGroupMemberIds.clear();
+        members.forEach((member) => {
+            if (member?.id) {
+                modalGroupMemberIds.add(Number(member.id));
+            }
+        });
+
         if (!members.length) {
             els.membersList.innerHTML = '<p class="discussion-widget__members-empty">No members yet.</p>';
 
@@ -884,6 +933,14 @@
 
         modalMemberSelection.clear();
         renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
+        const membersAddSearch = document.getElementById('discussionWidgetMembersAddSearch');
+        if (membersAddSearch) {
+            membersAddSearch.value = '';
+        }
+        hideMemberSearchResults(
+            document.getElementById('discussionWidgetMembersAddResults'),
+            membersAddSearch
+        );
 
         try {
             const data = await requestJson(membersUrl(group.id), { method: 'GET' });
@@ -921,7 +978,12 @@
 
     function closeMembersModal() {
         modalMemberSelection.clear();
+        modalGroupMemberIds.clear();
         renderMemberChips('discussionWidgetMembersAddChips', modalMemberSelection);
+        hideMemberSearchResults(
+            document.getElementById('discussionWidgetMembersAddResults'),
+            document.getElementById('discussionWidgetMembersAddSearch')
+        );
         if (els.membersModal) {
             els.membersModal.hidden = true;
         }
@@ -2159,7 +2221,15 @@
     });
 
     bindMemberChipRemoval('discussionWidgetMembersAddChips', modalMemberSelection);
-    bindMemberSearchInput('discussionWidgetMembersAddSearch', 'discussionWidgetMembersAddResults', modalMemberSelection, 'discussionWidgetMembersAddChips');
+    bindMemberSearchInput(
+        'discussionWidgetMembersAddSearch',
+        'discussionWidgetMembersAddResults',
+        modalMemberSelection,
+        'discussionWidgetMembersAddChips',
+        {
+            getExcludeIds: () => modalGroupMemberIds,
+        }
+    );
 
     widgetGroupPicker = window.soilnwaterDiscussionCompose?.initGroupMemberPicker?.({
         prefix: 'discussionWidget',
