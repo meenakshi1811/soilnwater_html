@@ -20,6 +20,8 @@
         thread: document.getElementById('discussionWidgetThread'),
         groupPick: document.getElementById('discussionWidgetGroupPick'),
         compose: document.getElementById('discussionWidgetCompose'),
+        groupCompose: document.getElementById('discussionWidgetGroupCompose'),
+        groupTopicCompose: document.getElementById('discussionWidgetGroupTopicCompose'),
     };
 
     const els = {
@@ -99,6 +101,10 @@
     let widgetGroupComposeController = null;
     let widgetGroupPicker = null;
     let composeMode = 'topic';
+
+    function isComposePanel(name) {
+        return name === 'compose' || name === 'groupCompose' || name === 'groupTopicCompose';
+    }
     const attachmentHelpersRef = () => window.soilnwaterDiscussionAttachments || {};
     let replyAttachmentPool = null;
     let onlinePollTimer = null;
@@ -931,20 +937,8 @@
         // Legacy hook retained for compatibility.
     }
 
-    function setComposeFormVisible(mode) {
-        composeMode = mode;
-        if (els.newTopicForm) {
-            els.newTopicForm.hidden = mode !== 'topic';
-        }
-        if (els.newGroupForm) {
-            els.newGroupForm.hidden = mode !== 'group';
-        }
-        if (els.newGroupTopicForm) {
-            els.newGroupTopicForm.hidden = mode !== 'groupTopic';
-        }
-        if (mode === 'group') {
-            widgetGroupComposeController?.renderSummary?.();
-        }
+    function showComposeGroupSummary() {
+        widgetGroupComposeController?.renderSummary?.();
     }
 
     function formatUnreadCount(count) {
@@ -1122,6 +1116,8 @@
 
             const showThread = name === 'thread';
             const showCompose = name === 'compose';
+            const showGroupCompose = name === 'groupCompose';
+            const showGroupTopicCompose = name === 'groupTopicCompose';
             const showGroupPick = name === 'groupPick';
             const showGroupTopics = name === 'groupTopics';
 
@@ -1141,10 +1137,18 @@
                 panels.compose.classList.toggle('is-active', showCompose);
                 panels.compose.hidden = !showCompose;
             }
+            if (panels.groupCompose) {
+                panels.groupCompose.classList.toggle('is-active', showGroupCompose);
+                panels.groupCompose.hidden = !showGroupCompose;
+            }
+            if (panels.groupTopicCompose) {
+                panels.groupTopicCompose.classList.toggle('is-active', showGroupTopicCompose);
+                panels.groupTopicCompose.hidden = !showGroupTopicCompose;
+            }
 
             updateHeaderForPanel(name);
 
-            if (name === 'compose' || name === 'groupPick') {
+            if (isComposePanel(name) || name === 'groupPick') {
                 clearOnlinePresence();
             }
 
@@ -1163,7 +1167,7 @@
 
         updateHeaderForPanel(name);
 
-        if (name === 'compose' || name === 'groupPick') {
+        if (isComposePanel(name) || name === 'groupPick') {
             clearOnlinePresence();
         }
     }
@@ -1171,7 +1175,7 @@
     function updateHeaderForPanel(name) {
         const isTopics = name === 'topics';
         const isThread = name === 'thread';
-        const isCompose = name === 'compose';
+        const isCompose = isComposePanel(name);
         const isGroupPick = name === 'groupPick';
         const isGroupTopics = name === 'groupTopics';
         const showListActions = isTopics;
@@ -1852,7 +1856,7 @@
     }
 
     function showComposeTopic() {
-        setComposeFormVisible('topic');
+        composeMode = 'topic';
         showPanel('compose');
         setHeaderTitle('New topic', 'Create a public discussion');
         resetHeaderAvatar();
@@ -1862,6 +1866,7 @@
     }
 
     function showGroupPick() {
+        composeMode = 'group';
         showPanel('groupPick');
         setHeaderTitle('Add participants', 'Select contacts for your group');
         resetHeaderAvatar();
@@ -1872,13 +1877,13 @@
     }
 
     function showComposeGroup() {
-        setComposeFormVisible('group');
-        showPanel('compose');
+        composeMode = 'group';
+        showComposeGroupSummary();
+        showPanel('groupCompose');
         setHeaderTitle('New group', 'Add name, photo, and details');
         resetHeaderAvatar();
         updateMembersButton(null);
         setComposerVisible(false);
-        widgetGroupComposeController?.renderSummary?.();
         document.getElementById('discussionWidgetGroupTitle')?.focus();
     }
 
@@ -1891,8 +1896,8 @@
             els.groupTopicParentInput.value = String(currentGroup.id);
         }
 
-        setComposeFormVisible('groupTopic');
-        showPanel('compose');
+        composeMode = 'groupTopic';
+        showPanel('groupTopicCompose');
         setHeaderTitle('New topic', `In ${currentGroup.title}`);
         resetHeaderAvatar();
         updateMembersButton(null);
@@ -1934,11 +1939,11 @@
             widgetGroupPicker?.reset?.();
             return;
         }
-        if (panels.compose?.classList.contains('is-active') && composeMode === 'groupTopic') {
+        if (panels.groupTopicCompose?.classList.contains('is-active')) {
             reloadCurrentGroup();
             return;
         }
-        if (panels.compose?.classList.contains('is-active') && composeMode === 'group') {
+        if (panels.groupCompose?.classList.contains('is-active')) {
             showGroupPick();
             return;
         }

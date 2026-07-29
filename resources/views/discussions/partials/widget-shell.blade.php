@@ -203,7 +203,10 @@
                     Create topic
                 </button>
             </form>
-            <form class="discussion-widget__compose-form" id="discussionWidgetNewGroupForm" data-url="{{ route('discussions.store') }}" data-compose-mode="group" enctype="multipart/form-data" hidden>
+        </section>
+
+        <section class="discussion-widget__panel" id="discussionWidgetGroupCompose" data-panel="groupCompose" hidden>
+            <form class="discussion-widget__compose-form" id="discussionWidgetNewGroupForm" data-url="{{ route('discussions.store') }}" data-compose-mode="group" enctype="multipart/form-data">
                 @csrf
                 @include('discussions.partials.new-chat-compose-fields', ['prefix' => 'discussionWidgetGroup', 'mode' => 'group'])
                 <button type="submit" class="discussion-widget__primary-btn">
@@ -211,7 +214,10 @@
                     Create group
                 </button>
             </form>
-            <form class="discussion-widget__compose-form" id="discussionWidgetNewGroupTopicForm" data-url="{{ route('discussions.store') }}" data-compose-mode="group-topic" enctype="multipart/form-data" hidden>
+        </section>
+
+        <section class="discussion-widget__panel" id="discussionWidgetGroupTopicCompose" data-panel="groupTopicCompose" hidden>
+            <form class="discussion-widget__compose-form" id="discussionWidgetNewGroupTopicForm" data-url="{{ route('discussions.store') }}" data-compose-mode="group-topic" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="parent_topic_id" id="discussionWidgetGroupTopicParentId" value="">
                 @include('discussions.partials.new-chat-compose-fields', ['prefix' => 'discussionWidgetGroupTopic', 'mode' => 'topic'])

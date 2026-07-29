@@ -574,6 +574,8 @@ body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetT
 
 body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetThread,
 body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetCompose,
+body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetGroupCompose,
+body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetGroupTopicCompose,
 body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetGroupPick,
 body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetGroupTopics {
     flex: 1;
@@ -637,7 +639,10 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
     }
 
     body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetThread,
-    body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetCompose {
+    body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetCompose,
+    body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetGroupCompose,
+    body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetGroupTopicCompose,
+    body.discussion-messenger-page .discussion-widget--standalone #discussionWidgetGroupPick {
         flex: 1;
         min-height: 0;
     }
@@ -1397,6 +1402,10 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
     overflow-y: auto;
     flex: 1;
     background: var(--wa-panel);
+}
+
+.discussion-widget__compose-form[hidden] {
+    display: none !important;
 }
 
 .discussion-widget__field label {
