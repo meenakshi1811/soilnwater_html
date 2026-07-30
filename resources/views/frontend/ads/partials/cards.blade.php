@@ -108,6 +108,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
     const GAP = 8;
     const TITLE_H = 50;
+    const STACKED_LAYOUT_QUERY = window.matchMedia('(max-width: 991px)');
     const FILLER_POOL = fillerPool;
     const BLANK_SIZES = instance.blankSizes.slice().sort(function (a, b) {
         return (Number(b.w) * Number(b.h)) - (Number(a.w) * Number(a.h));
@@ -119,6 +120,33 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
     function resetUsedFillers() {
         instance.usedFillerKeys = new Set();
+    }
+
+    function isStackedLayout() {
+        return STACKED_LAYOUT_QUERY.matches;
+    }
+
+    function applyStackedLayout(grid) {
+        grid.style.height = 'auto';
+        grid.querySelectorAll('[data-filler]').forEach(function (el) {
+            el.remove();
+        });
+        grid.querySelectorAll('.ad-card:not([data-filler])').forEach(function (card) {
+            card.style.position = '';
+            card.style.left = '';
+            card.style.top = '';
+            card.style.width = '';
+            card.style.height = '';
+            card.style.zIndex = '';
+            card.dataset.adsPacked = '0';
+
+            const imgBox = card.querySelector('.ad-image');
+            if (imgBox) {
+                imgBox.style.width = '';
+                imgBox.style.height = '';
+                imgBox.style.minHeight = '';
+            }
+        });
     }
 
     function preserveUsedFillerKeysFromGrid(grid) {
@@ -236,6 +264,8 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         card.dataset.filler = '1';
         card.dataset.adW = String(width);
         card.dataset.adH = String(height);
+        card.style.setProperty('--ad-w', String(width));
+        card.style.setProperty('--ad-h', String(height));
         card.style.width = width + 'px';
         card.style.height = height + 'px';
 
@@ -658,6 +688,11 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
     // Always re-pack every card currently in this grid so append never stacks on top of old ads.
     function packGrid(grid, keepPinnedFillers) {
+        if (isStackedLayout()) {
+            applyStackedLayout(grid);
+            return;
+        }
+
         const packWidth = grid.clientWidth;
         if (!packWidth) return;
 
