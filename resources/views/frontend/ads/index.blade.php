@@ -222,7 +222,10 @@ const adShareCopyBtn = document.getElementById('adShareCopyBtn');
 const adShareInstagramBtn = document.getElementById('adShareInstagram');
 
 window.soilnwaterBindShareCopyButton(adShareCopyBtn, 'adShareLink');
-window.soilnwaterBindShareCopyButton(adShareInstagramBtn, 'adShareLink');
+window.soilnwaterBindInstagramShareButton(adShareInstagramBtn, 'adShareLink', {
+  title: 'SoilnWater Ad',
+  text: 'Check this ad on SoilnWater',
+});
 
 if (openAdReportPopupBtn && adReportPopupWrap) {
     openAdReportPopupBtn.addEventListener('click', function () {

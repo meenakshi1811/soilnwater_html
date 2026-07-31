@@ -102,6 +102,102 @@
       });
     };
 
+    window.soilnwaterSetShareButtonFeedback = window.soilnwaterSetShareButtonFeedback || function soilnwaterSetShareButtonFeedback(buttonEl, message, resetMs) {
+      if (!buttonEl) {
+        return;
+      }
+
+      if (!buttonEl.dataset.originalHtml) {
+        buttonEl.dataset.originalHtml = buttonEl.innerHTML;
+      }
+
+      buttonEl.textContent = message;
+      window.setTimeout(function () {
+        buttonEl.innerHTML = buttonEl.dataset.originalHtml;
+      }, resetMs || 2200);
+    };
+
+    window.soilnwaterOpenInstagramApp = window.soilnwaterOpenInstagramApp || function soilnwaterOpenInstagramApp(preferStory) {
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      const storyTarget = 'instagram://story-camera';
+      const appTarget = 'instagram://app';
+      const target = preferStory !== false ? storyTarget : appTarget;
+
+      if (!isMobile) {
+        window.open('https://www.instagram.com/', '_blank', 'noopener');
+        return;
+      }
+
+      if (isAndroid) {
+        window.location.href = 'intent://instagram.com/#Intent;package=com.instagram.android;scheme=https;end';
+        window.setTimeout(function () {
+          window.open('https://www.instagram.com/', '_blank', 'noopener');
+        }, 900);
+        return;
+      }
+
+      const opener = document.createElement('a');
+      opener.href = target;
+      opener.style.display = 'none';
+      document.body.appendChild(opener);
+      opener.click();
+      document.body.removeChild(opener);
+
+      window.setTimeout(function () {
+        window.open('https://www.instagram.com/', '_blank', 'noopener');
+      }, 900);
+    };
+
+    window.soilnwaterShareToInstagram = window.soilnwaterShareToInstagram || async function soilnwaterShareToInstagram(options) {
+      options = options || {};
+
+      function resolve(target) {
+        return typeof target === 'string' ? document.getElementById(target) : target;
+      }
+
+      const buttonEl = resolve(options.button);
+      const inputEl = resolve(options.input);
+      const url = window.soilnwaterNormalizeShareUrl(options.url || inputEl?.value || window.location.href);
+      const title = options.title || 'SoilnWater';
+      const text = options.text || 'Check this out on SoilnWater';
+
+      if (inputEl) {
+        inputEl.value = url;
+      }
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: title, text: text, url: url });
+          window.soilnwaterSetShareButtonFeedback(buttonEl, 'Shared');
+          return;
+        } catch (error) {
+          if (error && error.name === 'AbortError') {
+            return;
+          }
+        }
+      }
+
+      await window.soilnwaterCopyShareLink(inputEl || { value: url }, null);
+      window.soilnwaterOpenInstagramApp(true);
+      window.soilnwaterSetShareButtonFeedback(buttonEl, 'Link copied');
+    };
+
+    window.soilnwaterBindInstagramShareButton = window.soilnwaterBindInstagramShareButton || function soilnwaterBindInstagramShareButton(buttonOrId, inputOrId, options) {
+      const button = typeof buttonOrId === 'string' ? document.getElementById(buttonOrId) : buttonOrId;
+
+      if (!button) {
+        return;
+      }
+
+      button.addEventListener('click', function () {
+        window.soilnwaterShareToInstagram(Object.assign({}, options || {}, {
+          button: button,
+          input: inputOrId,
+        }));
+      });
+    };
+
     window.soilnwaterPopulateShareLinks = window.soilnwaterPopulateShareLinks || function soilnwaterPopulateShareLinks(options) {
       options = options || {};
       const url = window.soilnwaterNormalizeShareUrl(options.url || window.location.href);

@@ -719,7 +719,7 @@
                       <a id="adShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
                       <button type="button" id="adShareInstagram" class="btn btn-sm offer-share-btn share-instagram">Instagram</button>
                     </div>
-                    <p class="small text-muted mt-2 mb-0">For Instagram, tap Instagram to copy the link, then paste it in your story, bio, or post.</p>
+                    <p class="small text-muted mt-2 mb-0">On mobile, Instagram opens so you can add the copied link to your Story or DM. On desktop, Instagram opens in a new tab.</p>
                   </div>
                 </div>
               </div>
@@ -1001,7 +1001,7 @@
                     <a id="offerShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
                     <button type="button" id="offerShareInstagram" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</button>
                   </div>
-                  <p class="small text-muted mt-2 mb-0">For Instagram, tap Instagram to copy the link, then paste it in your story, bio, or post.</p>
+                  <p class="small text-muted mt-2 mb-0">On mobile, Instagram opens so you can add the copied link to your Story or DM. On desktop, Instagram opens in a new tab.</p>
                 </div>
               </div>
             </div>
@@ -2047,7 +2047,10 @@
       });
 
       window.soilnwaterBindShareCopyButton('adShareCopyBtn', 'adShareLink');
-      window.soilnwaterBindShareCopyButton('adShareInstagram', 'adShareLink');
+      window.soilnwaterBindInstagramShareButton('adShareInstagram', 'adShareLink', {
+        title: 'SoilnWater Ad',
+        text: 'Check this ad on SoilnWater',
+      });
 
       if (adEnlargeBtn) {
         adEnlargeBtn.addEventListener('click', function () {
@@ -2190,7 +2193,10 @@
     });
 
     window.soilnwaterBindShareCopyButton('offerShareCopyBtn', 'offerShareLink');
-    window.soilnwaterBindShareCopyButton('offerShareInstagram', 'offerShareLink');
+    window.soilnwaterBindInstagramShareButton('offerShareInstagram', 'offerShareLink', {
+      title: 'SoilnWater Offer',
+      text: 'Check this offer on SoilnWater',
+    });
   });
 </script>
 @endpush
