@@ -119,8 +119,6 @@
 
     window.soilnwaterOpenInstagramShare = window.soilnwaterOpenInstagramShare || async function soilnwaterOpenInstagramShare(url, text) {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
       const shareText = text || 'Check this out on SoilnWater';
 
       if (!isMobile) {
@@ -128,29 +126,25 @@
         return 'desktop';
       }
 
-      if (isAndroid) {
-        const payload = encodeURIComponent(shareText + '\n' + url);
-        window.location.href = 'intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=' + payload + ';package=com.instagram.android;end';
-        return 'android';
-      }
+      if (navigator.share) {
+        const sharePayload = { url: url, text: shareText };
+        const canUsePayload = !navigator.canShare || navigator.canShare(sharePayload);
 
-      if (isIOS && navigator.share) {
         try {
-          await navigator.share({ text: shareText, url: url });
-          return 'ios-shared';
+          if (canUsePayload) {
+            await navigator.share(sharePayload);
+          } else {
+            await navigator.share({ url: url });
+          }
+          return 'shared';
         } catch (error) {
           if (error && error.name === 'AbortError') {
-            return 'ios-cancelled';
+            return 'cancelled';
           }
         }
       }
 
-      if (isIOS) {
-        window.location.href = 'instagram://direct-inbox';
-        return 'ios-inbox';
-      }
-
-      window.location.href = 'instagram://app';
+      window.open('https://www.instagram.com/', '_blank', 'noopener');
       return 'fallback';
     };
 
@@ -174,17 +168,12 @@
 
       const result = await window.soilnwaterOpenInstagramShare(url, shareText);
 
-      if (result === 'ios-cancelled') {
+      if (result === 'cancelled') {
         return;
       }
 
-      if (result === 'ios-shared') {
-        window.soilnwaterSetShareButtonFeedback(buttonEl, 'Shared');
-        return;
-      }
-
-      if (result === 'android') {
-        window.soilnwaterSetShareButtonFeedback(buttonEl, 'Opening Instagram…');
+      if (result === 'shared') {
+        window.soilnwaterSetShareButtonFeedback(buttonEl, 'Choose Instagram');
         return;
       }
 

@@ -41,7 +41,7 @@
                                     <a id="adShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
                                     <button type="button" id="adShareInstagram" class="btn btn-sm offer-share-btn share-instagram">Instagram</button>
                                 </div>
-                                <p class="small text-muted mt-2 mb-0" id="adShareHint">Android opens Instagram share directly. iPhone shows Instagram — tap it for Story or DM options.</p>
+                                <p class="small text-muted mt-2 mb-0" id="adShareHint">Tap <strong>Instagram</strong> on the share menu for Story or DM. The link is copied automatically.</p>
                             </div>
                         </div>
                     </div>

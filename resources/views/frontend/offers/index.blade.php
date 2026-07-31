@@ -104,7 +104,7 @@
                                     <a id="offerShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
                                     <button type="button" id="offerShareInstagram" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</button>
                                 </div>
-                                <p class="small text-muted mt-2 mb-0">Android opens Instagram share directly. iPhone shows Instagram — tap it for Story or DM options.</p>
+                                <p class="small text-muted mt-2 mb-0">Tap <strong>Instagram</strong> on the share menu for Story or DM. The link is copied automatically.</p>
                             </div>
                         </div>
                     </div>
