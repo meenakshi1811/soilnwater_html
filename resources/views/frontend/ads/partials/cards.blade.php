@@ -29,7 +29,7 @@
 
             $adWidth  = (int) ($sizeConfig['w'] ?? ($ad->adSize?->width ?? 458));
             $adHeight = (int) ($sizeConfig['h'] ?? ($ad->adSize?->height ?? 229));
-            $adImageHeight = max(1, $adHeight - 50);
+            $adImageHeight = $adHeight;
             $categoryNames = $selectedCategoryNamesByAdId[$ad->id] ?? [];
             $adMeta = $categoryNames !== [] ? implode(', ', $categoryNames) : ($ad->category?->name ?? 'Uncategorized');
 
@@ -61,7 +61,7 @@
             data-ad-url="{{ $ad->shareUrl() }}"
             data-ad-id="{{ $ad->id }}"
         >
-            <h3 class="ad-title">{{ $ad->title }}</h3>
+            <h3 class="ad-title visually-hidden">{{ $ad->title }}</h3>
             <div class="ad-image">
                 @if ($ad->final_image)
                     <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" loading="lazy">
@@ -108,7 +108,8 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     }
 
     const GAP = 8;
-    const TITLE_H = 50;
+    const TITLE_H = 0;
+    const FILLER_TITLE_H = 34;
     const STACKED_LAYOUT_QUERY = window.matchMedia('(max-width: 991px)');
     const FILLER_POOL = fillerPool;
     const BLANK_SIZES = instance.blankSizes.slice().sort(function (a, b) {
@@ -826,7 +827,8 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         const imgBox = card.querySelector('.ad-image');
         if (imgBox) {
             imgBox.style.width = '100%';
-            imgBox.style.height = 'calc(100% - ' + TITLE_H + 'px)';
+            const titleOffset = card.hasAttribute('data-filler') ? FILLER_TITLE_H : TITLE_H;
+            imgBox.style.height = titleOffset > 0 ? ('calc(100% - ' + titleOffset + 'px)') : '100%';
             imgBox.style.minHeight = '0';
         }
 

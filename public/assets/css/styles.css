@@ -3160,6 +3160,13 @@
     text-overflow: ellipsis;
 }
 
+.ad-card:not(.filler):not(.ad-card--gap-fill) .ad-title.visually-hidden {
+    padding: 0;
+    margin: 0;
+    width: 1px;
+    height: 1px;
+}
+
 .ad-image {
     width: 100%;
     flex: 1 1 auto;
@@ -3168,8 +3175,23 @@
     background: #f3f6fb;
 }
 
-.masonry-grid .ad-image {
-    height: calc(100% - 50px);
+.masonry-grid .ad-card:not(.filler):not(.ad-card--gap-fill) .ad-image {
+    height: 100%;
+}
+
+.masonry-grid .ad-card.filler .ad-image,
+.masonry-grid .ad-card.ad-card--gap-fill .ad-image {
+    height: calc(100% - 34px);
+}
+
+.ad-card:not(.filler):not(.ad-card--gap-fill) .ad-image img,
+.ads-full-width .ad-card:not(.filler):not(.ad-card--gap-fill) .ad-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
+    display: block;
+    background: #f3f6fb;
 }
 
 .ad-image img {
@@ -3349,7 +3371,7 @@
         width: 100% !important;
         height: auto !important;
         flex: none;
-        aspect-ratio: var(--ad-w) / var(--ad-image-h, calc(var(--ad-h) - 50));
+        aspect-ratio: var(--ad-w) / var(--ad-image-h, var(--ad-h));
     }
 
     .masonry-grid.is-mobile-layout .ad-card[data-gap-filler] .ad-image {
@@ -3403,8 +3425,9 @@
     }
 
     .ads-full-width .ad-banner .ad-image img {
-        object-fit: cover;
+        object-fit: contain;
         object-position: center center;
+        background: #f3f6fb;
     }
 
     /* Full-page portrait ads — full width, full height ratio */
