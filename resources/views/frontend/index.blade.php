@@ -719,7 +719,7 @@
                       <a id="adShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
                       <button type="button" id="adShareInstagram" class="btn btn-sm offer-share-btn share-instagram">Instagram</button>
                     </div>
-                    <p class="small text-muted mt-2 mb-0">Tap <strong>Instagram</strong> on the share menu for Story or DM. The link is copied automatically.</p>
+                    <p class="small text-muted mt-2 mb-0">On Android, pick <strong>Instagram</strong> from the share list for Story or DM. The link is copied automatically.</p>
                   </div>
                 </div>
               </div>
@@ -1001,7 +1001,7 @@
                     <a id="offerShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
                     <button type="button" id="offerShareInstagram" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</button>
                   </div>
-                  <p class="small text-muted mt-2 mb-0">Tap <strong>Instagram</strong> on the share menu for Story or DM. The link is copied automatically.</p>
+                  <p class="small text-muted mt-2 mb-0">On Android, pick <strong>Instagram</strong> from the share list for Story or DM. The link is copied automatically.</p>
                 </div>
               </div>
             </div>
