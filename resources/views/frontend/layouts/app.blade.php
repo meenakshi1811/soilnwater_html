@@ -117,12 +117,9 @@
       }, resetMs || 2200);
     };
 
-    window.soilnwaterOpenInstagramApp = window.soilnwaterOpenInstagramApp || function soilnwaterOpenInstagramApp(preferStory) {
+    window.soilnwaterOpenInstagramApp = window.soilnwaterOpenInstagramApp || function soilnwaterOpenInstagramApp() {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       const isAndroid = /Android/i.test(navigator.userAgent);
-      const storyTarget = 'instagram://story-camera';
-      const appTarget = 'instagram://app';
-      const target = preferStory !== false ? storyTarget : appTarget;
 
       if (!isMobile) {
         window.open('https://www.instagram.com/', '_blank', 'noopener');
@@ -131,22 +128,10 @@
 
       if (isAndroid) {
         window.location.href = 'intent://instagram.com/#Intent;package=com.instagram.android;scheme=https;end';
-        window.setTimeout(function () {
-          window.open('https://www.instagram.com/', '_blank', 'noopener');
-        }, 900);
         return;
       }
 
-      const opener = document.createElement('a');
-      opener.href = target;
-      opener.style.display = 'none';
-      document.body.appendChild(opener);
-      opener.click();
-      document.body.removeChild(opener);
-
-      window.setTimeout(function () {
-        window.open('https://www.instagram.com/', '_blank', 'noopener');
-      }, 900);
+      window.location.href = 'instagram://app';
     };
 
     window.soilnwaterShareToInstagram = window.soilnwaterShareToInstagram || async function soilnwaterShareToInstagram(options) {
@@ -159,28 +144,14 @@
       const buttonEl = resolve(options.button);
       const inputEl = resolve(options.input);
       const url = window.soilnwaterNormalizeShareUrl(options.url || inputEl?.value || window.location.href);
-      const title = options.title || 'SoilnWater';
-      const text = options.text || 'Check this out on SoilnWater';
 
       if (inputEl) {
         inputEl.value = url;
       }
 
-      if (navigator.share) {
-        try {
-          await navigator.share({ title: title, text: text, url: url });
-          window.soilnwaterSetShareButtonFeedback(buttonEl, 'Shared');
-          return;
-        } catch (error) {
-          if (error && error.name === 'AbortError') {
-            return;
-          }
-        }
-      }
-
       await window.soilnwaterCopyShareLink(inputEl || { value: url }, null);
-      window.soilnwaterOpenInstagramApp(true);
-      window.soilnwaterSetShareButtonFeedback(buttonEl, 'Link copied');
+      window.soilnwaterOpenInstagramApp();
+      window.soilnwaterSetShareButtonFeedback(buttonEl, 'Opening Instagram…');
     };
 
     window.soilnwaterBindInstagramShareButton = window.soilnwaterBindInstagramShareButton || function soilnwaterBindInstagramShareButton(buttonOrId, inputOrId, options) {

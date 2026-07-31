@@ -104,7 +104,7 @@
                                     <a id="offerShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
                                     <button type="button" id="offerShareInstagram" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</button>
                                 </div>
-                                <p class="small text-muted mt-2 mb-0">On mobile, Instagram opens so you can add the copied link to your Story or DM. On desktop, Instagram opens in a new tab.</p>
+                                <p class="small text-muted mt-2 mb-0">On mobile, Instagram opens directly and the link is copied — paste it in your Story link sticker or DM.</p>
                             </div>
                         </div>
                     </div>
