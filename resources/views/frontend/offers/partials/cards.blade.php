@@ -13,7 +13,7 @@
             data-offer-coupon="{{ $offer->coupon_code ? strtoupper($offer->coupon_code) : '' }}"
             data-offer-validity="{{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}"
             data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
-            data-offer-url="{{ route('frontend.offers.show', $offer) }}"
+            data-offer-url="{{ $offer->shareUrl() }}"
         >
             @if ($offer->banner_image)
                 <div class="offer-coupon-image-wrap">

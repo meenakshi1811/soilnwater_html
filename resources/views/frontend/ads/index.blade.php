@@ -147,18 +147,14 @@ function syncAdModalSize(trigger){
     }
 }
 function populateAdShareLinks(url) {
-    const shareLinkEl = document.getElementById('adShareLink');
-    const shareQrEl = document.getElementById('adShareQr');
-    const shareWhatsappEl = document.getElementById('adShareWhatsapp');
-    const shareFacebookEl = document.getElementById('adShareFacebook');
-    const normalizedUrl = window.soilnwaterNormalizeShareUrl(url || window.location.href);
-
-    if (shareLinkEl) shareLinkEl.value = normalizedUrl;
-    if (shareQrEl) shareQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(normalizedUrl)}`;
-    if (shareWhatsappEl) shareWhatsappEl.href = `https://wa.me/?text=${encodeURIComponent('Check this ad: ' + normalizedUrl)}`;
-    if (shareFacebookEl) shareFacebookEl.href = window.soilnwaterFacebookShareUrl(normalizedUrl);
-
-    return normalizedUrl;
+    return window.soilnwaterPopulateShareLinks({
+        url: url,
+        linkInput: 'adShareLink',
+        qrImage: 'adShareQr',
+        whatsappLink: 'adShareWhatsapp',
+        facebookLink: 'adShareFacebook',
+        whatsappSuffix: 'Check this ad on SoilnWater',
+    });
 }
 
 function clearAdShareLinks() {
@@ -171,25 +167,6 @@ function clearAdShareLinks() {
     if (shareQrEl) shareQrEl.src = '';
     if (shareWhatsappEl) shareWhatsappEl.href = '#';
     if (shareFacebookEl) shareFacebookEl.href = '#';
-}
-
-async function copyAdShareLink(button) {
-    const shareLinkEl = document.getElementById('adShareLink');
-    if (!shareLinkEl || !shareLinkEl.value) return;
-
-    try {
-        await navigator.clipboard.writeText(shareLinkEl.value);
-    } catch (error) {
-        shareLinkEl.select();
-        document.execCommand('copy');
-    }
-
-    if (!button) return;
-    const original = button.textContent;
-    button.textContent = 'Copied';
-    window.setTimeout(function () {
-        button.textContent = original;
-    }, 1600);
 }
 
 adsGrid.addEventListener('click', function (e) {
@@ -244,17 +221,8 @@ adsGrid.addEventListener('click', function (e) {
 const adShareCopyBtn = document.getElementById('adShareCopyBtn');
 const adShareInstagramBtn = document.getElementById('adShareInstagram');
 
-if (adShareCopyBtn) {
-    adShareCopyBtn.addEventListener('click', function () {
-        copyAdShareLink(adShareCopyBtn);
-    });
-}
-
-if (adShareInstagramBtn) {
-    adShareInstagramBtn.addEventListener('click', function () {
-        copyAdShareLink(adShareInstagramBtn);
-    });
-}
+window.soilnwaterBindShareCopyButton(adShareCopyBtn, 'adShareLink');
+window.soilnwaterBindShareCopyButton(adShareInstagramBtn, 'adShareLink');
 
 if (openAdReportPopupBtn && adReportPopupWrap) {
     openAdReportPopupBtn.addEventListener('click', function () {

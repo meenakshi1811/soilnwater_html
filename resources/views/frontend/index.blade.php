@@ -631,7 +631,7 @@
                             data-offer-coupon="{{ $offer->coupon_code ? strtoupper($offer->coupon_code) : '' }}"
                             data-offer-validity="{{ $offer->valid_until?->format('d M Y') ?? 'No expiry' }}"
                             data-offer-image="{{ $offer->banner_image ? asset($offer->banner_image) : '' }}"
-                            data-offer-url="{{ route('frontend.offers.show', $offer) }}"
+                            data-offer-url="{{ $offer->shareUrl() }}"
                           >
                             @if ($offer->banner_image)
                               <div class="offer-coupon-image-wrap">
@@ -714,10 +714,12 @@
                   <div class="offer-share-links-wrap">
                     <input type="text" id="adShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
                     <div class="d-flex flex-wrap gap-2 mt-2">
-                      <a id="adShareWhatsapp" href="#" target="_blank" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a>
-                      <a id="adShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
-                      <a id="adShareInstagram" href="#" target="_blank" class="btn btn-sm offer-share-btn share-instagram">Instagram</a>
+                      <button type="button" id="adShareCopyBtn" class="btn btn-sm btn-outline-secondary">Copy link</button>
+                      <a id="adShareWhatsapp" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a>
+                      <a id="adShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
+                      <button type="button" id="adShareInstagram" class="btn btn-sm offer-share-btn share-instagram">Instagram</button>
                     </div>
+                    <p class="small text-muted mt-2 mb-0">For Instagram, tap Instagram to copy the link, then paste it in your story, bio, or post.</p>
                   </div>
                 </div>
               </div>
@@ -994,10 +996,12 @@
                   <label for="offerShareLink" class="offer-share-link-label">Offer link</label>
                   <input type="text" id="offerShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
                   <div class="d-flex flex-wrap gap-2 mt-2">
+                    <button type="button" id="offerShareCopyBtn" class="btn btn-sm btn-outline-secondary">Copy link</button>
                     <a id="offerShareWhatsapp" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-whatsapp"><i class="fa-brands fa-whatsapp me-1"></i>WhatsApp</a>
-                    <a id="offerShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
-                    <a id="offerShareInstagram" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</a>
+                    <a id="offerShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
+                    <button type="button" id="offerShareInstagram" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</button>
                   </div>
+                  <p class="small text-muted mt-2 mb-0">For Instagram, tap Instagram to copy the link, then paste it in your story, bio, or post.</p>
                 </div>
               </div>
             </div>
@@ -2007,7 +2011,6 @@
           document.getElementById('adShareQr').src = '';
           document.getElementById('adShareWhatsapp').href = '#';
           document.getElementById('adShareFacebook').href = '#';
-          document.getElementById('adShareInstagram').href = '#';
           new bootstrap.Modal(adModal).show();
           return;
         }
@@ -2031,15 +2034,20 @@
           adEnlargeBtn.classList.add('d-none');
         }
 
-        const shareUrl = window.soilnwaterNormalizeShareUrl(adContext?.dataset.adUrl || adCard?.dataset.adUrl || window.location.href);
-        document.getElementById('adShareLink').value = shareUrl;
-        document.getElementById('adShareQr').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`;
-        document.getElementById('adShareWhatsapp').href = `https://wa.me/?text=${encodeURIComponent('Check this ad: ' + shareUrl)}`;
-        document.getElementById('adShareFacebook').href = window.soilnwaterFacebookShareUrl(shareUrl);
-        document.getElementById('adShareInstagram').href = `https://www.instagram.com/?url=${encodeURIComponent(shareUrl)}`;
+        window.soilnwaterPopulateShareLinks({
+          url: adContext?.dataset.adUrl || adCard?.dataset.adUrl || window.location.href,
+          linkInput: 'adShareLink',
+          qrImage: 'adShareQr',
+          whatsappLink: 'adShareWhatsapp',
+          facebookLink: 'adShareFacebook',
+          whatsappSuffix: 'Check this ad on SoilnWater',
+        });
 
         new bootstrap.Modal(adModal).show();
       });
+
+      window.soilnwaterBindShareCopyButton('adShareCopyBtn', 'adShareLink');
+      window.soilnwaterBindShareCopyButton('adShareInstagram', 'adShareLink');
 
       if (adEnlargeBtn) {
         adEnlargeBtn.addEventListener('click', function () {
@@ -2131,7 +2139,6 @@
         if (shareQrEl) shareQrEl.src = '';
         if (shareWhatsappEl) shareWhatsappEl.href = '#';
         if (shareFacebookEl) shareFacebookEl.href = '#';
-        if (shareInstagramEl) shareInstagramEl.href = '#';
         if (offerReportActions) offerReportActions.classList.add('d-none');
         if (offerReportPopupWrap) offerReportPopupWrap.classList.add('d-none');
         return;
@@ -2163,8 +2170,6 @@
       }
 
       const bannerImage = trigger.getAttribute('data-offer-image');
-      const offerUrl = window.soilnwaterNormalizeShareUrl(trigger.getAttribute('data-offer-url') || window.location.href);
-      const encodedOfferUrl = encodeURIComponent(offerUrl);
       if (bannerImage) {
         imageEl.src = bannerImage;
         imageEl.classList.remove('d-none');
@@ -2173,12 +2178,19 @@
         imageEl.classList.add('d-none');
       }
 
-      if (shareLinkEl) shareLinkEl.value = offerUrl;
-      if (shareQrEl) shareQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=224x224&data=${encodedOfferUrl}`;
-      if (shareWhatsappEl) shareWhatsappEl.href = `https://wa.me/?text=${encodeURIComponent('Check this offer: ' + offerUrl)}`;
-      if (shareFacebookEl) shareFacebookEl.href = window.soilnwaterFacebookShareUrl(offerUrl);
-      if (shareInstagramEl) shareInstagramEl.href = `https://www.instagram.com/?url=${encodedOfferUrl}`;
+      window.soilnwaterPopulateShareLinks({
+        url: trigger.getAttribute('data-offer-url') || window.location.href,
+        linkInput: shareLinkEl,
+        qrImage: shareQrEl,
+        whatsappLink: shareWhatsappEl,
+        facebookLink: shareFacebookEl,
+        whatsappSuffix: 'Check this offer on SoilnWater',
+        qrSize: 224,
+      });
     });
+
+    window.soilnwaterBindShareCopyButton('offerShareCopyBtn', 'offerShareLink');
+    window.soilnwaterBindShareCopyButton('offerShareInstagram', 'offerShareLink');
   });
 </script>
 @endpush

@@ -99,10 +99,12 @@
                                 <label for="offerShareLink" class="offer-share-link-label">Offer link</label>
                                 <input type="text" id="offerShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
                                 <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <button type="button" id="offerShareCopyBtn" class="btn btn-sm btn-outline-secondary">Copy link</button>
                                     <a id="offerShareWhatsapp" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-whatsapp"><i class="fa-brands fa-whatsapp me-1"></i>WhatsApp</a>
-                                    <a id="offerShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
-                                    <a id="offerShareInstagram" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</a>
+                                    <a id="offerShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook"><i class="fa-brands fa-facebook-f me-1"></i>Facebook</a>
+                                    <button type="button" id="offerShareInstagram" class="btn btn-sm offer-share-btn share-instagram"><i class="fa-brands fa-instagram me-1"></i>Instagram</button>
                                 </div>
+                                <p class="small text-muted mt-2 mb-0">For Instagram, tap Instagram to copy the link, then paste it in your story, bio, or post.</p>
                             </div>
                         </div>
                     </div>
@@ -435,7 +437,6 @@
                 if (shareQrEl) shareQrEl.src = '';
                 if (shareWhatsappEl) shareWhatsappEl.href = '#';
                 if (shareFacebookEl) shareFacebookEl.href = '#';
-                if (shareInstagramEl) shareInstagramEl.href = '#';
                 if (offerReportActions) offerReportActions.classList.add('d-none');
                 if (offerReportPopupWrap) offerReportPopupWrap.classList.add('d-none');
                 return;
@@ -475,8 +476,6 @@
             expiryEl.textContent = trigger.getAttribute('data-offer-validity') || 'No expiry';
 
             const bannerImage = trigger.getAttribute('data-offer-image');
-            const offerUrl = window.soilnwaterNormalizeShareUrl(trigger.getAttribute('data-offer-url') || window.location.href);
-            const encodedOfferUrl = encodeURIComponent(offerUrl);
             if (bannerImage) {
                 imageEl.src = bannerImage;
                 imageEl.classList.remove('d-none');
@@ -485,23 +484,20 @@
                 imageEl.classList.add('d-none');
             }
 
-            if (shareLinkEl) {
-                shareLinkEl.value = offerUrl;
-            }
-            if (shareQrEl) {
-                shareQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=224x224&data=${encodedOfferUrl}`;
-            }
-            if (shareWhatsappEl) {
-                shareWhatsappEl.href = `https://wa.me/?text=${encodeURIComponent('Check this offer: ' + offerUrl)}`;
-            }
-            if (shareFacebookEl) {
-                shareFacebookEl.href = window.soilnwaterFacebookShareUrl(offerUrl);
-            }
-            if (shareInstagramEl) {
-                shareInstagramEl.href = `https://www.instagram.com/?url=${encodedOfferUrl}`;
-            }
+            window.soilnwaterPopulateShareLinks({
+                url: trigger.getAttribute('data-offer-url') || window.location.href,
+                linkInput: shareLinkEl,
+                qrImage: shareQrEl,
+                whatsappLink: shareWhatsappEl,
+                facebookLink: shareFacebookEl,
+                whatsappSuffix: 'Check this offer on SoilnWater',
+                qrSize: 224,
+            });
 
         });
+
+        window.soilnwaterBindShareCopyButton('offerShareCopyBtn', 'offerShareLink');
+        window.soilnwaterBindShareCopyButton('offerShareInstagram', 'offerShareLink');
 
         if (openOfferReportPopupBtn && offerReportPopupWrap) {
             openOfferReportPopupBtn.addEventListener('click', function () {

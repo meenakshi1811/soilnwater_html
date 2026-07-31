@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\SocialShare;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -60,5 +61,35 @@ class Offer extends Model
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    public function shareUrl(): string
+    {
+        return SocialShare::normalizeUrl(route('frontend.offers.show', $this));
+    }
+
+    public function seoTitle(): string
+    {
+        return $this->title.' | SoilnWater Offers Market';
+    }
+
+    public function seoDescription(): string
+    {
+        return filled($this->short_description)
+            ? (string) $this->short_description
+            : 'Special limited-time offer available now.';
+    }
+
+    /**
+     * @return array{url: string, width: ?int, height: ?int, path: ?string}
+     */
+    public function openGraphImage(): array
+    {
+        return SocialShare::openGraphImageFromPublicPath($this->banner_image);
+    }
+
+    public function seoImageUrl(): string
+    {
+        return $this->openGraphImage()['url'];
     }
 }

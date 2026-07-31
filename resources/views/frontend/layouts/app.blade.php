@@ -58,6 +58,83 @@
 
       return 'https://www.facebook.com/sharer/sharer.php?display=popup&u=' + encodeURIComponent(shareUrl);
     };
+
+    window.soilnwaterWhatsappShareUrl = window.soilnwaterWhatsappShareUrl || function soilnwaterWhatsappShareUrl(url, suffix) {
+      const normalized = window.soilnwaterNormalizeShareUrl(url);
+
+      return 'https://wa.me/?text=' + encodeURIComponent(normalized + '\n\n' + (suffix || 'Check this on SoilnWater'));
+    };
+
+    window.soilnwaterCopyShareLink = window.soilnwaterCopyShareLink || async function soilnwaterCopyShareLink(inputOrId, buttonEl) {
+      const input = typeof inputOrId === 'string' ? document.getElementById(inputOrId) : inputOrId;
+
+      if (!input || !input.value) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(input.value);
+      } catch (error) {
+        input.select();
+        document.execCommand('copy');
+      }
+
+      if (!buttonEl) {
+        return;
+      }
+
+      const original = buttonEl.textContent;
+      buttonEl.textContent = 'Copied';
+      window.setTimeout(function () {
+        buttonEl.textContent = original;
+      }, 1600);
+    };
+
+    window.soilnwaterBindShareCopyButton = window.soilnwaterBindShareCopyButton || function soilnwaterBindShareCopyButton(buttonOrId, inputOrId) {
+      const button = typeof buttonOrId === 'string' ? document.getElementById(buttonOrId) : buttonOrId;
+
+      if (!button) {
+        return;
+      }
+
+      button.addEventListener('click', function () {
+        window.soilnwaterCopyShareLink(inputOrId, button);
+      });
+    };
+
+    window.soilnwaterPopulateShareLinks = window.soilnwaterPopulateShareLinks || function soilnwaterPopulateShareLinks(options) {
+      options = options || {};
+      const url = window.soilnwaterNormalizeShareUrl(options.url || window.location.href);
+      const whatsappSuffix = options.whatsappSuffix || 'Check this on SoilnWater';
+      const qrSize = options.qrSize || 220;
+
+      function resolve(target) {
+        return typeof target === 'string' ? document.getElementById(target) : target;
+      }
+
+      const linkInput = resolve(options.linkInput);
+      const qrImage = resolve(options.qrImage);
+      const whatsappLink = resolve(options.whatsappLink);
+      const facebookLink = resolve(options.facebookLink);
+
+      if (linkInput) {
+        linkInput.value = url;
+      }
+
+      if (qrImage) {
+        qrImage.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + qrSize + 'x' + qrSize + '&data=' + encodeURIComponent(url);
+      }
+
+      if (whatsappLink) {
+        whatsappLink.href = window.soilnwaterWhatsappShareUrl(url, whatsappSuffix);
+      }
+
+      if (facebookLink) {
+        facebookLink.href = window.soilnwaterFacebookShareUrl(url);
+      }
+
+      return url;
+    };
   </script>
   <script type="text/javascript">
     (function(c,l,a,r,i,t,y){

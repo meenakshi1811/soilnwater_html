@@ -41,7 +41,7 @@
                                     <a id="adShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
                                     <button type="button" id="adShareInstagram" class="btn btn-sm offer-share-btn share-instagram">Instagram</button>
                                 </div>
-                                <p class="small text-muted mt-2 mb-0" id="adShareHint">Instagram does not support direct link sharing. Copy the link, then paste it in your Instagram story, bio, or post.</p>
+                                <p class="small text-muted mt-2 mb-0" id="adShareHint">For Instagram, tap Instagram to copy the link, then paste it in your story, bio, or post.</p>
                             </div>
                         </div>
                     </div>

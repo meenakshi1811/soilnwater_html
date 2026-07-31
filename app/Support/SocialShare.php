@@ -10,6 +10,8 @@ final class SocialShare
 
     public const OG_IMAGE_MAX_BYTES = 8_000_000;
 
+    public const DEFAULT_OG_IMAGE = 'assets/images/soilandwater_logo.png';
+
     public static function normalizeUrl(?string $url): string
     {
         if (! filled($url)) {
@@ -52,9 +54,9 @@ final class SocialShare
     /**
      * @return array{url: string, width: ?int, height: ?int, path: ?string}
      */
-    public static function openGraphImageFromPublicPath(?string $relativePath, ?string $fallbackRelativePath = 'assets/images/logo_soilnwater.webp'): array
+    public static function openGraphImageFromPublicPath(?string $relativePath, ?string $fallbackRelativePath = null): array
     {
-        $fallbackPath = $fallbackRelativePath ?: 'assets/images/logo_soilnwater.webp';
+        $fallbackPath = $fallbackRelativePath ?: self::DEFAULT_OG_IMAGE;
         $candidatePath = filled($relativePath) ? ltrim(str_replace('\\', '/', $relativePath), '/') : '';
 
         if ($candidatePath !== '' && self::isValidOpenGraphImage(public_path($candidatePath))) {
@@ -99,6 +101,23 @@ final class SocialShare
         $height = (int) ($size[1] ?? 0);
 
         return $width >= self::OG_IMAGE_MIN_WIDTH && $height >= self::OG_IMAGE_MIN_HEIGHT;
+    }
+
+    public static function mimeTypeForPublicPath(?string $relativePath): ?string
+    {
+        if (! filled($relativePath)) {
+            return null;
+        }
+
+        $absolutePath = public_path(ltrim(str_replace('\\', '/', $relativePath), '/'));
+
+        if (! is_file($absolutePath)) {
+            return null;
+        }
+
+        $mime = @mime_content_type($absolutePath);
+
+        return is_string($mime) && str_starts_with($mime, 'image/') ? $mime : null;
     }
 
     /**

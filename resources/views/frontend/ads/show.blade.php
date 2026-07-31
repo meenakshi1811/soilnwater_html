@@ -10,6 +10,7 @@
 @php($ogImage = $ad->openGraphImage())
 
 @push('head')
+<meta property="og:site_name" content="SoilnWater">
 @if(!empty($ogImage['width']) && !empty($ogImage['height']))
 <meta property="og:image:width" content="{{ $ogImage['width'] }}">
 <meta property="og:image:height" content="{{ $ogImage['height'] }}">
@@ -17,6 +18,10 @@
 <meta property="og:image:alt" content="{{ $ad->title }}">
 @if(str_starts_with($ad->seoImageUrl(), 'https://'))
 <meta property="og:image:secure_url" content="{{ $ad->seoImageUrl() }}">
+@endif
+@php($ogImageMime = \App\Support\SocialShare::mimeTypeForPublicPath($ogImage['path'] ?? null))
+@if($ogImageMime)
+<meta property="og:image:type" content="{{ $ogImageMime }}">
 @endif
 @endpush
 

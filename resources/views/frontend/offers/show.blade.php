@@ -1,9 +1,29 @@
 @extends('frontend.layouts.app')
 
-@section('meta_title', $offer->title.' | SoilnWater Offers Market')
-@section('meta_description', $offer->short_description ?: 'Special limited-time offer available now.')
-@section('meta_url', route('frontend.offers.show', $offer))
-@section('meta_image', $offer->banner_image ? asset($offer->banner_image) : asset('assets/images/logo_soilnwater.webp'))
+@section('meta_title', $offer->seoTitle())
+@section('meta_description', $offer->seoDescription())
+@section('meta_url', $offer->shareUrl())
+@section('meta_canonical', $offer->shareUrl())
+@section('meta_image', $offer->seoImageUrl())
+@section('meta_type', 'article')
+
+@php($ogImage = $offer->openGraphImage())
+
+@push('head')
+<meta property="og:site_name" content="SoilnWater">
+@if(!empty($ogImage['width']) && !empty($ogImage['height']))
+<meta property="og:image:width" content="{{ $ogImage['width'] }}">
+<meta property="og:image:height" content="{{ $ogImage['height'] }}">
+@endif
+<meta property="og:image:alt" content="{{ $offer->title }}">
+@if(str_starts_with($offer->seoImageUrl(), 'https://'))
+<meta property="og:image:secure_url" content="{{ $offer->seoImageUrl() }}">
+@endif
+@php($ogImageMime = \App\Support\SocialShare::mimeTypeForPublicPath($ogImage['path'] ?? null))
+@if($ogImageMime)
+<meta property="og:image:type" content="{{ $ogImageMime }}">
+@endif
+@endpush
 
 @section('content')
 <div class="container py-4 py-lg-5">
