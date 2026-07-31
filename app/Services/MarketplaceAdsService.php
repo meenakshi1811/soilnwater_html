@@ -120,7 +120,7 @@ class MarketplaceAdsService
                     'label' => 'Sponsored',
                     'title' => $ad->title,
                     'image' => asset($ad->final_image),
-                    'url' => route('frontend.ads.show', $ad),
+                    'url' => $ad->shareUrl(),
                 ];
             })
             ->filter()

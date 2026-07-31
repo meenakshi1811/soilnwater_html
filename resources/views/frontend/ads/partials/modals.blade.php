@@ -36,10 +36,12 @@
                             <div class="offer-share-links-wrap">
                                 <input type="text" id="adShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
                                 <div class="d-flex flex-wrap gap-2 mt-2">
-                                    <a id="adShareWhatsapp" href="#" target="_blank" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a>
-                                    <a id="adShareFacebook" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
-                                    <a id="adShareInstagram" href="#" target="_blank" class="btn btn-sm offer-share-btn share-instagram">Instagram</a>
+                                    <button type="button" id="adShareCopyBtn" class="btn btn-sm btn-outline-secondary">Copy link</button>
+                                    <a id="adShareWhatsapp" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a>
+                                    <a id="adShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
+                                    <button type="button" id="adShareInstagram" class="btn btn-sm offer-share-btn share-instagram">Instagram</button>
                                 </div>
+                                <p class="small text-muted mt-2 mb-0" id="adShareHint">Instagram does not support direct link sharing. Copy the link, then paste it in your Instagram story, bio, or post.</p>
                             </div>
                         </div>
                     </div>

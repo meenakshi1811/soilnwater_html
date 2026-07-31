@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\ModulePermissions;
+use App\Support\SocialShare;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -209,5 +210,35 @@ class UserAd extends Model
     public function isCurrentlyActive(): bool
     {
         return $this->status === 'approved' && ! $this->isExpired();
+    }
+
+    public function shareUrl(): string
+    {
+        return SocialShare::normalizeUrl(route('frontend.ads.show', $this));
+    }
+
+    public function seoTitle(): string
+    {
+        return $this->title.' | SoilnWater Ads Market';
+    }
+
+    public function seoDescription(): string
+    {
+        return filled($this->short_description)
+            ? (string) $this->short_description
+            : 'Special marketplace ad available now.';
+    }
+
+    /**
+     * @return array{url: string, width: ?int, height: ?int, path: ?string}
+     */
+    public function openGraphImage(): array
+    {
+        return SocialShare::openGraphImageFromPublicPath($this->final_image);
+    }
+
+    public function seoImageUrl(): string
+    {
+        return $this->openGraphImage()['url'];
     }
 }

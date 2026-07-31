@@ -29,6 +29,7 @@
 
             $adWidth  = (int) ($sizeConfig['w'] ?? ($ad->adSize?->width ?? 458));
             $adHeight = (int) ($sizeConfig['h'] ?? ($ad->adSize?->height ?? 229));
+            $adImageHeight = max(1, $adHeight - 50);
             $categoryNames = $selectedCategoryNamesByAdId[$ad->id] ?? [];
             $adMeta = $categoryNames !== [] ? implode(', ', $categoryNames) : ($ad->category?->name ?? 'Uncategorized');
 
@@ -48,7 +49,7 @@
 
         <article
             class="ad-card db-sized {{ $shapeClass }} js-ad-modal-trigger"
-            style="--ad-w: {{ $adWidth }}; --ad-h: {{ $adHeight }};"
+            style="--ad-w: {{ $adWidth }}; --ad-h: {{ $adHeight }}; --ad-image-h: {{ $adImageHeight }};"
             role="button"
             tabindex="0"
             data-ad-w="{{ $adWidth }}"
@@ -57,7 +58,7 @@
             data-ad-meta="{{ $adMeta }}"
             data-ad-description="{{ $ad->short_description ?: 'Special marketplace ad available now.' }}"
             data-ad-image="{{ $ad->final_image ? asset($ad->final_image) : '' }}"
-            data-ad-url="{{ route('frontend.ads.show', $ad) }}"
+            data-ad-url="{{ $ad->shareUrl() }}"
             data-ad-id="{{ $ad->id }}"
         >
             <h3 class="ad-title">{{ $ad->title }}</h3>
@@ -126,11 +127,98 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return STACKED_LAYOUT_QUERY.matches;
     }
 
-    function applyStackedLayout(grid) {
+    function applyMobileCardScale(card, gridWidth) {
+        const scale = Math.min(1, gridWidth / 1200);
+        const adW = parseInt(card.dataset.adW || '0', 10);
+        const isFiller = card.hasAttribute('data-filler');
+        const isLargeAd = adW >= 900
+            || card.classList.contains('ad-banner')
+            || card.classList.contains('ad-hero');
+
+        if (!isLargeAd && adW > 0) {
+            const scaleFactor = isFiller ? scale * 0.82 : scale;
+            const mobileW = Math.max(130, Math.round(adW * scaleFactor));
+            card.style.setProperty('--ad-mobile-w', mobileW + 'px');
+        } else {
+            card.style.removeProperty('--ad-mobile-w');
+        }
+    }
+
+    function measureFlexCards(grid) {
+        const gridRect = grid.getBoundingClientRect();
+        const placed = [];
+
+        grid.querySelectorAll('.ad-card:not([data-filler])').forEach(function (card) {
+            const rect = card.getBoundingClientRect();
+            const left = Math.round(rect.left - gridRect.left + grid.scrollLeft);
+            const top = Math.round(rect.top - gridRect.top + grid.scrollTop);
+            const w = Math.round(rect.width);
+            const h = Math.round(rect.height);
+
+            placed.push({
+                el: card,
+                left: left,
+                top: top,
+                right: left + w,
+                bottom: top + h,
+                w: w,
+                h: h,
+            });
+        });
+
+        return placed;
+    }
+
+    function fillMobileGaps(grid) {
+        const packWidth = grid.clientWidth;
+        if (!packWidth) {
+            return;
+        }
+
+        grid.querySelectorAll('[data-filler][data-gap-filler]').forEach(function (el) {
+            el.remove();
+        });
+
+        const placed = measureFlexCards(grid);
+        if (!placed.length) {
+            grid.style.minHeight = '';
+            return;
+        }
+
+        const contentHeight = Math.max.apply(null, placed.map(function (item) {
+            return item.bottom;
+        }));
+        const obstacles = placed.map(function (item) {
+            return { left: item.left, right: item.right, top: item.top, bottom: item.bottom };
+        });
+        const usedGapKeys = {};
+        const activeBlankSizes = getActiveBlankSizes(packWidth);
+
+        addSponsoredGaps(grid, placed, packWidth, contentHeight, obstacles, usedGapKeys, activeBlankSizes);
+
+        let maxBottom = contentHeight;
+        grid.querySelectorAll('[data-filler][data-gap-filler]').forEach(function (filler) {
+            const bottom = filler.offsetTop + filler.offsetHeight;
+            if (bottom > maxBottom) {
+                maxBottom = bottom;
+            }
+        });
+
+        grid.style.minHeight = maxBottom > contentHeight ? (maxBottom + GAP) + 'px' : '';
+    }
+
+    function applyFlexMobileLayout(grid) {
+        const gridWidth = grid.clientWidth || (grid.parentElement ? grid.parentElement.clientWidth : 0) || window.innerWidth;
+
+        grid.classList.add('is-mobile-layout');
         grid.style.height = 'auto';
+        grid.style.minHeight = '';
+
         grid.querySelectorAll('[data-filler]').forEach(function (el) {
             el.remove();
         });
+        resetUsedFillers();
+
         grid.querySelectorAll('.ad-card:not([data-filler])').forEach(function (card) {
             card.style.position = '';
             card.style.left = '';
@@ -140,6 +228,8 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             card.style.zIndex = '';
             card.dataset.adsPacked = '0';
 
+            applyMobileCardScale(card, gridWidth);
+
             const imgBox = card.querySelector('.ad-image');
             if (imgBox) {
                 imgBox.style.width = '';
@@ -147,6 +237,80 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 imgBox.style.minHeight = '';
             }
         });
+
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                fillMobileGaps(grid);
+            });
+        });
+    }
+
+    function getMobileLayoutMetrics(packWidth) {
+        const numCols = packWidth >= 400 ? 2 : 1;
+        const columnWidth = Math.max(1, Math.floor((packWidth - (GAP * Math.max(0, numCols - 1))) / numCols));
+        const scale = Math.min(1, packWidth / 1200);
+
+        return { numCols: numCols, columnWidth: columnWidth, scale: scale };
+    }
+
+    function getActiveBlankSizes(packWidth) {
+        if (!isStackedLayout()) {
+            return BLANK_SIZES;
+        }
+
+        const metrics = getMobileLayoutMetrics(packWidth);
+        const seen = {};
+
+        return BLANK_SIZES.map(function (size) {
+            const w = Math.min(metrics.columnWidth, Math.max(80, Math.round(Number(size.w) * metrics.scale)));
+            const h = Math.max(50, Math.round(Number(size.h) * (w / Number(size.w))));
+
+            return {
+                size_key: size.size_key,
+                name: size.name,
+                w: w,
+                h: h,
+            };
+        }).filter(function (size) {
+            const key = size.w + 'x' + size.h;
+            if (seen[key]) {
+                return false;
+            }
+            seen[key] = true;
+            return size.w > 0 && size.h > 0;
+        }).sort(function (a, b) {
+            return (Number(b.w) * Number(b.h)) - (Number(a.w) * Number(a.h));
+        });
+    }
+
+    function getPackedCardDims(card, packWidth) {
+        const dims = getDims(card);
+        let cardW = dims.w;
+        let cardH = dims.h;
+
+        if (cardW > packWidth) {
+            const scale = packWidth / cardW;
+            cardW = Math.max(1, Math.round(cardW * scale));
+            cardH = Math.max(1, Math.round(cardH * scale));
+        }
+
+        if (cardW >= packWidth * 0.85) {
+            cardW = packWidth;
+        }
+
+        return { w: cardW, h: cardH };
+    }
+
+    function scaleSizeForMobile(width, height, packWidth) {
+        if (!isStackedLayout()) {
+            return { w: Number(width), h: Number(height) };
+        }
+
+        const metrics = getMobileLayoutMetrics(packWidth);
+        const w = Math.min(metrics.columnWidth, Math.max(80, Math.round(Number(width) * metrics.scale)));
+        const h = Math.max(50, Math.round(Number(height) * (w / Number(width))));
+
+        return { w: w, h: h };
     }
 
     function preserveUsedFillerKeysFromGrid(grid) {
@@ -258,14 +422,18 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return parseInt(card.dataset.adW || '0', 10) >= 900;
     }
 
-    function buildFillerCard(width, height, item) {
+    function buildFillerCard(width, height, item, options) {
+        options = options || {};
+        const isGapFill = !!options.gapFill;
+
         const card = document.createElement('article');
-        card.className = 'ad-card filler';
+        card.className = 'ad-card filler' + (isGapFill ? ' ad-card--gap-fill' : '');
         card.dataset.filler = '1';
         card.dataset.adW = String(width);
         card.dataset.adH = String(height);
         card.style.setProperty('--ad-w', String(width));
         card.style.setProperty('--ad-h', String(height));
+        card.style.setProperty('--ad-image-h', String(Math.max(1, height - (isGapFill ? 0 : 34))));
         card.style.width = width + 'px';
         card.style.height = height + 'px';
 
@@ -274,21 +442,27 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         const imageHtml = item.image
-            ? '<img src="' + item.image + '" alt="' + item.label + '" loading="lazy" onerror="this.style.display=\'none\'; this.parentElement.innerHTML=\'<div class=&quot;filler-placeholder&quot;></div>\';">'
+            ? '<img src="' + item.image + '" alt="' + (item.title || item.label || 'Sponsored') + '" loading="lazy" onerror="this.style.display=\'none\'; this.parentElement.innerHTML=\'<div class=&quot;filler-placeholder&quot;></div>\';">'
             : '<div class="filler-placeholder"></div>';
-
-        const adTitleHtml = item.title
-            ? '<span class="filler-title">' + item.title + '</span>'
-            : '';
 
         const imageBlock = item.url
             ? '<a href="' + item.url + '" class="d-block w-100 h-100">' + imageHtml + '</a>'
             : imageHtml;
 
-        card.innerHTML =
-            '<span class="filler-label">' + (item.label || 'Sponsored') + '</span>' +
-            adTitleHtml +
-            '<div class="ad-image">' + imageBlock + '</div>';
+        if (isGapFill) {
+            card.innerHTML =
+                '<span class="sponsored-gap-badge">Sponsored</span>' +
+                '<div class="ad-image">' + imageBlock + '</div>';
+        } else {
+            const adTitleHtml = item.title
+                ? '<span class="filler-title">' + item.title + '</span>'
+                : '';
+
+            card.innerHTML =
+                '<span class="filler-label">' + (item.label || 'Sponsored') + '</span>' +
+                adTitleHtml +
+                '<div class="ad-image">' + imageBlock + '</div>';
+        }
 
         return card;
     }
@@ -299,12 +473,19 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         card.style.height = height + 'px';
         card.style.left = left + 'px';
         card.style.top = top + 'px';
+
+        if (isStackedLayout()) {
+            card.dataset.gapFiller = '1';
+        }
+
         grid.appendChild(card);
         return { left: left, top: top, w: width, h: height };
     }
 
-    function findBlankSizeMeta(width, height) {
-        return BLANK_SIZES.find(function (size) {
+    function findBlankSizeMeta(width, height, sizeList) {
+        const list = sizeList || BLANK_SIZES;
+
+        return list.find(function (size) {
             return Number(size.w) === Number(width) && Number(size.h) === Number(height);
         }) || null;
     }
@@ -320,13 +501,14 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
     function mountFillerWithItem(grid, left, top, width, height, item) {
         instance.usedFillerKeys.add(fillerItemKey(item));
+        const gapFill = isStackedLayout();
         const card = buildFillerCard(width, height, {
             label: item.label || 'Sponsored',
             image: item.image,
             url: item.url,
             title: item.title,
             sizeKey: item.size_key || item.sizeKey || null,
-        });
+        }, { gapFill: gapFill });
         if (item.id) {
             card.dataset.sponsoredAdId = String(item.id);
         }
@@ -334,21 +516,38 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     }
 
     function mountBlankFiller(grid, left, top, width, height, sizeMeta) {
+        if (isStackedLayout()) {
+            return mountFillerCard(
+                grid,
+                left,
+                top,
+                Number(width),
+                Number(height),
+                buildFillerCard(Number(width), Number(height), {
+                    label: 'Sponsored',
+                    image: pickRandomStaticImage(),
+                    url: null,
+                    title: null,
+                    sizeKey: (sizeMeta && sizeMeta.size_key) || 'mobile_gap',
+                }, { gapFill: true })
+            );
+        }
+
         sizeMeta = sizeMeta || findBlankSizeMeta(width, height);
         if (!sizeMeta) {
             return null;
         }
 
-        const exactW = Number(sizeMeta.w);
-        const exactH = Number(sizeMeta.h);
+        const fillW = Number(sizeMeta.w);
+        const fillH = Number(sizeMeta.h);
 
         return mountFillerCard(
             grid,
             left,
             top,
-            exactW,
-            exactH,
-            buildFillerCard(exactW, exactH, {
+            fillW,
+            fillH,
+            buildFillerCard(fillW, fillH, {
                 label: 'Sponsored',
                 image: pickRandomStaticImage(),
                 url: null,
@@ -426,6 +625,96 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
         candidates.sort(function (a, b) {
             return a.top - b.top || a.left - b.left;
+        });
+
+        return candidates;
+    }
+
+    function measureFreeRect(obstacles, left, top, packWidth, bottomLimit) {
+        let maxW = 0;
+
+        for (let w = packWidth - left; w >= 60; w--) {
+            if (isFree(obstacles, left, top, w, 40, packWidth)) {
+                maxW = w;
+                break;
+            }
+        }
+
+        if (!maxW) {
+            return null;
+        }
+
+        let maxH = 0;
+
+        for (let h = bottomLimit - top; h >= 40; h--) {
+            if (isFree(obstacles, left, top, maxW, h, packWidth)) {
+                maxH = h;
+                break;
+            }
+        }
+
+        if (!maxH) {
+            return null;
+        }
+
+        return { w: maxW, h: maxH };
+    }
+
+    function collectMobileGapCandidates(placedAds, packWidth, contentHeight, obstacles, usedGapKeys) {
+        const candidates = [];
+        const bottomLimit = Math.max(0, contentHeight - 40);
+
+        if (bottomLimit <= 0 || packWidth < 200 || !placedAds.length) {
+            return candidates;
+        }
+
+        const xs = [0];
+        const ys = [0];
+        obstacles.forEach(function (item) {
+            xs.push(item.left);
+            xs.push(item.right + GAP);
+            ys.push(item.top);
+            ys.push(item.bottom + GAP);
+        });
+
+        const uniqX = uniqueSorted(xs);
+        const uniqY = uniqueSorted(ys);
+
+        for (let yi = 0; yi < uniqY.length; yi++) {
+            const top = uniqY[yi];
+            if (top >= bottomLimit) {
+                continue;
+            }
+
+            for (let xi = 0; xi < uniqX.length; xi++) {
+                const left = uniqX[xi];
+                const rect = measureFreeRect(obstacles, left, top, packWidth, bottomLimit);
+
+                if (!rect || rect.w < 60 || rect.h < 40) {
+                    continue;
+                }
+
+                if (!hasRealAdAfter({ top: top, h: rect.h }, placedAds)) {
+                    continue;
+                }
+
+                const key = gapKey(left, top, rect.w, rect.h);
+                if (usedGapKeys[key]) {
+                    continue;
+                }
+
+                candidates.push({
+                    left: left,
+                    top: top,
+                    w: rect.w,
+                    h: rect.h,
+                    key: key,
+                });
+            }
+        }
+
+        candidates.sort(function (a, b) {
+            return (b.w * b.h) - (a.w * a.h) || a.top - b.top || a.left - b.left;
         });
 
         return candidates;
@@ -552,6 +841,10 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     }
 
     function hasRealAdAfter(slot, placedAds) {
+        if (isStackedLayout()) {
+            return true;
+        }
+
         const slotBottom = slot.top + (slot.h || (slot.bottom - slot.top));
         for (let i = 0; i < placedAds.length; i++) {
             if (placedAds[i].top >= slotBottom - 1) {
@@ -561,9 +854,11 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return false;
     }
 
-    function addSponsoredGaps(grid, placedAds, packWidth, contentHeight, obstacles, usedGapKeys) {
+    function addSponsoredGaps(grid, placedAds, packWidth, contentHeight, obstacles, usedGapKeys, activeBlankSizes) {
         const fillers = [];
+        const blankSizes = activeBlankSizes || BLANK_SIZES;
         const bottomLimit = Math.max(0, contentHeight - 40);
+        const useMobileGaps = isStackedLayout();
 
         if (bottomLimit <= 0 || packWidth < 200 || !placedAds.length) {
             return fillers;
@@ -571,8 +866,69 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
         const availableAds = getAvailableSponsoredItems(grid);
 
+        if (useMobileGaps) {
+            const gapCandidates = collectMobileGapCandidates(
+                placedAds,
+                packWidth,
+                contentHeight,
+                obstacles,
+                usedGapKeys
+            );
+
+            gapCandidates.forEach(function (gap) {
+                if (usedGapKeys[gap.key]) {
+                    return;
+                }
+
+                if (!isFree(obstacles, gap.left, gap.top, gap.w, gap.h, packWidth)) {
+                    return;
+                }
+
+                const item = availableAds.find(function (entry) {
+                    return isFillerItemAvailable(entry, grid);
+                });
+
+                if (item) {
+                    instance.usedFillerKeys.add(fillerItemKey(item));
+                    const card = buildFillerCard(gap.w, gap.h, {
+                        label: item.label || 'Sponsored',
+                        image: item.image,
+                        url: item.url,
+                        title: item.title,
+                        sizeKey: item.size_key || item.sizeKey || null,
+                    }, { gapFill: true });
+
+                    if (item.id) {
+                        card.dataset.sponsoredAdId = String(item.id);
+                    }
+
+                    const slot = mountFillerCard(grid, gap.left, gap.top, gap.w, gap.h, card);
+                    fillers.push(slot);
+                    obstacles.push(toRect(slot));
+                    usedGapKeys[gap.key] = true;
+                    return;
+                }
+
+                const slot = mountBlankFiller(grid, gap.left, gap.top, gap.w, gap.h, {
+                    size_key: 'mobile_gap',
+                    name: 'Sponsored',
+                    w: gap.w,
+                    h: gap.h,
+                });
+                if (!slot) {
+                    return;
+                }
+
+                fillers.push(slot);
+                obstacles.push(toRect(slot));
+                usedGapKeys[gap.key] = true;
+            });
+
+            return fillers;
+        }
+
         availableAds.forEach(function (item) {
-            const adSize = { w: Number(item.w), h: Number(item.h) };
+            const adSize = scaleSizeForMobile(item.w, item.h, packWidth);
             const gapCandidates = collectGapCandidates(
                 placedAds,
                 packWidth,
@@ -593,14 +949,14 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             usedGapKeys[gap.key] = true;
         });
 
-        while (BLANK_SIZES.length) {
+        while (blankSizes.length) {
             const gapCandidates = collectGapCandidates(
                 placedAds,
                 packWidth,
                 contentHeight,
                 obstacles,
                 usedGapKeys,
-                BLANK_SIZES
+                blankSizes
             );
 
             if (!gapCandidates.length) {
@@ -617,7 +973,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                     continue;
                 }
 
-                const sizeMeta = findBlankSizeMeta(gap.w, gap.h);
+                const sizeMeta = findBlankSizeMeta(gap.w, gap.h, blankSizes);
                 if (!sizeMeta) {
                     continue;
                 }
@@ -643,6 +999,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     }
 
     function fillSponsoredGaps(grid, placedAds, packWidth, contentHeight, pinnedFillers) {
+        const activeBlankSizes = getActiveBlankSizes(packWidth);
         const obstacles = placedAds
             .map(function (item) {
                 return { left: item.left, right: item.right, top: item.top, bottom: item.bottom };
@@ -658,7 +1015,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             usedGapKeys[gapKey(slot.left, slot.top, slot.w, slot.h)] = true;
         });
 
-        const fillers = addSponsoredGaps(grid, placedAds, packWidth, contentHeight, obstacles, usedGapKeys);
+        const fillers = addSponsoredGaps(grid, placedAds, packWidth, contentHeight, obstacles, usedGapKeys, activeBlankSizes);
 
         pinnedSlots.forEach(function (slot) {
             const alreadyFilled = fillers.some(function (fillerSlot) {
@@ -669,7 +1026,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 return;
             }
 
-            const sizeMeta = findBlankSizeMeta(slot.w, slot.h);
+            const sizeMeta = findBlankSizeMeta(slot.w, slot.h, activeBlankSizes);
             if (!sizeMeta) {
                 return;
             }
@@ -688,14 +1045,15 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
     // Always re-pack every card currently in this grid so append never stacks on top of old ads.
     function packGrid(grid, keepPinnedFillers) {
-        if (isStackedLayout()) {
-            applyStackedLayout(grid);
-            return;
-        }
-
         const packWidth = grid.clientWidth;
         if (!packWidth) return;
 
+        if (isStackedLayout()) {
+            applyFlexMobileLayout(grid);
+            return;
+        }
+
+        grid.classList.remove('is-mobile-layout');
         const state = getGridState(grid);
 
         if (keepPinnedFillers) {
@@ -704,6 +1062,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             const placed = [];
             const obstacles = [];
             const existingFillerSlots = [];
+            const activeBlankSizes = getActiveBlankSizes(packWidth);
 
             grid.querySelectorAll('.ad-card:not([data-filler])').forEach(function (card) {
                 if (card.dataset.adsPacked !== '1') {
@@ -730,27 +1089,14 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 .filter(function (card) { return card.dataset.adsPacked !== '1'; });
 
             newCards.forEach(function (card) {
-                const dims = getDims(card);
-                let cardW = dims.w;
-                let cardH = dims.h;
-
-                if (cardW > packWidth) {
-                    const scale = packWidth / cardW;
-                    cardW = Math.max(1, Math.round(cardW * scale));
-                    cardH = Math.max(1, Math.round(cardH * scale));
-                }
-
-                if (cardW >= packWidth * 0.85) {
-                    cardW = packWidth;
-                }
-
-                const pos = findPlace(obstacles, cardW, cardH, packWidth);
-                placeCard(card, pos, cardW, cardH, placed);
+                const sized = getPackedCardDims(card, packWidth);
+                const pos = findPlace(obstacles, sized.w, sized.h, packWidth);
+                placeCard(card, pos, sized.w, sized.h, placed);
                 obstacles.push({
                     left: pos.left,
-                    right: pos.left + cardW,
+                    right: pos.left + sized.w,
                     top: pos.top,
-                    bottom: pos.top + cardH
+                    bottom: pos.top + sized.h
                 });
             });
 
@@ -763,7 +1109,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 usedGapKeys[gapKey(slot.left, slot.top, slot.w, slot.h)] = true;
             });
 
-            const newFillers = addSponsoredGaps(grid, placed, packWidth, contentHeight, obstacles, usedGapKeys);
+            const newFillers = addSponsoredGaps(grid, placed, packWidth, contentHeight, obstacles, usedGapKeys, activeBlankSizes);
             state.fillerPositions = existingFillerSlots.concat(newFillers);
 
             let maxBottom = contentHeight;
@@ -790,27 +1136,14 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             const obstacles = reservedFillers.map(toRect);
 
             cards.forEach(function (card) {
-                const dims = getDims(card);
-                let cardW = dims.w;
-                let cardH = dims.h;
-
-                if (cardW > packWidth) {
-                    const scale = packWidth / cardW;
-                    cardW = Math.max(1, Math.round(cardW * scale));
-                    cardH = Math.max(1, Math.round(cardH * scale));
-                }
-
-                if (cardW >= packWidth * 0.85) {
-                    cardW = packWidth;
-                }
-
-                const pos = findPlace(obstacles, cardW, cardH, packWidth);
-                placeCard(card, pos, cardW, cardH, placed);
+                const sized = getPackedCardDims(card, packWidth);
+                const pos = findPlace(obstacles, sized.w, sized.h, packWidth);
+                placeCard(card, pos, sized.w, sized.h, placed);
                 obstacles.push({
                     left: pos.left,
-                    right: pos.left + cardW,
+                    right: pos.left + sized.w,
                     top: pos.top,
-                    bottom: pos.top + cardH
+                    bottom: pos.top + sized.h
                 });
             });
 

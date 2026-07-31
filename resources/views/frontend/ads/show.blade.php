@@ -1,9 +1,24 @@
 @extends('frontend.layouts.app')
 
-@section('meta_title', $ad->title.' | SoilnWater Ads Market')
-@section('meta_description', $ad->short_description ?: 'Special marketplace ad available now.')
-@section('meta_url', route('frontend.ads.show', $ad))
-@section('meta_image', $ad->final_image ? asset($ad->final_image) : asset('assets/images/logo_soilnwater.webp'))
+@section('meta_title', $ad->seoTitle())
+@section('meta_description', $ad->seoDescription())
+@section('meta_url', $ad->shareUrl())
+@section('meta_canonical', $ad->shareUrl())
+@section('meta_image', $ad->seoImageUrl())
+@section('meta_type', 'article')
+
+@php($ogImage = $ad->openGraphImage())
+
+@push('head')
+@if(!empty($ogImage['width']) && !empty($ogImage['height']))
+<meta property="og:image:width" content="{{ $ogImage['width'] }}">
+<meta property="og:image:height" content="{{ $ogImage['height'] }}">
+@endif
+<meta property="og:image:alt" content="{{ $ad->title }}">
+@if(str_starts_with($ad->seoImageUrl(), 'https://'))
+<meta property="og:image:secure_url" content="{{ $ad->seoImageUrl() }}">
+@endif
+@endpush
 
 @section('content')
 <div class="container py-4 py-lg-5">

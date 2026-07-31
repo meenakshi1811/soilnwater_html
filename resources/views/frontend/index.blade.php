@@ -279,7 +279,7 @@
                       src="{{ asset($ad->final_image) }}"
                       alt="{{ $ad->title }}"
                       data-ad-id="{{ $ad->id }}"
-                      data-ad-url="{{ route('frontend.ads.show', $ad) }}"
+                      data-ad-url="{{ $ad->shareUrl() }}"
                       data-ad-description="Special marketplace ad available now."
                       style="width:100%;height:auto;display:block;border-radius:8px;"
                     >
@@ -354,7 +354,7 @@
           <div class="ad-slider auto-ad-slider business-side-slider">
             @forelse(($topSidebarSliderAds ?? collect()) as $ad)
               <div class="side-card ad-slide">
-                <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
               </div>
             @empty
               <div class="side-card ad-slide">
@@ -372,7 +372,7 @@
           <div class="ad-slider auto-ad-slider dream-home-side-slider sponsored-listings-ad-slider" data-show-arrows="true" data-pause-on-hover="false">
             @forelse(($sponsoredListingsAds ?? collect()) as $ad)
               <div class="side-card ad-slide sponsored-listings-ad-card" aria-label="{{ $ad->title }}">
-                <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                <img class="side-card-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
               </div>
             @empty
               <div class="side-card ad-slide sponsored-listings-ad-card">
@@ -396,7 +396,7 @@
                 src="{{ asset($ad->final_image) }}"
                 alt="{{ $ad->title }}"
                 data-ad-id="{{ $ad->id }}"
-                data-ad-url="{{ route('frontend.ads.show', $ad) }}"
+                data-ad-url="{{ $ad->shareUrl() }}"
                 data-ad-description="Special marketplace ad available now."
                 style="width:100%;height:auto;display:block;border-radius:18px;"
               >
@@ -484,7 +484,7 @@
                   <div class="festival-ad-slider ad-slider auto-ad-slider h-100" aria-label="Festival Campaign Deals slider">
                     @forelse(($ecommerceSideSliderAds ?? collect()) as $ad)
                       <div class="card h-100 ecommerce-ad-bs-card ecommerce-ad-image-card ad-slide">
-                        <img src="{{ asset($ad->final_image) }}" class="card-img-top ecommerce-ad-full-img" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                        <img src="{{ asset($ad->final_image) }}" class="card-img-top ecommerce-ad-full-img" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
                       </div>
                     @empty
                       <div class="card h-100 ecommerce-ad-bs-card ad-slide">
@@ -553,11 +553,11 @@
                   @endphp
                   <article class="prod-card recent-ad-card"
                     data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}"
-                    data-ad-url="{{ route('frontend.ads.show', $recentAd) }}"
+                    data-ad-url="{{ $recentAd->shareUrl() }}"
                     data-ad-meta="{{ implode(', ', $selectedCategoryNames) }}"
                     data-ad-services="{{ implode(', ', $selectedServiceNames) }}"
                   >
-                    <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}" data-ad-id="{{ $recentAd->id }}" data-ad-url="{{ route('frontend.ads.show', $recentAd) }}" data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}">
+                    <img src="{{ asset($recentAd->final_image) }}" alt="{{ $recentAd->title }}" data-ad-id="{{ $recentAd->id }}" data-ad-url="{{ $recentAd->shareUrl() }}" data-ad-description="{{ $recentAd->short_description ?: 'Special marketplace ad available now.' }}">
                     <div class="prod-card-body">
                       <h6 class="mb-1 offer-coupon-title">{{ $recentAd->title }}</h6>
                       <span class="recent-ad-meta">
@@ -601,7 +601,7 @@
               <div class="ad-slider auto-ad-slider combo-deals-slider" data-show-dots="true" data-show-arrows="false" aria-label="Combo deals slider">
                 @forelse(($offerDiscountTopAds ?? collect()) as $ad)
                   <div class="offer-coupon-banner offer-discount-image-slide ad-slide">
-                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-discount-top-image" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="offer-discount-top-image" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
                   </div>
                 @empty
                   <div class="offer-coupon-banner ad-slide">
@@ -1040,7 +1040,7 @@
         <div class="ad-slider auto-ad-slider top-ad-slider" aria-label="Handpicked local ads slider">
           @forelse(($exploreProductsAds ?? collect()) as $ad)
             <div class="explore-top-banner ad-slide explore-ad-image-slide">
-              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="explore-ad-full-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="explore-ad-full-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
             </div>
           @empty
             <div class="explore-top-banner ad-slide">
@@ -1092,7 +1092,7 @@
             <div class="ad-slider auto-ad-slider top-ad-slider top-vendors-featured-slider" aria-label="Top vendor featured ads slider">
               <?php foreach ($topVendorsHeaderAdsList as $ad): ?>
                 <div class="vendor-top-ad ad-slide top-vendor-image-slide">
-                  <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                  <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
                 </div>
               <?php endforeach; ?>
               <?php if ($topVendorsHeaderAdsList->isEmpty()): ?>
@@ -1144,7 +1144,7 @@
               <aside class="col-12 col-lg-3 section-side-ad ad-slider auto-ad-slider top-vendor-side-slider" aria-label="Top vendor side ads slider">
                 <?php foreach ($topVendorsSideAdsList as $ad): ?>
                   <div class="side-card ad-slide top-vendor-side-image-card" aria-label="{{ $ad->title }}">
-                    <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                    <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
                   </div>
                 <?php endforeach; ?>
                 <?php if ($topVendorsSideAdsList->isEmpty()): ?>
@@ -1241,7 +1241,7 @@
                     
                     @forelse(($popularGreenwoodAds ?? collect()) as $ad)
                       <div class="side-card ad-slide ppng-side-image-card" aria-label="{{ $ad->title }}">
-                        <img class="side-card-img ppng-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                        <img class="side-card-img ppng-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
                       </div>
                     @empty
                     <div class="side-card shadow-sm rounded-4 overflow-hidden border-0">
@@ -1334,7 +1334,7 @@
           <aside class="popular-feature-ad ad-slider auto-ad-slider popular-feature-ad-slider" data-show-arrows="true" aria-label="Popular properties featured ad slider">
             @forelse(($popularPropertiesAds ?? collect()) as $ad)
               <div class="side-card ad-slide popular-properties-image-card" aria-label="{{ $ad->title }}">
-                <img class="side-card-img popular-properties-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                <img class="side-card-img popular-properties-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
               </div>
             @empty
               <div class="side-card ad-slide">
@@ -1355,7 +1355,7 @@
         <div class="ad-slider auto-ad-slider ad-wide-slider" data-show-arrows="true" data-pause-on-hover="false" aria-label="Sponsored placement campaign slider">
           @forelse(($belowPopularAds ?? collect()) as $ad)
             <div class="ad-wide-content ad-slide ad-wide-image-slide">
-              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
             </div>
           @empty
             <div class="ad-wide-content ad-slide">
@@ -1423,7 +1423,7 @@
           <div class="ad-slider auto-ad-slider builders-side-slider builders-side-slider-1" aria-label="Builder ads slider" data-show-arrows="true" data-pause-on-hover="false">
             @forelse(($buildersDevelopersAds ?? collect()) as $ad)
               <div class="side-card ad-slide builders-side-image-card" aria-label="{{ $ad->title }}">
-                <img class="side-card-img builders-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+                <img class="side-card-img builders-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
               </div>
             @empty
               <div class="side-card ad-slide">
@@ -1444,7 +1444,7 @@
         <div class="ad-slider auto-ad-slider ad-wide-slider" aria-label="Sponsored services slider" data-show-arrows="true">
           @forelse(($belowBuildersAds ?? collect()) as $ad)
             <div class="ad-wide-content ad-slide ad-wide-image-slide">
-              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ route('frontend.ads.show', $ad) }}" data-ad-description="Special marketplace ad available now.">
+              <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="ad-wide-full-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
             </div>
           @empty
             <div class="ad-wide-content ad-slide">

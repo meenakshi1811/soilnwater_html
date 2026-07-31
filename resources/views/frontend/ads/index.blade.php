@@ -146,12 +146,115 @@ function syncAdModalSize(trigger){
         adModalDialog.style.maxWidth = '1140px';
     }
 }
-adsGrid.addEventListener('click',function(e){const trigger=e.target.closest('.js-ad-modal-trigger');if(!trigger) return;syncAdModalSize(trigger);document.getElementById('adDetailsModalTitle').textContent=trigger.dataset.adTitle||'Ad Details';document.getElementById('adDetailsModalMeta').textContent=trigger.dataset.adMeta||'';document.getElementById('adDetailsModalDescription').textContent=trigger.dataset.adDescription||'';const img=trigger.dataset.adImage||'';const imgEl=document.getElementById('adDetailsModalImage');if(img){imgEl.src=img;imgEl.classList.remove('d-none');adEnlargeBtn.classList.remove('d-none');}else{imgEl.src='';imgEl.classList.add('d-none');adEnlargeBtn.classList.add('d-none');}const url=window.soilnwaterNormalizeShareUrl(trigger.dataset.adUrl||location.href);document.getElementById('adShareLink').value=url;document.getElementById('adShareQr').src=`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;document.getElementById('adShareWhatsapp').href=`https://wa.me/?text=${encodeURIComponent('Check this ad: '+url)}`;document.getElementById('adShareFacebook').href=window.soilnwaterFacebookShareUrl(url);document.getElementById('adShareInstagram').href=`https://www.instagram.com/?url=${encodeURIComponent(url)}`;
-if(!isLoggedIn){if(adLoginMessageBox)adLoginMessageBox.classList.remove('d-none');if(adSharePanel)adSharePanel.classList.add('d-none');if(adReportActions)adReportActions.classList.add('d-none');document.getElementById('adDetailsModalTitle').textContent='You are not logged in';document.getElementById('adDetailsModalMeta').textContent='';document.getElementById('adDetailsModalDescription').textContent='';imgEl.src='';imgEl.classList.add('d-none');adEnlargeBtn.classList.add('d-none');document.getElementById('adShareLink').value='';document.getElementById('adShareQr').src='';document.getElementById('adShareWhatsapp').href='#';document.getElementById('adShareFacebook').href='#';document.getElementById('adShareInstagram').href='#';if (adReportPopupWrap) { adReportPopupWrap.classList.add('d-none'); }if (adDetailsModalInstance) { adDetailsModalInstance.show(); }return;}
-if(adLoginMessageBox)adLoginMessageBox.classList.add('d-none');if(adSharePanel)adSharePanel.classList.remove('d-none');if(adReportActions)adReportActions.classList.remove('d-none');
-if (adReportForm && trigger.dataset.adId) { adReportForm.action = `{{ url('/ads-market') }}/${trigger.dataset.adId}/report`; }
-if (adReportPopupWrap) { adReportPopupWrap.classList.add('d-none'); }
-if (adDetailsModalInstance) { adDetailsModalInstance.show(); }});
+function populateAdShareLinks(url) {
+    const shareLinkEl = document.getElementById('adShareLink');
+    const shareQrEl = document.getElementById('adShareQr');
+    const shareWhatsappEl = document.getElementById('adShareWhatsapp');
+    const shareFacebookEl = document.getElementById('adShareFacebook');
+    const normalizedUrl = window.soilnwaterNormalizeShareUrl(url || window.location.href);
+
+    if (shareLinkEl) shareLinkEl.value = normalizedUrl;
+    if (shareQrEl) shareQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(normalizedUrl)}`;
+    if (shareWhatsappEl) shareWhatsappEl.href = `https://wa.me/?text=${encodeURIComponent('Check this ad: ' + normalizedUrl)}`;
+    if (shareFacebookEl) shareFacebookEl.href = window.soilnwaterFacebookShareUrl(normalizedUrl);
+
+    return normalizedUrl;
+}
+
+function clearAdShareLinks() {
+    const shareLinkEl = document.getElementById('adShareLink');
+    const shareQrEl = document.getElementById('adShareQr');
+    const shareWhatsappEl = document.getElementById('adShareWhatsapp');
+    const shareFacebookEl = document.getElementById('adShareFacebook');
+
+    if (shareLinkEl) shareLinkEl.value = '';
+    if (shareQrEl) shareQrEl.src = '';
+    if (shareWhatsappEl) shareWhatsappEl.href = '#';
+    if (shareFacebookEl) shareFacebookEl.href = '#';
+}
+
+async function copyAdShareLink(button) {
+    const shareLinkEl = document.getElementById('adShareLink');
+    if (!shareLinkEl || !shareLinkEl.value) return;
+
+    try {
+        await navigator.clipboard.writeText(shareLinkEl.value);
+    } catch (error) {
+        shareLinkEl.select();
+        document.execCommand('copy');
+    }
+
+    if (!button) return;
+    const original = button.textContent;
+    button.textContent = 'Copied';
+    window.setTimeout(function () {
+        button.textContent = original;
+    }, 1600);
+}
+
+adsGrid.addEventListener('click', function (e) {
+    const trigger = e.target.closest('.js-ad-modal-trigger');
+    if (!trigger) return;
+
+    syncAdModalSize(trigger);
+    document.getElementById('adDetailsModalTitle').textContent = trigger.dataset.adTitle || 'Ad Details';
+    document.getElementById('adDetailsModalMeta').textContent = trigger.dataset.adMeta || '';
+    document.getElementById('adDetailsModalDescription').textContent = trigger.dataset.adDescription || '';
+
+    const img = trigger.dataset.adImage || '';
+    const imgEl = document.getElementById('adDetailsModalImage');
+    if (img) {
+        imgEl.src = img;
+        imgEl.classList.remove('d-none');
+        adEnlargeBtn.classList.remove('d-none');
+    } else {
+        imgEl.src = '';
+        imgEl.classList.add('d-none');
+        adEnlargeBtn.classList.add('d-none');
+    }
+
+    populateAdShareLinks(trigger.dataset.adUrl || window.location.href);
+
+    if (!isLoggedIn) {
+        if (adLoginMessageBox) adLoginMessageBox.classList.remove('d-none');
+        if (adSharePanel) adSharePanel.classList.add('d-none');
+        if (adReportActions) adReportActions.classList.add('d-none');
+        document.getElementById('adDetailsModalTitle').textContent = 'You are not logged in';
+        document.getElementById('adDetailsModalMeta').textContent = '';
+        document.getElementById('adDetailsModalDescription').textContent = '';
+        imgEl.src = '';
+        imgEl.classList.add('d-none');
+        adEnlargeBtn.classList.add('d-none');
+        clearAdShareLinks();
+        if (adReportPopupWrap) adReportPopupWrap.classList.add('d-none');
+        if (adDetailsModalInstance) adDetailsModalInstance.show();
+        return;
+    }
+
+    if (adLoginMessageBox) adLoginMessageBox.classList.add('d-none');
+    if (adSharePanel) adSharePanel.classList.remove('d-none');
+    if (adReportActions) adReportActions.classList.remove('d-none');
+    if (adReportForm && trigger.dataset.adId) {
+        adReportForm.action = `{{ url('/ads-market') }}/${trigger.dataset.adId}/report`;
+    }
+    if (adReportPopupWrap) adReportPopupWrap.classList.add('d-none');
+    if (adDetailsModalInstance) adDetailsModalInstance.show();
+});
+
+const adShareCopyBtn = document.getElementById('adShareCopyBtn');
+const adShareInstagramBtn = document.getElementById('adShareInstagram');
+
+if (adShareCopyBtn) {
+    adShareCopyBtn.addEventListener('click', function () {
+        copyAdShareLink(adShareCopyBtn);
+    });
+}
+
+if (adShareInstagramBtn) {
+    adShareInstagramBtn.addEventListener('click', function () {
+        copyAdShareLink(adShareInstagramBtn);
+    });
+}
 
 if (openAdReportPopupBtn && adReportPopupWrap) {
     openAdReportPopupBtn.addEventListener('click', function () {

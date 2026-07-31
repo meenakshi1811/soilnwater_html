@@ -3234,10 +3234,74 @@
     border-radius: 12px;
 }
 
+/* Mobile gap-fill sponsored ads */
+.ad-card.ad-card--gap-fill {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    background: #fff;
+}
+
+.sponsored-gap-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.94);
+    color: #5a6f86;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    box-shadow: 0 2px 6px rgba(17, 52, 100, 0.12);
+    line-height: 1.2;
+    pointer-events: none;
+}
+
+.ad-card.ad-card--gap-fill .ad-image {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    border-radius: 0;
+    background: #f3f6fb;
+    overflow: hidden;
+}
+
+.ad-card.ad-card--gap-fill .ad-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+}
+
+.ad-card.ad-card--gap-fill .ad-image a {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.ad-card.ad-card--gap-fill .filler-placeholder {
+    border-radius: 0;
+}
+
 @media (max-width: 991px) {
     .ads-layout {
-        padding: 16px;
+        padding: 12px;
         box-sizing: border-box;
+    }
+
+    /* Full-width banners break out edge-to-edge for maximum prominence */
+    .ads-section.ads-full-width {
+        margin-left: -12px;
+        margin-right: -12px;
+        width: calc(100% + 24px);
     }
 
     .ads-section,
@@ -3248,13 +3312,71 @@
     }
 
     .masonry-grid {
-        height: auto !important;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+        position: relative !important;
+        display: flex !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 10px;
+        width: 100%;
     }
 
-    .masonry-grid .ad-card,
+    /* Main ads — natural flex flow (earlier layout) */
+    .masonry-grid .ad-card:not([data-gap-filler]) {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        width: var(--ad-mobile-w, min(72vw, calc(var(--ad-w) * 0.55px))) !important;
+        max-width: calc(100% - 16px) !important;
+        height: auto !important;
+        flex: 0 0 auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Sponsored gap fillers — fill entire blank space */
+    .masonry-grid .ad-card[data-gap-filler] {
+        position: absolute !important;
+        flex: none !important;
+        max-width: none !important;
+        z-index: 2;
+        padding: 0 !important;
+        box-shadow: 0 4px 14px rgba(17, 52, 100, 0.12);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .masonry-grid.is-mobile-layout .ad-card:not([data-gap-filler]) .ad-image {
+        width: 100% !important;
+        height: auto !important;
+        flex: none;
+        aspect-ratio: var(--ad-w) / var(--ad-image-h, calc(var(--ad-h) - 50));
+    }
+
+    .masonry-grid.is-mobile-layout .ad-card[data-gap-filler] .ad-image {
+        width: 100% !important;
+        height: 100% !important;
+        flex: 1 1 auto;
+        aspect-ratio: auto !important;
+    }
+
+    .masonry-grid.is-mobile-layout .ad-card:not([data-gap-filler]) .ad-image img {
+        object-fit: contain;
+        object-position: center center;
+        background: #f3f6fb;
+    }
+
+    .masonry-grid.is-mobile-layout .ad-card[data-gap-filler] .ad-image img {
+        object-fit: cover;
+        object-position: center center;
+        background: #f3f6fb;
+    }
+
+    .masonry-grid .ad-card .ad-title {
+        font-size: 13px;
+        padding: 8px 10px 6px;
+    }
+
+    /* Premium full-width ads — span entire screen */
     .ads-full-width .ad-card {
         position: relative !important;
         left: auto !important;
@@ -3262,11 +3384,30 @@
         width: 100% !important;
         max-width: 100% !important;
         height: auto !important;
+        border-radius: 0;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .ad-card .ad-image,
-    .ads-full-width .ad-card .ad-image,
-    .ads-full-width .ad-banner .ad-image,
+    .ads-full-width .ad-card .ad-title {
+        font-size: 15px;
+        padding: 12px 14px 10px;
+    }
+
+    /* Wide banners — taller minimum so they stay readable on mobile */
+    .ads-full-width .ad-banner .ad-image {
+        width: 100% !important;
+        height: auto !important;
+        flex: none;
+        aspect-ratio: var(--ad-w) / var(--ad-h);
+        min-height: clamp(180px, 46vw, 300px);
+    }
+
+    .ads-full-width .ad-banner .ad-image img {
+        object-fit: cover;
+        object-position: center center;
+    }
+
+    /* Full-page portrait ads — full width, full height ratio */
     .ads-full-width .ad-hero .ad-image {
         width: 100% !important;
         height: auto !important;
@@ -3274,13 +3415,10 @@
         aspect-ratio: var(--ad-w) / var(--ad-h);
     }
 
-    .ad-card.filler .ad-image {
-        height: auto !important;
-        aspect-ratio: var(--ad-w) / var(--ad-h);
-    }
-
-    .masonry-grid .ad-card.filler {
-        display: none !important;
+    .ads-full-width .ad-hero .ad-image img {
+        object-fit: contain;
+        object-position: center center;
+        background: #f3f6fb;
     }
 }
 

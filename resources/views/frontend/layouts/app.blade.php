@@ -33,8 +33,15 @@
     window.soilnwaterNormalizeShareUrl = window.soilnwaterNormalizeShareUrl || function soilnwaterNormalizeShareUrl(url) {
       try {
         const parsedUrl = new URL(url || window.location.href, window.location.href);
+        const host = (parsedUrl.hostname || '').toLowerCase();
+        const isLocalHost = host === 'localhost'
+          || host === '127.0.0.1'
+          || host.endsWith('.local')
+          || host.endsWith('.test');
 
-        if (parsedUrl.hostname === window.location.hostname && window.location.protocol === 'https:') {
+        if (!isLocalHost) {
+          parsedUrl.protocol = 'https:';
+        } else if (window.location.protocol === 'https:') {
           parsedUrl.protocol = 'https:';
         }
 
