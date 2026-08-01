@@ -290,7 +290,9 @@
   @stack('styles')
 </head>
 <body>
-  @include('frontend.partials.header')
+  <div class="header-sticky-shell" id="headerStickyShell">
+    @include('frontend.partials.header')
+  </div>
 
   @yield('content')
 

@@ -4,7 +4,6 @@
 
     const fab = document.getElementById('discussionFab');
     const headerBtn = document.getElementById('discussionHeaderBtn');
-    const headerBtnMobile = document.getElementById('discussionHeaderBtnMobile');
     const widget = document.getElementById('discussionWidget');
     const isPageMode = Boolean(config.pageMode);
 
@@ -12,7 +11,7 @@
         return;
     }
 
-    if (!isPageMode && !fab && !headerBtn && !headerBtnMobile) {
+    if (!isPageMode && !fab && !headerBtn) {
         return;
     }
 
@@ -92,7 +91,7 @@
     const headerBadge = document.getElementById('discussionHeaderBadge');
 
     function chatTriggers() {
-        return [fab, headerBtn, headerBtnMobile].filter(Boolean);
+        return [fab, headerBtn].filter(Boolean);
     }
 
     function initHeaderChatPopover() {
@@ -1359,7 +1358,6 @@
         fab?.setAttribute('aria-expanded', open ? 'true' : 'false');
         headerBtn?.classList.toggle('is-open', open);
         headerBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
-        headerBtnMobile?.classList.toggle('is-open', open);
         widget.classList.toggle('is-open', open);
 
         if (open) {
@@ -2039,14 +2037,6 @@
 
     headerBtn?.addEventListener('click', () => {
         bootstrap.Popover.getInstance(headerBtn)?.hide();
-        toggleOpen();
-    });
-
-    headerBtnMobile?.addEventListener('click', () => {
-        const menu = document.getElementById('mobileHeaderMenu');
-        if (menu && menu.classList.contains('show') && window.bootstrap?.Collapse) {
-            bootstrap.Collapse.getOrCreateInstance(menu).hide();
-        }
         toggleOpen();
     });
 

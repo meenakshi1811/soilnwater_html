@@ -1,16 +1,16 @@
 @auth
 <button type="button"
-        class="header-community-chat-btn"
+        class="header-sticky-chat-btn"
         id="discussionHeaderBtn"
         aria-label="Open Community Chat"
         aria-controls="discussionWidget"
         aria-expanded="false"
-        aria-describedby="communityChatPopoverContent">
-    <span class="header-community-chat-btn__icon" aria-hidden="true">
+        aria-describedby="communityChatPopoverContent"
+        title="Community Chat">
+    <span class="header-sticky-chat-btn__icon" aria-hidden="true">
         <i class="fa-solid fa-people-group"></i>
     </span>
-    <span class="header-community-chat-btn__label">Community Chat</span>
-    <span class="header-community-chat-btn__badge" id="discussionHeaderBadge" hidden aria-label="Unread community messages">0</span>
+    <span class="header-sticky-chat-btn__badge" id="discussionHeaderBadge" hidden aria-label="Unread community messages">0</span>
 </button>
 
 <div id="communityChatPopoverContent" class="d-none">

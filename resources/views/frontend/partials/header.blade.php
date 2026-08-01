@@ -82,8 +82,6 @@
     </button>
   </form>
 
-  @include('discussions.partials.header-chat-btn')
-
   <div class="header-actions header-actions-desktop">
     <div class="dropdown header-community-dropdown">
       <button
@@ -155,6 +153,7 @@
     @endauth
   </div>
 
+  @include('discussions.partials.header-chat-btn')
 
   <div class="collapse header-mobile-menu" id="mobileHeaderMenu">
     <div class="header-mobile-menu-top">
@@ -165,11 +164,6 @@
     <a class="btn-offer" href="{{ route('community.index') }}">Community</a>
     <a class="btn-offer" href="{{ route('community.index', ['type' => 'local-voices']) }}">Local Voices</a>
     <a class="btn-offer" href="{{ route('community.community-issues.index') }}">Issues</a>
-    @auth
-    <button type="button" class="btn-offer header-mobile-chat-btn" id="discussionHeaderBtnMobile" aria-label="Open Community Chat">
-      <i class="fa-solid fa-people-group me-1"></i> Community Chat
-    </button>
-    @endauth
     <a class="btn-offer" href="{{ auth()->check() ? route('post-offer') : route('login') }}">Post Offer</a>
     <a class="btn-post" href="{{ auth()->check() ? route('ads.create.size') : route('login') }}">Post Ad</a>
 
