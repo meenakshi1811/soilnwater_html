@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAdShareUrl;
 use App\Support\ModulePermissions;
 use App\Support\SocialShare;
 use Carbon\Carbon;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UserAd extends Model
 {
+    use HasAdShareUrl;
+
     protected $fillable = [
         'user_id',
         'ad_template_id',
@@ -210,11 +213,6 @@ class UserAd extends Model
     public function isCurrentlyActive(): bool
     {
         return $this->status === 'approved' && ! $this->isExpired();
-    }
-
-    public function shareUrl(): string
-    {
-        return SocialShare::normalizeUrl(route('frontend.ads.show', $this));
     }
 
     public function seoTitle(): string

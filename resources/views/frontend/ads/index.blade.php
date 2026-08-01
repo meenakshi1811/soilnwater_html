@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
 const adModal = document.getElementById('adDetailsModal'); const adsGrid = document.getElementById('adsGrid'); if (!adsGrid) return;
 const isLoggedIn = @json(auth()->check());
 const adModalDialog = document.getElementById('adDetailsModalDialog');
+const adModalImageWrap = document.getElementById('adDetailsModalImageWrap');
 const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
 const adLoginMessageBox = document.getElementById('adLoginMessageBox');
 const adSharePanel = document.getElementById('adSharePanel');
@@ -134,17 +135,58 @@ function syncAdModalSize(trigger){
     if(!adModalDialog || !trigger) return;
     const adWidth = Number(trigger.dataset.adW || 0);
     const adHeight = Number(trigger.dataset.adH || 0);
-    const isLargeAd = adWidth >= 900 || adHeight >= 450;
+    const aspectRatio = adWidth > 0 && adHeight > 0 ? adWidth / adHeight : 1;
+    const isWideAd = adWidth >= 900 || aspectRatio >= 2.4;
+    const isTallAd = adHeight >= 400 || aspectRatio <= 0.75;
+    let modalMax = 640;
 
-    adModalDialog.classList.remove('modal-lg','modal-xl');
+    adModalDialog.classList.remove('modal-lg','modal-xl','is-wide-ad','is-tall-ad');
+    adModalDialog.style.removeProperty('--offer-modal-w');
     adModalDialog.style.removeProperty('width');
     adModalDialog.style.removeProperty('max-width');
 
-    if(isLargeAd){
-        adModalDialog.classList.add('modal-xl');
-        adModalDialog.style.width = 'min(100% - 1.5rem, 1140px)';
-        adModalDialog.style.maxWidth = '1140px';
+    if(adModalImageWrap){
+        if(adWidth > 0 && adHeight > 0){
+            adModalImageWrap.style.setProperty('--ad-modal-w', String(adWidth));
+            adModalImageWrap.style.setProperty('--ad-modal-h', String(adHeight));
+        }else{
+            adModalImageWrap.style.removeProperty('--ad-modal-w');
+            adModalImageWrap.style.removeProperty('--ad-modal-h');
+        }
     }
+
+    if(isWideAd){
+        adModalDialog.classList.add('modal-xl','is-wide-ad');
+        modalMax = Math.min(1140, window.innerWidth - 24);
+    }else if(adWidth >= 458 || adHeight >= 450){
+        adModalDialog.classList.add('modal-lg');
+        modalMax = Math.min(760, window.innerWidth - 24);
+    }else{
+        modalMax = Math.min(640, window.innerWidth - 24);
+    }
+
+    if(isTallAd){
+        adModalDialog.classList.add('is-tall-ad');
+    }
+
+    adModalDialog.style.setProperty('--offer-modal-w', modalMax + 'px');
+    adModalDialog.style.width = 'min(100% - 1.5rem, ' + modalMax + 'px)';
+    adModalDialog.style.maxWidth = modalMax + 'px';
+}
+function setAdModalImage(src){
+    const imgEl = document.getElementById('adDetailsModalImage');
+    if(!imgEl) return;
+    if(src){
+        imgEl.src = src;
+        imgEl.classList.remove('d-none');
+        if(adModalImageWrap) adModalImageWrap.classList.remove('d-none');
+        if(adEnlargeBtn) adEnlargeBtn.classList.remove('d-none');
+        return;
+    }
+    imgEl.src = '';
+    imgEl.classList.add('d-none');
+    if(adModalImageWrap) adModalImageWrap.classList.add('d-none');
+    if(adEnlargeBtn) adEnlargeBtn.classList.add('d-none');
 }
 function populateAdShareLinks(url) {
     return window.soilnwaterPopulateShareLinks({
@@ -179,16 +221,7 @@ adsGrid.addEventListener('click', function (e) {
     document.getElementById('adDetailsModalDescription').textContent = trigger.dataset.adDescription || '';
 
     const img = trigger.dataset.adImage || '';
-    const imgEl = document.getElementById('adDetailsModalImage');
-    if (img) {
-        imgEl.src = img;
-        imgEl.classList.remove('d-none');
-        adEnlargeBtn.classList.remove('d-none');
-    } else {
-        imgEl.src = '';
-        imgEl.classList.add('d-none');
-        adEnlargeBtn.classList.add('d-none');
-    }
+    setAdModalImage(img);
 
     populateAdShareLinks(trigger.dataset.adUrl || window.location.href);
 
@@ -199,9 +232,7 @@ adsGrid.addEventListener('click', function (e) {
         document.getElementById('adDetailsModalTitle').textContent = 'You are not logged in';
         document.getElementById('adDetailsModalMeta').textContent = '';
         document.getElementById('adDetailsModalDescription').textContent = '';
-        imgEl.src = '';
-        imgEl.classList.add('d-none');
-        adEnlargeBtn.classList.add('d-none');
+        setAdModalImage('');
         clearAdShareLinks();
         if (adReportPopupWrap) adReportPopupWrap.classList.add('d-none');
         if (adDetailsModalInstance) adDetailsModalInstance.show();

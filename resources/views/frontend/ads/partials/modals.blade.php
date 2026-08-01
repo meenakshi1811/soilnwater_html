@@ -8,7 +8,9 @@
                 </button>
             </div>
             <div class="modal-body p-0">
-                <img id="adDetailsModalImage" src="" alt="Ad image" class="d-none offer-details-modal-image">
+                <div class="offer-details-image-wrap d-none" id="adDetailsModalImageWrap">
+                    <img id="adDetailsModalImage" src="" alt="Ad image" class="offer-details-modal-image">
+                </div>
                 <div class="offer-details-content">
                     <h3 class="h4 mb-2" id="adDetailsModalTitle"></h3>
                     <p class="text-muted mb-2" id="adDetailsModalMeta"></p>

@@ -30,6 +30,21 @@
             $adWidth  = (int) ($sizeConfig['w'] ?? ($ad->adSize?->width ?? 458));
             $adHeight = (int) ($sizeConfig['h'] ?? ($ad->adSize?->height ?? 229));
             $adImageHeight = $adHeight;
+            $adMaxDim = max($adWidth, $adHeight);
+            $adArea = $adWidth * $adHeight;
+            $adIsPaid = (bool) ($sizeConfig['is_paid'] ?? ($ad->adSize?->is_paid ?? false));
+            $mobileSizeTier = 'sm';
+
+            if ($adWidth >= 900) {
+                $mobileSizeTier = 'full';
+            } elseif ($adMaxDim <= 320 || $adArea <= 70000) {
+                $mobileSizeTier = 'xs';
+            } elseif ($adMaxDim <= 520 || $adArea <= 260000) {
+                $mobileSizeTier = 'sm';
+            } else {
+                $mobileSizeTier = 'md';
+            }
+
             $categoryNames = $selectedCategoryNamesByAdId[$ad->id] ?? [];
             $adMeta = $categoryNames !== [] ? implode(', ', $categoryNames) : ($ad->category?->name ?? 'Uncategorized');
 
@@ -48,12 +63,14 @@
         @endphp
 
         <article
-            class="ad-card db-sized {{ $shapeClass }} js-ad-modal-trigger"
+            class="ad-card db-sized {{ $shapeClass }} ad-mobile-tier-{{ $mobileSizeTier }} js-ad-modal-trigger"
             style="--ad-w: {{ $adWidth }}; --ad-h: {{ $adHeight }}; --ad-image-h: {{ $adImageHeight }};"
             role="button"
             tabindex="0"
             data-ad-w="{{ $adWidth }}"
             data-ad-h="{{ $adHeight }}"
+            data-ad-mobile-tier="{{ $mobileSizeTier }}"
+            data-ad-is-paid="{{ $adIsPaid ? '1' : '0' }}"
             data-ad-title="{{ $ad->title }}"
             data-ad-meta="{{ $adMeta }}"
             data-ad-description="{{ $ad->short_description ?: 'Special marketplace ad available now.' }}"
@@ -128,21 +145,72 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return STACKED_LAYOUT_QUERY.matches;
     }
 
-    function applyMobileCardScale(card, gridWidth) {
-        const scale = Math.min(1, gridWidth / 1200);
-        const adW = parseInt(card.dataset.adW || '0', 10);
-        const isFiller = card.hasAttribute('data-filler');
-        const isLargeAd = adW >= 900
-            || card.classList.contains('ad-banner')
-            || card.classList.contains('ad-hero');
+    function getMobileTierMultiplier(tier, isPaid, isFiller) {
+        const multipliers = {
+            xs: 0.34,
+            sm: 0.48,
+            md: 0.66,
+            full: 1,
+        };
+        let multiplier = multipliers[tier] || multipliers.sm;
 
-        if (!isLargeAd && adW > 0) {
-            const scaleFactor = isFiller ? scale * 0.82 : scale;
-            const mobileW = Math.max(130, Math.round(adW * scaleFactor));
-            card.style.setProperty('--ad-mobile-w', mobileW + 'px');
-        } else {
-            card.style.removeProperty('--ad-mobile-w');
+        if (!isPaid && !isFiller && tier !== 'full') {
+            multiplier *= 0.82;
         }
+
+        return multiplier;
+    }
+
+    function resolveMobileSizeTier(card, adW, adH) {
+        if (card.dataset.adMobileTier) {
+            return card.dataset.adMobileTier;
+        }
+
+        const maxDim = Math.max(adW, adH);
+        const area = adW * adH;
+
+        if (adW >= 900 || card.classList.contains('ad-banner') || card.classList.contains('ad-hero')) {
+            return 'full';
+        }
+        if (maxDim <= 320 || area <= 70000) {
+            return 'xs';
+        }
+        if (maxDim <= 520 || area <= 260000) {
+            return 'sm';
+        }
+
+        return 'md';
+    }
+
+    function applyMobileCardScale(card, gridWidth) {
+        const adW = parseInt(card.dataset.adW || '0', 10);
+        const adH = parseInt(card.dataset.adH || '0', 10);
+        const isFiller = card.hasAttribute('data-filler');
+        const isPaid = card.dataset.adIsPaid === '1';
+        const tier = resolveMobileSizeTier(card, adW, adH);
+        const isFullWidth = tier === 'full';
+
+        card.classList.remove('ad-mobile-tier-xs', 'ad-mobile-tier-sm', 'ad-mobile-tier-md', 'ad-mobile-tier-full');
+        card.classList.add('ad-mobile-tier-' + tier);
+
+        if (isFullWidth || adW <= 0) {
+            card.style.removeProperty('--ad-mobile-w');
+            card.style.removeProperty('--ad-mobile-scale');
+            return;
+        }
+
+        const viewportRatio = Math.min(1, gridWidth / 390);
+        const tierMultiplier = getMobileTierMultiplier(tier, isPaid, isFiller);
+        const fillerMultiplier = isFiller ? 0.92 : 1;
+        const widthCap = tier === 'xs'
+            ? gridWidth * 0.42
+            : (tier === 'sm' ? gridWidth * 0.58 : gridWidth * 0.78);
+        const minWidth = tier === 'xs' ? 88 : (tier === 'sm' ? 118 : 148);
+        let mobileW = Math.round(adW * tierMultiplier * viewportRatio * fillerMultiplier);
+
+        mobileW = Math.max(minWidth, Math.min(widthCap, mobileW));
+        card.style.setProperty('--ad-mobile-w', mobileW + 'px');
+        card.style.setProperty('--ad-mobile-scale', String(tierMultiplier));
     }
 
     function measureFlexCards(grid) {
@@ -170,42 +238,56 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return placed;
     }
 
-    function fillMobileGaps(grid) {
+    function insertMobileSponsoredCards(grid) {
         const packWidth = grid.clientWidth;
         if (!packWidth) {
             return;
         }
 
-        grid.querySelectorAll('[data-filler][data-gap-filler]').forEach(function (el) {
+        grid.querySelectorAll('[data-filler]').forEach(function (el) {
             el.remove();
         });
 
-        const placed = measureFlexCards(grid);
-        if (!placed.length) {
+        const availableAds = getAvailableSponsoredItems(grid);
+        if (!availableAds.length) {
             grid.style.minHeight = '';
             return;
         }
 
-        const contentHeight = Math.max.apply(null, placed.map(function (item) {
-            return item.bottom;
-        }));
-        const obstacles = placed.map(function (item) {
-            return { left: item.left, right: item.right, top: item.top, bottom: item.bottom };
-        });
-        const usedGapKeys = {};
-        const activeBlankSizes = getActiveBlankSizes(packWidth);
+        const maxMobileSponsored = packWidth >= 400 ? 6 : 4;
+        const mainCards = Array.from(grid.querySelectorAll('.ad-card:not([data-filler])'));
+        let sponsorIndex = 0;
 
-        addSponsoredGaps(grid, placed, packWidth, contentHeight, obstacles, usedGapKeys, activeBlankSizes);
-
-        let maxBottom = contentHeight;
-        grid.querySelectorAll('[data-filler][data-gap-filler]').forEach(function (filler) {
-            const bottom = filler.offsetTop + filler.offsetHeight;
-            if (bottom > maxBottom) {
-                maxBottom = bottom;
+        mainCards.forEach(function (mainCard, index) {
+            if (sponsorIndex >= maxMobileSponsored || sponsorIndex >= availableAds.length) {
+                return;
             }
+
+            if ((index + 1) % 2 !== 0) {
+                return;
+            }
+
+            const item = availableAds[sponsorIndex];
+            if (!item || !isFillerItemAvailable(item, grid)) {
+                return;
+            }
+
+            mainCard.insertAdjacentElement('afterend', createMobileSponsoredCard(item, packWidth, grid));
+            sponsorIndex++;
         });
 
-        grid.style.minHeight = maxBottom > contentHeight ? (maxBottom + GAP) + 'px' : '';
+        while (sponsorIndex < availableAds.length && sponsorIndex < maxMobileSponsored) {
+            const item = availableAds[sponsorIndex];
+            if (!item || !isFillerItemAvailable(item, grid)) {
+                sponsorIndex++;
+                continue;
+            }
+
+            grid.appendChild(createMobileSponsoredCard(item, packWidth, grid));
+            sponsorIndex++;
+        }
+
+        grid.style.minHeight = '';
     }
 
     function applyFlexMobileLayout(grid) {
@@ -241,7 +323,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
 
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
-                fillMobileGaps(grid);
+                insertMobileSponsoredCards(grid);
             });
         });
     }
@@ -426,17 +508,23 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     function buildFillerCard(width, height, item, options) {
         options = options || {};
         const isGapFill = !!options.gapFill;
+        const isMobileInline = !!options.mobileInline;
 
         const card = document.createElement('article');
-        card.className = 'ad-card filler' + (isGapFill ? ' ad-card--gap-fill' : '');
+        card.className = 'ad-card filler'
+            + (isGapFill ? ' ad-card--gap-fill' : '')
+            + (isMobileInline ? ' ad-card--mobile-sponsored' : '');
         card.dataset.filler = '1';
         card.dataset.adW = String(width);
         card.dataset.adH = String(height);
         card.style.setProperty('--ad-w', String(width));
         card.style.setProperty('--ad-h', String(height));
-        card.style.setProperty('--ad-image-h', String(Math.max(1, height - (isGapFill ? 0 : 34))));
-        card.style.width = width + 'px';
-        card.style.height = height + 'px';
+        card.style.setProperty('--ad-image-h', String(Math.max(1, height - (isGapFill || isMobileInline ? 0 : 34))));
+
+        if (!isMobileInline) {
+            card.style.width = width + 'px';
+            card.style.height = height + 'px';
+        }
 
         if (item.sizeKey) {
             card.dataset.sizeKey = item.sizeKey;
@@ -450,7 +538,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             ? '<a href="' + item.url + '" class="d-block w-100 h-100">' + imageHtml + '</a>'
             : imageHtml;
 
-        if (isGapFill) {
+        if (isGapFill || isMobileInline) {
             card.innerHTML =
                 '<span class="sponsored-gap-badge">Sponsored</span>' +
                 '<div class="ad-image">' + imageBlock + '</div>';
@@ -464,6 +552,30 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 adTitleHtml +
                 '<div class="ad-image">' + imageBlock + '</div>';
         }
+
+        return card;
+    }
+
+    function createMobileSponsoredCard(item, gridWidth, grid) {
+        const adW = Number(item.w) || 458;
+        const adH = Number(item.h) || 229;
+
+        instance.usedFillerKeys.add(fillerItemKey(item));
+
+        const card = buildFillerCard(adW, adH, {
+            label: item.label || 'Sponsored',
+            image: item.image,
+            url: item.url,
+            title: item.title,
+            sizeKey: item.size_key || item.sizeKey || null,
+        }, { mobileInline: true });
+
+        if (item.id) {
+            card.dataset.sponsoredAdId = String(item.id);
+        }
+
+        card.dataset.adMobileTier = resolveMobileSizeTier(card, adW, adH);
+        applyMobileCardScale(card, gridWidth);
 
         return card;
     }
@@ -869,63 +981,6 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         const availableAds = getAvailableSponsoredItems(grid);
 
         if (useMobileGaps) {
-            const gapCandidates = collectMobileGapCandidates(
-                placedAds,
-                packWidth,
-                contentHeight,
-                obstacles,
-                usedGapKeys
-            );
-
-            gapCandidates.forEach(function (gap) {
-                if (usedGapKeys[gap.key]) {
-                    return;
-                }
-
-                if (!isFree(obstacles, gap.left, gap.top, gap.w, gap.h, packWidth)) {
-                    return;
-                }
-
-                const item = availableAds.find(function (entry) {
-                    return isFillerItemAvailable(entry, grid);
-                });
-
-                if (item) {
-                    instance.usedFillerKeys.add(fillerItemKey(item));
-                    const card = buildFillerCard(gap.w, gap.h, {
-                        label: item.label || 'Sponsored',
-                        image: item.image,
-                        url: item.url,
-                        title: item.title,
-                        sizeKey: item.size_key || item.sizeKey || null,
-                    }, { gapFill: true });
-
-                    if (item.id) {
-                        card.dataset.sponsoredAdId = String(item.id);
-                    }
-
-                    const slot = mountFillerCard(grid, gap.left, gap.top, gap.w, gap.h, card);
-                    fillers.push(slot);
-                    obstacles.push(toRect(slot));
-                    usedGapKeys[gap.key] = true;
-                    return;
-                }
-
-                const slot = mountBlankFiller(grid, gap.left, gap.top, gap.w, gap.h, {
-                    size_key: 'mobile_gap',
-                    name: 'Sponsored',
-                    w: gap.w,
-                    h: gap.h,
-                });
-                if (!slot) {
-                    return;
-                }
-
-                fillers.push(slot);
-                obstacles.push(toRect(slot));
-                usedGapKeys[gap.key] = true;
-            });
-
             return fillers;
         }
 

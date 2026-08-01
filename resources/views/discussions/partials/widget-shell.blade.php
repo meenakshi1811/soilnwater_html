@@ -17,13 +17,13 @@
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
             <span class="discussion-widget__brand-mark" id="discussionWidgetHeaderAvatar" aria-hidden="true">
-                <i class="fa-solid fa-comments"></i>
+                <i class="fa-solid fa-people-group"></i>
             </span>
         </div>
         <div class="discussion-widget__header-center">
             <div class="discussion-widget__header-text">
-                <h2 class="discussion-widget__title" id="discussionWidgetTitle">Chats</h2>
-                <p class="discussion-widget__subtitle" id="discussionWidgetSubtitle">Community discussions</p>
+                <h2 class="discussion-widget__title" id="discussionWidgetTitle">Community Chat</h2>
+                <p class="discussion-widget__subtitle" id="discussionWidgetSubtitle">Member topics, groups, and discussions</p>
                 <div class="discussion-widget__online" id="discussionWidgetOnline" hidden aria-live="polite"></div>
             </div>
         </div>
@@ -103,7 +103,7 @@
                     <input type="search"
                            class="discussion-widget__search"
                            id="discussionWidgetSearch"
-                           placeholder="Search or start new chat"
+                           placeholder="Search topics or groups"
                            autocomplete="off"
                            aria-label="Search chats">
                 </div>

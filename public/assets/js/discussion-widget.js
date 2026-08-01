@@ -3,6 +3,8 @@
     const ui = () => window.soilnwaterDiscussionUi || {};
 
     const fab = document.getElementById('discussionFab');
+    const headerBtn = document.getElementById('discussionHeaderBtn');
+    const headerBtnMobile = document.getElementById('discussionHeaderBtnMobile');
     const widget = document.getElementById('discussionWidget');
     const isPageMode = Boolean(config.pageMode);
 
@@ -10,7 +12,7 @@
         return;
     }
 
-    if (!isPageMode && !fab) {
+    if (!isPageMode && !fab && !headerBtn && !headerBtnMobile) {
         return;
     }
 
@@ -87,6 +89,30 @@
     };
 
     const fabBadge = document.getElementById('discussionFabBadge');
+    const headerBadge = document.getElementById('discussionHeaderBadge');
+
+    function chatTriggers() {
+        return [fab, headerBtn, headerBtnMobile].filter(Boolean);
+    }
+
+    function initHeaderChatPopover() {
+        if (!headerBtn || !window.bootstrap?.Popover) {
+            return;
+        }
+
+        const popoverContent = document.getElementById('communityChatPopoverContent')?.innerHTML?.trim() || '';
+
+        bootstrap.Popover.getOrCreateInstance(headerBtn, {
+            container: 'body',
+            trigger: 'hover focus',
+            placement: 'bottom',
+            html: true,
+            sanitize: false,
+            customClass: 'community-chat-popover-shell',
+            title: 'Community Chat',
+            content: popoverContent,
+        });
+    }
 
     let topicsLoaded = false;
     let currentTopic = null;
@@ -1010,19 +1036,25 @@
 
     function updateFabBadge(count) {
         config.globalUnread = Math.max(0, count);
-        if (!fabBadge) {
+        const badges = [fabBadge, headerBadge].filter(Boolean);
+
+        if (!badges.length) {
             return;
         }
 
         if (count > 0) {
-            fabBadge.textContent = formatUnreadCount(count);
-            fabBadge.hidden = false;
-            fabBadge.setAttribute('aria-label', `${count} unread messages`);
-            fab?.classList.add('has-unread');
+            badges.forEach((badge) => {
+                badge.textContent = formatUnreadCount(count);
+                badge.hidden = false;
+                badge.setAttribute('aria-label', `${count} unread community messages`);
+            });
+            chatTriggers().forEach((trigger) => trigger.classList.add('has-unread'));
         } else {
-            fabBadge.hidden = true;
-            fabBadge.textContent = '0';
-            fab?.classList.remove('has-unread');
+            badges.forEach((badge) => {
+                badge.hidden = true;
+                badge.textContent = '0';
+            });
+            chatTriggers().forEach((trigger) => trigger.classList.remove('has-unread'));
         }
     }
 
@@ -1281,7 +1313,7 @@
             els.membersBtn.hidden = !group?.can_manage_members;
         }
         if (els.headerAvatar && isTopics) {
-            els.headerAvatar.innerHTML = '<i class="fa-solid fa-comments"></i>';
+            els.headerAvatar.innerHTML = '<i class="fa-solid fa-people-group"></i>';
         }
 
         const header = widget.querySelector('.discussion-widget__header');
@@ -1312,7 +1344,7 @@
             return;
         }
         els.headerAvatar.className = 'discussion-widget__brand-mark';
-        els.headerAvatar.innerHTML = '<i class="fa-solid fa-comments"></i>';
+        els.headerAvatar.innerHTML = '<i class="fa-solid fa-people-group"></i>';
     }
 
     function setOpen(open) {
@@ -1323,8 +1355,11 @@
             return;
         }
 
-        fab.classList.toggle('is-open', open);
-        fab.setAttribute('aria-expanded', open ? 'true' : 'false');
+        fab?.classList.toggle('is-open', open);
+        fab?.setAttribute('aria-expanded', open ? 'true' : 'false');
+        headerBtn?.classList.toggle('is-open', open);
+        headerBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
+        headerBtnMobile?.classList.toggle('is-open', open);
         widget.classList.toggle('is-open', open);
 
         if (open) {
@@ -2001,6 +2036,21 @@
     fab?.addEventListener('click', () => {
         toggleOpen();
     });
+
+    headerBtn?.addEventListener('click', () => {
+        bootstrap.Popover.getInstance(headerBtn)?.hide();
+        toggleOpen();
+    });
+
+    headerBtnMobile?.addEventListener('click', () => {
+        const menu = document.getElementById('mobileHeaderMenu');
+        if (menu && menu.classList.contains('show') && window.bootstrap?.Collapse) {
+            bootstrap.Collapse.getOrCreateInstance(menu).hide();
+        }
+        toggleOpen();
+    });
+
+    initHeaderChatPopover();
 
     els.closeBtn?.addEventListener('click', () => setOpen(false));
     els.sizeBtn?.addEventListener('click', cycleWidgetSize);

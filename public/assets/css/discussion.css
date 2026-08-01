@@ -54,16 +54,26 @@
     width: 56px;
     height: 56px;
     border: 0;
-    border-radius: 50%;
-    background: var(--wa-green);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #2196f3 0%, #1976d2 100%);
     color: #fff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    font-size: 1.35rem;
+    box-shadow: 0 8px 20px rgba(25, 118, 210, 0.28);
     cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease;
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.discussion-fab--community {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+@media (min-width: 761px) {
+    .discussion-fab {
+        display: none;
+    }
 }
 
 .discussion-fab:hover,
@@ -74,16 +84,16 @@
 }
 
 .discussion-fab.is-open {
-    background: var(--wa-text);
+    background: #334155;
 }
 
 .discussion-fab.has-unread:not(.is-open) {
-    animation: wa-pulse 2s ease-in-out infinite;
+    animation: community-chat-pulse 2s ease-in-out infinite;
 }
 
-@keyframes wa-pulse {
-    0%, 100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); }
-    50% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 0 0 6px rgba(37, 211, 102, 0.25); }
+@keyframes community-chat-pulse {
+    0%, 100% { box-shadow: 0 8px 20px rgba(25, 118, 210, 0.28); }
+    50% { box-shadow: 0 8px 20px rgba(25, 118, 210, 0.28), 0 0 0 6px rgba(25, 118, 210, 0.18); }
 }
 
 .discussion-fab__close { display: none; }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\UserAd;
 use App\Support\AdSizes;
+use App\Support\SocialShare;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -120,7 +121,7 @@ class MarketplaceAdsService
                     'label' => 'Sponsored',
                     'title' => $ad->title,
                     'image' => asset($ad->final_image),
-                    'url' => $ad->shareUrl(),
+                    'url' => SocialShare::normalizeUrl(route('frontend.ads.show', ['ad' => $ad->getRouteKey()])),
                 ];
             })
             ->filter()

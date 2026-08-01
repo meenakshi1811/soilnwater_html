@@ -1,14 +1,14 @@
 @auth
 <button type="button"
-        class="discussion-fab"
+        class="discussion-fab discussion-fab--community"
         id="discussionFab"
-        aria-label="Open chats"
+        aria-label="Open Community Chat"
         aria-controls="discussionWidget"
         aria-expanded="false"
-        title="Chats">
-    <span class="discussion-fab__badge" id="discussionFabBadge" hidden aria-label="Unread messages">0</span>
+        title="Community Chat">
+    <span class="discussion-fab__badge" id="discussionFabBadge" hidden aria-label="Unread community messages">0</span>
     <span class="discussion-fab__icon" aria-hidden="true">
-        <i class="fa-solid fa-comments"></i>
+        <i class="fa-solid fa-people-group"></i>
     </span>
     <span class="discussion-fab__close" aria-hidden="true">
         <i class="fa-solid fa-xmark"></i>
