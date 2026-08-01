@@ -31,7 +31,7 @@
   }
   .header {
     background: var(--white);
-    padding: 10px 72px 10px 28px;
+    padding: 10px 28px;
     display: flex;
     align-items: center;
     gap: 18px;
@@ -43,11 +43,8 @@
     max-width: 100%;
   }
   .header-sticky-chat-btn {
-    position: absolute;
-    top: 50%;
-    right: 14px;
-    z-index: 5;
-    transform: translateY(-50%);
+    position: relative;
+    flex-shrink: 0;
     width: 44px;
     height: 44px;
     border: 1.5px solid #c8daf5;
@@ -68,7 +65,7 @@
     border-color: #9ec5f8;
     color: #15467f;
     outline: none;
-    transform: translateY(calc(-50% - 1px));
+    transform: translateY(-1px);
   }
   .header-sticky-chat-btn.is-open {
     background: #1976d2;
@@ -2230,17 +2227,28 @@
 @media (max-width: 760px) {
   .header { padding: 10px 108px 10px 12px; }
   .logo-icon { width: 98px; }
+  .header-actions-desktop .dropdown,
+  .header-actions-desktop > .btn-offer,
+  .header-actions-desktop > .btn-post,
+  .header-actions-desktop > .btn-login,
+  .header-actions-desktop .user-menu-dropdown {
+    display: none !important;
+  }
   .header-sticky-chat-btn {
+    position: absolute;
+    top: 50%;
     right: 58px;
+    transform: translateY(-50%);
     width: 40px;
     height: 40px;
     border-radius: 10px;
   }
+  .header-sticky-chat-btn:hover,
+  .header-sticky-chat-btn:focus-visible {
+    transform: translateY(calc(-50% - 1px));
+  }
   .header-sticky-chat-btn__icon {
     font-size: 1rem;
-  }
-  .header-actions-desktop {
-    display: none;
   }
   .header-menu-toggle {
     display: inline-flex;
@@ -2406,9 +2414,15 @@
   .header.header-mobile-open .header-mobile-menu {
     margin-top: 0;
   }
-  .loc-wrap,
-  .header-actions-desktop {
+  .loc-wrap {
     display: none;
+  }
+  .header-actions-desktop .dropdown,
+  .header-actions-desktop > .btn-offer,
+  .header-actions-desktop > .btn-post,
+  .header-actions-desktop > .btn-login,
+  .header-actions-desktop .user-menu-dropdown {
+    display: none !important;
   }
   .search-wrap {
     order: 3;

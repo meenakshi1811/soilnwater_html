@@ -151,9 +151,9 @@
     @else
       <a class="btn-login" href="{{ route('login') }}">Login</a>
     @endauth
-  </div>
 
-  @include('discussions.partials.header-chat-btn')
+    @include('discussions.partials.header-chat-btn')
+  </div>
 
   <div class="collapse header-mobile-menu" id="mobileHeaderMenu">
     <div class="header-mobile-menu-top">
