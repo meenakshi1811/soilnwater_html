@@ -93,7 +93,7 @@ class MarketplaceAdsService
             ->orderByDesc('reviewed_at')
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
-            ->get(['id', 'title', 'size_type', 'final_image', 'reviewed_at', 'location_lat', 'location_lng']);
+            ->get(['id', 'title', 'short_description', 'size_type', 'final_image', 'reviewed_at', 'location_lat', 'location_lng']);
 
         return $sponsoredAds
             ->map(function (UserAd $ad) use ($requiredDimensions) {
@@ -120,6 +120,8 @@ class MarketplaceAdsService
                     'h' => $dims['h'],
                     'label' => 'Sponsored',
                     'title' => $ad->title,
+                    'description' => $ad->short_description ?: 'Special marketplace ad available now.',
+                    'meta' => 'Sponsored',
                     'image' => asset($ad->final_image),
                     'url' => SocialShare::normalizeUrl(route('frontend.ads.show', ['ad' => $ad->getRouteKey()])),
                 ];

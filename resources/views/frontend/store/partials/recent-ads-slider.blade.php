@@ -31,11 +31,13 @@
                                         ->values()
                                         ->all();
                                 @endphp
-                                <a href="{{ route('frontend.ads.show', $ad) }}"
-                                    class="prod-card recent-ad-card vendor-store-recent-ad-card text-decoration-none"
-                                    data-ad-description="{{ $ad->short_description ?: 'Special marketplace ad available now.' }}"
-                                    data-ad-url="{{ route('frontend.ads.show', $ad) }}"
-                                    data-ad-meta="{{ implode(', ', $selectedCategoryNames) }}"
+                                <article class="prod-card recent-ad-card vendor-store-recent-ad-card js-ad-modal-trigger"
+                                    role="button"
+                                    tabindex="0"
+                                    @include('frontend.ads.partials.ad-modal-attrs', [
+                                        'ad' => $ad,
+                                        'adModalMeta' => $selectedCategoryNames !== [] ? implode(', ', $selectedCategoryNames) : $defaultCategoryLabel,
+                                    ])
                                     data-ad-services="{{ implode(', ', $selectedServiceNames) }}"
                                 >
                                     <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" width="768" height="1080" loading="{{ $loop->parent->first ? 'eager' : 'lazy' }}" fetchpriority="{{ $loop->parent->first && $loop->first ? 'high' : 'low' }}" decoding="async">
@@ -46,7 +48,7 @@
                                             {{ ($selectedCategoryNames !== [] ? implode(', ', $selectedCategoryNames) : $defaultCategoryLabel) }} • {{ $ad->created_at?->format('d M Y') ?? 'N/A' }}
                                         </span>
                                     </div>
-                                </a>
+                                </article>
                             @endforeach
                         </div>
                     </div>

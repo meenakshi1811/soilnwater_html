@@ -144,8 +144,9 @@
       <text x="356" y="72" font-size="10">🦋</text>
     </svg>
   </div>
-</div>
   @endif
+
+  @include('discussions.partials.hero-chat-launcher')
 </section>
 
 
@@ -673,98 +674,6 @@
       </div>
     @endif
 
-
-
-    <div class="modal fade offer-details-modal" id="adDetailsModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable offer-details-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h2 class="modal-title fs-5">Ad Details</h2>
-            <button type="button" class="offer-modal-close-btn" data-bs-dismiss="modal">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-          <div class="modal-body p-0">
-            <img id="adDetailsModalImage" src="" alt="Ad image" class="d-none offer-details-modal-image">
-            <div class="offer-details-content">
-              <h3 class="h4 mb-2" id="adDetailsModalTitle"></h3>
-              <p class="text-muted mb-2" id="adDetailsModalMeta"></p>
-              <p class="text-muted mb-3" id="adDetailsModalDescription"></p>
-
-              <button type="button" class="btn btn-outline-primary btn-sm mb-3 d-none" id="adDetailsEnlargeBtn">
-                <i class="fa-solid fa-up-right-and-down-left-from-center me-1"></i> Enlarge image
-              </button>
-
-              <div class="offer-login-message d-none" id="adLoginMessageBox" role="status" aria-live="polite">
-                <div class="offer-login-message-icon"><i class="fa-solid fa-lock"></i></div>
-                <div>
-                  <h4 class="offer-login-message-title mb-1">You are not logged in</h4>
-                  <p class="offer-login-message-text mb-2">Please log in to view this ad details and share options.</p>
-                  <a href="{{ route('login') }}" class="btn btn-sm btn-primary">Login to continue</a>
-                </div>
-              </div>
-              <div class="offer-share-panel mt-2" id="adSharePanel">
-                <div class="offer-share-panel-head">
-                  <h4 class="offer-share-title mb-1">Share this ad</h4>
-                </div>
-                <div class="offer-share-panel-body">
-                  <div class="offer-share-qr-wrap">
-                    <img id="adShareQr" src="" alt="Ad QR" class="offer-share-qr">
-                  </div>
-                  <div class="offer-share-links-wrap">
-                    <input type="text" id="adShareLink" class="form-control form-control-sm offer-share-link-input" readonly>
-                    <div class="d-flex flex-wrap gap-2 mt-2">
-                      <button type="button" id="adShareCopyBtn" class="btn btn-sm btn-outline-secondary">Copy link</button>
-                      <a id="adShareWhatsapp" href="#" target="_blank" rel="noopener" class="btn btn-sm offer-share-btn share-whatsapp">WhatsApp</a>
-                      <a id="adShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm offer-share-btn share-facebook">Facebook</a>
-                      <button type="button" id="adShareInstagram" class="btn btn-sm offer-share-btn share-instagram">Instagram</button>
-                    </div>
-                    <p class="small text-muted mt-2 mb-0">On Android, pick <strong>Instagram</strong> from the share list for Story or DM. The link is copied automatically.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-3 border-top pt-3 d-none" id="adReportActions">
-                <button type="button" class="btn btn-outline-danger btn-sm" id="openAdReportPopupBtn">
-                  <i class="fa-regular fa-flag me-1"></i> Report this ad
-                </button>
-              </div>
-              <div class="mt-3 d-none" id="adReportPopupWrap">
-                <div class="ad-report-popup border rounded-3 p-3 bg-light">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="h6 mb-0"><i class="fa-regular fa-flag me-1 text-danger"></i>Report this ad</h5>
-                    <button type="button" class="btn btn-sm btn-link text-muted p-0" id="closeAdReportPopupBtn">Close</button>
-                  </div>
-                  @auth
-                    <form id="adReportForm" method="POST" action="#">
-                      @csrf
-                      <textarea name="reason" class="form-control form-control-sm mb-2 ad-report-textarea" rows="3" placeholder="Enter reason for reporting this ad" required></textarea>
-                      <button type="submit" class="btn btn-sm btn-danger">Submit Report</button>
-                    </form>
-                  @else
-                    <p class="mb-0 small text-muted">Please <a href="{{ route('login') }}">login</a> to report this ad.</p>
-                  @endauth
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="adImageEnlargeModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content bg-dark">
-          <div class="modal-header border-0">
-            <h2 class="modal-title fs-6 text-white">Ad Image Preview</h2>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body pt-0">
-            <img id="adImageEnlargePreview" src="" alt="Enlarged ad image" class="img-fluid w-100 rounded">
-          </div>
-        </div>
-      </div>
-    </div>
 
 
     <div class="modal fade" id="vendorEnquiryModal" tabindex="-1" aria-labelledby="vendorEnquiryModalLabel" aria-hidden="true">
@@ -1962,119 +1871,7 @@
 @push('scripts')
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const adModal = document.getElementById('adDetailsModal');
     const isUserLoggedIn = @json(auth()->check());
-    const adImageEl = document.getElementById('adDetailsModalImage');
-    const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
-    const adImageEnlargePreview = document.getElementById('adImageEnlargePreview');
-    const adLoginMessageBox = document.getElementById('adLoginMessageBox');
-    const adSharePanel = document.getElementById('adSharePanel');
-    const adReportActions = document.getElementById('adReportActions');
-    const adReportForm = document.getElementById('adReportForm');
-    const openAdReportPopupBtn = document.getElementById('openAdReportPopupBtn');
-    const closeAdReportPopupBtn = document.getElementById('closeAdReportPopupBtn');
-    const adReportPopupWrap = document.getElementById('adReportPopupWrap');
-
-    if (adModal) {
-      document.addEventListener('click', function (event) {
-        const adImage = event.target.closest('.ad-slider img, .recent-ad-card img');
-        if (!adImage || adImage.closest('.offer-coupon-card, .con-card')) return;
-
-        event.preventDefault();
-
-        const adTitle = adImage.getAttribute('alt') || 'Ad Details';
-        const adSrc = adImage.getAttribute('src') || '';
-        const adCard = adImage.closest('.recent-ad-card');
-        const adContext = adImage.dataset.adId ? adImage : (adCard || adImage.closest('[data-ad-id]'));
-        const adId = adContext?.dataset.adId || '';
-        const categoriesMeta = adCard?.dataset.adMeta || adImage.dataset.adMeta || '';
-        const servicesMeta = adCard?.dataset.adServices || adImage.dataset.adServices || '';
-        const adMeta = categoriesMeta || servicesMeta || 'Home Page Advertisement';
-        const adDescription = adContext?.dataset.adDescription || 'You are viewing this ad from the homepage slider/recent ads section.';
-
-        document.getElementById('adDetailsModalTitle').textContent = adTitle;
-        document.getElementById('adDetailsModalMeta').textContent = adMeta;
-        document.getElementById('adDetailsModalDescription').textContent = adDescription;
-
-        if (!isUserLoggedIn) {
-          if (adLoginMessageBox) adLoginMessageBox.classList.remove('d-none');
-          if (adSharePanel) adSharePanel.classList.add('d-none');
-          if (adReportActions) adReportActions.classList.add('d-none');
-          if (adReportPopupWrap) adReportPopupWrap.classList.add('d-none');
-          document.getElementById('adDetailsModalTitle').textContent = 'You are not logged in';
-          document.getElementById('adDetailsModalMeta').textContent = '';
-          document.getElementById('adDetailsModalDescription').textContent = '';
-          adImageEl.src = '';
-          adImageEl.classList.add('d-none');
-          adEnlargeBtn.classList.add('d-none');
-          document.getElementById('adShareLink').value = '';
-          document.getElementById('adShareQr').src = '';
-          document.getElementById('adShareWhatsapp').href = '#';
-          document.getElementById('adShareFacebook').href = '#';
-          new bootstrap.Modal(adModal).show();
-          return;
-        }
-        if (adLoginMessageBox) adLoginMessageBox.classList.add('d-none');
-        if (adSharePanel) adSharePanel.classList.remove('d-none');
-        if (adReportActions) adReportActions.classList.toggle('d-none', !adId);
-        if (adReportPopupWrap) adReportPopupWrap.classList.add('d-none');
-        if (adReportForm && adId) {
-          adReportForm.action = `{{ url('/ads-market') }}/${adId}/report`;
-          const reportReason = adReportForm.querySelector('textarea[name="reason"]');
-          if (reportReason) reportReason.value = '';
-        }
-
-        if (adSrc) {
-          adImageEl.src = adSrc;
-          adImageEl.classList.remove('d-none');
-          adEnlargeBtn.classList.remove('d-none');
-        } else {
-          adImageEl.src = '';
-          adImageEl.classList.add('d-none');
-          adEnlargeBtn.classList.add('d-none');
-        }
-
-        window.soilnwaterPopulateShareLinks({
-          url: adContext?.dataset.adUrl || adCard?.dataset.adUrl || window.location.href,
-          linkInput: 'adShareLink',
-          qrImage: 'adShareQr',
-          whatsappLink: 'adShareWhatsapp',
-          facebookLink: 'adShareFacebook',
-          whatsappSuffix: 'Check this ad on SoilnWater',
-        });
-
-        new bootstrap.Modal(adModal).show();
-      });
-
-      window.soilnwaterBindShareCopyButton('adShareCopyBtn', 'adShareLink');
-      window.soilnwaterBindInstagramShareButton('adShareInstagram', 'adShareLink', {
-        title: 'SoilnWater Ad',
-        text: 'Check this ad on SoilnWater',
-      });
-
-      if (adEnlargeBtn) {
-        adEnlargeBtn.addEventListener('click', function () {
-          if (!adImageEl || !adImageEl.src) return;
-          adImageEnlargePreview.src = adImageEl.src;
-          new bootstrap.Modal(document.getElementById('adImageEnlargeModal')).show();
-        });
-      }
-
-
-      if (openAdReportPopupBtn && adReportPopupWrap) {
-        openAdReportPopupBtn.addEventListener('click', function () {
-          adReportPopupWrap.classList.remove('d-none');
-          adReportPopupWrap.querySelector('textarea')?.focus();
-        });
-      }
-
-      if (closeAdReportPopupBtn && adReportPopupWrap) {
-        closeAdReportPopupBtn.addEventListener('click', function () {
-          adReportPopupWrap.classList.add('d-none');
-        });
-      }
-
-    }
 
     const offerModal = document.getElementById('offerDetailsModal');
     if (!offerModal) return;

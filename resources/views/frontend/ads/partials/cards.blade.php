@@ -67,6 +67,8 @@
             style="--ad-w: {{ $adWidth }}; --ad-h: {{ $adHeight }}; --ad-image-h: {{ $adImageHeight }};"
             role="button"
             tabindex="0"
+            data-bs-toggle="modal"
+            data-bs-target="#adDetailsModal"
             data-ad-w="{{ $adWidth }}"
             data-ad-h="{{ $adHeight }}"
             data-ad-mobile-tier="{{ $mobileSizeTier }}"
@@ -534,9 +536,7 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             ? '<img src="' + item.image + '" alt="' + (item.title || item.label || 'Sponsored') + '" loading="lazy" onerror="this.style.display=\'none\'; this.parentElement.innerHTML=\'<div class=&quot;filler-placeholder&quot;></div>\';">'
             : '<div class="filler-placeholder"></div>';
 
-        const imageBlock = item.url
-            ? '<a href="' + item.url + '" class="d-block w-100 h-100">' + imageHtml + '</a>'
-            : imageHtml;
+        const imageBlock = imageHtml;
 
         if (isGapFill || isMobileInline) {
             card.innerHTML =
@@ -551,6 +551,10 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 '<span class="filler-label">' + (item.label || 'Sponsored') + '</span>' +
                 adTitleHtml +
                 '<div class="ad-image">' + imageBlock + '</div>';
+        }
+
+        if (typeof window.soilnwaterApplyAdModalTrigger === 'function' && (item.id || item.url)) {
+            window.soilnwaterApplyAdModalTrigger(card, item, width, height);
         }
 
         return card;

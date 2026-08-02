@@ -54,8 +54,6 @@
     </div>
     <div id="adsScrollSentinel" class="offer-scroll-sentinel" aria-hidden="true"></div>
 </div>
-
-@include('frontend.ads.partials.modals')
 @endsection
 
 @push('styles')
@@ -69,23 +67,9 @@
 
 @push('scripts')
 <script>
-// unchanged behavior; formatting only for reliability
-// ...
 document.addEventListener('DOMContentLoaded', function () {
-const adModal = document.getElementById('adDetailsModal'); const adsGrid = document.getElementById('adsGrid'); if (!adsGrid) return;
-const isLoggedIn = @json(auth()->check());
-const adModalDialog = document.getElementById('adDetailsModalDialog');
-const adModalImageWrap = document.getElementById('adDetailsModalImageWrap');
-const adEnlargeBtn = document.getElementById('adDetailsEnlargeBtn');
-const adLoginMessageBox = document.getElementById('adLoginMessageBox');
-const adSharePanel = document.getElementById('adSharePanel');
-const adReportActions = document.getElementById('adReportActions');
-const adReportForm = document.getElementById('adReportForm');
-const openAdReportPopupBtn = document.getElementById('openAdReportPopupBtn');
-const closeAdReportPopupBtn = document.getElementById('closeAdReportPopupBtn');
-const adReportPopupWrap = document.getElementById('adReportPopupWrap');
-const adImageEnlargePreview = document.getElementById('adImageEnlargePreview');
-const adDetailsModalInstance = adModal ? new bootstrap.Modal(adModal) : null;
+const adsGrid = document.getElementById('adsGrid');
+if (!adsGrid) return;
 const searchFilter = document.getElementById('adsMarketFilterSearch'); const categoryFilter = document.getElementById('adsMarketFilterCategory'); const subcategoryFilter = document.getElementById('adsMarketFilterSubcategory');
 const clearFiltersBtn = document.getElementById('adsMarketClearFilters');
 const loadingText = document.getElementById('adsLoadingText'); const summaryText = document.getElementById('adsSummaryText'); const scrollSentinel = document.getElementById('adsScrollSentinel');
@@ -130,147 +114,6 @@ function parseCardsHtml(html){
 async function refreshAds(){if(isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const res=await fetch(buildUrl('{{ route('frontend.ads.index') }}'),{headers:{'X-Requested-With':'XMLHttpRequest'}});const payload=await res.json();if(!payload.total){adsGrid.innerHTML='<div class="text-center py-4"><h4>No result found</h4></div>';nextPageUrl='';adsGrid.dataset.nextPageUrl='';summaryText.textContent='';loadingText.classList.add('d-none');isLoading=false;return;}adsGrid.innerHTML=payload.html||'';nextPageUrl=payload.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=`Showing 1 to ${payload.loaded_to} of ${payload.total} results`;if(typeof window.renderAdsMarketCards==='function'){window.renderAdsMarketCards('ads', adsMarketFillers, { resetFillers: true, blankSizes: adsMarketBlankSizes, staticImages: adsMarketStaticImages });}layoutAdsGrid();loadingText.classList.add('d-none');isLoading=false;}
 async function loadMore(){if(!nextPageUrl||isLoading) return;isLoading=true;loadingText.classList.remove('d-none');const r=await fetch(nextPageUrl,{headers:{'X-Requested-With':'XMLHttpRequest'}});const p=await r.json();const parsed=parseCardsHtml(p.html||'');const existingSource=adsGrid.querySelector('#adsSource');if(existingSource&&parsed.source){existingSource.insertAdjacentHTML('beforeend',parsed.source.innerHTML);}else if(parsed.source){adsGrid.insertAdjacentHTML('beforeend',p.html||'');}nextPageUrl=p.next_page_url||'';adsGrid.dataset.nextPageUrl=nextPageUrl;summaryText.textContent=p.total?`Showing 1 to ${p.loaded_to} of ${p.total} results`:'';if(typeof window.renderAdsMarketCards==='function'){window.renderAdsMarketCards('ads', adsMarketFillers, { append: true, blankSizes: adsMarketBlankSizes, staticImages: adsMarketStaticImages });}layoutAdsGrid();loadingText.classList.add('d-none');isLoading=false;}
 if(scrollSentinel && 'IntersectionObserver' in window){new IntersectionObserver(e=>{if(e[0].isIntersecting) loadMore();},{rootMargin:'250px'}).observe(scrollSentinel);}
-
-function syncAdModalSize(trigger){
-    if(!adModalDialog || !trigger) return;
-    const adWidth = Number(trigger.dataset.adW || 0);
-    const adHeight = Number(trigger.dataset.adH || 0);
-    const aspectRatio = adWidth > 0 && adHeight > 0 ? adWidth / adHeight : 1;
-    const isWideAd = adWidth >= 900 || aspectRatio >= 2.4;
-    const isTallAd = adHeight >= 400 || aspectRatio <= 0.75;
-    let modalMax = 640;
-
-    adModalDialog.classList.remove('modal-lg','modal-xl','is-wide-ad','is-tall-ad');
-    adModalDialog.style.removeProperty('--offer-modal-w');
-    adModalDialog.style.removeProperty('width');
-    adModalDialog.style.removeProperty('max-width');
-
-    if(adModalImageWrap){
-        if(adWidth > 0 && adHeight > 0){
-            adModalImageWrap.style.setProperty('--ad-modal-w', String(adWidth));
-            adModalImageWrap.style.setProperty('--ad-modal-h', String(adHeight));
-        }else{
-            adModalImageWrap.style.removeProperty('--ad-modal-w');
-            adModalImageWrap.style.removeProperty('--ad-modal-h');
-        }
-    }
-
-    if(isWideAd){
-        adModalDialog.classList.add('modal-xl','is-wide-ad');
-        modalMax = Math.min(1140, window.innerWidth - 24);
-    }else if(adWidth >= 458 || adHeight >= 450){
-        adModalDialog.classList.add('modal-lg');
-        modalMax = Math.min(760, window.innerWidth - 24);
-    }else{
-        modalMax = Math.min(640, window.innerWidth - 24);
-    }
-
-    if(isTallAd){
-        adModalDialog.classList.add('is-tall-ad');
-    }
-
-    adModalDialog.style.setProperty('--offer-modal-w', modalMax + 'px');
-    adModalDialog.style.width = 'min(100% - 1.5rem, ' + modalMax + 'px)';
-    adModalDialog.style.maxWidth = modalMax + 'px';
-}
-function setAdModalImage(src){
-    const imgEl = document.getElementById('adDetailsModalImage');
-    if(!imgEl) return;
-    if(src){
-        imgEl.src = src;
-        imgEl.classList.remove('d-none');
-        if(adModalImageWrap) adModalImageWrap.classList.remove('d-none');
-        if(adEnlargeBtn) adEnlargeBtn.classList.remove('d-none');
-        return;
-    }
-    imgEl.src = '';
-    imgEl.classList.add('d-none');
-    if(adModalImageWrap) adModalImageWrap.classList.add('d-none');
-    if(adEnlargeBtn) adEnlargeBtn.classList.add('d-none');
-}
-function populateAdShareLinks(url) {
-    return window.soilnwaterPopulateShareLinks({
-        url: url,
-        linkInput: 'adShareLink',
-        qrImage: 'adShareQr',
-        whatsappLink: 'adShareWhatsapp',
-        facebookLink: 'adShareFacebook',
-        whatsappSuffix: 'Check this ad on SoilnWater',
-    });
-}
-
-function clearAdShareLinks() {
-    const shareLinkEl = document.getElementById('adShareLink');
-    const shareQrEl = document.getElementById('adShareQr');
-    const shareWhatsappEl = document.getElementById('adShareWhatsapp');
-    const shareFacebookEl = document.getElementById('adShareFacebook');
-
-    if (shareLinkEl) shareLinkEl.value = '';
-    if (shareQrEl) shareQrEl.src = '';
-    if (shareWhatsappEl) shareWhatsappEl.href = '#';
-    if (shareFacebookEl) shareFacebookEl.href = '#';
-}
-
-adsGrid.addEventListener('click', function (e) {
-    const trigger = e.target.closest('.js-ad-modal-trigger');
-    if (!trigger) return;
-
-    syncAdModalSize(trigger);
-    document.getElementById('adDetailsModalTitle').textContent = trigger.dataset.adTitle || 'Ad Details';
-    document.getElementById('adDetailsModalMeta').textContent = trigger.dataset.adMeta || '';
-    document.getElementById('adDetailsModalDescription').textContent = trigger.dataset.adDescription || '';
-
-    const img = trigger.dataset.adImage || '';
-    setAdModalImage(img);
-
-    populateAdShareLinks(trigger.dataset.adUrl || window.location.href);
-
-    if (!isLoggedIn) {
-        if (adLoginMessageBox) adLoginMessageBox.classList.remove('d-none');
-        if (adSharePanel) adSharePanel.classList.add('d-none');
-        if (adReportActions) adReportActions.classList.add('d-none');
-        document.getElementById('adDetailsModalTitle').textContent = 'You are not logged in';
-        document.getElementById('adDetailsModalMeta').textContent = '';
-        document.getElementById('adDetailsModalDescription').textContent = '';
-        setAdModalImage('');
-        clearAdShareLinks();
-        if (adReportPopupWrap) adReportPopupWrap.classList.add('d-none');
-        if (adDetailsModalInstance) adDetailsModalInstance.show();
-        return;
-    }
-
-    if (adLoginMessageBox) adLoginMessageBox.classList.add('d-none');
-    if (adSharePanel) adSharePanel.classList.remove('d-none');
-    if (adReportActions) adReportActions.classList.remove('d-none');
-    if (adReportForm && trigger.dataset.adId) {
-        adReportForm.action = `{{ url('/ads-market') }}/${trigger.dataset.adId}/report`;
-    }
-    if (adReportPopupWrap) adReportPopupWrap.classList.add('d-none');
-    if (adDetailsModalInstance) adDetailsModalInstance.show();
-});
-
-const adShareCopyBtn = document.getElementById('adShareCopyBtn');
-const adShareInstagramBtn = document.getElementById('adShareInstagram');
-
-window.soilnwaterBindShareCopyButton(adShareCopyBtn, 'adShareLink');
-window.soilnwaterBindInstagramShareButton(adShareInstagramBtn, 'adShareLink', {
-  title: 'SoilnWater Ad',
-  text: 'Check this ad on SoilnWater',
-});
-
-if (openAdReportPopupBtn && adReportPopupWrap) {
-    openAdReportPopupBtn.addEventListener('click', function () {
-        adReportPopupWrap.classList.remove('d-none');
-    });
-}
-
-if (closeAdReportPopupBtn && adReportPopupWrap) {
-    closeAdReportPopupBtn.addEventListener('click', function () {
-        adReportPopupWrap.classList.add('d-none');
-    });
-}
-
-if (adEnlargeBtn) { adEnlargeBtn.addEventListener('click', function () { const imgEl = document.getElementById('adDetailsModalImage'); if (!imgEl || !imgEl.src) return; adImageEnlargePreview.src = imgEl.src; new bootstrap.Modal(document.getElementById('adImageEnlargeModal')).show(); }); }
 });
 </script>
 @endpush

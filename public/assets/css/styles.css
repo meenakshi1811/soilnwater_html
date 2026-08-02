@@ -359,6 +359,9 @@
     position: relative;
     border-bottom: 1px solid #dde;
   }
+  .hero:has(.hero-chat-launcher-wrap) {
+    padding-bottom: 58px;
+  }
   /* sky + grass pseudo layers */
   .hero::after {
     content: '';
@@ -2153,6 +2156,9 @@
     min-height: 0;
     gap: 8px;
   }
+  .hero:has(.hero-chat-launcher-wrap) {
+    padding-bottom: 62px;
+  }
   .hero-content {
     padding: 10px 0 0;
   }
@@ -3279,6 +3285,20 @@
 .masonry-grid .ad-card {
     position: absolute;
     z-index: 1;
+}
+
+.ad-card.js-ad-modal-trigger {
+    cursor: pointer;
+}
+
+.vendor-store-ad-card.js-ad-modal-trigger,
+.service-provider-compact-ad.js-ad-modal-trigger,
+.ad-link.js-ad-modal-trigger {
+    cursor: pointer;
+}
+
+.masonry-grid .ad-card.js-ad-modal-trigger {
+    z-index: 2;
 }
 
 .ads-full-width .ad-card {

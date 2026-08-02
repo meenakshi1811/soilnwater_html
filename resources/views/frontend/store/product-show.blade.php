@@ -178,19 +178,37 @@ $adFrameStyle = function ($ad) {
                         <div id="rightAdCarousel0" class="carousel slide mb-3" data-bs-ride="carousel">
                             <div class="carousel-inner rounded-3 overflow-hidden border shadow-sm bg-white">
                                 @foreach($sliderAds as $i => $ad)
-                                <div class="carousel-item {{ $i===0?'active':'' }}"><a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link"><img src="{{ asset($ad->final_image) }}" class="d-block w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a></div>
+                                <div class="carousel-item {{ $i===0?'active':'' }}">
+                                    <div class="ad-link js-ad-modal-trigger"
+                                         role="button"
+                                         tabindex="0"
+                                         @include('frontend.ads.partials.ad-modal-attrs', ['ad' => $ad])>
+                                        <img src="{{ asset($ad->final_image) }}" class="d-block w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}">
+                                    </div>
+                                </div>
                                 @endforeach
                             </div>
                             <button class="carousel-control-prev" type="button" data-bs-target="#rightAdCarousel0" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
                             <button class="carousel-control-next" type="button" data-bs-target="#rightAdCarousel0" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
                         </div>
                     @elseif($sliderAds->count() === 1)
-                        @php($ad = $sliderAds->first())<a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a>
+                        @php($ad = $sliderAds->first())
+                        <div class="ad-link js-ad-modal-trigger d-block rounded-3 overflow-hidden border shadow-sm mb-3"
+                             role="button"
+                             tabindex="0"
+                             @include('frontend.ads.partials.ad-modal-attrs', ['ad' => $ad])>
+                            <img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}">
+                        </div>
                     @endif
 
                     @php($stackAds = $railAds->slice(1)->take(10))
                     @foreach($stackAds as $ad)
-                        <a href="{{ route('frontend.ads.show', $ad) }}" class="ad-link d-block rounded-3 overflow-hidden border shadow-sm mb-3 ad-stack-item"><img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}"></a>
+                        <div class="ad-link js-ad-modal-trigger d-block rounded-3 overflow-hidden border shadow-sm mb-3 ad-stack-item"
+                             role="button"
+                             tabindex="0"
+                             @include('frontend.ads.partials.ad-modal-attrs', ['ad' => $ad])>
+                            <img src="{{ asset($ad->final_image) }}" class="img-fluid w-100" style="{{ $adFrameStyle($ad) }}" alt="{{ $ad->title }}">
+                        </div>
                     @endforeach
                 </div></aside>
             @endif

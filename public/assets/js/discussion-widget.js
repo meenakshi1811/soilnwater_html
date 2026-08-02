@@ -4,6 +4,7 @@
 
     const fab = document.getElementById('discussionFab');
     const headerBtn = document.getElementById('discussionHeaderBtn');
+    const heroBtn = document.getElementById('discussionHeroBtn');
     const widget = document.getElementById('discussionWidget');
     const isPageMode = Boolean(config.pageMode);
 
@@ -11,7 +12,7 @@
         return;
     }
 
-    if (!isPageMode && !fab && !headerBtn) {
+    if (!isPageMode && !fab && !headerBtn && !heroBtn) {
         return;
     }
 
@@ -89,9 +90,10 @@
 
     const fabBadge = document.getElementById('discussionFabBadge');
     const headerBadge = document.getElementById('discussionHeaderBadge');
+    const heroBadge = document.getElementById('discussionHeroBadge');
 
     function chatTriggers() {
-        return [fab, headerBtn].filter(Boolean);
+        return [fab, headerBtn, heroBtn].filter(Boolean);
     }
 
     function initHeaderChatPopover() {
@@ -1035,7 +1037,7 @@
 
     function updateFabBadge(count) {
         config.globalUnread = Math.max(0, count);
-        const badges = [fabBadge, headerBadge].filter(Boolean);
+        const badges = [fabBadge, headerBadge, heroBadge].filter(Boolean);
 
         if (!badges.length) {
             return;
@@ -1358,6 +1360,12 @@
         fab?.setAttribute('aria-expanded', open ? 'true' : 'false');
         headerBtn?.classList.toggle('is-open', open);
         headerBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
+        heroBtn?.classList.toggle('is-open', open);
+        heroBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
+        const heroActionLabel = heroBtn?.querySelector('.hero-chat-launcher__action-label');
+        if (heroActionLabel) {
+            heroActionLabel.textContent = open ? 'Close' : 'Open';
+        }
         widget.classList.toggle('is-open', open);
 
         if (open) {
@@ -2013,6 +2021,16 @@
         showComposeTopic();
     }
 
+    let lastLaunchSource = 'header';
+
+    function positionWidgetForLaunch() {
+        if (lastLaunchSource === 'hero' && heroBtn) {
+            widget.classList.add('discussion-widget--hero-launch');
+        } else {
+            widget.classList.remove('discussion-widget--hero-launch');
+        }
+    }
+
     async function toggleOpen() {
         const next = !isOpen();
         setOpen(next);
@@ -2032,11 +2050,21 @@
     }
 
     fab?.addEventListener('click', () => {
+        lastLaunchSource = 'fab';
+        positionWidgetForLaunch();
         toggleOpen();
     });
 
     headerBtn?.addEventListener('click', () => {
         bootstrap.Popover.getInstance(headerBtn)?.hide();
+        lastLaunchSource = 'header';
+        positionWidgetForLaunch();
+        toggleOpen();
+    });
+
+    heroBtn?.addEventListener('click', () => {
+        lastLaunchSource = 'hero';
+        positionWidgetForLaunch();
         toggleOpen();
     });
 

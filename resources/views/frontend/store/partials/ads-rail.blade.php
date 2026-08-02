@@ -42,9 +42,13 @@
                 @foreach($sliderAds as $index => $item)
                     @php($ad = $item['ad'])
                     <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                        <a href="{{ route('frontend.ads.show', $ad) }}" class="vendor-store-ad-card is-slider" style="--ad-ratio: {{ max(0.6, min(2, $item['ratio'])) }};">
+                        <div class="vendor-store-ad-card is-slider js-ad-modal-trigger"
+                             role="button"
+                             tabindex="0"
+                             style="--ad-ratio: {{ max(0.6, min(2, $item['ratio'])) }};"
+                             @include('frontend.ads.partials.ad-modal-attrs', ['ad' => $ad])>
                             <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" loading="lazy">
-                        </a>
+                        </div>
                     </div>
                 @endforeach
             </div>
@@ -62,9 +66,13 @@
     @if($stackAds->isNotEmpty())
         <div class="vendor-store-ads-stack">
             @foreach($stackAds as $item)
-                <a href="{{ route('frontend.ads.show', $item['ad']) }}" class="vendor-store-ad-card {{ $item['ratio'] < 0.9 ? 'is-tall' : ($item['ratio'] > 1.35 ? 'is-compact' : 'is-standard') }}" style="--ad-ratio: {{ max(0.55, min(1.8, $item['ratio'])) }};">
+                <div class="vendor-store-ad-card js-ad-modal-trigger {{ $item['ratio'] < 0.9 ? 'is-tall' : ($item['ratio'] > 1.35 ? 'is-compact' : 'is-standard') }}"
+                     role="button"
+                     tabindex="0"
+                     style="--ad-ratio: {{ max(0.55, min(1.8, $item['ratio'])) }};"
+                     @include('frontend.ads.partials.ad-modal-attrs', ['ad' => $item['ad']])>
                     <img src="{{ asset($item['ad']->final_image) }}" alt="{{ $item['ad']->title }}" loading="lazy">
-                </a>
+                </div>
             @endforeach
         </div>
     @endif
