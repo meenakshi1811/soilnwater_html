@@ -10,6 +10,7 @@
     <span class="header-sticky-chat-btn__icon" aria-hidden="true">
         <i class="fa-solid fa-people-group"></i>
     </span>
+    <span class="header-sticky-chat-btn__label">Community Chat</span>
     <span class="header-sticky-chat-btn__badge" id="discussionHeaderBadge" hidden aria-label="Unread community messages">0</span>
 </button>
 
@@ -21,7 +22,7 @@
             <li><i class="fa-solid fa-user-group" aria-hidden="true"></i> Connect with vendors, consultants, and neighbours</li>
             <li><i class="fa-solid fa-bullhorn" aria-hidden="true"></i> Share local voices, ideas, and community updates</li>
         </ul>
-        <p class="community-chat-popover__hint mb-0">Click the icon to open your community conversations.</p>
+        <p class="community-chat-popover__hint mb-0">Click Community Chat to open your conversations.</p>
     </div>
 </div>
 @endauth

@@ -45,11 +45,13 @@
   .header-sticky-chat-btn {
     position: relative;
     flex-shrink: 0;
-    width: 44px;
-    height: 44px;
+    min-height: 42px;
+    height: auto;
+    width: auto;
+    padding: 0 16px 0 12px;
+    gap: 8px;
     border: 1.5px solid #c8daf5;
-    border-radius: 12px;
-    padding: 0;
+    border-radius: 9px;
     background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
     color: #1976d2;
     display: inline-flex;
@@ -58,6 +60,7 @@
     cursor: pointer;
     box-shadow: 0 4px 14px rgba(25, 118, 210, 0.16);
     transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    white-space: nowrap;
   }
   .header-sticky-chat-btn:hover,
   .header-sticky-chat-btn:focus-visible {
@@ -81,6 +84,13 @@
     align-items: center;
     justify-content: center;
     font-size: 1.05rem;
+    flex-shrink: 0;
+  }
+  .header-sticky-chat-btn__label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1;
   }
   .header-sticky-chat-btn__badge {
     position: absolute;
@@ -129,12 +139,21 @@
     font-weight: 500;
   }
   .loc-text-input::placeholder { color: #8b8b8b; }
+  /* Search + community chat cluster */
+  .header-search-cluster {
+    flex: 1 1 420px;
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    min-width: 0;
+    max-width: 700px;
+  }
   /* Search */
   .search-wrap {
-    flex: 1 1 320px;
+    flex: 1 1 auto;
     position: relative;
-    min-width: 220px;
-    max-width: 560px;
+    min-width: 0;
+    max-width: none;
     display: flex;
     align-items: center;
     gap: 0;
@@ -358,9 +377,6 @@
     min-height: 172px;
     position: relative;
     border-bottom: 1px solid #dde;
-  }
-  .hero:has(.hero-chat-launcher-wrap) {
-    padding-bottom: 58px;
   }
   /* sky + grass pseudo layers */
   .hero::after {
@@ -2086,7 +2102,7 @@
     font-size: 12.5px;
   }
   .search-wrap {
-    max-width: 440px;
+    max-width: none;
   }
   .loc-wrap {
     min-width: 220px;
@@ -2100,6 +2116,9 @@
   .header {
     padding: 10px 18px;
     gap: 12px;
+  }
+  .header-search-cluster {
+    max-width: none;
   }
   .search-wrap {
     min-width: 200px;
@@ -2138,7 +2157,7 @@
   }
   .search-wrap {
     flex: 1 1 auto;
-    min-width: 180px;
+    min-width: 0;
     order: 0;
   }
   .header-actions {
@@ -2155,9 +2174,6 @@
     align-items: flex-start;
     min-height: 0;
     gap: 8px;
-  }
-  .hero:has(.hero-chat-launcher-wrap) {
-    padding-bottom: 62px;
   }
   .hero-content {
     padding: 10px 0 0;
@@ -2231,7 +2247,7 @@
 }
 
 @media (max-width: 760px) {
-  .header { padding: 10px 108px 10px 12px; }
+  .header { padding: 10px 52px 10px 12px; }
   .logo-icon { width: 98px; }
   .header-actions-desktop .dropdown,
   .header-actions-desktop > .btn-offer,
@@ -2240,18 +2256,18 @@
   .header-actions-desktop .user-menu-dropdown {
     display: none !important;
   }
-  .header-sticky-chat-btn {
-    position: absolute;
-    top: 50%;
-    right: 58px;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+  .header-search-cluster {
+    flex: 1 1 auto;
+    gap: 8px;
+    min-width: 0;
   }
-  .header-sticky-chat-btn:hover,
-  .header-sticky-chat-btn:focus-visible {
-    transform: translateY(calc(-50% - 1px));
+  .header-sticky-chat-btn {
+    min-height: 40px;
+    padding: 0 10px;
+    border-radius: 9px;
+  }
+  .header-sticky-chat-btn__label {
+    display: none;
   }
   .header-sticky-chat-btn__icon {
     font-size: 1rem;
@@ -2413,7 +2429,7 @@
     align-items: stretch;
   }
   .header.header-mobile-open .logo,
-  .header.header-mobile-open .search-wrap,
+  .header.header-mobile-open .header-search-cluster,
   .header.header-mobile-open .header-menu-toggle {
     display: none;
   }
@@ -2430,11 +2446,16 @@
   .header-actions-desktop .user-menu-dropdown {
     display: none !important;
   }
-  .search-wrap {
+  .header-search-cluster {
     order: 3;
     flex: 1 1 100%;
-    min-width: 0;
     width: 100%;
+  }
+  .search-wrap {
+    order: unset;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
   }
   .header-mobile-menu {
     order: 4;

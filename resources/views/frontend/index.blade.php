@@ -145,8 +145,6 @@
     </svg>
   </div>
   @endif
-
-  @include('discussions.partials.hero-chat-launcher')
 </section>
 
 
