@@ -44,36 +44,104 @@
     border: 0 !important;
 }
 
-/* ─── FAB ─────────────────────────────────────────────────────────────────── */
+/* ─── Banner sticky chat launcher ─────────────────────────────────────────── */
 
+.discussion-banner-chat,
 .discussion-fab {
-    display: none !important;
+    position: fixed;
+    z-index: 1045;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 0 18px 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #1976d2 0%, #008069 100%);
+    color: #fff;
+    cursor: pointer;
+    box-shadow:
+        0 14px 32px rgba(25, 118, 210, 0.28),
+        0 4px 12px rgba(0, 128, 105, 0.18);
+    font-family: 'Manrope', 'Segoe UI', Helvetica, Arial, sans-serif;
+    white-space: nowrap;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    right: 24px;
+    bottom: 24px;
 }
 
+.discussion-banner-chat:hover,
+.discussion-banner-chat:focus-visible,
 .discussion-fab:hover,
 .discussion-fab:focus-visible {
     color: #fff;
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow:
+        0 18px 36px rgba(25, 118, 210, 0.32),
+        0 0 0 4px rgba(25, 118, 210, 0.12);
     outline: none;
 }
 
+.discussion-banner-chat.is-open,
 .discussion-fab.is-open {
-    background: #334155;
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+    box-shadow: 0 14px 32px rgba(30, 41, 59, 0.32);
 }
 
+.discussion-banner-chat.has-unread:not(.is-open),
 .discussion-fab.has-unread:not(.is-open) {
     animation: community-chat-pulse 2s ease-in-out infinite;
 }
 
 @keyframes community-chat-pulse {
-    0%, 100% { box-shadow: 0 8px 20px rgba(25, 118, 210, 0.28); }
-    50% { box-shadow: 0 8px 20px rgba(25, 118, 210, 0.28), 0 0 0 6px rgba(25, 118, 210, 0.18); }
+    0%, 100% { box-shadow: 0 14px 32px rgba(25, 118, 210, 0.28); }
+    50% { box-shadow: 0 14px 32px rgba(25, 118, 210, 0.28), 0 0 0 8px rgba(25, 118, 210, 0.16); }
 }
 
-.discussion-fab__close { display: none; }
-.discussion-fab.is-open .discussion-fab__icon { display: none; }
-.discussion-fab.is-open .discussion-fab__close { display: inline-flex; font-size: 1.2rem; }
+.discussion-banner-chat__icon,
+.discussion-fab__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
 
+.discussion-banner-chat__label {
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    line-height: 1;
+}
+
+.discussion-banner-chat__close,
+.discussion-fab__close {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    font-size: 1.1rem;
+}
+
+.discussion-banner-chat.is-open .discussion-banner-chat__icon,
+.discussion-banner-chat.is-open .discussion-banner-chat__label,
+.discussion-fab.is-open .discussion-fab__icon {
+    display: none;
+}
+
+.discussion-banner-chat.is-open .discussion-banner-chat__close,
+.discussion-fab.is-open .discussion-fab__close {
+    display: inline-flex;
+}
+
+.discussion-banner-chat__badge,
 .discussion-fab__badge {
     position: absolute;
     top: -4px;
@@ -89,6 +157,35 @@
     line-height: 20px;
     text-align: center;
     border: 2px solid #fff;
+}
+
+@media (max-width: 767px) {
+    .discussion-banner-chat,
+    .discussion-fab {
+        min-height: 48px;
+        padding: 0 14px 0 12px;
+        gap: 8px;
+    }
+
+    .discussion-banner-chat__label {
+        font-size: 0.82rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .discussion-banner-chat__label {
+        display: none;
+    }
+
+    .discussion-banner-chat,
+    .discussion-fab {
+        width: 52px;
+        height: 52px;
+        min-height: 52px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 50%;
+    }
 }
 
 /* ─── Widget ──────────────────────────────────────────────────────────────── */
@@ -2152,11 +2249,6 @@ body.discussion-messenger-page .discussion-widget--standalone .discussion-widget
 body.discussion-widget-open { overflow: hidden; }
 
 @media (max-width: 575.98px) {
-    .discussion-fab {
-        bottom: 16px;
-        right: 16px;
-    }
-
     .discussion-widget {
         right: 0;
         bottom: 0;

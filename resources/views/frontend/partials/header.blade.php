@@ -44,8 +44,7 @@
     </div>
   </div>
 
-  <div class="header-search-cluster">
-    <form class="search-wrap" method="GET" action="{{ route('frontend.search') }}">
+  <form class="search-wrap" method="GET" action="{{ route('frontend.search') }}">
     @php
       $activeSearchModule = request('module') ?? match (true) {
         request()->routeIs('frontend.ads.*') => 'ads',
@@ -82,9 +81,6 @@
       <i class="fa-solid fa-magnifying-glass"></i>
     </button>
   </form>
-
-    @include('discussions.partials.header-chat-btn')
-  </div>
 
   <div class="header-actions header-actions-desktop">
     <div class="dropdown header-community-dropdown">

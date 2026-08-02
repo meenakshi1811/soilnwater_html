@@ -3,7 +3,6 @@
     const ui = () => window.soilnwaterDiscussionUi || {};
 
     const fab = document.getElementById('discussionFab');
-    const headerBtn = document.getElementById('discussionHeaderBtn');
     const widget = document.getElementById('discussionWidget');
     const isPageMode = Boolean(config.pageMode);
 
@@ -11,7 +10,7 @@
         return;
     }
 
-    if (!isPageMode && !fab && !headerBtn) {
+    if (!isPageMode && !fab) {
         return;
     }
 
@@ -88,29 +87,91 @@
     };
 
     const fabBadge = document.getElementById('discussionFabBadge');
-    const headerBadge = document.getElementById('discussionHeaderBadge');
 
     function chatTriggers() {
-        return [fab, headerBtn].filter(Boolean);
+        return [fab].filter(Boolean);
     }
 
-    function initHeaderChatPopover() {
-        if (!headerBtn || !window.bootstrap?.Popover) {
+    const BANNER_CHAT_DOCK_MARGIN = () => (window.innerWidth <= 575 ? 16 : 24);
+    const BANNER_CHAT_OVERLAP = 20;
+
+    function findPageBanner() {
+        return document.querySelector('.hero')
+            || document.querySelector('.vendor-store-hero')
+            || document.querySelector('.vendor-store-page-hero')
+            || document.querySelector('section.mb-4:has(img.w-100)')
+            || document.querySelector('.premium-listing-cta');
+    }
+
+    function syncWidgetAnchor() {
+        if (!fab || !widget || isPageMode) {
             return;
         }
 
-        const popoverContent = document.getElementById('communityChatPopoverContent')?.innerHTML?.trim() || '';
+        const rect = fab.getBoundingClientRect();
+        const gap = 14;
+        widget.style.right = `${Math.max(16, window.innerWidth - rect.right)}px`;
+        widget.style.bottom = `${Math.max(16, window.innerHeight - rect.top + gap)}px`;
+    }
 
-        bootstrap.Popover.getOrCreateInstance(headerBtn, {
-            container: 'body',
-            trigger: 'hover focus',
-            placement: 'bottom',
-            html: true,
-            sanitize: false,
-            customClass: 'community-chat-popover-shell',
-            title: 'Community Chat',
-            content: popoverContent,
-        });
+    function syncBannerChatPosition() {
+        if (!fab || isPageMode) {
+            return;
+        }
+
+        const margin = BANNER_CHAT_DOCK_MARGIN();
+        const banner = findPageBanner();
+
+        fab.classList.remove('discussion-banner-chat--docked', 'discussion-banner-chat--on-banner');
+        fab.style.left = 'auto';
+
+        if (!banner) {
+            fab.classList.add('discussion-banner-chat--docked');
+            fab.style.top = 'auto';
+            fab.style.right = `${margin}px`;
+            fab.style.bottom = `${margin}px`;
+            syncWidgetAnchor();
+            return;
+        }
+
+        const rect = banner.getBoundingClientRect();
+
+        if (rect.bottom <= BANNER_CHAT_OVERLAP) {
+            fab.classList.add('discussion-banner-chat--docked');
+            fab.style.top = 'auto';
+            fab.style.right = `${margin}px`;
+            fab.style.bottom = `${margin}px`;
+        } else {
+            fab.classList.add('discussion-banner-chat--on-banner');
+            fab.style.right = `${margin}px`;
+            fab.style.bottom = 'auto';
+            fab.style.top = `${Math.max(margin, rect.bottom - BANNER_CHAT_OVERLAP)}px`;
+        }
+
+        syncWidgetAnchor();
+    }
+
+    function initBannerChatPosition() {
+        if (!fab || isPageMode) {
+            return;
+        }
+
+        syncBannerChatPosition();
+
+        let rafId = 0;
+        const scheduleSync = () => {
+            if (rafId) {
+                return;
+            }
+
+            rafId = window.requestAnimationFrame(() => {
+                rafId = 0;
+                syncBannerChatPosition();
+            });
+        };
+
+        window.addEventListener('scroll', scheduleSync, { passive: true });
+        window.addEventListener('resize', scheduleSync);
     }
 
     let topicsLoaded = false;
@@ -1035,7 +1096,7 @@
 
     function updateFabBadge(count) {
         config.globalUnread = Math.max(0, count);
-        const badges = [fabBadge, headerBadge].filter(Boolean);
+        const badges = [fabBadge].filter(Boolean);
 
         if (!badges.length) {
             return;
@@ -1356,13 +1417,12 @@
 
         fab?.classList.toggle('is-open', open);
         fab?.setAttribute('aria-expanded', open ? 'true' : 'false');
-        headerBtn?.classList.toggle('is-open', open);
-        headerBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
         widget.classList.toggle('is-open', open);
 
         if (open) {
             widget.hidden = false;
             document.body.classList.add('discussion-widget-open');
+            syncWidgetAnchor();
         } else {
             window.setTimeout(() => {
                 if (!widget.classList.contains('is-open')) {
@@ -2035,12 +2095,7 @@
         toggleOpen();
     });
 
-    headerBtn?.addEventListener('click', () => {
-        bootstrap.Popover.getInstance(headerBtn)?.hide();
-        toggleOpen();
-    });
-
-    initHeaderChatPopover();
+    initBannerChatPosition();
 
     els.closeBtn?.addEventListener('click', () => setOpen(false));
     els.sizeBtn?.addEventListener('click', cycleWidgetSize);
