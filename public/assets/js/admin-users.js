@@ -7,6 +7,146 @@
         table: null,
         modal: null,
         viewModal: null,
+        createModal: null,
+
+        isBusinessRole: function (role) {
+            return role === 'vendor' || role === 'service_provider';
+        },
+
+        toggleCreateBusinessFields: function () {
+            var role = $('#createRole').val();
+            var showBusiness = this.isBusinessRole(role);
+            var showProfileImage = role === 'user' || showBusiness;
+            var showGst = showBusiness && $('input[name="has_gst"]:checked', '#createUserForm').val() === '1';
+
+            $('#createBusinessFields').toggleClass('d-none', !showBusiness);
+            $('#createProfileImageWrap').toggleClass('d-none', !showProfileImage);
+            $('#createGstNumberWrap').toggleClass('d-none', !showGst);
+
+            if (!showBusiness) {
+                $('#createPanNumber, #createGstNumber, #createCertificateNumber').val('');
+                $('#createHasGstNo').prop('checked', true);
+            }
+
+            if (!showGst) {
+                $('#createGstNumber').val('');
+            }
+        },
+
+        resetCreateForm: function () {
+            var $form = $('#createUserForm');
+            if (!$form.length) {
+                return;
+            }
+
+            $form[0].reset();
+            if ($form.data('validator')) {
+                $form.validate().resetForm();
+            }
+            $form.find('.is-invalid').removeClass('is-invalid');
+            $('#createHasGstNo').prop('checked', true);
+            $('#createUserAlert').addClass('d-none').empty();
+            this.toggleCreateBusinessFields();
+        },
+
+        initCreateForm: function () {
+            var self = this;
+
+            if (!$('#createUserForm').length) {
+                return;
+            }
+
+            self.createModal = new bootstrap.Modal(document.getElementById('createUserModal'));
+
+            $('#openCreateUserModalBtn').on('click', function () {
+                self.resetCreateForm();
+                self.createModal.show();
+            });
+
+            $('#createRole').on('change', function () {
+                self.toggleCreateBusinessFields();
+            });
+
+            $('#createUserForm').on('change', 'input[name="has_gst"]', function () {
+                self.toggleCreateBusinessFields();
+            });
+
+            FormHelper.attachAjaxForm({
+                formSelector: '#createUserForm',
+                buttonSelector: '#createUserSubmitBtn',
+                alertSelector: '#createUserAlert',
+                defaultText: 'Create User',
+                loadingText: 'Creating...',
+                rules: {
+                    fullname: { required: true, minlength: 3, maxlength: 255 },
+                    email: { required: true, email: true },
+                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
+                    address: { required: true, minlength: 5, maxlength: 500 },
+                    city: { required: true, maxlength: 120 },
+                    pincode: { required: true, digits: true, minlength: 4, maxlength: 10 },
+                    role: { required: true },
+                    pan_number: {
+                        required: function () {
+                            return self.isBusinessRole($('#createRole').val());
+                        },
+                        maxlength: 20
+                    },
+                    has_gst: {
+                        required: function () {
+                            return self.isBusinessRole($('#createRole').val());
+                        }
+                    },
+                    gst_number: {
+                        required: function () {
+                            return self.isBusinessRole($('#createRole').val())
+                                && $('input[name="has_gst"]:checked', '#createUserForm').val() === '1';
+                        },
+                        maxlength: 20
+                    },
+                    government_certificate_number: { maxlength: 100 },
+                    profile_image: {
+                        required: function () {
+                            var role = $('#createRole').val();
+                            return role === 'user' || self.isBusinessRole(role);
+                        }
+                    },
+                    date_of_birth: { required: true, date: true },
+                    password: { required: true, minlength: 8 },
+                    password_confirmation: { required: true, equalTo: '#createPassword' }
+                },
+                messages: {
+                    role: { required: 'Please select a role.' },
+                    pan_number: { required: 'PAN number is required for vendor and service provider accounts.' },
+                    has_gst: { required: 'Please select whether the account has a GST number.' },
+                    gst_number: { required: 'GST number is required when GST is set to yes.' },
+                    profile_image: { required: 'A profile image is required for this role.' },
+                    password_confirmation: { equalTo: 'Password confirmation does not match.' }
+                },
+                beforeSubmit: function () {
+                    $('#createUserForm').find('[name="phone_number"], [name="whatsapp_number"], [name="pincode"]').each(function () {
+                        $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
+                    });
+                },
+                onSuccess: function (response) {
+                    FormHelper.showToast('success', response.message || 'User created.');
+                    if (self.table) {
+                        self.table.ajax.reload(null, false);
+                    }
+                    self.createModal.hide();
+                },
+                onError: function (xhr, message) {
+                    if (xhr.status === 422) {
+                        FormHelper.showToast('warning', 'Please fix the highlighted fields and try again.');
+                        return;
+                    }
+
+                    FormHelper.showToast('danger', message);
+                }
+            });
+
+            self.toggleCreateBusinessFields();
+        },
 
         initTable: function () {
             this.table = $('#usersTable').DataTable({
@@ -495,6 +635,7 @@
             this.initTable();
             this.bindUi();
             this.initForm();
+            this.initCreateForm();
         }
     };
 

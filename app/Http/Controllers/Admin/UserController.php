@@ -7,8 +7,13 @@ use App\Models\Consultant;
 use App\Models\ServiceProvider;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Services\ServiceProviderRegistrationService;
+use App\Services\VendorRegistrationService;
+use App\Support\UserFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
@@ -158,6 +163,80 @@ class UserController extends Controller
             ->make(true);
     }
 
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $this->validateNewUser($request);
+
+        $user = DB::transaction(function () use ($request, $validated) {
+            $user = User::create([
+                'name' => $validated['fullname'],
+                'full_name' => $validated['fullname'],
+                'email' => strtolower($validated['email']),
+                'phone_number' => $validated['phone_number'],
+                'whatsapp_number' => $validated['whatsapp_number'],
+                'address' => $validated['address'],
+                'city' => $validated['city'],
+                'pincode' => $validated['pincode'],
+                'role' => $validated['role'],
+                'date_of_birth' => $validated['date_of_birth'],
+                'is_active' => true,
+                'created_by' => $request->user()?->id,
+                'password' => Hash::make($validated['password']),
+            ]);
+
+            $user->forceFill([
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
+            ])->save();
+
+            $profileData = array_merge(
+                $request->only([
+                    'whatsapp_number',
+                    'address',
+                    'city',
+                    'pincode',
+                    'pan_number',
+                    'has_gst',
+                    'gst_number',
+                    'government_certificate_number',
+                ]),
+                ['profile_image' => $request->file('profile_image')]
+            );
+
+            if ($user->isGeneralUser() && $request->hasFile('profile_image')) {
+                $user->forceFill([
+                    'profile_image' => UserFileUploader::storeImage($request->file('profile_image'), 'profiles'),
+                ])->save();
+            }
+
+            if ($user->isVendor()) {
+                $vendor = VendorRegistrationService::createProfileForUser($user, $profileData);
+                $user->forceFill(['profile_image' => $vendor->logo])->save();
+                $vendor->update([
+                    'status' => 'approved',
+                    'approved_at' => now(),
+                    'approved_by' => $request->user()?->id,
+                ]);
+            }
+
+            if ($user->isServiceProvider()) {
+                $serviceProvider = ServiceProviderRegistrationService::createProfileForUser($user, $profileData);
+                $user->forceFill(['profile_image' => $serviceProvider->logo])->save();
+                $serviceProvider->update([
+                    'status' => 'approved',
+                    'approved_at' => now(),
+                    'approved_by' => $request->user()?->id,
+                ]);
+            }
+
+            return $user;
+        });
+
+        return response()->json([
+            'message' => ucfirst(str_replace('_', ' ', $user->role)).' account created successfully. Email and phone are verified; no notification was sent.',
+        ], 201);
+    }
+
     public function show(User $user): JsonResponse
     {
         $this->loadRoleDetails($user);
@@ -257,6 +336,39 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User deleted successfully.',
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validateNewUser(Request $request): array
+    {
+        return $request->validate([
+            'fullname' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email'],
+            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
+            'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
+            'address' => ['required', 'string', 'max:500'],
+            'city' => ['required', 'string', 'max:120'],
+            'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
+            'role' => ['required', 'in:user,vendor,service_provider'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,service_provider', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,service_provider', 'in:0,1'],
+            'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
+            'government_certificate_number' => ['nullable', 'string', 'max:100'],
+            'profile_image' => ['nullable', 'required_if:role,user,vendor,service_provider', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+            'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
+            'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
+            'pan_number.required_if' => 'PAN number is required for vendor and service provider registrations.',
+            'has_gst.required_if' => 'Please select whether the account has a GST number.',
+            'gst_number.required_if' => 'GST number is required when GST is set to yes.',
+            'profile_image.required_if' => 'A profile image is required for user, vendor, and service provider accounts.',
+            'date_of_birth.before_or_equal' => 'The user must be at least 18 years old.',
         ]);
     }
 
