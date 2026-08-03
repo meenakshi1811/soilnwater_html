@@ -67,6 +67,10 @@
                 self.toggleCreateBusinessFields();
             });
 
+            $('#createUserForm').on('input blur', '[name="phone_number"], [name="whatsapp_number"], [name="pincode"]', function () {
+                $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
+            });
+
             $('#createUserForm').on('change', 'input[name="has_gst"]', function () {
                 self.toggleCreateBusinessFields();
             });
@@ -128,20 +132,26 @@
                         $(this).val($.trim($(this).val() || '').replace(/\D+/g, ''));
                     });
                 },
+                onInvalid: function () {
+                    FormHelper.showToast('warning', 'Please fix the highlighted fields and try again.');
+                },
                 onSuccess: function (response) {
-                    FormHelper.showToast('success', response.message || 'User created.');
+                    FormHelper.showToast('success', response.message || 'User created successfully.');
                     if (self.table) {
                         self.table.ajax.reload(null, false);
                     }
                     self.createModal.hide();
                 },
+                onValidationError: function (xhr, message) {
+                    FormHelper.showToast('warning', message || 'Please fix the highlighted fields and try again.');
+                },
                 onError: function (xhr, message) {
                     if (xhr.status === 422) {
-                        FormHelper.showToast('warning', 'Please fix the highlighted fields and try again.');
+                        FormHelper.showToast('warning', message || 'Please fix the highlighted fields and try again.');
                         return;
                     }
 
-                    FormHelper.showToast('danger', message);
+                    FormHelper.showToast('danger', message || 'Unable to create user. Please try again.');
                 }
             });
 

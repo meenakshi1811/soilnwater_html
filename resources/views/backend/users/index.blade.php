@@ -141,7 +141,33 @@
         border-radius: 12px;
         border: 1px solid rgba(148, 163, 184, .25);
     }
+    #createUserModal .modal-dialog {
+        max-height: calc(100vh - 2rem);
+        margin: 1rem auto;
+    }
+    #createUserModal .modal-content {
+        max-height: calc(100vh - 2rem);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    #createUserModal .create-user-form {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    #createUserModal .modal-body {
+        overflow-y: auto;
+        flex: 1 1 auto;
+    }
+    #createUserModal .modal-footer {
+        flex-shrink: 0;
+        border-top: 1px solid rgba(148, 163, 184, .22);
+        background: #fff;
+    }
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 @endpush
 
 @section('content')
@@ -187,13 +213,13 @@
 </div>
 
 <div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content ems-modal">
             <div class="modal-header">
                 <h5 class="modal-title">Add User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="createUserForm" method="POST" action="{{ route('admin.users.store') }}" enctype="multipart/form-data" novalidate>
+            <form id="createUserForm" class="create-user-form" method="POST" action="{{ route('admin.users.store') }}" enctype="multipart/form-data" novalidate>
                 @csrf
                 <div class="modal-body">
                     <p class="text-secondary small mb-3">Create vendor or service provider accounts with the same fields as public registration. Email and phone are verified automatically and no notification email is sent.</p>
@@ -380,6 +406,17 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+    if (window.toastr) {
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 4500
+        };
+    }
+</script>
 <script src="{{ asset('assets/js/form.js') }}?v={{ now()->timestamp }}"></script>
 <script src="{{ asset('assets/js/admin-users.js') }}?v={{ now()->timestamp }}"></script>
 @endpush
