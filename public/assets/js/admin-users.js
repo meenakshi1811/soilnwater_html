@@ -109,12 +109,6 @@
                         maxlength: 20
                     },
                     government_certificate_number: { maxlength: 100 },
-                    profile_image: {
-                        required: function () {
-                            var role = $('#createRole').val();
-                            return role === 'user' || self.isBusinessRole(role);
-                        }
-                    },
                     date_of_birth: { required: true, date: true },
                     password: { required: true, minlength: 8 },
                     password_confirmation: { required: true, equalTo: '#createPassword' }
@@ -124,7 +118,6 @@
                     pan_number: { required: 'PAN number is required for vendor and service provider accounts.' },
                     has_gst: { required: 'Please select whether the account has a GST number.' },
                     gst_number: { required: 'GST number is required when GST is set to yes.' },
-                    profile_image: { required: 'A profile image is required for this role.' },
                     password_confirmation: { equalTo: 'Password confirmation does not match.' }
                 },
                 beforeSubmit: function () {

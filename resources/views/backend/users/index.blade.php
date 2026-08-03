@@ -263,9 +263,9 @@
                             </select>
                         </div>
                         <div class="col-md-6" id="createProfileImageWrap">
-                            <label class="form-label" for="createProfileImage">Profile Image</label>
+                            <label class="form-label" for="createProfileImage">Profile Image <span class="text-muted fw-normal">(optional)</span></label>
                             <input type="file" name="profile_image" id="createProfileImage" class="form-control" accept="image/jpeg,image/png,image/webp">
-                            <small class="text-muted">JPG, PNG, or WebP up to 2 MB.</small>
+                            <small class="text-muted">JPG, PNG, or WebP up to 2 MB. Leave empty to skip.</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="createDateOfBirth">Date of Birth</label>

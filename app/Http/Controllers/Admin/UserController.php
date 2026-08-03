@@ -357,7 +357,7 @@ class UserController extends Controller
             'has_gst' => ['nullable', 'required_if:role,vendor,service_provider', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
-            'profile_image' => ['nullable', 'required_if:role,user,vendor,service_provider', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
@@ -367,7 +367,6 @@ class UserController extends Controller
             'pan_number.required_if' => 'PAN number is required for vendor and service provider registrations.',
             'has_gst.required_if' => 'Please select whether the account has a GST number.',
             'gst_number.required_if' => 'GST number is required when GST is set to yes.',
-            'profile_image.required_if' => 'A profile image is required for user, vendor, and service provider accounts.',
             'date_of_birth.before_or_equal' => 'The user must be at least 18 years old.',
         ]);
     }
