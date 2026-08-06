@@ -7,6 +7,7 @@ use App\Models\Consultant;
 use App\Models\ServiceProvider;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Services\ConsultantRegistrationService;
 use App\Services\ServiceProviderRegistrationService;
 use App\Services\VendorRegistrationService;
 use App\Support\UserFileUploader;
@@ -219,6 +220,16 @@ class UserController extends Controller
                 ]);
             }
 
+            if ($user->isConsultant()) {
+                $consultant = ConsultantRegistrationService::createProfileForUser($user, $profileData);
+                $user->forceFill(['profile_image' => $consultant->logo])->save();
+                $consultant->update([
+                    'status' => 'approved',
+                    'approved_at' => now(),
+                    'approved_by' => $request->user()?->id,
+                ]);
+            }
+
             if ($user->isServiceProvider()) {
                 $serviceProvider = ServiceProviderRegistrationService::createProfileForUser($user, $profileData);
                 $user->forceFill(['profile_image' => $serviceProvider->logo])->save();
@@ -352,9 +363,9 @@ class UserController extends Controller
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
             'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
-            'role' => ['required', 'in:user,vendor,service_provider'],
-            'pan_number' => ['nullable', 'required_if:role,vendor,service_provider', 'string', 'max:20'],
-            'has_gst' => ['nullable', 'required_if:role,vendor,service_provider', 'in:0,1'],
+            'role' => ['required', 'in:user,vendor,consultant,service_provider'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -364,7 +375,7 @@ class UserController extends Controller
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
-            'pan_number.required_if' => 'PAN number is required for vendor and service provider registrations.',
+            'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service provider registrations.',
             'has_gst.required_if' => 'Please select whether the account has a GST number.',
             'gst_number.required_if' => 'GST number is required when GST is set to yes.',
             'date_of_birth.before_or_equal' => 'The user must be at least 18 years old.',

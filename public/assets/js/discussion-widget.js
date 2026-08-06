@@ -94,6 +94,9 @@
 
     const BANNER_CHAT_DOCK_MARGIN = () => (window.innerWidth <= 575 ? 16 : 24);
     const BANNER_CHAT_OVERLAP = 20;
+    const WIDGET_ANCHOR_GAP = 14;
+    const WIDGET_VIEWPORT_MARGIN = 16;
+    const WIDGET_MIN_HEIGHT = 280;
 
     function findPageBanner() {
         return document.querySelector('.hero')
@@ -103,15 +106,48 @@
             || document.querySelector('.premium-listing-cta');
     }
 
+    function clearWidgetAnchorStyles() {
+        if (!widget) {
+            return;
+        }
+
+        widget.style.right = '';
+        widget.style.bottom = '';
+        widget.style.height = '';
+        widget.style.maxHeight = '';
+    }
+
     function syncWidgetAnchor() {
         if (!fab || !widget || isPageMode) {
             return;
         }
 
+        if (window.innerWidth <= 575) {
+            clearWidgetAnchorStyles();
+            return;
+        }
+
         const rect = fab.getBoundingClientRect();
-        const gap = 14;
-        widget.style.right = `${Math.max(16, window.innerWidth - rect.right)}px`;
-        widget.style.bottom = `${Math.max(16, window.innerHeight - rect.top + gap)}px`;
+        const sideMargin = BANNER_CHAT_DOCK_MARGIN();
+
+        widget.style.right = `${Math.max(sideMargin, window.innerWidth - rect.right)}px`;
+        widget.style.bottom = `${Math.max(sideMargin, window.innerHeight - rect.top + WIDGET_ANCHOR_GAP)}px`;
+
+        const availableAboveLauncher = rect.top - WIDGET_ANCHOR_GAP - WIDGET_VIEWPORT_MARGIN;
+        const viewportCap = window.innerHeight - (WIDGET_VIEWPORT_MARGIN * 2);
+        const clampedHeight = Math.max(
+            WIDGET_MIN_HEIGHT,
+            Math.min(availableAboveLauncher, viewportCap)
+        );
+        const currentHeight = widget.getBoundingClientRect().height;
+
+        if (currentHeight > 0 && clampedHeight < currentHeight - 1) {
+            widget.style.height = `${clampedHeight}px`;
+            widget.style.maxHeight = `${clampedHeight}px`;
+        } else {
+            widget.style.height = '';
+            widget.style.maxHeight = '';
+        }
     }
 
     function syncBannerChatPosition() {
@@ -1423,7 +1459,9 @@
             widget.hidden = false;
             document.body.classList.add('discussion-widget-open');
             syncWidgetAnchor();
+            window.requestAnimationFrame(() => syncWidgetAnchor());
         } else {
+            clearWidgetAnchorStyles();
             window.setTimeout(() => {
                 if (!widget.classList.contains('is-open')) {
                     widget.hidden = true;
@@ -1513,6 +1551,8 @@
         } catch (error) {
             // ignore storage failures
         }
+
+        syncWidgetAnchor();
     }
 
     function cycleWidgetSize() {

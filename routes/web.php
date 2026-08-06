@@ -167,6 +167,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/google/login', [LoginController::class, 'googleLogin'])->name('login.google');
     Route::get('/auth/google/register', [LoginController::class, 'googleRegister'])->name('register.google');
     Route::get('/auth/google/callback', [LoginController::class, 'googleCallback'])->name('google.callback');
+    Route::get('/auth/google/complete-profile', [LoginController::class, 'showGoogleCompleteProfile'])->name('register.google.complete');
+    Route::post('/auth/google/complete-profile', [LoginController::class, 'storeGoogleCompleteProfile'])->name('register.google.complete.store');
 
     Route::get('/verification/contact', [RegisterController::class, 'showContactVerificationForm'])->name('register.contact.verify.form');
     Route::post('/verification/contact', [RegisterController::class, 'verifyContactOtp'])->name('register.contact.verify');

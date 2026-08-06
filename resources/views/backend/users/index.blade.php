@@ -259,6 +259,7 @@
                                 <option value="">Choose role</option>
                                 <option value="user">User</option>
                                 <option value="vendor">Vendor</option>
+                                <option value="consultant">Consultant</option>
                                 <option value="service_provider">Service Provider</option>
                             </select>
                         </div>

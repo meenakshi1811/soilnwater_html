@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\PortalNotificationService;
 use App\Services\PremiumPromptService;
 use App\Support\GoogleGeocoder;
+use App\Support\UserFileUploader;
 use App\Mail\ConsultantStatusMail;
 use App\Mail\ServiceProviderStatusMail;
 use App\Mail\OtpMail;
@@ -476,23 +478,6 @@ class LoginController extends Controller
 
         $user = User::where('email', $email)->first();
 
-        if ($intent === 'register' && ! $user) {
-            $missingRegistrationDetails = $registrationFromRegisterFlow === []
-                || ! isset(
-                    $registrationFromRegisterFlow['whatsapp_number'],
-                    $registrationFromRegisterFlow['address'],
-                    $registrationFromRegisterFlow['city'],
-                    $registrationFromRegisterFlow['pincode'],
-                    $registrationFromRegisterFlow['date_of_birth']
-                );
-
-            if (! in_array($roleFromRegisterFlow, ['user', 'vendor', 'builder', 'developer', 'consultant', 'service_provider'], true) || $missingRegistrationDetails) {
-                return redirect()->route('register')->withErrors([
-                    'role' => 'Please complete the Google registration popup before continuing.',
-                ]);
-            }
-        }
-
         if ($intent === 'register' && $registrationFromRegisterFlow !== []) {
             $registrationFromRegisterFlow = $this->resolveGoogleRegistrationCoordinates($registrationFromRegisterFlow);
         }
@@ -501,23 +486,26 @@ class LoginController extends Controller
         if (! $user) {
             $displayName = trim((string) ($googleUser->getName() ?: 'Google User'));
             $role = $intent === 'register' ? $roleFromRegisterFlow : 'user';
+            $validRole = in_array($role, ['user', 'vendor', 'builder', 'developer', 'consultant', 'service_provider'], true);
+            $registrationComplete = $this->googleRegistrationIsComplete($registrationFromRegisterFlow);
 
-            $user = User::create([
-                'name' => $displayName,
-                'full_name' => $displayName,
-                'email' => $email,
-                'whatsapp_number' => $registrationFromRegisterFlow['whatsapp_number'] ?? null,
-                'address' => $registrationFromRegisterFlow['address'] ?? null,
-                'city' => $registrationFromRegisterFlow['city'] ?? null,
-                'pincode' => $registrationFromRegisterFlow['pincode'] ?? null,
-                'latitude' => $registrationFromRegisterFlow['latitude'] ?? null,
-                'longitude' => $registrationFromRegisterFlow['longitude'] ?? null,
-                'role' => $role,
-                'date_of_birth' => $registrationFromRegisterFlow['date_of_birth'] ?? null,
-                'password' => Hash::make(str()->random(40)),
-                'email_verified_at' => now(),
-            ]);
-            $createdUser = true;
+            if ($intent === 'register' && $validRole && $registrationComplete) {
+                $user = $this->createGoogleUser($email, $displayName, $role, $registrationFromRegisterFlow);
+                $createdUser = true;
+            } else {
+                $this->storeGooglePendingAuth(
+                    $request,
+                    $email,
+                    $displayName,
+                    $intent,
+                    $validRole ? $role : 'user',
+                    $registrationFromRegisterFlow
+                );
+
+                return redirect()
+                    ->route('register.google.complete')
+                    ->with('status', 'Your Google sign-in was successful. Please complete the required details to create your account.');
+            }
         } elseif ($intent === 'register') {
             $this->applyGoogleRegistrationDetails($user, $roleFromRegisterFlow, $registrationFromRegisterFlow);
         }
@@ -578,6 +566,187 @@ class LoginController extends Controller
         PremiumPromptService::flashForUser($user);
 
         return redirect()->intended($this->redirectPath());
+    }
+
+    public function showGoogleCompleteProfile(Request $request): RedirectResponse|\Illuminate\View\View
+    {
+        $pending = $this->pullGooglePendingAuth($request);
+
+        if (! $pending) {
+            return redirect()->route('login')->withErrors([
+                'google' => 'Your Google sign-in session has expired. Please try again.',
+            ]);
+        }
+
+        $email = strtolower((string) $pending['email']);
+
+        if (User::where('email', $email)->exists()) {
+            $request->session()->forget('google_pending_auth');
+
+            return redirect()->route('login')->with('status', 'An account with this Google email already exists. Please sign in.');
+        }
+
+        $registration = is_array($pending['registration'] ?? null) ? $pending['registration'] : [];
+
+        return view('auth.google-complete-profile', [
+            'email' => $email,
+            'fullname' => old('fullname', (string) ($pending['name'] ?? '')),
+            'role' => old('role', (string) ($pending['role'] ?? 'user')),
+            'whatsappNumber' => old('whatsapp_number', (string) ($registration['whatsapp_number'] ?? '')),
+            'address' => old('address', (string) ($registration['address'] ?? '')),
+            'city' => old('city', (string) ($registration['city'] ?? '')),
+            'pincode' => old('pincode', (string) ($registration['pincode'] ?? '')),
+            'latitude' => old('latitude', (string) ($registration['latitude'] ?? '')),
+            'longitude' => old('longitude', (string) ($registration['longitude'] ?? '')),
+            'dateOfBirth' => old('date_of_birth', (string) ($registration['date_of_birth'] ?? '')),
+        ]);
+    }
+
+    public function storeGoogleCompleteProfile(Request $request): RedirectResponse
+    {
+        $pending = $this->pullGooglePendingAuth($request);
+
+        if (! $pending) {
+            return redirect()->route('login')->withErrors([
+                'google' => 'Your Google sign-in session has expired. Please try again.',
+            ]);
+        }
+
+        $sessionEmail = strtolower((string) $pending['email']);
+
+        $data = $request->validate([
+            'email' => ['required', 'email', Rule::in([$sessionEmail])],
+            'fullname' => ['required', 'string', 'max:255'],
+            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
+            'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
+            'address' => ['required', 'string', 'max:500'],
+            'city' => ['required', 'string', 'max:120'],
+            'pincode' => ['required', 'string', 'regex:/^[0-9]{4,10}$/'],
+            'role' => ['required', 'in:user,vendor,builder,developer,consultant,service_provider'],
+            'pan_number' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'string', 'max:20'],
+            'has_gst' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'in:0,1'],
+            'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
+            'government_certificate_number' => ['nullable', 'string', 'max:100'],
+            'profile_image' => ['nullable', 'required_if:role,user,vendor,consultant,service_provider', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'accept_terms' => ['accepted'],
+        ], [
+            'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
+            'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
+            'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
+            'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service registrations.',
+            'has_gst.required_if' => 'Please select whether you have a GST number.',
+            'gst_number.required_if' => 'GST number is required when you select yes for GST.',
+            'profile_image.required_if' => 'A profile image is required for user, vendor, consultant, and service registrations.',
+            'date_of_birth.before_or_equal' => 'You must be at least 18 years old to register.',
+            'accept_terms.accepted' => 'Please accept the terms and conditions to continue.',
+        ]);
+
+        if (User::where('email', $sessionEmail)->exists()) {
+            $request->session()->forget('google_pending_auth');
+
+            return redirect()->route('login')->with('status', 'An account with this Google email already exists. Please sign in.');
+        }
+
+        $registrationPayload = [
+            'whatsapp_number' => $data['whatsapp_number'],
+            'address' => $data['address'],
+            'city' => $data['city'],
+            'pincode' => $data['pincode'],
+            'latitude' => $data['latitude'] ?? null,
+            'longitude' => $data['longitude'] ?? null,
+            'date_of_birth' => $data['date_of_birth'],
+        ];
+
+        $registrationPayload = $this->resolveGoogleRegistrationCoordinates($registrationPayload);
+
+        $user = $this->createGoogleUser($sessionEmail, $data['fullname'], $data['role'], $registrationPayload, $data['phone_number']);
+        $request->session()->forget('google_pending_auth');
+
+        if ($user->isGeneralUser() && $request->hasFile('profile_image')) {
+            $user->forceFill([
+                'profile_image' => UserFileUploader::storeImage($request->file('profile_image'), 'profiles'),
+            ])->save();
+        }
+
+        $vendor = null;
+        $consultant = null;
+        $serviceProvider = null;
+
+        if ($user->isVendor()) {
+            $vendor = \App\Services\VendorRegistrationService::createProfileForUser($user, $request->only([
+                'whatsapp_number',
+                'address',
+                'city',
+                'pincode',
+                'pan_number',
+                'has_gst',
+                'gst_number',
+                'government_certificate_number',
+                'profile_image',
+            ]));
+            $user->forceFill(['profile_image' => $vendor->logo])->save();
+        }
+
+        if ($user->isConsultant()) {
+            $consultant = \App\Services\ConsultantRegistrationService::createProfileForUser($user, $request->only([
+                'whatsapp_number',
+                'address',
+                'city',
+                'pincode',
+                'pan_number',
+                'has_gst',
+                'gst_number',
+                'government_certificate_number',
+                'profile_image',
+            ]));
+            $user->forceFill(['profile_image' => $consultant->logo])->save();
+        }
+
+        if ($user->isServiceProvider()) {
+            $serviceProvider = \App\Services\ServiceProviderRegistrationService::createProfileForUser($user, $request->only([
+                'whatsapp_number',
+                'address',
+                'city',
+                'pincode',
+                'pan_number',
+                'has_gst',
+                'gst_number',
+                'government_certificate_number',
+                'profile_image',
+            ]));
+            $user->forceFill(['profile_image' => $serviceProvider->logo])->save();
+        }
+
+        if ($user->isGeneralUser()) {
+            $request->session()->put('phone_verification_user_id', $user->id);
+
+            return redirect()
+                ->route('register.phone.verify.form')
+                ->with('status', 'Account created. Your Google email is verified. Please verify your mobile number to continue.');
+        }
+
+        if ($vendor || $consultant || $serviceProvider) {
+            if ($vendor) {
+                Mail::to($user->email)->send(VendorStatusMail::forVendor($vendor, 'pending'));
+                $message = 'Thank you for registering. Your vendor profile is under observation. Admin will check and approve it soon.';
+                PortalNotificationService::notifyAdminsOfApprovalRequest('Vendor account', $vendor->company_name, route('admin.vendors.show', $vendor));
+            } elseif ($consultant) {
+                Mail::to($user->email)->send(ConsultantStatusMail::forConsultant($consultant, 'pending'));
+                $message = 'Thank you for registering. Your consultant profile is under observation. Admin will check and approve it soon.';
+                PortalNotificationService::notifyAdminsOfApprovalRequest('Consultant account', $consultant->company_name, route('admin.consultants.show', $consultant));
+            } else {
+                Mail::to($user->email)->send(ServiceProviderStatusMail::forServiceProvider($serviceProvider, 'pending'));
+                $message = 'Thank you for registering. Your service profile is under observation. Admin will check and approve it soon.';
+                PortalNotificationService::notifyAdminsOfApprovalRequest('Service account', $serviceProvider->company_name, route('admin.service_providers.show', $serviceProvider));
+            }
+
+            return redirect()->route('login')->with('status', $message);
+        }
+
+        return redirect()->route('login')->with('status', 'Your account has been created. Please sign in to continue.');
     }
 
     public function resendVerification(Request $request): RedirectResponse|JsonResponse
@@ -849,6 +1018,59 @@ class LoginController extends Controller
             'role' => $request->session()->pull('google_auth.role'),
             'registration' => $request->session()->pull('google_auth.registration', []),
         ];
+    }
+
+    private function googleRegistrationIsComplete(array $registration): bool
+    {
+        return isset(
+            $registration['whatsapp_number'],
+            $registration['address'],
+            $registration['city'],
+            $registration['pincode'],
+            $registration['date_of_birth']
+        );
+    }
+
+    private function storeGooglePendingAuth(Request $request, string $email, string $name, string $intent, ?string $role, array $registration): void
+    {
+        $request->session()->put('google_pending_auth', [
+            'email' => strtolower($email),
+            'name' => $name,
+            'intent' => $intent,
+            'role' => $role,
+            'registration' => $registration,
+        ]);
+    }
+
+    private function pullGooglePendingAuth(Request $request): ?array
+    {
+        $pending = $request->session()->get('google_pending_auth');
+
+        if (! is_array($pending) || empty($pending['email'])) {
+            return null;
+        }
+
+        return $pending;
+    }
+
+    private function createGoogleUser(string $email, string $displayName, string $role, array $registration, ?string $phoneNumber = null): User
+    {
+        return User::create([
+            'name' => $displayName,
+            'full_name' => $displayName,
+            'email' => strtolower($email),
+            'phone_number' => $phoneNumber,
+            'whatsapp_number' => $registration['whatsapp_number'] ?? null,
+            'address' => $registration['address'] ?? null,
+            'city' => $registration['city'] ?? null,
+            'pincode' => $registration['pincode'] ?? null,
+            'latitude' => $registration['latitude'] ?? null,
+            'longitude' => $registration['longitude'] ?? null,
+            'role' => $role,
+            'date_of_birth' => $registration['date_of_birth'] ?? null,
+            'password' => Hash::make(str()->random(40)),
+            'email_verified_at' => now(),
+        ]);
     }
 
     private function applyGoogleRegistrationDetails(User $user, ?string $role, array $details): void

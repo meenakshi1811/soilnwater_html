@@ -10,7 +10,7 @@
         createModal: null,
 
         isBusinessRole: function (role) {
-            return role === 'vendor' || role === 'service_provider';
+            return role === 'vendor' || role === 'consultant' || role === 'service_provider';
         },
 
         toggleCreateBusinessFields: function () {
@@ -115,7 +115,7 @@
                 },
                 messages: {
                     role: { required: 'Please select a role.' },
-                    pan_number: { required: 'PAN number is required for vendor and service provider accounts.' },
+                    pan_number: { required: 'PAN number is required for vendor, consultant, and service provider accounts.' },
                     has_gst: { required: 'Please select whether the account has a GST number.' },
                     gst_number: { required: 'GST number is required when GST is set to yes.' },
                     password_confirmation: { equalTo: 'Password confirmation does not match.' }

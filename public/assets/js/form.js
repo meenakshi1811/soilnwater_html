@@ -505,8 +505,12 @@
             var $profileImageWrap = $('#profileImageWrap');
             var $profileImage = $('#profile_image');
 
-            // Only run on the registration form — otherwise this clears shared fields like PAN on profile pages.
-            if (! $role.length || ! $('#registerForm').length) {
+            // Only run on registration / Google complete forms — otherwise this clears shared fields like PAN on profile pages.
+            if (! $role.length) {
+                return;
+            }
+
+            if (!$('#registerForm').length && !$('#googleCompleteForm').length) {
                 return;
             }
 
@@ -545,6 +549,22 @@
             $role.off('change.businessFields').on('change.businessFields', toggleBusinessFields);
             $('input[name="has_gst"]').off('change.businessFields').on('change.businessFields', toggleGst);
             toggleBusinessFields();
+        },
+
+        initGoogleCompleteForm: function () {
+            if (!document.getElementById('googleCompleteForm')) {
+                return;
+            }
+
+            this.bindRegisterPlaceAutocomplete({
+                addressInputId: 'address',
+                cityInputId: 'city',
+                pincodeInputId: 'pincode',
+                latitudeInputId: 'complete_latitude',
+                longitudeInputId: 'complete_longitude',
+                retryMethod: 'initGoogleCompleteForm'
+            });
+            this.initRegisterBusinessFields();
         },
 
         initRegisterForm: function () {
@@ -1200,6 +1220,7 @@
 
         init: function () {
             this.initRegisterForm();
+            this.initGoogleCompleteForm();
             this.initLoginForms();
             this.initOtpVerifyForm();
             this.initPhoneVerificationForm();
