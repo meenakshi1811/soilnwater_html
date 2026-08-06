@@ -92,11 +92,18 @@
         return [fab].filter(Boolean);
     }
 
-    const BANNER_CHAT_DOCK_MARGIN = () => (window.innerWidth <= 575 ? 16 : 24);
+    const BANNER_CHAT_DOCK_MARGIN = () => (isMobileViewport() ? 16 : 24);
     const BANNER_CHAT_OVERLAP = 20;
     const WIDGET_ANCHOR_GAP = 14;
     const WIDGET_VIEWPORT_MARGIN = 16;
     const WIDGET_MIN_HEIGHT = 280;
+    const MOBILE_BREAKPOINT = 768;
+
+    function isMobileViewport() {
+        return window.innerWidth < MOBILE_BREAKPOINT;
+    }
+
+    let activePanelName = 'topics';
 
     function findPageBanner() {
         return document.querySelector('.hero')
@@ -112,6 +119,7 @@
         }
 
         widget.style.right = '';
+        widget.style.top = '';
         widget.style.bottom = '';
         widget.style.height = '';
         widget.style.maxHeight = '';
@@ -122,31 +130,42 @@
             return;
         }
 
-        if (window.innerWidth <= 575) {
+        if (isMobileViewport()) {
             clearWidgetAnchorStyles();
             return;
         }
 
         const rect = fab.getBoundingClientRect();
         const sideMargin = BANNER_CHAT_DOCK_MARGIN();
+        const viewportMargin = WIDGET_VIEWPORT_MARGIN;
+        const spaceAbove = rect.top - WIDGET_ANCHOR_GAP - viewportMargin;
+        const spaceBelow = window.innerHeight - rect.bottom - WIDGET_ANCHOR_GAP - viewportMargin;
+        const viewportCap = window.innerHeight - (viewportMargin * 2);
+        const openAbove = spaceAbove >= spaceBelow && spaceAbove >= WIDGET_MIN_HEIGHT;
 
         widget.style.right = `${Math.max(sideMargin, window.innerWidth - rect.right)}px`;
-        widget.style.bottom = `${Math.max(sideMargin, window.innerHeight - rect.top + WIDGET_ANCHOR_GAP)}px`;
 
-        const availableAboveLauncher = rect.top - WIDGET_ANCHOR_GAP - WIDGET_VIEWPORT_MARGIN;
-        const viewportCap = window.innerHeight - (WIDGET_VIEWPORT_MARGIN * 2);
+        if (openAbove) {
+            widget.style.top = '';
+            widget.style.bottom = `${Math.max(sideMargin, window.innerHeight - rect.top + WIDGET_ANCHOR_GAP)}px`;
+        } else {
+            widget.style.bottom = '';
+            widget.style.top = `${Math.max(viewportMargin, rect.bottom + WIDGET_ANCHOR_GAP)}px`;
+        }
+
+        const availableHeight = openAbove ? spaceAbove : spaceBelow;
         const clampedHeight = Math.max(
-            WIDGET_MIN_HEIGHT,
-            Math.min(availableAboveLauncher, viewportCap)
+            Math.min(WIDGET_MIN_HEIGHT, availableHeight),
+            Math.min(availableHeight, viewportCap)
         );
-        const currentHeight = widget.getBoundingClientRect().height;
 
+        widget.style.maxHeight = `${clampedHeight}px`;
+
+        const currentHeight = widget.getBoundingClientRect().height;
         if (currentHeight > 0 && clampedHeight < currentHeight - 1) {
             widget.style.height = `${clampedHeight}px`;
-            widget.style.maxHeight = `${clampedHeight}px`;
         } else {
             widget.style.height = '';
-            widget.style.maxHeight = '';
         }
     }
 
@@ -1298,68 +1317,8 @@
             .replace('__REPLY__', String(replyId));
     }
 
-    function showPanel(name) {
-        if (isPageMode) {
-            panels.topics?.classList.add('is-active');
-            if (panels.topics) {
-                panels.topics.hidden = false;
-            }
-
-            const showThread = name === 'thread';
-            const showCompose = name === 'compose';
-            const showGroupCompose = name === 'groupCompose';
-            const showGroupTopicCompose = name === 'groupTopicCompose';
-            const showGroupPick = name === 'groupPick';
-            const showGroupTopics = name === 'groupTopics';
-
-            if (panels.thread) {
-                panels.thread.classList.toggle('is-active', showThread);
-                panels.thread.hidden = !showThread;
-            }
-            if (panels.groupTopics) {
-                panels.groupTopics.classList.toggle('is-active', showGroupTopics);
-                panels.groupTopics.hidden = !showGroupTopics;
-            }
-            if (panels.groupPick) {
-                panels.groupPick.classList.toggle('is-active', showGroupPick);
-                panels.groupPick.hidden = !showGroupPick;
-            }
-            if (panels.compose) {
-                panels.compose.classList.toggle('is-active', showCompose);
-                panels.compose.hidden = !showCompose;
-            }
-            if (panels.groupCompose) {
-                panels.groupCompose.classList.toggle('is-active', showGroupCompose);
-                panels.groupCompose.hidden = !showGroupCompose;
-            }
-            if (panels.groupTopicCompose) {
-                panels.groupTopicCompose.classList.toggle('is-active', showGroupTopicCompose);
-                panels.groupTopicCompose.hidden = !showGroupTopicCompose;
-            }
-
-            updateHeaderForPanel(name);
-
-            if (name !== 'thread') {
-                replyEmojiPicker?.close?.();
-            }
-
-            if (isComposePanel(name) || name === 'groupPick') {
-                clearOnlinePresence();
-            }
-
-            return;
-        }
-
-        Object.entries(panels).forEach(([key, panel]) => {
-            if (!panel) {
-                return;
-            }
-
-            const active = key === name;
-            panel.classList.toggle('is-active', active);
-            panel.hidden = !active;
-        });
-
+    function finishPanelChange(name) {
+        activePanelName = name;
         updateHeaderForPanel(name);
 
         if (name !== 'thread') {
@@ -1371,6 +1330,70 @@
         }
     }
 
+    function showPanelSingle(name) {
+        Object.entries(panels).forEach(([key, panel]) => {
+            if (!panel) {
+                return;
+            }
+
+            const active = key === name;
+            panel.classList.toggle('is-active', active);
+            panel.hidden = !active;
+        });
+
+        finishPanelChange(name);
+    }
+
+    function showPanelDesktopPage(name) {
+        panels.topics?.classList.add('is-active');
+        if (panels.topics) {
+            panels.topics.hidden = false;
+        }
+
+        const showThread = name === 'thread';
+        const showCompose = name === 'compose';
+        const showGroupCompose = name === 'groupCompose';
+        const showGroupTopicCompose = name === 'groupTopicCompose';
+        const showGroupPick = name === 'groupPick';
+        const showGroupTopics = name === 'groupTopics';
+
+        if (panels.thread) {
+            panels.thread.classList.toggle('is-active', showThread);
+            panels.thread.hidden = !showThread;
+        }
+        if (panels.groupTopics) {
+            panels.groupTopics.classList.toggle('is-active', showGroupTopics);
+            panels.groupTopics.hidden = !showGroupTopics;
+        }
+        if (panels.groupPick) {
+            panels.groupPick.classList.toggle('is-active', showGroupPick);
+            panels.groupPick.hidden = !showGroupPick;
+        }
+        if (panels.compose) {
+            panels.compose.classList.toggle('is-active', showCompose);
+            panels.compose.hidden = !showCompose;
+        }
+        if (panels.groupCompose) {
+            panels.groupCompose.classList.toggle('is-active', showGroupCompose);
+            panels.groupCompose.hidden = !showGroupCompose;
+        }
+        if (panels.groupTopicCompose) {
+            panels.groupTopicCompose.classList.toggle('is-active', showGroupTopicCompose);
+            panels.groupTopicCompose.hidden = !showGroupTopicCompose;
+        }
+
+        finishPanelChange(name);
+    }
+
+    function showPanel(name) {
+        if (isPageMode && !isMobileViewport()) {
+            showPanelDesktopPage(name);
+            return;
+        }
+
+        showPanelSingle(name);
+    }
+
     function updateHeaderForPanel(name) {
         const isTopics = name === 'topics';
         const isThread = name === 'thread';
@@ -1380,9 +1403,13 @@
         const showListActions = isTopics;
 
         if (els.backBtn) {
-            els.backBtn.hidden = isPageMode
-                ? !(isCompose || isGroupPick || isGroupTopics || currentTopic)
-                : isTopics;
+            if (isPageMode && isMobileViewport()) {
+                els.backBtn.hidden = name === 'topics';
+            } else {
+                els.backBtn.hidden = isPageMode
+                    ? !(isCompose || isGroupPick || isGroupTopics || currentTopic)
+                    : isTopics;
+            }
         }
         if (els.newTopicBtn) {
             els.newTopicBtn.hidden = !showListActions;
@@ -1397,7 +1424,7 @@
             els.closeBtn.hidden = isPageMode;
         }
         if (els.sizeBtn) {
-            els.sizeBtn.hidden = isPageMode;
+            els.sizeBtn.hidden = isPageMode || isMobileViewport();
         }
         if (els.fullPageBtn) {
             els.fullPageBtn.hidden = isPageMode;
@@ -1459,7 +1486,10 @@
             widget.hidden = false;
             document.body.classList.add('discussion-widget-open');
             syncWidgetAnchor();
-            window.requestAnimationFrame(() => syncWidgetAnchor());
+            window.requestAnimationFrame(() => {
+                syncWidgetAnchor();
+                window.requestAnimationFrame(syncWidgetAnchor);
+            });
         } else {
             clearWidgetAnchorStyles();
             window.setTimeout(() => {
@@ -2042,8 +2072,16 @@
         }
 
         if (isPageMode) {
-            showPanel('thread');
-            showEmptyThreadPlaceholder();
+            if (isMobileViewport()) {
+                setHeaderTitle('Chats', `${config.globalUnread || 0} unread`);
+                resetHeaderAvatar();
+                updateMembersButton(null);
+                showPanel('topics');
+            } else {
+                showPanel('thread');
+                showEmptyThreadPlaceholder();
+            }
+
             loadTopics();
             updateMessengerUrl(null);
             updateFullPageLink(null);
@@ -2704,6 +2742,29 @@
     restoreWidgetSize();
     updateFullPageLink(null);
 
+    function syncPageLayoutOnResize() {
+        if (!isPageMode) {
+            return;
+        }
+
+        if (isMobileViewport()) {
+            if (!currentTopic && !currentGroup && (activePanelName === 'thread' || activePanelName === 'topics')) {
+                showTopics();
+                return;
+            }
+
+            showPanel(activePanelName);
+            return;
+        }
+
+        if (!currentTopic && !currentGroup) {
+            showTopics();
+            return;
+        }
+
+        showPanel(activePanelName);
+    }
+
     function initPageMode() {
         if (!isPageMode) {
             return;
@@ -2712,6 +2773,12 @@
         document.body.classList.add('discussion-messenger-page');
         setOpen(true);
         showTopics();
+
+        let pageResizeTimer = 0;
+        window.addEventListener('resize', () => {
+            window.clearTimeout(pageResizeTimer);
+            pageResizeTimer = window.setTimeout(syncPageLayoutOnResize, 120);
+        });
 
         if (config.initialTopicId) {
             openTopic(config.initialTopicId);
