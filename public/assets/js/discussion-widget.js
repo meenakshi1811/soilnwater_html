@@ -169,8 +169,37 @@
         }
     }
 
+    function dockFabToCorner() {
+        if (!fab) {
+            return;
+        }
+
+        fab.classList.remove('discussion-banner-chat--on-banner');
+        fab.classList.add('discussion-banner-chat--docked');
+        fab.style.left = 'auto';
+        fab.style.top = 'auto';
+        fab.style.right = '';
+        fab.style.bottom = '';
+    }
+
+    function resetFabState() {
+        if (!fab || isPageMode) {
+            return;
+        }
+
+        const widgetOpen = Boolean(widget?.classList.contains('is-open') && !widget.hidden);
+        fab.classList.toggle('is-open', widgetOpen);
+        fab.setAttribute('aria-expanded', widgetOpen ? 'true' : 'false');
+    }
+
     function syncBannerChatPosition() {
         if (!fab || isPageMode) {
+            return;
+        }
+
+        if (isMobileViewport()) {
+            dockFabToCorner();
+            syncWidgetAnchor();
             return;
         }
 
@@ -181,10 +210,7 @@
         fab.style.left = 'auto';
 
         if (!banner) {
-            fab.classList.add('discussion-banner-chat--docked');
-            fab.style.top = 'auto';
-            fab.style.right = `${margin}px`;
-            fab.style.bottom = `${margin}px`;
+            dockFabToCorner();
             syncWidgetAnchor();
             return;
         }
@@ -192,10 +218,7 @@
         const rect = banner.getBoundingClientRect();
 
         if (rect.bottom <= BANNER_CHAT_OVERLAP) {
-            fab.classList.add('discussion-banner-chat--docked');
-            fab.style.top = 'auto';
-            fab.style.right = `${margin}px`;
-            fab.style.bottom = `${margin}px`;
+            dockFabToCorner();
         } else {
             fab.classList.add('discussion-banner-chat--on-banner');
             fab.style.right = `${margin}px`;
@@ -2174,6 +2197,8 @@
     });
 
     initBannerChatPosition();
+    resetFabState();
+    window.addEventListener('pageshow', resetFabState);
 
     els.closeBtn?.addEventListener('click', () => setOpen(false));
     els.sizeBtn?.addEventListener('click', cycleWidgetSize);

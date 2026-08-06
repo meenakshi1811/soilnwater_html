@@ -49,7 +49,7 @@
 .discussion-banner-chat,
 .discussion-fab {
     position: fixed;
-    z-index: 1045;
+    z-index: 1060;
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -65,9 +65,18 @@
         0 4px 12px rgba(46, 125, 50, 0.18);
     font-family: 'Manrope', 'Segoe UI', Helvetica, Arial, sans-serif;
     white-space: nowrap;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-    right: 24px;
-    bottom: 24px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, opacity 0.18s ease, visibility 0.18s ease;
+    right: calc(24px + env(safe-area-inset-right, 0px));
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.discussion-banner-chat--docked {
+    top: auto !important;
+    left: auto !important;
 }
 
 .discussion-banner-chat:hover,
@@ -109,6 +118,21 @@
     background: rgba(255, 255, 255, 0.16);
     font-size: 1rem;
     flex-shrink: 0;
+    color: #fff;
+    line-height: 1;
+}
+
+.discussion-banner-chat__icon svg,
+.discussion-fab__icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    fill: currentColor;
+}
+
+.discussion-banner-chat__icon > .fa-solid,
+.discussion-fab__icon > .fa-solid {
+    display: none;
 }
 
 .discussion-banner-chat__label {
@@ -128,6 +152,21 @@
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.14);
     font-size: 1.1rem;
+    color: #fff;
+    line-height: 1;
+}
+
+.discussion-banner-chat__close svg,
+.discussion-fab__close svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    fill: currentColor;
+}
+
+.discussion-banner-chat__close > .fa-solid,
+.discussion-fab__close > .fa-solid {
+    display: none;
 }
 
 .discussion-banner-chat.is-open .discussion-banner-chat__icon,
@@ -165,6 +204,8 @@
         min-height: 48px;
         padding: 0 14px 0 12px;
         gap: 8px;
+        right: calc(16px + env(safe-area-inset-right, 0px));
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     }
 
     .discussion-banner-chat__label {
@@ -2282,7 +2323,9 @@ body.discussion-widget-open { overflow: hidden; }
 
     .discussion-banner-chat.is-open,
     .discussion-fab.is-open {
-        display: none;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
     }
 
     .discussion-widget__header {
