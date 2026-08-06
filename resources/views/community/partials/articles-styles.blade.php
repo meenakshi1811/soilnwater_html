@@ -16,12 +16,13 @@
             radial-gradient(ellipse 55% 35% at 0% 15%, rgba(23, 105, 165, 0.1), transparent 50%),
             linear-gradient(180deg, #e4ebf3 0%, var(--article-surface) 38%, #e9eef4 100%);
         font-family: "Source Sans 3", "Segoe UI", sans-serif;
+        width: 100%;
     }
 
     .about-page--community-post .about-banner.community-article-hero, .about-page--articles .about-banner.community-article-hero{
         background: linear-gradient(150deg, #0a243d 0%, #12486a 48%, #1a6148 100%);
         overflow: hidden;
-        padding: clamp(28px, 4.5vw, 52px) 16px clamp(32px, 4.5vw, 48px);
+        padding: clamp(28px, 4.5vw, 52px) clamp(16px, 2vw, 32px) clamp(32px, 4.5vw, 48px);
         position: relative;
         text-align: left;
     }
@@ -50,8 +51,10 @@
     }
 
     .about-page--community-post .community-article-hero__inner, .about-page--articles .community-article-hero__inner{
-        margin: 0 auto;
-        max-width: min(1720px, calc(100vw - 48px));
+        box-sizing: border-box;
+        margin: 0;
+        max-width: none;
+        padding: 0 clamp(16px, 2vw, 32px);
         position: relative;
         width: 100%;
         z-index: 2;
@@ -156,12 +159,14 @@
     }
 
     .about-page--community-post .about-inner, .about-page--articles .about-inner{
+        box-sizing: border-box;
         gap: 0;
-        margin: 0 auto;
-        max-width: min(1720px, calc(100vw - 48px));
-        padding: 0 0 40px;
+        margin: 0;
+        max-width: none;
+        padding: 0 clamp(16px, 2vw, 32px) 40px;
         position: relative;
         top: -20px;
+        width: 100%;
         z-index: 3;
     }
 
@@ -178,6 +183,7 @@
         border-radius: 1rem;
         box-shadow: 0 6px 24px rgba(16, 37, 63, 0.07);
         overflow: hidden;
+        width: 100%;
     }
 
     .about-page--community-post .community-article-shell__top, .about-page--articles .community-article-shell__top{
@@ -601,7 +607,7 @@
 
     @@media (max-width: 575.98px) {
         .about-page--community-post .about-inner, .about-page--articles .about-inner{
-            max-width: calc(100vw - 24px);
+            padding: 0 12px 32px;
             top: -14px;
         }
 

@@ -50,8 +50,10 @@
     }
 
     .community-post-back-wrap {
-        margin: 0 auto 0.5rem;
-        max-width: min(1720px, calc(100vw - 48px));
+        box-sizing: border-box;
+        margin: 0 0 0.5rem;
+        max-width: none;
+        padding: 0 clamp(16px, 2vw, 32px);
         text-align: left;
         width: 100%;
     }
