@@ -1,4 +1,4 @@
-@extends('frontend.layouts.app')
+﻿@extends('frontend.layouts.app')
 
 @section('meta_title', $post->seoTitle())
 @section('meta_description', $post->seoDescription())
@@ -466,11 +466,12 @@
         && in_array($post->user_id, $engagement['followed_author_ids'] ?? [], true);
     $followedTopics = collect($engagement['followed_topics'] ?? [])->map(fn ($topic) => \App\Models\CommunityTopicFollow::normalizeTopic((string) $topic))->all();
     $isArticlePost = $post->content_type === 'articles';
-    $articleCoverUrl = $isArticlePost ? $post->featuredImageUrl() : null;
+    $coverUrl = $post->featuredImageUrl();
 @endphp
 <div
-    class="about-page{{ $isArticlePost ? ' about-page--articles' : '' }}"
-    @if($isArticlePost) data-article-font-root data-article-font-step="2" @endif
+    class="about-page about-page--community-post"
+    data-article-font-root
+    data-article-font-step="2"
 >
     @if(!empty($preview) || $post->isPendingApproval())
         <div class="alert alert-warning text-center rounded-0 mb-0 border-0">
@@ -497,321 +498,39 @@
         </div>
     @endif
     <section
-        class="about-banner{{ $isArticlePost ? ' community-article-hero' : '' }}{{ $articleCoverUrl ? ' has-cover' : '' }}"
-        @if($articleCoverUrl) style="--article-cover: url('{{ $articleCoverUrl }}')" @endif
+        class="about-banner community-article-hero{{ $coverUrl ? ' has-cover' : '' }}"
+        @if($coverUrl) style="--article-cover: url('{{ $coverUrl }}')" @endif
     >
-        @if($isArticlePost)
-            <div class="community-article-hero__inner">
-        @endif
+        <div class="community-article-hero__inner">
         <div class="community-post-back-wrap">
             <a href="{{ route('community.index', $post->isMyAreaPost() ? ['type' => 'local-voices'] : []) }}" class="community-post-back">
                 <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
                 {{ $post->isMyAreaPost() ? 'Back to Local Voices' : 'Back to Community' }}
             </a>
         </div>
-        @if($isArticlePost)
-            <div class="community-article-hero__kicker">
-                SoilnWater Community <span>·</span> {{ $post->typeLabel() }}
-                @if(filled(data_get($post->meta, 'article_type')))
-                    <span>·</span> {{ data_get($post->meta, 'article_type') }}
-                @endif
-            </div>
-        @else
-        <div class="community-post-banner-tags">
-            <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->typeLabel() }}</span>
-            @foreach($post->articleScoreBadges() as $badge)
-                <span class="badge bg-light text-dark community-post-banner-tag community-score-badge {{ $badge['class'] }}">{{ $badge['label'] }}</span>
-            @endforeach
-            @if($post->content_type === 'stories')
-                @foreach($post->storyAchievementBadges() as $badge)
-                    <span class="badge bg-light text-dark community-post-banner-tag community-story-badge {{ $badge['class'] }}">{{ $badge['label'] }}</span>
-                @endforeach
-                @foreach((array) data_get($post->meta, 'story_themes', []) as $theme)
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $theme }}</span>
-                @endforeach
-                @foreach((array) data_get($post->meta, 'story_target_audience', []) as $audience)
-                    <span class="badge bg-light text-dark community-post-banner-tag story-meta-pill--audience">{{ $audience }}</span>
-                @endforeach
+        <div class="community-article-hero__kicker">
+            SoilnWater Community <span>·</span> {{ $post->typeLabel() }}
+            @if(filled($post->category))
+                <span>·</span> {{ $post->category }}
             @endif
-            @if($post->content_type === 'poetry')
-                @foreach((array) data_get($post->meta, 'poetry_themes', []) as $theme)
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $theme }}</span>
-                @endforeach
-                @foreach((array) data_get($post->meta, 'poetry_target_audience', []) as $audience)
-                    <span class="badge bg-light text-dark community-post-banner-tag story-meta-pill--audience">{{ $audience }}</span>
-                @endforeach
-                @if(data_get($post->meta, 'poetry_part_of_series') === 'Yes' && filled(data_get($post->meta, 'poetry_series_name')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">
-                        {{ data_get($post->meta, 'poetry_series_name') }}@if(filled(data_get($post->meta, 'poetry_series_part'))) · {{ data_get($post->meta, 'poetry_series_part') }}@endif
-                    </span>
-                @endif
-            @endif
-            @if($post->isWomensWorldPost())
-                @foreach((array) data_get($post->meta, 'womens_world_themes', []) as $theme)
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $theme }}</span>
-                @endforeach
-                @foreach((array) data_get($post->meta, 'womens_world_community_groups', []) as $group)
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $group }}</span>
-                @endforeach
-            @endif
-            @if($post->isStudentCornerPost())
-                @if(filled(data_get($post->meta, 'student_corner_category')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'student_corner_category') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'student_corner_content_type')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'student_corner_content_type') }}</span>
-                @endif
-                @foreach(array_slice((array) data_get($post->meta, 'student_corner_skills', []), 0, 3) as $skill)
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $skill }}</span>
-                @endforeach
-            @endif
-            @if($post->isYouthCornerPost())
-                @if(filled(data_get($post->meta, 'youth_corner_category')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'youth_corner_category') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'youth_corner_content_type')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'youth_corner_content_type') }}</span>
-                @endif
-                @foreach(array_slice((array) data_get($post->meta, 'youth_corner_skills', []), 0, 3) as $skill)
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $skill }}</span>
-                @endforeach
-            @endif
-            @if($post->isLocalVoicesPost())
-                @if(filled(data_get($post->meta, 'local_voice_type')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'local_voice_type') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'local_voice_category')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'local_voice_category') }}</span>
-                @endif
-            @endif
-            @if($post->isMyAreaPost())
-                @if(filled($post->myAreaActivityType()))
-                    <span class="badge bg-success text-white community-post-banner-tag">{{ $post->myAreaActivityType() }}</span>
-                @endif
-                @if(filled($post->myAreaTopicCategory()))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->myAreaTopicCategory() }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'my_area_impact_level')))
-                    <span class="badge bg-danger community-post-banner-tag">{{ data_get($post->meta, 'my_area_impact_level') }} impact</span>
-                @endif
-                @if(filled(data_get($post->meta, 'my_area_status_tracker')))
-                    <span class="badge bg-primary community-post-banner-tag">{{ data_get($post->meta, 'my_area_status_tracker') }}</span>
-                @endif
-            @endif
-            @if($post->isCommunityIssuesPost())
-                @if(filled(data_get($post->meta, 'community_issue_category')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'community_issue_category') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'community_issue_type')))
-                    <span class="badge bg-danger text-white community-post-banner-tag">{{ data_get($post->meta, 'community_issue_type') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'community_issue_severity')))
-                    <span class="badge bg-warning text-dark community-post-banner-tag">{{ data_get($post->meta, 'community_issue_severity') }} severity</span>
-                @endif
-                @if(filled(data_get($post->meta, 'community_issue_status_tracker')))
-                    <span class="badge bg-primary community-post-banner-tag">{{ data_get($post->meta, 'community_issue_status_tracker') }}</span>
-                @endif
-                @php
-                    $communityIssueSupportCount = (int) data_get($reportEngagement ?? [], 'supports_count', 0);
-                @endphp
-                @if($post->isCommunityIssueEscalated($communityIssueSupportCount))
-                    <span class="badge bg-danger community-post-banner-tag">High priority</span>
-                @endif
-            @endif
-            @if($post->isAgriculturePost())
-                @if(filled($post->agricultureShareTypeLabel()))
-                    <span class="badge bg-success text-white community-post-banner-tag">{{ $post->agricultureShareTypeLabel() }}</span>
-                @endif
-                @if(filled($post->agricultureCategoryLabel()))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->agricultureCategoryLabel() }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'agriculture_crop_name')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'agriculture_crop_name') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'agriculture_irrigation_method')))
-                    <span class="badge bg-info text-white community-post-banner-tag">{{ data_get($post->meta, 'agriculture_irrigation_method') }}</span>
-                @endif
-                @if($post->enablesAgricultureCropDoctor())
-                    <span class="badge bg-warning text-dark community-post-banner-tag">Crop Doctor</span>
-                @endif
-                @if($post->agricultureNeedsExpertAssistance())
-                    <span class="badge bg-danger community-post-banner-tag">Expert help requested</span>
-                @endif
-            @endif
-            @if($post->isEnvironmentPost())
-                @if(filled($post->environmentPostTypeLabel()))
-                    <span class="badge bg-info text-white community-post-banner-tag">{{ $post->environmentPostTypeLabel() }}</span>
-                @endif
-                @if(filled($post->environmentCategoryLabel()))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->environmentCategoryLabel() }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'environment_natural_feature_name')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'environment_natural_feature_name') }}</span>
-                @endif
-                @if($post->showsOnGreenMap())
-                    <span class="badge bg-success community-post-banner-tag">Green Map</span>
-                @endif
-                @if($post->enablesEnvironmentGreenLeader())
-                    <span class="badge bg-warning text-dark community-post-banner-tag">Green Leader</span>
-                @endif
-                @if(filled(data_get($post->meta, 'environment_issue_type')))
-                    <span class="badge bg-danger community-post-banner-tag">{{ data_get($post->meta, 'environment_issue_type') }}</span>
-                @endif
-            @endif
-            @if($post->isAstroConsultancyPost())
-                @if(filled($post->astroConsultancyPostTypeLabel()))
-                    <span class="badge bg-primary text-white community-post-banner-tag">{{ $post->astroConsultancyPostTypeLabel() }}</span>
-                @endif
-                @if(filled($post->astroConsultancyCategoryLabel()))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->astroConsultancyCategoryLabel() }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'astro_consultancy_zodiac_sign')))
-                    <span class="badge bg-warning text-dark community-post-banner-tag">{{ data_get($post->meta, 'astro_consultancy_zodiac_sign') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'astro_consultancy_horoscope_period')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'astro_consultancy_horoscope_period') }}</span>
-                @endif
-                @if($post->astroEnablesLiveQa())
-                    <span class="badge bg-info text-white community-post-banner-tag">Live Q&amp;A</span>
-                @endif
-                @if($post->astroEnablesConsultantLinking())
-                    <span class="badge bg-success community-post-banner-tag">Verified consultant</span>
-                @endif
-            @endif
-            @if($post->isReligionSpiritualityPost())
-                @if(filled(data_get($post->meta, 'religion_spirituality_post_type')))
-                    <span class="badge bg-primary text-white community-post-banner-tag">{{ data_get($post->meta, 'religion_spirituality_post_type') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'religion_spirituality_category', $post->category)))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'religion_spirituality_category', $post->category) }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'religion_spirituality_tradition')))
-                    <span class="badge bg-secondary-subtle text-secondary community-post-banner-tag">{{ data_get($post->meta, 'religion_spirituality_tradition') }}</span>
-                @endif
-                @if(data_get($post->meta, 'religion_spirituality_enable_digital_pilgrimage_guide'))
-                    <span class="badge bg-info text-white community-post-banner-tag">Pilgrimage Guide</span>
-                @endif
-                @if(data_get($post->meta, 'religion_spirituality_enable_festival_calendar'))
-                    <span class="badge bg-warning text-dark community-post-banner-tag">Festival Calendar</span>
-                @endif
-                @if(data_get($post->meta, 'religion_spirituality_enable_community_service_directory'))
-                    <span class="badge bg-success community-post-banner-tag">Service Directory</span>
-                @endif
-                @if(data_get($post->meta, 'religion_spirituality_enable_wisdom_library'))
-                    <span class="badge bg-primary text-white community-post-banner-tag">Wisdom Library</span>
-                @endif
-            @endif
-            @foreach($post->adminPromotionLabels() as $promotionLabel)
-                <span class="badge bg-warning text-dark community-post-banner-tag">{{ $promotionLabel }}</span>
-            @endforeach
-            @if($post->content_type === 'articles' && filled(data_get($post->meta, 'article_type')))
-                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'article_type') }}</span>
-            @endif
-            @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_type')))
-                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'news_type') }}</span>
-            @endif
-            @if($post->content_type === 'stories' && filled(data_get($post->meta, 'story_type')))
-                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'story_type') }}</span>
-            @endif
-            @if($post->content_type === 'poetry' && filled(data_get($post->meta, 'poetry_type')))
-                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'poetry_type') }}</span>
-            @endif
-            @if($post->content_type === 'poetry' && filled(data_get($post->meta, 'sub_category')))
-                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'sub_category') }}</span>
-            @endif
-            @if($post->content_type === 'poetry' && filled(data_get($post->meta, 'poem_language')))
-                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'poem_language') }}</span>
-            @endif
-            @if($post->content_type === 'autobiography' && filled(data_get($post->meta, 'autobiography_type')))
-                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'autobiography_type') }}</span>
-            @endif
-            @if($post->content_type === 'autobiography')
-                @foreach(array_slice(array_values(array_filter((array) data_get($post->meta, 'places_mentioned', []))), 0, 3) as $place)
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $place }}</span>
-                @endforeach
-            @endif
-            @if($post->content_type === 'stories' && filled(data_get($post->meta, 'story_time_period')))
-                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'story_time_period') }}</span>
-            @endif
-            @if($post->content_type === 'stories' && filled(data_get($post->meta, 'story_language')))
-                <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'story_language') }}</span>
-            @endif
-            @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_priority')))
-                <span class="badge bg-warning text-dark community-post-banner-tag">{{ data_get($post->meta, 'news_priority') }}</span>
-            @endif
-            @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_impact_level')))
-                <span class="badge bg-danger community-post-banner-tag">{{ data_get($post->meta, 'news_impact_level') }} impact</span>
-            @endif
-            @if($post->content_type === 'reports' && filled($post->reportStatus()))
-                <span class="badge {{ $post->reportStatusBadgeClass() }} community-post-banner-tag">{{ $post->reportStatus() }}</span>
-            @endif
-            @if($post->isChildrensCornerPost())
-                @if(filled($post->childrensCornerShareType()))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->childrensCornerShareType() }}</span>
-                @endif
-                <span class="badge bg-success community-post-banner-tag">
-                    <i class="fa-solid fa-shield-halved me-1" aria-hidden="true"></i>{{ $post->childrensCornerPrivacyLabel() }}
-                </span>
-                @if(filled(data_get($post->meta, 'child_age_group')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'child_age_group') }}</span>
-                @endif
-                @foreach(array_slice((array) data_get($post->meta, 'childrens_corner_themes', []), 0, 3) as $theme)
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $theme }}</span>
-                @endforeach
-            @endif
-            @if($post->isAwarenessPost())
-                @if(filled($post->awarenessCategoryLabel()))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->awarenessCategoryLabel() }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'awareness_type')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'awareness_type') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'awareness_level')))
-                    <span class="badge bg-primary community-post-banner-tag">{{ data_get($post->meta, 'awareness_level') }} level</span>
-                @endif
-            @endif
-            @if($post->isBusinessPost())
-                @if(filled($post->businessCategoryLabel()))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ $post->businessCategoryLabel() }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'business_content_type')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'business_content_type') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'business_stage')))
-                    <span class="badge bg-warning text-dark community-post-banner-tag">{{ data_get($post->meta, 'business_stage') }}</span>
-                @endif
-                @if(filled(data_get($post->meta, 'business_industry')))
-                    <span class="badge bg-light text-dark community-post-banner-tag">{{ data_get($post->meta, 'business_industry') }}</span>
-                @endif
-            @endif
-            @if($post->isReportContent())
-                <span class="badge bg-success community-post-banner-tag">Trust Score: {{ $post->reportTrustScore() }}%</span>
-            @endif
-            <span class="badge bg-light text-dark community-post-banner-tag">{{ filled(data_get($post->meta, 'report_type')) ? data_get($post->meta, 'report_type', $post->category) : $post->category }}</span>
         </div>
-        @endif
         <h1>{{ $post->title }}</h1>
-        @if($isArticlePost && filled($post->excerpt))
+        @if(filled($post->excerpt))
             <p class="community-article-hero__deck">{{ $post->excerpt }}</p>
+        @elseif($post->content_type === 'news' && filled(data_get($post->meta, 'news_subtitle')))
+            <p class="community-article-hero__deck">{{ data_get($post->meta, 'news_subtitle') }}</p>
         @endif
-        @if($post->content_type === 'news' && filled(data_get($post->meta, 'news_subtitle')))
-            <p class="lead mb-2">{{ data_get($post->meta, 'news_subtitle') }}</p>
-        @endif
-        <p @class(['community-article-hero__byline' => $isArticlePost])>
+        <p class="community-article-hero__byline">
             By
             @if($post->showsAuthorProfileLink())
-                <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" @class(['text-white text-decoration-underline' => ! $isArticlePost])>{{ $post->authorDisplayName() }}</a>
+                <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}">{{ $post->authorDisplayName() }}</a>
             @else
                 {{ $post->authorDisplayName() }}
             @endif
-            @if($isArticlePost)
-                <span class="community-article-hero__byline-sep" aria-hidden="true">·</span>
-            @else
-                ·
-            @endif
+            <span class="community-article-hero__byline-sep" aria-hidden="true">·</span>
             {{ $post->published_at?->format('M d, Y') ?? 'Draft' }}
         </p>
-        <div @class(['d-flex flex-wrap gap-2 mt-2', 'justify-content-center' => ! $isArticlePost, 'community-article-hero__actions' => $isArticlePost])>
+        <div class="community-article-hero__actions">
             @if($post->allowsSharing())
                 @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true, 'iconOnly' => true])
             @endif
@@ -855,30 +574,32 @@
                 @endif
             @endauth
         </div>
-        @if($isArticlePost)
-            </div>
-        @endif
+        </div>
     </section>
 
-    <div class="about-inner{{ $isArticlePost ? ' community-article-scale' : '' }}">
+    <div class="about-inner">
         <section class="sec">
-            @if(! $isArticlePost)
-            @php
-                $featuredImageUrls = $post->featuredImageUrls();
-            @endphp
-            @if($featuredImageUrls !== [])
-                <div class="community-featured-gallery mb-4 {{ count($featuredImageUrls) === 1 ? 'community-featured-gallery--single' : '' }}">
-                    @foreach($featuredImageUrls as $index => $imageUrl)
-                        <div class="community-featured-gallery-item">
-                            <img src="{{ $imageUrl }}" alt="{{ $post->title }} — image {{ $index + 1 }}" class="img-fluid rounded">
-                        </div>
-                    @endforeach
-                </div>
-            @endif
+            @include('community.partials.post-shell-start', ['post' => $post])
 
-            @if($post->excerpt)
-                <p class="lead">{{ $post->excerpt }}</p>
-            @endif
+            @if(! $isArticlePost)
+                @php
+                    $shellScoreBadges = $post->articleScoreBadges();
+                    $shellStoryBadges = $post->content_type === 'stories' ? $post->storyAchievementBadges() : [];
+                    $shellPromotions = $post->adminPromotionLabels();
+                @endphp
+                @if($shellScoreBadges !== [] || $shellStoryBadges !== [] || $shellPromotions !== [])
+                    <div class="community-article-score-row">
+                        @foreach($shellScoreBadges as $badge)
+                            <span class="badge bg-light text-dark community-score-badge {{ $badge['class'] }}">{{ $badge['label'] }}</span>
+                        @endforeach
+                        @foreach($shellStoryBadges as $badge)
+                            <span class="badge bg-light text-dark community-story-badge {{ $badge['class'] }}">{{ $badge['label'] }}</span>
+                        @endforeach
+                        @foreach($shellPromotions as $promotionLabel)
+                            <span class="badge bg-warning text-dark">{{ $promotionLabel }}</span>
+                        @endforeach
+                    </div>
+                @endif
             @endif
 
             @if($isArticlePost)
@@ -1049,7 +770,7 @@
                 @php
                     $editorLanguage = data_get($post->meta, 'editor_language', 'en');
                     $editorHtmlLang = \App\Support\CommunityContentTaxonomy::editorLanguageHtmlLang($editorLanguage);
-                    $bodyClasses = 'community-post-body';
+                    $bodyClasses = 'community-post-body community-post-body--scalable';
                     if ($post->content_type === 'poetry' || ($post->isChildrensCornerPost() && $post->childrensCornerContentMode() === 'poem')) {
                         $bodyClasses .= ' community-post-body--poetry';
                     }
@@ -1471,34 +1192,13 @@
                 </div>
             @endif
 
-            @if(!empty($post->tags))
-                <div class="mt-4 d-flex flex-wrap gap-2 align-items-center">
-                    @foreach($post->tags as $tag)
-                        @php
-                            $normalizedTag = \App\Models\CommunityTopicFollow::normalizeTopic((string) $tag);
-                            $isFollowingTopic = auth()->check() && in_array($normalizedTag, $followedTopics, true);
-                        @endphp
-                        <span class="badge bg-light text-dark border">#{{ $tag }}</span>
-                        @auth
-                            @if($post->isPubliclyVisible())
-                                <button type="button"
-                                    class="btn btn-sm {{ $isFollowingTopic ? 'btn-success' : 'btn-outline-success' }} js-community-follow-topic {{ $isFollowingTopic ? 'is-following' : '' }}"
-                                    data-url="{{ route('community.subscriptions.topic.toggle') }}"
-                                    data-topic="{{ $tag }}">
-                                    {{ $isFollowingTopic ? 'Following' : 'Follow topic' }}
-                                </button>
-                            @endif
-                        @endauth
-                    @endforeach
-                </div>
-            @endif
+            @include('community.partials.post-shell-end', ['post' => $post, 'followedTopics' => $followedTopics])
 
             @if($post->allowsPoll())
                 @include('community.partials.poll', ['post' => $post])
             @endif
 
-        <div class="about-box mt-4 community-engagement-panel">
-                <h4 class="community-engagement-panel__title">Community engagement</h4>
+        <div class="about-box mt-3 community-engagement-panel community-engagement-panel--article">
                 <div class="community-engagement-stats" role="list">
                     <div class="community-engagement-stat" role="listitem" title="Views">
                         <i class="fa-solid fa-eye" aria-hidden="true"></i>
@@ -1550,16 +1250,6 @@
                 @else
                     <p class="small text-muted mb-3"><a href="{{ route('login') }}">Login</a> to react or follow this author.</p>
                 @endauth
-                <ul class="about-list mb-0">
-                    <li>
-                        Author:
-                        @if($post->showsAuthorProfileLink())
-                            <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}">{{ $post->authorDisplayName() }}</a>
-                        @else
-                            {{ $post->authorDisplayName() }}
-                        @endif
-                    </li>
-                </ul>
             </div>
 
             @if($post->content_type === 'news' && $post->allowsNewsDiscussion())
@@ -1628,9 +1318,7 @@
 
 @push('styles')
 @include('community.partials.story-styles')
-@if($post->content_type === 'articles')
 @include('community.partials.articles-styles')
-@endif
 @if($post->content_type === 'poetry')
 @include('community.partials.poetry-styles')
 @endif
@@ -1793,7 +1481,7 @@
             const zoomSteps = [0.85, 0.92, 1, 1.12, 1.25, 1.4, 1.55, 1.7, 1.85, 2];
             const defaultStep = 2; // 1x
             const storageKey = 'soilnwater.articleFontStep';
-            const scaleTarget = fontRoot.querySelector('.community-article-scale');
+            const scaleTargets = fontRoot.querySelectorAll('.community-post-body--scalable, .community-post-body--article');
             const controls = fontRoot.querySelector('[data-article-font-controls]');
             const decreaseBtn = controls?.querySelector('[data-article-font-action="decrease"]');
             const resetBtn = controls?.querySelector('[data-article-font-action="reset"]');
@@ -1805,8 +1493,10 @@
 
                 fontRoot.setAttribute('data-article-font-step', String(index));
 
-                if (scaleTarget) {
-                    scaleTarget.style.setProperty('--article-page-zoom', String(zoom));
+                if (scaleTargets.length) {
+                    scaleTargets.forEach(function (target) {
+                        target.style.setProperty('--article-text-scale', String(zoom));
+                    });
                 }
 
                 if (resetBtn) {
