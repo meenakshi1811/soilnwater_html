@@ -1356,7 +1356,6 @@
     }
     .community-post-body--poetry {
         font-family: Georgia, "Times New Roman", serif;
-        font-size: 1.08rem;
         line-height: 1.85;
         white-space: normal;
     }
@@ -1481,7 +1480,11 @@
             const zoomSteps = [0.85, 0.92, 1, 1.12, 1.25, 1.4, 1.55, 1.7, 1.85, 2];
             const defaultStep = 2; // 1x
             const storageKey = 'soilnwater.articleFontStep';
-            const scaleTargets = fontRoot.querySelectorAll('.community-post-body--scalable, .community-post-body--article');
+
+            function getScaleTargets() {
+                return fontRoot.querySelectorAll('.community-post-body--scalable, .community-post-body--article, [data-community-body-protected]');
+            }
+
             const controls = fontRoot.querySelector('[data-article-font-controls]');
             const decreaseBtn = controls?.querySelector('[data-article-font-action="decrease"]');
             const resetBtn = controls?.querySelector('[data-article-font-action="reset"]');
@@ -1492,12 +1495,12 @@
                 const zoom = zoomSteps[index];
 
                 fontRoot.setAttribute('data-article-font-step', String(index));
+                fontRoot.style.setProperty('--article-text-scale', String(zoom));
+                fontRoot.classList.toggle('is-text-scaled', index !== defaultStep);
 
-                if (scaleTargets.length) {
-                    scaleTargets.forEach(function (target) {
-                        target.style.setProperty('--article-text-scale', String(zoom));
-                    });
-                }
+                getScaleTargets().forEach(function (target) {
+                    target.style.setProperty('--article-text-scale', String(zoom));
+                });
 
                 if (resetBtn) {
                     const isDefault = index === defaultStep;

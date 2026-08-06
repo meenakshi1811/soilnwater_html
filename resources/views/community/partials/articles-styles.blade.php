@@ -9,6 +9,8 @@
         --article-surface: #edf2f7;
         --article-paper: #ffffff;
         --article-line: rgba(16, 37, 63, 0.08);
+        --article-text-scale: 1;
+        --post-text-base: 1rem;
         background:
             radial-gradient(ellipse 70% 40% at 100% 0%, rgba(42, 107, 79, 0.09), transparent 55%),
             radial-gradient(ellipse 55% 35% at 0% 15%, rgba(23, 105, 165, 0.1), transparent 50%),
@@ -49,7 +51,7 @@
 
     .about-page--community-post .community-article-hero__inner, .about-page--articles .community-article-hero__inner{
         margin: 0 auto;
-        max-width: min(760px, calc(100vw - 32px));
+        max-width: min(1720px, calc(100vw - 48px));
         position: relative;
         width: 100%;
         z-index: 2;
@@ -111,7 +113,7 @@
         font-size: clamp(0.92rem, 1.6vw, 1.02rem);
         line-height: 1.5;
         margin: 0 0 0.75rem;
-        max-width: 36rem;
+        max-width: none;
     }
 
     .about-page--community-post .community-article-hero__byline, .about-page--articles .community-article-hero__byline{
@@ -156,7 +158,7 @@
     .about-page--community-post .about-inner, .about-page--articles .about-inner{
         gap: 0;
         margin: 0 auto;
-        max-width: min(760px, calc(100vw - 32px));
+        max-width: min(1720px, calc(100vw - 48px));
         padding: 0 0 40px;
         position: relative;
         top: -20px;
@@ -291,8 +293,8 @@
 
     .about-page--community-post .community-article-reading, .about-page--articles .community-article-reading{
         margin: 0 auto;
-        max-width: 680px;
-        padding: 1rem 1.1rem 1.25rem;
+        max-width: none;
+        padding: 1rem 1.25rem 1.25rem;
         width: 100%;
     }
 
@@ -308,9 +310,24 @@
     }
 
     .about-page--community-post .community-post-body--scalable,
-    .about-page--articles .community-post-body--scalable {
-        --article-text-scale: 1;
-        font-size: calc(1rem * var(--article-text-scale));
+    .about-page--articles .community-post-body--scalable,
+    .about-page--community-post [data-community-body-protected],
+    .about-page--articles [data-community-body-protected] {
+        font-size: calc(var(--post-text-base, 1rem) * var(--article-text-scale, 1));
+    }
+
+    .about-page--community-post .community-post-body--poetry.community-post-body--scalable,
+    .about-page--articles .community-post-body--poetry.community-post-body--scalable {
+        --post-text-base: 1.08rem;
+    }
+
+    .about-page--community-post.is-text-scaled .community-post-body--scalable [style*="font-size"],
+    .about-page--articles.is-text-scaled .community-post-body--scalable [style*="font-size"],
+    .about-page--community-post.is-text-scaled .community-post-body--article [style*="font-size"],
+    .about-page--articles.is-text-scaled .community-post-body--article [style*="font-size"],
+    .about-page--community-post.is-text-scaled [data-community-body-protected] [style*="font-size"],
+    .about-page--articles.is-text-scaled [data-community-body-protected] [style*="font-size"] {
+        font-size: inherit !important;
     }
 
     .about-page--community-post .community-post-body--scalable p,
@@ -320,9 +337,8 @@
 
     .about-page--community-post .community-post-body--article,
     .about-page--articles .community-post-body--article {
-        --article-text-scale: 1;
         color: #1e293b;
-        font-size: calc(1rem * var(--article-text-scale));
+        font-size: calc(var(--post-text-base, 1rem) * var(--article-text-scale, 1));
         line-height: 1.72;
     }
 
@@ -330,8 +346,8 @@
         margin-bottom: 0.95rem;
     }
 
-    .about-page--community-post .community-post-body--article h2,, .about-page--articles .community-post-body--article h2,
-    .about-page--community-post .community-post-body--article h3,, .about-page--articles .community-post-body--article h3,
+    .about-page--community-post .community-post-body--article h2, .about-page--articles .community-post-body--article h2,
+    .about-page--community-post .community-post-body--article h3, .about-page--articles .community-post-body--article h3,
     .about-page--community-post .community-post-body--article h4, .about-page--articles .community-post-body--article h4{
         color: var(--article-ink);
         font-family: Fraunces, Georgia, serif;
