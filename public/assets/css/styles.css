@@ -3305,6 +3305,17 @@
     height: auto !important;
 }
 
+/* Sponsored gap-fill cards in desktop masonry grids */
+.masonry-grid .ad-card.ad-card--gap-fill {
+    padding: 0;
+    z-index: 1;
+}
+
+.masonry-grid .ad-card.ad-card--gap-fill .ad-image {
+    height: 100%;
+    border-radius: 0;
+}
+
 /* Sponsored/static ads */
 .ad-card.filler {
     padding: 14px;

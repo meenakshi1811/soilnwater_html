@@ -40,6 +40,7 @@
     @endphp
     <div
         class="community-post-body community-post-body--article community-post-body--scalable"
+        data-community-font-target
         data-community-body-protected
         lang="{{ $editorHtmlLang }}"
         @if($editorLanguage === 'ur') dir="rtl" @endif

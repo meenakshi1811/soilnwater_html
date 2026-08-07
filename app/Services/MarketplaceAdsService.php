@@ -62,9 +62,6 @@ class MarketplaceAdsService
      */
     public function getSponsoredFillers(?float $lat, ?float $lng, array $preferredModules = [], bool $strictModules = false): array
     {
-        $requiredDimensions = collect(AdSizes::sponsoredFillerDimensions())
-            ->flip();
-
         $sponsoredAdsQuery = UserAd::query()
             ->where('status', 'approved')
             ->where('is_sponsored', true)
@@ -96,19 +93,9 @@ class MarketplaceAdsService
             ->get(['id', 'title', 'short_description', 'size_type', 'final_image', 'reviewed_at', 'location_lat', 'location_lng']);
 
         return $sponsoredAds
-            ->map(function (UserAd $ad) use ($requiredDimensions) {
+            ->map(function (UserAd $ad) {
                 $dims = AdSizes::dimensionsForSizeType((string) $ad->size_type);
                 if (! $dims || $dims['w'] <= 0 || $dims['h'] <= 0) {
-                    return null;
-                }
-
-                $sizeConfig = AdSizes::all(true)[(string) $ad->size_type] ?? null;
-                if (! $sizeConfig || ! AdSizes::isSponsoredFillerSize($sizeConfig)) {
-                    return null;
-                }
-
-                $sizeKey = $dims['w'].'x'.$dims['h'];
-                if (! $requiredDimensions->has($sizeKey)) {
                     return null;
                 }
 

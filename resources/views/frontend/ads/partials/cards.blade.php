@@ -616,9 +616,12 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         return images[Math.floor(Math.random() * images.length)];
     }
 
-    function mountFillerWithItem(grid, left, top, width, height, item) {
-        instance.usedFillerKeys.add(fillerItemKey(item));
-        const gapFill = isStackedLayout();
+    function mountFillerWithItem(grid, left, top, width, height, item, options) {
+        options = options || {};
+        if (!options.skipUsedKey) {
+            instance.usedFillerKeys.add(fillerItemKey(item));
+        }
+        const gapFill = options.gapFill !== undefined ? !!options.gapFill : true;
         const card = buildFillerCard(width, height, {
             label: item.label || 'Sponsored',
             image: item.image,
@@ -630,6 +633,13 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             card.dataset.sponsoredAdId = String(item.id);
         }
         return mountFillerCard(grid, left, top, width, height, card);
+    }
+
+    function mountFlexGapFiller(grid, left, top, width, height, item) {
+        return mountFillerWithItem(grid, left, top, width, height, item, {
+            gapFill: true,
+            skipUsedKey: true,
+        });
     }
 
     function mountBlankFiller(grid, left, top, width, height, sizeMeta) {
@@ -651,12 +661,12 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         }
 
         sizeMeta = sizeMeta || findBlankSizeMeta(width, height);
-        if (!sizeMeta) {
+        const fillW = Number(width);
+        const fillH = Number(height);
+
+        if (!fillW || !fillH) {
             return null;
         }
-
-        const fillW = Number(sizeMeta.w);
-        const fillH = Number(sizeMeta.h);
 
         return mountFillerCard(
             grid,
@@ -669,8 +679,8 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
                 image: pickRandomStaticImage(),
                 url: null,
                 title: null,
-                sizeKey: sizeMeta.size_key || null,
-            })
+                sizeKey: (sizeMeta && sizeMeta.size_key) || 'desktop_gap',
+            }, { gapFill: true })
         );
     }
 
@@ -681,6 +691,24 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
     function getAvailableSponsoredItems(grid) {
         return FILLER_POOL.filter(function (item) {
             return item.image && isFillerItemAvailable(item, grid);
+        });
+    }
+
+    function getFlexSponsoredItems(grid) {
+        const mainGridKeys = getMainGridAdKeys(grid);
+
+        return FILLER_POOL.filter(function (item) {
+            if (!item.image) {
+                return false;
+            }
+            if (item.id && mainGridKeys.has('id:' + item.id)) {
+                return false;
+            }
+            if (item.url && mainGridKeys.has('url:' + item.url)) {
+                return false;
+            }
+
+            return true;
         });
     }
 
@@ -835,6 +863,121 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
         });
 
         return candidates;
+    }
+
+    function collectArbitraryGapCandidates(placedAds, packWidth, contentHeight, obstacles, usedGapKeys, minWidth, minHeight) {
+        const candidates = [];
+        const bottomLimit = Math.max(0, contentHeight);
+        minWidth = minWidth || 100;
+        minHeight = minHeight || 80;
+
+        if (bottomLimit <= 0 || packWidth < 200 || !placedAds.length) {
+            return candidates;
+        }
+
+        const xs = [0];
+        const ys = [0];
+        obstacles.forEach(function (item) {
+            xs.push(item.left);
+            xs.push(item.right + GAP);
+            ys.push(item.top);
+            ys.push(item.bottom + GAP);
+        });
+
+        const uniqX = uniqueSorted(xs);
+        const uniqY = uniqueSorted(ys);
+
+        for (let yi = 0; yi < uniqY.length; yi++) {
+            const top = uniqY[yi];
+            if (top >= bottomLimit) {
+                continue;
+            }
+
+            for (let xi = 0; xi < uniqX.length; xi++) {
+                const left = uniqX[xi];
+                const rect = measureFreeRect(obstacles, left, top, packWidth, bottomLimit);
+
+                if (!rect || rect.w < minWidth || rect.h < minHeight) {
+                    continue;
+                }
+
+                const key = gapKey(left, top, rect.w, rect.h);
+                if (usedGapKeys[key]) {
+                    continue;
+                }
+
+                candidates.push({
+                    left: left,
+                    top: top,
+                    w: rect.w,
+                    h: rect.h,
+                    key: key,
+                });
+            }
+        }
+
+        candidates.sort(function (a, b) {
+            return (b.w * b.h) - (a.w * a.h) || a.top - b.top || a.left - b.left;
+        });
+
+        return candidates;
+    }
+
+    function pickFlexSponsoredItem(grid, index) {
+        const available = getFlexSponsoredItems(grid);
+        if (available.length) {
+            return available[index % available.length];
+        }
+
+        const staticImg = pickRandomStaticImage();
+        if (!staticImg) {
+            return null;
+        }
+
+        return {
+            label: 'Sponsored',
+            image: staticImg,
+            url: null,
+            title: null,
+        };
+    }
+
+    function fillArbitraryGaps(grid, placedAds, packWidth, contentHeight, obstacles, usedGapKeys) {
+        const fillers = [];
+        const minGapW = 100;
+        const minGapH = 80;
+        let flexIndex = 0;
+        const maxFlexFillers = Math.max(12, getFlexSponsoredItems(grid).length * 3, (instance.staticImages || []).length * 2);
+
+        while (flexIndex < maxFlexFillers) {
+            const candidates = collectArbitraryGapCandidates(
+                placedAds,
+                packWidth,
+                contentHeight,
+                obstacles,
+                usedGapKeys,
+                minGapW,
+                minGapH
+            );
+
+            if (!candidates.length) {
+                break;
+            }
+
+            const gap = candidates[0];
+            const item = pickFlexSponsoredItem(grid, flexIndex);
+            if (!item || !item.image) {
+                break;
+            }
+
+            const slot = mountFlexGapFiller(grid, gap.left, gap.top, gap.w, gap.h, item);
+            fillers.push(slot);
+            obstacles.push(toRect(slot));
+            usedGapKeys[gap.key] = true;
+            flexIndex++;
+        }
+
+        return fillers;
     }
 
     function createFiller(width, height, grid) {
@@ -1054,6 +1197,18 @@ window.renderAdsMarketCards = window.renderAdsMarketCards || function (gridId, f
             if (!placedBlank) {
                 break;
             }
+        }
+
+        if (!useMobileGaps) {
+            const arbitraryFillers = fillArbitraryGaps(
+                grid,
+                placedAds,
+                packWidth,
+                contentHeight,
+                obstacles,
+                usedGapKeys
+            );
+            fillers.push.apply(fillers, arbitraryFillers);
         }
 
         return fillers;

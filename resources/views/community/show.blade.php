@@ -780,10 +780,10 @@
                 @if($post->content_type === 'poetry' || ($post->isChildrensCornerPost() && $post->childrensCornerContentMode() === 'poem'))
                     <div class="poetry-reading-card mb-4">
                         <div class="poetry-reading-card__kicker">Poem</div>
-                        <div class="{{ $bodyClasses }}" data-community-body-protected lang="{{ $editorHtmlLang }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
+                        <div class="{{ $bodyClasses }}" data-community-font-target data-community-body-protected lang="{{ $editorHtmlLang }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
                     </div>
                 @else
-                    <div class="{{ $bodyClasses }}" data-community-body-protected lang="{{ $editorHtmlLang }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
+                    <div class="{{ $bodyClasses }}" data-community-font-target data-community-body-protected lang="{{ $editorHtmlLang }}" @if($editorLanguage === 'ur') dir="rtl" @endif>{!! $post->body !!}</div>
                 @endif
             @endif
 
@@ -1478,19 +1478,14 @@
 
         const fontRoot = document.querySelector('[data-article-font-root]');
         if (fontRoot) {
-            // Each click of A+ / A- moves one step; A resets to default (1x).
             const zoomSteps = [0.85, 0.92, 1, 1.12, 1.25, 1.4, 1.55, 1.7, 1.85, 2];
-            const defaultStep = 2; // 1x
+            const defaultStep = 2;
             const storageKey = 'soilnwater.articleFontStep';
+            const controls = fontRoot.querySelector('[data-article-font-controls]');
 
             function getScaleTargets() {
-                return fontRoot.querySelectorAll('.community-post-body--scalable, .community-post-body--article, [data-community-body-protected]');
+                return fontRoot.querySelectorAll('[data-community-font-target], .community-post-body--scalable, .community-post-body--article');
             }
-
-            const controls = fontRoot.querySelector('[data-article-font-controls]');
-            const decreaseBtn = controls?.querySelector('[data-article-font-action="decrease"]');
-            const resetBtn = controls?.querySelector('[data-article-font-action="reset"]');
-            const increaseBtn = controls?.querySelector('[data-article-font-action="increase"]');
 
             function applyStep(step) {
                 const index = Math.max(0, Math.min(zoomSteps.length - 1, Number(step)));
@@ -1502,20 +1497,34 @@
 
                 getScaleTargets().forEach(function (target) {
                     target.style.setProperty('--article-text-scale', String(zoom));
+
+                    if (zoom === 1) {
+                        target.style.removeProperty('zoom');
+                        target.style.removeProperty('-webkit-text-size-adjust');
+                    } else {
+                        target.style.zoom = String(zoom);
+                        target.style.setProperty('-webkit-text-size-adjust', 'none');
+                    }
                 });
 
-                if (resetBtn) {
-                    const isDefault = index === defaultStep;
-                    resetBtn.classList.toggle('is-active', isDefault);
-                    resetBtn.setAttribute('aria-pressed', isDefault ? 'true' : 'false');
-                }
+                if (controls) {
+                    controls.querySelectorAll('[data-article-font-action]').forEach(function (button) {
+                        const action = button.getAttribute('data-article-font-action');
 
-                if (decreaseBtn) {
-                    decreaseBtn.disabled = index === 0;
-                }
+                        if (action === 'reset') {
+                            const isDefault = index === defaultStep;
+                            button.classList.toggle('is-active', isDefault);
+                            button.setAttribute('aria-pressed', isDefault ? 'true' : 'false');
+                        }
 
-                if (increaseBtn) {
-                    increaseBtn.disabled = index === zoomSteps.length - 1;
+                        if (action === 'decrease') {
+                            button.disabled = index === 0;
+                        }
+
+                        if (action === 'increase') {
+                            button.disabled = index === zoomSteps.length - 1;
+                        }
+                    });
                 }
 
                 try {
@@ -1528,17 +1537,27 @@
                 return Number.isFinite(value) ? value : defaultStep;
             }
 
-            decreaseBtn?.addEventListener('click', function () {
-                applyStep(currentStep() - 1);
-            });
+            if (controls) {
+                controls.addEventListener('click', function (event) {
+                    const button = event.target.closest('[data-article-font-action]');
+                    if (!button || !controls.contains(button)) {
+                        return;
+                    }
 
-            increaseBtn?.addEventListener('click', function () {
-                applyStep(currentStep() + 1);
-            });
+                    event.preventDefault();
+                    event.stopPropagation();
 
-            resetBtn?.addEventListener('click', function () {
-                applyStep(defaultStep);
-            });
+                    const action = button.getAttribute('data-article-font-action');
+
+                    if (action === 'decrease') {
+                        applyStep(currentStep() - 1);
+                    } else if (action === 'increase') {
+                        applyStep(currentStep() + 1);
+                    } else if (action === 'reset') {
+                        applyStep(defaultStep);
+                    }
+                });
+            }
 
             let saved = defaultStep;
             try {

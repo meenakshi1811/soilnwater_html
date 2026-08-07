@@ -315,6 +315,11 @@
         padding-left: 1rem;
     }
 
+    .about-page--community-post [data-community-font-target],
+    .about-page--articles [data-community-font-target] {
+        transform-origin: top center;
+    }
+
     .about-page--community-post .community-post-body--scalable,
     .about-page--articles .community-post-body--scalable,
     .about-page--community-post [data-community-body-protected],
