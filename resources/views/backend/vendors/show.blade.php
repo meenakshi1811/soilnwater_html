@@ -12,9 +12,7 @@
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.vendors.index') }}" class="btn btn-light">Back to list</a>
-            @if($vendor->isApproved())
-                <a href="{{ route('store.show', $vendor->slug) }}" target="_blank" class="btn btn-outline-primary">View store</a>
-            @endif
+            <a href="{{ route('admin.vendors.store-preview', $vendor) }}" target="_blank" class="btn btn-outline-primary">View store</a>
         </div>
     </div>
 
@@ -29,7 +27,7 @@
                     <dt class="col-sm-4">Address</dt><dd class="col-sm-8">{{ $vendor->address }}, {{ $vendor->city }}, {{ $vendor->state }} {{ $vendor->pincode }}</dd>
                     <dt class="col-sm-4">PAN / GST</dt><dd class="col-sm-8">{{ $vendor->pan_number ?? '—' }} / {{ $vendor->gst_number ?? '—' }}</dd>
                     <dt class="col-sm-4">Other Government Certificate</dt><dd class="col-sm-8">{{ $vendor->government_certificate_number ?? '—' }}</dd>
-                    <dt class="col-sm-4">Store URL</dt><dd class="col-sm-8"><a href="{{ route('store.show', $vendor->slug) }}" target="_blank" rel="noopener noreferrer">{{ route('store.show', $vendor->slug) }}</a></dd>
+                    <dt class="col-sm-4">Store URL</dt><dd class="col-sm-8"><a href="{{ route('admin.vendors.store-preview', $vendor) }}" target="_blank" rel="noopener noreferrer">{{ route('store.show', $vendor->slug) }}</a>@unless($vendor->isPublicProfileLive()) <span class="badge text-bg-warning">Preview only</span>@endunless</dd>
                 </dl>
             </div>
             <div class="chart-card">

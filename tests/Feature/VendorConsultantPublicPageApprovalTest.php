@@ -68,6 +68,31 @@ class VendorConsultantPublicPageApprovalTest extends TestCase
             ->get(route('store.show', $vendor->slug))
             ->assertOk()
             ->assertSee('Welcome to Rawat Cycle Station');
+        $this->actingAs($admin)
+            ->get(route('admin.vendors.store-preview', $vendor))
+            ->assertOk()
+            ->assertSee('Welcome to Rawat Cycle Station');
+    }
+
+    public function test_admin_store_preview_works_for_pending_vendor_account(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $vendor = Vendor::query()->create([
+            'user_id' => User::factory()->create(['role' => 'vendor'])->id,
+            'company_name' => 'Pending Vendor',
+            'slug' => 'pending-vendor-store',
+            'status' => 'pending',
+            'hero_main_heading' => 'Pending vendor preview',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('store.show', $vendor->slug))
+            ->assertOk()
+            ->assertSee('Pending vendor preview');
+        $this->actingAs($admin)
+            ->get(route('admin.vendors.store-preview', $vendor))
+            ->assertOk()
+            ->assertSee('Pending vendor preview');
     }
 
     public function test_consultant_draft_submission_preview_and_decline_workflow(): void

@@ -550,6 +550,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{vendor}/edit', [VendorController::class, 'edit'])->name('edit');
             Route::put('/{vendor}', [VendorController::class, 'update'])->name('update');
             Route::post('/{vendor}/approve', [VendorController::class, 'approve'])->name('approve');
+            Route::get('/{vendor}/store-preview', [VendorController::class, 'storePreview'])->name('store-preview');
             Route::get('/{vendor}/public-page-review', [VendorController::class, 'reviewPublicPage'])->name('public-page.review');
             Route::get('/{vendor}/public-page-preview', [VendorController::class, 'previewPublicPage'])->name('public-page.preview');
             Route::post('/{vendor}/approve-public-page', [VendorController::class, 'approvePublicPage'])->name('approve-public-page');

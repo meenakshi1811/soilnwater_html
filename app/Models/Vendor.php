@@ -103,6 +103,11 @@ class Vendor extends Model
         });
     }
 
+    public function isPublicProfileLive(): bool
+    {
+        return $this->published_page_data !== null || $this->public_page_status === 'approved';
+    }
+
     public function publicPageSnapshot(): array
     {
         $this->loadMissing(['bannerSlides', 'pageSections']);

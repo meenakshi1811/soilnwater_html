@@ -24,6 +24,21 @@ class VendorStoreController extends Controller
     {
         $vendor = $this->resolveVendor($slug);
 
+        return $this->buildStoreHomeView($vendor, $this->staffPreviewMode($vendor));
+    }
+
+    public function renderStoreForAdmin(Vendor $vendor): View
+    {
+        $vendor->load(['bannerSlides', 'pageSections', 'branches', 'user']);
+
+        return $this->buildStoreHomeView(
+            $this->hydrateVendorPage($vendor, true),
+            true
+        );
+    }
+
+    public function buildStoreHomeView(Vendor $vendor, bool $preview = false): View
+    {
         $featuredProducts = VendorProduct::query()
             ->where('vendor_id', $vendor->id)
             ->where('status', 'approved')
@@ -37,14 +52,14 @@ class VendorStoreController extends Controller
 
         return view('frontend.store.show', [
             'vendor' => $vendor,
-            'preview' => $this->staffPreviewMode($vendor),
+            'preview' => $preview,
             'activeNav' => 'home',
             'featuredProducts' => $featuredProducts,
             'vendorCategories' => $vendorCategories,
             'fullPageAds' => $adsContext['fullPageAds'],
             'supportingAds' => $adsContext['supportingAds'],
             'vendorRecentAds' => $vendorRecentAds,
-            'similarVendors' => $this->similarVendors($vendor),
+            'similarVendors' => $preview ? collect() : $this->similarVendors($vendor),
             'selectedCategoryNamesByVendorAdId' => $this->resolveSelectedCategoryNamesByAdId($vendorRecentAds),
         ]);
     }
@@ -494,37 +509,58 @@ class VendorStoreController extends Controller
 
     private function resolveVendor(string $slug): Vendor
     {
-        $isStaff = request()->user()?->isStaff() ?? false;
+        $isStaff = $this->viewerIsStaff();
 
         $query = Vendor::query()
-            ->where(function ($query) use ($slug): void {
+            ->where(function ($query) use ($slug, $isStaff): void {
                 $query->where('slug', $slug)
                     ->orWhere('published_page_data->profile->slug', $slug);
-            })
-            ->where('status', 'approved');
+
+                if ($isStaff) {
+                    $query->orWhere('pending_page_data->profile->slug', $slug);
+                }
+            });
 
         if (! $isStaff) {
-            $query->publiclyVisible();
+            $query->where('status', 'approved')->publiclyVisible();
         }
 
         $vendor = $query
             ->with(['bannerSlides', 'pageSections', 'branches', 'user'])
             ->firstOrFail();
 
+        return $this->hydrateVendorPage($vendor, $isStaff);
+    }
+
+    private function hydrateVendorPage(Vendor $vendor, bool $allowPendingSnapshot): Vendor
+    {
         if (is_array($vendor->published_page_data)) {
             return $vendor->usePublishedPage();
+        }
+
+        if ($allowPendingSnapshot && is_array($vendor->pending_page_data)) {
+            return $vendor->usePendingPage();
         }
 
         return $vendor;
     }
 
+    private function viewerIsStaff(): bool
+    {
+        return auth()->check() && auth()->user()->isStaff();
+    }
+
     private function staffPreviewMode(Vendor $vendor): bool
     {
-        if (! request()->user()?->isStaff()) {
+        if (! $this->viewerIsStaff()) {
             return false;
         }
 
-        return $vendor->published_page_data === null && $vendor->public_page_status !== 'approved';
+        if ($vendor->status !== 'approved') {
+            return true;
+        }
+
+        return ! $vendor->isPublicProfileLive();
     }
 
     private function vendorCategories(Vendor $vendor): Collection

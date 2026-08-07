@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Frontend\VendorStoreController;
 use App\Services\AccountConversionReversalService;
 use App\Services\PortalNotificationService;
 use App\Mail\VendorPublicPageApprovedMail;
 use App\Mail\VendorStatusMail;
-use App\Models\Category;
 use App\Models\User;
 use App\Models\Vendor;
-use App\Models\VendorProduct;
 use App\Support\VendorFileUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -90,7 +89,7 @@ class VendorController extends Controller
                     return '<a class="service-page-link" href="'.route('store.show', $slug).'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>View page</span></a>';
                 }
 
-                return '<span class="text-muted">—</span>';
+                return '<a class="service-page-link service-page-link--review" href="'.route('admin.vendors.store-preview', $vendor).'" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>Preview store</span></a>';
             })
             ->addColumn('premium_toggle', function (Vendor $vendor): string {
                 $checked = $vendor->is_premium ? 'checked' : '';
@@ -251,32 +250,14 @@ class VendorController extends Controller
     {
         abort_unless($vendor->public_page_status === 'pending' && is_array($vendor->pending_page_data), 404);
 
-        $vendor->load(['branches', 'bannerSlides', 'pageSections'])->usePendingPage();
-        $featuredProducts = VendorProduct::query()
-            ->where('vendor_id', $vendor->id)
-            ->where('status', 'approved')
-            ->latest('updated_at')
-            ->limit(4)
-            ->get();
-        $vendorCategories = Category::query()
-            ->whereNull('parent_id')
-            ->forModule('vendors')
-            ->with(['children' => fn ($query) => $query->orderBy('name')->select(['id', 'name', 'parent_id'])])
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $vendor->load(['branches', 'bannerSlides', 'pageSections', 'user']);
 
-        return view('frontend.store.show', [
-            'vendor' => $vendor,
-            'preview' => true,
-            'activeNav' => 'home',
-            'featuredProducts' => $featuredProducts,
-            'vendorRecentAds' => collect(),
-            'selectedCategoryNamesByVendorAdId' => [],
-            'fullPageAds' => collect(),
-            'supportingAds' => collect(),
-            'vendorCategories' => $vendorCategories,
-            'similarVendors' => collect(),
-        ]);
+        return app(VendorStoreController::class)->buildStoreHomeView($vendor->usePendingPage(), true);
+    }
+
+    public function storePreview(Vendor $vendor): View
+    {
+        return app(VendorStoreController::class)->renderStoreForAdmin($vendor);
     }
 
     public function approvePublicPage(Request $request, Vendor $vendor): JsonResponse
