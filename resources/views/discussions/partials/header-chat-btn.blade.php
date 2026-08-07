@@ -8,7 +8,7 @@
         aria-describedby="communityChatPopoverContent"
         title="Community Chat">
     <span class="header-sticky-chat-btn__icon" aria-hidden="true">
-        <i class="fa-solid fa-people-group"></i>
+        <i class="fa-solid fa-comments"></i>
     </span>
     <span class="header-sticky-chat-btn__label">Community Chat</span>
     <span class="header-sticky-chat-btn__badge" id="discussionHeaderBadge" hidden aria-label="Unread community messages">0</span>

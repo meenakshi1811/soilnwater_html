@@ -57,12 +57,12 @@
     padding: 0 18px 0 14px;
     border: 0;
     border-radius: 999px;
-    background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);
+    background: linear-gradient(135deg, #1b6ca8 0%, #0f4f7a 100%);
     color: #fff;
     cursor: pointer;
     box-shadow:
-        0 14px 32px rgba(46, 125, 50, 0.28),
-        0 4px 12px rgba(46, 125, 50, 0.18);
+        0 14px 32px rgba(15, 79, 122, 0.28),
+        0 4px 12px rgba(15, 79, 122, 0.18);
     font-family: 'Manrope', 'Segoe UI', Helvetica, Arial, sans-serif;
     white-space: nowrap;
     transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, opacity 0.18s ease, visibility 0.18s ease;
@@ -86,8 +86,8 @@
     color: #fff;
     transform: translateY(-2px);
     box-shadow:
-        0 18px 36px rgba(46, 125, 50, 0.32),
-        0 0 0 4px rgba(46, 125, 50, 0.12);
+        0 18px 36px rgba(15, 79, 122, 0.32),
+        0 0 0 4px rgba(27, 108, 168, 0.12);
     outline: none;
 }
 
@@ -103,8 +103,8 @@
 }
 
 @keyframes community-chat-pulse {
-    0%, 100% { box-shadow: 0 14px 32px rgba(46, 125, 50, 0.28); }
-    50% { box-shadow: 0 14px 32px rgba(46, 125, 50, 0.28), 0 0 0 8px rgba(46, 125, 50, 0.16); }
+    0%, 100% { box-shadow: 0 14px 32px rgba(15, 79, 122, 0.28); }
+    50% { box-shadow: 0 14px 32px rgba(15, 79, 122, 0.28), 0 0 0 8px rgba(27, 108, 168, 0.16); }
 }
 
 .discussion-banner-chat__icon,
@@ -124,15 +124,15 @@
 
 .discussion-banner-chat__icon svg,
 .discussion-fab__icon svg {
-    width: 18px;
-    height: 18px;
-    display: block;
-    fill: currentColor;
+    display: none;
 }
 
 .discussion-banner-chat__icon > .fa-solid,
 .discussion-fab__icon > .fa-solid {
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
 }
 
 .discussion-banner-chat__label {
@@ -158,15 +158,15 @@
 
 .discussion-banner-chat__close svg,
 .discussion-fab__close svg {
-    width: 18px;
-    height: 18px;
-    display: block;
-    fill: currentColor;
+    display: none;
 }
 
 .discussion-banner-chat__close > .fa-solid,
 .discussion-fab__close > .fa-solid {
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
 }
 
 .discussion-banner-chat.is-open .discussion-banner-chat__icon,
