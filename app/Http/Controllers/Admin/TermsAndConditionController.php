@@ -26,6 +26,7 @@ class TermsAndConditionController extends Controller
             'ecommerce' => 'E-Commerce',
             'vendors' => 'Vendors',
             'services' => 'Services',
+            'service_providers' => 'Service Providers',
             'properties' => 'Properties',
             'builders' => 'Builders',
             'consultants' => 'Consultants',

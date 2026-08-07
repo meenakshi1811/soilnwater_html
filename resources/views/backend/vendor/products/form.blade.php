@@ -108,13 +108,15 @@
 
 
     <div class="col-12">
-      @unless($isAdmin)
+      @if($isAdmin)
+        <input type="hidden" name="accept_terms" value="1">
+      @else
       <div class="form-check">
         <input class="form-check-input @error('accept_terms') is-invalid @enderror" type="checkbox" value="1" id="accept_terms" name="accept_terms" {{ old('accept_terms') ? 'checked' : '' }}>
         <label class="form-check-label" for="accept_terms">I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'vendors']) }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms & Conditions</a>.</label>
             @error('accept_terms')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
       </div>
-      @endunless
+      @endif
     </div>
 
     <div class="col-12 text-end"><button type="submit" id="productSubmitBtn" class="btn btn-dark px-4 py-2">Save & Send for Approval</button></div>

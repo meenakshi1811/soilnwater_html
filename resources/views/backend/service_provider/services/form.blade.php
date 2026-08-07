@@ -71,7 +71,11 @@
       <label class="form-label mt-3">Working Hours</label><textarea class="form-control @error('working_hours') is-invalid @enderror" rows="3" name="working_hours" placeholder="Example: Mon-Fri, 9:00 AM - 6:00 PM">{{ old('working_hours', $service->working_hours) }}</textarea>@error('working_hours')<div id="working_hours-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror
       <input id="latitude" type="hidden" name="latitude" value="{{ old('latitude', $service->latitude) }}">
       <input id="longitude" type="hidden" name="longitude" value="{{ old('longitude', $service->longitude) }}">
-      @unless($isAdmin || $service->exists)<div class="form-check mt-3"><input class="form-check-input @error('accept_terms') is-invalid @enderror" type="checkbox" value="1" id="accept_terms" name="accept_terms" required><label class="form-check-label" for="accept_terms">I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'service_providers']) }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms and Condition</a>.</label>@error('accept_terms')<div id="accept_terms-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>@endunless
+      @if($isAdmin)
+        <input type="hidden" name="accept_terms" value="1">
+      @elseif(!$service->exists)
+        <div class="form-check mt-3"><input class="form-check-input @error('accept_terms') is-invalid @enderror" type="checkbox" value="1" id="accept_terms" name="accept_terms" required><label class="form-check-label" for="accept_terms">I accept the <a href="{{ route('frontend.terms.show', ['moduleKey' => 'service_providers']) }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-underline" style="color:#0d6efd;">Terms and Condition</a>.</label>@error('accept_terms')<div id="accept_terms-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
+      @endif
       <button type="submit" id="service_providerServiceSubmitBtn" class="btn btn-primary ems-btn-primary w-100 mt-4">{{ $service->exists ? 'Update & Resubmit' : ($isAdmin ? 'Create Service' : 'Submit for Approval') }}</button>
     </div></div>
   </form>
