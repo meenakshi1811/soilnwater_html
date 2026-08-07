@@ -51,6 +51,25 @@ class VendorConsultantPublicPageApprovalTest extends TestCase
         $this->get(route('store.show', $vendor->slug))->assertOk()->assertSee('Vendor submission');
     }
 
+    public function test_admin_can_preview_approved_vendor_store_before_public_page_is_published(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $vendor = Vendor::query()->create([
+            'user_id' => User::factory()->create(['role' => 'vendor'])->id,
+            'company_name' => 'Rawat Cycle Station',
+            'slug' => 'rawat-cycle-station',
+            'status' => 'approved',
+            'public_page_status' => 'draft',
+            'hero_main_heading' => 'Welcome to Rawat Cycle Station',
+        ]);
+
+        $this->get(route('store.show', $vendor->slug))->assertNotFound();
+        $this->actingAs($admin)
+            ->get(route('store.show', $vendor->slug))
+            ->assertOk()
+            ->assertSee('Welcome to Rawat Cycle Station');
+    }
+
     public function test_consultant_draft_submission_preview_and_decline_workflow(): void
     {
         $owner = User::factory()->create(['role' => 'consultant']);

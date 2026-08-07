@@ -37,7 +37,7 @@ class VendorStoreController extends Controller
 
         return view('frontend.store.show', [
             'vendor' => $vendor,
-            'preview' => false,
+            'preview' => $this->staffPreviewMode($vendor),
             'activeNav' => 'home',
             'featuredProducts' => $featuredProducts,
             'vendorCategories' => $vendorCategories,
@@ -97,6 +97,7 @@ class VendorStoreController extends Controller
                 'similarProducts' => $similarProducts,
                 'vendorCategories' => $this->vendorCategories($vendor),
                 'activeNav' => 'products',
+                'preview' => $this->staffPreviewMode($vendor),
                 'topGroups' => collect(),
                 'sideGroups' => collect(),
                 'bottomGroups' => collect(),
@@ -232,6 +233,7 @@ class VendorStoreController extends Controller
             'similarProducts' => $similarProducts,
             'vendorCategories' => $this->vendorCategories($vendor),
             'activeNav' => 'products',
+            'preview' => $this->staffPreviewMode($vendor),
             'topGroups' => $topGroups,
             'sideGroups' => $sideGroups,
             'bottomGroups' => $bottomGroups,
@@ -251,7 +253,7 @@ class VendorStoreController extends Controller
 
         return view('frontend.store.contact', [
             'vendor' => $vendor,
-            'preview' => false,
+            'preview' => $this->staffPreviewMode($vendor),
             'activeNav' => 'contact',
             'vendorCategories' => $this->vendorCategories($vendor),
             'inquiryProduct' => $inquiryProduct,
@@ -264,7 +266,7 @@ class VendorStoreController extends Controller
 
         return view('frontend.store.about', [
             'vendor' => $vendor,
-            'preview' => false,
+            'preview' => $this->staffPreviewMode($vendor),
             'activeNav' => 'about',
             'vendorCategories' => $this->vendorCategories($vendor),
         ]);
@@ -431,7 +433,7 @@ class VendorStoreController extends Controller
 
         return view('frontend.store.products', [
             'vendor' => $vendor,
-            'preview' => false,
+            'preview' => $this->staffPreviewMode($vendor),
             'activeNav' => $activeNav,
             'pageTitle' => $pageTitle,
             'pageSubtitle' => $pageSubtitle,
@@ -492,16 +494,37 @@ class VendorStoreController extends Controller
 
     private function resolveVendor(string $slug): Vendor
     {
-        return Vendor::query()
+        $isStaff = request()->user()?->isStaff() ?? false;
+
+        $query = Vendor::query()
             ->where(function ($query) use ($slug): void {
                 $query->where('slug', $slug)
                     ->orWhere('published_page_data->profile->slug', $slug);
             })
-            ->where('status', 'approved')
-            ->publiclyVisible()
+            ->where('status', 'approved');
+
+        if (! $isStaff) {
+            $query->publiclyVisible();
+        }
+
+        $vendor = $query
             ->with(['bannerSlides', 'pageSections', 'branches', 'user'])
-            ->firstOrFail()
-            ->usePublishedPage();
+            ->firstOrFail();
+
+        if (is_array($vendor->published_page_data)) {
+            return $vendor->usePublishedPage();
+        }
+
+        return $vendor;
+    }
+
+    private function staffPreviewMode(Vendor $vendor): bool
+    {
+        if (! request()->user()?->isStaff()) {
+            return false;
+        }
+
+        return $vendor->published_page_data === null && $vendor->public_page_status !== 'approved';
     }
 
     private function vendorCategories(Vendor $vendor): Collection
