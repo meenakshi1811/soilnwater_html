@@ -12,6 +12,7 @@
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.consultants.index') }}" class="btn btn-light">Back to list</a>
+            <a href="{{ route('admin.consultants.public-page.edit', $consultant) }}" class="btn btn-primary">Edit store page</a>
             @if($consultant->isApproved())
                 <a href="{{ route('consultant.show', $consultant->slug) }}" target="_blank" class="btn btn-outline-primary">View consultant</a>
             @endif

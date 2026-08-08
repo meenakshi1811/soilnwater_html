@@ -26,6 +26,9 @@
             >
                 <i class="fa-solid fa-xmark me-1"></i> Decline
             </button>
+            <a href="{{ route('admin.service_providers.public-page.edit', $service_provider) }}" class="btn btn-outline-primary">
+                <i class="fa-solid fa-pen me-1"></i> Edit page
+            </a>
             <button
                 type="button"
                 class="btn btn-success js-approve-public-page"

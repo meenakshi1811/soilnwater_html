@@ -15,33 +15,61 @@
 
 @section('content')
 @php
+    $isAdmin = $isAdmin ?? false;
+    $formAction = $formAction ?? route('consultant.public-page.update');
+    $previewUrl = $previewUrl ?? route('consultant.public-page.preview');
+    $bannerDeleteBaseUrl = $bannerDeleteBaseUrl ?? url('consultant/banner-slides').'/';
+    $backUrl = $backUrl ?? null;
     $heroMainColor = old('hero_main_style.color', $consultant->hero_main_style['color'] ?? '#1b2b44');
     $heroSubColor = old('hero_sub_style.color', $consultant->hero_sub_style['color'] ?? '#1b2b44');
 @endphp
 <div class="admin-panel ems-page consultant-public-live-editor">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <p class="ems-kicker mb-1">Consultant Panel</p>
+            <p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Panel' : 'Consultant Panel' }}</p>
             <h2 class="admin-title mb-0">{{ $consultant->publicDisplayName() }}</h2>
-            <p class="text-muted small mb-0">Save a private draft for Live Preview, or send your changes to admin for approval before they appear on the main site.</p>
+            <p class="text-muted small mb-0">
+                @if($isAdmin)
+                    Edit this consultant page as admin. Publishing goes live immediately — no approval needed.
+                @else
+                    Save a private draft for Live Preview, or send your changes to admin for approval before they appear on the main site.
+                @endif
+            </p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('consultant.public-page.preview') }}" target="_blank" class="btn btn-outline-secondary">
+        <div class="d-flex gap-2 flex-wrap">
+            @if($backUrl)
+                <a href="{{ $backUrl }}" class="btn btn-light">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back
+                </a>
+            @endif
+            <a href="{{ $previewUrl }}" target="_blank" class="btn btn-outline-secondary">
                 <i class="fa-solid fa-up-right-from-square me-1"></i> Live Preview
             </a>
             <button type="submit" form="publicPageForm" name="submission_action" value="draft" class="btn btn-outline-primary" id="publicPageDraftBtn">
                 <i class="fa-solid fa-floppy-disk me-1"></i> Save as Draft
             </button>
-            <button type="submit" form="publicPageForm" name="submission_action" value="submit" class="btn btn-primary ems-btn-primary" id="publicPageSubmitBtn">
-                <i class="fa-solid fa-paper-plane me-1"></i> Save &amp; Send for Approval
-            </button>
+            @if($isAdmin)
+                <button type="submit" form="publicPageForm" name="submission_action" value="publish" class="btn btn-primary ems-btn-primary" id="publicPageSubmitBtn">
+                    <i class="fa-solid fa-globe me-1"></i> Save &amp; Publish
+                </button>
+            @else
+                <button type="submit" form="publicPageForm" name="submission_action" value="submit" class="btn btn-primary ems-btn-primary" id="publicPageSubmitBtn">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Save &amp; Send for Approval
+                </button>
+            @endif
         </div>
     </div>
 
 
     <div class="alert {{ $consultant->public_page_status === 'pending' ? 'alert-warning' : ($consultant->public_page_status === 'approved' ? 'alert-success' : ($consultant->public_page_status === 'declined' ? 'alert-danger' : 'alert-info')) }} py-2">
         <strong>Page status:</strong> {{ ucfirst($consultant->public_page_status ?? 'draft') }}.
-        @if($consultant->public_page_status === 'pending')
+        @if($isAdmin)
+            @if($consultant->public_page_status === 'approved')
+                The published version is live on the main site. Your edits publish immediately when you click Save &amp; Publish.
+            @else
+                Use Save &amp; Publish to make this page live immediately (no approval step).
+            @endif
+        @elseif($consultant->public_page_status === 'pending')
             Admin review is pending. Your submitted changes are not live yet.
         @elseif($consultant->public_page_status === 'declined')
             Admin declined the submitted changes. Update the draft and send it for approval again.
@@ -56,7 +84,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <form id="publicPageForm" method="POST" action="{{ route('consultant.public-page.update') }}" enctype="multipart/form-data" class="vendor-store-page consultant-preview-edit-mode" data-banner-delete-url="{{ url('consultant/banner-slides') }}/" data-card-placeholder-url="{{ asset('assets/images/vendor-card-placeholder.svg') }}">
+    <form id="publicPageForm" method="POST" action="{{ $formAction }}" enctype="multipart/form-data" class="vendor-store-page consultant-preview-edit-mode" data-banner-delete-url="{{ $bannerDeleteBaseUrl }}" data-card-placeholder-url="{{ asset('assets/images/vendor-card-placeholder.svg') }}">
         @csrf
         @method('PUT')
 

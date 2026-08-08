@@ -8,7 +8,7 @@
         <article class="vendor-product-card {{ $isFeaturedStyle ? 'vendor-product-card--featured h-100' : 'h-100' }}">
             @php($image = is_array($product->images) ? ($product->images[0] ?? null) : null)
             <a href="{{ route('store.products.show', ['slug' => $resolvedStoreSlug, 'product' => $product->id]) }}" class="vendor-product-card__image-wrap">
-                <img src="{{ $image ? asset($image) : asset('assets/images/ad-sample.png') }}" alt="{{ $product->name }}" loading="lazy">
+                <img src="{{ $image ? asset($image) : asset('assets/images/logo_soilnwater.webp') }}" alt="{{ $product->name }}" loading="lazy" @class(['vendor-product-card__image--placeholder' => ! $image])>
             </a>
             <div class="vendor-product-card__body">
                 <h3 class="vendor-product-card__title">

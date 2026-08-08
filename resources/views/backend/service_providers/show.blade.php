@@ -12,6 +12,7 @@
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.service_providers.index') }}" class="btn btn-light">Back to list</a>
+            <a href="{{ route('admin.service_providers.public-page.edit', $service_provider) }}" class="btn btn-primary">Edit store page</a>
             @if($service_provider->isApproved())
                 <a href="{{ route('service_provider.show', $service_provider->slug) }}" target="_blank" class="btn btn-outline-primary">View Service</a>
             @endif

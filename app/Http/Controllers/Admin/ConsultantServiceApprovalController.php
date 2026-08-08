@@ -35,6 +35,9 @@ class ConsultantServiceApprovalController extends Controller
         $data = $this->validatedConsultantService($request);
         $data['consultant_id'] = (int) $request->input('consultant_id');
         $data['slug'] = $this->uniqueConsultantServiceSlug($data['consultant_id'], $data['name']);
+        $data['status'] = 'approved';
+        $data['approved_at'] = now();
+        $data['approved_by'] = $request->user()->id;
 
         $service = ConsultantService::create($data);
 
@@ -42,21 +45,21 @@ class ConsultantServiceApprovalController extends Controller
         PortalNotificationService::notifyUser(
             $service->consultant?->user,
             'Consultation service added by admin',
-            $service->name.' has been added on your behalf and is pending approval.',
+            $service->name.' has been added and published on your page by admin.',
             route('consultant.services.show', $service),
-            'approval'
+            'reviewed'
         );
 
         if ($request->expectsJson()) {
             return response()->json([
                 'ok' => true,
-                'message' => 'Consultation service created successfully for the selected consultant.',
+                'message' => 'Consultation service created and published (no approval needed).',
                 'redirect' => route('admin.consultant-services.all.index'),
             ]);
         }
 
         return redirect()->route('admin.consultant-services.all.index')
-            ->with('success', 'Consultation service created successfully for the selected consultant.');
+            ->with('success', 'Consultation service created and published (no approval needed).');
     }
 
     public function index(): View

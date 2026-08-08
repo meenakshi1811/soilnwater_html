@@ -138,6 +138,21 @@
         const rect = fab.getBoundingClientRect();
         const sideMargin = BANNER_CHAT_DOCK_MARGIN();
         const viewportMargin = WIDGET_VIEWPORT_MARGIN;
+        const docked = fab.classList.contains('discussion-banner-chat--docked');
+
+        // When docked (or chat is open), use the same full-height layout as opening from the bottom button.
+        if (docked || widget.classList.contains('is-open')) {
+            const fabSpace = Math.max(sideMargin, window.innerHeight - rect.top + WIDGET_ANCHOR_GAP);
+            const preferredHeight = Math.min(680, window.innerHeight - fabSpace - viewportMargin);
+
+            widget.style.right = `${sideMargin}px`;
+            widget.style.top = '';
+            widget.style.bottom = `${fabSpace}px`;
+            widget.style.height = '';
+            widget.style.maxHeight = `${Math.max(WIDGET_MIN_HEIGHT, preferredHeight)}px`;
+            return;
+        }
+
         const spaceAbove = rect.top - WIDGET_ANCHOR_GAP - viewportMargin;
         const spaceBelow = window.innerHeight - rect.bottom - WIDGET_ANCHOR_GAP - viewportMargin;
         const viewportCap = window.innerHeight - (viewportMargin * 2);
@@ -198,6 +213,13 @@
         }
 
         if (isMobileViewport()) {
+            dockFabToCorner();
+            syncWidgetAnchor();
+            return;
+        }
+
+        // Keep the close button docked at the bottom while chat is open so height stays full.
+        if (widget?.classList.contains('is-open')) {
             dockFabToCorner();
             syncWidgetAnchor();
             return;
@@ -1508,6 +1530,7 @@
         if (open) {
             widget.hidden = false;
             document.body.classList.add('discussion-widget-open');
+            dockFabToCorner();
             syncWidgetAnchor();
             window.requestAnimationFrame(() => {
                 syncWidgetAnchor();
@@ -1521,6 +1544,7 @@
                 }
             }, 220);
             document.body.classList.remove('discussion-widget-open');
+            syncBannerChatPosition();
         }
     }
 

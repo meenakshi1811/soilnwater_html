@@ -18,6 +18,7 @@
         </div>
         <div class="service-page-review__actions">
             <button type="button" class="btn btn-outline-danger js-decline-public-page" data-url="{{ route('admin.vendors.decline-public-page', $vendor) }}"><i class="fa-solid fa-xmark me-1"></i> Decline</button>
+            <a href="{{ route('admin.vendors.public-page.edit', $vendor) }}" class="btn btn-outline-primary"><i class="fa-solid fa-pen me-1"></i> Edit page</a>
             <button type="button" class="btn btn-success js-approve-public-page" data-url="{{ route('admin.vendors.approve-public-page', $vendor) }}"><i class="fa-solid fa-check me-1"></i> Approve &amp; Publish</button>
         </div>
     </div>

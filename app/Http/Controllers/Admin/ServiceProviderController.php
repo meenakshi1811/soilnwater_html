@@ -115,6 +115,7 @@ class ServiceProviderController extends Controller
 
                 return '<div class="d-flex gap-2 justify-content-end">'
                     .'<a href="'.route('admin.service_providers.show', $service_provider).'" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>'
+                    .'<a href="'.route('admin.service_providers.public-page.edit', $service_provider).'" class="btn btn-sm btn-outline-info" title="Edit store page"><i class="fa-solid fa-store"></i></a>'
                     .$pageApproveBtn
                     .'<button type="button" class="btn btn-sm btn-outline-primary js-edit-service_provider" data-id="'.$service_provider->id.'" title="Edit"><i class="fa-solid fa-pen"></i></button>'
                     .$approveBtn

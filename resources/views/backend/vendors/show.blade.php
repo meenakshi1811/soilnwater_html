@@ -12,6 +12,7 @@
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.vendors.index') }}" class="btn btn-light">Back to list</a>
+            <a href="{{ route('admin.vendors.public-page.edit', $vendor) }}" class="btn btn-primary">Edit store page</a>
             <a href="{{ route('admin.vendors.store-preview', $vendor) }}" target="_blank" class="btn btn-outline-primary">View store</a>
         </div>
     </div>

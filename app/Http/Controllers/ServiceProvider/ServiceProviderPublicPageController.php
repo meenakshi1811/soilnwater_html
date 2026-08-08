@@ -17,22 +17,52 @@ use Illuminate\View\View;
 
 class ServiceProviderPublicPageController extends Controller
 {
-    public function edit(): View
+    protected function isAdminEditor(): bool
     {
-        $service_provider = auth()->user()->serviceProvider;
-        $this->normalizeServiceProviderSectionContentImages($service_provider);
-        $service_provider->load(['bannerSlides', 'pageSections']);
-
-        return view('backend.service_provider.public-page.edit', compact('service_provider'));
+        return false;
     }
 
-    public function update(Request $request): RedirectResponse|JsonResponse
+    protected function editorServiceProvider(?ServiceProvider $service_provider = null): ServiceProvider
     {
-        $service_provider = auth()->user()->serviceProvider;
+        $resolved = $service_provider ?? auth()->user()?->serviceProvider;
+        abort_unless($resolved, 404);
+
+        return $resolved;
+    }
+
+    protected function editorViewData(ServiceProvider $service_provider): array
+    {
+        return [
+            'isAdmin' => false,
+            'formAction' => route('service_provider.public-page.update'),
+            'previewUrl' => route('service_provider.public-page.preview'),
+            'bannerDeleteBaseUrl' => url('service/banner-slides').'/',
+            'backUrl' => null,
+            'editRedirectRoute' => 'service_provider.public-page.edit',
+            'editRedirectParams' => [],
+        ];
+    }
+
+    public function edit(?ServiceProvider $service_provider = null): View
+    {
+        $service_provider = $this->editorServiceProvider($service_provider);
+        $this->normalizeServiceProviderSectionContentImages($service_provider);
+        $service_provider->load(['bannerSlides', 'pageSections']);
+        $editor = $this->editorViewData($service_provider);
+
+        return view('backend.service_provider.public-page.edit', array_merge(compact('service_provider'), $editor));
+    }
+
+    public function update(Request $request, ?ServiceProvider $service_provider = null): RedirectResponse|JsonResponse
+    {
+        $service_provider = $this->editorServiceProvider($service_provider);
+        $editor = $this->editorViewData($service_provider);
 
         if ($service_provider->public_page_status === 'approved' && ! is_array($service_provider->published_page_data)) {
             $service_provider->update(['published_page_data' => $service_provider->publicPageSnapshot()]);
         }
+
+        $submissionActions = $this->isAdminEditor() ? 'draft,publish' : 'draft,submit';
 
         $validated = $request->validate([
             'hero_main_heading' => ['nullable', 'string', $this->maxWordsRule('main heading', 500)],
@@ -67,7 +97,7 @@ class ServiceProviderPublicPageController extends Controller
             'sections.*.video_file' => ['nullable', 'mimetypes:video/mp4,video/webm,video/ogg', 'max:51200'],
             'sections.*.youtube_url' => ['nullable', 'url', 'max:1000'],
             'sections.*._delete' => ['nullable', 'boolean'],
-            'submission_action' => ['required', 'in:draft,submit'],
+            'submission_action' => ['required', 'in:'.$submissionActions],
         ]);
 
         if (array_key_exists('hero_sub_heading_encoded', $validated)) {
@@ -118,26 +148,56 @@ class ServiceProviderPublicPageController extends Controller
         $this->syncSections($service_provider, $request->input('sections', []), $request);
 
         $service_provider = $service_provider->fresh()->load(['bannerSlides', 'pageSections']);
-        $isSubmission = $validated['submission_action'] === 'submit';
-        $service_provider->update([
-            'public_page_status' => $isSubmission ? 'pending' : 'draft',
-            'pending_page_data' => $isSubmission ? $service_provider->publicPageSnapshot() : null,
-            'public_page_submitted_at' => $isSubmission ? now() : null,
-        ]);
 
-        if ($isSubmission) {
-            PortalNotificationService::notifyAdminsOfApprovalRequest('Service public page', $service_provider->display_name ?: $service_provider->company_name, route('admin.service_providers.public-page.review', $service_provider));
+        if ($this->isAdminEditor()) {
+            $isPublish = $validated['submission_action'] === 'publish';
+            if ($isPublish) {
+                $service_provider->update([
+                    'public_page_status' => 'approved',
+                    'pending_page_data' => null,
+                    'published_page_data' => $service_provider->publicPageSnapshot(),
+                    'public_page_submitted_at' => null,
+                    'public_page_approved_at' => now(),
+                    'public_page_approved_by' => $request->user()->id,
+                ]);
+                PortalNotificationService::notifyUser(
+                    $service_provider->user,
+                    'Service page updated by admin',
+                    ($service_provider->display_name ?: $service_provider->company_name).' service page was updated and published by admin.',
+                    route('service_provider.public-page.edit'),
+                    'reviewed'
+                );
+                $message = 'Store page published. Changes are live — no approval needed.';
+            } else {
+                $service_provider->update([
+                    'public_page_status' => 'draft',
+                    'pending_page_data' => null,
+                    'public_page_submitted_at' => null,
+                ]);
+                $message = 'Draft saved. Visible only in Live Preview until you publish.';
+            }
+        } else {
+            $isSubmission = $validated['submission_action'] === 'submit';
+            $service_provider->update([
+                'public_page_status' => $isSubmission ? 'pending' : 'draft',
+                'pending_page_data' => $isSubmission ? $service_provider->publicPageSnapshot() : null,
+                'public_page_submitted_at' => $isSubmission ? now() : null,
+            ]);
+
+            if ($isSubmission) {
+                PortalNotificationService::notifyAdminsOfApprovalRequest('Service public page', $service_provider->display_name ?: $service_provider->company_name, route('admin.service_providers.public-page.review', $service_provider));
+            }
+
+            $message = $isSubmission
+                ? 'Public page saved and sent to admin for approval.'
+                : 'Draft saved. Your changes are available only in Live Preview.';
         }
-
-        $message = $isSubmission
-            ? 'Public page saved and sent to admin for approval.'
-            : 'Draft saved. Your changes are available only in Live Preview.';
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'message' => $message,
                 'public_page_status' => $service_provider->public_page_status,
-                'preview_url' => route('service_provider.public-page.preview'),
+                'preview_url' => $editor['previewUrl'],
                 'logo_url' => $service_provider->logo ? asset($service_provider->logo) : null,
                 'sections' => $service_provider->pageSections->map(fn ($section) => [
                     'id' => $section->id,
@@ -152,20 +212,22 @@ class ServiceProviderPublicPageController extends Controller
             ]);
         }
 
-        return redirect()->route('service_provider.public-page.edit')->with('success', $message);
+        return redirect()
+            ->route($editor['editRedirectRoute'], $editor['editRedirectParams'])
+            ->with('success', $message);
     }
 
     public function deleteBannerSlide(ServiceProviderBannerSlide $slide): JsonResponse
     {
-        abort_unless($slide->service_provider_id === auth()->user()->serviceProvider?->id, 403);
+        abort_unless($slide->service_provider_id === $this->editorServiceProvider()->id, 403);
         $slide->delete();
 
         return response()->json(['message' => 'Banner slide removed.']);
     }
 
-    public function preview(): View
+    public function preview(?ServiceProvider $service_provider = null): View
     {
-        $service_provider = auth()->user()->serviceProvider;
+        $service_provider = $this->editorServiceProvider($service_provider);
         $this->normalizeServiceProviderSectionContentImages($service_provider);
         $service_provider->load(['bannerSlides', 'pageSections']);
 
@@ -185,7 +247,7 @@ class ServiceProviderPublicPageController extends Controller
         ]);
     }
 
-    private function syncSections($service_provider, array $sections, Request $request): void
+    protected function syncSections($service_provider, array $sections, Request $request): void
     {
         $sort = 0;
         foreach ($sections as $index => $sectionData) {
@@ -249,14 +311,14 @@ class ServiceProviderPublicPageController extends Controller
     }
 
 
-    private function decodedField(string $value): string
+    protected function decodedField(string $value): string
     {
         $decoded = base64_decode($value, true);
 
         return $decoded !== false ? $decoded : '';
     }
 
-    private function decodedSectionField(array $sectionData, string $field): string
+    protected function decodedSectionField(array $sectionData, string $field): string
     {
         $encodedKey = $field.'_encoded';
         if (array_key_exists($encodedKey, $sectionData) && $sectionData[$encodedKey] !== null) {
@@ -271,7 +333,7 @@ class ServiceProviderPublicPageController extends Controller
     }
 
 
-    private function replaceUploadedContentImages(string $html, array $files, string $sectionIndex): string
+    protected function replaceUploadedContentImages(string $html, array $files, string $sectionIndex): string
     {
         foreach ($files as $imageIndex => $file) {
             if (! $file) {
@@ -290,7 +352,7 @@ class ServiceProviderPublicPageController extends Controller
         return $html;
     }
 
-    private function service_providerEmbeddedContentImages(string $html): string
+    protected function service_providerEmbeddedContentImages(string $html): string
     {
         if (! str_contains($html, 'data:image/')) {
             return $html;
@@ -325,7 +387,7 @@ class ServiceProviderPublicPageController extends Controller
         );
     }
 
-    private function normalizeServiceProviderSectionContentImages(ServiceProvider $service_provider): void
+    protected function normalizeServiceProviderSectionContentImages(ServiceProvider $service_provider): void
     {
         $sections = ServiceProviderPageSection::query()
             ->where('service_provider_id', $service_provider->id)
@@ -342,7 +404,7 @@ class ServiceProviderPublicPageController extends Controller
         }
     }
 
-    private function deleteOrphanManagedMedia(string $oldContent, string $newContent): void
+    protected function deleteOrphanManagedMedia(string $oldContent, string $newContent): void
     {
         $oldPaths = $this->extractManagedPaths($oldContent);
         $newPaths = $this->extractManagedPaths($newContent);
@@ -351,14 +413,14 @@ class ServiceProviderPublicPageController extends Controller
         }
     }
 
-    private function deleteManagedMediaFromContent(string $content): void
+    protected function deleteManagedMediaFromContent(string $content): void
     {
         foreach ($this->extractManagedPaths($content) as $relativePath) {
             ServiceProviderFileUploader::deleteIfExists($relativePath);
         }
     }
 
-    private function maxWordsRule(string $label, int $limit): \Closure
+    protected function maxWordsRule(string $label, int $limit): \Closure
     {
         return function (string $attribute, mixed $value, \Closure $fail) use ($label, $limit): void {
             $plainText = trim((string) preg_replace('/\s+/u', ' ', strip_tags(html_entity_decode((string) $value))));
@@ -371,7 +433,7 @@ class ServiceProviderPublicPageController extends Controller
         };
     }
 
-    private function extractManagedPaths(string $html): array
+    protected function extractManagedPaths(string $html): array
     {
         preg_match_all('#uploads/service_providers/sections/(?:content-images|videos)/[^"\'\s<]+#', $html, $matches);
         return array_values(array_unique($matches[0] ?? []));

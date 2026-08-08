@@ -36,27 +36,30 @@ class VendorProductApprovalController extends Controller
         $data = $this->validatedVendorProduct($request);
         $data['vendor_id'] = (int) $request->input('vendor_id');
         $data['sku'] = $data['sku'] ?: 'SKU-'.Str::upper(Str::random(8));
+        $data['status'] = 'approved';
+        $data['approved_at'] = now();
+        $data['approved_by'] = $request->user()->id;
         $product = VendorProduct::create($data);
 
         $product->loadMissing('vendor.user');
         PortalNotificationService::notifyUser(
             $product->vendor?->user,
             'Product added by admin',
-            $product->name.' has been added on your behalf and is pending approval.',
+            $product->name.' has been added and published on your store by admin.',
             route('vendor.products.show', $product),
-            'approval'
+            'reviewed'
         );
 
         if ($request->expectsJson()) {
             return response()->json([
                 'ok' => true,
-                'message' => 'Product created successfully for the selected vendor.',
+                'message' => 'Product created and published for the selected vendor (no approval needed).',
                 'redirect' => route('admin.vendor-products.all.index'),
             ]);
         }
 
         return redirect()->route('admin.vendor-products.all.index')
-            ->with('success', 'Product created successfully for the selected vendor.');
+            ->with('success', 'Product created and published for the selected vendor (no approval needed).');
     }
 
     public function index(): View

@@ -18,22 +18,52 @@ use Illuminate\View\View;
 
 class VendorPublicPageController extends Controller
 {
-    public function edit(): View
+    protected function isAdminEditor(): bool
     {
-        $vendor = auth()->user()->vendor;
-        $this->normalizeVendorSectionContentImages($vendor);
-        $vendor->load(['bannerSlides', 'pageSections']);
-
-        return view('backend.vendor.public-page.edit', compact('vendor'));
+        return false;
     }
 
-    public function update(Request $request): RedirectResponse|JsonResponse
+    protected function editorVendor(?Vendor $vendor = null): Vendor
     {
-        $vendor = auth()->user()->vendor;
+        $resolved = $vendor ?? auth()->user()?->vendor;
+        abort_unless($resolved, 404);
+
+        return $resolved;
+    }
+
+    protected function editorViewData(Vendor $vendor): array
+    {
+        return [
+            'isAdmin' => false,
+            'formAction' => route('vendor.public-page.update'),
+            'previewUrl' => route('vendor.public-page.preview'),
+            'bannerDeleteBaseUrl' => url('vendor/banner-slides').'/',
+            'backUrl' => null,
+            'editRedirectRoute' => 'vendor.public-page.edit',
+            'editRedirectParams' => [],
+        ];
+    }
+
+    public function edit(?Vendor $vendor = null): View
+    {
+        $vendor = $this->editorVendor($vendor);
+        $this->normalizeVendorSectionContentImages($vendor);
+        $vendor->load(['bannerSlides', 'pageSections']);
+        $editor = $this->editorViewData($vendor);
+
+        return view('backend.vendor.public-page.edit', array_merge(compact('vendor'), $editor));
+    }
+
+    public function update(Request $request, ?Vendor $vendor = null): RedirectResponse|JsonResponse
+    {
+        $vendor = $this->editorVendor($vendor);
+        $editor = $this->editorViewData($vendor);
 
         if ($vendor->public_page_status === 'approved' && ! is_array($vendor->published_page_data)) {
             $vendor->update(['published_page_data' => $vendor->publicPageSnapshot()]);
         }
+
+        $submissionActions = $this->isAdminEditor() ? 'draft,publish' : 'draft,submit';
 
         $validated = $request->validate([
             'hero_main_heading' => ['nullable', 'string', $this->maxWordsRule('main heading', 500)],
@@ -68,7 +98,7 @@ class VendorPublicPageController extends Controller
             'sections.*.video_file' => ['nullable', 'mimetypes:video/mp4,video/webm,video/ogg', 'max:51200'],
             'sections.*.youtube_url' => ['nullable', 'url', 'max:1000'],
             'sections.*._delete' => ['nullable', 'boolean'],
-            'submission_action' => ['required', 'in:draft,submit'],
+            'submission_action' => ['required', 'in:'.$submissionActions],
         ]);
 
         if (array_key_exists('hero_sub_heading_encoded', $validated)) {
@@ -119,26 +149,56 @@ class VendorPublicPageController extends Controller
         $this->syncSections($vendor, $request->input('sections', []), $request);
 
         $vendor = $vendor->fresh()->load(['bannerSlides', 'pageSections']);
-        $isSubmission = $validated['submission_action'] === 'submit';
-        $vendor->update([
-            'public_page_status' => $isSubmission ? 'pending' : 'draft',
-            'pending_page_data' => $isSubmission ? $vendor->publicPageSnapshot() : null,
-            'public_page_submitted_at' => $isSubmission ? now() : null,
-        ]);
 
-        if ($isSubmission) {
-            PortalNotificationService::notifyAdminsOfApprovalRequest('Vendor public page', $vendor->display_name ?: $vendor->company_name, route('admin.vendors.public-page.review', $vendor));
+        if ($this->isAdminEditor()) {
+            $isPublish = $validated['submission_action'] === 'publish';
+            if ($isPublish) {
+                $vendor->update([
+                    'public_page_status' => 'approved',
+                    'pending_page_data' => null,
+                    'published_page_data' => $vendor->publicPageSnapshot(),
+                    'public_page_submitted_at' => null,
+                    'public_page_approved_at' => now(),
+                    'public_page_approved_by' => $request->user()->id,
+                ]);
+                PortalNotificationService::notifyUser(
+                    $vendor->user,
+                    'Store page updated by admin',
+                    ($vendor->display_name ?: $vendor->company_name).' store page was updated and published by admin.',
+                    route('vendor.public-page.edit'),
+                    'reviewed'
+                );
+                $message = 'Store page published. Changes are live — no approval needed.';
+            } else {
+                $vendor->update([
+                    'public_page_status' => 'draft',
+                    'pending_page_data' => null,
+                    'public_page_submitted_at' => null,
+                ]);
+                $message = 'Draft saved. Visible only in Live Preview until you publish.';
+            }
+        } else {
+            $isSubmission = $validated['submission_action'] === 'submit';
+            $vendor->update([
+                'public_page_status' => $isSubmission ? 'pending' : 'draft',
+                'pending_page_data' => $isSubmission ? $vendor->publicPageSnapshot() : null,
+                'public_page_submitted_at' => $isSubmission ? now() : null,
+            ]);
+
+            if ($isSubmission) {
+                PortalNotificationService::notifyAdminsOfApprovalRequest('Vendor public page', $vendor->display_name ?: $vendor->company_name, route('admin.vendors.public-page.review', $vendor));
+            }
+
+            $message = $isSubmission
+                ? 'Public page saved and sent to admin for approval.'
+                : 'Draft saved. Your changes are available only in Live Preview.';
         }
-
-        $message = $isSubmission
-            ? 'Public page saved and sent to admin for approval.'
-            : 'Draft saved. Your changes are available only in Live Preview.';
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'message' => $message,
                 'public_page_status' => $vendor->public_page_status,
-                'preview_url' => route('vendor.public-page.preview'),
+                'preview_url' => $editor['previewUrl'],
                 'logo_url' => $vendor->logo ? asset($vendor->logo) : null,
                 'sections' => $vendor->pageSections->map(fn ($section) => [
                     'id' => $section->id,
@@ -153,20 +213,22 @@ class VendorPublicPageController extends Controller
             ]);
         }
 
-        return redirect()->route('vendor.public-page.edit')->with('success', $message);
+        return redirect()
+            ->route($editor['editRedirectRoute'], $editor['editRedirectParams'])
+            ->with('success', $message);
     }
 
     public function deleteBannerSlide(VendorBannerSlide $slide): JsonResponse
     {
-        abort_unless($slide->vendor_id === auth()->user()->vendor?->id, 403);
+        abort_unless($slide->vendor_id === $this->editorVendor()->id, 403);
         $slide->delete();
 
         return response()->json(['message' => 'Banner slide removed.']);
     }
 
-    public function preview(): View
+    public function preview(?Vendor $vendor = null): View
     {
-        $vendor = auth()->user()->vendor;
+        $vendor = $this->editorVendor($vendor);
         $this->normalizeVendorSectionContentImages($vendor);
         $vendor->load(['bannerSlides', 'pageSections']);
 
@@ -194,7 +256,7 @@ class VendorPublicPageController extends Controller
         ]);
     }
 
-    private function syncSections($vendor, array $sections, Request $request): void
+    protected function syncSections($vendor, array $sections, Request $request): void
     {
         $sort = 0;
         foreach ($sections as $index => $sectionData) {
@@ -258,14 +320,14 @@ class VendorPublicPageController extends Controller
     }
 
 
-    private function decodedField(string $value): string
+    protected function decodedField(string $value): string
     {
         $decoded = base64_decode($value, true);
 
         return $decoded !== false ? $decoded : '';
     }
 
-    private function decodedSectionField(array $sectionData, string $field): string
+    protected function decodedSectionField(array $sectionData, string $field): string
     {
         $encodedKey = $field.'_encoded';
         if (array_key_exists($encodedKey, $sectionData) && $sectionData[$encodedKey] !== null) {
@@ -280,7 +342,7 @@ class VendorPublicPageController extends Controller
     }
 
 
-    private function replaceUploadedContentImages(string $html, array $files, string $sectionIndex): string
+    protected function replaceUploadedContentImages(string $html, array $files, string $sectionIndex): string
     {
         foreach ($files as $imageIndex => $file) {
             if (! $file) {
@@ -299,7 +361,7 @@ class VendorPublicPageController extends Controller
         return $html;
     }
 
-    private function storeEmbeddedContentImages(string $html): string
+    protected function storeEmbeddedContentImages(string $html): string
     {
         if (! str_contains($html, 'data:image/')) {
             return $html;
@@ -334,7 +396,7 @@ class VendorPublicPageController extends Controller
         );
     }
 
-    private function normalizeVendorSectionContentImages(Vendor $vendor): void
+    protected function normalizeVendorSectionContentImages(Vendor $vendor): void
     {
         $sections = VendorPageSection::query()
             ->where('vendor_id', $vendor->id)
@@ -351,7 +413,7 @@ class VendorPublicPageController extends Controller
         }
     }
 
-    private function deleteOrphanManagedMedia(string $oldContent, string $newContent): void
+    protected function deleteOrphanManagedMedia(string $oldContent, string $newContent): void
     {
         $oldPaths = $this->extractManagedPaths($oldContent);
         $newPaths = $this->extractManagedPaths($newContent);
@@ -360,14 +422,14 @@ class VendorPublicPageController extends Controller
         }
     }
 
-    private function deleteManagedMediaFromContent(string $content): void
+    protected function deleteManagedMediaFromContent(string $content): void
     {
         foreach ($this->extractManagedPaths($content) as $relativePath) {
             VendorFileUploader::deleteIfExists($relativePath);
         }
     }
 
-    private function maxWordsRule(string $label, int $limit): \Closure
+    protected function maxWordsRule(string $label, int $limit): \Closure
     {
         return function (string $attribute, mixed $value, \Closure $fail) use ($label, $limit): void {
             $plainText = trim((string) preg_replace('/\s+/u', ' ', strip_tags(html_entity_decode((string) $value))));
@@ -380,7 +442,7 @@ class VendorPublicPageController extends Controller
         };
     }
 
-    private function extractManagedPaths(string $html): array
+    protected function extractManagedPaths(string $html): array
     {
         preg_match_all('#uploads/vendors/sections/(?:content-images|videos)/[^"\'\s<]+#', $html, $matches);
         return array_values(array_unique($matches[0] ?? []));

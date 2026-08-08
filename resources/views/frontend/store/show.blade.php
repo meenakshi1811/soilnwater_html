@@ -35,7 +35,15 @@
             {{ $vendor->hero_main_heading ?: $vendor->publicDisplayName() }}
         </h1>
         @if($vendor->hero_sub_heading)
-            <div class="lead mb-0 opacity-90" style="white-space: pre-line;@if(!empty($vendor->hero_sub_style)){{ collect($vendor->hero_sub_style)->filter(fn($v) => filled($v))->map(fn($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)->implode(';') }}@endif">{!! html_entity_decode($vendor->hero_sub_heading) !!}</div>
+            @php
+                $heroSubStyleCss = collect($vendor->hero_sub_style ?? [])
+                    ->except('fontFamily')
+                    ->filter(fn ($v) => filled($v))
+                    ->map(fn ($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)
+                    ->implode(';');
+                $heroSubHtml = preg_replace('/font-family\s*:\s*[^;"]+;?/i', '', html_entity_decode((string) $vendor->hero_sub_heading)) ?? '';
+            @endphp
+            <div class="lead mb-0 opacity-90 vendor-hero-subheading" style="white-space: pre-line;{{ $heroSubStyleCss }}">{!! $heroSubHtml !!}</div>
         @endif
     </div>
 </section>

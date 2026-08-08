@@ -129,10 +129,23 @@
     background: #fff;
     color: #1b2b44;
     padding: 1.5rem 0 2rem;
+    font-family: 'Inter', sans-serif;
 }
 
 .vendor-hero-text-section h1 {
     margin-bottom: 0.75rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.vendor-hero-text-section .lead,
+.vendor-hero-text-section .lead p,
+.vendor-hero-text-section .lead span,
+.vendor-hero-text-section .lead strong,
+.vendor-hero-text-section .lead em,
+.vendor-hero-text-section .lead a,
+.vendor-hero-text-section .lead li,
+.vendor-hero-text-section .lead * {
+    font-family: 'Inter', sans-serif !important;
 }
 
 .vendor-store-professional-details {
@@ -713,6 +726,12 @@
     width: 100%;
     height: 250px;
     object-fit: cover;
+}
+
+.vendor-product-card__image-wrap img.vendor-product-card__image--placeholder {
+    object-fit: contain;
+    padding: 1.25rem;
+    background: #f8fbff;
 }
 
 .vendor-product-card__body {

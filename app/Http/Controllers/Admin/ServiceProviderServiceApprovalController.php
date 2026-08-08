@@ -35,6 +35,9 @@ class ServiceProviderServiceApprovalController extends Controller
         $data = $this->validatedServiceProviderService($request);
         $data['service_provider_id'] = (int) $request->input('service_provider_id');
         $data['slug'] = $this->uniqueServiceProviderServiceSlug($data['service_provider_id'], $data['name']);
+        $data['status'] = 'approved';
+        $data['approved_at'] = now();
+        $data['approved_by'] = $request->user()->id;
 
         $service = ServiceProviderService::create($data);
 
@@ -42,21 +45,21 @@ class ServiceProviderServiceApprovalController extends Controller
         PortalNotificationService::notifyUser(
             $service->service_provider?->user,
             'Service added by admin',
-            $service->name.' has been added on your behalf and is pending approval.',
+            $service->name.' has been added and published on your page by admin.',
             route('service_provider.services.show', $service),
-            'approval'
+            'reviewed'
         );
 
         if ($request->expectsJson()) {
             return response()->json([
                 'ok' => true,
-                'message' => 'Service created successfully for the selected service provider.',
+                'message' => 'Service created and published (no approval needed).',
                 'redirect' => route('admin.service-provider-services.all.index'),
             ]);
         }
 
         return redirect()->route('admin.service-provider-services.all.index')
-            ->with('success', 'Service created successfully for the selected service provider.');
+            ->with('success', 'Service created and published (no approval needed).');
     }
 
     public function index(): View

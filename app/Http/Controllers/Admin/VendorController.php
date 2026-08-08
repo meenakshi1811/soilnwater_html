@@ -109,6 +109,7 @@ class VendorController extends Controller
 
                 return '<div class="d-flex gap-2 justify-content-end">'
                     .'<a href="'.route('admin.vendors.show', $vendor).'" class="btn btn-sm btn-outline-secondary" title="View"><i class="fa-solid fa-eye"></i></a>'
+                    .'<a href="'.route('admin.vendors.public-page.edit', $vendor).'" class="btn btn-sm btn-outline-info" title="Edit store page"><i class="fa-solid fa-store"></i></a>'
                     .'<button type="button" class="btn btn-sm btn-outline-primary js-edit-vendor" data-id="'.$vendor->id.'" title="Edit"><i class="fa-solid fa-pen"></i></button>'
                     .$approveBtn
                     .$rejectBtn

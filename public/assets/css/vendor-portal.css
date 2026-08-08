@@ -342,10 +342,17 @@
 #heroSubHeadingEditor.vendor-lite-html-editor,
 .vendor-public-live-editor .ck-editor__editable_inline {
     min-height: 110px;
+    font-family: 'Inter', sans-serif;
 }
 
 .vendor-public-live-editor .ck-editor {
     color: #111827;
+}
+
+.vendor-public-live-editor .ck-editor__editable_inline,
+.vendor-public-live-editor .ck-editor__editable_inline p,
+.vendor-public-live-editor .ck-editor__editable_inline span {
+    font-family: 'Inter', sans-serif !important;
 }
 
 .vendor-section-style-panel {
