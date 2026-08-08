@@ -3,6 +3,10 @@
 @section('title', 'Contact '. $vendor->publicDisplayName())
 
 @section('store_content')
+@php
+    $vendorAddress = $vendor->formattedAddress();
+    $mapQuery = filled($vendorAddress) ? urlencode($vendorAddress) : null;
+@endphp
 <section class="vendor-contact-page py-5 py-lg-6">
     <div class="container">
         <div class="contact-hero shadow-sm overflow-hidden mb-4 mb-lg-5">
@@ -22,13 +26,35 @@
 
                         <div class="d-flex align-items-start gap-3">
                             <span class="contact-icon"><i class="fa-solid fa-location-dot"></i></span>
-                            <div>
+                            <div class="flex-grow-1">
                                 <p class="mb-1 fw-semibold text-dark">Address</p>
                                 <p class="mb-0 text-muted">
-                                    {{ $vendor->formattedAddress() ?: 'Address details are not available yet.' }}
+                                    {{ $vendorAddress ?: 'Address details are not available yet.' }}
                                 </p>
                             </div>
                         </div>
+
+                        @if($mapQuery)
+                            <div class="vendor-contact-map mt-4">
+                                <iframe
+                                    title="Map for {{ $vendor->publicDisplayName() }}"
+                                    loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    src="https://maps.google.com/maps?q={{ $mapQuery }}&z=15&hl=en&output=embed"
+                                    allowfullscreen
+                                ></iframe>
+                            </div>
+                            <div class="mt-2">
+                                <a
+                                    href="https://www.google.com/maps/search/?api=1&query={{ $mapQuery }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="small fw-semibold text-decoration-none"
+                                >
+                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Open in Google Maps
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -40,25 +66,17 @@
                         <h3 class="h5 fw-bold mb-2">Share your requirement</h3>
                         <p class="text-muted mb-4">Our team will review your message and get back to you soon.</p>
 
-                        <div class="mt-auto">
-                            @if($inquiryProduct)
-                                <button class="btn enquiry-btn w-100" data-bs-toggle="modal" data-bs-target="#enquiryModal">
-                                    <i class="fa-regular fa-paper-plane me-2"></i>Send Enquiry
-                                </button>
-                            @else
-                                <button class="btn btn-secondary w-100" disabled>No products available for enquiry</button>
-                            @endif
-                        </div>
+                        @if($inquiryProduct)
+                            @include('frontend.store.partials.enquiry-form')
+                        @else
+                            <button class="btn btn-secondary w-100 mt-auto" disabled>No products available for enquiry</button>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
-
-@if($inquiryProduct)
-@include('frontend.store.partials.enquiry-modal')
-@endif
 @endsection
 
 @push('styles')
@@ -74,7 +92,11 @@
 .enquiry-badge{display:inline-flex;align-self:flex-start;padding:.35rem .75rem;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:.82rem;font-weight:700;letter-spacing:.02em}
 .enquiry-btn{background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:0;padding:.72rem 1rem;font-weight:600;border-radius:12px;box-shadow:0 8px 22px rgba(79,70,229,.26)}
 .enquiry-btn:hover{color:#fff;filter:brightness(.96)}
-@media (max-width: 991.98px){.contact-subtitle{font-size:1.05rem}}
+.vendor-contact-map{border:1px solid #dbe4f5;border-radius:16px;overflow:hidden;background:#eef2ff;min-height:320px}
+.vendor-contact-map iframe{display:block;width:100%;height:min(420px,55vh);border:0}
+.vendor-enquiry-form .form-label{font-size:.85rem;font-weight:600;color:#334155;margin-bottom:.35rem}
+.vendor-enquiry-form .form-control,.vendor-enquiry-form .form-select{border-radius:10px;border-color:#d7e0f0}
+@media (max-width: 991.98px){.contact-subtitle{font-size:1.05rem}.vendor-contact-map iframe{height:280px}}
 </style>
 @endpush
 
@@ -120,15 +142,12 @@ document.getElementById('enquiryForm')?.addEventListener('submit', async functio
         const toastType = res.ok ? 'success' : 'error';
         const toastMessage = data.message || (res.ok ? 'Enquiry sent successfully.' : 'Unable to send enquiry.');
 
-        bootstrap.Modal.getInstance(document.getElementById('enquiryModal'))?.hide();
-
         showFeedback(toastType, toastMessage);
 
         if (res.ok) {
             this.reset();
         }
     } catch (error) {
-        bootstrap.Modal.getInstance(document.getElementById('enquiryModal'))?.hide();
         showFeedback('error', 'Unable to send enquiry. Please try again.');
     } finally {
         if (submitBtn) submitBtn.disabled = false;
