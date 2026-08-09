@@ -1547,7 +1547,6 @@
         if (fontRoot) {
             const zoomSteps = [0.85, 0.92, 1, 1.12, 1.25, 1.4, 1.55, 1.7, 1.85, 2];
             const defaultStep = 2;
-            const storageKey = 'soilnwater.articleFontStep';
             const controls = fontRoot.querySelector('[data-article-font-controls]');
 
             function getScaleTargets() {
@@ -1556,22 +1555,16 @@
 
             function applyStep(step) {
                 const index = Math.max(0, Math.min(zoomSteps.length - 1, Number(step)));
-                const zoom = zoomSteps[index];
+                const scale = zoomSteps[index];
 
                 fontRoot.setAttribute('data-article-font-step', String(index));
-                fontRoot.style.setProperty('--article-text-scale', String(zoom));
+                fontRoot.style.setProperty('--article-text-scale', String(scale));
                 fontRoot.classList.toggle('is-text-scaled', index !== defaultStep);
 
                 getScaleTargets().forEach(function (target) {
-                    target.style.setProperty('--article-text-scale', String(zoom));
-
-                    if (zoom === 1) {
-                        target.style.removeProperty('zoom');
-                        target.style.removeProperty('-webkit-text-size-adjust');
-                    } else {
-                        target.style.zoom = String(zoom);
-                        target.style.setProperty('-webkit-text-size-adjust', 'none');
-                    }
+                    target.style.setProperty('--article-text-scale', String(scale));
+                    target.style.removeProperty('zoom');
+                    target.style.removeProperty('-webkit-text-size-adjust');
                 });
 
                 if (controls) {
@@ -1593,10 +1586,6 @@
                         }
                     });
                 }
-
-                try {
-                    window.localStorage.setItem(storageKey, String(index));
-                } catch (error) {}
             }
 
             function currentStep() {
@@ -1626,13 +1615,7 @@
                 });
             }
 
-            let saved = defaultStep;
-            try {
-                const stored = Number(window.localStorage.getItem(storageKey));
-                saved = Number.isFinite(stored) ? stored : defaultStep;
-            } catch (error) {}
-
-            applyStep(saved);
+            applyStep(defaultStep);
         }
 
         function isInsideProtectedContent(node) {
