@@ -2,7 +2,6 @@
     $tags = collect($post->tags ?? [])->filter()->values();
     $authorName = $post->authorDisplayName();
     $authorBio = data_get($post->meta, 'author_bio');
-    $authorInitial = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($authorName, 0, 1));
 @endphp
 
         @if($tags->isNotEmpty())
@@ -32,8 +31,6 @@
         <div class="community-article-author-card">
             @if(filled($post->authorAvatarUrl()))
                 <img src="{{ $post->authorAvatarUrl() }}" alt="" class="community-article-author-card__avatar">
-            @else
-                <span class="community-article-author-card__initials" aria-hidden="true">{{ $authorInitial }}</span>
             @endif
             <div class="community-article-author-card__body">
                 <p class="community-article-author-card__name">

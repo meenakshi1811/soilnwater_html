@@ -414,16 +414,18 @@
         padding: 0.28rem 0.6rem;
     }
 
-    .about-page--community-post .community-article-tags, .about-page--articles .community-article-tags{
+    .about-page--community-post .community-article-tags, .about-page--articles .community-article-tags, .about-page--news-detail .community-article-tags{
+        align-items: flex-start;
         border-top: 1px solid var(--article-line);
         display: flex;
         flex-wrap: wrap;
-        gap: 0.35rem;
+        gap: 0.45rem;
         margin-top: 1.25rem;
         padding-top: 0.85rem;
+        row-gap: 0.55rem;
     }
 
-    .about-page--community-post .community-article-tag, .about-page--articles .community-article-tag{
+    .about-page--community-post .community-article-tag, .about-page--articles .community-article-tag, .about-page--news-detail .community-article-tag{
         align-items: center;
         background: var(--article-accent-soft);
         border-radius: 999px;
@@ -432,22 +434,32 @@
         font-size: 0.74rem;
         font-weight: 600;
         gap: 0.2rem;
+        max-width: min(100%, 18rem);
+        min-width: 0;
         padding: 0.25rem 0.6rem;
         text-decoration: none;
         transition: background 0.2s ease, color 0.2s ease;
     }
 
-    .about-page--community-post .community-article-tag i, .about-page--articles .community-article-tag i{
+    .about-page--community-post .community-article-tag__text, .about-page--articles .community-article-tag__text, .about-page--news-detail .community-article-tag__text{
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .about-page--community-post .community-article-tag i, .about-page--articles .community-article-tag i, .about-page--news-detail .community-article-tag i{
+        flex-shrink: 0;
         font-size: 0.62rem;
         opacity: 0.75;
     }
 
-    .about-page--community-post .community-article-tag:hover, .about-page--articles .community-article-tag:hover{
+    .about-page--community-post .community-article-tag:hover, .about-page--articles .community-article-tag:hover, .about-page--news-detail .community-article-tag:hover{
         background: rgba(23, 105, 165, 0.2);
         color: #0a3a5c;
     }
 
-    .about-page--community-post .community-article-author-card, .about-page--articles .community-article-author-card{
+    .about-page--community-post .community-article-author-card, .about-page--articles .community-article-author-card, .about-page--news-detail .community-article-author-card{
         align-items: center;
         background: #f8fafc;
         border: 1px solid var(--article-line);
@@ -458,8 +470,8 @@
         padding: 0.75rem 0.85rem;
     }
 
-    .about-page--community-post .community-article-author-card__avatar,, .about-page--articles .community-article-author-card__avatar,
-    .about-page--community-post .community-article-author-card__initials, .about-page--articles .community-article-author-card__initials{
+    .about-page--community-post .community-article-author-card__avatar, .about-page--articles .community-article-author-card__avatar, .about-page--news-detail .community-article-author-card__avatar,
+    .about-page--community-post .community-article-author-card__initials, .about-page--articles .community-article-author-card__initials, .about-page--news-detail .community-article-author-card__initials{
         align-items: center;
         background: linear-gradient(135deg, #dbeafe 0%, #d1fae5 100%);
         border-radius: 50%;
@@ -476,11 +488,11 @@
         width: 44px;
     }
 
-    .about-page--community-post .community-article-author-card__body, .about-page--articles .community-article-author-card__body{
+    .about-page--community-post .community-article-author-card__body, .about-page--articles .community-article-author-card__body, .about-page--news-detail .community-article-author-card__body{
         min-width: 0;
     }
 
-    .about-page--community-post .community-article-author-card__name, .about-page--articles .community-article-author-card__name{
+    .about-page--community-post .community-article-author-card__name, .about-page--articles .community-article-author-card__name, .about-page--news-detail .community-article-author-card__name{
         align-items: center;
         color: var(--article-ink);
         display: flex;
@@ -492,21 +504,21 @@
         margin: 0;
     }
 
-    .about-page--community-post .community-article-author-card__name-icon, .about-page--articles .community-article-author-card__name-icon{
+    .about-page--community-post .community-article-author-card__name-icon, .about-page--articles .community-article-author-card__name-icon, .about-page--news-detail .community-article-author-card__name-icon{
         color: var(--article-accent);
         font-size: 0.72rem;
     }
 
-    .about-page--community-post .community-article-author-card__name a, .about-page--articles .community-article-author-card__name a{
+    .about-page--community-post .community-article-author-card__name a, .about-page--articles .community-article-author-card__name a, .about-page--news-detail .community-article-author-card__name a{
         color: inherit;
         text-decoration: none;
     }
 
-    .about-page--community-post .community-article-author-card__name a:hover, .about-page--articles .community-article-author-card__name a:hover{
+    .about-page--community-post .community-article-author-card__name a:hover, .about-page--articles .community-article-author-card__name a:hover, .about-page--news-detail .community-article-author-card__name a:hover{
         color: var(--article-accent);
     }
 
-    .about-page--community-post .community-article-author-card__bio, .about-page--articles .community-article-author-card__bio{
+    .about-page--community-post .community-article-author-card__bio, .about-page--articles .community-article-author-card__bio, .about-page--news-detail .community-article-author-card__bio{
         color: var(--article-muted);
         font-size: 0.8rem;
         line-height: 1.45;

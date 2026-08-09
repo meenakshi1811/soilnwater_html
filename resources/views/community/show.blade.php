@@ -607,6 +607,7 @@
                 'post' => $post,
                 'isSaved' => $isSaved,
                 'relatedNews' => $relatedNews ?? collect(),
+                'followedTopics' => $followedTopics,
             ])
             @endunless
 

@@ -2579,8 +2579,10 @@ The mountains keep.</pre>
         }
     }
     .tag-input-wrap:focus-within { border-color: #86b7fe !important; box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .15); }
-    .community-tag-pill { align-items: center; background: #e8f5ee; border: 1px solid #badbcc; border-radius: 999px; color: #0f5132; display: inline-flex; font-size: .875rem; font-weight: 600; gap: .35rem; padding: .25rem .55rem; }
-    .community-tag-remove { background: transparent; border: 0; color: inherit; line-height: 1; padding: 0; }
+    #tagList { row-gap: .5rem; width: 100%; }
+    .community-tag-pill { align-items: flex-start; background: #e8f5ee; border: 1px solid #badbcc; border-radius: 999px; color: #0f5132; display: inline-flex; font-size: .8125rem; font-weight: 600; gap: .35rem; line-height: 1.35; max-width: 100%; min-width: 0; padding: .3rem .6rem; }
+    .community-tag-pill > span:first-child { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+    .community-tag-remove { background: transparent; border: 0; color: inherit; flex-shrink: 0; line-height: 1; margin-top: .1rem; padding: 0; }
     .featured-images-uploader { background: #fafbfc; }
     .featured-images-grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); }
     .featured-image-card { aspect-ratio: 1; background: #fff; border: 1px solid #dbe3ea; border-radius: .75rem; box-shadow: 0 1px 2px rgba(16, 24, 40, .06); overflow: hidden; position: relative; }
