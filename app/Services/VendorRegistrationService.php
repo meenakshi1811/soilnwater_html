@@ -25,6 +25,7 @@ class VendorRegistrationService
         $panNumber = $registrationData['pan_number'] ?? null;
         $gstNumber = ($registrationData['has_gst'] ?? '0') === '1' ? ($registrationData['gst_number'] ?? null) : null;
         $governmentCertificateNumber = $registrationData['government_certificate_number'] ?? null;
+        $dateOfIncorporation = $registrationData['date_of_incorporation'] ?? null;
         $profileImage = $registrationData['profile_image'] ?? null;
         $profileImagePath = $profileImage instanceof UploadedFile
             ? VendorFileUploader::storeImage($profileImage, 'logos')
@@ -46,6 +47,7 @@ class VendorRegistrationService
             'pan_number' => $panNumber,
             'gst_number' => $gstNumber,
             'government_certificate_number' => $governmentCertificateNumber,
+            'date_of_incorporation' => $dateOfIncorporation,
             'status' => 'pending',
             'converted_from_user' => (bool) ($registrationData['converted_from_user'] ?? false),
         ]);

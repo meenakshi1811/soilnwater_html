@@ -200,7 +200,7 @@
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Location</th>
-                    <th>Date of Birth</th>
+                    <th>DOB / Incorporation</th>
                     <th>Status</th>
                     <th class="text-center">Toggle</th>
                     <th>Created</th>
@@ -268,12 +268,16 @@
                             <input type="file" name="profile_image" id="createProfileImage" class="form-control" accept="image/jpeg,image/png,image/webp">
                             <small class="text-muted">JPG, PNG, or WebP up to 2 MB. Leave empty to skip.</small>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6" id="createDateOfBirthWrap">
                             <label class="form-label" for="createDateOfBirth">Date of Birth</label>
                             <input type="date" name="date_of_birth" id="createDateOfBirth" class="form-control" max="{{ now()->subYears(18)->toDateString() }}">
                         </div>
                         <div class="col-12 d-none" id="createBusinessFields">
                             <div class="row g-3">
+                                <div class="col-md-6" id="createDateOfIncorporationWrap">
+                                    <label class="form-label" for="createDateOfIncorporation">Date of Incorporation</label>
+                                    <input type="date" name="date_of_incorporation" id="createDateOfIncorporation" class="form-control" max="{{ now()->toDateString() }}">
+                                </div>
                                 <div class="col-md-6">
                                     <label class="form-label" for="createPanNumber">PAN Number</label>
                                     <input type="text" name="pan_number" id="createPanNumber" class="form-control">

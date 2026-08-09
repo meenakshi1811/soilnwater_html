@@ -20,12 +20,15 @@
             var showGst = showBusiness && $('input[name="has_gst"]:checked', '#createUserForm').val() === '1';
 
             $('#createBusinessFields').toggleClass('d-none', !showBusiness);
+            $('#createDateOfBirthWrap').toggleClass('d-none', showBusiness);
             $('#createProfileImageWrap').toggleClass('d-none', !showProfileImage);
             $('#createGstNumberWrap').toggleClass('d-none', !showGst);
 
             if (!showBusiness) {
-                $('#createPanNumber, #createGstNumber, #createCertificateNumber').val('');
+                $('#createPanNumber, #createGstNumber, #createCertificateNumber, #createDateOfIncorporation').val('');
                 $('#createHasGstNo').prop('checked', true);
+            } else {
+                $('#createDateOfBirth').val('');
             }
 
             if (!showGst) {
@@ -109,7 +112,18 @@
                         maxlength: 20
                     },
                     government_certificate_number: { maxlength: 100 },
-                    date_of_birth: { required: true, date: true },
+                    date_of_birth: {
+                        required: function () {
+                            return $('#createRole').val() === 'user';
+                        },
+                        date: true
+                    },
+                    date_of_incorporation: {
+                        required: function () {
+                            return self.isBusinessRole($('#createRole').val());
+                        },
+                        date: true
+                    },
                     password: { required: true, minlength: 8 },
                     password_confirmation: { required: true, equalTo: '#createPassword' }
                 },
@@ -118,6 +132,8 @@
                     pan_number: { required: 'PAN number is required for vendor, consultant, and service provider accounts.' },
                     has_gst: { required: 'Please select whether the account has a GST number.' },
                     gst_number: { required: 'GST number is required when GST is set to yes.' },
+                    date_of_birth: { required: 'Date of birth is required for general user accounts.' },
+                    date_of_incorporation: { required: 'Date of incorporation is required for vendor, consultant, and service provider accounts.' },
                     password_confirmation: { equalTo: 'Password confirmation does not match.' }
                 },
                 beforeSubmit: function () {
@@ -298,6 +314,7 @@
                 ['PAN number', profile.pan_number],
                 ['GST number', profile.gst_number],
                 ['Government certificate no.', profile.government_certificate_number],
+                ['Date of incorporation', profile.date_of_incorporation],
                 ['Premium', profile.is_premium ? 'Yes' : 'No'],
                 ['Approval status', profile.status],
                 ['Public page status', profile.public_page_status],
@@ -431,24 +448,32 @@
         renderUserDetails: function (response) {
             var user = response.user || {};
             var details = response.role_details || null;
+            var userFields = [
+                ['User ID', user.id],
+                ['Name', user.name],
+                ['Email', user.email],
+                ['Email verified at', user.email_verified_at],
+                ['Phone number', user.phone_number],
+                ['Phone verified at', user.phone_verified_at],
+                ['WhatsApp number', user.whatsapp_number],
+                ['Role', user.role_label]
+            ];
+
+            if (user.role === 'user') {
+                userFields.push(['Date of birth', user.date_of_birth]);
+            }
+
+            userFields.push(
+                ['City', user.city],
+                ['Pincode', user.pincode],
+                ['Status', user.is_blocked ? 'Blocked' : (user.is_active ? 'Active' : 'Inactive')],
+                ['Created at', user.created_at],
+                ['Updated at', user.updated_at]
+            );
 
             var html = this.renderHero(user)
-                + this.section('Users table details', 'fa-id-card', this.fieldGrid([
-                    ['User ID', user.id],
-                    ['Name', user.name],
-                    ['Email', user.email],
-                    ['Email verified at', user.email_verified_at],
-                    ['Phone number', user.phone_number],
-                    ['Phone verified at', user.phone_verified_at],
-                    ['WhatsApp number', user.whatsapp_number],
-                    ['Role', user.role_label],
-                    ['Date of birth', user.date_of_birth],
-                    ['City', user.city],
-                    ['Pincode', user.pincode],
-                    ['Status', user.is_blocked ? 'Blocked' : (user.is_active ? 'Active' : 'Inactive')],
-                    ['Created at', user.created_at],
-                    ['Updated at', user.updated_at]
-                ]) + '<div class="detail-field mt-3"><div class="detail-field-label">Address</div><div class="detail-field-value">' + this.escapeHtml(user.address) + '</div></div>')
+                + this.section('Users table details', 'fa-id-card', this.fieldGrid(userFields)
+                    + '<div class="detail-field mt-3"><div class="detail-field-label">Address</div><div class="detail-field-value">' + this.escapeHtml(user.address) + '</div></div>')
                 + this.renderRoleProfile(details);
 
             if (details) {

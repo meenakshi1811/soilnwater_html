@@ -48,6 +48,11 @@ class UserController extends Controller
                 'is_active',
                 'is_blocked',
                 'created_at',
+            ])
+            ->with([
+                'vendor:id,user_id,date_of_incorporation',
+                'consultant:id,user_id,date_of_incorporation',
+                'serviceProvider:id,user_id,date_of_incorporation',
             ]);
 
         return DataTables::of($users)
@@ -105,6 +110,18 @@ class UserController extends Controller
                 return $user->created_at ? $user->created_at->format('Y-m-d') : '';
             })
             ->editColumn('date_of_birth', function (User $user) {
+                if ($user->isVendor()) {
+                    return optional($user->vendor?->date_of_incorporation)->format('Y-m-d') ?: '—';
+                }
+
+                if ($user->isConsultant()) {
+                    return optional($user->consultant?->date_of_incorporation)->format('Y-m-d') ?: '—';
+                }
+
+                if ($user->isServiceProvider()) {
+                    return optional($user->serviceProvider?->date_of_incorporation)->format('Y-m-d') ?: '—';
+                }
+
                 return $user->date_of_birth ? $user->date_of_birth->format('Y-m-d') : '—';
             })
             ->addColumn('status_badge', function (User $user): string {
@@ -179,7 +196,7 @@ class UserController extends Controller
                 'city' => $validated['city'],
                 'pincode' => $validated['pincode'],
                 'role' => $validated['role'],
-                'date_of_birth' => $validated['date_of_birth'],
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
                 'is_active' => true,
                 'created_by' => $request->user()?->id,
                 'password' => Hash::make($validated['password']),
@@ -200,6 +217,7 @@ class UserController extends Controller
                     'has_gst',
                     'gst_number',
                     'government_certificate_number',
+                    'date_of_incorporation',
                 ]),
                 ['profile_image' => $request->file('profile_image')]
             );
@@ -369,7 +387,8 @@ class UserController extends Controller
             'gst_number' => ['nullable', 'required_if:has_gst,1', 'string', 'max:20'],
             'government_certificate_number' => ['nullable', 'string', 'max:100'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'date_of_birth' => ['required', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'date_of_birth' => ['nullable', 'required_if:role,user', 'date', 'before_or_equal:'.now()->subYears(18)->toDateString()],
+            'date_of_incorporation' => ['nullable', 'required_if:role,vendor,consultant,service_provider', 'date', 'before_or_equal:today'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
@@ -378,7 +397,10 @@ class UserController extends Controller
             'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service provider registrations.',
             'has_gst.required_if' => 'Please select whether the account has a GST number.',
             'gst_number.required_if' => 'GST number is required when GST is set to yes.',
+            'date_of_birth.required_if' => 'Date of birth is required for general user accounts.',
             'date_of_birth.before_or_equal' => 'The user must be at least 18 years old.',
+            'date_of_incorporation.required_if' => 'Date of incorporation is required for vendor, consultant, and service provider accounts.',
+            'date_of_incorporation.before_or_equal' => 'Date of incorporation cannot be in the future.',
         ]);
     }
 
@@ -523,6 +545,7 @@ class UserController extends Controller
                 'pan_number' => $profile->pan_number,
                 'gst_number' => $profile->gst_number,
                 'government_certificate_number' => $profile->government_certificate_number,
+                'date_of_incorporation' => optional($profile->date_of_incorporation)->format('Y-m-d'),
                 'description' => $profile->description,
                 'facebook_url' => $profile->facebook_url,
                 'instagram_url' => $profile->instagram_url,
