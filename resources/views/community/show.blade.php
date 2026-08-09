@@ -468,10 +468,11 @@
         && in_array($post->user_id, $engagement['followed_author_ids'] ?? [], true);
     $followedTopics = collect($engagement['followed_topics'] ?? [])->map(fn ($topic) => \App\Models\CommunityTopicFollow::normalizeTopic((string) $topic))->all();
     $isArticlePost = $post->content_type === 'articles';
+    $isNewsPost = $post->content_type === 'news';
     $coverUrl = $post->featuredImageUrl();
 @endphp
 <div
-    class="about-page about-page--community-post"
+    class="about-page about-page--community-post{{ $isNewsPost ? ' about-page--news-detail' : '' }}"
     data-article-font-root
     data-article-font-step="2"
 >
@@ -499,6 +500,12 @@
             This post is saved as a draft and is not visible on the public community hub yet.
         </div>
     @endif
+    @if($isNewsPost)
+        @include('community.partials.news-show-header', [
+            'post' => $post,
+            'isFollowingAuthor' => $isFollowingAuthor,
+        ])
+    @else
     <section
         class="about-banner community-article-hero{{ $coverUrl ? ' has-cover' : '' }}"
         @if($coverUrl) style="--article-cover: url('{{ $coverUrl }}')" @endif
@@ -578,12 +585,28 @@
         </div>
         </div>
     </section>
+    @endif
+
+    @if($isNewsPost)
+    <div class="news-detail-shell">
+        <div class="news-detail-shell__container">
+            <div class="news-detail-shell__grid">
+                <div class="news-detail-shell__main">
+    @endif
 
     <div class="about-inner">
         <section class="sec">
+            @unless($isNewsPost)
             @include('community.partials.post-shell-start', ['post' => $post])
+            @else
+            @include('community.partials.news-show-main', [
+                'post' => $post,
+                'isSaved' => $isSaved,
+                'relatedNews' => $relatedNews ?? collect(),
+            ])
+            @endunless
 
-            @if(! $isArticlePost)
+            @if(! $isArticlePost && ! $isNewsPost)
                 @php
                     $shellScoreBadges = $post->articleScoreBadges();
                     $shellStoryBadges = $post->content_type === 'stories' ? $post->storyAchievementBadges() : [];
@@ -740,7 +763,7 @@
                 </div>
             @endif
 
-            @if($post->hasVideo() && ! $isArticlePost && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost() && ! $post->isEnvironmentPost() && ! $post->isScienceTechnologyPost() && ! $post->isAstroConsultancyPost() && ! $post->isReligionSpiritualityPost() && ! $post->isCreativeCornerPost())
+            @if($post->hasVideo() && ! $isArticlePost && ! $isNewsPost && ! $post->isAwarenessPost() && ! $post->isBusinessPost() && ! $post->isWomensWorldPost() && ! $post->isSeniorCitizensForumPost() && ! $post->isStudentCornerPost() && ! $post->isYouthCornerPost() && ! $post->isLocalVoicesPost() && ! $post->isMyAreaPost() && ! $post->isCommunityIssuesPost() && ! $post->isAgriculturePost() && ! $post->isEnvironmentPost() && ! $post->isScienceTechnologyPost() && ! $post->isAstroConsultancyPost() && ! $post->isReligionSpiritualityPost() && ! $post->isCreativeCornerPost())
                 <div class="community-post-video mb-4">
                     @if($post->content_type === 'stories')
                         <h4 class="mb-3">Video story</h4>
@@ -768,7 +791,7 @@
 
             @if($post->usesBookLayout() && $post->bookPages() !== [])
                 @include('community.partials.book-reader', ['post' => $post])
-            @elseif(! $isArticlePost)
+            @elseif(! $isArticlePost && ! $isNewsPost)
                 @php
                     $editorLanguage = data_get($post->meta, 'editor_language', 'en');
                     $editorHtmlLang = \App\Support\CommunityContentTaxonomy::editorLanguageHtmlLang($editorLanguage);
@@ -1008,7 +1031,7 @@
                     $visibleMeta = $additionalReportMeta;
                 @endphp
             @endif
-            @if($post->content_type === 'news')
+            @if($post->content_type === 'news' && ! $isNewsPost)
                 @include('community.partials.news-meta-details', ['post' => $post])
                 @php
                     $visibleMeta = $additionalNewsMeta;
@@ -1194,7 +1217,9 @@
                 </div>
             @endif
 
+            @unless($isNewsPost)
             @include('community.partials.post-shell-end', ['post' => $post, 'followedTopics' => $followedTopics])
+            @endunless
 
             @if($post->allowsPoll())
                 @include('community.partials.poll', ['post' => $post])
@@ -1296,8 +1321,43 @@
             @if($post->content_type === 'news' && $post->allowsNewsDiscussion())
                 </section>
             @endif
+
+            @if($isNewsPost && ($relatedNews ?? collect())->isNotEmpty())
+                <section class="news-detail-also-like d-none d-lg-block">
+                    <h3>You May Also Like</h3>
+                    <div class="news-detail-also-like__grid">
+                        @foreach($relatedNews as $related)
+                            <a href="{{ $related->publicUrl() }}" class="news-detail-also-like__card">
+                                @if($related->featuredImageUrl())
+                                    <img src="{{ $related->featuredImageUrl() }}" alt="{{ $related->title }}">
+                                @endif
+                                <div class="news-detail-also-like__card-body">
+                                    @if(filled($related->category))
+                                        <div class="news-detail-also-like__category">{{ $related->category }}</div>
+                                    @endif
+                                    <p class="news-detail-also-like__title">{{ $related->title }}</p>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
         </section>
     </div>
+
+    @if($isNewsPost)
+                </div>
+                @include('community.partials.news-show-sidebar', [
+                    'post' => $post,
+                    'isFollowingAuthor' => $isFollowingAuthor,
+                    'authorPostCount' => $authorPostCount ?? 0,
+                    'relatedNews' => $relatedNews ?? collect(),
+                    'trendingNews' => $trendingNews ?? collect(),
+                ])
+            </div>
+        </div>
+    </div>
+    @endif
 
     @if($post->allowsSharing())
         @include('community.partials.share-modal')
@@ -1321,6 +1381,9 @@
 @push('styles')
 @include('community.partials.story-styles')
 @include('community.partials.articles-styles')
+@if($post->content_type === 'news')
+@include('community.partials.news-show-styles')
+@endif
 @if($post->content_type === 'poetry')
 @include('community.partials.poetry-styles')
 @endif

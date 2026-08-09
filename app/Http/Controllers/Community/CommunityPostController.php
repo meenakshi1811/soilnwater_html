@@ -208,14 +208,27 @@ class CommunityPostController extends Controller
             $this->recordPostView($request, $post);
         }
 
-        return view('community.show', array_merge([
+        $viewData = [
             'post' => $post,
             'types' => CommunityContentTaxonomy::formTypes(),
             'answeredAuthorQuestions' => $post->user_id
                 ? $this->answeredQuestionsForPost($post)
                 : collect(),
             'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
-        ], $this->participationViewData($post)));
+        ];
+
+        if ($post->content_type === 'news') {
+            $viewData['relatedNews'] = $this->relatedNewsPosts($post);
+            $viewData['trendingNews'] = $this->trendingNewsPosts($post);
+            $viewData['authorPostCount'] = $post->user_id
+                ? CommunityPost::query()
+                    ->where('user_id', $post->user_id)
+                    ->publiclyListed()
+                    ->count()
+                : 0;
+        }
+
+        return view('community.show', array_merge($viewData, $this->participationViewData($post)));
     }
 
     public function authorShow(Request $request, CommunityPost $post): View
@@ -7785,6 +7798,40 @@ class CommunityPostController extends Controller
     private function deleteFeaturedImage(?string $path): void
     {
         CommunityPostFileUploader::deleteIfExists($path);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, CommunityPost>
+     */
+    private function relatedNewsPosts(CommunityPost $post, int $limit = 4)
+    {
+        return CommunityPost::query()
+            ->with('user')
+            ->where('content_type', 'news')
+            ->where('id', '!=', $post->id)
+            ->publiclyListed()
+            ->visibleInCommunityListing(auth()->user())
+            ->when(filled($post->category), fn ($query) => $query->where('category', $post->category))
+            ->latest('published_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, CommunityPost>
+     */
+    private function trendingNewsPosts(CommunityPost $post, int $limit = 5)
+    {
+        return CommunityPost::query()
+            ->with('user')
+            ->where('content_type', 'news')
+            ->where('id', '!=', $post->id)
+            ->publiclyListed()
+            ->visibleInCommunityListing(auth()->user())
+            ->orderByDesc('views_count')
+            ->latest('published_at')
+            ->limit($limit)
+            ->get();
     }
 
     private function paginateCommunityPosts(Request $request, ?User $author = null)
