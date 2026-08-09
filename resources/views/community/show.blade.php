@@ -504,6 +504,10 @@
         @include('community.partials.news-show-header', [
             'post' => $post,
             'isFollowingAuthor' => $isFollowingAuthor,
+            'isSaved' => $isSaved,
+            'isCategorySubscribed' => $isCategorySubscribed,
+            'subscriptionContentType' => $subscriptionContentType,
+            'subscriptionCategory' => $subscriptionCategory,
         ])
     @else
     <section

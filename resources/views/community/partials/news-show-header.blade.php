@@ -7,7 +7,70 @@
     $isTopNews = $post->is_featured || $post->is_highlighted;
     $isBreaking = $newsPriority === 'Breaking';
     $authorInitial = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($post->authorDisplayName(), 0, 1));
+    $coverUrl = $post->featuredImageUrl();
 @endphp
+
+<section
+    class="about-banner community-article-hero{{ $coverUrl ? ' has-cover' : '' }}"
+    @if($coverUrl) style="--article-cover: url('{{ $coverUrl }}')" @endif
+>
+    <div class="community-article-hero__inner">
+        <div class="community-post-back-wrap">
+            <a href="{{ route('community.index', ['type' => 'news']) }}" class="community-post-back">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                Back to News
+            </a>
+        </div>
+        <div class="community-article-hero__kicker">
+            SoilnWater Community <span>·</span> {{ $post->typeLabel() }}
+            @if(filled($post->category))
+                <span>·</span> {{ $post->category }}
+            @endif
+        </div>
+        <div class="community-article-hero__actions">
+            @if($post->allowsSharing())
+                @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true, 'iconOnly' => true])
+            @endif
+            @auth
+                @if($post->isPubliclyVisible())
+                    <button type="button"
+                        class="community-banner-action community-banner-action--icon js-community-save-post {{ $isSaved ? 'is-saved' : '' }}"
+                        data-url="{{ route('community.save.toggle', $post) }}"
+                        data-label-saved="Saved"
+                        data-label-unsaved="Save"
+                        title="{{ $isSaved ? 'Saved' : 'Save' }}"
+                        aria-label="{{ $isSaved ? 'Saved' : 'Save' }}">
+                        <i class="fa-{{ $isSaved ? 'solid' : 'regular' }} fa-bookmark" aria-hidden="true"></i>
+                    </button>
+                    @if(auth()->id() !== $post->user_id)
+                        <button type="button"
+                            class="community-banner-action community-banner-action--icon js-community-subscribe-category {{ $isCategorySubscribed ? 'is-subscribed' : '' }}"
+                            data-url="{{ route('community.subscriptions.category.toggle') }}"
+                            data-content-type="{{ $subscriptionContentType }}"
+                            data-category="{{ $subscriptionCategory }}"
+                            title="{{ $isCategorySubscribed ? 'Subscribed to category' : 'Subscribe to category' }}"
+                            aria-label="{{ $isCategorySubscribed ? 'Subscribed to category' : 'Subscribe to category' }}">
+                            <i class="fa-solid fa-bell" aria-hidden="true"></i>
+                        </button>
+                        <button type="button"
+                            class="community-banner-action community-banner-action--icon"
+                            data-bs-toggle="modal"
+                            data-bs-target="#communityPostReportModal"
+                            title="Report content"
+                            aria-label="Report content">
+                            <i class="fa-solid fa-flag" aria-hidden="true"></i>
+                        </button>
+                    @endif
+                @endif
+                @if(auth()->id() === $post->user_id || auth()->user()->isAdmin())
+                    <a href="{{ route('community.posts.edit', $post) }}" class="community-banner-action community-banner-action--icon" title="Edit post" aria-label="Edit post">
+                        <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                    </a>
+                @endif
+            @endauth
+        </div>
+    </div>
+</section>
 
 <section class="news-detail-header">
     <div class="news-detail-header__container">
