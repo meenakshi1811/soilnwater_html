@@ -1,31 +1,52 @@
 document.addEventListener('DOMContentLoaded', function () {
     initProductsMegaMenu();
-    initVendorShare();
+    initStoreLinkCopy();
     initStoreQuickNav();
 });
 
-function initVendorShare() {
-    const copyBtn = document.getElementById('copyVendorStoreLink');
-    const urlInput = document.getElementById('vendorStoreShareUrl');
-
-    if (!copyBtn || !urlInput) {
-        return;
-    }
-
-    copyBtn.addEventListener('click', async function () {
-        const original = copyBtn.textContent;
-        try {
-            await navigator.clipboard.writeText(urlInput.value);
-            copyBtn.textContent = 'Copied';
-        } catch (_) {
-            urlInput.select();
-            document.execCommand('copy');
-            copyBtn.textContent = 'Copied';
+function initStoreLinkCopy() {
+    document.querySelectorAll('.js-copy-store-url').forEach(function (button) {
+        if (button.dataset.copyBound === '1') {
+            return;
         }
 
-        window.setTimeout(function () {
-            copyBtn.textContent = original;
-        }, 1300);
+        button.dataset.copyBound = '1';
+
+        button.addEventListener('click', async function () {
+            const copyTargetId = button.getAttribute('data-copy-target');
+            const copyTarget = copyTargetId ? document.getElementById(copyTargetId) : null;
+            const text = button.getAttribute('data-url') || (copyTarget ? copyTarget.value : '');
+
+            if (!text) {
+                return;
+            }
+
+            const labelEl = button.querySelector('.vendor-store-header__link-copy-label');
+            const original = labelEl ? labelEl.textContent : button.textContent;
+
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch (_) {
+                if (copyTarget) {
+                    copyTarget.select();
+                    document.execCommand('copy');
+                }
+            }
+
+            if (labelEl) {
+                labelEl.textContent = 'Copied';
+            } else {
+                button.textContent = 'Copied';
+            }
+
+            window.setTimeout(function () {
+                if (labelEl) {
+                    labelEl.textContent = original;
+                } else {
+                    button.textContent = original;
+                }
+            }, 1300);
+        });
     });
 }
 

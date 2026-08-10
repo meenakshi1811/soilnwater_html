@@ -111,10 +111,73 @@
 
 .vendor-store-header__inner {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
     min-height: 72px;
+}
+
+.vendor-store-header__linkbar {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+    padding: 0 0.75rem;
+}
+
+.vendor-store-header__link {
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #dbe3ef;
+    border-radius: 999px;
+    display: flex;
+    max-width: min(100%, 540px);
+    min-width: 0;
+    overflow: hidden;
+    width: 100%;
+}
+
+.vendor-store-header__link-text {
+    color: #475569;
+    flex: 1;
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0.5rem 0.9rem;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vendor-store-header__link-text:hover {
+    color: #1e4f9b;
+}
+
+.vendor-store-header__link-copy {
+    align-items: center;
+    background: #fff;
+    border: 0;
+    border-left: 1px solid #dbe3ef;
+    color: #1e4f9b;
+    cursor: pointer;
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    gap: 0.35rem;
+    line-height: 1;
+    padding: 0.55rem 0.9rem;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.vendor-store-header__link-copy:hover {
+    background: #eef4ff;
+    color: #163f82;
+}
+
+.vendor-store-header__link-copy i {
+    font-size: 0.82rem;
 }
 
 .vendor-store-brand {
@@ -1457,7 +1520,24 @@ body:has(#discussionFab) .vendor-whatsapp-float {
         width: 100%;
         flex-direction: column;
         align-items: stretch;
+        order: 4;
         padding: 0.75rem 0;
+    }
+
+    .vendor-store-header__inner {
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .vendor-store-header__linkbar {
+        flex: 1 1 100%;
+        justify-content: stretch;
+        order: 3;
+        padding: 0.35rem 0 0;
+    }
+
+    .vendor-store-header__link {
+        max-width: none;
     }
 
     .vendor-store-nav-share {

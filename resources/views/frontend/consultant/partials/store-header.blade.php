@@ -9,6 +9,11 @@
                 @endif
             </a>
 
+            @include('frontend.partials.marketplace-store-header-link', [
+                'storeUrl' => route('consultant.show', $consultant->slug),
+                'linkLabel' => 'Consultant',
+            ])
+
             <button class="vendor-store-mobile-toggle d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#consultantStoreNav" aria-controls="consultantStoreNav" aria-expanded="false" aria-label="Toggle navigation">
                 <i class="fa-solid fa-bars"></i>
             </button>
@@ -60,7 +65,7 @@
                 <label for="consultantStoreShareUrl" class="form-label small text-muted mb-1">Consultant link</label>
                 <div class="input-group mb-3">
                     <input id="consultantStoreShareUrl" type="text" class="form-control" readonly value="{{ route('consultant.show', $consultant->slug) }}">
-                    <button class="btn btn-outline-secondary" type="button" id="copyConsultantStoreLink">Copy</button>
+                    <button class="btn btn-outline-secondary js-copy-store-url" type="button" data-url="{{ route('consultant.show', $consultant->slug) }}">Copy</button>
                 </div>
                 <div class="vendor-share-actions">
                     <a href="https://wa.me/?text={{ urlencode('Check out this consultant: '.route('consultant.show', $consultant->slug)) }}" target="_blank" rel="noopener" class="vendor-share-btn share-whatsapp"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
