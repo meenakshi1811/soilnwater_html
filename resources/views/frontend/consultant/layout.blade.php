@@ -25,6 +25,12 @@
         'activeNav' => $activeNav ?? '',
     ])
 
+    @include('frontend.partials.marketplace-store-quicknav', [
+        'storeHomeUrl' => route('consultant.show', $consultant->slug),
+        'storeHomeLabel' => 'Consultant Home',
+        'activeNav' => $activeNav ?? '',
+    ])
+
     @include('frontend.premium.partials.profile-status', ['profile' => $consultant, 'type' => 'consultant'])
 
     @yield('consultant_content')

@@ -59,6 +59,56 @@
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
 }
 
+.vendor-store-quicknav {
+    background: linear-gradient(90deg, #fff8f1 0%, #f7fbff 52%, #f2fbf8 100%);
+    border-bottom: 1px solid #e8edf3;
+    position: relative;
+    z-index: 40;
+}
+
+.vendor-store-quicknav__inner {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.55rem 0;
+}
+
+.vendor-store-quicknav__btn {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #d7e0ec;
+    border-radius: 999px;
+    color: #334155;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.82rem;
+    font-weight: 700;
+    gap: 0.35rem;
+    line-height: 1;
+    padding: 0.45rem 0.85rem;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.vendor-store-quicknav__btn:hover {
+    background: #f8fafc;
+    border-color: #b8c7dc;
+    color: #1b2b44;
+}
+
+.vendor-store-quicknav__btn.is-active {
+    background: linear-gradient(90deg, rgba(30, 79, 155, 0.1), rgba(13, 159, 140, 0.12));
+    border-color: rgba(30, 79, 155, 0.22);
+    color: #1e4f9b;
+    pointer-events: none;
+}
+
+.vendor-store-quicknav__btn i {
+    font-size: 0.78rem;
+    opacity: 0.85;
+}
+
 .vendor-store-header__inner {
     display: flex;
     align-items: flex-end;

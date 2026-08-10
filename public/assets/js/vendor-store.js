@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     initProductsMegaMenu();
     initVendorShare();
+    initStoreQuickNav();
 });
 
 function initVendorShare() {
@@ -25,6 +26,23 @@ function initVendorShare() {
         window.setTimeout(function () {
             copyBtn.textContent = original;
         }, 1300);
+    });
+}
+
+function initStoreQuickNav() {
+    document.querySelectorAll('.js-store-nav-back').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const fallbackUrl = button.getAttribute('data-fallback-url');
+
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+
+            if (fallbackUrl) {
+                window.location.href = fallbackUrl;
+            }
+        });
     });
 }
 

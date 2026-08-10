@@ -24,6 +24,12 @@
         'activeNav' => $activeNav ?? '',
     ])
 
+    @include('frontend.partials.marketplace-store-quicknav', [
+        'storeHomeUrl' => route('store.show', $vendor->slug),
+        'storeHomeLabel' => 'Store Home',
+        'activeNav' => $activeNav ?? '',
+    ])
+
     @include('frontend.premium.partials.profile-status', ['profile' => $vendor, 'type' => 'vendor'])
 
     @yield('store_content')
