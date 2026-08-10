@@ -1022,7 +1022,7 @@
                 <div class="ad-slider auto-ad-slider top-vendors-cards-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Top vendors slider">
                   <?php foreach ($topVendorSlides as $vendorChunk): ?>
                     <div class="ad-slide">
-                      <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3">
+                      <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-1 offer-coupon-grid vendor-offer-grid">
                         <?php foreach ($vendorChunk as $vendor): ?>
                           <div class="col">
                             @include('frontend.partials.vendor-card', ['vendor' => $vendor])
@@ -1033,7 +1033,7 @@
                   <?php endforeach; ?>
                   <?php if ($topVendorSlides->isEmpty()): ?>
                     <div class="ad-slide">
-                      <div class="vendor-grid row row-cols-1 g-3">
+                      <div class="row row-cols-1 g-1 offer-coupon-grid vendor-offer-grid">
                         <div class="col">
                           <div class="view-all-card ad-slot-card h-100" style="min-height:130px;"><h4>No vendors available</h4><p>Please check back later.</p></div>
                         </div>

@@ -12,7 +12,7 @@
                 </div>
                 <a href="{{ route('frontend.vendors.index') }}" class="btn btn-store-primary">View all vendors</a>
             </div>
-            <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3 ad-slider auto-ad-slider vendor-store-similar-vendors-slider" data-show-arrows="true" data-pause-on-hover="false" data-show-dots="false" aria-label="Similar vendors slider">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-1 offer-coupon-grid vendor-offer-grid ad-slider auto-ad-slider vendor-store-similar-vendors-slider" data-show-arrows="true" data-pause-on-hover="false" data-show-dots="false" aria-label="Similar vendors slider">
                 @foreach($similarVendors as $similarVendor)
                     <div class="col ad-slide">
                         @include('frontend.partials.vendor-card', ['vendor' => $similarVendor])

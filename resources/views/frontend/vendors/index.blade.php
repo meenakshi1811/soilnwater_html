@@ -20,7 +20,7 @@
         @endif
       </p>
 
-      <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3">
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-1 offer-coupon-grid vendor-offer-grid">
         @forelse($vendors as $vendor)
           <div class="col">
             @include('frontend.partials.vendor-card', ['vendor' => $vendor, 'hasLocation' => $hasLocation])

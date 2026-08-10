@@ -8,25 +8,26 @@
     $primaryBranch = $vendor->branches->first();
     $storeUrl = route('store.show', $vendor->slug);
     $hasLocation = $hasLocation ?? false;
+    $vendorLocation = $primaryBranch?->city ?: ($vendor->city ?: 'Local Area');
+    $vendorMeta = $vendorLocation.' • '.$vendor->products_count.' Products';
+
+    if ($hasLocation && $vendor->nearest_distance_km !== null) {
+        $vendorMeta .= ' • '.number_format($vendor->nearest_distance_km, 1).' km';
+    }
 @endphp
 
-<div class="vendor-card card h-100{{ $vendor->is_premium ? ' is-premium-card' : '' }}">
-    <a href="{{ $storeUrl }}" class="vendor-card-media" aria-label="View {{ $vendor->publicDisplayName() }} store">
-        <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}" loading="lazy">
+<article class="card h-100 shadow-sm border-0 offer-coupon-card vendor-offer-card{{ $vendor->is_premium ? ' is-premium-card' : '' }}">
+    <a href="{{ $storeUrl }}" class="offer-coupon-image-wrap vendor-offer-card__media" aria-label="View {{ $vendor->publicDisplayName() }} store">
+        <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}" class="offer-coupon-image" loading="lazy">
     </a>
-    <div class="vendor-card-body card-body d-flex flex-column">
-        <p class="vendor-card-name">
-            {{ $vendor->publicDisplayName() }}
-            @if($vendor->is_premium)
-                @include('frontend.premium.partials.badge', ['size' => 'xs'])
-            @endif
-        </p>
-        <div class="vendor-card-sub">
-            {{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products
-            @if($hasLocation && $vendor->nearest_distance_km !== null)
-                • {{ number_format($vendor->nearest_distance_km, 1) }} km
-            @endif
-        </div>
-        <a href="{{ $storeUrl }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
+    <div class="card-body d-flex flex-column gap-2">
+        @if($vendor->is_premium)
+            @include('frontend.premium.partials.badge', ['size' => 'xs'])
+        @else
+            <span class="badge text-bg-primary w-fit">{{ $vendor->products_count }} Products</span>
+        @endif
+        <h4 class="h6 mb-1 offer-coupon-title">{{ $vendor->publicDisplayName() }}</h4>
+        <p class="small text-muted mb-2 offer-coupon-description">{{ $vendorMeta }}</p>
+        <a href="{{ $storeUrl }}" class="vendor-offer-card__btn text-center text-decoration-none mt-auto">View Store</a>
     </div>
-</div>
+</article>
