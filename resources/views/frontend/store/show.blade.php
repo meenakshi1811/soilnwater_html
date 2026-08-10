@@ -41,7 +41,7 @@
                     ->filter(fn ($v) => filled($v))
                     ->map(fn ($v, $k) => \Illuminate\Support\Str::kebab($k).':'.$v)
                     ->implode(';');
-                $heroSubHtml = preg_replace('/font-family\s*:\s*[^;"]+;?/i', '', html_entity_decode((string) $vendor->hero_sub_heading)) ?? '';
+                $heroSubHtml = \App\Support\StoreRichText::normalizeTypography($vendor->hero_sub_heading);
             @endphp
             <div class="lead mb-0 opacity-90 vendor-hero-subheading" style="white-space: pre-line;{{ $heroSubStyleCss }}">{!! $heroSubHtml !!}</div>
         @endif
@@ -84,7 +84,7 @@
     @php($sectionHasVideo = str_contains((string) $section->content, 'vendor-section-video'))
     <section id="section-{{ $section->id }}" class="vendor-store-section {{ $loop->even ? 'alt' : '' }} vendor-custom-section {{ $sectionHasVideo ? 'has-video-section' : '' }}">
         <div class="container">
-            <div class="vendor-section-title-display">{!! $section->title !!}</div>
+            <div class="vendor-section-title-display">{!! \App\Support\StoreRichText::normalizeTypography($section->title) !!}</div>
             <div class="row g-4 align-items-center">
                 @if($section->image_path)
                     <div class="col-md-6">
@@ -92,7 +92,7 @@
                     </div>
                 @endif
                 <div class="{{ $section->image_path ? 'col-md-6' : 'col-12' }}">
-                    <div class="content-body">{!! $section->content !!}</div>
+                    <div class="content-body">{!! \App\Support\StoreRichText::normalizeTypography($section->content) !!}</div>
                 </div>
             </div>
         </div>

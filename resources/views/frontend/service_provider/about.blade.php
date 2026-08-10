@@ -19,7 +19,7 @@
                 <h2 class="h3 fw-bold mb-3">Company Profile</h2>
 
                 @if(trim(strip_tags((string) $service_provider->description)) !== '')
-                    <div class="content-body">{!! $service_provider->description !!}</div>
+                    <div class="content-body">{!! \App\Support\StoreRichText::normalizeTypography($service_provider->description) !!}</div>
                 @else
                     <p class="text-muted mb-0">About Us content is not added yet. Please check back soon.</p>
                 @endif

@@ -154,6 +154,13 @@
 
 .vendor-hero-text-section .lead,
 .vendor-hero-text-section .vendor-hero-subheading,
+.vendor-hero-text-section .vendor-hero-subheading p,
+.vendor-hero-text-section .vendor-hero-subheading span,
+.vendor-hero-text-section .vendor-hero-subheading strong,
+.vendor-hero-text-section .vendor-hero-subheading em,
+.vendor-hero-text-section .vendor-hero-subheading a,
+.vendor-hero-text-section .vendor-hero-subheading li,
+.vendor-hero-text-section .vendor-hero-subheading *,
 .vendor-hero-text-section .lead p,
 .vendor-hero-text-section .lead span,
 .vendor-hero-text-section .lead strong,
@@ -161,12 +168,19 @@
 .vendor-hero-text-section .lead a,
 .vendor-hero-text-section .lead li,
 .vendor-hero-text-section .lead * {
-    font-family: 'Manrope', sans-serif !important;
+    font-family: 'Inter', sans-serif !important;
     font-size: clamp(1rem, 1.6vw, 1.125rem);
-    font-weight: 500;
+    font-weight: 400 !important;
     line-height: 1.7;
     letter-spacing: 0.01em;
     color: #334155;
+}
+
+.vendor-hero-text-section .vendor-hero-subheading strong,
+.vendor-hero-text-section .vendor-hero-subheading b,
+.vendor-hero-text-section .lead strong,
+.vendor-hero-text-section .lead b {
+    font-weight: 600 !important;
 }
 
 .vendor-store-professional-details {
@@ -554,11 +568,54 @@
 }
 
 .vendor-section-title-display,
-.vendor-section-title-block {
+.vendor-section-title-display *,
+.vendor-section-title-block,
+.vendor-section-title-block * {
     text-align: center;
-    font-weight: 700;
+    font-family: 'Manrope', sans-serif !important;
+    font-weight: 800 !important;
     font-size: clamp(1.35rem, 3vw, 2rem);
     margin-bottom: 2rem;
+    color: #1b2b44;
+}
+
+.vendor-store-page .content-body {
+    color: #334155;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.7;
+}
+
+.vendor-store-page .content-body p,
+.vendor-store-page .content-body li,
+.vendor-store-page .content-body blockquote,
+.vendor-store-page .content-body td,
+.vendor-store-page .content-body th,
+.vendor-store-page .content-body span:not([class]),
+.vendor-store-page .content-body div:not([class]) {
+    font-family: 'Inter', sans-serif !important;
+    font-size: inherit !important;
+    font-weight: 400 !important;
+    line-height: 1.7 !important;
+    color: #334155 !important;
+}
+
+.vendor-store-page .content-body strong,
+.vendor-store-page .content-body b {
+    font-weight: 600 !important;
+}
+
+.vendor-store-page .content-body h1,
+.vendor-store-page .content-body h2,
+.vendor-store-page .content-body h3,
+.vendor-store-page .content-body h4,
+.vendor-store-page .content-body h5,
+.vendor-store-page .content-body h6 {
+    color: #1b2b44 !important;
+    font-family: 'Manrope', sans-serif !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
 }
 
 .vendor-store-section-title,

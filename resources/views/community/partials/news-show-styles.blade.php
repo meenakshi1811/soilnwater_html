@@ -263,6 +263,64 @@
         font-style: normal;
     }
 
+    .news-detail-tags {
+        border-top: 1px solid var(--news-line);
+        margin-top: 1.25rem;
+        padding-top: 0.85rem;
+    }
+
+    .news-detail-tags__list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .news-detail-tags__item {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        max-width: 100%;
+    }
+
+    .news-detail-tags__chip {
+        align-items: center;
+        background: rgba(23, 105, 165, 0.1);
+        border: 1px solid rgba(23, 105, 165, 0.16);
+        border-radius: 999px;
+        color: #0f4c75;
+        display: inline-flex;
+        font-size: 0.76rem;
+        font-weight: 600;
+        gap: 0.25rem;
+        line-height: 1.35;
+        max-width: min(100%, 20rem);
+        min-width: 0;
+        padding: 0.32rem 0.7rem;
+    }
+
+    .news-detail-tags__chip i {
+        flex-shrink: 0;
+        font-size: 0.62rem;
+        opacity: 0.8;
+    }
+
+    .news-detail-tags__label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .news-detail-tags__follow {
+        flex-shrink: 0;
+        font-size: 0.72rem;
+        padding: 0.2rem 0.55rem;
+    }
+
     .news-detail-share {
         align-items: center;
         border-top: 1px solid var(--news-line);
@@ -562,6 +620,14 @@
         align-items: center;
         display: flex;
         gap: 0.75rem;
+    }
+
+    .about-page--news-detail .community-post-body--article .community-tag-pill,
+    .about-page--news-detail .community-post-body--article .tag-input-wrap,
+    .about-page--news-detail .community-post-body--article #tagList,
+    .about-page--news-detail .community-post-body--article .community-article-tags,
+    .about-page--news-detail .community-post-body--article .community-article-tag {
+        display: none !important;
     }
 
     .about-page--news-detail .community-post-body--article,
