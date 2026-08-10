@@ -1800,7 +1800,19 @@
     display: block !important;
   }
   .top-vendors-layout {
-    align-items: flex-start !important;
+    align-items: stretch !important;
+  }
+  .top-vendors-layout .vendor-offer-card {
+    height: 100%;
+  }
+  .top-vendors-layout .vendor-offer-card__media,
+  .top-vendors-layout .vendor-offer-grid .offer-coupon-image-wrap {
+    aspect-ratio: 4 / 3;
+    max-height: 104px;
+  }
+  .top-vendors-layout .vendor-offer-card__media .offer-coupon-image,
+  .top-vendors-layout .vendor-offer-grid .offer-coupon-image {
+    max-height: 104px;
   }
   .top-vendor-side-static .side-card {
     border: 1px solid #d8e4f2;
@@ -2824,26 +2836,34 @@
 }
 .vendor-offer-card__media,
 .vendor-offer-grid .offer-coupon-image-wrap {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 3;
   background: transparent;
   border: 0;
+  border-radius: 0;
+  flex-shrink: 0;
+  height: auto;
+  max-height: 112px;
   overflow: hidden;
   width: 100%;
 }
 .vendor-offer-grid .offer-coupon-image,
 .vendor-offer-card__media .offer-coupon-image {
   background: transparent;
+  border-radius: 0;
   display: block;
   height: 100%;
+  max-height: 112px;
   object-fit: cover;
   object-position: center;
   width: 100%;
 }
 .vendor-offer-card .card-body,
 .vendor-offer-grid .offer-coupon-card .card-body {
-  padding: .7rem .9rem .85rem;
+  gap: .35rem !important;
+  padding: .55rem .75rem .7rem;
 }
 .vendor-offer-card {
+  min-height: 0;
   position: relative;
 }
 .vendor-offer-card__media {
@@ -3236,7 +3256,10 @@
 .offer-share-links-wrap{flex:1;min-width:0}.offer-share-link-input{border:1px solid #cde0fb}
 .offer-share-btn{border-radius:999px;color:#fff;border:0;font-weight:600;padding-inline:.7rem}.offer-share-btn.share-whatsapp{background:#19b65a}.offer-share-btn.share-facebook{background:#1877f2}.offer-share-btn.share-instagram{background:linear-gradient(135deg,#f58529,#dd2a7b 45%,#8134af)}
 .offer-coupon-card{width:100%;max-width:none;height:320px;margin-inline:0;border-radius:16px;overflow:hidden;transition:transform .22s ease,box-shadow .22s ease;border:1px solid #e2eaf5;box-shadow:0 8px 24px rgba(17,52,100,.08);background:#fff;padding:.9rem .9rem .75rem;display:flex;flex-direction:column}.offer-coupon-card:hover{transform:translateY(-5px);box-shadow:0 16px 34px rgba(17,52,100,.14)}
-.vendor-offer-card.offer-coupon-card{height:auto;min-height:320px;padding:0}
+.vendor-offer-card.offer-coupon-card{height:auto;min-height:0;padding:0}
+.vendor-offer-card .offer-coupon-title{font-size:.92rem;margin-bottom:0}
+.vendor-offer-card .offer-coupon-description{font-size:.74rem;margin-bottom:0!important}
+.vendor-offer-card__media,.vendor-offer-card__media .offer-coupon-image,.vendor-offer-grid .offer-coupon-image-wrap{border-radius:0!important}
 .offer-coupon-image-wrap{display:flex;align-items:center;justify-content:center;aspect-ratio:3/4;background:#eef3f6;overflow:hidden;border:1px dashed #c5d3df;border-radius:16px}.offer-coupon-image{width:100%;height:100%;object-fit:cover}
 .offer-coupon-card .card-body{padding:.7rem .15rem .1rem;flex:1 1 auto}.offer-card-title{font-size:1rem;font-weight:800;color:#1b355a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.offer-meta-pill{border-radius:999px;padding:.28rem .6rem;font-size:.72rem;font-weight:600;display:inline-block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.offer-meta-pill-discount{background:#e8f2ff;color:#1452aa}.offer-meta-pill-coupon{background:#effaf1;color:#0e7a39}
 .offer-pagination-wrap{display:flex;align-items:center;justify-content:space-between;gap:1rem}.offer-pagination-summary{color:#36597e;font-weight:500}.offer-pagination-loading{color:#2f68ad}.offer-scroll-sentinel{width:100%;height:2px}
