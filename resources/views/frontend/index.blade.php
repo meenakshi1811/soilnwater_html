@@ -8,6 +8,7 @@
   $showPopularPropertiesNearGreenwood = !empty($sectionToggles['popular_properties_near_greenwood']) && $sectionToggles['popular_properties_near_greenwood'];
   $topVendorsHeaderAdsList = collect($topVendorsHeaderAds ?? []);
   $topVendorsList = collect($topVendors ?? []);
+  $topVendorSlides = $topVendorsList->chunk(5);
   $topVendorsSideAdsList = collect($topVendorsSideAds ?? []);
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
@@ -1016,50 +1017,39 @@
                 </div>
               <?php endif; ?>
             </div>
-            <div class="row g-3 align-items-start">
+            <div class="row g-3 align-items-start top-vendors-layout">
               <div class="col-12 col-lg-9">
-                <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3">
-                  <?php foreach ($topVendorsList as $vendor): ?>
-                    <div class="col">
-                      <div class="vendor-card card h-100{{ $vendor->is_premium ? ' is-premium-card' : '' }}">
-                        <?php
-                          $firstProduct = $vendor->products->first();
-                          $productImages = is_array($firstProduct?->images) ? array_filter($firstProduct->images) : [];
-                          $productImage = !empty($productImages) ? asset($productImages[0]) : null;
-                          $bannerImage = $vendor->bannerSlides->first()?->image_path ? asset($vendor->bannerSlides->first()->image_path) : null;
-                          $logoImage = $vendor->logo ? asset($vendor->logo) : null;
-                          $vendorCardImage = $productImage ?? $bannerImage ?? $logoImage ?? 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300&q=70';
-                          $primaryBranch = $vendor->branches->first();
-                        ?>
-                        <img src="{{ $vendorCardImage }}" alt="{{ $vendor->publicDisplayName() }}">
-                        <div class="vendor-card-body card-body d-flex flex-column">
-                          <p class="vendor-card-name">
-                            {{ $vendor->publicDisplayName() }}
-                            @if($vendor->is_premium)
-                              @include('frontend.premium.partials.badge', ['size' => 'xs'])
-                            @endif
-                          </p>
-                          <div class="vendor-card-sub">{{ $primaryBranch?->city ?: ($vendor->city ?: 'Local Area') }} • {{ $vendor->products_count }} Products</div>
-                          <a href="{{ route('store.show', $vendor->slug) }}" class="vendor-card-btn text-center text-decoration-none">View Store</a>
-                        </div>
+                <div class="ad-slider auto-ad-slider top-vendors-cards-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Top vendors slider">
+                  <?php foreach ($topVendorSlides as $vendorChunk): ?>
+                    <div class="ad-slide">
+                      <div class="vendor-grid row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-3">
+                        <?php foreach ($vendorChunk as $vendor): ?>
+                          <div class="col">
+                            @include('frontend.partials.vendor-card', ['vendor' => $vendor])
+                          </div>
+                        <?php endforeach; ?>
                       </div>
                     </div>
                   <?php endforeach; ?>
-                  <?php if ($topVendorsList->isEmpty()): ?>
-                    <div class="col">
-                      <div class="view-all-card ad-slot-card h-100" style="min-height:130px;"><h4>No vendors available</h4><p>Please check back later.</p></div>
+                  <?php if ($topVendorSlides->isEmpty()): ?>
+                    <div class="ad-slide">
+                      <div class="vendor-grid row row-cols-1 g-3">
+                        <div class="col">
+                          <div class="view-all-card ad-slot-card h-100" style="min-height:130px;"><h4>No vendors available</h4><p>Please check back later.</p></div>
+                        </div>
+                      </div>
                     </div>
                   <?php endif; ?>
                 </div>
               </div>
-              <aside class="col-12 col-lg-3 section-side-ad ad-slider auto-ad-slider top-vendor-side-slider" aria-label="Top vendor side ads slider">
-                <?php foreach ($topVendorsSideAdsList as $ad): ?>
-                  <div class="side-card ad-slide top-vendor-side-image-card" aria-label="{{ $ad->title }}">
-                    <img class="side-card-img top-vendor-side-full-img" src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
+              <aside class="col-12 col-lg-3 section-side-ad top-vendor-side-static" aria-label="Top vendor side ad">
+                <?php $topVendorSideAd = $topVendorsSideAdsList->first(); ?>
+                <?php if ($topVendorSideAd): ?>
+                  <div class="side-card top-vendor-side-image-card">
+                    <img class="side-card-img top-vendor-side-full-img" src="{{ asset($topVendorSideAd->final_image) }}" alt="{{ $topVendorSideAd->title }}" data-ad-id="{{ $topVendorSideAd->id }}" data-ad-url="{{ $topVendorSideAd->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
                   </div>
-                <?php endforeach; ?>
-                <?php if ($topVendorsSideAdsList->isEmpty()): ?>
-                  <div class="side-card ad-slide">
+                <?php else: ?>
+                  <div class="side-card">
                     <img class="side-card-img" src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&q=70" alt="Top vendor ad">
                     <div class="side-card-body">
                       <h3>Top Vendor Ad</h3>

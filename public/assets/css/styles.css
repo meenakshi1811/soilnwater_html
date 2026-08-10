@@ -708,6 +708,8 @@
   .vendor-grid { --bs-gutter-x: 0.75rem; --bs-gutter-y: 0.75rem; }
   .vendor-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: box-shadow .18s; display: flex; flex-direction: column; min-height: 100%; }
   .vendor-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.13); }
+  .vendor-card-media { display: block; line-height: 0; text-decoration: none; }
+  .vendor-card-media img,
   .vendor-card img { width: 100%; aspect-ratio: 4 / 3; height: auto; object-fit: cover; display: block; }
   .vendor-card-body { padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
   .vendor-card-body p { font-size: 12.5px; font-weight: 700; margin-bottom: 6px; color: #0f3358; }
@@ -1789,6 +1791,28 @@
     flex-direction: column;
     height: 100%;
     border:1px solid #d8e4f2
+  }
+  .top-vendors-cards-slider {
+    border-radius: 12px;
+    position: relative;
+  }
+  .top-vendors-cards-slider > .ad-slide.is-active {
+    display: block !important;
+  }
+  .top-vendors-layout {
+    align-items: flex-start !important;
+  }
+  .top-vendor-side-static .side-card {
+    border: 1px solid #d8e4f2;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .top-vendor-side-static .side-card-img,
+  .top-vendor-side-static .top-vendor-side-full-img {
+    display: block;
+    height: auto;
+    object-fit: contain;
+    width: 100%;
   }
   .top-vendors-featured-slider > .vendor-top-ad.is-active {
     display: flex !important;
