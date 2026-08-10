@@ -36,27 +36,27 @@
 </section>
 
 <section class="vendor-about-page">
-    <div class="container py-4 py-lg-5">
-        <div class="vendor-about-detail">
-            <article class="vendor-about-detail__panel">
-                <div class="vendor-about-detail__panel-bg" aria-hidden="true"></div>
-                <header class="vendor-about-detail__head">
-                    <span class="vendor-about-detail__badge">Our Story</span>
-                    <h2 class="vendor-about-detail__title">Company Profile</h2>
-                    <p class="vendor-about-detail__intro mb-0">Learn more about who we are, what we do, and how we serve our customers.</p>
-                </header>
+    <div class="vendor-about-detail">
+        <article class="vendor-about-detail__panel">
+            <div class="vendor-about-detail__panel-bg" aria-hidden="true"></div>
+            <header class="vendor-about-detail__head">
+                <span class="vendor-about-detail__badge">Our Story</span>
+                <h2 class="vendor-about-detail__title">Company Profile</h2>
+                <p class="vendor-about-detail__intro mb-0">Learn more about who we are, what we do, and how we serve our customers.</p>
+            </header>
 
-                <div class="vendor-about-detail__body">
-                    @if($hasDescription)
-                        <div class="content-body">{!! \App\Support\StoreRichText::normalizeTypography($profile->description) !!}</div>
-                    @else
-                        <p class="vendor-about-detail__empty mb-0">About Us content is not added yet. Please check back soon.</p>
-                    @endif
-                </div>
-            </article>
+            <div class="vendor-about-detail__body">
+                @if($hasDescription)
+                    <div class="content-body">{!! \App\Support\StoreRichText::normalizeTypography($profile->description) !!}</div>
+                @else
+                    <p class="vendor-about-detail__empty mb-0">About Us content is not added yet. Please check back soon.</p>
+                @endif
+            </div>
+        </article>
 
-            @if($professionalBranches->isNotEmpty())
-                <div class="vendor-about-professional mt-4 mt-lg-5">
+        @if($professionalBranches->isNotEmpty())
+            <div class="container vendor-about-professional-wrap py-4 py-lg-5">
+                <div class="vendor-about-professional">
                     <header class="vendor-about-professional__head">
                         <span class="vendor-about-detail__badge">Expertise</span>
                         <h2 class="vendor-about-detail__title mb-0">Professional Experience &amp; Services</h2>
@@ -88,7 +88,7 @@
                         @endforeach
                     </div>
                 </div>
-            @endif
-        </div>
+            </div>
+        @endif
     </div>
 </section>
