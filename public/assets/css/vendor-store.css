@@ -1935,7 +1935,7 @@ body:has(#discussionFab) .vendor-whatsapp-float {
 }
 
 .vendor-store-similar-vendors-slider {
-    min-height: 240px;
+    min-height: 300px;
 }
 
 .vendor-store-similar-vendors-slider .ad-slider-arrows {
@@ -1956,7 +1956,7 @@ body:has(#discussionFab) .vendor-whatsapp-float {
     }
 
     .vendor-store-similar-vendors-slider {
-        min-height: 220px;
+        min-height: 280px;
     }
 }
 
