@@ -402,7 +402,47 @@
 
 .vendor-section-title-editor {
     text-align: center;
-    font-weight: 700;
+    font-weight: 800;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    line-height: 1.25;
+}
+
+.vendor-live-editable[data-hero-editable="main"] {
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.vendor-section-title-editor *,
+.vendor-live-editable[data-hero-editable="main"] * {
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+    margin: 0;
+}
+
+.vendor-form-card .ck-editor__editable {
+    min-height: 120px;
+}
+
+.vendor-form-card .ck-editor__editable,
+.vendor-form-card .ck-editor__editable * {
+    font-size: inherit !important;
+    font-family: inherit !important;
+    font-weight: inherit !important;
+    line-height: inherit !important;
+}
+
+.vendor-section-content-editor {
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.vendor-section-content-editor[style*="font-size"] *,
+.vendor-section-content-editor[data-has-custom-font-size="1"] * {
+    font-size: inherit !important;
+    line-height: inherit !important;
 }
 
 .vendor-section-active-badge {

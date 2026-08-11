@@ -4,7 +4,7 @@
     $description = $ad->short_description ?: 'Explore this featured marketplace listing selected for store customers.';
 @endphp
 
-<article class="service-provider-compact-ad service-provider-compact-ad--{{ $variant }} h-100 js-ad-modal-trigger"
+<article class="service-provider-compact-ad service-provider-compact-ad--{{ $variant }}{{ $variant === 'service' ? ' h-100' : '' }} js-ad-modal-trigger"
          role="button"
          tabindex="0"
          @include('frontend.ads.partials.ad-modal-attrs', ['ad' => $ad, 'adModalMeta' => $categoryName, 'adModalDescription' => $description])>

@@ -260,18 +260,12 @@ class VendorStoreController extends Controller
     public function contact(string $slug): View
     {
         $vendor = $this->resolveVendor($slug);
-        $inquiryProduct = VendorProduct::query()
-            ->where('vendor_id', $vendor->id)
-            ->where('status', 'approved')
-            ->latest('updated_at')
-            ->first();
 
         return view('frontend.store.contact', [
             'vendor' => $vendor,
             'preview' => $this->staffPreviewMode($vendor),
             'activeNav' => 'contact',
             'vendorCategories' => $this->vendorCategories($vendor),
-            'inquiryProduct' => $inquiryProduct,
         ]);
     }
 

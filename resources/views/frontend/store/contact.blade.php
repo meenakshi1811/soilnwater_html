@@ -66,11 +66,7 @@
                         <h3 class="h5 fw-bold mb-2">Share your requirement</h3>
                         <p class="text-muted mb-4">Our team will review your message and get back to you soon.</p>
 
-                        @if($inquiryProduct)
-                            @include('frontend.store.partials.enquiry-form')
-                        @else
-                            <button class="btn btn-secondary w-100 mt-auto" disabled>No products available for enquiry</button>
-                        @endif
+                        @include('frontend.store.partials.enquiry-form')
                     </div>
                 </div>
             </div>
@@ -105,7 +101,6 @@
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-@if($inquiryProduct)
 <script>
 document.getElementById('enquiryForm')?.addEventListener('submit', async function(e){
     e.preventDefault();
@@ -157,5 +152,4 @@ document.getElementById('enquiryForm')?.addEventListener('submit', async functio
     }
 });
 </script>
-@endif
 @endpush

@@ -36,6 +36,60 @@
         return wrap.textContent || wrap.innerText || '';
     }
 
+    function stripNestedTypography(root) {
+        if (!root) return;
+
+        root.querySelectorAll('[style]').forEach(function (el) {
+            el.style.removeProperty('font-size');
+            el.style.removeProperty('font-family');
+            el.style.removeProperty('font-weight');
+            el.style.removeProperty('line-height');
+            if (!el.getAttribute('style') || !el.getAttribute('style').trim()) {
+                el.removeAttribute('style');
+            }
+        });
+
+        root.querySelectorAll('font').forEach(function (fontEl) {
+            var parent = fontEl.parentNode;
+            if (!parent) return;
+            while (fontEl.firstChild) {
+                parent.insertBefore(fontEl.firstChild, fontEl);
+            }
+            fontEl.remove();
+        });
+
+        root.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(function (heading) {
+            var span = document.createElement('span');
+            while (heading.firstChild) {
+                span.appendChild(heading.firstChild);
+            }
+            heading.replaceWith(span);
+        });
+    }
+
+    function sanitizePastedHtml(html) {
+        var wrap = document.createElement('div');
+        wrap.innerHTML = html || '';
+        wrap.querySelectorAll('script,style,meta,link').forEach(function (el) {
+            el.remove();
+        });
+        stripNestedTypography(wrap);
+        return wrap.innerHTML;
+    }
+
+    function applyEditableFontSize(editable, value) {
+        if (!editable) return;
+
+        stripNestedTypography(editable);
+        editable.style.fontSize = value || '';
+        if (value) {
+            editable.setAttribute('data-has-custom-font-size', '1');
+        } else {
+            editable.removeAttribute('data-has-custom-font-size');
+        }
+        syncEditable(editable);
+    }
+
     function countWords(value) {
         var text = textFromHtml(value).replace(/\s+/g, ' ').trim();
         return text ? text.split(' ').length : 0;
@@ -83,6 +137,7 @@
         if (!source || !heroSubHeadingEditorInstance) return;
 
         source.innerHTML = heroSubHeadingEditorInstance.getData();
+        stripNestedTypography(source);
         syncEditable(source);
         updateHeroWordCounter(source.dataset.syncTarget, source.innerHTML);
     }
@@ -320,6 +375,7 @@
         var style = block.getAttribute('style');
         if (style) editable.setAttribute('style', style);
         editable.innerHTML = block.innerHTML;
+        stripNestedTypography(editable);
         cleanupDanglingDivText(editable);
     }
 
@@ -423,20 +479,21 @@
 
         if (!value) {
             editable.style.fontSize = '';
+            editable.removeAttribute('data-has-custom-font-size');
+            stripNestedTypography(editable);
             syncEditable(editable);
             return;
         }
 
         if (editable.dataset.sectionField === 'title' || !hasTextSelection(editable)) {
-            editable.style.fontSize = value;
-            syncEditable(editable);
+            applyEditableFontSize(editable, value);
             return;
         }
 
-        selectAllContents(editable);
+        editable.focus();
         document.execCommand('styleWithCSS', false, true);
         document.execCommand('fontSize', false, '7');
-        editable.querySelectorAll('font[size="7"]').forEach(function (fontEl) {
+        editable.querySelectorAll('font[size]').forEach(function (fontEl) {
             fontEl.removeAttribute('size');
             fontEl.style.fontSize = value;
         });
@@ -1374,6 +1431,27 @@
         block.querySelectorAll('[data-section-field][contenteditable="true"]').forEach(hydrateSectionField);
     });
 
+    document.addEventListener('paste', function (e) {
+        var editable = e.target.closest('[data-hero-editable][contenteditable="true"], [data-section-field][contenteditable="true"]');
+        if (!editable || editable.id === 'heroSubHeadingEditor') return;
+
+        e.preventDefault();
+        var html = e.clipboardData?.getData('text/html') || '';
+        var text = e.clipboardData?.getData('text/plain') || '';
+
+        if (html) {
+            document.execCommand('insertHTML', false, sanitizePastedHtml(html));
+        } else {
+            document.execCommand('insertText', false, text);
+        }
+
+        stripNestedTypography(editable);
+        syncEditable(editable);
+        if (editable.matches('[data-hero-editable]')) {
+            updateHeroWordCounter(editable.dataset.syncTarget, editable.innerHTML);
+        }
+    });
+
     document.addEventListener('focusin', function (e) {
         if (e.target.matches('[data-section-field][contenteditable="true"]')) {
             setActiveSectionEditable(e.target);
@@ -1473,6 +1551,13 @@
             }
             var prop = e.target.dataset.heroStyle;
             applyHeroStyle(activeHeroEditable, prop, e.target.value);
+            if (prop === 'fontSize') {
+                stripNestedTypography(activeHeroEditable);
+                var displayEditable = getHeroDisplayEditable(activeHeroEditable);
+                if (displayEditable && displayEditable !== activeHeroEditable) {
+                    stripNestedTypography(displayEditable);
+                }
+            }
             var syncTarget = activeHeroEditable.dataset.syncTarget;
             syncStyleInput(syncTarget, prop, e.target.value);
             syncEditable(activeHeroEditable);

@@ -10,14 +10,12 @@
             <span><i class="fa-solid fa-rectangle-ad"></i> Sponsored recommendations</span>
             <small id="{{ $placementId }}Title">Selected for this consultant</small>
         </div>
-        <div class="row g-3">
+        <div class="service-provider-inline-ads__grid service-provider-inline-ads__grid--{{ min($supportingAds->count(), 2) }}">
             @foreach($supportingAds as $ad)
-                <div class="{{ $supportingAds->count() === 1 ? 'col-12 col-xl-8' : 'col-12 col-lg-6' }}">
-                    @include('frontend.consultant.partials.compact-ad-card', [
-                        'ad' => $ad,
-                        'variant' => 'strip',
-                    ])
-                </div>
+                @include('frontend.consultant.partials.compact-ad-card', [
+                    'ad' => $ad,
+                    'variant' => 'strip',
+                ])
             @endforeach
         </div>
     </div>
