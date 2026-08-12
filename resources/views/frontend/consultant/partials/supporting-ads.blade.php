@@ -1,6 +1,7 @@
 @php
-    $supportingAds = collect($ads ?? [])->filter()->values();
+    $supportingAds = collect($ads ?? [])->filter()->values()->take(6);
     $placementId = $placementId ?? 'consultantSupportingAds';
+    $gridColumns = min(max($supportingAds->count(), 1), 3);
 @endphp
 
 @if($supportingAds->isNotEmpty())
@@ -10,7 +11,7 @@
             <span><i class="fa-solid fa-rectangle-ad"></i> Sponsored recommendations</span>
             <small id="{{ $placementId }}Title">Selected for this consultant</small>
         </div>
-        <div class="service-provider-inline-ads__grid service-provider-inline-ads__grid--{{ min($supportingAds->count(), 2) }}">
+        <div class="service-provider-inline-ads__grid service-provider-inline-ads__grid--{{ $gridColumns }}">
             @foreach($supportingAds as $ad)
                 @include('frontend.consultant.partials.compact-ad-card', [
                     'ad' => $ad,

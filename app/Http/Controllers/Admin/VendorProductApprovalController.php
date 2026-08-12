@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\AppliesDefaultListingLocation;
 use App\Http\Controllers\Concerns\ValidatesVendorProductRequest;
 use App\Http\Controllers\Controller;
 use App\Services\PortalNotificationService;
@@ -15,15 +16,19 @@ use Yajra\DataTables\Facades\DataTables;
 
 class VendorProductApprovalController extends Controller
 {
+    use AppliesDefaultListingLocation;
     use ValidatesVendorProductRequest;
 
     public function create(): View
     {
+        $vendors = $this->approvedVendors();
+
         return view('backend.vendor.products.form', [
             'product' => new VendorProduct(),
             'categories' => $this->vendorCategories(),
             'isAdmin' => true,
-            'vendors' => $this->approvedVendors(),
+            'vendors' => $vendors,
+            'profileLocations' => $this->profileLocationsMap($vendors),
         ]);
     }
 
@@ -32,6 +37,9 @@ class VendorProductApprovalController extends Controller
         $request->validate([
             'vendor_id' => ['required', 'exists:vendors,id'],
         ]);
+
+        $vendor = Vendor::query()->with('user')->find($request->input('vendor_id'));
+        $this->applyDefaultListingLocationToRequest($request, $vendor);
 
         $data = $this->validatedVendorProduct($request);
         $data['vendor_id'] = (int) $request->input('vendor_id');
@@ -196,8 +204,9 @@ class VendorProductApprovalController extends Controller
     private function approvedVendors()
     {
         return Vendor::query()
+            ->with('user')
             ->where('status', 'approved')
             ->orderBy('company_name')
-            ->get(['id', 'company_name', 'display_name']);
+            ->get(['id', 'company_name', 'display_name', 'user_id', 'address', 'city', 'state', 'pincode']);
     }
 }

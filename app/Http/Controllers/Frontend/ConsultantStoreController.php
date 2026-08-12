@@ -33,7 +33,7 @@ class ConsultantStoreController extends Controller
             ->get();
 
         $adsContext = $this->loadStoreAds($consultant);
-        $consultantRecentAds = $this->nearestConsultantModuleAds();
+        $consultantRecentAds = $consultant->is_premium ? collect() : $this->nearestConsultantModuleAds();
 
         return view('frontend.consultant.show', [
             'consultant' => $consultant,
@@ -203,7 +203,7 @@ class ConsultantStoreController extends Controller
         }
 
         $approvedServices = $servicesQuery->latest('updated_at')->paginate(12)->withQueryString();
-        $consultantRecentAds = $this->nearestConsultantModuleAds();
+        $consultantRecentAds = $consultant->is_premium ? collect() : $this->nearestConsultantModuleAds();
 
         if ($subcategory) {
             $pageTitle = $subcategory->name;

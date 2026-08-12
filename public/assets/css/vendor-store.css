@@ -2425,9 +2425,23 @@ body:has(#discussionFab) .vendor-whatsapp-float {
     grid-template-columns: minmax(0, 1fr);
 }
 
+.service-provider-inline-ads__grid--3 {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+    .service-provider-inline-ads__grid--3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (min-width: 992px) {
     .service-provider-inline-ads__grid--2 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .service-provider-inline-ads__grid--3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 

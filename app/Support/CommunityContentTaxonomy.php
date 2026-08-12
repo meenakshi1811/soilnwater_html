@@ -218,6 +218,185 @@ class CommunityContentTaxonomy
     }
 
     /**
+     * Eight top-level hub sections for the /community landing experience.
+     * Each section groups related content types (subsections).
+     *
+     * @return array<string, array{label: string, tagline: string, description: string, icon: string, accent: string, types: list<string>}>
+     */
+    public static function hubSections(): array
+    {
+        return [
+            'knowledge-news' => [
+                'label' => 'Knowledge & News',
+                'tagline' => 'Learn, research, and stay informed',
+                'description' => 'Articles, research reports, news updates, and science & technology insights.',
+                'icon' => 'fa-book-open',
+                'accent' => '#1f66b4',
+                'types' => ['articles', 'reports', 'news', 'science-technology'],
+            ],
+            'stories-literature' => [
+                'label' => 'Stories & Literature',
+                'tagline' => 'Share voices that inspire',
+                'description' => 'Stories, poetry, biographies, and personal life journeys.',
+                'icon' => 'fa-feather-pointed',
+                'accent' => '#e65100',
+                'types' => ['stories', 'poetry', 'biography', 'autobiography'],
+            ],
+            'life-learning' => [
+                'label' => 'Life & Learning',
+                'tagline' => 'Every age, every journey',
+                'description' => 'Children, students, youth, seniors, women, and wellness-focused community content.',
+                'icon' => 'fa-graduation-cap',
+                'accent' => '#00838f',
+                'types' => ['childrens-corner', 'student-corner', 'youth-corner', 'senior-citizens-forum', 'womens-world', 'health-wellness'],
+            ],
+            'career-business' => [
+                'label' => 'Career & Business',
+                'tagline' => 'Grow professionally',
+                'description' => 'Career guidance, jobs, employment opportunities, and business stories.',
+                'icon' => 'fa-briefcase',
+                'accent' => '#3949ab',
+                'types' => ['career', 'jobs-employment', 'business'],
+            ],
+            'environment-agriculture' => [
+                'label' => 'Environment & Agriculture',
+                'tagline' => 'Planet and soil matters',
+                'description' => 'Farming, environment, conservation, and community awareness campaigns.',
+                'icon' => 'fa-seedling',
+                'accent' => '#2e7d32',
+                'types' => ['agriculture', 'environment', 'awareness'],
+            ],
+            'culture-spirituality' => [
+                'label' => 'Culture & Spirituality',
+                'tagline' => 'Heritage, faith, and travel',
+                'description' => 'Culture, travel diaries, religion, spirituality, and astro consultancy.',
+                'icon' => 'fa-om',
+                'accent' => '#7e57c2',
+                'types' => ['culture-heritage', 'travel-diaries', 'religion-spirituality', 'astro-consultancy'],
+            ],
+            'local-civic' => [
+                'label' => 'Local Voices & Civic',
+                'tagline' => 'Speak up for your community',
+                'description' => 'Local issues, civic reports, community concerns, and public opinions.',
+                'icon' => 'fa-bullhorn',
+                'accent' => '#c62828',
+                'types' => ['local-voices', 'community-issues', 'opinions-views'],
+            ],
+            'creative-community' => [
+                'label' => 'Creative & Community',
+                'tagline' => 'Create, compete, and connect',
+                'description' => 'Creative works, competitions, and open community discussions.',
+                'icon' => 'fa-palette',
+                'accent' => '#d81b60',
+                'types' => ['creative-corner', 'competitions', 'discussions'],
+            ],
+        ];
+    }
+
+    public static function hubSectionForType(string $type): ?string
+    {
+        foreach (self::hubSections() as $key => $section) {
+            if (in_array($type, $section['types'], true)) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    public static function resolveActiveHubSection(?string $hubParam, ?string $typeParam): ?string
+    {
+        if ($hubParam !== null && $hubParam !== '' && isset(self::hubSections()[$hubParam])) {
+            return $hubParam;
+        }
+
+        if ($typeParam !== null && $typeParam !== '') {
+            return self::hubSectionForType($typeParam);
+        }
+
+        return null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function hubSectionTypeKeys(?string $hubKey): array
+    {
+        if ($hubKey === null || $hubKey === '' || ! isset(self::hubSections()[$hubKey])) {
+            return [];
+        }
+
+        return self::hubSections()[$hubKey]['types'];
+    }
+
+    /**
+     * Sidebar navigation for the news portal layout.
+     *
+     * @return list<array{key: string, label: string, icon: string}>
+     */
+    public static function newsPortalSidebarTypes(): array
+    {
+        return [
+            ['key' => 'discussions', 'label' => 'Discussions', 'icon' => 'fa-comments'],
+            ['key' => 'news', 'label' => 'News', 'icon' => 'fa-newspaper'],
+            ['key' => 'articles', 'label' => 'Articles', 'icon' => 'fa-file-lines'],
+            ['key' => 'stories', 'label' => 'Stories', 'icon' => 'fa-book-open'],
+            ['key' => 'poetry', 'label' => 'Poetry', 'icon' => 'fa-feather-pointed'],
+            ['key' => 'competitions', 'label' => 'Events', 'icon' => 'fa-calendar-days'],
+            ['key' => 'creative-corner', 'label' => 'Photos', 'icon' => 'fa-image'],
+            ['key' => 'reports', 'label' => 'Documents', 'icon' => 'fa-file-pdf'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function newsCategoryIcons(): array
+    {
+        return [
+            'Local News' => 'fa-location-dot',
+            'State News' => 'fa-map',
+            'National News' => 'fa-flag',
+            'International News' => 'fa-globe',
+            'Business News' => 'fa-briefcase',
+            'Education News' => 'fa-graduation-cap',
+            'Agriculture News' => 'fa-seedling',
+            'Water News' => 'fa-droplet',
+            'Environment News' => 'fa-leaf',
+            'Technology News' => 'fa-microchip',
+            'Health News' => 'fa-heart-pulse',
+            'Sports News' => 'fa-futbol',
+            'Entertainment News' => 'fa-film',
+            'Community News' => 'fa-people-group',
+            'Government News' => 'fa-landmark',
+            'Infrastructure News' => 'fa-road',
+        ];
+    }
+
+    /**
+     * Curated news sidebar categories (display labels).
+     *
+     * @return list<string>
+     */
+    public static function newsPortalSidebarCategories(): array
+    {
+        return [
+            'All News',
+            'Local News',
+            'Agriculture News',
+            'Environment News',
+            'Business News',
+            'Education News',
+            'Health News',
+            'Technology News',
+            'Government News',
+            'Infrastructure News',
+            'Community News',
+            'Sports News',
+        ];
+    }
+
+    /**
      * Deprecated content types kept for editing existing posts.
      *
      * @return array<string, array{label: string, description: string, categories: list<string>}>

@@ -9,9 +9,8 @@
     $selectedCategoryNamesByVendorAdId = $selectedCategoryNamesByVendorAdId ?? [];
     $fullPageAds = $fullPageAds ?? collect();
     $supportingAds = collect($supportingAds ?? [])->values();
-    $productSectionAds = $featuredProducts->isNotEmpty() ? $supportingAds->take(2)->values() : collect();
-    $distributedAds = $supportingAds->slice($productSectionAds->count())->values();
-    $adsPerContentSection = 2;
+    $distributedAds = $supportingAds;
+    $adsPerContentSection = 6;
     $recentAdsShown = false;
 @endphp
 
@@ -66,15 +65,6 @@
                     'storeSlug' => $vendor->slug,
                     'cardStyle' => 'featured',
                 ])
-
-                @foreach($productSectionAds as $ad)
-                    <div class="col-6 col-md-4 col-lg-3 col-xl-2-4">
-                        @include('frontend.store.partials.compact-ad-card', [
-                            'ad' => $ad,
-                            'variant' => 'service',
-                        ])
-                    </div>
-                @endforeach
             </div>
         </div>
     </section>
@@ -108,11 +98,6 @@
         @php($recentAdsShown = true)
     @endif
 @endforeach
-
-@include('frontend.store.partials.supporting-ads', [
-    'ads' => $distributedAds->slice($vendor->pageSections->count() * $adsPerContentSection),
-    'placementId' => 'vendorRemainingAds',
-])
 
 @if(! $recentAdsShown)
     @include('frontend.store.partials.recent-ads-slider', ['ads' => $vendorRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByVendorAdId])

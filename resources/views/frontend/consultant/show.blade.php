@@ -9,9 +9,8 @@
     $selectedCategoryNamesByConsultantAdId = $selectedCategoryNamesByConsultantAdId ?? [];
     $fullPageAds = $fullPageAds ?? collect();
     $supportingAds = collect($supportingAds ?? [])->values();
-    $serviceSectionAds = $approvedServices->isNotEmpty() ? $supportingAds->take(2)->values() : collect();
-    $distributedAds = $supportingAds->slice($serviceSectionAds->count())->values();
-    $adsPerContentSection = 2;
+    $distributedAds = $supportingAds;
+    $adsPerContentSection = 6;
     $recentAdsShown = false;
 @endphp
 
@@ -93,7 +92,6 @@
 
 @include('frontend.consultant.partials.services-section', [
     'showViewAllServicesButton' => true,
-    'inlineAds' => $serviceSectionAds,
 ])
 
 @foreach($consultant->pageSections as $section)

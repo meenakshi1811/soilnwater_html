@@ -54,7 +54,8 @@
         @endforelse
       </div>
 
-      <div class="mt-4">
+      <div class="mt-4 frontend-pagination-wrap">
+        @include('frontend.partials.pagination-summary', ['paginator' => $consultants])
         {{ $consultants->links() }}
       </div>
     </section>

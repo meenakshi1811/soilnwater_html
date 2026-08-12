@@ -31,7 +31,7 @@ class ServiceProviderStoreController extends Controller
             ->get();
 
         $adsContext = $this->loadStoreAds($service_provider);
-        $service_providerRecentAds = $this->nearestServiceProviderModuleAds();
+        $service_providerRecentAds = $service_provider->is_premium ? collect() : $this->nearestServiceProviderModuleAds();
 
         return view('frontend.service_provider.show', [
             'service_provider' => $service_provider,
@@ -205,7 +205,7 @@ class ServiceProviderStoreController extends Controller
         }
 
         $approvedServices = $servicesQuery->latest('updated_at')->paginate(12)->withQueryString();
-        $service_providerRecentAds = $this->nearestServiceProviderModuleAds();
+        $service_providerRecentAds = $service_provider->is_premium ? collect() : $this->nearestServiceProviderModuleAds();
 
         if ($subcategory) {
             $pageTitle = $subcategory->name;

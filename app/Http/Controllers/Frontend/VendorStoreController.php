@@ -48,7 +48,7 @@ class VendorStoreController extends Controller
 
         $vendorCategories = $this->vendorCategories($vendor);
         $adsContext = $this->loadStoreAds($vendor);
-        $vendorRecentAds = $this->nearestVendorModuleAds();
+        $vendorRecentAds = $vendor->is_premium ? collect() : $this->nearestVendorModuleAds();
 
         return view('frontend.store.show', [
             'vendor' => $vendor,
@@ -424,7 +424,7 @@ class VendorStoreController extends Controller
         }
 
         $products = $productsQuery->latest('updated_at')->paginate(12)->withQueryString();
-        $vendorRecentAds = $this->nearestVendorModuleAds();
+        $vendorRecentAds = $vendor->is_premium ? collect() : $this->nearestVendorModuleAds();
 
         if ($subcategory) {
             $pageTitle = $subcategory->name;

@@ -579,7 +579,6 @@
                 rules: {
                     fullname: { required: true, minlength: 3, maxlength: 255 },
                     email: { required: true, email: true },
-                    phone_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                     whatsapp_number: { required: true, digits: true, minlength: 10, maxlength: 15 },
                     address: { required: true, minlength: 5, maxlength: 500 },
                     city: { required: true, maxlength: 120 },
@@ -624,12 +623,6 @@
                     email: {
                         required: 'Please enter your email address.',
                         email: 'Please enter a valid email address.'
-                    },
-                    phone_number: {
-                        required: 'Please enter your phone number.',
-                        digits: 'Phone number should contain only digits.',
-                        minlength: 'Phone number must be at least 10 digits.',
-                        maxlength: 'Phone number cannot exceed 15 digits.'
                     },
                     whatsapp_number: {
                         required: 'Please enter your WhatsApp number.',
@@ -718,12 +711,13 @@
                 defaultText: 'Login with Password',
                 loadingText: 'Signing in...',
                 rules: {
-                    login: { required: true },
+                    login: { required: true, email: true },
                     password: { required: true, minlength: 8 }
                 },
                 messages: {
                     login: {
-                        required: 'Please enter your email or phone number.'
+                        required: 'Please enter your email address.',
+                        email: 'Please enter a valid email address.'
                     },
                     password: {
                         required: 'Please enter your password.',
@@ -789,11 +783,12 @@
                 defaultText: 'Send OTP',
                 loadingText: 'Sending OTP...',
                 rules: {
-                    login_contact: { required: true }
+                    login_contact: { required: true, email: true }
                 },
                 messages: {
                     login_contact: {
-                        required: 'Please enter your email or phone number.'
+                        required: 'Please enter your email address.',
+                        email: 'Please enter a valid email address.'
                     }
                 },
                 fallbackErrorMessage: 'Unable to send OTP right now. Please try again.',
@@ -879,11 +874,10 @@
                 formSelector: '#contactVerifyForm',
                 buttonSelector: '#contactVerifyBtn',
                 alertSelector: '#contactVerifyAlert',
-                defaultText: 'Verify Account',
+                defaultText: 'Verify Email',
                 loadingText: 'Verifying...',
                 rules: {
-                    email_otp: { required: true, digits: true, minlength: 6, maxlength: 6 },
-                    phone_otp: { required: true, digits: true, minlength: 6, maxlength: 6 }
+                    email_otp: { required: true, digits: true, minlength: 6, maxlength: 6 }
                 },
                 messages: {
                     email_otp: {
@@ -891,12 +885,6 @@
                         digits: 'Email code must contain only numbers.',
                         minlength: 'Email code must be 6 digits.',
                         maxlength: 'Email code must be 6 digits.'
-                    },
-                    phone_otp: {
-                        required: 'Please enter the phone verification code.',
-                        digits: 'Phone code must contain only numbers.',
-                        minlength: 'Phone code must be 6 digits.',
-                        maxlength: 'Phone code must be 6 digits.'
                     }
                 },
                 fallbackErrorMessage: 'Unable to verify code right now. Please try again.',
@@ -914,7 +902,7 @@
                 loadingText: 'Sending code...',
                 fallbackErrorMessage: 'Unable to resend code right now. Please try again.',
                 onSuccess: function (response) {
-                    FormHelper.showAlert($('#contactVerifyAlert'), 'success', response.message || 'Verification codes resent successfully.');
+                    FormHelper.showAlert($('#contactVerifyAlert'), 'success', response.message || 'Verification code resent successfully.');
 
                     if (response.expires_at) {
                         FormHelper.resetOtpTimer('#otp-timer', response.expires_at);

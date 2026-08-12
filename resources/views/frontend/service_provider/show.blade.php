@@ -9,9 +9,8 @@
     $selectedCategoryNamesByServiceProviderAdId = $selectedCategoryNamesByServiceProviderAdId ?? [];
     $fullPageAds = $fullPageAds ?? collect();
     $supportingAds = collect($supportingAds ?? [])->values();
-    $serviceSectionAds = $approvedServices->isNotEmpty() ? $supportingAds->take(2)->values() : collect();
-    $distributedAds = $supportingAds->slice($serviceSectionAds->count())->values();
-    $adsPerContentSection = 2;
+    $distributedAds = $supportingAds;
+    $adsPerContentSection = 6;
     $recentAdsShown = false;
 @endphp
 
@@ -93,7 +92,6 @@
 
 @include('frontend.service_provider.partials.services-section', [
     'showViewAllServicesButton' => true,
-    'inlineAds' => $serviceSectionAds,
 ])
 
 @foreach($service_provider->pageSections as $section)
@@ -124,11 +122,6 @@
         @php($recentAdsShown = true)
     @endif
 @endforeach
-
-@include('frontend.service_provider.partials.supporting-ads', [
-    'ads' => $distributedAds->slice($service_provider->pageSections->count() * $adsPerContentSection),
-    'placementId' => 'serviceProviderRemainingAds',
-])
 
 @if(! $recentAdsShown)
     @include('frontend.service_provider.partials.recent-ads-slider', ['ads' => $service_providerRecentAds, 'selectedCategoryNamesByAdId' => $selectedCategoryNamesByServiceProviderAdId])

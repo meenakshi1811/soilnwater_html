@@ -19,6 +19,11 @@
   $consultationType = old('consultation_type', $service->consultation_type ?: ($service->is_online ? 'online' : 'offline'));
   $businessTypes = ['Architect', 'Lawyer', 'Landscaper', 'Software Consultant', 'Business'];
   $existingImagePath = old('remove_image') ? null : ($service->image_path ?: null);
+  $defaultLocation = $defaultLocation ?? ['location' => '', 'latitude' => null, 'longitude' => null];
+  $profileLocations = $profileLocations ?? [];
+  $listingLocationValue = old('location', $service->location ?: ($defaultLocation['location'] ?? ''));
+  $listingLatitudeValue = old('latitude', $service->latitude ?: ($defaultLocation['latitude'] ?? ''));
+  $listingLongitudeValue = old('longitude', $service->longitude ?: ($defaultLocation['longitude'] ?? ''));
 @endphp
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Portal' : 'Consultant Portal' }}</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Consultation Service' : ($isAdmin ? 'Create Service for Consultant' : 'Add Consultation Service') }}</h2></div><a href="{{ $isAdmin ? route('admin.consultant-services.all.index') : route('consultant.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
@@ -65,9 +70,9 @@
         <div id="imagePreviewGrid" class="vendor-media-preview-grid"></div>
       </div>
 
-      <label class="form-label mt-3">Consultant Location *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ old('location', $service->location) }}" placeholder="Search location in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Select a Google Places suggestion to save latitude and longitude.</small>
-      <input id="latitude" type="hidden" name="latitude" value="{{ old('latitude', $service->latitude) }}">
-      <input id="longitude" type="hidden" name="longitude" value="{{ old('longitude', $service->longitude) }}">
+      <label class="form-label mt-3">Consultant Location *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ $listingLocationValue }}" placeholder="Search location in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Pre-filled from your registration location. Edit only if this service is at a different place.</small>
+      <input id="latitude" type="hidden" name="latitude" value="{{ $listingLatitudeValue }}">
+      <input id="longitude" type="hidden" name="longitude" value="{{ $listingLongitudeValue }}">
       @if($isAdmin)
         <input type="hidden" name="accept_terms" value="1">
       @elseif(!$service->exists)
@@ -657,6 +662,20 @@ $(function () {
       });
     }
   });
+
+  @if($isAdmin)
+  const profileLocations = @json($profileLocations);
+  const applyProfileLocation = (profileId) => {
+    const location = profileLocations[profileId];
+    if (!location) return;
+    $('#location').val(location.location || '');
+    $('#latitude').val(location.latitude ?? '');
+    $('#longitude').val(location.longitude ?? '');
+  };
+  $('select[name="consultant_id"]').on('change', function () {
+    applyProfileLocation(String(this.value || ''));
+  });
+  @endif
 });
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initConsultantServiceLocationAutocomplete"></script>

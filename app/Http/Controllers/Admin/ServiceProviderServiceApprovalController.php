@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\AppliesDefaultListingLocation;
 use App\Http\Controllers\Concerns\ValidatesServiceProviderServiceRequest;
 use App\Http\Controllers\Controller;
 use App\Services\PortalNotificationService;
@@ -14,15 +15,19 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ServiceProviderServiceApprovalController extends Controller
 {
+    use AppliesDefaultListingLocation;
     use ValidatesServiceProviderServiceRequest;
 
     public function create(): View
     {
+        $serviceProviders = $this->approvedServiceProviders();
+
         return view('backend.service_provider.services.form', [
             'service' => new ServiceProviderService(),
             'categories' => $this->serviceProviderCategories(),
             'isAdmin' => true,
-            'serviceProviders' => $this->approvedServiceProviders(),
+            'serviceProviders' => $serviceProviders,
+            'profileLocations' => $this->profileLocationsMap($serviceProviders),
         ]);
     }
 
@@ -31,6 +36,9 @@ class ServiceProviderServiceApprovalController extends Controller
         $request->validate([
             'service_provider_id' => ['required', 'exists:service_providers,id'],
         ]);
+
+        $serviceProvider = ServiceProvider::query()->with('user')->find($request->input('service_provider_id'));
+        $this->applyDefaultListingLocationToRequest($request, $serviceProvider);
 
         $data = $this->validatedServiceProviderService($request);
         $data['service_provider_id'] = (int) $request->input('service_provider_id');
@@ -199,8 +207,9 @@ class ServiceProviderServiceApprovalController extends Controller
     private function approvedServiceProviders()
     {
         return ServiceProvider::query()
+            ->with('user')
             ->where('status', 'approved')
             ->orderBy('company_name')
-            ->get(['id', 'company_name', 'display_name']);
+            ->get(['id', 'company_name', 'display_name', 'user_id', 'address', 'city', 'state', 'pincode']);
     }
 }

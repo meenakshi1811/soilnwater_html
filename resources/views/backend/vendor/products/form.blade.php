@@ -2,6 +2,13 @@
 @section('title', $product->exists ? 'Edit Product' : 'Create Product')
 @section('content')
 @php($isAdmin = $isAdmin ?? false)
+@php
+  $defaultLocation = $defaultLocation ?? ['location' => '', 'latitude' => null, 'longitude' => null];
+  $profileLocations = $profileLocations ?? [];
+  $listingLocationValue = old('location', $product->location ?: ($defaultLocation['location'] ?? ''));
+  $listingLatitudeValue = old('latitude', $product->latitude ?: ($defaultLocation['latitude'] ?? ''));
+  $listingLongitudeValue = old('longitude', $product->longitude ?: ($defaultLocation['longitude'] ?? ''));
+@endphp
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div><p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Portal' : 'Vendor Portal' }}</p><h2 class="admin-title mb-0">{{ $product->exists ? 'Edit Product' : ($isAdmin ? 'Create Product for Vendor' : 'Add New Product') }}</h2></div>
@@ -99,7 +106,7 @@
         <label class="form-check-label" for="is_online_sale">List for Online Sale</label>
       </div>
     </div></div>
-    <div class="col-12"><div class="chart-card p-4"><h5 class="mb-3">Pricing & Logistics</h5><div class="row g-3"><div class="col-md-3"><label class="form-label">Base Price *</label><input type="number" step="0.01" id="base_price" class="form-control @error('base_price') is-invalid @enderror" name="base_price" value="{{ old('base_price',$product->base_price) }}">@error('base_price')<div id="base_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Discount %</label><input type="number" step="0.01" id="discount_percent" class="form-control @error('discount_percent') is-invalid @enderror" name="discount_percent" value="{{ old('discount_percent',$product->discount_percent ?? 0) }}">@error('discount_percent')<div id="discount_percent-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Final Price *</label><input type="number" step="0.01" id="final_price" class="form-control @error('final_price') is-invalid @enderror" name="final_price" value="{{ old('final_price',$product->final_price) }}">@error('final_price')<div id="final_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Shipping Charges *</label><input type="number" step="0.01" class="form-control @error('shipping_charges') is-invalid @enderror" name="shipping_charges" value="{{ old('shipping_charges',$product->shipping_charges ?? 0) }}">@error('shipping_charges')<div id="shipping_charges-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Stock Quantity *</label><input type="number" class="form-control @error('stock_quantity') is-invalid @enderror" name="stock_quantity" value="{{ old('stock_quantity',$product->stock_quantity ?? 0) }}">@error('stock_quantity')<div id="stock_quantity-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-6"><label class="form-label">Location in India *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ old('location',$product->location) }}" placeholder="Search location in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Select a location suggestion from India only.</small></div><input id="latitude" type="hidden" name="latitude" value="{{ old('latitude',$product->latitude) }}"><input id="longitude" type="hidden" name="longitude" value="{{ old('longitude',$product->longitude) }}"></div></div></div>
+    <div class="col-12"><div class="chart-card p-4"><h5 class="mb-3">Pricing & Logistics</h5><div class="row g-3"><div class="col-md-3"><label class="form-label">Base Price *</label><input type="number" step="0.01" id="base_price" class="form-control @error('base_price') is-invalid @enderror" name="base_price" value="{{ old('base_price',$product->base_price) }}">@error('base_price')<div id="base_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Discount %</label><input type="number" step="0.01" id="discount_percent" class="form-control @error('discount_percent') is-invalid @enderror" name="discount_percent" value="{{ old('discount_percent',$product->discount_percent ?? 0) }}">@error('discount_percent')<div id="discount_percent-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Final Price *</label><input type="number" step="0.01" id="final_price" class="form-control @error('final_price') is-invalid @enderror" name="final_price" value="{{ old('final_price',$product->final_price) }}">@error('final_price')<div id="final_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Shipping Charges *</label><input type="number" step="0.01" class="form-control @error('shipping_charges') is-invalid @enderror" name="shipping_charges" value="{{ old('shipping_charges',$product->shipping_charges ?? 0) }}">@error('shipping_charges')<div id="shipping_charges-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Stock Quantity *</label><input type="number" class="form-control @error('stock_quantity') is-invalid @enderror" name="stock_quantity" value="{{ old('stock_quantity',$product->stock_quantity ?? 0) }}">@error('stock_quantity')<div id="stock_quantity-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-6"><label class="form-label">Location in India *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ $listingLocationValue }}" placeholder="Search location in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Pre-filled from your store registration location. Edit only if this product is at a different place.</small></div><input id="latitude" type="hidden" name="latitude" value="{{ $listingLatitudeValue }}"><input id="longitude" type="hidden" name="longitude" value="{{ $listingLongitudeValue }}"></div></div></div>
 
 
     <div class="col-12"><div class="chart-card p-4"><div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0">Specs</h5><button type="button" class="btn btn-link p-0 text-decoration-none" id="add-spec">+ Add Row</button></div><div id="specs-wrap" class="row g-2">@php($oldSpecs = old('spec_feature') ? collect(old('spec_feature'))->map(fn($f,$i)=>['feature'=>$f,'value'=>old('spec_value')[$i] ?? ''])->values()->all() : ($product->specs ?? [['feature'=>'','value'=>'']]))@foreach($oldSpecs as $spec)<div class="col-12 spec-row"><div class="row g-2"><div class="col-md-5"><input class="form-control" name="spec_feature[]" placeholder="Feature" value="{{ $spec['feature'] ?? '' }}"></div><div class="col-md-5"><input class="form-control" name="spec_value[]" placeholder="Value" value="{{ $spec['value'] ?? '' }}"></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm remove-spec">Remove</button></div></div></div>@endforeach</div></div></div>
@@ -849,6 +856,20 @@ $(function () {
   $('#category_id, #subcategory_id').on('change', function () {
     $(this).valid();
   });
+
+  @if($isAdmin)
+  const profileLocations = @json($profileLocations);
+  const applyProfileLocation = (profileId) => {
+    const location = profileLocations[profileId];
+    if (!location) return;
+    $('#location').val(location.location || '');
+    $('#latitude').val(location.latitude ?? '');
+    $('#longitude').val(location.longitude ?? '');
+  };
+  $('select[name="vendor_id"]').on('change', function () {
+    applyProfileLocation(String(this.value || ''));
+  });
+  @endif
 });
 
 </script>

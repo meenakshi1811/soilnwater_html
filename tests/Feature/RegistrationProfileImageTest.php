@@ -27,12 +27,6 @@ class RegistrationProfileImageTest extends TestCase
         $response = $this->post(route('register'), [
             'fullname' => 'Profile Image Test',
             'email' => $email,
-            'phone_number' => match ($role) {
-                'user' => '9876543210',
-                'vendor' => '9876543211',
-                'consultant' => '9876543212',
-                default => '9876543213',
-            },
             'whatsapp_number' => '9876543299',
             'address' => '123 Test Street',
             'city' => 'Test City',
@@ -67,13 +61,12 @@ class RegistrationProfileImageTest extends TestCase
     /**
      * @dataProvider requiredImageRoles
      */
-    public function test_registration_requires_a_profile_image(string $role, string $phoneNumber): void
+    public function test_registration_requires_a_profile_image(string $role): void
     {
         $email = 'missing.'.str_replace('_', '.', $role).'@gmail.com';
         $response = $this->from(route('register'))->post(route('register'), [
             'fullname' => 'Missing Image',
             'email' => $email,
-            'phone_number' => $phoneNumber,
             'whatsapp_number' => '9876543298',
             'address' => '123 Test Street',
             'city' => 'Test City',
@@ -105,10 +98,10 @@ class RegistrationProfileImageTest extends TestCase
     public static function requiredImageRoles(): array
     {
         return [
-            'user' => ['user', '9876543280'],
-            'vendor' => ['vendor', '9876543281'],
-            'consultant' => ['consultant', '9876543282'],
-            'service provider' => ['service_provider', '9876543283'],
+            'user' => ['user'],
+            'vendor' => ['vendor'],
+            'consultant' => ['consultant'],
+            'service provider' => ['service_provider'],
         ];
     }
 

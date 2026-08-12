@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Vendor;
 
+use App\Http\Controllers\Concerns\AppliesDefaultListingLocation;
 use App\Http\Controllers\Concerns\ValidatesVendorProductRequest;
 use App\Http\Controllers\Controller;
 use App\Services\PortalNotificationService;
@@ -13,6 +14,7 @@ use Illuminate\Support\Str;
 
 class VendorProductController extends Controller
 {
+    use AppliesDefaultListingLocation;
     use ValidatesVendorProductRequest;
 
     public function index(Request $request)
@@ -33,11 +35,20 @@ class VendorProductController extends Controller
 
     public function create()
     {
-        return view('backend.vendor.products.form', ['product' => new VendorProduct(), 'categories' => $this->vendorCategories()]);
+        $vendor = auth()->user()->vendor?->loadMissing('user');
+
+        return view('backend.vendor.products.form', [
+            'product' => new VendorProduct(),
+            'categories' => $this->vendorCategories(),
+            'defaultLocation' => $vendor?->defaultListingLocation() ?? ['location' => '', 'latitude' => null, 'longitude' => null],
+        ]);
     }
 
     public function store(Request $request)
     {
+        $vendor = auth()->user()->vendor?->loadMissing('user');
+        $this->applyDefaultListingLocationToRequest($request, $vendor);
+
         $data = $this->validated($request);
         $data['vendor_id'] = auth()->user()->vendor->id;
         $data['sku'] = $data['sku'] ?: 'SKU-'.Str::upper(Str::random(8));
@@ -66,7 +77,12 @@ class VendorProductController extends Controller
     public function edit(VendorProduct $product)
     {
         abort_unless($product->vendor_id === auth()->user()->vendor?->id, 403);
-        return view('backend.vendor.products.form', compact('product') + ['categories' => $this->vendorCategories()]);
+        $vendor = auth()->user()->vendor?->loadMissing('user');
+
+        return view('backend.vendor.products.form', compact('product') + [
+            'categories' => $this->vendorCategories(),
+            'defaultLocation' => $vendor?->defaultListingLocation() ?? ['location' => '', 'latitude' => null, 'longitude' => null],
+        ]);
     }
 
     public function update(Request $request, VendorProduct $product)

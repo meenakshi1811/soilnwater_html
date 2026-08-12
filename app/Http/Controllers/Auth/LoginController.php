@@ -108,7 +108,7 @@ class LoginController extends Controller
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
-                'Your email and phone number are not verified yet. Please verify your account before signing in.'
+                'Your email is not verified yet. Please verify your account before signing in.'
             );
         }
 
@@ -123,7 +123,7 @@ class LoginController extends Controller
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
-                'Your account is approved. Please verify your email and phone number before signing in.'
+                'Your account is approved. Please verify your email before signing in.'
             );
         }
 
@@ -166,14 +166,14 @@ class LoginController extends Controller
     public function sendOtp(Request $request): RedirectResponse|JsonResponse
     {
         $credentials = $request->validate([
-            'login_contact' => ['required', 'string'],
+            'login_contact' => ['required', 'email'],
         ]);
 
         $user = $this->findUserByLogin($credentials['login_contact']);
 
         if (! $user) {
             throw ValidationException::withMessages([
-                'login_contact' => 'No account found with this email address or phone number.',
+                'login_contact' => 'No account found with this email address.',
             ]);
         }
 
@@ -186,7 +186,7 @@ class LoginController extends Controller
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
-                'Your email and phone number are not verified yet. Please verify your account first.',
+                'Your email is not verified yet. Please verify your account first.',
                 $credentials['login_contact']
             );
         }
@@ -200,7 +200,7 @@ class LoginController extends Controller
             return $this->contactVerificationRequiredResponse(
                 $request,
                 $user,
-                'Your account is approved. Please verify your email and phone number before signing in.',
+                'Your account is approved. Please verify your email before signing in.',
                 $credentials['login_contact']
             );
         }
@@ -214,34 +214,25 @@ class LoginController extends Controller
             'expires_at' => $expiresAt->toIso8601String(),
         ], $expiresAt);
 
-        $isPhoneLogin = $this->looksLikePhone($credentials['login_contact']);
-        if ($isPhoneLogin) {
-            $this->sendLoginOtpToPhone($user->phone_number, $otpCode);
-        } else {
-            Mail::to($user->email)->send(new OtpMail(
-                otpCode: $otpCode,
-                subjectLine: 'Your SoilNWater Login OTP',
-                headline: 'Confirm your sign in',
-                contextLine: 'Use the OTP below to securely complete your login to your SoilNWater account.',
-            ));
-        }
+        Mail::to($user->email)->send(new OtpMail(
+            otpCode: $otpCode,
+            subjectLine: 'Your SoilNWater Login OTP',
+            headline: 'Confirm your sign in',
+            contextLine: 'Use the OTP below to securely complete your login to your SoilNWater account.',
+        ));
 
         $request->session()->put('otp_login_user_id', $user->id);
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => $isPhoneLogin
-                    ? 'We sent a one-time password (OTP) to your phone number.'
-                    : 'We sent a one-time password (OTP) to your email address.',
+                'message' => 'We sent a one-time password (OTP) to your email address.',
                 'redirect' => route('login.otp.form'),
             ]);
         }
 
         return redirect()
             ->route('login.otp.form')
-            ->with('status', $isPhoneLogin
-                ? 'We sent a one-time password (OTP) to your phone number.'
-                : 'We sent a one-time password (OTP) to your email address.');
+            ->with('status', 'We sent a one-time password (OTP) to your email address.');
     }
 
     public function showOtpForm(Request $request)
@@ -352,8 +343,8 @@ class LoginController extends Controller
                 $request,
                 $user,
                 $this->isMarketplaceUser($user)
-                    ? 'Your account is approved. Please verify your email and phone number before signing in.'
-                    : 'Your email and phone number are not verified yet. Please verify your account first.'
+                    ? 'Your account is approved. Please verify your email before signing in.'
+                    : 'Your email is not verified yet. Please verify your account first.'
             );
         }
 
@@ -515,23 +506,12 @@ class LoginController extends Controller
             return $blockedResponse;
         }
 
-        if ($user->isGeneralUser() && ! $user->phone_verified_at) {
-            if ($intent === 'login') {
-                return redirect()
-                    ->route('login')
-                    ->withInput([
-                        'verification_email' => $user->email,
-                    ])
-                    ->withErrors([
-                        'contact_verification' => 'Your mobile number is not verified yet. Please verify your number to continue.',
-                    ]);
-            }
-
-            $request->session()->put('phone_verification_user_id', $user->id);
-
-            return redirect()
-                ->route('register.phone.verify.form')
-                ->with('status', 'Email is verified via Google. Please add and verify your mobile number to complete registration.');
+        if ($user->isGeneralUser() && ! $user->hasVerifiedContact()) {
+            return $this->contactVerificationRequiredResponse(
+                $request,
+                $user,
+                'Your email is not verified yet. Please verify your email to continue.'
+            );
         }
 
         if ($this->isMarketplaceUser($user)) {
@@ -556,7 +536,7 @@ class LoginController extends Controller
                 return $this->contactVerificationRequiredResponse(
                     $request,
                     $user,
-                    'Your account is approved. Please verify your email and phone number before signing in.'
+                    'Your account is approved. Please verify your email before signing in.'
                 );
             }
         }
@@ -617,7 +597,6 @@ class LoginController extends Controller
         $data = $request->validate([
             'email' => ['required', 'email', Rule::in([$sessionEmail])],
             'fullname' => ['required', 'string', 'max:255'],
-            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
@@ -633,7 +612,6 @@ class LoginController extends Controller
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'accept_terms' => ['accepted'],
         ], [
-            'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
             'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service registrations.',
@@ -662,7 +640,7 @@ class LoginController extends Controller
 
         $registrationPayload = $this->resolveGoogleRegistrationCoordinates($registrationPayload);
 
-        $user = $this->createGoogleUser($sessionEmail, $data['fullname'], $data['role'], $registrationPayload, $data['phone_number']);
+        $user = $this->createGoogleUser($sessionEmail, $data['fullname'], $data['role'], $registrationPayload);
         $request->session()->forget('google_pending_auth');
 
         if ($user->isGeneralUser() && $request->hasFile('profile_image')) {
@@ -721,11 +699,10 @@ class LoginController extends Controller
         }
 
         if ($user->isGeneralUser()) {
-            $request->session()->put('phone_verification_user_id', $user->id);
+            Auth::login($user, true);
+            PremiumPromptService::flashForUser($user);
 
-            return redirect()
-                ->route('register.phone.verify.form')
-                ->with('status', 'Account created. Your Google email is verified. Please verify your mobile number to continue.');
+            return redirect()->intended($this->redirectPath());
         }
 
         if ($vendor || $consultant || $serviceProvider) {
@@ -792,43 +769,22 @@ class LoginController extends Controller
     protected function validateLogin(Request $request): void
     {
         $request->validate([
-            'login' => ['required', 'string'],
+            'login' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
     }
 
     protected function credentials(Request $request): array
     {
-        $login = $this->normalizeLoginIdentifier((string) $request->input('login'));
-        $field = $this->looksLikePhone($login) ? 'phone_number' : 'email';
-
         return [
-            $field => $login,
+            'email' => strtolower(trim((string) $request->input('login'))),
             'password' => $request->input('password'),
         ];
     }
 
     private function findUserByLogin(string $login): ?User
     {
-        $login = $this->normalizeLoginIdentifier($login);
-        $field = $this->looksLikePhone($login) ? 'phone_number' : 'email';
-
-        return User::where($field, $login)->first();
-    }
-
-    private function looksLikePhone(string $value): bool
-    {
-        return (bool) preg_match('/^[0-9]{10,15}$/', $this->normalizeLoginIdentifier($value));
-    }
-
-    private function normalizeLoginIdentifier(string $value): string
-    {
-        $value = trim($value);
-        if (str_contains($value, '@')) {
-            return strtolower($value);
-        }
-
-        return preg_replace('/\D+/', '', $value) ?? $value;
+        return User::where('email', strtolower(trim($login)))->first();
     }
 
     private function sendLoginOtpToPhone(string $phoneNumber, string $otpCode): void

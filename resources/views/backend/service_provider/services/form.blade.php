@@ -19,6 +19,11 @@
   $consultationType = old('consultation_type', $service->consultation_type ?: ($service->is_online ? 'online' : 'offline'));
   $businessTypes = ['Freelancer', 'Proprietorship Firm', 'Partnership Firm', 'Private Limited Company', 'Society', 'NGO'];
   $existingImagePath = old('remove_image') ? null : ($service->image_path ?: null);
+  $defaultLocation = $defaultLocation ?? ['location' => '', 'latitude' => null, 'longitude' => null];
+  $profileLocations = $profileLocations ?? [];
+  $listingLocationValue = old('location', $service->location ?: ($defaultLocation['location'] ?? ''));
+  $listingLatitudeValue = old('latitude', $service->latitude ?: ($defaultLocation['latitude'] ?? ''));
+  $listingLongitudeValue = old('longitude', $service->longitude ?: ($defaultLocation['longitude'] ?? ''));
 @endphp
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Portal' : 'Service Portal' }}</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Service' : ($isAdmin ? 'Create Service for Service Provider' : 'Add Service') }}</h2></div><a href="{{ $isAdmin ? route('admin.service-provider-services.all.index') : route('service_provider.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
@@ -65,12 +70,12 @@
         <div id="imagePreviewGrid" class="vendor-media-preview-grid"></div>
       </div>
 
-      <label class="form-label mt-3">Address *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ old('location', $service->location) }}" placeholder="Search address in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Select a Google Places suggestion to save the service address.</small>
+      <label class="form-label mt-3">Address *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ $listingLocationValue }}" placeholder="Search address in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Pre-filled from your registration location. Edit only if this service is at a different place.</small>
       <div class="row g-2 mt-1"><div class="col-md-6"><label class="form-label">Postal Code</label><input class="form-control @error('postal_code') is-invalid @enderror" name="postal_code" maxlength="20" value="{{ old('postal_code', $service->postal_code) }}" placeholder="Postal code">@error('postal_code')<div id="postal_code-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-6"><label class="form-label">City</label><input class="form-control @error('city') is-invalid @enderror" name="city" maxlength="120" value="{{ old('city', $service->city) }}" placeholder="City">@error('city')<div id="city-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div></div>
       <label class="form-label mt-3">Service Radius</label><div class="input-group"><input type="number" min="0" step="1" class="form-control @error('service_radius') is-invalid @enderror" name="service_radius" value="{{ old('service_radius', $service->service_radius) }}" placeholder="Service radius"><span class="input-group-text">km</span></div>@error('service_radius')<div id="service_radius-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror
       <label class="form-label mt-3">Working Hours</label><textarea class="form-control @error('working_hours') is-invalid @enderror" rows="3" name="working_hours" placeholder="Example: Mon-Fri, 9:00 AM - 6:00 PM">{{ old('working_hours', $service->working_hours) }}</textarea>@error('working_hours')<div id="working_hours-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror
-      <input id="latitude" type="hidden" name="latitude" value="{{ old('latitude', $service->latitude) }}">
-      <input id="longitude" type="hidden" name="longitude" value="{{ old('longitude', $service->longitude) }}">
+      <input id="latitude" type="hidden" name="latitude" value="{{ $listingLatitudeValue }}">
+      <input id="longitude" type="hidden" name="longitude" value="{{ $listingLongitudeValue }}">
       @if($isAdmin)
         <input type="hidden" name="accept_terms" value="1">
       @elseif(!$service->exists)
@@ -667,6 +672,20 @@ $(function () {
       });
     }
   });
+
+  @if($isAdmin)
+  const profileLocations = @json($profileLocations);
+  const applyProfileLocation = (profileId) => {
+    const location = profileLocations[profileId];
+    if (!location) return;
+    $('#location').val(location.location || '');
+    $('#latitude').val(location.latitude ?? '');
+    $('#longitude').val(location.longitude ?? '');
+  };
+  $('select[name="service_provider_id"]').on('change', function () {
+    applyProfileLocation(String(this.value || ''));
+  });
+  @endif
 });
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initServiceProviderServiceLocationAutocomplete"></script>

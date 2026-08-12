@@ -34,6 +34,11 @@
 @section('meta_image', asset('assets/images/logo_soilnwater.webp'))
 
 @push('styles')
+@if(($activeType ?? '') === 'news' && !isset($activeAuthor))
+<link rel="stylesheet" href="{{ asset('assets/css/community-news-portal.css') }}?v={{ file_exists(public_path('assets/css/community-news-portal.css')) ? filemtime(public_path('assets/css/community-news-portal.css')) : time() }}">
+@else
+<link rel="stylesheet" href="{{ asset('assets/css/community-hub-nav.css') }}?v={{ file_exists(public_path('assets/css/community-hub-nav.css')) ? filemtime(public_path('assets/css/community-hub-nav.css')) : time() }}">
+@endif
 <style>
     .community-hub {
         background: #eef2f6;
@@ -782,7 +787,8 @@
         : 'No posts found for this section yet. Try another category or create the first post.';
 @endphp
 
-<div class="community-hub">
+<div class="community-hub {{ ($activeType ?? '') === 'news' && !isset($activeAuthor) ? 'community-hub--news' : '' }}">
+    @if(($activeType ?? '') !== 'news' || isset($activeAuthor))
     <section class="community-hero">
         <div class="community-hero__inner">
             <div class="community-hero__eyebrow">Soil &amp; Water Community</div>
@@ -842,64 +848,49 @@
             </div>
         </div>
     </section>
+    @endif
 
+    @if(($activeType ?? '') === 'news' && !isset($activeAuthor))
+        @include('community.partials.news-portal', [
+            'posts' => $posts,
+            'types' => $types,
+            'newsPortal' => $newsPortal ?? [],
+            'activeHub' => $activeHub ?? 'knowledge-news',
+            'activeCategory' => $activeCategory ?? '',
+            'engagement' => $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
+            'emptyMessage' => $emptyMessage,
+        ])
+    @else
     <div class="community-shell">
-        <div class="community-toolbar">
-            <div class="community-toolbar__head">
-                <h2 class="community-toolbar__title">Browse by section</h2>
-                <p class="community-toolbar__hint">Filter posts by content type</p>
-            </div>
-            <div class="community-filter-scroll">
-                <a
-                    href="{{ route($sectionRoute, $sectionRouteParams) }}"
-                    class="community-filter-pill community-filter-pill--all {{ $activeType ? '' : 'is-active' }}"
-                    style="--pill-color: {{ $communityFilterPillColors['all'] }};"
-                >All sections</a>
-                @foreach ($types as $key => $type)
-                    <a
-                        href="{{ route($sectionRoute, array_merge($sectionRouteParams, ['type' => $key])) }}"
-                        class="community-filter-pill community-filter-pill--{{ $key }} {{ $activeType === $key ? 'is-active' : '' }}"
-                        style="--pill-color: {{ $communityFilterPillColors[$key] ?? $communityFilterPillFallbackColor }};"
-                    >{{ $type['label'] }}</a>
-                @endforeach
-            </div>
-        </div>
+        @include('community.partials.hub-navigation', [
+            'hubSections' => $hubSections ?? \App\Support\CommunityContentTaxonomy::hubSections(),
+            'types' => $types,
+            'activeHub' => $activeHub ?? null,
+            'activeType' => $activeType,
+            'activeCategory' => $activeCategory ?? '',
+            'engagement' => $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
+            'sectionRoute' => $sectionRoute,
+            'sectionRouteParams' => $sectionRouteParams,
+        ])
 
-        @if ($activeType && isset($types[$activeType]))
-            @php
-                $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
-                $activeTypeColor = $communityFilterPillColors[$activeType] ?? $communityFilterPillFallbackColor;
-            @endphp
-            <div class="community-type-panel" style="--type-color: {{ $activeTypeColor }};">
-                <div class="community-type-panel__title">{{ $types[$activeType]['label'] }}</div>
-                <p class="community-type-panel__text">{{ $types[$activeType]['description'] }}</p>
-                <div class="community-type-panel__categories">
-                    <strong>Categories:</strong>
-                    @foreach($types[$activeType]['categories'] as $categoryName)
-                        @php
-                            $isSubscribed = auth()->check() && collect($engagement['subscribed_categories'] ?? [])->contains(
-                                fn (array $subscription): bool => ($subscription['content_type'] ?? null) === $activeType
-                                    && ($subscription['category'] ?? null) === $categoryName
-                            );
-                        @endphp
-                        <span class="community-category-chip">
-                            <span class="community-category-chip__label">{{ $categoryName }}</span>
-                            @auth
-                                <button type="button"
-                                    class="btn btn-sm {{ $isSubscribed ? 'btn-success' : 'btn-outline-success' }} js-community-subscribe-category {{ $isSubscribed ? 'is-subscribed' : '' }}"
-                                    data-url="{{ route('community.subscriptions.category.toggle') }}"
-                                    data-content-type="{{ $activeType }}"
-                                    data-category="{{ $categoryName }}"
-                                    data-label-subscribed="Subscribed"
-                                    data-label-unsubscribed="Subscribe">
-                                    {{ $isSubscribed ? 'Subscribed' : 'Subscribe' }}
-                                </button>
-                            @endauth
-                        </span>
-                    @endforeach
-                </div>
-            </div>
-        @endif
+        <div class="community-hub-posts-heading">
+            <h2>
+                @if ($activeCategory && $activeType && isset($types[$activeType]))
+                    {{ $types[$activeType]['label'] }}: {{ $activeCategory }}
+                @elseif ($activeType && isset($types[$activeType]))
+                    {{ $types[$activeType]['label'] }} posts
+                @elseif (! empty($activeHub) && isset(($hubSections ?? [])[$activeHub]))
+                    {{ ($hubSections ?? \App\Support\CommunityContentTaxonomy::hubSections())[$activeHub]['label'] }} posts
+                @else
+                    Latest community posts
+                @endif
+            </h2>
+            @auth
+                <a href="{{ route('community.posts.create', $activeType ? ['type' => $activeType] : []) }}" class="btn btn-sm btn-primary">
+                    <i class="fa-solid fa-pen-to-square me-1"></i>Create post
+                </a>
+            @endauth
+        </div>
 
         @if(isset($activeAuthor))
             @include('community.partials.author-questions', [
@@ -931,6 +922,7 @@
 
         <div id="communityScrollSentinel" class="community-scroll-sentinel" aria-hidden="true"></div>
     </div>
+    @endif
 </div>
 
 @include('community.partials.share-modal')
@@ -940,10 +932,12 @@
 @push('scripts')
 <script>
     (function () {
-        const postsGrid = document.getElementById('communityPostsGrid');
+        const isNewsLayout = @json(($activeType ?? '') === 'news' && !isset($activeAuthor));
+        const postsGrid = document.getElementById(isNewsLayout ? 'communityNewsList' : 'communityPostsGrid');
         const loadingText = document.getElementById('communityLoadingText');
         const summaryText = document.getElementById('communitySummaryText');
         const scrollSentinel = document.getElementById('communityScrollSentinel');
+        const loadMoreBtn = document.getElementById('communityNewsLoadMore');
         let nextPageUrl = postsGrid ? (postsGrid.dataset.nextPageUrl || '') : '';
         let isLoading = false;
 
@@ -971,10 +965,10 @@
                 }
 
                 const payload = await response.json();
-                const emptyState = postsGrid.querySelector('.community-empty-state');
+                const emptyState = postsGrid.querySelector(isNewsLayout ? '.community-news-empty' : '.community-empty-state');
 
                 if (emptyState) {
-                    emptyState.closest('.col-12')?.remove();
+                    emptyState.remove();
                 }
 
                 if (payload.html) {
@@ -983,6 +977,10 @@
 
                 nextPageUrl = payload.next_page_url || '';
                 postsGrid.dataset.nextPageUrl = nextPageUrl;
+
+                if (!nextPageUrl && loadMoreBtn) {
+                    loadMoreBtn.classList.add('d-none');
+                }
 
                 if (summaryText && payload.total > 0) {
                     summaryText.textContent = `Showing 1 to ${payload.loaded_to} of ${payload.total} results`;
@@ -994,6 +992,10 @@
                 isLoading = false;
                 setLoadingState(false);
             }
+        }
+
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', loadNextCommunityPage);
         }
 
         if (scrollSentinel && postsGrid && 'IntersectionObserver' in window) {

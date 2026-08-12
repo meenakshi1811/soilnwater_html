@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\AppliesDefaultListingLocation;
 use App\Http\Controllers\Concerns\ValidatesConsultantServiceRequest;
 use App\Http\Controllers\Controller;
 use App\Services\PortalNotificationService;
@@ -14,15 +15,19 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ConsultantServiceApprovalController extends Controller
 {
+    use AppliesDefaultListingLocation;
     use ValidatesConsultantServiceRequest;
 
     public function create(): View
     {
+        $consultants = $this->approvedConsultants();
+
         return view('backend.consultant.services.form', [
             'service' => new ConsultantService(),
             'categories' => $this->consultantCategories(),
             'isAdmin' => true,
-            'consultants' => $this->approvedConsultants(),
+            'consultants' => $consultants,
+            'profileLocations' => $this->profileLocationsMap($consultants),
         ]);
     }
 
@@ -31,6 +36,9 @@ class ConsultantServiceApprovalController extends Controller
         $request->validate([
             'consultant_id' => ['required', 'exists:consultants,id'],
         ]);
+
+        $consultant = Consultant::query()->with('user')->find($request->input('consultant_id'));
+        $this->applyDefaultListingLocationToRequest($request, $consultant);
 
         $data = $this->validatedConsultantService($request);
         $data['consultant_id'] = (int) $request->input('consultant_id');
@@ -199,8 +207,9 @@ class ConsultantServiceApprovalController extends Controller
     private function approvedConsultants()
     {
         return Consultant::query()
+            ->with('user')
             ->where('status', 'approved')
             ->orderBy('company_name')
-            ->get(['id', 'company_name', 'display_name']);
+            ->get(['id', 'company_name', 'display_name', 'user_id', 'address', 'city', 'state', 'pincode']);
     }
 }

@@ -120,7 +120,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function hasVerifiedContact(): bool
     {
-        return ! is_null($this->email_verified_at) && ! is_null($this->phone_verified_at);
+        return ! is_null($this->email_verified_at);
     }
 
     public function isAdmin(): bool

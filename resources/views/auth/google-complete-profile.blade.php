@@ -16,7 +16,7 @@
                 <ul class="intro-points">
                     <li><i class="fa-solid fa-circle-check"></i> Secure Google sign-in</li>
                     <li><i class="fa-solid fa-circle-check"></i> Verified marketplace onboarding</li>
-                    <li><i class="fa-solid fa-circle-check"></i> Mobile verification in the next step</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Email verified through Google</li>
                 </ul>
             </aside>
 
@@ -49,14 +49,6 @@
                             <label class="form-label">Email Address</label>
                             <input type="email" class="form-control" value="{{ $email }}" readonly disabled>
                             <small class="text-muted">This email is verified through Google and cannot be changed here.</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="phone_number" class="form-label">Phone Number</label>
-                            <input id="phone_number" type="tel" class="form-control @error('phone_number') is-invalid @enderror" name="phone_number" value="{{ old('phone_number') }}" required autocomplete="tel">
-                            @error('phone_number')
-                                <span class="invalid-feedback d-block" role="alert"><strong>{{ $message }}</strong></span>
-                            @enderror
                         </div>
 
                         <div class="mb-3">

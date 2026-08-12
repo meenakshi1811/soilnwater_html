@@ -141,15 +141,27 @@ class CommunityPostController extends Controller
         $posts = $this->paginateCommunityPosts($request);
 
         if ($request->ajax()) {
-            return $this->communityPostsAjaxResponse($posts);
+            return $this->communityPostsAjaxResponse($posts, $request);
         }
 
-        return view('community.index', [
+        $viewData = [
             'posts' => $posts,
             'types' => CommunityContentTaxonomy::formTypes(),
+            'hubSections' => CommunityContentTaxonomy::hubSections(),
             'activeType' => $request->string('type')->toString(),
+            'activeHub' => CommunityContentTaxonomy::resolveActiveHubSection(
+                $request->string('hub')->toString() ?: null,
+                $request->string('type')->toString() ?: null
+            ),
+            'activeCategory' => $request->string('category')->toString(),
             'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
-        ]);
+        ];
+
+        if ($viewData['activeType'] === 'news') {
+            $viewData['newsPortal'] = $this->buildNewsPortalData($request, $posts);
+        }
+
+        return view('community.index', $viewData);
     }
 
     public function author(Request $request, string $uniqueName): View|JsonResponse
@@ -158,17 +170,29 @@ class CommunityPostController extends Controller
         $posts = $this->paginateCommunityPosts($request, $author);
 
         if ($request->ajax()) {
-            return $this->communityPostsAjaxResponse($posts);
+            return $this->communityPostsAjaxResponse($posts, $request);
         }
 
-        return view('community.index', [
+        $viewData = [
             'posts' => $posts,
             'types' => CommunityContentTaxonomy::formTypes(),
+            'hubSections' => CommunityContentTaxonomy::hubSections(),
             'activeType' => $request->string('type')->toString(),
+            'activeHub' => CommunityContentTaxonomy::resolveActiveHubSection(
+                $request->string('hub')->toString() ?: null,
+                $request->string('type')->toString() ?: null
+            ),
+            'activeCategory' => $request->string('category')->toString(),
             'activeAuthor' => $author,
             'answeredAuthorQuestions' => $this->answeredQuestionsForAuthor($author),
             'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
-        ]);
+        ];
+
+        if ($viewData['activeType'] === 'news') {
+            $viewData['newsPortal'] = $this->buildNewsPortalData($request, $posts);
+        }
+
+        return view('community.index', $viewData);
     }
 
     public function show(Request $request, CommunityPost $post): View
@@ -7846,12 +7870,31 @@ class CommunityPostController extends Controller
                 ->where('user_id', $author->id)
                 ->visibleOnAuthorProfile())
             ->when($request->filled('type'), fn ($query) => $query->where('content_type', $request->string('type')->toString()))
+            ->when(
+                $request->filled('hub') && ! $request->filled('type'),
+                function ($query) use ($request): void {
+                    $typeKeys = CommunityContentTaxonomy::hubSectionTypeKeys($request->string('hub')->toString());
+                    if ($typeKeys !== []) {
+                        $query->whereIn('content_type', $typeKeys);
+                    }
+                }
+            )
             ->when($request->filled('category'), fn ($query) => $query->where('category', $request->string('category')->toString()))
+            ->when(
+                $request->string('filter')->toString() === 'editors',
+                fn ($query) => $query->where(function ($builder): void {
+                    $builder->where('is_highlighted', true)->orWhere('is_featured', true);
+                })
+            )
             ->orderByDesc('is_featured')
             ->orderByDesc('is_highlighted')
             ->orderByDesc('is_sponsored');
 
         CommunityEngagementController::applySubscriptionPriority($query, auth()->id());
+
+        if ($request->string('sort')->toString() === 'views') {
+            $query->orderByDesc('views_count');
+        }
 
         return $query
             ->latest('published_at')
@@ -7859,16 +7902,72 @@ class CommunityPostController extends Controller
             ->withQueryString();
     }
 
-    private function communityPostsAjaxResponse($posts): JsonResponse
+    /**
+     * @return array{
+     *     featured: ?CommunityPost,
+     *     sidePosts: \Illuminate\Support\Collection,
+     *     listPosts: \Illuminate\Support\Collection,
+     *     breakingPosts: \Illuminate\Support\Collection,
+     *     trendingPosts: \Illuminate\Support\Collection
+     * }
+     */
+    private function buildNewsPortalData(Request $request, $posts): array
     {
+        $items = collect($posts->items());
+        $featured = $items->first(fn (CommunityPost $post): bool => $post->is_featured || $post->is_highlighted)
+            ?? $items->first();
+        $featuredId = $featured?->id;
+
+        $remaining = $items->filter(fn (CommunityPost $post): bool => $post->id !== $featuredId)->values();
+
+        $newsBaseQuery = CommunityPost::query()
+            ->with('user')
+            ->publiclyListed()
+            ->visibleInCommunityListing(auth()->user())
+            ->where('content_type', 'news');
+
+        $breakingPosts = (clone $newsBaseQuery)
+            ->where(function ($builder): void {
+                $builder->where('is_highlighted', true)->orWhere('is_featured', true);
+            })
+            ->latest('published_at')
+            ->limit(4)
+            ->get();
+
+        $trendingPosts = (clone $newsBaseQuery)
+            ->orderByDesc('views_count')
+            ->latest('published_at')
+            ->limit(5)
+            ->get();
+
+        return [
+            'featured' => $featured,
+            'sidePosts' => $remaining->take(3)->values(),
+            'listPosts' => $remaining->slice(3)->values(),
+            'breakingPosts' => $breakingPosts,
+            'trendingPosts' => $trendingPosts,
+        ];
+    }
+
+    private function communityPostsAjaxResponse($posts, ?Request $request = null): JsonResponse
+    {
+        $request ??= request();
+        $isNewsLayout = $request->string('type')->toString() === 'news'
+            && ! $request->routeIs('community.authors.show');
+
+        $partial = $isNewsLayout ? 'community.partials.news-list-items' : 'community.partials.post-cards';
+        $listLayout = $isNewsLayout && $posts->currentPage() > 1 ? 'append' : 'list';
+
         return response()->json([
-            'html' => view('community.partials.post-cards', [
+            'html' => view($partial, [
                 'posts' => $posts,
                 'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+                'layout' => $isNewsLayout ? $listLayout : 'grid',
             ])->render(),
             'next_page_url' => $posts->nextPageUrl(),
             'loaded_to' => $posts->lastItem() ?? 0,
             'total' => $posts->total(),
+            'layout' => $isNewsLayout ? 'news-list' : 'grid',
         ]);
     }
 

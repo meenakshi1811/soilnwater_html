@@ -46,7 +46,6 @@ class RegisterController extends Controller
         return Validator::make($data, [
             'fullname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users,email'],
-            'phone_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/', 'unique:users,phone_number'],
             'whatsapp_number' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
             'address' => ['required', 'string', 'max:500'],
             'city' => ['required', 'string', 'max:120'],
@@ -61,7 +60,6 @@ class RegisterController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'accept_terms' => ['accepted'],
         ], [
-            'phone_number.regex' => 'Phone number must contain only digits and be between 10 and 15 characters.',
             'whatsapp_number.regex' => 'WhatsApp number must contain only digits and be between 10 and 15 characters.',
             'pincode.regex' => 'Pincode must contain only digits and be between 4 and 10 characters.',
             'pan_number.required_if' => 'PAN number is required for vendor, consultant, and service registrations.',
@@ -82,7 +80,6 @@ class RegisterController extends Controller
             'name' => $data['fullname'],
             'full_name' => $data['fullname'],
             'email' => $data['email'],
-            'phone_number' => $data['phone_number'],
             'whatsapp_number' => $data['whatsapp_number'],
             'address' => $data['address'],
             'city' => $data['city'],
@@ -161,7 +158,7 @@ class RegisterController extends Controller
             $otpPayload = $this->sendContactVerificationOtp($user);
             $request->session()->put('contact_verification_user_id', $user->id);
 
-            $message = 'Registration successful. We sent separate 6-digit verification codes to your email and phone number.';
+            $message = 'Registration successful. We sent a 6-digit verification code to your email address.';
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -234,7 +231,6 @@ class RegisterController extends Controller
 
         return view('auth.contact-verify', [
             'email' => $user->email,
-            'phoneNumber' => $user->phone_number,
             'expiresAt' => $otpData['expires_at'],
         ]);
     }
@@ -243,7 +239,6 @@ class RegisterController extends Controller
     {
         $request->validate([
             'email_otp' => ['required', 'digits:6'],
-            'phone_otp' => ['required', 'digits:6'],
         ]);
 
         $user = $this->verificationUserFromSession($request);
@@ -265,19 +260,14 @@ class RegisterController extends Controller
             return $this->contactVerificationErrorResponse($request, 'Invalid email OTP. Please try again.', 422, 'email_otp');
         }
 
-        if (! hash_equals((string) $otpData['phone_otp'], (string) $request->string('phone_otp'))) {
-            return $this->contactVerificationErrorResponse($request, 'Invalid phone OTP. Please try again.', 422, 'phone_otp');
-        }
-
         $user->forceFill([
             'email_verified_at' => $user->email_verified_at ?? now(),
-            'phone_verified_at' => now(),
         ])->save();
 
         Cache::forget($cacheKey);
         $request->session()->forget('contact_verification_user_id');
 
-        $message = 'Your email and phone number are verified successfully. Please login to continue.';
+        $message = 'Your email is verified successfully. Please login to continue.';
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -299,7 +289,7 @@ class RegisterController extends Controller
 
         $otpPayload = $this->sendContactVerificationOtp($user);
 
-        $message = 'New email and phone verification codes were sent successfully.';
+        $message = 'A new email verification code was sent successfully.';
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -332,7 +322,7 @@ class RegisterController extends Controller
         $request->session()->put('contact_verification_user_id', $user->id);
         $this->sendContactVerificationOtp($user);
 
-        return redirect()->route('register.contact.verify.form')->with('status', 'We sent new email and phone verification codes.');
+        return redirect()->route('register.contact.verify.form')->with('status', 'We sent a new email verification code.');
     }
 
     public function startPhoneVerification(Request $request): RedirectResponse
@@ -482,12 +472,10 @@ class RegisterController extends Controller
     private function sendContactVerificationOtp(User $user): array
     {
         $emailOtpCode = (string) random_int(100000, 999999);
-        $phoneOtpCode = (string) random_int(100000, 999999);
         $expiresAt = now()->addMinutes(5);
 
         Cache::put($this->contactOtpCacheKey($user->id), [
             'email_otp' => $emailOtpCode,
-            'phone_otp' => $phoneOtpCode,
             'expires_at' => $expiresAt->toIso8601String(),
         ], $expiresAt);
 
@@ -498,11 +486,9 @@ class RegisterController extends Controller
             contextLine: 'Use the OTP below to complete your SoilNWater registration and verify your email address.',
         ));
 
-        $this->sendOtpToPhone($user->phone_number, $phoneOtpCode);
-
         return [
             'expires_at' => $expiresAt->toIso8601String(),
-            'debug' => "email:{$emailOtpCode}|phone:{$phoneOtpCode}",
+            'debug' => "email:{$emailOtpCode}",
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\ServiceProvider;
 
+use App\Http\Controllers\Concerns\AppliesDefaultListingLocation;
 use App\Http\Controllers\Concerns\ValidatesServiceProviderServiceRequest;
 use App\Http\Controllers\Controller;
 use App\Services\PortalNotificationService;
@@ -12,6 +13,7 @@ use Illuminate\View\View;
 
 class ServiceProviderServiceController extends Controller
 {
+    use AppliesDefaultListingLocation;
     use ValidatesServiceProviderServiceRequest;
 
     public function index(): View
@@ -27,15 +29,21 @@ class ServiceProviderServiceController extends Controller
 
     public function create(): View
     {
+        $serviceProvider = auth()->user()->serviceProvider?->loadMissing('user');
+
         return view('backend.service_provider.services.form', [
             'service' => new ServiceProviderService(),
             'categories' => $this->serviceProviderCategories(),
             'isAdmin' => false,
+            'defaultLocation' => $serviceProvider?->defaultListingLocation() ?? ['location' => '', 'latitude' => null, 'longitude' => null],
         ]);
     }
 
     public function store(Request $request)
     {
+        $serviceProvider = auth()->user()->serviceProvider?->loadMissing('user');
+        $this->applyDefaultListingLocationToRequest($request, $serviceProvider);
+
         $data = $this->validatedServiceProviderService($request);
         $data['service_provider_id'] = auth()->user()->serviceProvider->id;
         $data['slug'] = $this->uniqueServiceProviderServiceSlug($data['service_provider_id'], $data['name']);
@@ -67,11 +75,13 @@ class ServiceProviderServiceController extends Controller
     public function edit(ServiceProviderService $service): View
     {
         $this->authorizeOwner($service);
+        $serviceProvider = auth()->user()->serviceProvider?->loadMissing('user');
 
         return view('backend.service_provider.services.form', [
             'service' => $service,
             'categories' => $this->serviceProviderCategories(),
             'isAdmin' => false,
+            'defaultLocation' => $serviceProvider?->defaultListingLocation() ?? ['location' => '', 'latitude' => null, 'longitude' => null],
         ]);
     }
 
