@@ -244,6 +244,9 @@ class CommunityPostController extends Controller
         if ($post->content_type === 'news') {
             $viewData['relatedNews'] = $this->relatedNewsPosts($post);
             $viewData['trendingNews'] = $this->trendingNewsPosts($post);
+            $viewData['breakingNewsPosts'] = $this->breakingNewsPosts($post);
+            $viewData['activeHub'] = 'knowledge-news';
+            $viewData['activeCategory'] = (string) ($post->category ?? '');
             $viewData['authorPostCount'] = $post->user_id
                 ? CommunityPost::query()
                     ->where('user_id', $post->user_id)
@@ -7858,6 +7861,25 @@ class CommunityPostController extends Controller
             ->get();
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, CommunityPost>
+     */
+    private function breakingNewsPosts(?CommunityPost $exclude = null, int $limit = 4)
+    {
+        return CommunityPost::query()
+            ->with('user')
+            ->where('content_type', 'news')
+            ->when($exclude, fn ($query) => $query->where('id', '!=', $exclude->id))
+            ->publiclyListed()
+            ->visibleInCommunityListing(auth()->user())
+            ->where(function ($builder): void {
+                $builder->where('is_highlighted', true)->orWhere('is_featured', true);
+            })
+            ->latest('published_at')
+            ->limit($limit)
+            ->get();
+    }
+
     private function paginateCommunityPosts(Request $request, ?User $author = null)
     {
         $query = CommunityPost::query()
@@ -7926,13 +7948,7 @@ class CommunityPostController extends Controller
             ->visibleInCommunityListing(auth()->user())
             ->where('content_type', 'news');
 
-        $breakingPosts = (clone $newsBaseQuery)
-            ->where(function ($builder): void {
-                $builder->where('is_highlighted', true)->orWhere('is_featured', true);
-            })
-            ->latest('published_at')
-            ->limit(4)
-            ->get();
+        $breakingPosts = $this->breakingNewsPosts(null, 4);
 
         $trendingPosts = (clone $newsBaseQuery)
             ->orderByDesc('views_count')

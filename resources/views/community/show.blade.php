@@ -501,14 +501,33 @@
         </div>
     @endif
     @if($isNewsPost)
-        @include('community.partials.news-show-header', [
-            'post' => $post,
-            'isFollowingAuthor' => $isFollowingAuthor,
-            'isSaved' => $isSaved,
-            'isCategorySubscribed' => $isCategorySubscribed,
-            'subscriptionContentType' => $subscriptionContentType,
-            'subscriptionCategory' => $subscriptionCategory,
-        ])
+        @php
+            $activeHub = $activeHub ?? 'knowledge-news';
+            $activeCategory = $activeCategory ?? ($post->category ?? '');
+        @endphp
+        <div class="community-hub community-hub--news">
+            <div class="community-news-portal">
+                <div class="community-news-portal__layout">
+                    @include('community.partials.news-portal-sidebar', [
+                        'activeHub' => $activeHub,
+                        'activeCategory' => $activeCategory,
+                    ])
+                    <main class="community-news-main community-news-main--detail">
+                        @include('community.partials.news-show-header', [
+                            'post' => $post,
+                            'activeHub' => $activeHub,
+                            'isFollowingAuthor' => $isFollowingAuthor,
+                            'isSaved' => $isSaved,
+                            'isCategorySubscribed' => $isCategorySubscribed,
+                            'subscriptionContentType' => $subscriptionContentType,
+                            'subscriptionCategory' => $subscriptionCategory,
+                        ])
+                        <section class="community-news-detail__body sec">
+                        @include('community.partials.news-show-main', [
+                            'post' => $post,
+                            'isSaved' => $isSaved,
+                            'followedTopics' => $followedTopics,
+                        ])
     @else
     <section
         class="about-banner community-article-hero{{ $coverUrl ? ' has-cover' : '' }}"
@@ -591,25 +610,11 @@
     </section>
     @endif
 
-    @if($isNewsPost)
-    <div class="news-detail-shell">
-        <div class="news-detail-shell__container">
-            <div class="news-detail-shell__grid">
-                <div class="news-detail-shell__main">
-    @endif
-
+    @if(! $isNewsPost)
     <div class="about-inner">
         <section class="sec">
-            @unless($isNewsPost)
             @include('community.partials.post-shell-start', ['post' => $post])
-            @else
-            @include('community.partials.news-show-main', [
-                'post' => $post,
-                'isSaved' => $isSaved,
-                'relatedNews' => $relatedNews ?? collect(),
-                'followedTopics' => $followedTopics,
-            ])
-            @endunless
+    @endif
 
             @if(! $isArticlePost && ! $isNewsPost)
                 @php
@@ -1326,41 +1331,21 @@
             @if($post->content_type === 'news' && $post->allowsNewsDiscussion())
                 </section>
             @endif
-
-            @if($isNewsPost && ($relatedNews ?? collect())->isNotEmpty())
-                <section class="news-detail-also-like d-none d-lg-block">
-                    <h3>You May Also Like</h3>
-                    <div class="news-detail-also-like__grid">
-                        @foreach($relatedNews as $related)
-                            <a href="{{ $related->publicUrl() }}" class="news-detail-also-like__card">
-                                @if($related->featuredImageUrl())
-                                    <img src="{{ $related->featuredImageUrl() }}" alt="{{ $related->title }}">
-                                @endif
-                                <div class="news-detail-also-like__card-body">
-                                    @if(filled($related->category))
-                                        <div class="news-detail-also-like__category">{{ $related->category }}</div>
-                                    @endif
-                                    <p class="news-detail-also-like__title">{{ $related->title }}</p>
-                                </div>
-                            </a>
-                        @endforeach
-                    </div>
-                </section>
-            @endif
-        </section>
-    </div>
-
     @if($isNewsPost)
+                        </section>
+                    </main>
+                    @include('community.partials.news-portal-rail', [
+                        'activeHub' => $activeHub,
+                        'activeCategory' => $activeCategory,
+                        'breakingPosts' => $breakingNewsPosts ?? collect(),
+                        'trendingPosts' => $trendingNews ?? collect(),
+                        'relatedNews' => $relatedNews ?? collect(),
+                    ])
                 </div>
-                @include('community.partials.news-show-sidebar', [
-                    'post' => $post,
-                    'isFollowingAuthor' => $isFollowingAuthor,
-                    'authorPostCount' => $authorPostCount ?? 0,
-                    'relatedNews' => $relatedNews ?? collect(),
-                    'trendingNews' => $trendingNews ?? collect(),
-                ])
             </div>
         </div>
+    @else
+        </section>
     </div>
     @endif
 
@@ -1387,6 +1372,7 @@
 @include('community.partials.story-styles')
 @include('community.partials.articles-styles')
 @if($post->content_type === 'news')
+<link rel="stylesheet" href="{{ asset('assets/css/community-news-portal.css') }}?v={{ file_exists(public_path('assets/css/community-news-portal.css')) ? filemtime(public_path('assets/css/community-news-portal.css')) : time() }}">
 @include('community.partials.news-show-styles')
 @endif
 @if($post->content_type === 'poetry')

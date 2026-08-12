@@ -143,24 +143,3 @@
         @endif
     </div>
 </div>
-
-@if(($relatedNews ?? collect())->isNotEmpty())
-    <section class="news-detail-also-like d-lg-none">
-        <h3>You May Also Like</h3>
-        <div class="news-detail-also-like__grid">
-            @foreach($relatedNews as $related)
-                <a href="{{ $related->publicUrl() }}" class="news-detail-also-like__card">
-                    @if($related->featuredImageUrl())
-                        <img src="{{ $related->featuredImageUrl() }}" alt="{{ $related->title }}">
-                    @endif
-                    <div class="news-detail-also-like__card-body">
-                        @if(filled($related->category))
-                            <div class="news-detail-also-like__category">{{ $related->category }}</div>
-                        @endif
-                        <p class="news-detail-also-like__title">{{ $related->title }}</p>
-                    </div>
-                </a>
-            @endforeach
-        </div>
-    </section>
-@endif

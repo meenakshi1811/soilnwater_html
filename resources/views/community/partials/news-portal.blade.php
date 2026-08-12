@@ -32,49 +32,10 @@
 
 <div class="community-news-portal">
     <div class="community-news-portal__layout">
-        <aside class="community-news-sidebar" aria-label="News navigation">
-            <div class="community-news-sidebar__card">
-                <p class="community-news-sidebar__label">Community</p>
-                <nav class="community-news-sidebar__nav">
-                    @foreach ($sidebarTypes as $navItem)
-                        <a
-                            href="{{ route('community.index', ['type' => $navItem['key'], 'hub' => \App\Support\CommunityContentTaxonomy::hubSectionForType($navItem['key'])]) }}"
-                            class="community-news-sidebar__link {{ $navItem['key'] === 'news' ? 'is-active' : '' }}"
-                        >
-                            <i class="fa-solid {{ $navItem['icon'] }}"></i>
-                            <span>{{ $navItem['label'] }}</span>
-                        </a>
-                    @endforeach
-                </nav>
-            </div>
-
-            <div class="community-news-sidebar__card">
-                <p class="community-news-sidebar__label">News Categories</p>
-                <nav class="community-news-sidebar__categories">
-                    @foreach ($sidebarCategories as $categoryName)
-                        @php
-                            $isAll = $categoryName === 'All News';
-                            $isActive = $isAll ? $activeCategory === '' : $activeCategory === $categoryName;
-                        @endphp
-                        <a
-                            href="{{ route('community.index', $newsQuery($isAll ? ['category' => null] : ['category' => $categoryName])) }}"
-                            class="community-news-sidebar__category {{ $isActive ? 'is-active' : '' }}"
-                        >{{ $categoryName }}</a>
-                    @endforeach
-                </nav>
-                <a href="{{ route('community.index', $newsQuery()) }}" class="btn btn-sm btn-outline-success w-100 mt-2">View All Categories</a>
-            </div>
-
-            <div class="community-news-sidebar__card">
-                <p class="community-news-sidebar__label">Quick Links</p>
-                <nav class="community-news-sidebar__quick">
-                    <a href="{{ route('community.index', $newsQuery(['sort' => 'latest', 'filter' => null])) }}">Today&rsquo;s Top News</a>
-                    <a href="{{ route('community.index', $newsQuery(['sort' => 'views', 'filter' => null])) }}">Most Viewed</a>
-                    <a href="{{ route('community.index', $newsQuery(['filter' => 'editors', 'sort' => null])) }}">Editor&rsquo;s Picks</a>
-                    <a href="{{ route('community.index', ['type' => 'reports', 'hub' => 'knowledge-news']) }}">Community Reports</a>
-                </nav>
-            </div>
-        </aside>
+        @include('community.partials.news-portal-sidebar', [
+            'activeHub' => $activeHub,
+            'activeCategory' => $activeCategory,
+        ])
 
         <main class="community-news-main">
             <header class="community-news-main__header">
@@ -194,62 +155,12 @@
             </section>
         </main>
 
-        <aside class="community-news-rail" aria-label="News highlights">
-            <div class="community-news-rail__card community-news-rail__card--breaking">
-                <div class="community-news-rail__breaking-head">BREAKING NEWS</div>
-                <div class="community-news-rail__breaking-list">
-                    @forelse ($breakingPosts as $breakingPost)
-                        <a href="{{ route('community.show', $breakingPost) }}" class="community-news-breaking-item">
-                            <span class="community-news-breaking-item__time">{{ $breakingPost->published_at?->format('g:i A') ?? 'Now' }}</span>
-                            <span class="community-news-breaking-item__alert"><i class="fa-solid fa-circle-exclamation"></i></span>
-                            <span class="community-news-breaking-item__title">{{ $breakingPost->title }}</span>
-                        </a>
-                    @empty
-                        <p class="community-news-rail__empty">No breaking stories right now.</p>
-                    @endforelse
-                </div>
-                <a href="{{ route('community.index', $newsQuery(['filter' => 'editors'])) }}" class="btn btn-sm btn-outline-danger w-100">View All Breaking News</a>
-            </div>
-
-            <div class="community-news-rail__card">
-                <h3 class="community-news-rail__title">Trending News</h3>
-                <ol class="community-news-trending">
-                    @foreach ($trendingPosts as $index => $trendingPost)
-                        <li>
-                            <a href="{{ route('community.show', $trendingPost) }}">
-                                <span class="community-news-trending__rank">{{ $index + 1 }}</span>
-                                <span class="community-news-trending__copy">
-                                    <strong>{{ $trendingPost->title }}</strong>
-                                    <small>{{ $formatViews($trendingPost->views_count) }} Views</small>
-                                </span>
-                            </a>
-                        </li>
-                    @endforeach
-                </ol>
-                <a href="{{ route('community.index', $newsQuery(['sort' => 'views'])) }}" class="btn btn-sm btn-outline-secondary w-100">View All Trending News</a>
-            </div>
-
-            <div class="community-news-rail__card community-news-rail__card--newsletter">
-                <h3 class="community-news-rail__title">Newsletter</h3>
-                <p>Get the latest community news delivered to your inbox.</p>
-                @auth
-                    <a href="{{ route('community.subscriptions.index') }}" class="btn btn-success w-100">Manage subscriptions</a>
-                @else
-                    <a href="{{ route('login') }}" class="btn btn-success w-100">Subscribe</a>
-                @endauth
-            </div>
-
-            <div class="community-news-rail__card">
-                <h3 class="community-news-rail__title">Follow Us</h3>
-                <div class="community-news-social">
-                    <span class="community-news-social__icon community-news-social__icon--facebook"><i class="fa-brands fa-facebook-f"></i></span>
-                    <span class="community-news-social__icon community-news-social__icon--x"><i class="fa-brands fa-x-twitter"></i></span>
-                    <span class="community-news-social__icon community-news-social__icon--instagram"><i class="fa-brands fa-instagram"></i></span>
-                    <span class="community-news-social__icon community-news-social__icon--youtube"><i class="fa-brands fa-youtube"></i></span>
-                    <span class="community-news-social__icon community-news-social__icon--linkedin"><i class="fa-brands fa-linkedin-in"></i></span>
-                </div>
-            </div>
-        </aside>
+        @include('community.partials.news-portal-rail', [
+            'activeHub' => $activeHub,
+            'activeCategory' => $activeCategory,
+            'breakingPosts' => $breakingPosts,
+            'trendingPosts' => $trendingPosts,
+        ])
     </div>
 
     <div class="community-pagination-wrap d-none" id="communityPaginationState">

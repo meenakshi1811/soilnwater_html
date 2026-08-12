@@ -1,4 +1,5 @@
 @php
+    $activeHub = $activeHub ?? 'knowledge-news';
     $newsPriority = data_get($post->meta, 'news_priority');
     $newsSource = data_get($post->meta, 'news_source') ?: data_get($post->meta, 'reporter_name');
     $locationParts = $post->structuredLocationForDisplay()->only(['city', 'state', 'district', 'country'])->filter()->values();
@@ -8,26 +9,18 @@
     $isBreaking = $newsPriority === 'Breaking';
     $authorInitial = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($post->authorDisplayName(), 0, 1));
     $coverUrl = $post->featuredImageUrl();
+    $newsIndexUrl = route('community.index', ['type' => 'news', 'hub' => $activeHub]);
 @endphp
 
-<section
-    class="about-banner community-article-hero{{ $coverUrl ? ' has-cover' : '' }}"
-    @if($coverUrl) style="--article-cover: url('{{ $coverUrl }}')" @endif
->
-    <div class="community-article-hero__inner">
-        <div class="community-post-back-wrap">
-            <a href="{{ route('community.index', ['type' => 'news']) }}" class="community-post-back">
-                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-                Back to News
-            </a>
-        </div>
-        <div class="community-article-hero__kicker">
-            SoilnWater Community <span>·</span> {{ $post->typeLabel() }}
-            @if(filled($post->category))
-                <span>·</span> {{ $post->category }}
-            @endif
-        </div>
-        <div class="community-article-hero__actions">
+<header class="community-news-main__header community-news-main__header--detail">
+    <div class="community-news-main__heading">
+        <nav class="news-detail-breadcrumb" aria-label="Breadcrumb">
+            <a href="{{ route('home') }}">Home</a><span>›</span>
+            <a href="{{ route('community.index', ['hub' => $activeHub]) }}">Community Hub</a><span>›</span>
+            <a href="{{ $newsIndexUrl }}">News</a><span>›</span>
+            <span aria-current="page">{{ \Illuminate\Support\Str::limit($post->title, 48) }}</span>
+        </nav>
+        <div class="community-news-detail__actions">
             @if($post->allowsSharing())
                 @include('community.partials.share-panel', ['post' => $post, 'showTrigger' => true, 'iconOnly' => true])
             @endif
@@ -70,17 +63,19 @@
             @endauth
         </div>
     </div>
-</section>
+    <a href="{{ $newsIndexUrl }}" class="community-news-detail__back">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to News
+    </a>
+</header>
 
-<section class="news-detail-header">
-    <div class="news-detail-header__container">
-        <nav class="news-detail-breadcrumb" aria-label="Breadcrumb">
-            <a href="{{ route('home') }}">Home</a><span>›</span>
-            <a href="{{ route('community.index') }}">Community Hub</a><span>›</span>
-            <a href="{{ route('community.index', ['type' => 'news']) }}">News</a><span>›</span>
-            <span aria-current="page">{{ \Illuminate\Support\Str::limit($post->title, 60) }}</span>
-        </nav>
+<article class="community-news-detail">
+    @if($coverUrl)
+        <figure class="community-news-detail__hero">
+            <img src="{{ $coverUrl }}" alt="{{ $post->title }}">
+        </figure>
+    @endif
 
+    <div class="community-news-detail__content">
         @if($isBreaking)
             <span class="news-detail-badge news-detail-badge--breaking">Breaking News</span>
         @elseif($isTopNews)
@@ -139,4 +134,4 @@
             </div>
         </div>
     </div>
-</section>
+</article>
