@@ -96,7 +96,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function authorImageUrl(): ?string
     {
-        return filled($this->author_image) ? asset($this->author_image) : null;
+        if (filled($this->author_image)) {
+            return asset($this->author_image);
+        }
+
+        return filled($this->profile_image) ? asset($this->profile_image) : null;
     }
 
     public function authorInitials(): string

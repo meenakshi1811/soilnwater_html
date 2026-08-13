@@ -41,23 +41,21 @@
 @endif
 <style>
     .community-hub {
-        background: #eef2f6;
+        background: #f4f7fb;
     }
 
     .community-hero {
-        background: linear-gradient(135deg, #0f2f55 0%, #1f66b4 42%, #2e7d32 100%);
+        background:
+            linear-gradient(90deg, rgba(8, 42, 48, 0.78) 0%, rgba(12, 58, 52, 0.58) 48%, rgba(10, 48, 44, 0.42) 100%),
+            url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
         color: #fff;
-        padding: clamp(48px, 6vw, 72px) 24px;
+        padding: clamp(36px, 4.5vw, 56px) 24px 32px;
         position: relative;
         overflow: hidden;
     }
 
     .community-hero::before {
-        background: radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.14), transparent 45%);
-        content: "";
-        inset: 0;
-        pointer-events: none;
-        position: absolute;
+        display: none;
     }
 
     .community-hero__inner {
@@ -65,6 +63,19 @@
         max-width: min(1720px, calc(100vw - 48px));
         position: relative;
         z-index: 1;
+    }
+
+    .community-hero__top {
+        align-items: flex-start;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem 2rem;
+        justify-content: space-between;
+    }
+
+    .community-hero__copy {
+        flex: 1 1 320px;
+        min-width: 0;
     }
 
     .community-hero__profile {
@@ -96,52 +107,153 @@
     }
 
     .community-hero__eyebrow {
-        color: rgba(255, 255, 255, 0.82);
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        margin-bottom: 0.75rem;
-        text-transform: uppercase;
+        display: none;
     }
 
     .community-hero__title {
-        font-size: clamp(2rem, 4vw, 3rem);
+        font-size: clamp(2.1rem, 4vw, 3.15rem);
         font-weight: 800;
-        line-height: 1.15;
-        margin-bottom: 0.75rem;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        margin-bottom: 0.45rem;
+        text-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     }
 
     .community-hero__subtitle {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 1.02rem;
-        line-height: 1.65;
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 1rem;
+        line-height: 1.6;
         margin: 0;
-        max-width: 680px;
+        max-width: 560px;
+    }
+
+    .community-hero__stats {
+        display: grid;
+        flex: 0 1 520px;
+        gap: 1rem 1.25rem;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        min-width: min(100%, 420px);
+        padding-top: 0.35rem;
+    }
+
+    .community-hero__stat-block {
+        color: #fff;
+        text-align: left;
+    }
+
+    .community-hero__stat-block i {
+        display: block;
+        font-size: 1.05rem;
+        margin-bottom: 0.35rem;
+        opacity: 0.92;
+    }
+
+    .community-hero__stat-value {
+        display: block;
+        font-size: clamp(1.35rem, 2vw, 1.7rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+    }
+
+    .community-hero__stat-label {
+        color: rgba(255, 255, 255, 0.82);
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        line-height: 1.35;
+        margin-top: 0.2rem;
     }
 
     .community-hero__actions {
         align-items: center;
         display: flex;
         flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-top: 1.5rem;
+        gap: 0.7rem;
+        margin-top: 1.35rem;
+    }
+
+    .community-btn-create {
+        align-items: center;
+        background: #1f9d45;
+        border: 0;
+        border-radius: 999px;
+        color: #fff;
+        display: inline-flex;
+        font-size: 0.92rem;
+        font-weight: 700;
+        gap: 0.45rem;
+        padding: 0.62rem 1.15rem;
+        text-decoration: none;
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .community-btn-create:hover {
+        background: #18863a;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .community-hero__ghost {
+        align-items: center;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        border-radius: 999px;
+        color: #fff;
+        display: inline-flex;
+        font-size: 0.88rem;
+        font-weight: 650;
+        gap: 0.4rem;
+        padding: 0.55rem 1rem;
+        text-decoration: none;
+    }
+
+    .community-hero__ghost:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
     }
 
     .community-hero__stat {
-        backdrop-filter: blur(8px);
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        align-items: center;
+        background: #163a6b;
+        border: 0;
         border-radius: 999px;
         color: #fff;
-        font-size: 0.88rem;
-        font-weight: 600;
-        padding: 0.45rem 0.95rem;
+        display: inline-flex;
+        font-size: 0.86rem;
+        font-weight: 700;
+        gap: 0.4rem;
+        padding: 0.55rem 0.95rem;
     }
 
     .community-shell {
         margin: 0 auto;
         max-width: min(1720px, calc(100vw - 48px));
         padding: 1.5rem 1rem 3rem;
+    }
+
+    .community-hub-layout {
+        align-items: start;
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: minmax(0, 1fr);
+        margin-top: 0.25rem;
+    }
+
+    .community-hub-feed {
+        min-width: 0;
+    }
+
+    @media (min-width: 1100px) {
+        .community-hub-layout {
+            grid-template-columns: minmax(0, 1fr) 300px;
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .community-hero__stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
     }
 
     .community-toolbar {
@@ -331,8 +443,7 @@
     .community-post-card {
         --type-color: #dce6f3;
         background: #fff;
-        border: 1.5px solid color-mix(in srgb, var(--type-color) 55%, #dce6f3);
-        border-top: 3px solid var(--type-color);
+        border: 1px solid #dbe6f2;
         border-radius: 16px;
         box-shadow: 0 8px 24px rgba(18, 57, 95, 0.05);
         display: flex;
@@ -506,27 +617,18 @@
     }
 
     .community-post-card__title {
-        background: color-mix(in srgb, var(--type-color) 8%, #ffffff);
-        border: 1.5px solid color-mix(in srgb, var(--type-color) 55%, #dce6f3);
-        border-left: 3px solid var(--type-color);
-        border-radius: 10px;
-        font-size: 1.05rem;
-        font-weight: 700;
-        line-height: 1.45;
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.35;
         margin: 0;
-        padding: 0.65rem 0.8rem;
-        transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .community-post-card:hover .community-post-card__title {
-        background: color-mix(in srgb, var(--type-color) 12%, #ffffff);
-        border-color: var(--type-color);
-        box-shadow: 0 4px 12px color-mix(in srgb, var(--type-color) 16%, transparent);
     }
 
     .community-post-card__title a {
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
         color: #12395f;
-        display: block;
+        display: -webkit-box;
+        overflow: hidden;
         text-decoration: none;
     }
 
@@ -536,11 +638,11 @@
 
     .community-post-card__excerpt {
         -webkit-box-orient: vertical;
-        -webkit-line-clamp: 3;
+        -webkit-line-clamp: 2;
         color: #4f6780;
         display: -webkit-box;
-        font-size: 0.9rem;
-        line-height: 1.6;
+        font-size: 0.86rem;
+        line-height: 1.55;
         margin: 0;
         overflow: hidden;
     }
@@ -555,13 +657,27 @@
     }
 
     .community-post-card__footer {
-        align-items: center;
-        border-top: 1px solid #edf2f8;
+        align-items: flex-end;
+        border-top: 0;
         display: flex;
-        gap: 0.75rem;
+        gap: 0.65rem;
         justify-content: space-between;
         margin-top: auto;
-        padding-top: 0.75rem;
+        padding-top: 0.45rem;
+    }
+
+    .community-post-card__byline {
+        color: #6c849c;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        margin: 0;
+        min-width: 0;
+    }
+
+    .community-post-card__byline .community-post-card__author-name {
+        color: #24527a;
+        font-weight: 700;
+        text-decoration: none;
     }
 
     .community-post-card__author {
@@ -738,8 +854,7 @@
 
     @media (min-width: 1200px) {
         .community-post-card__title {
-            font-size: 0.95rem;
-            padding: 0.55rem 0.7rem;
+            font-size: 0.92rem;
         }
 
         .community-post-card__excerpt {
@@ -758,7 +873,7 @@
         }
     }
 
-    @@media (max-width: 767.98px) {
+    @media (max-width: 767.98px) {
         .community-shell {
             padding-left: 0.75rem;
             padding-right: 0.75rem;
@@ -791,58 +906,75 @@
     @if(($activeType ?? '') !== 'news' || isset($activeAuthor))
     <section class="community-hero">
         <div class="community-hero__inner">
-            <div class="community-hero__eyebrow">Soil &amp; Water Community</div>
-            @if ($authorName && isset($activeAuthor))
-                <div class="community-hero__profile">
-                    @include('community.partials.author-avatar', [
-                        'avatarUrl' => $activeAuthor->authorImageUrl(),
-                        'initials' => $activeAuthor->authorInitials(),
-                        'alt' => $authorName,
-                        'sizeClass' => 'community-hero__avatar',
-                    ])
-                    <div>
-                        <h1 class="community-hero__title mb-2">{{ $authorName }}&rsquo;s Posts</h1>
-                        <p class="community-hero__subtitle mb-0">
-                            Browse published stories, reports, and updates from {{ $authorName }}.
-                        </p>
-                    </div>
+            <div class="community-hero__top">
+                <div class="community-hero__copy">
+                    @if ($authorName && isset($activeAuthor))
+                        <div class="community-hero__profile">
+                            @include('community.partials.author-avatar', [
+                                'avatarUrl' => $activeAuthor->authorImageUrl(),
+                                'initials' => $activeAuthor->authorInitials(),
+                                'alt' => $authorName,
+                                'sizeClass' => 'community-hero__avatar',
+                            ])
+                            <div>
+                                <h1 class="community-hero__title mb-2">{{ $authorName }}&rsquo;s Posts</h1>
+                                <p class="community-hero__subtitle mb-0">
+                                    Browse published stories, reports, and updates from {{ $authorName }}.
+                                </p>
+                            </div>
+                        </div>
+                    @else
+                        <h1 class="community-hero__title">
+                            {{ $authorName ? $authorName . "'s Posts" : 'Community Hub' }}
+                        </h1>
+                        @if ($authorName)
+                            <p class="community-hero__subtitle">
+                                Browse published stories, reports, and updates from {{ $authorName }}.
+                            </p>
+                        @else
+                            <p class="community-hero__subtitle">Community Hub, Knowledge Centre, and Local Voices Network</p>
+                        @endif
+                    @endif
                 </div>
-            @else
-                <h1 class="community-hero__title">
-                    {{ $authorName ? $authorName . "'s Posts" : 'Community Hub' }}
-                </h1>
-                @if ($authorName)
-                    <p class="community-hero__subtitle">
-                        Browse published stories, reports, and updates from {{ $authorName }}.
-                    </p>
-                @else
-                    <p class="community-hero__subtitle">Community Hub, Knowledge Centre, and Local Voices Network</p>
+                @if (!isset($activeAuthor) && !empty($hubStats))
+                    <div class="community-hero__stats">
+                        @foreach ($hubStats as $stat)
+                            <div class="community-hero__stat-block">
+                                <i class="fa-solid {{ $stat['icon'] }}" aria-hidden="true"></i>
+                                <span class="community-hero__stat-value">{{ $stat['value'] }}</span>
+                                <span class="community-hero__stat-label">{{ $stat['label'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
                 @endif
-            @endif
+            </div>
             <div class="community-hero__actions">
                 @auth
-                    <a href="{{ route('community.posts.create') }}" class="btn btn-light">
-                        <i class="fa-solid fa-pen-to-square me-2"></i>Create a Post
+                    <a href="{{ route('community.posts.create') }}" class="community-btn-create">
+                        <i class="fa-solid fa-plus"></i> Create a Post
                     </a>
                     @if (!isset($activeAuthor))
-                        <a href="{{ route('community.index', ['type' => 'local-voices']) }}" class="btn btn-outline-light">
-                            <i class="fa-solid fa-microphone-lines me-2"></i>Local Voices
+                        <a href="{{ route('community.index', ['type' => 'local-voices', 'hub' => 'local-civic']) }}" class="community-hero__ghost">
+                            <i class="fa-solid fa-microphone-lines"></i> Local Voices
                         </a>
                     @endif
-                    <a href="{{ route('community.saved.index') }}" class="btn btn-outline-light">
-                        <i class="fa-solid fa-bookmark me-2"></i>Saved Posts
+                    <a href="{{ route('community.saved.index') }}" class="community-hero__ghost">
+                        <i class="fa-solid fa-bookmark"></i> Saved Posts
                     </a>
-                    <a href="{{ route('community.subscriptions.index') }}" class="btn btn-outline-light">
-                        <i class="fa-solid fa-bell me-2"></i>My Subscriptions
+                    <a href="{{ route('community.subscriptions.index') }}" class="community-hero__ghost">
+                        <i class="fa-solid fa-bell"></i> My Subscriptions
                     </a>
                 @else
-                    <a href="{{ route('login') }}" class="btn btn-light">
-                        <i class="fa-solid fa-right-to-bracket me-2"></i>Login to Post
+                    <a href="{{ route('login') }}" class="community-btn-create">
+                        <i class="fa-solid fa-plus"></i> Create a Post
+                    </a>
+                    <a href="{{ route('community.index', ['type' => 'local-voices', 'hub' => 'local-civic']) }}" class="community-hero__ghost">
+                        <i class="fa-solid fa-microphone-lines"></i> Local Voices
                     </a>
                 @endauth
                 @if ($posts->total() > 0)
                     <span class="community-hero__stat">
-                        <i class="fa-solid fa-layer-group me-1"></i>{{ number_format($posts->total()) }} published {{ \Illuminate\Support\Str::plural('post', $posts->total()) }}
+                        <i class="fa-solid fa-file-lines"></i>{{ number_format($posts->total()) }} published {{ \Illuminate\Support\Str::plural('post', $posts->total()) }}
                     </span>
                 @endif
             </div>
@@ -873,54 +1005,72 @@
             'sectionRouteParams' => $sectionRouteParams,
         ])
 
-        <div class="community-hub-posts-heading">
-            <h2>
-                @if ($activeCategory && $activeType && isset($types[$activeType]))
-                    {{ $types[$activeType]['label'] }}: {{ $activeCategory }}
-                @elseif ($activeType && isset($types[$activeType]))
-                    {{ $types[$activeType]['label'] }} posts
-                @elseif (! empty($activeHub) && isset(($hubSections ?? [])[$activeHub]))
-                    {{ ($hubSections ?? \App\Support\CommunityContentTaxonomy::hubSections())[$activeHub]['label'] }} posts
-                @else
-                    Latest community posts
+        @php
+            $resolvedHubSections = $hubSections ?? \App\Support\CommunityContentTaxonomy::hubSections();
+            $feedHubKey = ($activeHub && isset($resolvedHubSections[$activeHub]))
+                ? $activeHub
+                : array_key_first($resolvedHubSections);
+            $feedHub = $feedHubKey ? ($resolvedHubSections[$feedHubKey] ?? null) : null;
+        @endphp
+        <div class="community-hub-layout">
+            <div class="community-hub-feed">
+                <div class="community-hub-posts-heading">
+                    <h2>
+                        @if ($activeCategory && $activeType && isset($types[$activeType]))
+                            Latest {{ $types[$activeType]['label'] }}: {{ $activeCategory }}
+                        @elseif ($activeType && isset($types[$activeType]))
+                            Latest {{ $types[$activeType]['label'] }} Posts
+                        @elseif ($feedHub)
+                            Latest {{ $feedHub['label'] }} Posts
+                        @else
+                            Latest community posts
+                        @endif
+                    </h2>
+                    @if ($feedHubKey)
+                        <a href="{{ route($sectionRoute, array_merge($sectionRouteParams, ['hub' => $feedHubKey])) }}" class="community-hub-posts-heading__view-all">
+                            View all posts <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    @endif
+                </div>
+
+                @if(isset($activeAuthor))
+                    @include('community.partials.author-questions', [
+                        'author' => $activeAuthor,
+                        'answeredQuestions' => $answeredAuthorQuestions ?? collect(),
+                    ])
                 @endif
-            </h2>
-            @auth
-                <a href="{{ route('community.posts.create', $activeType ? ['type' => $activeType] : []) }}" class="btn btn-sm btn-primary">
-                    <i class="fa-solid fa-pen-to-square me-1"></i>Create post
-                </a>
-            @endauth
-        </div>
 
-        @if(isset($activeAuthor))
-            @include('community.partials.author-questions', [
-                'author' => $activeAuthor,
-                'answeredQuestions' => $answeredAuthorQuestions ?? collect(),
+                <div
+                    id="communityPostsGrid"
+                    class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 g-lg-4"
+                    data-next-page-url="{{ $posts->nextPageUrl() }}"
+                >
+                    @include('community.partials.post-cards', [
+                        'posts' => $posts,
+                        'emptyMessage' => $emptyMessage,
+                        'engagement' => $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
+                    ])
+                </div>
+
+                <div class="community-pagination-wrap" id="communityPaginationState">
+                    @if ($posts->total() > 0)
+                        <p class="community-pagination-summary" id="communitySummaryText">
+                            Showing 1 to {{ $posts->lastItem() }} of {{ $posts->total() }} results
+                        </p>
+                    @endif
+                    <p class="community-pagination-loading d-none" id="communityLoadingText">Loading more posts…</p>
+                </div>
+
+                <div id="communityScrollSentinel" class="community-scroll-sentinel" aria-hidden="true"></div>
+            </div>
+
+            @include('community.partials.hub-sidebar', [
+                'popularTopics' => $popularTopics ?? collect(),
+                'topContributors' => $topContributors ?? collect(),
             ])
-        @endif
-
-        <div
-            id="communityPostsGrid"
-            class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 g-lg-4"
-            data-next-page-url="{{ $posts->nextPageUrl() }}"
-        >
-            @include('community.partials.post-cards', [
-                'posts' => $posts,
-                'emptyMessage' => $emptyMessage,
-                'engagement' => $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []],
-            ])
         </div>
 
-        <div class="community-pagination-wrap" id="communityPaginationState">
-            @if ($posts->total() > 0)
-                <p class="community-pagination-summary" id="communitySummaryText">
-                    Showing 1 to {{ $posts->lastItem() }} of {{ $posts->total() }} results
-                </p>
-            @endif
-            <p class="community-pagination-loading d-none" id="communityLoadingText">Loading more posts…</p>
-        </div>
-
-        <div id="communityScrollSentinel" class="community-scroll-sentinel" aria-hidden="true"></div>
+        @include('community.partials.hub-highlights')
     </div>
     @endif
 </div>

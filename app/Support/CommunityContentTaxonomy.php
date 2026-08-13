@@ -250,14 +250,6 @@ class CommunityContentTaxonomy
                 'accent' => '#00838f',
                 'types' => ['childrens-corner', 'student-corner', 'youth-corner', 'senior-citizens-forum', 'womens-world', 'health-wellness'],
             ],
-            'career-business' => [
-                'label' => 'Career & Business',
-                'tagline' => 'Grow professionally',
-                'description' => 'Career guidance, jobs, employment opportunities, and business stories.',
-                'icon' => 'fa-briefcase',
-                'accent' => '#3949ab',
-                'types' => ['career', 'jobs-employment', 'business'],
-            ],
             'environment-agriculture' => [
                 'label' => 'Environment & Agriculture',
                 'tagline' => 'Planet and soil matters',
@@ -265,6 +257,14 @@ class CommunityContentTaxonomy
                 'icon' => 'fa-seedling',
                 'accent' => '#2e7d32',
                 'types' => ['agriculture', 'environment', 'awareness'],
+            ],
+            'career-business' => [
+                'label' => 'Career & Business',
+                'tagline' => 'Grow professionally',
+                'description' => 'Career guidance, jobs, employment opportunities, and business stories.',
+                'icon' => 'fa-briefcase',
+                'accent' => '#3949ab',
+                'types' => ['career', 'jobs-employment', 'business'],
             ],
             'culture-spirituality' => [
                 'label' => 'Culture & Spirituality',
@@ -286,7 +286,7 @@ class CommunityContentTaxonomy
                 'label' => 'Creative & Community',
                 'tagline' => 'Create, compete, and connect',
                 'description' => 'Creative works, competitions, and open community discussions.',
-                'icon' => 'fa-palette',
+                'icon' => 'fa-heart',
                 'accent' => '#d81b60',
                 'types' => ['creative-corner', 'competitions', 'discussions'],
             ],
@@ -302,6 +302,43 @@ class CommunityContentTaxonomy
         }
 
         return null;
+    }
+
+    public static function typeIcon(string $type): string
+    {
+        return match ($type) {
+            'articles' => 'fa-file-lines',
+            'reports' => 'fa-chart-column',
+            'news' => 'fa-newspaper',
+            'science-technology' => 'fa-flask',
+            'stories' => 'fa-book',
+            'poetry' => 'fa-feather',
+            'biography' => 'fa-user-pen',
+            'autobiography' => 'fa-book-open-reader',
+            'childrens-corner' => 'fa-child',
+            'student-corner' => 'fa-graduation-cap',
+            'youth-corner' => 'fa-bolt',
+            'senior-citizens-forum' => 'fa-person-cane',
+            'womens-world' => 'fa-venus',
+            'health-wellness' => 'fa-heart-pulse',
+            'career' => 'fa-user-tie',
+            'jobs-employment' => 'fa-briefcase',
+            'business' => 'fa-building',
+            'agriculture' => 'fa-wheat-awn',
+            'environment' => 'fa-leaf',
+            'awareness' => 'fa-bullhorn',
+            'culture-heritage' => 'fa-landmark',
+            'travel-diaries' => 'fa-plane',
+            'religion-spirituality' => 'fa-om',
+            'astro-consultancy' => 'fa-star',
+            'local-voices' => 'fa-microphone-lines',
+            'community-issues' => 'fa-triangle-exclamation',
+            'opinions-views' => 'fa-comments',
+            'creative-corner' => 'fa-palette',
+            'competitions' => 'fa-trophy',
+            'discussions' => 'fa-people-group',
+            default => 'fa-folder-open',
+        };
     }
 
     public static function resolveActiveHubSection(?string $hubParam, ?string $typeParam): ?string

@@ -155,6 +155,7 @@ class CommunityPostController extends Controller
             ),
             'activeCategory' => $request->string('category')->toString(),
             'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+            ...$this->hubLandingExtras(),
         ];
 
         if ($viewData['activeType'] === 'news') {
@@ -186,6 +187,7 @@ class CommunityPostController extends Controller
             'activeAuthor' => $author,
             'answeredAuthorQuestions' => $this->answeredQuestionsForAuthor($author),
             'engagement' => CommunityEngagementController::engagementStateForUser(auth()->id()),
+            ...$this->hubLandingExtras(),
         ];
 
         if ($viewData['activeType'] === 'news') {
@@ -7878,6 +7880,66 @@ class CommunityPostController extends Controller
             ->latest('published_at')
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * @return array{
+     *     hubStats: list<array{value: string, label: string, icon: string}>,
+     *     popularTopics: \Illuminate\Support\Collection<int, object>,
+     *     topContributors: \Illuminate\Support\Collection<int, User>
+     * }
+     */
+    private function hubLandingExtras(): array
+    {
+        $listedPosts = CommunityPost::query()->publiclyListed();
+
+        $members = User::query()->where('is_active', true)->where('is_blocked', false)->count();
+        $contributors = (clone $listedPosts)->distinct()->count('user_id');
+        $postsThisMonth = (clone $listedPosts)->where('published_at', '>=', now()->startOfMonth())->count();
+        $topics = (clone $listedPosts)->whereNotNull('category')->where('category', '!=', '')->distinct()->count('category');
+
+        $popularTopics = CommunityPost::query()
+            ->publiclyListed()
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->select('category')
+            ->selectRaw('count(*) as posts_count')
+            ->groupBy('category')
+            ->orderByDesc('posts_count')
+            ->limit(12)
+            ->get();
+
+        $topContributors = User::query()
+            ->whereHas('communityPosts', fn ($query) => $query->publiclyListed())
+            ->withCount(['communityPosts as posts_count' => fn ($query) => $query->publiclyListed()])
+            ->withSum(['communityPosts as views_sum' => fn ($query) => $query->publiclyListed()], 'views_count')
+            ->orderByDesc('posts_count')
+            ->limit(4)
+            ->get();
+
+        return [
+            'hubStats' => [
+                ['value' => $this->compactNumber($members), 'label' => 'Community Members', 'icon' => 'fa-users'],
+                ['value' => $this->compactNumber($contributors), 'label' => 'Active Contributors', 'icon' => 'fa-user-group'],
+                ['value' => $this->compactNumber($postsThisMonth), 'label' => 'Posts This Month', 'icon' => 'fa-pen-to-square'],
+                ['value' => $this->compactNumber($topics).($topics > 0 ? '+' : ''), 'label' => 'Topics Covered', 'icon' => 'fa-bullseye'],
+            ],
+            'popularTopics' => $popularTopics,
+            'topContributors' => $topContributors,
+        ];
+    }
+
+    private function compactNumber(int $value): string
+    {
+        if ($value >= 1000000) {
+            return rtrim(rtrim(number_format($value / 1000000, 1), '0'), '.').'M';
+        }
+
+        if ($value >= 1000) {
+            return rtrim(rtrim(number_format($value / 1000, 1), '0'), '.').'K';
+        }
+
+        return (string) $value;
     }
 
     private function paginateCommunityPosts(Request $request, ?User $author = null)

@@ -2,8 +2,6 @@
     @php
         $engagement = $engagement ?? ['saved_post_ids' => [], 'subscribed_categories' => [], 'followed_topics' => []];
         $authorDisplayName = $post->authorDisplayName();
-        $authorInitials = $post->authorInitials();
-        $authorAvatarUrl = $post->authorAvatarUrl();
         $reportStatus = $post->reportStatus();
         $reportTrustScore = $post->isReportContent() ? $post->reportTrustScore() : null;
         $sectionLabel = $post->typeLabel();
@@ -147,22 +145,15 @@
                 @endif
 
                 <div class="community-post-card__footer">
-                    <div class="community-post-card__author">
-                        @include('community.partials.author-avatar', [
-                            'avatarUrl' => $authorAvatarUrl,
-                            'initials' => $authorInitials ?: 'CA',
-                            'alt' => $authorDisplayName,
-                            'sizeClass' => 'community-post-card__avatar',
-                        ])
-                        <div class="community-post-card__author-meta">
-                            @if ($post->showsAuthorProfileLink())
-                                <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="community-post-card__author-name">{{ $authorDisplayName }}</a>
-                            @else
-                                <span class="community-post-card__author-name">{{ $authorDisplayName }}</span>
-                            @endif
-                            <time datetime="{{ $post->published_at?->toDateString() }}">{{ $post->published_at?->format('M d, Y') ?? 'Draft' }}</time>
-                        </div>
-                    </div>
+                    <p class="community-post-card__byline">
+                        @if ($post->showsAuthorProfileLink())
+                            By <a href="{{ route('community.authors.show', $post->user->authorUniqueName()) }}" class="community-post-card__author-name">{{ $authorDisplayName }}</a>
+                        @else
+                            By <span class="community-post-card__author-name">{{ $authorDisplayName }}</span>
+                        @endif
+                        <span aria-hidden="true">•</span>
+                        <time datetime="{{ $post->published_at?->toDateString() }}">{{ $post->published_at?->format('M d, Y') ?? 'Draft' }}</time>
+                    </p>
 
                     <div class="community-post-card__stats">
                         @auth
@@ -181,12 +172,8 @@
                                 'showCardTrigger' => true,
                             ])
                         @endif
-                        @if (($post->reactions_count ?? 0) > 0)
-                            <span title="Reactions"><i class="fa-solid fa-heart" aria-hidden="true"></i> {{ $post->reactions_count }}</span>
-                        @endif
-                        @if (($post->comments_count ?? 0) > 0)
-                            <span title="Comments"><i class="fa-solid fa-comment" aria-hidden="true"></i> {{ $post->comments_count }}</span>
-                        @endif
+                        <span title="Views"><i class="fa-solid fa-eye" aria-hidden="true"></i> {{ number_format((int) ($post->views_count ?? 0)) }}</span>
+                        <span title="Comments"><i class="fa-solid fa-comment" aria-hidden="true"></i> {{ number_format((int) ($post->comments_count ?? 0)) }}</span>
                     </div>
                 </div>
             </div>
