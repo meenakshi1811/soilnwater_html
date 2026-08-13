@@ -1040,7 +1040,9 @@
                     </div>
                   </div>
                 @endforeach
-              @elseif ($topVendorsSideAdsList->isNotEmpty())
+              @endif
+
+              @if ($topVendorSlides->isEmpty() && $topVendorsSideAdsList->isNotEmpty())
                 @foreach ($topVendorsSideAdsList->chunk(6) as $adsChunk)
                   <div class="ad-slide">
                     <div class="product-grid-4 recent-ads-grid top-vendors-grid">
@@ -1062,7 +1064,9 @@
                     </div>
                   </div>
                 @endforeach
-              @else
+              @endif
+
+              @if ($topVendorSlides->isEmpty() && $topVendorsSideAdsList->isEmpty())
                 <div class="ad-slide">
                   <div class="product-grid-4 recent-ads-grid top-vendors-grid">
                     <article class="prod-card recent-ad-card">
