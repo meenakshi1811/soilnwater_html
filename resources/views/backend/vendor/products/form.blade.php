@@ -3,8 +3,6 @@
 @section('content')
 @php
   $isAdmin = $isAdmin ?? false;
-  $defaultLocation = $defaultLocation ?? ['location' => '', 'latitude' => null, 'longitude' => null];
-  $profileLocations = $profileLocations ?? [];
 @endphp
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -12,7 +10,7 @@
     <a href="{{ $isAdmin ? route('admin.vendor-products.all.index') : route('vendor.products.index') }}" class="btn btn-outline-secondary">Back to Listing</a>
   </div>
   @php($oldTiers = old('bulk_min') ? collect(old('bulk_min'))->map(fn($m,$i)=>['buy_min'=>$m,'price'=>old('bulk_price')[$i] ?? ''])->values()->all() : ($product->bulk_tiers ?? [['buy_min'=>10,'price'=>'']]))
-  @php($visibleErrors = collect($errors->getMessages())->except(['latitude', 'longitude'])->flatten())
+  @php($visibleErrors = collect($errors->getMessages())->flatten())
   @if ($visibleErrors->isNotEmpty())
     <div class="alert alert-danger">
       <ul class="mb-0">
@@ -103,7 +101,7 @@
         <label class="form-check-label" for="is_online_sale">List for Online Sale</label>
       </div>
     </div></div>
-    <div class="col-12"><div class="chart-card p-4"><h5 class="mb-3">Pricing & Logistics</h5><div class="row g-3"><div class="col-md-3"><label class="form-label">Base Price *</label><input type="number" step="0.01" id="base_price" class="form-control @error('base_price') is-invalid @enderror" name="base_price" value="{{ old('base_price',$product->base_price) }}">@error('base_price')<div id="base_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Discount %</label><input type="number" step="0.01" id="discount_percent" class="form-control @error('discount_percent') is-invalid @enderror" name="discount_percent" value="{{ old('discount_percent',$product->discount_percent ?? 0) }}">@error('discount_percent')<div id="discount_percent-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Final Price *</label><input type="number" step="0.01" id="final_price" class="form-control @error('final_price') is-invalid @enderror" name="final_price" value="{{ old('final_price',$product->final_price) }}">@error('final_price')<div id="final_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Shipping Charges *</label><input type="number" step="0.01" class="form-control @error('shipping_charges') is-invalid @enderror" name="shipping_charges" value="{{ old('shipping_charges',$product->shipping_charges ?? 0) }}">@error('shipping_charges')<div id="shipping_charges-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Stock Quantity *</label><input type="number" class="form-control @error('stock_quantity') is-invalid @enderror" name="stock_quantity" value="{{ old('stock_quantity',$product->stock_quantity ?? 0) }}">@error('stock_quantity')<div id="stock_quantity-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-6"><label class="form-label">Location in India *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ old('location', $product->location ?: (($defaultLocation ?? [])['location'] ?? '')) }}" placeholder="Search location in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Pre-filled from your store registration location. Edit only if this product is at a different place.</small></div><input id="latitude" type="hidden" name="latitude" value="{{ old('latitude', $product->latitude ?: (($defaultLocation ?? [])['latitude'] ?? '')) }}"><input id="longitude" type="hidden" name="longitude" value="{{ old('longitude', $product->longitude ?: (($defaultLocation ?? [])['longitude'] ?? '')) }}"></div></div></div>
+    <div class="col-12"><div class="chart-card p-4"><h5 class="mb-3">Pricing & Logistics</h5><div class="row g-3"><div class="col-md-3"><label class="form-label">Base Price *</label><input type="number" step="0.01" id="base_price" class="form-control @error('base_price') is-invalid @enderror" name="base_price" value="{{ old('base_price',$product->base_price) }}">@error('base_price')<div id="base_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Discount %</label><input type="number" step="0.01" id="discount_percent" class="form-control @error('discount_percent') is-invalid @enderror" name="discount_percent" value="{{ old('discount_percent',$product->discount_percent ?? 0) }}">@error('discount_percent')<div id="discount_percent-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Final Price *</label><input type="number" step="0.01" id="final_price" class="form-control @error('final_price') is-invalid @enderror" name="final_price" value="{{ old('final_price',$product->final_price) }}">@error('final_price')<div id="final_price-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Shipping Charges *</label><input type="number" step="0.01" class="form-control @error('shipping_charges') is-invalid @enderror" name="shipping_charges" value="{{ old('shipping_charges',$product->shipping_charges ?? 0) }}">@error('shipping_charges')<div id="shipping_charges-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div><div class="col-md-3"><label class="form-label">Stock Quantity *</label><input type="number" class="form-control @error('stock_quantity') is-invalid @enderror" name="stock_quantity" value="{{ old('stock_quantity',$product->stock_quantity ?? 0) }}">@error('stock_quantity')<div id="stock_quantity-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div></div></div></div>
 
 
     <div class="col-12"><div class="chart-card p-4"><div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0">Specs</h5><button type="button" class="btn btn-link p-0 text-decoration-none" id="add-spec">+ Add Row</button></div><div id="specs-wrap" class="row g-2">@php($oldSpecs = old('spec_feature') ? collect(old('spec_feature'))->map(fn($f,$i)=>['feature'=>$f,'value'=>old('spec_value')[$i] ?? ''])->values()->all() : ($product->specs ?? [['feature'=>'','value'=>'']]))@foreach($oldSpecs as $spec)<div class="col-12 spec-row"><div class="row g-2"><div class="col-md-5"><input class="form-control" name="spec_feature[]" placeholder="Feature" value="{{ $spec['feature'] ?? '' }}"></div><div class="col-md-5"><input class="form-control" name="spec_value[]" placeholder="Value" value="{{ $spec['value'] ?? '' }}"></div><div class="col-md-2"><button type="button" class="btn btn-outline-danger btn-sm remove-spec">Remove</button></div></div></div>@endforeach</div></div></div>
@@ -620,45 +618,6 @@ function notify(type, msg) {
   renderVideo();
 })();
 
-window.initVendorProductLocationAutocomplete = function () {
-  const locationInput = document.getElementById('location');
-  const latitudeInput = document.getElementById('latitude');
-  const longitudeInput = document.getElementById('longitude');
-  if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
-
-  let selectedPlaceId = '';
-  const autocomplete = new google.maps.places.Autocomplete(locationInput, {
-    fields: ['formatted_address', 'geometry', 'address_components', 'place_id'],
-    componentRestrictions: { country: 'in' }
-  });
-
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace();
-    if (!place?.geometry?.location) {
-      latitudeInput.value = '';
-      longitudeInput.value = '';
-      selectedPlaceId = '';
-      return;
-    }
-    selectedPlaceId = place.place_id || '';
-    locationInput.value = place.formatted_address || locationInput.value;
-    latitudeInput.value = place.geometry.location.lat().toFixed(7);
-    longitudeInput.value = place.geometry.location.lng().toFixed(7);
-    if (window.jQuery) {
-      jQuery(locationInput).valid();
-    }
-  });
-
-  locationInput.addEventListener('input', () => {
-    if (selectedPlaceId) selectedPlaceId = '';
-    latitudeInput.value = '';
-    longitudeInput.value = '';
-    if (window.jQuery) {
-      jQuery(locationInput).valid();
-    }
-  });
-};
-
 $(function () {
   const $form = $('#vendor-product-form');
   if (!$form.length || String($form.data('ajax-submit')) !== '1') {
@@ -667,13 +626,8 @@ $(function () {
 
   const isEdit = String($form.data('is-edit')) === '1';
   const fieldContainerSelector = '.col-12, .col-md-6, .col-md-3, .form-check, .col-lg-4, .col-lg-8, .vendor-media-block';
-  const hiddenValidationFields = ['latitude', 'longitude'];
   const $submitBtn = $('#productSubmitBtn');
   let originalBtnHtml = $submitBtn.html();
-
-  $.validator.addMethod('locationPicked', function () {
-    return String($('#latitude').val() || '').trim() !== '' && String($('#longitude').val() || '').trim() !== '';
-  }, 'Please select a location from the suggestions list.');
 
   function setSubmitLoading(isLoading) {
     if (isLoading) {
@@ -720,8 +674,7 @@ $(function () {
       const normalizedField = field.replace(/\.[0-9]+(?=\.|$)/g, '').replace(/\*$/, '');
       const message = Array.isArray(messages) ? messages[0] : String(messages || 'Invalid value');
 
-      if (hiddenValidationFields.includes(normalizedField)) {
-        mapped.location = 'Please select a location from the suggestions list.';
+      if (['location', 'latitude', 'longitude'].includes(normalizedField)) {
         return;
       }
 
@@ -758,7 +711,6 @@ $(function () {
       final_price: { required: true, number: true, min: 0 },
       stock_quantity: { required: true, digits: true, min: 0 },
       shipping_charges: { required: true, number: true, min: 0 },
-      location: { required: true, locationPicked: true, maxlength: 255 },
       youtube_link: { url: true },
       discount_percent: { number: true, min: 0, max: 100 },
       accept_terms: { required: {{ ($isAdmin || $product->exists) ? 'false' : 'true' }} },
@@ -774,7 +726,6 @@ $(function () {
       final_price: { required: 'Please enter the final price.' },
       stock_quantity: { required: 'Please enter stock quantity.' },
       shipping_charges: { required: 'Please enter shipping charges.' },
-      location: { required: 'Please enter a location.' },
       accept_terms: { required: 'Please accept the terms and conditions.' },
       @if($isAdmin)
       vendor_id: { required: 'Please select a vendor.' },
@@ -836,9 +787,11 @@ $(function () {
         },
         error: function (xhr) {
           const payload = xhr.responseJSON || {};
-          applyServerErrors(payload.errors || {});
+          const errors = payload.errors || {};
+          applyServerErrors(errors);
           if (xhr.status === 422) {
-            notify('error', 'Please fix the highlighted fields and try again.');
+            const locationMessage = Array.isArray(errors.location) ? errors.location[0] : (errors.location || (Array.isArray(errors.latitude) ? errors.latitude[0] : errors.latitude));
+            notify('error', locationMessage || 'Please fix the highlighted fields and try again.');
             return;
           }
           notify('error', payload.message || (isEdit ? 'Unable to update product.' : 'Unable to save product.'));
@@ -853,22 +806,7 @@ $(function () {
   $('#category_id, #subcategory_id').on('change', function () {
     $(this).valid();
   });
-
-  @if($isAdmin)
-  const profileLocations = @json($profileLocations);
-  const applyProfileLocation = (profileId) => {
-    const location = profileLocations[profileId];
-    if (!location) return;
-    $('#location').val(location.location || '');
-    $('#latitude').val(location.latitude ?? '');
-    $('#longitude').val(location.longitude ?? '');
-  };
-  $('select[name="vendor_id"]').on('change', function () {
-    applyProfileLocation(String(this.value || ''));
-  });
-  @endif
 });
 
 </script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initVendorProductLocationAutocomplete"></script>
 @endpush

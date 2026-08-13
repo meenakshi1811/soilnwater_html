@@ -29,13 +29,10 @@ class ServiceProviderServiceController extends Controller
 
     public function create(): View
     {
-        $serviceProvider = auth()->user()->serviceProvider?->loadMissing('user');
-
         return view('backend.service_provider.services.form', [
             'service' => new ServiceProviderService(),
             'categories' => $this->serviceProviderCategories(),
             'isAdmin' => false,
-            'defaultLocation' => $serviceProvider?->defaultListingLocation() ?? ['location' => '', 'latitude' => null, 'longitude' => null],
         ]);
     }
 
@@ -75,19 +72,19 @@ class ServiceProviderServiceController extends Controller
     public function edit(ServiceProviderService $service): View
     {
         $this->authorizeOwner($service);
-        $serviceProvider = auth()->user()->serviceProvider?->loadMissing('user');
 
         return view('backend.service_provider.services.form', [
             'service' => $service,
             'categories' => $this->serviceProviderCategories(),
             'isAdmin' => false,
-            'defaultLocation' => $serviceProvider?->defaultListingLocation() ?? ['location' => '', 'latitude' => null, 'longitude' => null],
         ]);
     }
 
     public function update(Request $request, ServiceProviderService $service)
     {
         $this->authorizeOwner($service);
+        $serviceProvider = auth()->user()->serviceProvider?->loadMissing('user');
+        $this->applyDefaultListingLocationToRequest($request, $serviceProvider);
         $data = $this->validatedServiceProviderService($request, $service);
         $data['slug'] = $this->uniqueServiceProviderServiceSlug($service->service_provider_id, $data['name'], $service->id);
 

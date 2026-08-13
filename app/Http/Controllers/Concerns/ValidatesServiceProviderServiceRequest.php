@@ -48,6 +48,10 @@ trait ValidatesServiceProviderServiceRequest
             'image' => ['nullable', 'image', 'max:4096'],
             'remove_image' => ['nullable', 'boolean'],
             'accept_terms' => ['nullable', 'accepted'],
+        ], [
+            'location.required' => 'This account does not have a registered address. Update the user profile first.',
+            'latitude.required' => 'This account does not have saved coordinates. Update the user address first.',
+            'longitude.required' => 'This account does not have saved coordinates. Update the user address first.',
         ]);
 
         $validated['category'] = Category::find($validated['category_id'])?->name;

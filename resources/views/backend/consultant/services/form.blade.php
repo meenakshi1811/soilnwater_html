@@ -5,7 +5,7 @@
   $isAdmin = $isAdmin ?? false;
   $categories = $categories ?? collect();
   $consultants = $consultants ?? collect();
-  $visibleErrors = collect(($errors ?? new \Illuminate\Support\ViewErrorBag)->getMessages())->except(['latitude', 'longitude'])->flatten();
+  $visibleErrors = collect(($errors ?? new \Illuminate\Support\ViewErrorBag)->getMessages())->flatten();
   $chargeDurationLabels = ['minute' => 'Minutes', 'hour' => 'Hours', 'day' => 'Days', 'month' => 'Months', 'contractual' => 'Contractual'];
   $storedCharges = collect($service->consultation_charges ?: [])->map(function ($charge, $key) {
       return is_array($charge) ? ['duration' => $charge['duration'] ?? '', 'price' => $charge['price'] ?? ''] : ['duration' => $key, 'price' => $charge];
@@ -19,11 +19,6 @@
   $consultationType = old('consultation_type', $service->consultation_type ?: ($service->is_online ? 'online' : 'offline'));
   $businessTypes = ['Architect', 'Lawyer', 'Landscaper', 'Software Consultant', 'Business'];
   $existingImagePath = old('remove_image') ? null : ($service->image_path ?: null);
-  $defaultLocation = $defaultLocation ?? ['location' => '', 'latitude' => null, 'longitude' => null];
-  $profileLocations = $profileLocations ?? [];
-  $listingLocationValue = old('location', $service->location ?: ($defaultLocation['location'] ?? ''));
-  $listingLatitudeValue = old('latitude', $service->latitude ?: ($defaultLocation['latitude'] ?? ''));
-  $listingLongitudeValue = old('longitude', $service->longitude ?: ($defaultLocation['longitude'] ?? ''));
 @endphp
 <div class="admin-panel ems-page">
   <div class="d-flex justify-content-between align-items-center mb-4"><div><p class="ems-kicker mb-1">{{ $isAdmin ? 'Admin Portal' : 'Consultant Portal' }}</p><h2 class="admin-title mb-0">{{ $service->exists ? 'Edit Consultation Service' : ($isAdmin ? 'Create Service for Consultant' : 'Add Consultation Service') }}</h2></div><a href="{{ $isAdmin ? route('admin.consultant-services.all.index') : route('consultant.services.index') }}" class="btn btn-outline-secondary">Back to Listing</a></div>
@@ -53,7 +48,7 @@
       <div class="col-12"><label class="form-label">Detailed Description</label><textarea class="form-control @error('description') is-invalid @enderror" rows="5" name="description" placeholder="Detailed description">{{ old('description', $service->description) }}</textarea>@error('description')<div id="description-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror</div>
       <div class="col-12"><label class="form-label">Geographical Service Area</label><textarea class="form-control @error('service_area') is-invalid @enderror" rows="3" name="service_area" placeholder="Example: Dehradun, Mussoorie, Haridwar">{{ old('service_area', $service->service_area) }}</textarea>@error('service_area')<div id="service_area-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Enter offline service cities or areas separated by commas.</small></div>
     </div></div></div>
-    <div class="col-lg-4"><div class="chart-card p-4"><h5 class="mb-3">Media & Location</h5>
+    <div class="col-lg-4"><div class="chart-card p-4"><h5 class="mb-3">Media</h5>
       <div class="vendor-media-block">
         <label class="form-label">Consultant Image / Service Image</label>
         <label class="vendor-media-dropzone" for="serviceImageInput" id="imageDropzone">
@@ -70,9 +65,6 @@
         <div id="imagePreviewGrid" class="vendor-media-preview-grid"></div>
       </div>
 
-      <label class="form-label mt-3">Consultant Location *</label><input id="location" class="form-control @error('location') is-invalid @enderror" name="location" value="{{ $listingLocationValue }}" placeholder="Search location in India" autocomplete="off">@error('location')<div id="location-error" class="invalid-feedback d-block">{{ $message }}</div>@enderror<small class="text-muted">Pre-filled from your registration location. Edit only if this service is at a different place.</small>
-      <input id="latitude" type="hidden" name="latitude" value="{{ $listingLatitudeValue }}">
-      <input id="longitude" type="hidden" name="longitude" value="{{ $listingLongitudeValue }}">
       @if($isAdmin)
         <input type="hidden" name="accept_terms" value="1">
       @elseif(!$service->exists)
@@ -423,54 +415,14 @@ chargesWrap?.addEventListener('click', function (event) {
   renderImage();
 })();
 
-window.initConsultantServiceLocationAutocomplete = function () {
-  const locationInput = document.getElementById('location');
-  const latitudeInput = document.getElementById('latitude');
-  const longitudeInput = document.getElementById('longitude');
-  if (!locationInput || !window.google || !google.maps || !google.maps.places) return;
-
-  let selectedPlaceId = '';
-  const autocomplete = new google.maps.places.Autocomplete(locationInput, {
-    fields: ['formatted_address', 'geometry', 'address_components', 'place_id'],
-    componentRestrictions: { country: 'in' }
-  });
-
-  autocomplete.addListener('place_changed', function () {
-    const place = autocomplete.getPlace();
-    if (!place?.geometry?.location) {
-      latitudeInput.value = '';
-      longitudeInput.value = '';
-      selectedPlaceId = '';
-      return;
-    }
-    selectedPlaceId = place.place_id || '';
-    locationInput.value = place.formatted_address || locationInput.value;
-    latitudeInput.value = place.geometry.location.lat().toFixed(7);
-    longitudeInput.value = place.geometry.location.lng().toFixed(7);
-    if (window.jQuery) jQuery(locationInput).valid();
-  });
-
-  locationInput.addEventListener('input', function () {
-    if (selectedPlaceId) selectedPlaceId = '';
-    latitudeInput.value = '';
-    longitudeInput.value = '';
-    if (window.jQuery) jQuery(locationInput).valid();
-  });
-};
-
 $(function () {
   const $form = $('#consultant-service-form');
   if (!$form.length || String($form.data('ajax-submit')) !== '1') return;
 
   const isEdit = String($form.data('is-edit')) === '1';
   const fieldContainerSelector = '.col-12, .col-md-6, .form-check, .col-lg-4, .col-lg-8, .vendor-media-block';
-  const hiddenValidationFields = ['latitude', 'longitude'];
   const $submitBtn = $('#consultantServiceSubmitBtn');
   let originalBtnHtml = $submitBtn.html();
-
-  $.validator.addMethod('locationPicked', function () {
-    return String($('#latitude').val() || '').trim() !== '' && String($('#longitude').val() || '').trim() !== '';
-  }, 'Please select a location from the suggestions list.');
 
   $.validator.addMethod('requireChargeRow', function () {
     return $('.charge-row').filter(function () {
@@ -547,8 +499,7 @@ $(function () {
     Object.entries(errors || {}).forEach(function ([field, messages]) {
       const normalizedField = field.replace(/\.[0-9]+(?=\.|$)/g, '').replace(/\*$/, '');
       const message = Array.isArray(messages) ? messages[0] : String(messages || 'Invalid value');
-      if (hiddenValidationFields.includes(normalizedField)) {
-        mapped.location = 'Please select a location from the suggestions list.';
+      if (['location', 'latitude', 'longitude'].includes(normalizedField)) {
         return;
       }
       if (normalizedField.startsWith('charge_duration') || normalizedField.startsWith('charge_price')) {
@@ -577,7 +528,6 @@ $(function () {
       category_id: { required: true },
       consultation_type: { required: true },
       business_type: { required: true },
-      location: { required: true, locationPicked: true, maxlength: 255 },
       accept_terms: { required: {{ ($isAdmin || $service->exists) ? 'false' : 'true' }} },
       @if($isAdmin)
       consultant_id: { required: true },
@@ -588,7 +538,6 @@ $(function () {
       category_id: { required: 'Please select a category.' },
       consultation_type: { required: 'Please select a consultation type.' },
       business_type: { required: 'Please select a business type.' },
-      location: { required: 'Please enter a location.' },
       accept_terms: { required: 'Please accept the terms and conditions.' },
       @if($isAdmin)
       consultant_id: { required: 'Please select a consultant.' },
@@ -649,9 +598,11 @@ $(function () {
         },
         error: function (xhr) {
           const payload = xhr.responseJSON || {};
-          applyServerErrors(payload.errors || {});
+          const errors = payload.errors || {};
+          applyServerErrors(errors);
           if (xhr.status === 422) {
-            notify('error', 'Please fix the highlighted fields and try again.');
+            const locationMessage = Array.isArray(errors.location) ? errors.location[0] : (errors.location || (Array.isArray(errors.latitude) ? errors.latitude[0] : errors.latitude));
+            notify('error', locationMessage || 'Please fix the highlighted fields and try again.');
             return;
           }
           notify('error', payload.message || (isEdit ? 'Unable to update consultation service.' : 'Unable to save consultation service.'));
@@ -662,21 +613,6 @@ $(function () {
       });
     }
   });
-
-  @if($isAdmin)
-  const profileLocations = @json($profileLocations);
-  const applyProfileLocation = (profileId) => {
-    const location = profileLocations[profileId];
-    if (!location) return;
-    $('#location').val(location.location || '');
-    $('#latitude').val(location.latitude ?? '');
-    $('#longitude').val(location.longitude ?? '');
-  };
-  $('select[name="consultant_id"]').on('change', function () {
-    applyProfileLocation(String(this.value || ''));
-  });
-  @endif
 });
 </script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initConsultantServiceLocationAutocomplete"></script>
 @endpush

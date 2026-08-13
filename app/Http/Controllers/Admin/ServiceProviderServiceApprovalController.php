@@ -27,7 +27,6 @@ class ServiceProviderServiceApprovalController extends Controller
             'categories' => $this->serviceProviderCategories(),
             'isAdmin' => true,
             'serviceProviders' => $serviceProviders,
-            'profileLocations' => $this->profileLocationsMap($serviceProviders),
         ]);
     }
 

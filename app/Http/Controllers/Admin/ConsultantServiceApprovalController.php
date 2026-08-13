@@ -27,7 +27,6 @@ class ConsultantServiceApprovalController extends Controller
             'categories' => $this->consultantCategories(),
             'isAdmin' => true,
             'consultants' => $consultants,
-            'profileLocations' => $this->profileLocationsMap($consultants),
         ]);
     }
 

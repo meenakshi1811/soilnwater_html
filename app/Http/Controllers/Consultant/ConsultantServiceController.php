@@ -29,13 +29,10 @@ class ConsultantServiceController extends Controller
 
     public function create(): View
     {
-        $consultant = auth()->user()->consultant?->loadMissing('user');
-
         return view('backend.consultant.services.form', [
             'service' => new ConsultantService(),
             'categories' => $this->consultantCategories(),
             'isAdmin' => false,
-            'defaultLocation' => $consultant?->defaultListingLocation() ?? ['location' => '', 'latitude' => null, 'longitude' => null],
         ]);
     }
 
@@ -75,19 +72,19 @@ class ConsultantServiceController extends Controller
     public function edit(ConsultantService $service): View
     {
         $this->authorizeOwner($service);
-        $consultant = auth()->user()->consultant?->loadMissing('user');
 
         return view('backend.consultant.services.form', [
             'service' => $service,
             'categories' => $this->consultantCategories(),
             'isAdmin' => false,
-            'defaultLocation' => $consultant?->defaultListingLocation() ?? ['location' => '', 'latitude' => null, 'longitude' => null],
         ]);
     }
 
     public function update(Request $request, ConsultantService $service)
     {
         $this->authorizeOwner($service);
+        $consultant = auth()->user()->consultant?->loadMissing('user');
+        $this->applyDefaultListingLocationToRequest($request, $consultant);
         $data = $this->validated($request, $service, false);
         $data['slug'] = $this->uniqueConsultantServiceSlug($service->consultant_id, $data['name'], $service->id);
 

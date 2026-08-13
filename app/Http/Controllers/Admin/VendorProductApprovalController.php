@@ -28,7 +28,6 @@ class VendorProductApprovalController extends Controller
             'categories' => $this->vendorCategories(),
             'isAdmin' => true,
             'vendors' => $vendors,
-            'profileLocations' => $this->profileLocationsMap($vendors),
         ]);
     }
 

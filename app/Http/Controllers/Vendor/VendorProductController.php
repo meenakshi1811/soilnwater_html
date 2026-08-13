@@ -35,12 +35,9 @@ class VendorProductController extends Controller
 
     public function create()
     {
-        $vendor = auth()->user()->vendor?->loadMissing('user');
-
         return view('backend.vendor.products.form', [
             'product' => new VendorProduct(),
             'categories' => $this->vendorCategories(),
-            'defaultLocation' => $vendor?->defaultListingLocation() ?? ['location' => '', 'latitude' => null, 'longitude' => null],
         ]);
     }
 
@@ -77,17 +74,17 @@ class VendorProductController extends Controller
     public function edit(VendorProduct $product)
     {
         abort_unless($product->vendor_id === auth()->user()->vendor?->id, 403);
-        $vendor = auth()->user()->vendor?->loadMissing('user');
 
         return view('backend.vendor.products.form', compact('product') + [
             'categories' => $this->vendorCategories(),
-            'defaultLocation' => $vendor?->defaultListingLocation() ?? ['location' => '', 'latitude' => null, 'longitude' => null],
         ]);
     }
 
     public function update(Request $request, VendorProduct $product)
     {
         abort_unless($product->vendor_id === auth()->user()->vendor?->id, 403);
+        $vendor = auth()->user()->vendor?->loadMissing('user');
+        $this->applyDefaultListingLocationToRequest($request, $vendor);
         $product->update($this->validated($request, false, $product));
 
         PortalNotificationService::notifyAdminsOfApprovalRequest('Updated vendor product', $product->name, route('admin.vendor-products.show', $product));
