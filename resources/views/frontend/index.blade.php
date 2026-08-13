@@ -1014,15 +1014,15 @@
             @endif
 
             <div class="ad-slider auto-ad-slider recent-ads-slider top-vendors-cards-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Top vendors slider">
-              @if ($topVendorSlides->isNotEmpty())
-                @foreach ($topVendorSlides as $slideIndex => $vendorChunk)
+              <?php if ($topVendorSlides->isNotEmpty()): ?>
+                <?php foreach ($topVendorSlides as $slideIndex => $vendorChunk): ?>
                   <div class="ad-slide">
                     <div class="product-grid-4 recent-ads-grid top-vendors-grid">
-                      @foreach ($vendorChunk as $vendor)
+                      <?php foreach ($vendorChunk as $vendor): ?>
                         @include('frontend.partials.vendor-card', ['vendor' => $vendor])
-                      @endforeach
-                      @if ($topVendorsSideAdsList->isNotEmpty())
-                        @php $sideAd = $topVendorsSideAdsList[$slideIndex % $topVendorsSideAdsList->count()]; @endphp
+                      <?php endforeach; ?>
+                      <?php if ($topVendorsSideAdsList->isNotEmpty()): ?>
+                        <?php $sideAd = $topVendorsSideAdsList[$slideIndex % $topVendorsSideAdsList->count()]; ?>
                         <article class="prod-card recent-ad-card top-vendors-ad-card"
                           data-ad-description="{{ $sideAd->short_description ?: 'Special marketplace ad available now.' }}"
                           data-ad-url="{{ $sideAd->shareUrl() }}"
@@ -1036,17 +1036,15 @@
                             </span>
                           </div>
                         </article>
-                      @endif
+                      <?php endif; ?>
                     </div>
                   </div>
-                @endforeach
-              @endif
-
-              @if ($topVendorSlides->isEmpty() && $topVendorsSideAdsList->isNotEmpty())
-                @foreach ($topVendorsSideAdsList->chunk(6) as $adsChunk)
+                <?php endforeach; ?>
+              <?php elseif ($topVendorsSideAdsList->isNotEmpty()): ?>
+                <?php foreach ($topVendorsSideAdsList->chunk(6) as $adsChunk): ?>
                   <div class="ad-slide">
                     <div class="product-grid-4 recent-ads-grid top-vendors-grid">
-                      @foreach ($adsChunk as $sideAd)
+                      <?php foreach ($adsChunk as $sideAd): ?>
                         <article class="prod-card recent-ad-card top-vendors-ad-card"
                           data-ad-description="{{ $sideAd->short_description ?: 'Special marketplace ad available now.' }}"
                           data-ad-url="{{ $sideAd->shareUrl() }}"
@@ -1060,13 +1058,11 @@
                             </span>
                           </div>
                         </article>
-                      @endforeach
+                      <?php endforeach; ?>
                     </div>
                   </div>
-                @endforeach
-              @endif
-
-              @if ($topVendorSlides->isEmpty() && $topVendorsSideAdsList->isEmpty())
+                <?php endforeach; ?>
+              <?php else: ?>
                 <div class="ad-slide">
                   <div class="product-grid-4 recent-ads-grid top-vendors-grid">
                     <article class="prod-card recent-ad-card">
@@ -1077,7 +1073,7 @@
                     </article>
                   </div>
                 </div>
-              @endif
+              <?php endif; ?>
             </div>
             @if($showPremiumOptions)
               @include('frontend.premium.partials.module-cta', ['type' => 'vendor'])
