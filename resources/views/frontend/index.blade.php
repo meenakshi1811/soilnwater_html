@@ -8,8 +8,9 @@
   $showPopularPropertiesNearGreenwood = !empty($sectionToggles['popular_properties_near_greenwood']) && $sectionToggles['popular_properties_near_greenwood'];
   $topVendorsHeaderAdsList = collect($topVendorsHeaderAds ?? []);
   $topVendorsList = collect($topVendors ?? []);
-  $topVendorSlides = $topVendorsList->chunk(5);
-  $topVendorsSideAdsList = collect($topVendorsSideAds ?? []);
+  $topVendorsSideAdsList = collect($topVendorsSideAds ?? [])->values();
+  $topVendorSlideSize = $topVendorsSideAdsList->isNotEmpty() ? 5 : 6;
+  $topVendorSlides = $topVendorsList->chunk($topVendorSlideSize);
   $heroBannerImage = data_get($homepageSetting ?? null, 'hero_banner_image');
   $heroButtonText = data_get($homepageSetting ?? null, 'hero_button_text', 'Advertise Now');
   $heroButtonLink = data_get($homepageSetting ?? null, 'hero_button_link', '#');
@@ -996,69 +997,83 @@
           <!-- Top Vendors -->
           <?php if ($showTopVendors): ?>
 
-          <div class="sec">
+          <div class="sec recent-ads-section top-vendors-section">
             <div class="sec-head">
               <div class="sec-title"><span class="icon"><i class="fa-solid fa-store"></i></span> Top Vendors</div>
               <a class="view-all" href="{{ route('frontend.vendors.index') }}">VIEW ALL ▶</a>
             </div>
-            <div class="ad-slider auto-ad-slider top-ad-slider top-vendors-featured-slider" aria-label="Top vendor featured ads slider">
-              <?php foreach ($topVendorsHeaderAdsList as $ad): ?>
-                <div class="vendor-top-ad ad-slide top-vendor-image-slide">
-                  <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendor-header-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
-                </div>
-              <?php endforeach; ?>
-              <?php if ($topVendorsHeaderAdsList->isEmpty()): ?>
-                <div class="vendor-top-ad ad-slide">
-                  <div>
-                    <div class="vendor-top-ad-title">Boost Vendor Reach</div>
-                    <div class="vendor-top-ad-sub">Auto-target active buyers and drive qualified leads every day.</div>
+
+            @if ($topVendorsHeaderAdsList->isNotEmpty())
+              <div class="ad-slider auto-ad-slider top-vendors-banner-slider" aria-label="Top vendor banner ads slider">
+                @foreach ($topVendorsHeaderAdsList as $ad)
+                  <div class="ad-slide">
+                    <img src="{{ asset($ad->final_image) }}" alt="{{ $ad->title }}" class="top-vendors-banner-img" data-ad-id="{{ $ad->id }}" data-ad-url="{{ $ad->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
                   </div>
-                  <button class="vendor-top-ad-btn">Featured</button>
-                </div>
-              <?php endif; ?>
-            </div>
-            <div class="row g-3 align-items-start top-vendors-layout">
-              <div class="col-12 col-lg-9">
-                <div class="ad-slider auto-ad-slider top-vendors-cards-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Top vendors slider">
-                  <?php foreach ($topVendorSlides as $vendorChunk): ?>
-                    <div class="ad-slide">
-                      <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-1 offer-coupon-grid vendor-offer-grid">
-                        <?php foreach ($vendorChunk as $vendor): ?>
-                          <div class="col">
-                            @include('frontend.partials.vendor-card', ['vendor' => $vendor])
-                          </div>
-                        <?php endforeach; ?>
-                      </div>
-                    </div>
-                  <?php endforeach; ?>
-                  <?php if ($topVendorSlides->isEmpty()): ?>
-                    <div class="ad-slide">
-                      <div class="row row-cols-1 g-1 offer-coupon-grid vendor-offer-grid">
-                        <div class="col">
-                          <div class="view-all-card ad-slot-card h-100" style="min-height:130px;"><h4>No vendors available</h4><p>Please check back later.</p></div>
-                        </div>
-                      </div>
-                    </div>
-                  <?php endif; ?>
-                </div>
+                @endforeach
               </div>
-              <aside class="col-12 col-lg-3 section-side-ad top-vendor-side-static" aria-label="Top vendor side ad">
-                <?php $topVendorSideAd = $topVendorsSideAdsList->first(); ?>
-                <?php if ($topVendorSideAd): ?>
-                  <div class="side-card top-vendor-side-image-card">
-                    <img class="side-card-img top-vendor-side-full-img" src="{{ asset($topVendorSideAd->final_image) }}" alt="{{ $topVendorSideAd->title }}" data-ad-id="{{ $topVendorSideAd->id }}" data-ad-url="{{ $topVendorSideAd->shareUrl() }}" data-ad-description="Special marketplace ad available now.">
-                  </div>
-                <?php else: ?>
-                  <div class="side-card">
-                    <img class="side-card-img" src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&q=70" alt="Top vendor ad">
-                    <div class="side-card-body">
-                      <h3>Top Vendor Ad</h3>
-                      <p>Show your brand next to trusted vendors.</p>
-                      <button class="btn-learn">Get Placement</button>
+            @endif
+
+            <div class="ad-slider auto-ad-slider recent-ads-slider top-vendors-cards-slider" data-show-arrows="true" data-show-dots="false" data-pause-on-hover="false" aria-label="Top vendors slider">
+              @if ($topVendorSlides->isNotEmpty())
+                @foreach ($topVendorSlides as $slideIndex => $vendorChunk)
+                  <div class="ad-slide">
+                    <div class="product-grid-4 recent-ads-grid top-vendors-grid">
+                      @foreach ($vendorChunk as $vendor)
+                        @include('frontend.partials.vendor-card', ['vendor' => $vendor])
+                      @endforeach
+                      @if ($topVendorsSideAdsList->isNotEmpty())
+                        @php $sideAd = $topVendorsSideAdsList[$slideIndex % $topVendorsSideAdsList->count()]; @endphp
+                        <article class="prod-card recent-ad-card top-vendors-ad-card"
+                          data-ad-description="{{ $sideAd->short_description ?: 'Special marketplace ad available now.' }}"
+                          data-ad-url="{{ $sideAd->shareUrl() }}"
+                        >
+                          <img src="{{ asset($sideAd->final_image) }}" alt="{{ $sideAd->title }}" data-ad-id="{{ $sideAd->id }}" data-ad-url="{{ $sideAd->shareUrl() }}" data-ad-description="{{ $sideAd->short_description ?: 'Special marketplace ad available now.' }}">
+                          <div class="prod-card-body">
+                            <h6 class="mb-1 offer-coupon-title">{{ $sideAd->title }}</h6>
+                            <span class="recent-ad-meta">
+                              <i class="fa-solid fa-rectangle-ad"></i>
+                              Featured ad
+                            </span>
+                          </div>
+                        </article>
+                      @endif
                     </div>
                   </div>
-                <?php endif; ?>
-              </aside>
+                @endforeach
+              @elseif ($topVendorsSideAdsList->isNotEmpty())
+                @foreach ($topVendorsSideAdsList->chunk(6) as $adsChunk)
+                  <div class="ad-slide">
+                    <div class="product-grid-4 recent-ads-grid top-vendors-grid">
+                      @foreach ($adsChunk as $sideAd)
+                        <article class="prod-card recent-ad-card top-vendors-ad-card"
+                          data-ad-description="{{ $sideAd->short_description ?: 'Special marketplace ad available now.' }}"
+                          data-ad-url="{{ $sideAd->shareUrl() }}"
+                        >
+                          <img src="{{ asset($sideAd->final_image) }}" alt="{{ $sideAd->title }}" data-ad-id="{{ $sideAd->id }}" data-ad-url="{{ $sideAd->shareUrl() }}" data-ad-description="{{ $sideAd->short_description ?: 'Special marketplace ad available now.' }}">
+                          <div class="prod-card-body">
+                            <h6 class="mb-1 offer-coupon-title">{{ $sideAd->title }}</h6>
+                            <span class="recent-ad-meta">
+                              <i class="fa-solid fa-rectangle-ad"></i>
+                              Featured ad
+                            </span>
+                          </div>
+                        </article>
+                      @endforeach
+                    </div>
+                  </div>
+                @endforeach
+              @else
+                <div class="ad-slide">
+                  <div class="product-grid-4 recent-ads-grid top-vendors-grid">
+                    <article class="prod-card recent-ad-card">
+                      <div class="prod-card-body">
+                        <h6 class="mb-1 offer-coupon-title">No vendors available</h6>
+                        <span class="recent-ad-meta"><i class="fa-solid fa-circle-info"></i> Please check back later.</span>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+              @endif
             </div>
             @if($showPremiumOptions)
               @include('frontend.premium.partials.module-cta', ['type' => 'vendor'])
